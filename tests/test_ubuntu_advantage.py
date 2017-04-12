@@ -2,6 +2,8 @@ from __future__ import print_function
 import imp
 import os
 
+import mock
+
 from fixtures import TestWithFixtures, TempDir
 
 script_path = os.path.join(
@@ -47,7 +49,34 @@ class UbuntuAdvantageTest(TestWithFixtures):
             '/ubuntu precise main\n')
         self.assertEqual(expected, content)
 
-    def test_enable_esm(self):
+    @mock.patch('ubuntu_advantage.Popen')
+    def test_import_gpg_key(self, mock_popen):
+        """import_gpg_key imports the repository key."""
+        mock_process = mock.MagicMock()
+        mock_process.wait.return_value = 0
+        mock_process.communicate.return_value = '', ''
+        mock_popen.return_value = mock_process
+        ubuntu_advantage.import_gpg_key(print=self.print)
+        mock_popen.assert_called_with(
+            ['apt-key', 'add', '-'], stdin=mock.ANY, stderr=mock.ANY,
+            stdout=mock.ANY)
+        mock_process.communicate.assert_called_with(
+            input=ubuntu_advantage.REPO_GPG_KEY)
+
+    @mock.patch('ubuntu_advantage.Popen')
+    def test_import_gpg_key_failure(self, mock_popen):
+        """If import_gpg_key fails, an error is raised with process stderr."""
+        mock_process = mock.MagicMock()
+        mock_process.wait.return_value = 1
+        mock_process.communicate.return_value = '', 'an error!'
+        mock_popen.return_value = mock_process
+        with self.assertRaises(
+                ubuntu_advantage.APTAddGPGKeyFailed) as context_manager:
+            ubuntu_advantage.import_gpg_key(print=self.print)
+        self.assertEqual('an error!', str(context_manager.exception))
+
+    @mock.patch('ubuntu_advantage.import_gpg_key')
+    def test_enable_esm(self, mock_import_gpg_key):
         """enable_esm adds the repository to sources lists."""
         ubuntu_advantage.enable_esm(
             'user:pass', lists_dir=self.tempdir.path, print=self.print)
@@ -66,7 +95,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
              '  Run "sudo apt-get update" to update lists.'],
             self.messages)
 
-    def test_disable_esm(self):
+    @mock.patch('ubuntu_advantage.import_gpg_key')
+    def test_disable_esm(self, mock_import_gpg_key):
         """disabl_esm renames the lists file as .save."""
         ubuntu_advantage.enable_esm(
             'user:pass', lists_dir=self.tempdir.path, print=self.print)

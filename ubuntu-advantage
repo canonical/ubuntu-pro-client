@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import argparse
 import textwrap
+from subprocess import Popen, PIPE
 
 
 REPO_LIST = 'ubuntu-esm-precise.list'
@@ -15,6 +16,65 @@ REPO_TEMPLATE = textwrap.dedent(
     deb https://{token}@{url}/ubuntu precise main
     # deb-src https://{token}@{url}/ubuntu precise main
     ''')
+REPO_GPG_KEY = textwrap.dedent(
+    '''\
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+    Version: GnuPG v1
+
+    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
+    =nNb1
+    -----END PGP PUBLIC KEY BLOCK-----
+    ''')
+
+
+class APTAddGPGKeyFailed(Exception):
+    """Failed to add the GPG key."""
 
 
 def get_args(argv):
@@ -34,6 +94,7 @@ def get_args(argv):
 
 def enable_esm(token, lists_dir=None, print=print):
     """Enable ESM archive with the specified token."""
+    import_gpg_key()
     list_file = get_list_file(lists_dir=lists_dir)
     write_list_file(list_file, token)
     print(
@@ -68,10 +129,23 @@ def write_list_file(filename, token):
         fh.write(REPO_TEMPLATE.format(url=REPO_URL, token=token))
 
 
+def import_gpg_key(print=print):
+    """Import the GPG key for the repository."""
+    command = ['apt-key', 'add', '-']
+    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    _, err = process.communicate(input=REPO_GPG_KEY)
+    retcode = process.wait()
+    if retcode != 0:
+        raise APTAddGPGKeyFailed(err.strip())
+
+
 def main(argv=None):
     args = get_args(argv)
     if args.action == 'enable-esm':
-        enable_esm(args.token)
+        try:
+            enable_esm(args.token)
+        except APTAddGPGKeyFailed as error:
+            print('Failed to enable ESM archive: {}'.format(error))
     if args.action == 'disable-esm':
         disable_esm()
 
