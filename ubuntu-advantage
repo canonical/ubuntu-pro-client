@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+"""Enable the Ubuntu Extended Security Maintenance archive."""
+
+import argparse
+
+
+def get_args(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest='action', help='action to perform')
+    subparsers.required = True
+
+    action_enable = subparsers.add_parser(
+        'enable-esm', help='enable the ESM repository')
+    action_enable.add_argument(
+        'token', help='the user token, in the form "<chars>:<chars>"')
+
+    subparsers.add_parser('disable-esm', help='disable the ESM repository')
+
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    pass
+
+
+if __name__ == '__main__':
+    main()
