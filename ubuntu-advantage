@@ -2,7 +2,19 @@
 
 """Enable the Ubuntu Extended Security Maintenance archive."""
 
+from __future__ import print_function
+import os
 import argparse
+import textwrap
+
+
+REPO_LIST = 'ubuntu-esm-precise.list'
+REPO_URL = 'extended.security.staging.ubuntu.com'
+REPO_TEMPLATE = textwrap.dedent(
+    '''\
+    deb https://{token}@{url}/ubuntu precise main
+    # deb-src https://{token}@{url}/ubuntu precise main
+    ''')
 
 
 def get_args(argv):
@@ -13,15 +25,55 @@ def get_args(argv):
     action_enable = subparsers.add_parser(
         'enable-esm', help='enable the ESM repository')
     action_enable.add_argument(
-        'token', help='the user token, in the form "<chars>:<chars>"')
+        'token', help='the user token, in the form "<user>:<password>"')
 
     subparsers.add_parser('disable-esm', help='disable the ESM repository')
 
     return parser.parse_args(argv)
 
 
+def enable_esm(token, lists_dir=None, print=print):
+    """Enable ESM archive with the specified token."""
+    list_file = get_list_file(lists_dir=lists_dir)
+    write_list_file(list_file, token)
+    print(
+        'Ubuntu ESM repository enabled.'
+        '  Run "sudo apt-get update" to update lists.')
+
+
+def disable_esm(lists_dir=None, print=print):
+    """Disable ESM archive."""
+    list_file = get_list_file(lists_dir=lists_dir)
+    if os.path.exists(list_file):
+        list_file_disabled = list_file + '.save'
+        os.rename(list_file, list_file_disabled)
+        print(
+            'Ubuntu ESM repository disabled.'
+            '  Run "sudo apt-get update" to update lists.')
+    else:
+        print('Ubuntu ESM repository was not enabled.')
+
+
+def get_list_file(lists_dir=None):
+    """Return the sources.list.d file for the repository."""
+    if lists_dir is None:
+        lists_dir = '/etc/apt/sources.list.d'
+
+    return os.path.join(lists_dir, REPO_LIST)
+
+
+def write_list_file(filename, token):
+    """Write the sources.list.d file."""
+    with open(filename, 'w') as fh:
+        fh.write(REPO_TEMPLATE.format(url=REPO_URL, token=token))
+
+
 def main(argv=None):
-    pass
+    args = get_args(argv)
+    if args.action == 'enable-esm':
+        enable_esm(args.token)
+    if args.action == 'disable-esm':
+        disable_esm()
 
 
 if __name__ == '__main__':
