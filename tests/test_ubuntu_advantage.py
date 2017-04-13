@@ -36,6 +36,18 @@ class UbuntuAdvantageTest(TestWithFixtures):
             ubuntu_advantage.get_list_file(),
             '/etc/apt/sources.list.d/ubuntu-esm-precise.list')
 
+    def test_valid_token_valid(self):
+        """valid_token returns True if the token has a valid format."""
+        self.assertTrue(ubuntu_advantage.valid_token('foo:bar'))
+
+    def test_valid_token_invalid_no_colon(self):
+        """valid_token returns False if the token contains no colon."""
+        self.assertFalse(ubuntu_advantage.valid_token('foo-bar'))
+
+    def test_valid_token_invalid_too_many_colon(self):
+        """valid_token returns False if the token contains many colons."""
+        self.assertFalse(ubuntu_advantage.valid_token('foo:bar:baz'))
+
     def test_write_list_file(self):
         """write_list_file writes the sources.list.d file."""
         list_file = self.tempdir.join('sample.list')
