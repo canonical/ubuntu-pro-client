@@ -85,7 +85,7 @@ def get_args(argv):
     action_enable = subparsers.add_parser(
         'enable-esm', help='enable the ESM repository')
     action_enable.add_argument(
-        'token', help='the user token, in the form "<user>:<password>"')
+        'token', help='the user token, in the form "user:password"')
 
     subparsers.add_parser('disable-esm', help='disable the ESM repository')
 
@@ -139,13 +139,26 @@ def import_gpg_key(print=print):
         raise APTAddGPGKeyFailed(err.strip())
 
 
+def valid_token(token):
+    """Return whether the format of the provided token is valid."""
+    return len(token.split(':')) == 2
+
+
 def main(argv=None):
     args = get_args(argv)
+
+    if os.geteuid() != 0:
+        exit('This command must be run as root (try using sudo)')
+
     if args.action == 'enable-esm':
+        if not valid_token(args.token):
+            exit(
+                'Token format is invalid, it should be in the form'
+                ' "user:password"')
         try:
             enable_esm(args.token)
         except APTAddGPGKeyFailed as error:
-            print('Failed to enable ESM archive: {}'.format(error))
+            exit('Failed to enable ESM archive: {}'.format(error))
     if args.action == 'disable-esm':
         disable_esm()
 
