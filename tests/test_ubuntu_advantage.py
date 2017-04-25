@@ -55,9 +55,9 @@ class UbuntuAdvantageTest(TestWithFixtures):
         with open(list_file) as fh:
             content = fh.read()
         expected = (
-            'deb https://user:pass@extended.security.staging.ubuntu.com'
+            'deb https://user:pass@esm.ubuntu.com'
             '/ubuntu precise main\n'
-            '# deb-src https://user:pass@extended.security.staging.ubuntu.com'
+            '# deb-src https://user:pass@esm.ubuntu.com'
             '/ubuntu precise main\n')
         self.assertEqual(expected, content)
 
@@ -96,9 +96,9 @@ class UbuntuAdvantageTest(TestWithFixtures):
         with open(list_file) as fh:
             content = fh.read()
         expected = (
-            'deb https://user:pass@extended.security.staging.ubuntu.com'
+            'deb https://user:pass@esm.ubuntu.com'
             '/ubuntu precise main\n'
-            '# deb-src https://user:pass@extended.security.staging.ubuntu.com'
+            '# deb-src https://user:pass@esm.ubuntu.com'
             '/ubuntu precise main\n')
         self.assertEqual(expected, content)
         # a message is printed out
