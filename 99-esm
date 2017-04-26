@@ -14,4 +14,4 @@ if `apt-cache policy | grep -q 'esm\.ubuntu\.com'`; then
 else
     echo "$ESM_DISABLED"
 fi
-
+echo
