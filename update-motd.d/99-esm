@@ -1,0 +1,17 @@
+#!/bin/sh
+
+ESM_ENABLED="This Ubuntu 12.04 system is configured to receive extended security updates
+from Canonical:
+ * https://www.ubuntu.com/esm"
+
+ESM_DISABLED="This Ubuntu 12.04 LTS system is past its End of Life, and is no longer
+receiving security updates.  To protect the integrity of this system, it’s
+critical that you enable Extended Security Maintenance updates:
+ * https://www.ubuntu.com/esm"
+
+if ubuntu-advantage is-esm-enabled; then
+    echo "$ESM_ENABLED"
+else
+    echo "$ESM_DISABLED"
+fi
+echo
