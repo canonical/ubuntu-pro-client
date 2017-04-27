@@ -1,166 +1,147 @@
-#!/usr/bin/env python
+#!/bin/sh -e
 
-"""Enable the Ubuntu Extended Security Maintenance archive."""
+SCRIPTNAME=$(basename "$0")
 
-from __future__ import print_function
-import os
-import argparse
-import textwrap
-from subprocess import Popen, PIPE
+REPO_URL="esm.ubuntu.com"
+REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-precise.list"}
+APT_KEY_ADD=${APT_KEY_ADD:-apt-key add -}
+USER_ID=${USER_ID:-$(id -u)}
 
+import_gpg_key() {
+    $APT_KEY_ADD >/dev/null <<EOF
+-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-REPO_LIST = 'ubuntu-esm-precise.list'
-REPO_URL = 'esm.ubuntu.com'
-REPO_TEMPLATE = textwrap.dedent(
-    '''\
-    deb https://{token}@{url}/ubuntu precise main
-    # deb-src https://{token}@{url}/ubuntu precise main
-    ''')
-REPO_GPG_KEY = textwrap.dedent(
-    '''\
-    -----BEGIN PGP PUBLIC KEY BLOCK-----
-
-    mQINBFj6aS8BEADCWnvxxmcFfFsfrx7vZuAfWmREKF9ukOLG6EtxQRM2dS9aHD1u
-    0HuDW9slwESwgim2/zgoMATvrt0ZyYw++MWAmlIoj6Apgqx5wtq+m2R5m62bKcuN
-    DCuUaevZ5dI8VWgDeiglaSsZdsIsruHaBG84o48yyyJSVbh6ULpYT/Fg4IpJDFZ4
-    47r7Xh5oYPqd6dRUa3DfsXAn26arq6Na0U5ro52J8/jT3OdH66qRLqOoVfjQMFBr
-    kye4/IJo9KifNe6a6NwAtqR0VKUw5a1sqL0ikQr79Tb3un5OfdNJQATYsX/1vWBn
-    emfM8pzyLiJ5xyE4IgS1qheMvQ/OKidF7KMtBp0IISI0ZmOfYR+JcLausjUQeIem
-    2WLIg4x7PMU0ArTIqt67bcna5bAfeKSS5Lv4BXnp3l99F6RxSutcreQev6/G0hsc
-    Stu68NG1K48x/Ea9W9YeWtiFnKEaJ1dOktnbt2DPcSGM7UC/xemGsTWf7233yxME
-    Edhj3bWXUMMN36CGSEBQnZiGWSAASKCYSAZAdD2Q4W5fcZJCl24haVS0TbDfwXAr
-    OIWCWxNVD4oBo6MgJVOwPijsVK3NsNFMRuCNc+pRJUsCwkr2QH2AU3R3ZTsj+qdB
-    jRkIkYMx6LreXARi7u5eQ05wj70VVqc1MR0udGRcFsG2+PMaUaxJ8D7qqwARAQAB
-    tChVYnVudHUgRVNNIDxwcm9kc3RhY2stY2RvQGNhbm9uaWNhbC5jb20+iQI4BBMB
-    AgAiBQJY+mkvAhsDBgsJCAcDAgYVCAIJCgsEFgIDAQIeAQIXgAAKCRC0wq96Z8eg
-    JrYrD/wMNERZ1AxYcDpLDjmQiB85EZDrRxlA/UTOF/EjNA+lr+VdivHkHwB9hH8M
-    1OY2vTvfstCavJDMMtu6ew8YPAlkBnKKk0nMhQTBSGgAN13fZ7mC1C7wyqFpIYS/
-    bvrrE6A+7pDruTtF4uqaGg51jI56lfyPKiScWlOr33GIptT0unG/MdEfQKEEn+yw
-    bM+MlR65rtc1RJLaQ9+j+FruFJvuEwIqJ8vs+pUM1f0ZR8vxcattBe4ZWKZqB2iO
-    zId3nDsryIBDY8ekFlb1RJzj0H6rf4xqazRJ2G08+BlJ9VJbW5Gl2aZPSQabqDSm
-    hLbwBmMm3zln8bcVbTVVb2xK8e0UO0f1pGY1Q41MWu2Q3xUsNId5ALOjmv+7H/Ve
-    P3PLjjzZ+N2qvbguAxNsM62nj7CTpD/vV5fNveWrD/LBW/9TqiD2x49igm71niu9
-    SRwEfp2FDPIBpkt/6B1qWTWtnENFm5/CRR2AwbdvUMiCCnU5oR3SLY92S/eSTSm4
-    0RBFZXJ1+xTSRYAChnIh3VcQYjvuEUcEJ6AUBZMEsNLm56dOpeNhRxWyV3CVCZY5
-    VCvEkDL4DDOQMXgK2f/Z5wU43mIa0WrIRAZVonj3zBl5PEHoE+qFpZXunMJf/FL1
-    skfrFQ8dkN8xdvONdH7WRTYU34P88yw4F5G4uwBRtbfYKgjAVrkCDQRY+mkvARAA
-    l5z0nk27hWKqEQNE9uuGzTokAZr+6cD8pyLU0SOpMWAbnWsYBB+wpifmmWxuupR+
-    xLfU21k0/ISLG+HzA7tlJQs9PXvza+qoHVbmeoIvJkjfZImSRK5f2bRBsoBWQFL9
-    bN8TzEpyBCwpYOVdgvAFDtyBXHZ9BoPFXv7PUEzgNO3TQVhuC89thsn92B83kw88
-    QQZH2UsRgZY0NH73C9EtK6Vd/KucLhJsPOOKyaX8N1TAS0wmjFYLdXsPALZJP0Ot
-    JRhnzQEVahaW9U2ZZF73TSx65m0XDXpL9fZ0f4RLVOjwiSi1xKwrK5Cz1J/0ia2K
-    z65pICP9AL2QtFlXx4z48cZH2vkI30KPmrrUmzxt/nVrpPNzPqC6KIAtXHi28neM
-    wdDshtz6WQFkJ5ANJ7oEfJRrpq2bW3C0cM9fVBLP2KXdAC6wX9Oi+zk0hgPwC5Li
-    YA7HF3LOvtXJfmd356iz0/bpMDtDWdsbm3Wffu/+9Yif+y48cnZ+eD9Ui1U4ibXg
-    kt7c5jRfciMzwe6Vz7PnJFzxgnL+X5qBq7uneIKLUJscPpS6JKKosbMOlnYivSBs
-    DvnC/IFPQwZLVWhWoNjfJrYlpxv3U2ntvCCRsqo81ErayaROJ4WkndxkUafEcyJw
-    8dnHqmEfQhF5z/3UFZQ/Z+Vx6zTGUWWrDz7K9GNGzBMAEQEAAYkCHwQYAQIACQUC
-    WPppLwIbDAAKCRC0wq96Z8egJtznEACDzfGE50VMi9GwgOiWBxbXFLj4g7mHELfN
-    jrjJbGprVDFw9OMNkhy1gMfhr5mMXAE9ybqkM9KOC/ckkgoGWoiIeMB16URgXUV0
-    CG99QYX4WvhPlaQUGXRpPqBgr+kPXQzdqNyPI2ffjnoPNOoheHJyWVRRaM+1Cy7Y
-    gqHJ61AFdugGvNHMhST7sueJxInP42ZeAEzhcOp3cktZhZUudwKsSRkTNHDrleHK
-    mv5XAZzS+dZA5VD9Md07juohkYeI6xx8diIsIa8RnD7VgKtyzXcfyNxOH0VMd3cM
-    9wjKJGTS9iyfJvaGS5+vGLzedVcQk94WnoOUN9L19XTD8eAoI511+eHbpM9d+8Uf
-    Tvn7bfN7kyrWHGUDa88qsx2j3ooYy4t3rSRiXu+SEJU7mFkz5ppxHC1DM+hh6MqC
-    cO8Uh3kuyj7FR3pXgTKBXoGDQNf3KB0jsoHdZa6z8uO4A6rMx2qpm/Ru3iLFlrAG
-    EeAmQXg53gHIXVfxX153FhmiGy/2ZOw4VHQSkUKKtLnea7XwnHHIXS8ojPl+JB07
-    MyIKWikGem/sobDpokcVDSv1jGRlxuVNe5Y88leqmvqVkQ1SNPdSBopEKY2x/6z1
-    hjyMm0AWNnQShlt+ChQn9Uv/GgcrhSU3KiM/RkiAyGuW1BKSC7BW3IroRWilSHVQ
-    2Df3PX3pNQ==
-    =FHLy
-    -----END PGP PUBLIC KEY BLOCK-----
-    ''')
+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
+2Df3PX3pNQ==
+=FHLy
+-----END PGP PUBLIC KEY BLOCK-----
+EOF
+}
 
 
-class APTAddGPGKeyFailed(Exception):
-    """Failed to add the GPG key."""
+write_list_file() {
+    cat > "$REPO_LIST" <<EOF
+deb https://${1}@${REPO_URL}/ubuntu precise main
+# deb-src https://${1}@${REPO_URL}/ubuntu precise main
+EOF
+}
 
 
-def get_args(argv):
-    parser = argparse.ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(dest='action', help='action to perform')
-    subparsers.required = True
-
-    action_enable = subparsers.add_parser(
-        'enable-esm', help='enable the ESM repository')
-    action_enable.add_argument(
-        'token', help='the user token, in the form "user:password"')
-
-    subparsers.add_parser('disable-esm', help='disable the ESM repository')
-
-    return parser.parse_args(argv)
+enable_esm() {
+    import_gpg_key
+    write_list_file "$1"
+    echo 'Ubuntu ESM repository enabled.  Run "sudo apt-get update" to update lists.'
+}
 
 
-def enable_esm(token, lists_dir=None, print=print):
-    """Enable ESM archive with the specified token."""
-    import_gpg_key()
-    list_file = get_list_file(lists_dir=lists_dir)
-    write_list_file(list_file, token)
-    print(
-        'Ubuntu ESM repository enabled.'
-        '  Run "sudo apt-get update" to update lists.')
+disable_esm() {
+    if [ -f "$REPO_LIST" ]; then
+        mv "$REPO_LIST" "${REPO_LIST}.save"
+        echo 'Ubuntu ESM repository disabled.  Run "sudo apt-get update" to update lists.'
+    else
+        echo 'Ubuntu ESM repository was not enabled.'
+    fi
+}
+
+is_esm_enabled() {
+    apt-cache policy | grep -Fq "$REPO_URL"
+}
+
+validate_token(){
+    echo "$1" | grep -q '^[^:]\+:[^:]\+$'
+}
 
 
-def disable_esm(lists_dir=None, print=print):
-    """Disable ESM archive."""
-    list_file = get_list_file(lists_dir=lists_dir)
-    if os.path.exists(list_file):
-        list_file_disabled = list_file + '.save'
-        os.rename(list_file, list_file_disabled)
-        print(
-            'Ubuntu ESM repository disabled.'
-            '  Run "sudo apt-get update" to update lists.')
-    else:
-        print('Ubuntu ESM repository was not enabled.')
+check_user() {
+    if [ "$USER_ID" -ne 0 ]; then
+        echo 'This command must be run as root (try using sudo)' >&2
+        exit 2
+    fi
+}
 
 
-def get_list_file(lists_dir=None):
-    """Return the sources.list.d file for the repository."""
-    if lists_dir is None:
-        lists_dir = '/etc/apt/sources.list.d'
+usage() {
+    cat >&2 <<EOF
+usage: ${SCRIPTNAME} [enable-esm|disable-esm]
 
-    return os.path.join(lists_dir, REPO_LIST)
+Enable or disable the Ubuntu Extended Security Maintenance archive.
 
+Parameters:
+ enable-esm <token>     enable the ESM repository
+ disable-esm            disable the ESM repository
 
-def write_list_file(filename, token):
-    """Write the sources.list.d file."""
-    with open(filename, 'w') as fh:
-        fh.write(REPO_TEMPLATE.format(url=REPO_URL, token=token))
+the <token> argument must be in the form "user:password"
 
-
-def import_gpg_key(print=print):
-    """Import the GPG key for the repository."""
-    command = ['apt-key', 'add', '-']
-    process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    _, err = process.communicate(input=REPO_GPG_KEY)
-    retcode = process.wait()
-    if retcode != 0:
-        raise APTAddGPGKeyFailed(err.strip())
+EOF
+}
 
 
-def valid_token(token):
-    """Return whether the format of the provided token is valid."""
-    return len(token.split(':')) == 2
+case "$1" in
+    enable-esm)
+        check_user
+        if ! validate_token "$2"; then
+            echo 'Invalid token, it must be in the form "user:password"' >&2
+            exit 3
+        fi
+        enable_esm "$2"
+        ;;
 
+    disable-esm)
+        check_user
+        disable_esm
+        ;;
 
-def main(argv=None):
-    args = get_args(argv)
+    is-esm-enabled)
+        is_esm_enabled
+        ;;
 
-    if os.geteuid() != 0:
-        exit('This command must be run as root (try using sudo)')
-
-    if args.action == 'enable-esm':
-        if not valid_token(args.token):
-            exit(
-                'Token format is invalid, it should be in the form'
-                ' "user:password"')
-        try:
-            enable_esm(args.token)
-        except APTAddGPGKeyFailed as error:
-            exit('Failed to enable ESM archive: {}'.format(error))
-    if args.action == 'disable-esm':
-        disable_esm()
-
-
-if __name__ == '__main__':
-    main()
+    *)
+        usage
+        exit 1
+        ;;
+esac
