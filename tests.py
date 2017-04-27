@@ -16,12 +16,12 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.repo_list = Path(tempdir.join('repo.list'))
         self.key_file = Path(tempdir.join('apt.key'))
 
-    def script(self, *args, user='root'):
+    def script(self, *args, user_id=0):
         """Run the script."""
         command = ['./ubuntu-advantage']
         command.extend(args)
         env = {
-            'USER': user,  # fake running as a specific user
+            'USER_ID': str(user_id),  # fake running as a specific user
             'REPO_LIST': str(self.repo_list),
             'APT_KEY_ADD': 'tee {}'.format(self.key_file)}
         process = subprocess.Popen(
@@ -37,9 +37,15 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def test_run_not_as_root(self):
         """The script must be run as root."""
-        process = self.script('enable-esm', 'user:pass', user='user')
+        process = self.script('enable-esm', 'user:pass', user_id=1000)
         self.assertEqual(2, process.returncode)
         self.assertIn('This command must be run as root', process.stderr)
+
+    def test_usage(self):
+        """Calling the script with not args prints out the usage."""
+        process = self.script(user_id=1000)
+        self.assertEqual(1, process.returncode)
+        self.assertIn('usage: ubuntu-advantage', process.stderr)
 
     def test_enable(self):
         """The script enables the ESM repository."""

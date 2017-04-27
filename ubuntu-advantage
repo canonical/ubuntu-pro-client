@@ -5,6 +5,7 @@ SCRIPTNAME=$(basename "$0")
 REPO_URL="esm.ubuntu.com"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-precise.list"}
 APT_KEY_ADD=${APT_KEY_ADD:-apt-key add -}
+USER_ID=${USER_ID:-$(id -u)}
 
 import_gpg_key() {
     $APT_KEY_ADD >/dev/null <<EOF
@@ -96,6 +97,14 @@ validate_token(){
 }
 
 
+check_user() {
+    if [ "$USER_ID" -ne 0 ]; then
+        echo 'This command must be run as root (try using sudo)' >&2
+        exit 2
+    fi
+}
+
+
 usage() {
     cat >&2 <<EOF
 usage: ${SCRIPTNAME} [enable-esm|disable-esm]
@@ -112,13 +121,9 @@ EOF
 }
 
 
-if [ "$USER" != "root" ]; then
-    echo 'This command must be run as root (try using sudo)' >&2
-    exit 2
-fi
-
 case "$1" in
     enable-esm)
+        check_user
         if ! validate_token "$2"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
             exit 3
@@ -127,6 +132,7 @@ case "$1" in
         ;;
 
     disable-esm)
+        check_user
         disable_esm
         ;;
 
