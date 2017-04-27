@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ESM_ENABLED="This Ubuntu 12.04 ESM system is actively receiving extended security updates
+ESM_ENABLED="This Ubuntu 12.04 system is configured to receive extended security updates
 from Canonical:
  * https://www.ubuntu.com/esm"
 
