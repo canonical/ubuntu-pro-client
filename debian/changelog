@@ -1,5 +1,5 @@
 ubuntu-advantage-script (1) precise; urgency=medium
 
-  * Initial Release.
+  * Initial Release. LP: #1686183
 
  -- Dimitri John Ledkov <xnox@ubuntu.com>  Fri, 28 Apr 2017 15:04:47 +0100
