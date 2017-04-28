@@ -1,0 +1,25 @@
+.TH UBUNTU-ADVANTAGE 1  "28 April 2017" "" ""
+.SH NAME
+ubuntu-advantage \- Enable or disable the Ubuntu Extended Security
+Maintenance archive.
+.SH SYNOPSIS
+.B ubuntu-advantage
+[enable-esm <token>|disable-esm]
+.SH DESCRIPTION
+This tool is used to enable or disable the Ubuntu Extended Security
+Maintenance archive.
+It must be run with root privileges.
+.PP
+Parameters:
+.RS
+.TP
+.B
+enable-esm <token>
+enable the ESM repository. The <token> argument must be in the form
+"user:password"
+.TP
+.B
+disable-esm
+disable the ESM repository
+.RE
+.PP

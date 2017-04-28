@@ -1,0 +1,3 @@
+ubuntu-advantage usr/bin/
+ubuntu-keyring-esm.gpg usr/share/keyrings/
+update-motd.d etc/
