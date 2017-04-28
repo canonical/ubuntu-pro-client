@@ -23,7 +23,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
         self.trusted_gpg_dir.mkdir()
-        (self.keyrings_dir / 'ubuntu-keyring-esm.gpg').write_text('GPG key')
+        (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('id', command='echo 0')
@@ -77,7 +77,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
             '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
         self.assertEqual(expected, self.repo_list.read_text())
-        keyring_file = self.trusted_gpg_dir / 'ubuntu-keyring-esm.gpg'
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
@@ -117,7 +117,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.assertIn('Ubuntu ESM repository disabled', process.stdout)
         self.assertFalse(self.repo_list.exists())
         # the keyring file is removed
-        keyring_file = self.trusted_gpg_dir / 'ubuntu-keyring-esm.gpg'
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertFalse(keyring_file.exists())
 
     def test_disable_disabled(self):
