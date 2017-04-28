@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import subprocess
 from collections import namedtuple
@@ -14,16 +15,33 @@ class UbuntuAdvantageTest(TestWithFixtures):
         super(UbuntuAdvantageTest, self).setUp()
         tempdir = self.useFixture(TempDir())
         self.repo_list = Path(tempdir.join('repo.list'))
-        self.key_file = Path(tempdir.join('apt.key'))
+        self.bin_dir = Path(tempdir.join('bin'))
+        self.bin_dir.mkdir()
+        self.keyrings_dir = Path(tempdir.join('keyrings'))
+        self.trusted_gpg_dir = Path(tempdir.join('trusted.gpg.d'))
+        # setup directories and files
+        self.keyrings_dir.mkdir()
+        self.trusted_gpg_dir.mkdir()
+        (self.keyrings_dir / 'ubuntu-keyring-esm.gpg').write_text('GPG key')
+        self.make_fake_binary('apt-get')
+        self.make_fake_binary('dpkg-query')
+        self.make_fake_binary('id', command='echo 0')
 
-    def script(self, *args, user_id=0):
+    def make_fake_binary(self, binary, command='true'):
+        path = self.bin_dir / binary
+        path.write_text('#!/bin/sh\n{}\n'.format(command))
+        path.chmod(0o755)
+
+    def script(self, *args):
         """Run the script."""
         command = ['./ubuntu-advantage']
         command.extend(args)
+        path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
-            'USER_ID': str(user_id),  # fake running as a specific user
-            'REPO_LIST': str(self.repo_list),
-            'APT_KEY_ADD': 'tee {}'.format(self.key_file)}
+            'PATH': path,
+            'KEYRINGS_DIR': str(self.keyrings_dir),
+            'APT_KEYS_DIR': str(self.trusted_gpg_dir),
+            'REPO_LIST': str(self.repo_list)}
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         process.wait()
@@ -37,13 +55,14 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def test_run_not_as_root(self):
         """The script must be run as root."""
-        process = self.script('enable-esm', 'user:pass', user_id=1000)
+        self.make_fake_binary('id', command='echo 100')
+        process = self.script('enable-esm', 'user:pass')
         self.assertEqual(2, process.returncode)
         self.assertIn('This command must be run as root', process.stderr)
 
     def test_usage(self):
-        """Calling the script with not args prints out the usage."""
-        process = self.script(user_id=1000)
+        """Calling the script with no args prints out the usage."""
+        process = self.script()
         self.assertEqual(1, process.returncode)
         self.assertIn('usage: ubuntu-advantage', process.stderr)
 
@@ -56,8 +75,22 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
             '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
         self.assertEqual(expected, self.repo_list.read_text())
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-keyring-esm.gpg'
+        self.assertEqual('GPG key', keyring_file.read_text())
+        # the apt-transport-https dependency is already installed
+        self.assertNotIn(
+            'Installing missing dependency apt-transport-https',
+            process.stdout)
+
+    def test_enable_install_apt_transport_https(self):
+        """The apt-transport-https package is installed if it's not."""
+        # fail dpkg-query as if the package wasn't found
+        self.make_fake_binary('dpkg-query', command='exit 1')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
         self.assertIn(
-            '-----BEGIN PGP PUBLIC KEY BLOCK-----', self.key_file.read_text())
+            'Installing missing dependency apt-transport-https',
+            process.stdout)
 
     def test_enable_missing_token(self):
         """The token must be specified when enabling the repository."""
@@ -82,9 +115,24 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository disabled', process.stdout)
         self.assertFalse(self.repo_list.exists())
+        # the keyring file is removed
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-keyring-esm.gpg'
+        self.assertFalse(keyring_file.exists())
 
     def test_disable_disabled(self):
         """If the repo is not enabled, disabling is a no-op."""
         process = self.script('disable-esm')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository was not enabled', process.stdout)
+
+    def test_is_esm_enabled_true(self):
+        """is-esm-enabled returns 0 if the repository is enabled."""
+        self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        process = self.script('is-esm-enabled')
+        self.assertEqual(0, process.returncode)
+
+    def test_is_esm_enabled_false(self):
+        """is-esm-enabled returns 1 if the repository is not enabled."""
+        self.make_fake_binary('apt-cache')
+        process = self.script('is-esm-enabled')
+        self.assertEqual(1, process.returncode)
