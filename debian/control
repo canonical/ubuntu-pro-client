@@ -1,0 +1,19 @@
+Source: ubuntu-advantage-script
+Section: misc
+Priority: important
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.9.6
+Homepage: https://buy.ubuntu.com
+Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
+Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
+
+Package: ubuntu-advantage-script
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Ubuntu Advantage script for ESM
+ This package ships Ubuntu Advantage subscription management script.
+ .
+ It enables Ubuntu Advantage subscribers to enable Extended Security
+ Maintenance (ESM) repository on Ubuntu 12.04 LTS (Precise Pangolin)
+ systems.
