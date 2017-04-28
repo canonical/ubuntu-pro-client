@@ -20,7 +20,7 @@ EOF
 
 enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    if [ ! -x "$APT_METHOD_HTTPS" ]; then
+    if [ ! -f "$APT_METHOD_HTTPS" ]; then
         echo "Installing missing dependency apt-transport-https"
         apt-get install -y apt-transport-https >/dev/null
     fi
