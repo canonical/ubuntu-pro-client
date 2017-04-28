@@ -25,6 +25,7 @@ enable_esm() {
         echo 'Installing missing dependency apt-transport-https'
         apt-get install -y apt-transport-https >/dev/null
     fi
+    echo 'Running apt-get update...'
     apt-get update >/dev/null
     echo 'Ubuntu ESM repository enabled.'
 }
@@ -34,6 +35,7 @@ disable_esm() {
     if [ -f "$REPO_LIST" ]; then
         mv "$REPO_LIST" "${REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
+        echo 'Running apt-get update...'
         apt-get update >/dev/null
         echo 'Ubuntu ESM repository disabled.'
     else
