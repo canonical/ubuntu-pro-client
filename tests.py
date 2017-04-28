@@ -16,15 +16,16 @@ class UbuntuAdvantageTest(TestWithFixtures):
         tempdir = self.useFixture(TempDir())
         self.repo_list = Path(tempdir.join('repo.list'))
         self.bin_dir = Path(tempdir.join('bin'))
-        self.bin_dir.mkdir()
         self.keyrings_dir = Path(tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(tempdir.join('trusted.gpg.d'))
+        self.apt_method_https = self.bin_dir / 'apt-method-https'
         # setup directories and files
+        self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-keyring-esm.gpg').write_text('GPG key')
         self.make_fake_binary('apt-get')
-        self.make_fake_binary('dpkg-query')
+        self.make_fake_binary('apt-method-https')
         self.make_fake_binary('id', command='echo 0')
 
     def make_fake_binary(self, binary, command='true'):
@@ -39,9 +40,10 @@ class UbuntuAdvantageTest(TestWithFixtures):
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
             'PATH': path,
+            'REPO_LIST': str(self.repo_list),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
-            'REPO_LIST': str(self.repo_list)}
+            'APT_METHOD_HTTPS': str(self.apt_method_https)}
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         process.wait()
@@ -84,8 +86,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def test_enable_install_apt_transport_https(self):
         """The apt-transport-https package is installed if it's not."""
-        # fail dpkg-query as if the package wasn't found
-        self.make_fake_binary('dpkg-query', command='exit 1')
+        self.apt_method_https.unlink()
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
