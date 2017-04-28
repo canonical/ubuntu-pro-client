@@ -2,7 +2,7 @@
 
 if ubuntu-advantage is-esm-enabled; then
     cat <<EOF
-    This Ubuntu 12.04 system is configured to receive extended security updates
+This Ubuntu 12.04 system is configured to receive extended security updates
 from Canonical:
  * https://www.ubuntu.com/esm
 EOF
