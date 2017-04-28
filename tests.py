@@ -93,6 +93,14 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_install_apt_transport_https_fails(self):
+        """Stderr is printed if apt-transport-https install fails."""
+        self.apt_method_https.unlink()
+        self.make_fake_binary('apt-get', command='echo failed >&2; false')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(1, process.returncode)
+        self.assertIn('failed', process.stderr)
+
     def test_enable_missing_token(self):
         """The token must be specified when enabling the repository."""
         process = self.script('enable-esm')

@@ -20,12 +20,13 @@ EOF
 
 enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    write_list_file "$1"
     if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo "Installing missing dependency apt-transport-https"
+        echo 'Installing missing dependency apt-transport-https'
         apt-get install -y apt-transport-https >/dev/null
     fi
-    write_list_file "$1"
-    echo 'Ubuntu ESM repository enabled.  Run "sudo apt-get update" to update lists.'
+    apt-get update >/dev/null
+    echo 'Ubuntu ESM repository enabled.'
 }
 
 
@@ -33,7 +34,8 @@ disable_esm() {
     if [ -f "$REPO_LIST" ]; then
         mv "$REPO_LIST" "${REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
-        echo 'Ubuntu ESM repository disabled.  Run "sudo apt-get update" to update lists.'
+        apt-get update >/dev/null
+        echo 'Ubuntu ESM repository disabled.'
     else
         echo 'Ubuntu ESM repository was not enabled.'
     fi
