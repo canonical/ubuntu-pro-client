@@ -1,2 +1,2 @@
-Tests: usage
+Tests: usage, update-motd-run
 Restrictions: allow-stderr
