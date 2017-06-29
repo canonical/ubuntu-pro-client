@@ -12,13 +12,10 @@ APT_METHOD_HTTPS=${APT_METHOD_HTTPS:="/usr/lib/apt/methods/https"}
 
 
 write_list_file() {
-    (
-    umask 077
     cat > "$REPO_LIST" <<EOF
 deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 EOF
-    )
 }
 
 

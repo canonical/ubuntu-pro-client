@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import stat
 import subprocess
 from collections import namedtuple
 
@@ -85,13 +84,6 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
             process.stdout)
-
-    def test_enable_mode(self):
-        """Test that enabling ESM sets the .d file to the correct mode."""
-        process = self.script('enable-esm', 'user:pass')
-        self.assertEqual(0, process.returncode)
-        st = os.stat(str(self.repo_list))
-        self.assertEqual(stat.filemode(st.st_mode), '-rw-------')
 
     def test_enable_install_apt_transport_https(self):
         """The apt-transport-https package is installed if it's not."""
