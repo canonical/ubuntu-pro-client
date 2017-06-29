@@ -1,0 +1,18 @@
+#/bin/sh
+
+set -ex
+
+# virgin system should not have esm enabled
+codename=`lsb_release -cs`
+motd_text=`/bin/sh /etc/update-motd.d/99-esm`
+
+if [ "$codename" == "precise" ]; then
+	echo $motd_text | grep "This Ubuntu 12.04 LTS system is past"
+else
+	[ "$motd_text" == "" ] \
+		|| ( echo "motd should be empty on $codename" && exit 1 )
+
+fi
+
+# help output should contain 'enable-esm' in it, and should be on stderr
+ubuntu-advantage --help 2>&1 >/dev/null | grep enable-esm

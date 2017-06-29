@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (2) precise; urgency=medium
+
+  * ubuntu-advantage & /etc/update-motd.d/99-esm now quiet on non-precise
+    release.
+  * Add simple dep8 tests.
+
+ -- David Britton <david.britton@canonical.com>  Wed, 28 Jun 2017 20:43:25 -0600
+
 ubuntu-advantage-tools (1) precise; urgency=medium
 
   * Initial Release. LP: #1686183

@@ -27,6 +27,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('id', command='echo 0')
+        self.make_fake_binary('lsb_release', command='echo precise')
 
     def make_fake_binary(self, binary, command='true'):
         path = self.bin_dir / binary
