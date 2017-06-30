@@ -2,13 +2,14 @@
 
 SCRIPTNAME=$(basename "$0")
 
-SERIES=`lsb_release -cs`
+SERIES=$(lsb_release -cs)
 REPO_URL="esm.ubuntu.com"
 REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:="/usr/lib/apt/methods/https"}
+CA_CERTIFICATES=${CA_CERTIFICATES:="/usr/sbin/update-ca-certificates"}
 
 
 write_list_file() {
@@ -25,6 +26,10 @@ enable_esm() {
     if [ ! -f "$APT_METHOD_HTTPS" ]; then
         echo 'Installing missing dependency apt-transport-https'
         apt-get install -y apt-transport-https >/dev/null
+    fi
+    if [ ! -f "$CA_CERTIFICATES" ]; then
+        echo 'Installing missing dependency ca-certificates'
+        apt-get install -y ca-certificates >/dev/null
     fi
     echo 'Running apt-get update...'
     apt-get update >/dev/null
