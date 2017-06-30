@@ -19,6 +19,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.keyrings_dir = Path(tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(tempdir.join('trusted.gpg.d'))
         self.apt_method_https = self.bin_dir / 'apt-method-https'
+        self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         # setup directories and files
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
@@ -26,7 +27,9 @@ class UbuntuAdvantageTest(TestWithFixtures):
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
+        self.make_fake_binary('update-ca-certificates')
         self.make_fake_binary('id', command='echo 0')
+        self.make_fake_binary('lsb_release', command='echo precise')
 
     def make_fake_binary(self, binary, command='true'):
         path = self.bin_dir / binary
@@ -43,7 +46,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'REPO_LIST': str(self.repo_list),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
-            'APT_METHOD_HTTPS': str(self.apt_method_https)}
+            'APT_METHOD_HTTPS': str(self.apt_method_https),
+            'CA_CERTIFICATES': str(self.ca_certificates)}
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         process.wait()
@@ -96,6 +100,23 @@ class UbuntuAdvantageTest(TestWithFixtures):
     def test_enable_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
         self.apt_method_https.unlink()
+        self.make_fake_binary('apt-get', command='echo failed >&2; false')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(1, process.returncode)
+        self.assertIn('failed', process.stderr)
+
+    def test_enable_install_ca_certificates(self):
+        """The ca-certificates package is installed if it's not."""
+        self.ca_certificates.unlink()
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn(
+            'Installing missing dependency ca-certificates',
+            process.stdout)
+
+    def test_enable_install_ca_certificates__fails(self):
+        """Stderr is printed if ca-certificates install fails."""
+        self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(1, process.returncode)

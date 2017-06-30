@@ -23,3 +23,18 @@ To disable the archive, run:
 ```bash
 $ sudo ubuntu-advantage disable-esm
 ```
+
+## Testing
+
+Unit tests & lint:
+
+```bash
+$ tox
+```
+
+Dep8 Tests:
+
+```
+# To test on 16.04:
+$ autopkgtest --shell-fail . -- lxd ubuntu:xenial
+```
