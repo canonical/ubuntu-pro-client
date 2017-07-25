@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (2) precise; urgency=medium
+ubuntu-advantage-tools (2) trusty; urgency=medium
 
   * ubuntu-advantage & /etc/update-motd.d/99-esm now build, run and are quiet
     on non-precise release.
