@@ -7,12 +7,11 @@ codename=`lsb_release -cs`
 description=`lsb_release -ds`
 motd_text=`/bin/sh /etc/update-motd.d/99-esm`
 
-if [ "$codename" == "precise" ]; then
+if [ "$codename" = "precise" ]; then
 	echo $motd_text | grep "This ${description} system is past"
 else
-	[ "$motd_text" == "" ] \
+	[ "$motd_text" = "" ] \
 		|| ( echo "motd should be empty on $codename" && exit 1 )
-
 fi
 
 # help output should contain 'enable-esm' in it, and should be on stderr
