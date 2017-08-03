@@ -1,25 +1,37 @@
 .TH UBUNTU-ADVANTAGE 1  "28 April 2017" "" ""
 .SH NAME
-ubuntu-advantage \- Enable or disable the Ubuntu Extended Security
-Maintenance archive.
+ubuntu-advantage \- Enable or disable Ubuntu Advantage offerings from
+Canonical.
 .SH SYNOPSIS
 .B ubuntu-advantage
-[enable-esm <token>|disable-esm]
+<command> [parameters]
 .SH DESCRIPTION
-This tool is used to enable or disable the Ubuntu Extended Security
-Maintenance archive.
+This tool is used to enable or disable specific Ubuntu Advantage offerings
+from Canonical. The available modules and their commands are described below.
 It must be run with root privileges.
-.PP
-Parameters:
-.RS
+.SH ESM (Extended Security Maintenance)
+Ubuntu Extended Security Maintenance archive. See https://ubuntu.com/esm for
+more information.
 .TP
 .B
-enable-esm <token>
-enable the ESM repository. The <token> argument must be in the form
-"user:password"
+enable-esm \fItoken\fR
+Enable the ESM repository. The \fItoken\fR argument must be in the form
+"user:password".
 .TP
 .B
 disable-esm
-disable the ESM repository
-.RE
-.PP
+Disable the ESM repository.
+
+.SH Livepatch (Canonical Livepatch Service)
+Managed live kernel patching. For more information, visit
+https://www.ubuntu.com/server/livepatch
+.TP
+.B
+enable-livepatch \fI<token>\fR
+Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
+https://ubuntu.com/livepatch
+.TP
+.B
+disable-livepatch \fR[\fB\-r\fR]
+Disable the Livepatch service. If the \fB\-r\fR option is given, the
+canonical-livepatch snap will be removed after the sevice is disabled.

@@ -3,6 +3,7 @@
 SCRIPTNAME=$(basename "$0")
 
 SERIES=$(lsb_release -cs)
+LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 REPO_URL="esm.ubuntu.com"
 REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
@@ -10,19 +11,60 @@ KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:="/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:="/usr/sbin/update-ca-certificates"}
+SNAPD=${SNAPD:="/usr/lib/snapd/snapd"}
 
 
-write_list_file() {
+install_livepatch_prereqs() {
+    if [ ! -f "$SNAPD" ]; then
+        echo 'Installing missing dependency snapd'
+        apt-get install -y snapd >/dev/null
+    fi
+    if ! snap list canonical-livepatch > /dev/null 2>&1; then
+        echo 'Installing the canonical-livepatch snap.'
+        echo 'This may take a few minutes depending on your bandwidth.'
+        # show output as it has a nice progress bar and isn't too verbose
+        snap install canonical-livepatch
+    fi
+}
+
+enable_livepatch() {
+    install_livepatch_prereqs
+    if ! is_livepatch_enabled; then
+        echo 'Enabling Livepatch with the given token, stand by...'
+        canonical-livepatch enable "$1"
+    else
+        echo 'Livepatch already enabled.'
+    fi
+    echo 'You may use the "canonical-livepatch status" command'
+    echo 'to verify your current patch status.'
+}
+
+disable_livepatch() {
+    if is_livepatch_enabled; then
+        echo 'Disabling Livepatch...'
+        canonical-livepatch disable
+        if [ "$1" = "yes" ]; then
+            echo 'Removing the canonical-livepatch snap...'
+            snap remove canonical-livepatch
+        else
+            echo 'Note: the canonical-livepatch snap is still installed.'
+            echo 'To remove it, run sudo snap remove canonical-livepatch'
+        fi
+    else
+        echo 'Livepatch is already disabled.'
+    fi
+}
+
+write_esm_list_file() {
     cat > "$REPO_LIST" <<EOF
 deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 EOF
 }
 
-
 enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_list_file "$1"
+    write_esm_list_file "$1"
     if [ ! -f "$APT_METHOD_HTTPS" ]; then
         echo 'Installing missing dependency apt-transport-https'
         apt-get install -y apt-transport-https >/dev/null
@@ -35,7 +77,6 @@ enable_esm() {
     apt-get update >/dev/null
     echo 'Ubuntu ESM repository enabled.'
 }
-
 
 disable_esm() {
     if [ -f "$REPO_LIST" ]; then
@@ -53,10 +94,30 @@ is_esm_enabled() {
     apt-cache policy | grep -Fq "$REPO_URL"
 }
 
-validate_token(){
+is_livepatch_enabled() {
+    # it's fine if it fails because the snap isn't installed. It's still
+    # a non-zero return value
+    canonical-livepatch status > /dev/null 2>&1
+}
+
+validate_esm_token(){
     echo "$1" | grep -q '^[^:]\+:[^:]\+$'
 }
 
+validate_livepatch_token() {
+    # the livepatch token is an hex string 32 characters long
+    echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
+}
+
+check_livepatch_support() {
+    for s in $LIVEPATCH_SUPPORTED_SERIES; do
+        if [ "$s" = "$SERIES" ]; then
+            return
+        fi
+    done
+    echo "Sorry, but Canonical Livepatch is not supported on $SERIES" >&2
+    exit 4
+}
 
 check_user() {
     if [ "$(id -u)" -ne 0 ]; then
@@ -68,26 +129,65 @@ check_user() {
 
 usage() {
     cat >&2 <<EOF
-usage: ${SCRIPTNAME} [enable-esm|disable-esm]
+usage: ${SCRIPTNAME} <command> [parameters]
 
-Enable or disable the Ubuntu Extended Security Maintenance archive.
+This is a tool that facilitates access to some of Canonical's
+Ubuntu Advantage offerings.
 
-Parameters:
- enable-esm <token>     enable the ESM repository
- disable-esm            disable the ESM repository
+Currently available are:
+- Ubuntu Extended Security Maintenance archive (https://ubuntu.com/esm)
+- Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 
-the <token> argument must be in the form "user:password"
+Commands:
+ enable-esm <token>        enable the ESM repository
+ disable-esm               disable the ESM repository
+ enable-livepatch <token>  enable the Livepatch service
+ disable-livepatch [-r]    disable the Livepatch service. With "-r", the
+                           canonical-livepatch snap will also be removed.
 
 EOF
 }
 
 
 case "$1" in
+    enable-livepatch)
+        check_user
+        check_livepatch_support
+        token="$2"
+        if ! validate_livepatch_token "$token"; then
+            echo 'Invalid or missing Livepatch token' >&2
+            echo 'Please visit https://ubuntu.com/livepatch to obtain a' >&2
+            echo 'Livepatch token.' >&2
+            exit 3
+        fi
+        enable_livepatch "$token"
+        ;;
+
+    disable-livepatch)
+        check_user
+        remove_snap="no"
+        if [ -n "$2" ]; then
+            if [ "$2" = "-r" ]; then
+                remove_snap="yes"
+            else
+                echo "Unknown option \"$2\"" >&2
+                usage
+                exit 1
+            fi
+        fi
+        disable_livepatch "$remove_snap"
+        ;;
+
+    is-livepatch-enabled)
+        # no root needed
+        is_livepatch_enabled
+        ;;
+
     enable-esm)
         check_user
 
         token="$2"
-        if ! validate_token "$token"; then
+        if ! validate_esm_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
             exit 3
         fi
