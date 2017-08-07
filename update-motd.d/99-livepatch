@@ -1,0 +1,13 @@
+#!/bin/sh
+
+DESCRIPTION=$(lsb_release -ds)
+PATH=/snap/bin:$PATH
+
+[ ! -x /usr/bin/ubuntu-advantage ] && exit 0
+
+if ubuntu-advantage is-livepatch-enabled; then
+    cat <<EOF
+This ${DESCRIPTION} system has Canonical Livepatch enabled.
+EOF
+fi
+echo

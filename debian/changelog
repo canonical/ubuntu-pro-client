@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (3~1) xenial; urgency=medium
+
+  * enable-livepatch
+
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 03 Aug 2017 16:25:47 -0300
+
 ubuntu-advantage-tools (2) trusty; urgency=medium
 
   * ubuntu-advantage & /etc/update-motd.d/99-esm now build, run and are quiet
