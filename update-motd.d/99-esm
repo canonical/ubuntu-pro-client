@@ -7,6 +7,8 @@ if [ "$SERIES" != "precise" ]; then
 	exit 0
 fi
 
+[ ! -x /usr/bin/ubuntu-advantage ] && exit 0
+
 if ubuntu-advantage is-esm-enabled; then
     cat <<EOF
 This ${DESCRIPTION} system is configured to receive extended security updates
