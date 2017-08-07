@@ -98,6 +98,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         # in our default setup the snap is installed and enabled
         self.make_fake_binary('snap', command=SNAP_LIVEPATCH_INSTALLED)
         self.make_fake_binary('canonical-livepatch', command=LIVEPATCH_ENABLED)
+        self.make_fake_binary('uname', command='echo 4.4.0-89-generic')
         self.livepatch_token = '0123456789abcdef1234567890abcdef'
 
     def make_fake_binary(self, binary, command='true'):
@@ -357,3 +358,15 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.assertIn('Successfully disabled device. Removed machine-token: '
                       'deadbeefdeadbeefdeadbeefdeadbeef', process.stdout)
         self.assertIn('canonical-livepatch removed', process.stdout)
+
+    def test_enable_livepatch_old_kernel(self):
+        """enable-livepatch with an old kernel will not enable livepatch."""
+        self.make_fake_binary('lsb_release', command='echo trusty')
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        old_kernel = '3.10.0-30-generic'
+        self.make_fake_binary('uname', command='echo {}'.format(old_kernel))
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertEqual(5, process.returncode)
+        self.assertIn('Your currently running kernel ({}) is too '
+                      'old'.format(old_kernel), process.stdout)

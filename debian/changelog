@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (4) trusty; urgency=medium
+
+  * Check running kernel version before enabling the Livepatch service
+    (Fixes #30).
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 07 Aug 2017 18:45:23 -0300
+
 ubuntu-advantage-tools (3) trusty; urgency=medium
 
   * Add livepatch support:
