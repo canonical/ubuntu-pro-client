@@ -1,8 +1,17 @@
-ubuntu-advantage-tools (3~1) xenial; urgency=medium
+ubuntu-advantage-tools (3) trusty; urgency=medium
 
-  * enable-livepatch
+  * Add livepatch support:
+    - New commands:
+      + enable-livepatch
+      + disable-livepatch
+      + is-livepatch-enabled
+    - new tests
+    - new manpage
+    - new help output
+    - new README.md
+    - new MOTD
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 03 Aug 2017 16:25:47 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 07 Aug 2017 11:09:31 -0300
 
 ubuntu-advantage-tools (2) trusty; urgency=medium
 
