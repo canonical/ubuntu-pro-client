@@ -12,7 +12,7 @@ APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:="/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:="/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:="/usr/lib/snapd/snapd"}
-
+KERNEL_VERSION=$(uname -r)
 
 install_livepatch_prereqs() {
     if [ ! -f "$SNAPD" ]; then
@@ -27,11 +27,24 @@ install_livepatch_prereqs() {
     fi
 }
 
+# $1: livepatch token
 enable_livepatch() {
     install_livepatch_prereqs
     if ! is_livepatch_enabled; then
-        echo 'Enabling Livepatch with the given token, stand by...'
-        canonical-livepatch enable "$1"
+        if check_snapd_kernel_support; then
+            echo 'Enabling Livepatch with the given token, stand by...'
+            canonical-livepatch enable "$1"
+        else
+            echo "Your currently running kernel ($KERNEL_VERSION) is too old to"
+            echo "support snaps. Version 4.4.0 or higher is needed."
+            echo
+            echo "Please reboot your system into a supported kernel version"
+            echo "and run the following command one more time to complete the"
+            echo "installation:"
+            echo
+            echo "sudo ubuntu-advantage enable-livepatch $1"
+            exit 5
+        fi
     else
         echo 'Livepatch already enabled.'
     fi
@@ -107,6 +120,14 @@ validate_esm_token(){
 validate_livepatch_token() {
     # the livepatch token is an hex string 32 characters long
     echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
+}
+
+# snapd needs a 4.4.x *running* kernel
+check_snapd_kernel_support() {
+    local v1 v2
+    v1=$(echo "$KERNEL_VERSION" | cut -d . -f 1)
+    v2=$(echo "$KERNEL_VERSION" | cut -d . -f 2)
+    test "$v1" -ge "4" -a "$v2" -ge "4"
 }
 
 check_livepatch_support() {
