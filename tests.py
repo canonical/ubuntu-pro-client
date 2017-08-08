@@ -370,3 +370,36 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.assertEqual(5, process.returncode)
         self.assertIn('Your currently running kernel ({}) is too '
                       'old'.format(old_kernel), process.stdout)
+
+    def test_enable_livepatch_apt_output_is_hidden(self):
+        """Hide all apt output when enabling livepatch if exit status is 0."""
+        self.make_fake_binary('lsb_release', command='echo trusty')
+        self.make_fake_binary('apt-get',
+                              command='echo this goes to stderr >&2;'
+                              'echo this goes to stdout;exit 0')
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.snapd.unlink()
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertEqual(0, process.returncode)
+        # the UA script is redirecting stderr to stdout and capturing that,
+        # but then writing everything back to stderr if there was an error
+        self.assertNotIn('this goes to stderr', process.stderr)
+        self.assertNotIn('this goes to stdout', process.stderr)
+
+    def test_enable_livepatch_apt_output_shown_if_errors(self):
+        """enable-livepatch displays apt errors if there were any."""
+        apt_error_code = 99
+        self.make_fake_binary('lsb_release', command='echo trusty')
+        self.make_fake_binary(
+            'apt-get', command='echo this goes to stderr >&2;'
+            'echo this goes to stdout;exit {}'.format(apt_error_code))
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.snapd.unlink()
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertEqual(apt_error_code, process.returncode)
+        # the UA script is redirecting stderr to stdout and capturing that,
+        # but then writing everything back to stderr if there was an error
+        self.assertIn('this goes to stderr', process.stderr)
+        self.assertIn('this goes to stdout', process.stderr)
