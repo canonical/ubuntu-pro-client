@@ -112,7 +112,7 @@ disable_esm() {
         mv "$REPO_LIST" "${REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
         echo -n 'Running apt-get update... '
-        check_result apt-get update 2>&1
+        check_result apt-get update
         echo 'Ubuntu ESM repository disabled.'
     else
         echo 'Ubuntu ESM repository was not enabled.'
