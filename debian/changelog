@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (5) trusty; urgency=medium
+
+  * Only display apt output in the case of errors (Fixes #33).
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 08 Aug 2017 12:41:25 -0300
+
 ubuntu-advantage-tools (4) trusty; urgency=medium
 
   * Check running kernel version before enabling the Livepatch service

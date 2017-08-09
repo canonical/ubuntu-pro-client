@@ -14,10 +14,25 @@ CA_CERTIFICATES=${CA_CERTIFICATES:="/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:="/usr/lib/snapd/snapd"}
 KERNEL_VERSION=$(uname -r)
 
+check_result() {
+    local result output
+    result=0
+    output=$("$@" 2>&1) || result=$?
+    if [ "$result" -ne "0" ]; then
+        echo "ERROR"
+        if [ -n "$output" ]; then
+            echo "$output" >&2
+        fi
+        exit $result
+    else
+        echo "OK"
+    fi
+}
+
 install_livepatch_prereqs() {
     if [ ! -f "$SNAPD" ]; then
-        echo 'Installing missing dependency snapd'
-        apt-get install -y snapd >/dev/null
+        echo -n 'Installing missing dependency snapd... '
+        check_result apt-get install -y snapd
     fi
     if ! snap list canonical-livepatch > /dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
@@ -35,6 +50,7 @@ enable_livepatch() {
             echo 'Enabling Livepatch with the given token, stand by...'
             canonical-livepatch enable "$1"
         else
+            echo
             echo "Your currently running kernel ($KERNEL_VERSION) is too old to"
             echo "support snaps. Version 4.4.0 or higher is needed."
             echo
@@ -79,15 +95,15 @@ enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_esm_list_file "$1"
     if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo 'Installing missing dependency apt-transport-https'
-        apt-get install -y apt-transport-https >/dev/null
+        echo -n 'Installing missing dependency apt-transport-https... '
+        check_result apt-get install -y apt-transport-https
     fi
     if [ ! -f "$CA_CERTIFICATES" ]; then
-        echo 'Installing missing dependency ca-certificates'
-        apt-get install -y ca-certificates >/dev/null
+        echo -n 'Installing missing dependency ca-certificates... '
+        check_result apt-get install -y ca-certificates
     fi
-    echo 'Running apt-get update...'
-    apt-get update >/dev/null
+    echo -n 'Running apt-get update... '
+    check_result apt-get update
     echo 'Ubuntu ESM repository enabled.'
 }
 
@@ -95,8 +111,8 @@ disable_esm() {
     if [ -f "$REPO_LIST" ]; then
         mv "$REPO_LIST" "${REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
-        echo 'Running apt-get update...'
-        apt-get update >/dev/null
+        echo -n 'Running apt-get update... '
+        check_result apt-get update
         echo 'Ubuntu ESM repository disabled.'
     else
         echo 'Ubuntu ESM repository was not enabled.'
