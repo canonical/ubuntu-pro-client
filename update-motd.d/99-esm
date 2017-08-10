@@ -3,11 +3,9 @@
 SERIES=$(lsb_release -cs)
 DESCRIPTION=$(lsb_release -ds)
 
-if [ "$SERIES" != "precise" ]; then
-	exit 0
-fi
+[ "$SERIES" = "precise" ] || exit 0
 
-[ ! -x /usr/bin/ubuntu-advantage ] && exit 0
+[ -x /usr/bin/ubuntu-advantage ] || exit 0
 
 if ubuntu-advantage is-esm-enabled; then
     cat <<EOF

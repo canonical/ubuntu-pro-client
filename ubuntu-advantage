@@ -1,4 +1,5 @@
 #!/bin/sh -e
+# shellcheck disable=SC2039
 
 SCRIPTNAME=$(basename "$0")
 
@@ -9,16 +10,16 @@ REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
-APT_METHOD_HTTPS=${APT_METHOD_HTTPS:="/usr/lib/apt/methods/https"}
-CA_CERTIFICATES=${CA_CERTIFICATES:="/usr/sbin/update-ca-certificates"}
-SNAPD=${SNAPD:="/usr/lib/snapd/snapd"}
+APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
+CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
+SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 KERNEL_VERSION=$(uname -r)
 
 check_result() {
     local result output
     result=0
     output=$("$@" 2>&1) || result=$?
-    if [ "$result" -ne "0" ]; then
+    if [ $result -ne 0 ]; then
         echo "ERROR"
         if [ -n "$output" ]; then
             echo "$output" >&2
@@ -34,7 +35,7 @@ install_livepatch_prereqs() {
         echo -n 'Installing missing dependency snapd... '
         check_result apt-get install -y snapd
     fi
-    if ! snap list canonical-livepatch > /dev/null 2>&1; then
+    if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
         echo 'This may take a few minutes depending on your bandwidth.'
         # show output as it has a nice progress bar and isn't too verbose
@@ -126,7 +127,7 @@ is_esm_enabled() {
 is_livepatch_enabled() {
     # it's fine if it fails because the snap isn't installed. It's still
     # a non-zero return value
-    canonical-livepatch status > /dev/null 2>&1
+    canonical-livepatch status >/dev/null 2>&1
 }
 
 validate_esm_token(){
@@ -147,6 +148,7 @@ check_snapd_kernel_support() {
 }
 
 check_livepatch_support() {
+    local s
     for s in $LIVEPATCH_SUPPORTED_SERIES; do
         if [ "$s" = "$SERIES" ]; then
             return
