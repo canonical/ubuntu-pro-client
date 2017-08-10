@@ -3,9 +3,7 @@ python:
   - "3.5"
 dist: precise
 install: pip install tox
-script:
-  - tox
-  - shellcheck -s dash ubuntu-advantage update-motd.d/*
+script: make
 addons:
   apt:
     sources:
