@@ -35,3 +35,30 @@ https://ubuntu.com/livepatch
 disable-livepatch \fR[\fB\-r\fR]
 Disable the Livepatch service. If the \fB\-r\fR option is given, the
 canonical-livepatch snap will be removed after the sevice is disabled.
+.SH EXIT STATUS
+.TP
+.B
+0
+Command succeded
+.TP
+.B
+1
+Invalid command or option
+.TP
+.B
+2
+Current user is not root
+.TP
+.B
+3
+Invalid or missing token when enabling a service
+.TP
+.B
+4
+Livepatch service not supported on the current Ubuntu release
+.TP
+.B
+5
+Current kernel is too old to support Snaps (required for the Livepatch service)
+.TP
+If apt commands run by the tool fail, the exit status from apt is returned.
