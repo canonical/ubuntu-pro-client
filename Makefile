@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := check
 
-check: test lint
+check: test
 
 test:
 	@tox
