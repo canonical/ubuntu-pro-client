@@ -3,7 +3,7 @@ python:
   - "3.5"
 dist: precise
 install: pip install tox
-script: make
+script: make lint test
 addons:
   apt:
     sources:
