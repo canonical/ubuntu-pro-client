@@ -5,6 +5,7 @@ SCRIPTNAME=$(basename "$0")
 
 ESM_SUPPORTED_SERIES="precise"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+SERIES=$(lsb_release -cs)
 
 REPO_URL="esm.ubuntu.com"
 REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
@@ -15,7 +16,6 @@ APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
-SERIES=$(lsb_release -cs)
 KERNEL_VERSION=$(uname -r)
 
 check_result() {
