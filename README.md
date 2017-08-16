@@ -4,49 +4,33 @@
 
 This tool is used to enable or disable specific Ubuntu Advantage offerings from Canonical.
 
+Currently it supports the following:
 
-## The ESM archive
-Ubuntu Extended Security Maintenance archive. See https://ubuntu.com/esm for more information.
+- [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm) archive.
+- [Canonical Livepatch](https://www.ubuntu.com/server/livepatch) service for managed live kernel patching.
 
-To enable the archive, run:
 
-```bash
-$ sudo ubuntu-advantage enable-esm token
+Run 
+
+```
+$ ./ubuntu-advantage
 ```
 
-where the `token` is in the form `user:password`.
+to display usage information.
 
-To disable the archive, run:
-
-```bash
-$ sudo ubuntu-advantage disable-esm
-```
-
-## Livepatch (Canonical Livepatch Service)
-Managed live kernel patching. For more information, visit https://www.ubuntu.com/server/livepatch
-
-To enable live patching on your system, run:
-
-```bash
-$ sudo ubuntu-advantage enable-livepatch token
-```
-
-The token can be obtained by visiting https://ubuntu.com/livepatch
-
-To disable livepatch, run:
-
-```bash
-$ sudo ubuntu-advantage disable-livepatch
-```
-
-If you also want to remove the canonical-livepatch snap, you can pass the `-r` option to `disable-livepatch`.
 
 ## Testing
 
-Unit tests & lint:
+System tests and tests lint:
 
-```bash
-$ tox
+```
+$ make test
+```
+
+Lint:
+
+```
+$ make lint
 ```
 
 Dep8 Tests:
