@@ -190,7 +190,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'Installing missing dependency ca-certificates',
             process.stdout)
 
-    def test_enable_esm_install_ca_certificates__fails(self):
+    def test_enable_esm_install_ca_certificates_fails(self):
         """Stderr is printed if ca-certificates install fails."""
         self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
@@ -214,6 +214,15 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
+    def test_enable_esm_only_supported_on_precise(self):
+        """The enable-esm option fails if not on Precise."""
+        self.make_fake_binary('lsb_release', command='echo xenial')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(4, process.returncode)
+        self.assertIn(
+            'Extended Security Maintenance is not supported on xenial',
+            process.stderr)
+
     def test_disable_esm(self):
         """The disable-esm option disables the ESM repository."""
         self.script('enable-esm', 'user:pass')
@@ -230,6 +239,15 @@ class UbuntuAdvantageTest(TestWithFixtures):
         process = self.script('disable-esm')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository was not enabled', process.stdout)
+
+    def test_disable_esm_only_supported_on_precise(self):
+        """The disable-esm option fails if not on Precise."""
+        self.make_fake_binary('lsb_release', command='echo xenial')
+        process = self.script('disable-esm')
+        self.assertEqual(4, process.returncode)
+        self.assertIn(
+            'Extended Security Maintenance is not supported on xenial',
+            process.stderr)
 
     def test_is_esm_enabled_true(self):
         """is-esm-enabled returns 0 if the repository is enabled."""
@@ -339,6 +357,20 @@ class UbuntuAdvantageTest(TestWithFixtures):
         process = self.script('disable-livepatch')
         self.assertEqual(0, process.returncode)
         self.assertIn('Livepatch is already disabled.', process.stdout)
+
+    def test_disable_livepatch_supported_trusty_xenial_not_precise(self):
+        """Livepatch can't be disabled on unsupported distros."""
+        for release in ['trusty', 'xenial']:
+            self.make_fake_binary(
+                'lsb_release', command='echo {}'.format(release))
+            process = self.script('disable-livepatch')
+            self.assertEqual(0, process.returncode)
+        # precise is not supported
+        self.make_fake_binary('lsb_release', command='echo precise')
+        process = self.script('disable-livepatch')
+        # self.assertEqual(4, process.returncode)
+        self.assertIn('Sorry, but Canonical Livepatch is not supported on '
+                      'precise', process.stderr)
 
     def test_disable_livepatch(self):
         """disable-livepatch disables the service."""
