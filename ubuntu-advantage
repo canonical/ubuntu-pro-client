@@ -194,16 +194,20 @@ print_status() {
         livepatch_output=$(canonical-livepatch status)
     else
         livepatch_status="disabled"
+        is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="$livepatch_status (not available)"
     fi
-    is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="$livepatch_status (not available)"
     echo "livepatch: $livepatch_status"
     if [ "$livepatch_output" ]; then
         echo "$livepatch_output"
     fi
 
     local esm_status
-    is_esm_enabled && esm_status="enabled" || esm_status="disabled"
-    is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="$esm_status (not available)"
+    if is_esm_enabled; then
+        esm_status="enabled"
+    else
+        esm_status="disabled"
+        is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="$esm_status (not available)"
+    fi
     echo "esm: $esm_status"
 }
 
