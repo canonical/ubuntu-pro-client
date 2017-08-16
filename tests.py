@@ -435,3 +435,42 @@ class UbuntuAdvantageTest(TestWithFixtures):
         # but then writing everything back to stderr if there was an error
         self.assertIn('this goes to stderr', process.stderr)
         self.assertIn('this goes to stdout', process.stderr)
+
+    def test_status_precise(self):
+        """The status command shows livepatch not available on precise."""
+        self.make_fake_binary('lsb_release', command='echo precise')
+        self.make_fake_binary('snap', command=SNAP_LIVEPATCH_NOT_INSTALLED)
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        process = self.script('status')
+        self.assertIn("livepatch: disabled (not available)", process.stdout)
+        self.assertIn("esm: disabled", process.stdout)
+
+    def test_status_precise_esm_enabled(self):
+        """The status command shows esm enabled."""
+        self.make_fake_binary('lsb_release', command='echo precise')
+        self.make_fake_binary('snap', command=SNAP_LIVEPATCH_NOT_INSTALLED)
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        process = self.script('status')
+        self.assertIn("livepatch: disabled (not available)", process.stdout)
+        self.assertIn("esm: enabled", process.stdout)
+
+    def test_status_xenial(self):
+        """The status command shows only livepatch available on xenial."""
+        self.make_fake_binary('lsb_release', command='echo xenial')
+        self.make_fake_binary(
+            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        process = self.script('status')
+        self.assertIn("livepatch: disabled", process.stdout)
+        self.assertIn("esm: disabled (not available)", process.stdout)
+
+    def test_status_xenial_livepatch_enabled(self):
+        """The status command shows livepatch enabled on xenial."""
+        self.make_fake_binary('lsb_release', command='echo xenial')
+        process = self.script('status')
+        self.assertIn("livepatch: enabled", process.stdout)
+        # the livepatch status output is also included
+        self.assertIn("fully-patched: true", process.stdout)
+        self.assertIn("esm: disabled (not available)", process.stdout)

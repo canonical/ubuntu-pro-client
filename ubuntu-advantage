@@ -187,6 +187,27 @@ check_user() {
 }
 
 
+print_status() {
+    local livepatch_status livepatch_output
+    if is_livepatch_enabled; then
+        livepatch_status="enabled"
+        livepatch_output=$(canonical-livepatch status)
+    else
+        livepatch_status="disabled"
+    fi
+    is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="$livepatch_status (not available)"
+    echo "livepatch: $livepatch_status"
+    if [ "$livepatch_output" ]; then
+        echo "$livepatch_output"
+    fi
+
+    local esm_status
+    is_esm_enabled && esm_status="enabled" || esm_status="disabled"
+    is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="$esm_status (not available)"
+    echo "esm: $esm_status"
+}
+
+
 usage() {
     cat >&2 <<EOF
 usage: ${SCRIPTNAME} <command> [parameters]
@@ -199,11 +220,12 @@ Currently available are:
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 
 Commands:
+ status                    show current status of Ubuntu Advantage offerings
  enable-esm <token>        enable the ESM repository
  disable-esm               disable the ESM repository
  enable-livepatch <token>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
-                           canonical-livepatch snap will also be removed.
+                           canonical-livepatch snap will also be removed
 
 EOF
 }
@@ -263,6 +285,10 @@ case "$1" in
     is-esm-enabled)
         # no root needed
         is_esm_enabled
+        ;;
+
+    status)
+        print_status
         ;;
 
     *)
