@@ -201,6 +201,8 @@ print_status() {
         echo "$livepatch_output" | sed 's/^/  /'
     fi
 
+    echo
+
     local esm_status
     if is_esm_enabled; then
         esm_status="enabled"
