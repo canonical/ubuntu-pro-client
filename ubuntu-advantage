@@ -65,8 +65,7 @@ enable_livepatch() {
     else
         echo 'Livepatch already enabled.'
     fi
-    echo 'You may use the "canonical-livepatch status" command'
-    echo 'to verify your current patch status.'
+    echo 'Use "canonical-livepatch status" to verify current patch status.'
 }
 
 disable_livepatch() {
@@ -195,8 +194,7 @@ case "$1" in
         token="$2"
         if ! validate_livepatch_token "$token"; then
             echo 'Invalid or missing Livepatch token' >&2
-            echo 'Please visit https://ubuntu.com/livepatch to obtain a' >&2
-            echo 'Livepatch token.' >&2
+            echo 'Please visit https://ubuntu.com/livepatch to obtain a Livepatch token.' >&2
             exit 3
         fi
         enable_livepatch "$token"
