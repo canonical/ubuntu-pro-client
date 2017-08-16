@@ -198,7 +198,7 @@ print_status() {
     fi
     echo "livepatch: $livepatch_status"
     if [ "$livepatch_output" ]; then
-        echo "$livepatch_output"
+        echo "$livepatch_output" | sed 's/^/  /'
     fi
 
     local esm_status
