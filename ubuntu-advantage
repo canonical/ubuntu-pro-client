@@ -3,8 +3,9 @@
 
 SCRIPTNAME=$(basename "$0")
 
-SERIES=$(lsb_release -cs)
+ESM_SUPPORTED_SERIES="precise"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+
 REPO_URL="esm.ubuntu.com"
 REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
@@ -12,7 +13,9 @@ KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
+
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
+SERIES=$(lsb_release -cs)
 KERNEL_VERSION=$(uname -r)
 
 check_result() {
@@ -29,6 +32,18 @@ check_result() {
         echo "OK"
     fi
 }
+
+# Whether the current series is among supported ones.
+is_supported_series() {
+    local s
+    for s in $1; do
+        if [ "$s" = "$SERIES" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 
 install_livepatch_prereqs() {
     if [ ! -f "$SNAPD" ]; then
@@ -146,15 +161,22 @@ check_snapd_kernel_support() {
     test "$v1" -ge "4" -a "$v2" -ge "4"
 }
 
+check_esm_support() {
+    check_service_support "Extended Security Maintenance" "$ESM_SUPPORTED_SERIES"
+}
+
 check_livepatch_support() {
-    local s
-    for s in $LIVEPATCH_SUPPORTED_SERIES; do
-        if [ "$s" = "$SERIES" ]; then
-            return
-        fi
-    done
-    echo "Sorry, but Canonical Livepatch is not supported on $SERIES" >&2
-    exit 4
+    check_service_support "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES"
+}
+
+check_service_support() {
+    local title="$1"
+    local supported_series="$2"
+
+    if ! is_supported_series "$supported_series"; then
+        echo "Sorry, but $title is not supported on $SERIES" >&2
+        exit 4
+    fi
 }
 
 check_user() {
@@ -202,6 +224,7 @@ case "$1" in
 
     disable-livepatch)
         check_user
+        check_livepatch_support
         remove_snap="no"
         if [ -n "$2" ]; then
             if [ "$2" = "-r" ]; then
@@ -222,7 +245,7 @@ case "$1" in
 
     enable-esm)
         check_user
-
+        check_esm_support
         token="$2"
         if ! validate_esm_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
@@ -233,10 +256,12 @@ case "$1" in
 
     disable-esm)
         check_user
+        check_esm_support
         disable_esm
         ;;
 
     is-esm-enabled)
+        # no root needed
         is_esm_enabled
         ;;
 
