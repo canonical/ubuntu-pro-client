@@ -14,6 +14,5 @@ Depends: ${misc:Depends}
 Description: Ubuntu Advantage tools for ESM
  This package ships Ubuntu Advantage subscription management tools.
  .
- It enables Ubuntu Advantage subscribers to enable Extended Security
- Maintenance (ESM) repository on Ubuntu 12.04 LTS (Precise Pangolin)
- systems.
+ It allows Ubuntu Advantage subscribers to enable services like Extended
+ Security Maintenance (ESM) and Livepatch on supported systems.
