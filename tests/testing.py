@@ -11,13 +11,17 @@ from fixtures import (
 
 from fakes import (
     SNAP_LIVEPATCH_INSTALLED,
-    LIVEPATCH_ENABLED)
-
+    SNAP_LIVEPATCH_NOT_INSTALLED,
+    LIVEPATCH_ENABLED,
+    LIVEPATCH_DISABLED)
 
 ProcessResult = namedtuple('ProcessResult', ['returncode', 'stdout', 'stderr'])
 
 
 class UbuntuAdvantageTest(TestWithFixtures):
+
+    SERIES = None
+    KERNEL_VERSION = None
 
     def setUp(self):
         super(UbuntuAdvantageTest, self).setUp()
@@ -38,13 +42,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('update-ca-certificates')
         self.make_fake_binary('id', command='echo 0')
-        self.make_fake_binary('lsb_release', command='echo precise')
         self.make_fake_binary('snapd')
-        # in our default setup the snap is installed and enabled
-        self.make_fake_binary('snap', command=SNAP_LIVEPATCH_INSTALLED)
-        self.make_fake_binary('canonical-livepatch', command=LIVEPATCH_ENABLED)
-        self.make_fake_binary('uname', command='echo 4.4.0-89-generic')
-        self.livepatch_token = '0123456789abcdef1234567890abcdef'
 
     def make_fake_binary(self, binary, command='true'):
         path = self.bin_dir / binary
@@ -64,6 +62,10 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'APT_METHOD_HTTPS': str(self.apt_method_https),
             'CA_CERTIFICATES': str(self.ca_certificates),
             'SNAPD': str(self.snapd)}
+        if self.SERIES:
+            env['SERIES'] = self.SERIES
+        if self.KERNEL_VERSION:
+            env['KERNEL_VERSION'] = self.KERNEL_VERSION
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         process.wait()
@@ -74,3 +76,14 @@ class UbuntuAdvantageTest(TestWithFixtures):
         process.stdout.close()
         process.stderr.close()
         return result
+
+    def setup_livepatch(self, installed=None, enabled=None):
+        """Setup livepatch-related fakes."""
+        if installed is not None:
+            command = (
+                SNAP_LIVEPATCH_INSTALLED if installed
+                else SNAP_LIVEPATCH_NOT_INSTALLED)
+            self.make_fake_binary('snap', command=command)
+        if enabled is not None:
+            command = LIVEPATCH_ENABLED if enabled else LIVEPATCH_DISABLED
+            self.make_fake_binary('canonical-livepatch', command=command)

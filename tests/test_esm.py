@@ -5,6 +5,8 @@ from testing import UbuntuAdvantageTest
 
 class ESMTest(UbuntuAdvantageTest):
 
+    SERIES = 'precise'
+
     def test_enable_esm(self):
         """The enable-esm option enables the ESM repository."""
         process = self.script('enable-esm', 'user:pass')
@@ -73,7 +75,7 @@ class ESMTest(UbuntuAdvantageTest):
 
     def test_enable_esm_only_supported_on_precise(self):
         """The enable-esm option fails if not on Precise."""
-        self.make_fake_binary('lsb_release', command='echo xenial')
+        self.SERIES = 'xenial'
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(4, process.returncode)
         self.assertIn(
@@ -99,7 +101,7 @@ class ESMTest(UbuntuAdvantageTest):
 
     def test_disable_esm_only_supported_on_precise(self):
         """The disable-esm option fails if not on Precise."""
-        self.make_fake_binary('lsb_release', command='echo xenial')
+        self.SERIES = 'xenial'
         process = self.script('disable-esm')
         self.assertEqual(4, process.returncode)
         self.assertIn(
