@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (7) trusty; urgency=medium
+
+  * d/control: update package description
+
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 17 Aug 2017 11:31:37 -0300
+
 ubuntu-advantage-tools (6) trusty; urgency=medium
 
   * New release version 6. Main changes:
