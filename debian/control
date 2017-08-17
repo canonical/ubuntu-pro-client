@@ -11,8 +11,8 @@ Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
 Package: ubuntu-advantage-tools
 Architecture: all
 Depends: ${misc:Depends}
-Description: Ubuntu Advantage tools for ESM
- This package ships Ubuntu Advantage subscription management tools.
- .
- It allows Ubuntu Advantage subscribers to enable services like Extended
- Security Maintenance (ESM) and Livepatch on supported systems.
+Description: management tools for Ubuntu Advantage
+ Ubuntu Advantage is the professional package of tooling, technology
+ and expertise from Canonical, helping organisations around the world
+ manage their Ubuntu deployments.
+ 
