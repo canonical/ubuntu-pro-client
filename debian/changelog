@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (8) artful; urgency=medium
+
+  * Release to artful (LP: #1711369)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 22 Aug 2017 12:55:13 -0300
+
 ubuntu-advantage-tools (7) trusty; urgency=medium
 
   * d/control: update package description
