@@ -2,34 +2,35 @@
 
 [![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script.svg?branch=master)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script)
 
-Script to enable the Ubuntu ESM (Extended Security Maintenance) archive for Precise.
+This tool is used to enable or disable specific Ubuntu Advantage offerings from Canonical.
+
+Currently it supports the following:
+
+- [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm) archive.
+- [Canonical Livepatch](https://www.ubuntu.com/server/livepatch) service for managed live kernel patching.
 
 
-## Enabling the ESM archive
+Run 
 
-To enable the archive, run:
-
-```bash
-$ sudo ubuntu-advantage enable-esm <token>
+```
+$ ./ubuntu-advantage
 ```
 
-where the `token` is in the form `<user>:<password>`.
+to display usage information.
 
-
-## Disabling the ESM archive
-
-To disable the archive, run:
-
-```bash
-$ sudo ubuntu-advantage disable-esm
-```
 
 ## Testing
 
-Unit tests & lint:
+System tests and tests lint:
 
-```bash
-$ tox
+```
+$ make test
+```
+
+Lint:
+
+```
+$ make lint
 ```
 
 Dep8 Tests:

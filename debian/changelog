@@ -1,3 +1,55 @@
+ubuntu-advantage-tools (8) artful; urgency=medium
+
+  * Release to artful (LP: #1711369)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 22 Aug 2017 12:55:13 -0300
+
+ubuntu-advantage-tools (7) trusty; urgency=medium
+
+  * d/control: update package description
+
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 17 Aug 2017 11:31:37 -0300
+
+ubuntu-advantage-tools (6) trusty; urgency=medium
+
+  * New release version 6. Main changes:
+    - document return codes on the manpage (Fixes: #33)
+    - new status command (Fixes: #40)
+    - restrict esm to precise only (Fixes: #43)
+    - drop the livepatch motd update, only esm has motd output now
+      (Fixes: #44)
+    - skip tests during package building (Fixes #49)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 16 Aug 2017 15:21:16 -0300
+
+ubuntu-advantage-tools (5) trusty; urgency=medium
+
+  * Only display apt output in the case of errors (Fixes #34).
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 08 Aug 2017 12:41:25 -0300
+
+ubuntu-advantage-tools (4) trusty; urgency=medium
+
+  * Check running kernel version before enabling the Livepatch service
+    (Fixes #30).
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 07 Aug 2017 18:45:23 -0300
+
+ubuntu-advantage-tools (3) trusty; urgency=medium
+
+  * Add livepatch support:
+    - New commands:
+      + enable-livepatch
+      + disable-livepatch
+      + is-livepatch-enabled
+    - new tests
+    - new manpage
+    - new help output
+    - new README.md
+    - new MOTD
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 07 Aug 2017 11:09:31 -0300
+
 ubuntu-advantage-tools (2) trusty; urgency=medium
 
   * ubuntu-advantage & /etc/update-motd.d/99-esm now build, run and are quiet
