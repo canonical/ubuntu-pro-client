@@ -2,10 +2,6 @@
 
 from testing import UbuntuAdvantageTest
 
-from fakes import (
-    SNAP_LIVEPATCH_NOT_INSTALLED,
-    LIVEPATCH_DISABLED)
-
 
 class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
 
@@ -29,37 +25,33 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
 
     def test_status_precise(self):
         """The status command shows livepatch not available on precise."""
-        self.make_fake_binary('lsb_release', command='echo precise')
-        self.make_fake_binary('snap', command=SNAP_LIVEPATCH_NOT_INSTALLED)
-        self.make_fake_binary(
-            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.SERIES = 'precise'
+        self.setup_livepatch(installed=False, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled (not available)", process.stdout)
         self.assertIn("esm: disabled", process.stdout)
 
     def test_status_precise_esm_enabled(self):
         """The status command shows esm enabled."""
-        self.make_fake_binary('lsb_release', command='echo precise')
-        self.make_fake_binary('snap', command=SNAP_LIVEPATCH_NOT_INSTALLED)
-        self.make_fake_binary(
-            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.SERIES = 'precise'
         self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        self.setup_livepatch(installed=False, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled (not available)", process.stdout)
         self.assertIn("esm: enabled", process.stdout)
 
     def test_status_xenial(self):
         """The status command shows only livepatch available on xenial."""
-        self.make_fake_binary('lsb_release', command='echo xenial')
-        self.make_fake_binary(
-            'canonical-livepatch', command=LIVEPATCH_DISABLED)
+        self.SERIES = 'xenial'
+        self.setup_livepatch(installed=True, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled", process.stdout)
         self.assertIn("esm: disabled (not available)", process.stdout)
 
     def test_status_xenial_livepatch_enabled(self):
         """The status command shows livepatch enabled on xenial."""
-        self.make_fake_binary('lsb_release', command='echo xenial')
+        self.SERIES = 'xenial'
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('status')
         self.assertIn("livepatch: enabled", process.stdout)
         # the livepatch status output is also included
