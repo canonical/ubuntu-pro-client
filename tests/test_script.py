@@ -26,6 +26,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
     def test_status_precise(self):
         """The status command shows livepatch not available on precise."""
         self.SERIES = 'precise'
+        self.setup_livepatch(installed=False, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled (not available)", process.stdout)
         self.assertIn("esm: disabled", process.stdout)
