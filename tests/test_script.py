@@ -35,6 +35,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         """The status command shows esm enabled."""
         self.SERIES = 'precise'
         self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        self.setup_livepatch(installed=False, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled (not available)", process.stdout)
         self.assertIn("esm: enabled", process.stdout)
