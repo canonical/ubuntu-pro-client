@@ -43,7 +43,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
     def test_status_xenial(self):
         """The status command shows only livepatch available on xenial."""
         self.SERIES = 'xenial'
-        self.setup_livepatch(installed=True)
+        self.setup_livepatch(installed=True, enabled=False)
         process = self.script('status')
         self.assertIn("livepatch: disabled", process.stdout)
         self.assertIn("esm: disabled (not available)", process.stdout)
