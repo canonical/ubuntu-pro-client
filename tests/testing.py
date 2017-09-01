@@ -10,6 +10,7 @@ from fixtures import (
     TempDir)
 
 from fakes import (
+    APT_GET,
     SNAP_LIVEPATCH_INSTALLED,
     SNAP_LIVEPATCH_NOT_INSTALLED,
     LIVEPATCH_ENABLED,
@@ -46,6 +47,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def make_fake_binary(self, binary, command='true'):
         path = self.bin_dir / binary
+        if binary == 'apt-get':
+            command = APT_GET + "\n" + command
         path.write_text('#!/bin/sh\n{}\n'.format(command))
         path.chmod(0o755)
 
