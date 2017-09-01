@@ -1,6 +1,6 @@
 # Fake for commands invoked by the script.
 
-SNAP_LIVEPATCH_INSTALLED = """#!/bin/sh
+SNAP_LIVEPATCH_INSTALLED = """\n
 if [ "$1" = "list" ]; then
     cat <<EOF
 Name                 Version  Rev  Developer  Notes
@@ -16,7 +16,7 @@ fi
 exit 0
 """
 
-SNAP_LIVEPATCH_NOT_INSTALLED = """#!/bin/sh
+SNAP_LIVEPATCH_NOT_INSTALLED = """\n
 if [ "$1" = "list" ]; then
     cat <<EOF
 error: no matching snaps installed
@@ -30,7 +30,7 @@ EOF
 fi
 """
 
-LIVEPATCH_ENABLED = """#!/bin/sh
+LIVEPATCH_ENABLED = """\n
 if [ "$1" = "status" ]; then
     cat <<EOF
 kernel: 4.4.0-87.110-generic
@@ -49,7 +49,7 @@ fi
 exit 0
 """
 
-LIVEPATCH_DISABLED = """#!/bin/sh
+LIVEPATCH_DISABLED = """\n
 if [ "$1" = "status" ]; then
     cat <<EOF
 Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
