@@ -35,6 +35,11 @@ check_result() {
     fi
 }
 
+apt_get() {
+    DEBIAN_FRONTEND=noninteractive \
+        apt-get -y -o Dpkg::Options::='--force-confold' "$@"
+}
+
 # Whether the current series is among supported ones.
 is_supported_series() {
     local s
@@ -50,7 +55,7 @@ is_supported_series() {
 install_livepatch_prereqs() {
     if [ ! -f "$SNAPD" ]; then
         echo -n 'Installing missing dependency snapd... '
-        check_result apt-get install -y snapd
+        check_result apt_get install snapd
     fi
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
@@ -113,14 +118,14 @@ enable_esm() {
     write_esm_list_file "$1"
     if [ ! -f "$APT_METHOD_HTTPS" ]; then
         echo -n 'Installing missing dependency apt-transport-https... '
-        check_result apt-get install -y apt-transport-https
+        check_result apt_get install apt-transport-https
     fi
     if [ ! -f "$CA_CERTIFICATES" ]; then
         echo -n 'Installing missing dependency ca-certificates... '
-        check_result apt-get install -y ca-certificates
+        check_result apt_get install ca-certificates
     fi
     echo -n 'Running apt-get update... '
-    check_result apt-get update
+    check_result apt_get update
     echo 'Ubuntu ESM repository enabled.'
 }
 
@@ -129,7 +134,7 @@ disable_esm() {
         mv "$REPO_LIST" "${REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
         echo -n 'Running apt-get update... '
-        check_result apt-get update
+        check_result apt_get update
         echo 'Ubuntu ESM repository disabled.'
     else
         echo 'Ubuntu ESM repository was not enabled.'

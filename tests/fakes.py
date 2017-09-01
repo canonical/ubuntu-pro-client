@@ -62,3 +62,13 @@ elif [ "$1" = "enable" ]; then
 fi
 exit 0
 """
+
+APT_GET = """\n
+if [ "$DEBIAN_FRONTEND" != "noninteractive" -o \\
+     -z "$(echo $@ | grep -- '-y')" -o \\
+     -z "$(echo $@ | grep force-confold)" ]; then
+    echo -n "ERROR: apt-get called directly. You must use the " >&2
+    echo "apt_get function.">&2
+    exit 99
+fi
+"""
