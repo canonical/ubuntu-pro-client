@@ -1,6 +1,6 @@
 # Fake for commands invoked by the script.
 
-SNAP_LIVEPATCH_INSTALLED = """\n
+SNAP_LIVEPATCH_INSTALLED = """#!/bin/sh
 if [ "$1" = "list" ]; then
     cat <<EOF
 Name                 Version  Rev  Developer  Notes
@@ -16,7 +16,7 @@ fi
 exit 0
 """
 
-SNAP_LIVEPATCH_NOT_INSTALLED = """\n
+SNAP_LIVEPATCH_NOT_INSTALLED = """#!/bin/sh
 if [ "$1" = "list" ]; then
     cat <<EOF
 error: no matching snaps installed
@@ -30,7 +30,7 @@ EOF
 fi
 """
 
-LIVEPATCH_ENABLED = """\n
+LIVEPATCH_ENABLED = """#!/bin/sh
 if [ "$1" = "status" ]; then
     cat <<EOF
 kernel: 4.4.0-87.110-generic
@@ -49,7 +49,7 @@ fi
 exit 0
 """
 
-LIVEPATCH_DISABLED = """\n
+LIVEPATCH_DISABLED = """#!/bin/sh
 if [ "$1" = "status" ]; then
     cat <<EOF
 Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
@@ -63,12 +63,8 @@ fi
 exit 0
 """
 
-APT_GET = """\n
-if [ "$DEBIAN_FRONTEND" != "noninteractive" -o \\
-     -z "$(echo $@ | grep -- '-y')" -o \\
-     -z "$(echo $@ | grep force-confold)" ]; then
-    echo -n "ERROR: apt-get called directly. You must use the " >&2
-    echo "apt_get function.">&2
-    exit 99
-fi
+APT_GET_LOG_WRAPPER = """#!/bin/sh
+log_path=$(dirname "$0")/../
+echo -- "$@" >> "${log_path}/apt_get.args"
+env >> "${log_path}/apt_get.env"
 """
