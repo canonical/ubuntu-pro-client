@@ -1,3 +1,14 @@
+ubuntu-advantage-tools (9) artful; urgency=medium
+
+  * New upstream release:
+    - call apt-get with the non-interactive frontend variable set, and tell
+      dpkg to keep the old config file by default should there be any prompts
+      about that. (LP: #1715012)
+    - split the one big test file into multiple smaller files, for better
+      maintainability.
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 04 Sep 2017 15:15:58 -0300
+
 ubuntu-advantage-tools (8) artful; urgency=medium
 
   * Release to artful (LP: #1711369)
