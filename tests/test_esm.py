@@ -1,6 +1,7 @@
 # Tests for ESM-related commands.
 
 from testing import UbuntuAdvantageTest
+from fakes import APT_GET_LOG_WRAPPER
 
 
 class ESMTest(UbuntuAdvantageTest):
@@ -32,6 +33,22 @@ class ESMTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_esm_install_apt_transport_https_apt_get_options(self):
+        """apt-get accepts defaults when installing apt-transports-https."""
+        self.apt_method_https.unlink()
+        self.make_fake_binary('apt-get', command=APT_GET_LOG_WRAPPER)
+        self.script('enable-esm', 'user:pass')
+        # apt-get is called both to install packages and update lists
+        self.assertIn(
+            '-y -o Dpkg::Options::=--force-confold install '
+            'apt-transport-https',
+            self.read_file('apt_get.args'))
+        self.assertIn(
+            '-y -o Dpkg::Options::=--force-confold update',
+            self.read_file('apt_get.args'))
+        self.assertIn(
+            'DEBIAN_FRONTEND=noninteractive', self.read_file('apt_get.env'))
+
     def test_enable_esm_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
         self.apt_method_https.unlink()
@@ -48,6 +65,21 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertIn(
             'Installing missing dependency ca-certificates',
             process.stdout)
+
+    def test_enable_esm_install_ca_certificates_apt_get_options(self):
+        """apt-get accepts defaults when installing ca-certificates."""
+        self.ca_certificates.unlink()
+        self.make_fake_binary('apt-get', command=APT_GET_LOG_WRAPPER)
+        self.script('enable-esm', 'user:pass')
+        # apt-get is called both to install packages and update lists
+        self.assertIn(
+            '-y -o Dpkg::Options::=--force-confold install ca-certificates',
+            self.read_file('apt_get.args'))
+        self.assertIn(
+            '-y -o Dpkg::Options::=--force-confold update',
+            self.read_file('apt_get.args'))
+        self.assertIn(
+            'DEBIAN_FRONTEND=noninteractive', self.read_file('apt_get.env'))
 
     def test_enable_esm_install_ca_certificates_fails(self):
         """Stderr is printed if ca-certificates install fails."""

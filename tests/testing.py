@@ -25,11 +25,11 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def setUp(self):
         super(UbuntuAdvantageTest, self).setUp()
-        tempdir = self.useFixture(TempDir())
-        self.repo_list = Path(tempdir.join('repo.list'))
-        self.bin_dir = Path(tempdir.join('bin'))
-        self.keyrings_dir = Path(tempdir.join('keyrings'))
-        self.trusted_gpg_dir = Path(tempdir.join('trusted.gpg.d'))
+        self.tempdir = self.useFixture(TempDir())
+        self.repo_list = Path(self.tempdir.join('repo.list'))
+        self.bin_dir = Path(self.tempdir.join('bin'))
+        self.keyrings_dir = Path(self.tempdir.join('keyrings'))
+        self.trusted_gpg_dir = Path(self.tempdir.join('trusted.gpg.d'))
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
@@ -45,9 +45,15 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.make_fake_binary('snapd')
 
     def make_fake_binary(self, binary, command='true'):
+        """Create a script to fake a binary in path."""
         path = self.bin_dir / binary
         path.write_text('#!/bin/sh\n{}\n'.format(command))
         path.chmod(0o755)
+
+    def read_file(self, path):
+        """Return the content of a file with path relative to the test dir."""
+        with open(self.tempdir.join(path)) as fh:
+            return fh.read()
 
     def script(self, *args):
         """Run the script."""

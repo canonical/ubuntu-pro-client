@@ -62,3 +62,9 @@ elif [ "$1" = "enable" ]; then
 fi
 exit 0
 """
+
+APT_GET_LOG_WRAPPER = """#!/bin/sh
+log_path=$(dirname "$0")/../
+echo -- "$@" >> "${log_path}/apt_get.args"
+env >> "${log_path}/apt_get.env"
+"""

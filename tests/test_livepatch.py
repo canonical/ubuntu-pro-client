@@ -1,6 +1,7 @@
 # Tests for Livepatch-related commands.
 
 from testing import UbuntuAdvantageTest
+from fakes import APT_GET_LOG_WRAPPER
 
 
 class LivepatchTest(UbuntuAdvantageTest):
@@ -47,6 +48,17 @@ class LivepatchTest(UbuntuAdvantageTest):
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(0, process.returncode)
         self.assertIn('Installing missing dependency snapd', process.stdout)
+
+    def test_enable_livepatch_apt_get_options(self):
+        """apt-get is called with options to accept defaults."""
+        self.snapd.unlink()
+        self.make_fake_binary('apt-get', command=APT_GET_LOG_WRAPPER)
+        self.script('enable-livepatch', self.livepatch_token)
+        self.assertIn(
+            '-y -o Dpkg::Options::=--force-confold install snapd',
+            self.read_file('apt_get.args'))
+        self.assertIn(
+            'DEBIAN_FRONTEND=noninteractive', self.read_file('apt_get.env'))
 
     def test_enable_livepatch_installs_snap(self):
         """enable-livepatch installs the livepatch snap if needed."""
