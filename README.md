@@ -8,7 +8,7 @@ Currently it supports the following:
 
 - [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm) archive.
 - [Canonical Livepatch](https://www.ubuntu.com/server/livepatch) service for managed live kernel patching.
-
+- [Canonical FIPS 140-2 Certified Modules] Install Configure and Enable FIPS modules.
 
 Run 
 

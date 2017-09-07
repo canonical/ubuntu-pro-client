@@ -5,10 +5,15 @@ SCRIPTNAME=$(basename "$0")
 
 ESM_SUPPORTED_SERIES="precise"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+FIPS_SUPPORTED_SERIES="xenial"
 
 SERIES=${SERIES:-$(lsb_release -cs)}
 KERNEL_VERSION=${KERNEL_VERSION:-$(uname -r)}
+ARCH=${ARCH:-$(uname -m)}
 
+FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
+FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
+FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
 REPO_URL="esm.ubuntu.com"
 REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
@@ -19,6 +24,14 @@ CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
+FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
+FSTAB="/etc/fstab"
+if [ $ARCH = 's390x' ]; then
+    FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
+else
+    FIPS_BOOT_CFG_DIR=${FIPS_BOOT_CFG_DIR:-"/etc/default/grub.d"}
+    FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"${FIPS_BOOT_CFG_DIR}/99-fips.cfg"}
+fi
 
 check_result() {
     local result output
@@ -141,6 +154,109 @@ disable_esm() {
     fi
 }
 
+fips_prep_check() {
+    # check to see if fips pkgs already installed.
+    fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
+                linux-fips strongswan-hmac"
+    for pkg in $fips_hmacs; do
+        dpkg-query -W $pkg > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "ERROR: Looks like FIPS already installed."
+            return 1
+        fi
+    done
+
+    # sanity check
+    case "$ARCH" in
+        s390x|x86_64|ppc64le)
+            ;;
+        *)
+            echo "ERROR: $ARCH is not fips supported."
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+configure_fips() {
+    # if /boot has its own partition, then get the bootdevice
+    # Note: /boot/efi  does not count
+    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' $FSTAB)
+    fips_params="fips=1"
+    if [ -n "$bootdev" ]; then
+        fips_params="$fips_params bootdev=$bootdev"
+    fi
+
+    if [ $ARCH = 's390x' ]; then
+        sed -i -e 's/^parameters\s*=.*/& '"$fips_params"'/' "$FIPS_BOOT_CFG"
+        echo -n 'Updating zipl to enable fips ...'
+        check_result zipl
+    else
+        if ! test -d $FIPS_BOOT_CFG_DIR; then
+            mkdir $FIPS_BOOT_CFG_DIR > /dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo "Failed to make directory, $FIPS_BOOT_CFG_DIR."
+                return 1
+            fi
+        fi
+        cat > "$FIPS_BOOT_CFG" <<EOF
+GRUB_CMDLINE_LINUX_DEFAULT="\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params"
+EOF
+        echo -n 'Updating grub to enable fips ...'
+        check_result update-grub
+    fi
+}
+
+write_fips_list_file() {
+    cat > "$FIPS_REPO_LIST" <<EOF
+deb https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
+# deb-src https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
+EOF
+}
+
+enable_fips() {
+    fips_prep_check || exit 6
+
+    cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    write_fips_list_file "$1"
+
+    if [ ! -f "$APT_METHOD_HTTPS" ]; then
+        echo -n 'Installing missing dependency apt-transport-https... '
+        check_result apt_get install apt-transport-https
+    fi
+    if [ ! -f "$CA_CERTIFICATES" ]; then
+        echo -n 'Installing missing dependency ca-certificates... '
+        check_result apt_get install ca-certificates
+    fi
+    echo -n 'Running apt-get update... '
+    check_result apt_get update
+    echo 'Ubuntu FIPS PPA repository enabled.'
+
+    # install all the fips packages
+    echo -n 'Installing FIPS packages (this may take a while)...'
+    check_result apt_get install openssh-client openssh-client-hmac \
+                       openssh-server openssh-server-hmac openssl libssl1.0.0 \
+                       libssl1.0.0-hmac fips-initramfs linux-fips \
+                       strongswan strongswan-hmac
+
+    echo "Configuring FIPS..."
+    configure_fips
+    echo "Successfully configured FIPS. PLEASE REBOOT to complete FIPS enablement."
+}
+
+fips_enabled_check() {
+    if [ -f "$FIPS_ENABLED_FILE" ]; then
+                cat $FIPS_ENABLED_FILE
+                return
+    fi
+    echo 0
+}
+
+is_fips_enabled() {
+    dpkg-query -W fips-initramfs >/dev/null 2>&1
+    [ $? -eq 0 ] && [ $(fips_enabled_check) -eq 1 ]
+}
+
 is_esm_enabled() {
     apt-cache policy | grep -Fq "$REPO_URL"
 }
@@ -151,7 +267,7 @@ is_livepatch_enabled() {
     canonical-livepatch status >/dev/null 2>&1
 }
 
-validate_esm_token(){
+validate_esm_or_fips_token(){
     echo "$1" | grep -q '^[^:]\+:[^:]\+$'
 }
 
@@ -174,6 +290,10 @@ check_esm_support() {
 
 check_livepatch_support() {
     check_service_support "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES"
+}
+
+check_fips_support() {
+    check_service_support "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES"
 }
 
 check_service_support() {
@@ -218,6 +338,17 @@ print_status() {
         is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="$esm_status (not available)"
     fi
     echo "esm: $esm_status"
+
+    echo
+
+    local fips_status
+    if is_fips_enabled; then
+        fips_status="enabled"
+    else
+        fips_status="disabled"
+        is_supported_series "$FIPS_SUPPORTED_SERIES" || fips_status="$fips_status (not available)"
+    fi
+    echo "fips: $fips_status"
 }
 
 
@@ -231,6 +362,7 @@ Ubuntu Advantage offerings.
 Currently available are:
 - Ubuntu Extended Security Maintenance archive (https://ubuntu.com/esm)
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
+- Canonical FIPS 140-2 Certified Modules
 
 Commands:
  status                    show current status of Ubuntu Advantage offerings
@@ -239,7 +371,8 @@ Commands:
  enable-livepatch <token>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
                            canonical-livepatch snap will also be removed
-
+ enable-fips <token>       enable the FIPS PPA repository and install,
+                           configure and enable FIPS certified modules
 EOF
 }
 
@@ -282,7 +415,7 @@ case "$1" in
         check_user
         check_esm_support
         token="$2"
-        if ! validate_esm_token "$token"; then
+        if ! validate_esm_or_fips_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
             exit 3
         fi
@@ -299,6 +432,23 @@ case "$1" in
         # no root needed
         is_esm_enabled
         ;;
+
+    enable-fips)
+        check_user
+        check_fips_support
+        token="$2"
+        if ! validate_esm_or_fips_token "$token"; then
+            echo 'Invalid token, it must be in the form "user:password"' >&2
+            exit 3
+        fi
+
+        enable_fips "$token"
+        ;;
+
+    is-fips-enabled)
+       # no root needed
+       is_fips_enabled
+       ;;
 
     status)
         print_status
