@@ -9,8 +9,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips(self):
         """The enable-fips option enables the FIPS repository."""
-        p = self.boot_cfg
-        p.write_text("")
+        self.boot_cfg.write_text("")
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu FIPS PPA repository enabled.', process.stdout)
@@ -31,8 +30,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_apt_transport_https(self):
         """enable-fips installs apt-transport-https if needed."""
-        p = self.boot_cfg
-        p.write_text("")
+        self.boot_cfg.write_text("")
         self.apt_method_https.unlink()
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
@@ -42,8 +40,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
-        p = self.boot_cfg
-        p.write_text("")
+        self.boot_cfg.write_text("")
         self.apt_method_https.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
         process = self.script('enable-fips', 'user:pass')
@@ -52,8 +49,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_ca_certificates(self):
         """enable-fips installs ca-certificates if needed."""
-        p = self.boot_cfg
-        p.write_text("")
+        self.boot_cfg.write_text("")
         self.ca_certificates.unlink()
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
@@ -63,8 +59,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_ca_certificates_fails(self):
         """Stderr is printed if ca-certificates install fails."""
-        p = self.boot_cfg
-        p.write_text("")
+        self.boot_cfg.write_text("")
         self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
         process = self.script('enable-fips', 'user:pass')

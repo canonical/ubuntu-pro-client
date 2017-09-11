@@ -26,7 +26,7 @@ SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 FSTAB="/etc/fstab"
-if [ $ARCH = 's390x' ]; then
+if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
     FIPS_BOOT_CFG_DIR=${FIPS_BOOT_CFG_DIR:-"/etc/default/grub.d"}
@@ -155,17 +155,9 @@ disable_esm() {
 }
 
 fips_prep_check() {
-    # check to see if fips pkgs already installed.
-    fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
-                linux-fips strongswan-hmac"
-    for pkg in $fips_hmacs; do
-        dpkg-query -W $pkg > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "ERROR: Looks like FIPS already installed."
-            return 1
-        fi
-    done
+    local fips_hmacs pkg result
 
+    result=0
     # sanity check
     case "$ARCH" in
         s390x|x86_64|ppc64le)
@@ -175,10 +167,25 @@ fips_prep_check() {
             return 1
             ;;
     esac
+
+    # check to see if fips pkgs already installed.
+    fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
+                linux-fips strongswan-hmac"
+    for pkg in $fips_hmacs; do
+        dpkg-query -s "$pkg" > /dev/null 2>&1 || result=$?
+        if [ $result -eq 0 ]; then
+            echo "ERROR: Looks like FIPS already installed."
+            return 1
+        fi
+    done
+
     return 0
 }
 
 configure_fips() {
+    local bootdev fips_params result
+
+    result=0
     # if /boot has its own partition, then get the bootdevice
     # Note: /boot/efi  does not count
     bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' $FSTAB)
@@ -187,21 +194,19 @@ configure_fips() {
         fips_params="$fips_params bootdev=$bootdev"
     fi
 
-    if [ $ARCH = 's390x' ]; then
+    if [ "$ARCH" = "s390x" ]; then
         sed -i -e 's/^parameters\s*=.*/& '"$fips_params"'/' "$FIPS_BOOT_CFG"
         echo -n 'Updating zipl to enable fips ...'
         check_result zipl
     else
-        if ! test -d $FIPS_BOOT_CFG_DIR; then
-            mkdir $FIPS_BOOT_CFG_DIR > /dev/null 2>&1
-            if [ $? -ne 0 ]; then
+        if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
+            mkdir "$FIPS_BOOT_CFG_DIR" > /dev/null 2>&1 || result=$?
+            if [ $result -ne 0 ]; then
                 echo "Failed to make directory, $FIPS_BOOT_CFG_DIR."
                 return 1
             fi
         fi
-        cat > "$FIPS_BOOT_CFG" <<EOF
-GRUB_CMDLINE_LINUX_DEFAULT="\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params"
-EOF
+        echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" > "$FIPS_BOOT_CFG"
         echo -n 'Updating grub to enable fips ...'
         check_result update-grub
     fi
@@ -246,15 +251,17 @@ enable_fips() {
 
 fips_enabled_check() {
     if [ -f "$FIPS_ENABLED_FILE" ]; then
-                cat $FIPS_ENABLED_FILE
+                cat "$FIPS_ENABLED_FILE"
                 return
     fi
     echo 0
 }
 
 is_fips_enabled() {
-    dpkg-query -W fips-initramfs >/dev/null 2>&1
-    [ $? -eq 0 ] && [ $(fips_enabled_check) -eq 1 ]
+    local result
+    result=0
+    dpkg-query -s fips-initramfs >/dev/null 2>&1 || result=$?
+    [ $result -eq 0 ] && [ "$(fips_enabled_check)" -eq 1 ]
 }
 
 is_esm_enabled() {
@@ -267,7 +274,7 @@ is_livepatch_enabled() {
     canonical-livepatch status >/dev/null 2>&1
 }
 
-validate_esm_or_fips_token(){
+validate_user_pass_token(){
     echo "$1" | grep -q '^[^:]\+:[^:]\+$'
 }
 
@@ -415,7 +422,7 @@ case "$1" in
         check_user
         check_esm_support
         token="$2"
-        if ! validate_esm_or_fips_token "$token"; then
+        if ! validate_user_pass_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
             exit 3
         fi
@@ -437,7 +444,7 @@ case "$1" in
         check_user
         check_fips_support
         token="$2"
-        if ! validate_esm_or_fips_token "$token"; then
+        if ! validate_user_pass_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
             exit 3
         fi
