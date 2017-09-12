@@ -50,7 +50,7 @@ check_result() {
 
 apt_get() {
     DEBIAN_FRONTEND=noninteractive \
-        apt-get -y -o Dpkg::Options::='--force-confold' "$@"
+                   apt-get -y -o Dpkg::Options::='--force-confold' "$@"
 }
 
 # Whether the current series is among supported ones.
@@ -160,8 +160,7 @@ fips_prep_check() {
     result=0
     # sanity check
     case "$ARCH" in
-        s390x|x86_64|ppc64le)
-            ;;
+        s390x|x86_64|ppc64le) ;;
         *)
             echo "ERROR: $ARCH is not fips supported."
             return 1
@@ -240,9 +239,9 @@ enable_fips() {
     # install all the fips packages
     echo -n 'Installing FIPS packages (this may take a while)...'
     check_result apt_get install openssh-client openssh-client-hmac \
-                       openssh-server openssh-server-hmac openssl libssl1.0.0 \
-                       libssl1.0.0-hmac fips-initramfs linux-fips \
-                       strongswan strongswan-hmac
+                 openssh-server openssh-server-hmac openssl libssl1.0.0 \
+                 libssl1.0.0-hmac fips-initramfs linux-fips \
+                 strongswan strongswan-hmac
 
     echo "Configuring FIPS..."
     configure_fips
@@ -251,8 +250,8 @@ enable_fips() {
 
 fips_enabled_check() {
     if [ -f "$FIPS_ENABLED_FILE" ]; then
-                cat "$FIPS_ENABLED_FILE"
-                return
+        cat "$FIPS_ENABLED_FILE"
+        return
     fi
     echo 0
 }
@@ -453,9 +452,9 @@ case "$1" in
         ;;
 
     is-fips-enabled)
-       # no root needed
-       is_fips_enabled
-       ;;
+        # no root needed
+        is_fips_enabled
+        ;;
 
     status)
         print_status
