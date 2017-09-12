@@ -195,7 +195,7 @@ configure_fips() {
     fi
 
     if [ "$ARCH" = "s390x" ]; then
-        sed -i -e 's/^parameters\s*=.*/& '"$fips_params"'/' "$FIPS_BOOT_CFG"
+        sed -i -e 's,^parameters\s*=.*,& '"$fips_params"',' "$FIPS_BOOT_CFG"
         echo -n 'Updating zipl to enable fips ...'
         check_result zipl
     else
