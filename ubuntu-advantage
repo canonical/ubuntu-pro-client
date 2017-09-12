@@ -53,6 +53,12 @@ apt_get() {
                    apt-get -y -o Dpkg::Options::='--force-confold' "$@"
 }
 
+
+is_package_installed() {
+    dpkg-query -s "$1" > /dev/null 2>&1
+}
+
+
 # Whether the current series is among supported ones.
 is_supported_series() {
     local s
@@ -171,8 +177,7 @@ fips_prep_check() {
     fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
                 linux-fips strongswan-hmac"
     for pkg in $fips_hmacs; do
-        dpkg-query -s "$pkg" > /dev/null 2>&1 || result=$?
-        if [ $result -eq 0 ]; then
+        if is_package_installed "$pkg"; then
             echo "ERROR: Looks like FIPS already installed."
             return 1
         fi
@@ -259,8 +264,7 @@ fips_enabled_check() {
 is_fips_enabled() {
     local result
     result=0
-    dpkg-query -s fips-initramfs >/dev/null 2>&1 || result=$?
-    [ $result -eq 0 ] && [ "$(fips_enabled_check)" -eq 1 ]
+    is_package_installed fips-initramfs && [ "$(fips_enabled_check)" -eq 1 ]
 }
 
 is_esm_enabled() {
