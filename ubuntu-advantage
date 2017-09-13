@@ -25,7 +25,7 @@ CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
-FSTAB="/etc/fstab"
+FSTAB=${FSTAB:-"/etc/fstab"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
@@ -50,8 +50,26 @@ check_result() {
 
 apt_get() {
     DEBIAN_FRONTEND=noninteractive \
-        apt-get -y -o Dpkg::Options::='--force-confold' "$@"
+                   apt-get -y -o Dpkg::Options::='--force-confold' "$@"
 }
+
+
+is_package_installed() {
+    dpkg-query -s "$1" > /dev/null 2>&1
+}
+
+
+# Install a package if the specified file doesn't exist
+install_package_if_missing_file() {
+    local file="$1"
+    local package="$2"
+
+    if [ ! -f "$file" ]; then
+        echo -n "Installing missing dependency $package... "
+        check_result apt_get install "$package"
+    fi
+}
+
 
 # Whether the current series is among supported ones.
 is_supported_series() {
@@ -66,10 +84,7 @@ is_supported_series() {
 
 
 install_livepatch_prereqs() {
-    if [ ! -f "$SNAPD" ]; then
-        echo -n 'Installing missing dependency snapd... '
-        check_result apt_get install snapd
-    fi
+    install_package_if_missing_file "$SNAPD" snapd
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
         echo 'This may take a few minutes depending on your bandwidth.'
@@ -129,14 +144,8 @@ EOF
 enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_esm_list_file "$1"
-    if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo -n 'Installing missing dependency apt-transport-https... '
-        check_result apt_get install apt-transport-https
-    fi
-    if [ ! -f "$CA_CERTIFICATES" ]; then
-        echo -n 'Installing missing dependency ca-certificates... '
-        check_result apt_get install ca-certificates
-    fi
+    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu ESM repository enabled.'
@@ -155,13 +164,11 @@ disable_esm() {
 }
 
 fips_prep_check() {
-    local fips_hmacs pkg result
+    local fips_hmacs pkg
 
-    result=0
     # sanity check
     case "$ARCH" in
-        s390x|x86_64|ppc64le)
-            ;;
+        s390x|x86_64|ppc64le) ;;
         *)
             echo "ERROR: $ARCH is not fips supported."
             return 1
@@ -172,8 +179,7 @@ fips_prep_check() {
     fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
                 linux-fips strongswan-hmac"
     for pkg in $fips_hmacs; do
-        dpkg-query -s "$pkg" > /dev/null 2>&1 || result=$?
-        if [ $result -eq 0 ]; then
+        if is_package_installed "$pkg"; then
             echo "ERROR: Looks like FIPS already installed."
             return 1
         fi
@@ -185,10 +191,9 @@ fips_prep_check() {
 configure_fips() {
     local bootdev fips_params result
 
-    result=0
     # if /boot has its own partition, then get the bootdevice
     # Note: /boot/efi  does not count
-    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' $FSTAB)
+    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' "$FSTAB")
     fips_params="fips=1"
     if [ -n "$bootdev" ]; then
         fips_params="$fips_params bootdev=$bootdev"
@@ -196,9 +201,10 @@ configure_fips() {
 
     if [ "$ARCH" = "s390x" ]; then
         sed -i -e 's,^parameters\s*=.*,& '"$fips_params"',' "$FIPS_BOOT_CFG"
-        echo -n 'Updating zipl to enable fips ...'
+        echo -n 'Updating zipl to enable fips... '
         check_result zipl
     else
+        result=0
         if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
             mkdir "$FIPS_BOOT_CFG_DIR" > /dev/null 2>&1 || result=$?
             if [ $result -ne 0 ]; then
@@ -207,7 +213,7 @@ configure_fips() {
             fi
         fi
         echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" > "$FIPS_BOOT_CFG"
-        echo -n 'Updating grub to enable fips ...'
+        echo -n 'Updating grub to enable fips... '
         check_result update-grub
     fi
 }
@@ -225,43 +231,34 @@ enable_fips() {
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_fips_list_file "$1"
 
-    if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo -n 'Installing missing dependency apt-transport-https... '
-        check_result apt_get install apt-transport-https
-    fi
-    if [ ! -f "$CA_CERTIFICATES" ]; then
-        echo -n 'Installing missing dependency ca-certificates... '
-        check_result apt_get install ca-certificates
-    fi
+    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu FIPS PPA repository enabled.'
 
     # install all the fips packages
-    echo -n 'Installing FIPS packages (this may take a while)...'
+    echo -n 'Installing FIPS packages (this may take a while)... '
     check_result apt_get install openssh-client openssh-client-hmac \
-                       openssh-server openssh-server-hmac openssl libssl1.0.0 \
-                       libssl1.0.0-hmac fips-initramfs linux-fips \
-                       strongswan strongswan-hmac
+                 openssh-server openssh-server-hmac openssl libssl1.0.0 \
+                 libssl1.0.0-hmac fips-initramfs linux-fips \
+                 strongswan strongswan-hmac
 
-    echo "Configuring FIPS..."
+    echo "Configuring FIPS... "
     configure_fips
     echo "Successfully configured FIPS. PLEASE REBOOT to complete FIPS enablement."
 }
 
 fips_enabled_check() {
     if [ -f "$FIPS_ENABLED_FILE" ]; then
-                cat "$FIPS_ENABLED_FILE"
-                return
+        cat "$FIPS_ENABLED_FILE"
+        return
     fi
     echo 0
 }
 
 is_fips_enabled() {
-    local result
-    result=0
-    dpkg-query -s fips-initramfs >/dev/null 2>&1 || result=$?
-    [ $result -eq 0 ] && [ "$(fips_enabled_check)" -eq 1 ]
+    is_package_installed fips-initramfs && [ "$(fips_enabled_check)" -eq 1 ]
 }
 
 is_esm_enabled() {
@@ -453,9 +450,9 @@ case "$1" in
         ;;
 
     is-fips-enabled)
-       # no root needed
-       is_fips_enabled
-       ;;
+        # no root needed
+        is_fips_enabled
+        ;;
 
     status)
         print_status
