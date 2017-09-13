@@ -59,6 +59,18 @@ is_package_installed() {
 }
 
 
+# Install a package if the specified file doesn't exist
+install_package_if_missing_file() {
+    local file="$1"
+    local package="$2"
+
+    if [ ! -f "$file" ]; then
+        echo -n "Installing missing dependency $package... "
+        check_result apt_get install "$package"
+    fi
+}
+
+
 # Whether the current series is among supported ones.
 is_supported_series() {
     local s
@@ -72,10 +84,7 @@ is_supported_series() {
 
 
 install_livepatch_prereqs() {
-    if [ ! -f "$SNAPD" ]; then
-        echo -n 'Installing missing dependency snapd... '
-        check_result apt_get install snapd
-    fi
+    install_package_if_missing_file "$SNAPD" snapd
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
         echo 'This may take a few minutes depending on your bandwidth.'
@@ -135,14 +144,8 @@ EOF
 enable_esm() {
     cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_esm_list_file "$1"
-    if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo -n 'Installing missing dependency apt-transport-https... '
-        check_result apt_get install apt-transport-https
-    fi
-    if [ ! -f "$CA_CERTIFICATES" ]; then
-        echo -n 'Installing missing dependency ca-certificates... '
-        check_result apt_get install ca-certificates
-    fi
+    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu ESM repository enabled.'
@@ -229,14 +232,8 @@ enable_fips() {
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_fips_list_file "$1"
 
-    if [ ! -f "$APT_METHOD_HTTPS" ]; then
-        echo -n 'Installing missing dependency apt-transport-https... '
-        check_result apt_get install apt-transport-https
-    fi
-    if [ ! -f "$CA_CERTIFICATES" ]; then
-        echo -n 'Installing missing dependency ca-certificates... '
-        check_result apt_get install ca-certificates
-    fi
+    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu FIPS PPA repository enabled.'
