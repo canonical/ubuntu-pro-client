@@ -201,7 +201,7 @@ configure_fips() {
 
     if [ "$ARCH" = "s390x" ]; then
         sed -i -e 's,^parameters\s*=.*,& '"$fips_params"',' "$FIPS_BOOT_CFG"
-        echo -n 'Updating zipl to enable fips ...'
+        echo -n 'Updating zipl to enable fips... '
         check_result zipl
     else
         result=0
@@ -213,7 +213,7 @@ configure_fips() {
             fi
         fi
         echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" > "$FIPS_BOOT_CFG"
-        echo -n 'Updating grub to enable fips ...'
+        echo -n 'Updating grub to enable fips... '
         check_result update-grub
     fi
 }
@@ -238,13 +238,13 @@ enable_fips() {
     echo 'Ubuntu FIPS PPA repository enabled.'
 
     # install all the fips packages
-    echo -n 'Installing FIPS packages (this may take a while)...'
+    echo -n 'Installing FIPS packages (this may take a while)... '
     check_result apt_get install openssh-client openssh-client-hmac \
                  openssh-server openssh-server-hmac openssl libssl1.0.0 \
                  libssl1.0.0-hmac fips-initramfs linux-fips \
                  strongswan strongswan-hmac
 
-    echo "Configuring FIPS..."
+    echo "Configuring FIPS... "
     configure_fips
     echo "Successfully configured FIPS. PLEASE REBOOT to complete FIPS enablement."
 }
