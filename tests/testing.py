@@ -29,6 +29,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.tempdir = self.useFixture(TempDir())
         self.repo_list = Path(self.tempdir.join('repo.list'))
         self.boot_cfg = Path(self.tempdir.join('boot.cfg'))
+        self.fstab = Path(self.tempdir.join('fstab'))
         self.fips_enabled_file = Path(self.tempdir.join('fips_enabled_file'))
         self.bin_dir = Path(self.tempdir.join('bin'))
         self.etc_dir = Path(self.tempdir.join('etc'))
@@ -41,6 +42,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
         self.etc_dir.mkdir()
+        self.fstab.write_text('')
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
@@ -70,6 +72,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
             'PATH': path,
+            'FSTAB': str(self.fstab),
             'REPO_LIST': str(self.repo_list),
             'FIPS_REPO_LIST': str(self.repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),

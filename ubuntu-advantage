@@ -25,7 +25,7 @@ CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
-FSTAB="/etc/fstab"
+FSTAB=${FSTAB:-"/etc/fstab"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
@@ -195,7 +195,7 @@ configure_fips() {
     result=0
     # if /boot has its own partition, then get the bootdevice
     # Note: /boot/efi  does not count
-    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' $FSTAB)
+    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' "$FSTAB")
     fips_params="fips=1"
     if [ -n "$bootdev" ]; then
         fips_params="$fips_params bootdev=$bootdev"

@@ -9,7 +9,6 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips(self):
         """The enable-fips option enables the FIPS repository."""
-        self.boot_cfg.write_text('')
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu FIPS PPA repository enabled.', process.stdout)
@@ -28,9 +27,28 @@ class FIPSTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_fips_writes_config(self):
+        """The enable-fips option writes fips configuration."""
+        self.script('enable-fips', 'user:pass')
+        self.assertEqual(
+            'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT fips=1"',
+            self.boot_cfg.read_text().strip())
+
+    def test_enable_fips_writes_config_with_boot_partition(self):
+        """The fips configuration includes the /boot partition."""
+        self.fstab.write_text('/dev/sda1 /boot ext2 defaults 0 1\n')
+        self.script('enable-fips', 'user:pass')
+        self.assertIn('bootdev=/dev/sda1', self.boot_cfg.read_text())
+
+    def test_enable_fips_writes_config_s390x_parameters(self):
+        """On S390x, FIPS parameters are appended to the config file."""
+        self.ARCH = 's390x'
+        self.boot_cfg.write_text('parameters=foo\n')
+        self.script('enable-fips', 'user:pass')
+        self.assertEqual('parameters=foo fips=1\n', self.boot_cfg.read_text())
+
     def test_enable_fips_install_apt_transport_https(self):
         """enable-fips installs apt-transport-https if needed."""
-        self.boot_cfg.write_text('')
         self.apt_method_https.unlink()
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
@@ -40,7 +58,6 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
-        self.boot_cfg.write_text('')
         self.apt_method_https.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
         process = self.script('enable-fips', 'user:pass')
@@ -49,7 +66,6 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_ca_certificates(self):
         """enable-fips installs ca-certificates if needed."""
-        self.boot_cfg.write_text('')
         self.ca_certificates.unlink()
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(0, process.returncode)
@@ -59,7 +75,6 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_install_ca_certificates_fails(self):
         """Stderr is printed if ca-certificates install fails."""
-        self.boot_cfg.write_text('')
         self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
         process = self.script('enable-fips', 'user:pass')
