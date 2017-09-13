@@ -164,9 +164,8 @@ disable_esm() {
 }
 
 fips_prep_check() {
-    local fips_hmacs pkg result
+    local fips_hmacs pkg
 
-    result=0
     # sanity check
     case "$ARCH" in
         s390x|x86_64|ppc64le) ;;
@@ -192,7 +191,6 @@ fips_prep_check() {
 configure_fips() {
     local bootdev fips_params result
 
-    result=0
     # if /boot has its own partition, then get the bootdevice
     # Note: /boot/efi  does not count
     bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' "$FSTAB")
@@ -206,6 +204,7 @@ configure_fips() {
         echo -n 'Updating zipl to enable fips ...'
         check_result zipl
     else
+        result=0
         if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
             mkdir "$FIPS_BOOT_CFG_DIR" > /dev/null 2>&1 || result=$?
             if [ $result -ne 0 ]; then
@@ -259,8 +258,6 @@ fips_enabled_check() {
 }
 
 is_fips_enabled() {
-    local result
-    result=0
     is_package_installed fips-initramfs && [ "$(fips_enabled_check)" -eq 1 ]
 }
 
