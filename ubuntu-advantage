@@ -180,7 +180,11 @@ fips_prep_check() {
                 linux-fips strongswan-hmac"
     for pkg in $fips_hmacs; do
         if is_package_installed "$pkg"; then
-            echo "ERROR: Looks like FIPS already installed."
+            if is_fips_enabled; then
+                echo 'FIPS is already enabled.'
+            else
+                echo 'FIPS is already installed. Please reboot into the FIPS kernel to enable it.'
+            fi
             return 1
         fi
     done
