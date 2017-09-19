@@ -22,12 +22,17 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     SERIES = None
     KERNEL_VERSION = None
+    ARCH = None
 
     def setUp(self):
         super(UbuntuAdvantageTest, self).setUp()
         self.tempdir = self.useFixture(TempDir())
         self.repo_list = Path(self.tempdir.join('repo.list'))
+        self.boot_cfg = Path(self.tempdir.join('boot.cfg'))
+        self.fstab = Path(self.tempdir.join('fstab'))
+        self.fips_enabled_file = Path(self.tempdir.join('fips_enabled_file'))
         self.bin_dir = Path(self.tempdir.join('bin'))
+        self.etc_dir = Path(self.tempdir.join('etc'))
         self.keyrings_dir = Path(self.tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(self.tempdir.join('trusted.gpg.d'))
         self.apt_method_https = self.bin_dir / 'apt-method-https'
@@ -36,13 +41,18 @@ class UbuntuAdvantageTest(TestWithFixtures):
         # setup directories and files
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
+        self.etc_dir.mkdir()
+        self.fstab.write_text('')
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
+        (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('update-ca-certificates')
         self.make_fake_binary('id', command='echo 0')
         self.make_fake_binary('snapd')
+        self.make_fake_binary('update-grub')
+        self.make_fake_binary('zipl')
 
     def make_fake_binary(self, binary, command='true'):
         """Create a script to fake a binary in path."""
@@ -62,7 +72,12 @@ class UbuntuAdvantageTest(TestWithFixtures):
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
             'PATH': path,
+            'FSTAB': str(self.fstab),
             'REPO_LIST': str(self.repo_list),
+            'FIPS_REPO_LIST': str(self.repo_list),
+            'FIPS_BOOT_CFG': str(self.boot_cfg),
+            'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
+            'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
             'APT_METHOD_HTTPS': str(self.apt_method_https),
@@ -72,6 +87,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
             env['SERIES'] = self.SERIES
         if self.KERNEL_VERSION:
             env['KERNEL_VERSION'] = self.KERNEL_VERSION
+        if self.ARCH:
+            env['ARCH'] = self.ARCH
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         process.wait()
