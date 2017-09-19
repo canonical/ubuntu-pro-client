@@ -27,6 +27,26 @@ class FIPSTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_fips_already_enabled(self):
+        """If fips is already enabled, an error is returned."""
+        self.make_fake_binary('dpkg-query')
+        p = self.fips_enabled_file
+        p.write_text('1')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(6, process.returncode)
+        self.assertEqual(
+            'FIPS is already enabled.', process.stdout.strip())
+
+    def test_enable_fips_installed_not_enabled(self):
+        """If fips is installed but not enabled an error is returned."""
+        self.make_fake_binary('dpkg-query')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(6, process.returncode)
+        self.assertEqual(
+            'FIPS is already installed. '
+            'Please reboot into the FIPS kernel to enable it.',
+            process.stdout.strip())
+
     def test_enable_fips_writes_config(self):
         """The enable-fips option writes fips configuration."""
         self.script('enable-fips', 'user:pass')
