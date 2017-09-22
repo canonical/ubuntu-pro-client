@@ -170,7 +170,7 @@ fips_prep_check() {
     case "$ARCH" in
         s390x|x86_64|ppc64le) ;;
         *)
-            echo "ERROR: $ARCH is not fips supported."
+            echo "FIPS is not supported on $ARCH."
             return 1
             ;;
     esac
@@ -250,7 +250,7 @@ enable_fips() {
 
     echo "Configuring FIPS... "
     configure_fips
-    echo "Successfully configured FIPS. PLEASE REBOOT to complete FIPS enablement."
+    echo "Successfully configured FIPS. Please reboot into the FIPS kernel to enable it."
 }
 
 fips_enabled_check() {

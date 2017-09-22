@@ -20,8 +20,10 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertEqual(expected, self.repo_list.read_text())
         keyring_file = self.trusted_gpg_dir / 'ubuntu-fips-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
-        self.assertIn('Successfully configured FIPS. PLEASE REBOOT '
-                      'to complete FIPS enablement.', process.stdout)
+        self.assertIn(
+            'Successfully configured FIPS. Please reboot into the FIPS kernel'
+            ' to enable it.',
+            process.stdout)
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
