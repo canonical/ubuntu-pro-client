@@ -13,7 +13,7 @@ Currently it supports the following:
 Run 
 
 ```
-$ ./advantage
+$ advantage
 ```
 
 to display usage information.
