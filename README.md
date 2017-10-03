@@ -1,4 +1,4 @@
-# ubuntu-advantage tool
+# advantage tool
 
 [![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script.svg?branch=master)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script)
 
@@ -13,7 +13,7 @@ Currently it supports the following:
 Run 
 
 ```
-$ ./ubuntu-advantage
+$ advantage
 ```
 
 to display usage information.

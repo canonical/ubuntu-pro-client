@@ -1,8 +1,12 @@
-.TH UBUNTU-ADVANTAGE 1  "28 April 2017" "" ""
+.TH ADVANTAGE 1  "28 April 2017" "" ""
 .SH NAME
-ubuntu-advantage \- Enable or disable Ubuntu Advantage offerings from
-Canonical.
+advantage \- Enable or disable Ubuntu Advantage offerings from Canonical.
 .SH SYNOPSIS
+.B advantage
+<command> [parameters]
+.PP
+Also provided for backwards compatibility:
+.PP
 .B ubuntu-advantage
 <command> [parameters]
 .SH DESCRIPTION
@@ -47,7 +51,7 @@ Install, Configure, and Enable FIPS 140-2 certified modules.
 enable-fips \fItoken\fR
 Enable the FIPS PPA repository, install the FIPS modules, configure
 the bootloader and enable fips on the system. After successfully executing the
-ubuntu-advantage script to enable fips, the system MUST be rebooted to
+advantage script to enable fips, the system MUST be rebooted to
 complete the enablement process. Failing to reboot will result in the system
 not being fips enabled.
 The \fItoken\fR argument must be in the form "user:password".

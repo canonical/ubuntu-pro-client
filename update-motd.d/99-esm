@@ -5,9 +5,9 @@ DESCRIPTION=$(lsb_release -ds)
 
 [ "$SERIES" = "precise" ] || exit 0
 
-[ -x /usr/bin/ubuntu-advantage ] || exit 0
+[ -x /usr/bin/advantage ] || exit 0
 
-if ubuntu-advantage is-esm-enabled; then
+if advantage is-esm-enabled; then
     cat <<EOF
 This ${DESCRIPTION} system is configured to receive extended security updates
 from Canonical:

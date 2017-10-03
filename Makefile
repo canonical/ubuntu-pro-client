@@ -5,7 +5,7 @@ test:
 	@tox
 
 lint:
-	@shellcheck -s dash ubuntu-advantage update-motd.d/*
+	@shellcheck -s dash advantage update-motd.d/*
 
 
 .PHONY: build test lint
