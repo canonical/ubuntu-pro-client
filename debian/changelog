@@ -4,8 +4,9 @@ ubuntu-advantage-tools (11) artful; urgency=medium
     - rename the ubuntu-advantage script to advantage, including where it's
       mentioned in the documentation. Also provide symlinks pointing at the
       previous name. (LP: #1721272)
+    - slightly reword some of the FIPS messages
 
- -- Andreas Hasenack <andreas@canonical.com>  Wed, 04 Oct 2017 11:47:58 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 04 Oct 2017 14:31:33 -0300
 
 ubuntu-advantage-tools (10) artful; urgency=medium
 
