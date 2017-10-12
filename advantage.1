@@ -1,8 +1,12 @@
-.TH UBUNTU-ADVANTAGE 1  "28 April 2017" "" ""
+.TH ADVANTAGE 1  "28 April 2017" "" ""
 .SH NAME
-ubuntu-advantage \- Enable or disable Ubuntu Advantage offerings from
-Canonical.
+advantage \- Enable or disable Ubuntu Advantage offerings from Canonical.
 .SH SYNOPSIS
+.B advantage
+<command> [parameters]
+.PP
+Also provided for backwards compatibility:
+.PP
 .B ubuntu-advantage
 <command> [parameters]
 .SH DESCRIPTION
@@ -39,6 +43,22 @@ https://ubuntu.com/livepatch
 disable-livepatch \fR[\fB\-r\fR]
 Disable the Livepatch service. If the \fB\-r\fR option is given, the
 canonical-livepatch snap will be removed after the sevice is disabled.
+
+.SH FIPS (Canonical FIPS 140-2 certified modules)
+Install, Configure, and Enable FIPS 140-2 certified modules.
+.TP
+.B
+enable-fips \fItoken\fR
+Enable the FIPS PPA repository, install the FIPS modules, configure
+the bootloader and enable fips on the system. After successfully executing the
+advantage script to enable fips, the system MUST be rebooted to
+complete the enablement process. Failing to reboot will result in the system
+not being fips enabled.
+The \fItoken\fR argument must be in the form "user:password".
+
+The following FIPS certified modules will be installed and put in fips mode;
+openssh-server, openssh-client, strongswan, openssl, and the kernel
+cryptoapi.
 .SH EXIT STATUS
 .TP
 .B
@@ -64,5 +84,9 @@ The requested service not supported on the current Ubuntu release
 .B
 5
 Current kernel is too old to support Snaps (required for the Livepatch service)
+.TP
+.B
+6
+It was determined that FIPS has already been installed.
 .TP
 If apt commands run by the tool fail, the exit status from apt is returned.

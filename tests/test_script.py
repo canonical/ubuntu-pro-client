@@ -1,4 +1,4 @@
-# Tests for the ubuntu-advantage script.
+# Tests for the advantage script.
 
 from testing import UbuntuAdvantageTest
 
@@ -21,7 +21,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         """Calling the script with no args prints out the usage."""
         process = self.script()
         self.assertEqual(1, process.returncode)
-        self.assertIn('usage: ubuntu-advantage', process.stderr)
+        self.assertIn('usage: advantage', process.stderr)
 
     def test_status_precise(self):
         """The status command shows livepatch not available on precise."""
