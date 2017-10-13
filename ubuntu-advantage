@@ -93,13 +93,14 @@ install_livepatch_prereqs() {
     fi
 }
 
-# $1: livepatch token
 enable_livepatch() {
+    local token="$1"
+
     install_livepatch_prereqs
     if ! is_livepatch_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
-            canonical-livepatch enable "$1"
+            canonical-livepatch enable "$token"
         else
             echo
             echo "Your currently running kernel ($KERNEL_VERSION) is too old to"
@@ -109,7 +110,7 @@ enable_livepatch() {
             echo "and run the following command one more time to complete the"
             echo "installation:"
             echo
-            echo "sudo ubuntu-advantage enable-livepatch $1"
+            echo "sudo $SCRIPTNAME enable-livepatch $token"
             exit 5
         fi
     else
