@@ -67,7 +67,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def script(self, *args):
         """Run the script."""
-        command = ['./advantage']
+        command = ['./ubuntu-advantage']
         command.extend(args)
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
