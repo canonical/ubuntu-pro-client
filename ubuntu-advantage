@@ -109,7 +109,7 @@ enable_livepatch() {
             echo "and run the following command one more time to complete the"
             echo "installation:"
             echo
-            echo "sudo advantage enable-livepatch $1"
+            echo "sudo ubuntu-advantage enable-livepatch $1"
             exit 5
         fi
     else
