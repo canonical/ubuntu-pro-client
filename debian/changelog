@@ -1,3 +1,12 @@
+ubuntu-advantage-tools (12) artful; urgency=medium
+
+  * New upstream release:
+    - revert the latest name changes
+    - instead of "advantage", add a "ua" symlink pointing at the
+      ubuntu-advantage script. Likewise for its manpage. (LP: #1721272)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 13 Oct 2017 14:22:20 -0300
+
 ubuntu-advantage-tools (11) artful; urgency=medium
 
   * New upstream release:
