@@ -1,14 +1,11 @@
 language: python
 python:
+  - "3.4"
   - "3.5"
+  - "3.6"
 dist: precise
 install: pip install tox
-jobs:
-  include:
-    - stage: lint
-      script: make lint
-    - stage: test
-      script: make test
+script: make test lint
 addons:
   apt:
     sources:
