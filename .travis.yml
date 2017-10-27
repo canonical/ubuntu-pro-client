@@ -5,12 +5,7 @@ python:
   - "3.6"
 dist: precise
 install: pip install tox
-jobs:
-  include:
-    - stage: lint
-      script: make lint
-    - stage: test
-      script: make test
+script: make test lint
 addons:
   apt:
     sources:
