@@ -6,6 +6,7 @@ from testing import UbuntuAdvantageTest
 class FIPSTest(UbuntuAdvantageTest):
 
     SERIES = 'xenial'
+    ARCH = 'x86_64'
 
     def test_enable_fips(self):
         """The enable-fips option enables the FIPS repository."""
@@ -68,6 +69,14 @@ class FIPSTest(UbuntuAdvantageTest):
         self.boot_cfg.write_text('parameters=foo\n')
         self.script('enable-fips', 'user:pass')
         self.assertEqual('parameters=foo fips=1\n', self.boot_cfg.read_text())
+
+    def test_unsupported_on_i686(self):
+        """FIPS is unsupported on i686 arch."""
+        self.ARCH = 'i686'
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(6, process.returncode)
+        self.assertEqual(
+            'FIPS is not supported on i686.', process.stdout.strip())
 
     def test_enable_fips_install_apt_transport_https(self):
         """enable-fips installs apt-transport-https if needed."""
