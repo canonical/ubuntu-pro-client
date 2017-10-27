@@ -200,7 +200,7 @@ configure_fips() {
     # Note: /boot/efi  does not count
     bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' "$FSTAB")
     fips_params="fips=1"
-    if [ -n "$bootdev" ]; then
+    if [[ -n "$bootdev" && "$bootdev" == "UUID"* ]]; then
         fips_params="$fips_params bootdev=$bootdev"
     fi
 
