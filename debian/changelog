@@ -1,3 +1,10 @@
+ubuntu-advantage-tools (13) bionic; urgency=medium
+
+  * New upstream release:
+    - run tests during package build
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 30 Oct 2017 16:37:30 -0200
+
 ubuntu-advantage-tools (12) artful; urgency=medium
 
   * New upstream release:
