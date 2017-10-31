@@ -26,6 +26,8 @@ SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 FSTAB=${FSTAB:-"/etc/fstab"}
+CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
+
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
@@ -82,6 +84,11 @@ is_supported_series() {
         fi
     done
     return 1
+}
+
+# check if the CPU flag is available in the system.
+check_cpu_flag() {
+    grep -q '^flags.*\b'"$1"'\b' "$CPUINFO"
 }
 
 install_livepatch_prereqs() {
@@ -176,6 +183,11 @@ fips_prep_check() {
             return 1
             ;;
     esac
+
+    if ! check_cpu_flag aes; then
+        echo 'FIPS requires AESNI CPU support'
+        return 1
+    fi
 
     # check to see if fips pkgs already installed.
     fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \

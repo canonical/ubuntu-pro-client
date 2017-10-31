@@ -137,6 +137,14 @@ class FIPSTest(UbuntuAdvantageTest):
             'Canonical FIPS 140-2 Modules is not supported on zesty',
             process.stderr)
 
+    def test_enable_fips_aes_not_available(self):
+        """The enable-fips command fails if AESNI is not available."""
+        self.cpuinfo.write_text('flags\t\t: fpu tsc')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(6, process.returncode)
+        self.assertEqual(
+            'FIPS requires AESNI CPU support', process.stdout.strip())
+
     def test_is_fips_enabled_true(self):
         """is-fips-enabled returns 0 if fips is enabled."""
         self.make_fake_binary('dpkg-query')

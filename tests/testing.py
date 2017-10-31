@@ -48,6 +48,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.repo_list = Path(self.tempdir.join('repo.list'))
         self.boot_cfg = Path(self.tempdir.join('boot.cfg'))
         self.fstab = Path(self.tempdir.join('fstab'))
+        self.cpuinfo = Path(self.tempdir.join('cpuinfo'))
         self.fips_enabled_file = Path(self.tempdir.join('fips_enabled_file'))
         self.bin_dir = Path(self.tempdir.join('bin'))
         self.etc_dir = Path(self.tempdir.join('etc'))
@@ -64,6 +65,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
+        self.cpuinfo.write_text('flags\t\t: fpu aes apic')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('update-ca-certificates')
@@ -91,6 +93,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         env = {
             'PATH': path,
             'FSTAB': str(self.fstab),
+            'CPUINFO': str(self.cpuinfo),
             'REPO_LIST': str(self.repo_list),
             'FIPS_REPO_LIST': str(self.repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
