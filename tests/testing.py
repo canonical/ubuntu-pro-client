@@ -65,7 +65,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
-        self.cpuinfo.write_text('flags\t\t: fpu aes apic')
+        self.cpuinfo.write_text('flags\t\t: fpu apic')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('update-ca-certificates')

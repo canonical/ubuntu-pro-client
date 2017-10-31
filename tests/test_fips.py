@@ -8,6 +8,10 @@ class FIPSTest(UbuntuAdvantageTest):
     SERIES = 'xenial'
     ARCH = 'x86_64'
 
+    def setUp(self):
+        super().setUp()
+        self.cpuinfo.write_text('flags\t\t: fpu aes apic')
+
     def test_enable_fips(self):
         """The enable-fips option enables the FIPS repository."""
         process = self.script('enable-fips', 'user:pass')
@@ -137,13 +141,30 @@ class FIPSTest(UbuntuAdvantageTest):
             'Canonical FIPS 140-2 Modules is not supported on zesty',
             process.stderr)
 
-    def test_enable_fips_aes_not_available(self):
+    def test_enable_fips_x86_64_aes_not_available(self):
         """The enable-fips command fails if AESNI is not available."""
         self.cpuinfo.write_text('flags\t\t: fpu tsc')
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
-            'FIPS requires AESNI CPU support', process.stdout.strip())
+            'FIPS requires AES CPU extensions', process.stdout.strip())
+
+    def test_enable_fips_ppc64le_power8(self):
+        """POWER8 processors are supported by FIPS."""
+        self.ARCH = 'ppc64le'
+        self.cpuinfo.write_text('cpu\t\t: POWER8 (raw), altivec supported')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn('Successfully configured FIPS', process.stdout)
+
+    def test_enable_fips_ppc64le_older_power(self):
+        """processors older than POWER8 are not supported by FIPS."""
+        self.ARCH = 'ppc64le'
+        self.cpuinfo.write_text('cpu\t\t: POWER7')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(6, process.returncode)
+        self.assertEqual(
+            'FIPS not supported on this CPU', process.stdout.strip())
 
     def test_is_fips_enabled_true(self):
         """is-fips-enabled returns 0 if fips is enabled."""
