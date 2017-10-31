@@ -35,6 +35,10 @@ else
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"${FIPS_BOOT_CFG_DIR}/99-fips.cfg"}
 fi
 
+error_msg() {
+    echo "$@" >&2
+}
+
 check_result() {
     local result output
     result=0
@@ -42,7 +46,7 @@ check_result() {
     if [ $result -ne 0 ]; then
         echo "ERROR"
         if [ -n "$output" ]; then
-            echo "$output" >&2
+            error_msg "$output"
         fi
         exit $result
     else
@@ -340,14 +344,14 @@ check_service_support() {
     local supported_series="$2"
 
     if ! is_supported_series "$supported_series"; then
-        echo "Sorry, but $title is not supported on $SERIES" >&2
+        error_msg "Sorry, but $title is not supported on $SERIES"
         exit 4
     fi
 }
 
 check_user() {
     if [ "$(id -u)" -ne 0 ]; then
-        echo 'This command must be run as root (try using sudo)' >&2
+        error_msg "This command must be run as root (try using sudo)"
         exit 2
     fi
 }
@@ -418,8 +422,8 @@ case "$1" in
         check_livepatch_support
         token="$2"
         if ! validate_livepatch_token "$token"; then
-            echo 'Invalid or missing Livepatch token' >&2
-            echo 'Please visit https://ubuntu.com/livepatch to obtain a Livepatch token.' >&2
+            error_msg "Invalid or missing Livepatch token"
+            error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
             exit 3
         fi
         enable_livepatch "$token"
@@ -433,7 +437,7 @@ case "$1" in
             if [ "$2" = "-r" ]; then
                 remove_snap="yes"
             else
-                echo "Unknown option \"$2\"" >&2
+                error_msg "Unknown option \"$2\""
                 usage
                 exit 1
             fi
@@ -451,7 +455,7 @@ case "$1" in
         check_esm_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
-            echo 'Invalid token, it must be in the form "user:password"' >&2
+            error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
         enable_esm "$token"
@@ -473,7 +477,7 @@ case "$1" in
         check_fips_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
-            echo 'Invalid token, it must be in the form "user:password"' >&2
+            error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
 
