@@ -3,31 +3,34 @@
 
 SCRIPTNAME=$(basename "$0")
 
-ESM_SUPPORTED_SERIES="precise"
-LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
-FIPS_SUPPORTED_SERIES="xenial"
-
+# system details
 SERIES=${SERIES:-$(lsb_release -cs)}
 KERNEL_VERSION=${KERNEL_VERSION:-$(uname -r)}
 ARCH=${ARCH:-$(uname -m)}
-
-FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
-FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
-FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
-REPO_URL="esm.ubuntu.com"
-REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
-REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+# system files
+FSTAB=${FSTAB:-"/etc/fstab"}
+CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
-
+# system binaries
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
-FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
-FSTAB=${FSTAB:-"/etc/fstab"}
-CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
+# supported series for each product
+ESM_SUPPORTED_SERIES="precise"
+LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+FIPS_SUPPORTED_SERIES="xenial"
 
+# ESM config
+ESM_REPO_URL="esm.ubuntu.com"
+ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
+ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+# FIPS config
+FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
+FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
+FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
+FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
@@ -153,14 +156,14 @@ disable_livepatch() {
 }
 
 write_esm_list_file() {
-    cat >"$REPO_LIST" <<EOF
-deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
+    cat > "$ESM_REPO_LIST" <<EOF
+deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
+# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
 EOF
 }
 
 enable_esm() {
-    cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
     write_esm_list_file "$1"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
@@ -170,9 +173,9 @@ enable_esm() {
 }
 
 disable_esm() {
-    if [ -f "$REPO_LIST" ]; then
-        mv "$REPO_LIST" "${REPO_LIST}.save"
-        rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
+    if [ -f "$ESM_REPO_LIST" ]; then
+        mv "$ESM_REPO_LIST" "${ESM_REPO_LIST}.save"
+        rm -f "$APT_KEYS_DIR/$ESM_REPO_KEY_FILE"
         echo -n 'Running apt-get update... '
         check_result apt_get update
         echo 'Ubuntu ESM repository disabled.'
@@ -301,7 +304,7 @@ is_fips_enabled() {
 }
 
 is_esm_enabled() {
-    apt-cache policy | grep -Fq "$REPO_URL"
+    apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
 
 is_livepatch_enabled() {
