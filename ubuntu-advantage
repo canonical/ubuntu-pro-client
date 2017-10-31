@@ -188,7 +188,7 @@ fips_prep_check() {
     case "$ARCH" in
         x86_64)
             if ! check_cpu_flag aes; then
-                echo 'FIPS requires AES CPU extensions'
+                error_msg 'FIPS requires AES CPU extensions'
                 return 1
             fi
             ;;
@@ -196,7 +196,7 @@ fips_prep_check() {
         ppc64le)
             power_cpu_ver="$(power_cpu_version)"
             if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
-                echo 'FIPS requires POWER8 or later'
+                error_msg 'FIPS requires POWER8 or later'
                 return 1
             fi
             ;;
@@ -205,7 +205,7 @@ fips_prep_check() {
             ;;
 
         *)
-            echo "FIPS is not supported on $ARCH."
+            error_msg "FIPS is not supported on $ARCH."
             return 1
             ;;
     esac
@@ -216,9 +216,9 @@ fips_prep_check() {
     for pkg in $fips_hmacs; do
         if is_package_installed "$pkg"; then
             if is_fips_enabled; then
-                echo 'FIPS is already enabled.'
+                error_msg "FIPS is already enabled."
             else
-                echo 'FIPS is already installed. Please reboot into the FIPS kernel to enable it.'
+                error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
             fi
             return 1
         fi
@@ -247,7 +247,7 @@ configure_fips() {
         if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
             mkdir "$FIPS_BOOT_CFG_DIR" >/dev/null 2>&1 || result=$?
             if [ $result -ne 0 ]; then
-                echo "Failed to make directory, $FIPS_BOOT_CFG_DIR."
+                error_msg "Failed to make directory, $FIPS_BOOT_CFG_DIR."
                 return 1
             fi
         fi

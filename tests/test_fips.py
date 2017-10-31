@@ -41,8 +41,7 @@ class FIPSTest(UbuntuAdvantageTest):
         p.write_text('1')
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
-        self.assertEqual(
-            'FIPS is already enabled.', process.stdout.strip())
+        self.assertEqual('FIPS is already enabled.', process.stderr.strip())
 
     def test_enable_fips_installed_not_enabled(self):
         """If fips is installed but not enabled an error is returned."""
@@ -52,7 +51,7 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertEqual(
             'FIPS is already installed. '
             'Please reboot into the FIPS kernel to enable it.',
-            process.stdout.strip())
+            process.stderr.strip())
 
     def test_enable_fips_writes_config(self):
         """The enable-fips option writes fips configuration."""
@@ -80,7 +79,7 @@ class FIPSTest(UbuntuAdvantageTest):
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
-            'FIPS is not supported on i686.', process.stdout.strip())
+            'FIPS is not supported on i686.', process.stderr.strip())
 
     def test_enable_fips_install_apt_transport_https(self):
         """enable-fips installs apt-transport-https if needed."""
@@ -147,7 +146,7 @@ class FIPSTest(UbuntuAdvantageTest):
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
-            'FIPS requires AES CPU extensions', process.stdout.strip())
+            'FIPS requires AES CPU extensions', process.stderr.strip())
 
     def test_enable_fips_ppc64le_power8(self):
         """POWER8 processors are supported by FIPS."""
@@ -164,7 +163,7 @@ class FIPSTest(UbuntuAdvantageTest):
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
-            'FIPS requires POWER8 or later', process.stdout.strip())
+            'FIPS requires POWER8 or later', process.stderr.strip())
 
     def test_is_fips_enabled_true(self):
         """is-fips-enabled returns 0 if fips is enabled."""
