@@ -1,3 +1,14 @@
+ubuntu-advantage-tools (10ubuntu0.14.04.1) trusty; urgency=medium
+
+  * Backport version 10 to trusty.
+  * Backports from upstream version 13 (LP: #1719671):
+    - support older python3 versions in the test suite
+    - d/control, d/rules: run tests at package build time
+    - default FIPS tests to the x86_64 architecture
+    - add FIPS test for unsupported architecture
+
+ -- Andreas Hasenack <andreas@canonical.com>  Sun, 05 Nov 2017 14:21:16 -0200
+
 ubuntu-advantage-tools (10) artful; urgency=medium
 
   * New upstream release with FIPS support (LP: #1718291)

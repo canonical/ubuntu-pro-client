@@ -1,6 +1,7 @@
 # Test helpers.
 
 import os
+import sys
 from pathlib import Path
 import subprocess
 from collections import namedtuple
@@ -16,6 +17,23 @@ from fakes import (
     LIVEPATCH_DISABLED)
 
 ProcessResult = namedtuple('ProcessResult', ['returncode', 'stdout', 'stderr'])
+
+
+if sys.version_info < (3, 5):
+    # Python 3,4 doesn't provide methods to read/write Paths directly
+
+    def _read(self):
+        with self.open() as fd:
+            return fd.read()
+
+    def _write(self, text):
+        with self.open('w') as fd:
+            fd.write(text)
+
+    Path.read_text = _read
+    Path.write_text = _write
+    del(_read)
+    del(_write)
 
 
 class UbuntuAdvantageTest(TestWithFixtures):
