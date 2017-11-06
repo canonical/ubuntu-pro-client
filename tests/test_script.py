@@ -57,3 +57,9 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         # the livepatch status output is also included
         self.assertIn("fully-patched: true", process.stdout)
         self.assertIn("esm: disabled (not available)", process.stdout)
+
+    def test_version(self):
+        """The version command shows the package version."""
+        self.make_fake_binary('dpkg-query', command='echo 123')
+        process = self.script('version')
+        self.assertEqual(process.stdout, '123\n')
