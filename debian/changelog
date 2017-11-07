@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (10ubuntu0.14.04.2) trusty; urgency=medium
+
+  * Skipping tests during package builds.
+    - d/rules: Disabling the tests.
+    - d/control: Removing tests dependencies.
+
+ -- Eric Desrochers <eric.desrochers@canonical.com>  Tue, 07 Nov 2017 10:07:49 -0500
+
 ubuntu-advantage-tools (10ubuntu0.14.04.1) trusty; urgency=medium
 
   * Backport version 10 to trusty.
