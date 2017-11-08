@@ -353,38 +353,34 @@ check_user() {
 }
 
 print_status() {
+    local esm_status
+    if is_esm_enabled; then
+        esm_status="enabled"
+    else
+        esm_status="disabled"
+        is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="disabled (not available)"
+    fi
+    echo "esm: $esm_status"
+
     local livepatch_status livepatch_output
     if is_livepatch_enabled; then
         livepatch_status="enabled"
         livepatch_output=$(canonical-livepatch status)
     else
         livepatch_status="disabled"
-        is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="$livepatch_status (not available)"
+        is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="disabled (not available)"
     fi
     echo "livepatch: $livepatch_status"
     if [ "$livepatch_output" ]; then
-        echo "$livepatch_output" | sed 's/^/  /'
+        echo "$livepatch_output" | sed 's/^/  /'  # indent output
     fi
-
-    echo
-
-    local esm_status
-    if is_esm_enabled; then
-        esm_status="enabled"
-    else
-        esm_status="disabled"
-        is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="$esm_status (not available)"
-    fi
-    echo "esm: $esm_status"
-
-    echo
 
     local fips_status
     if is_fips_enabled; then
         fips_status="enabled"
     else
         fips_status="disabled"
-        is_supported_series "$FIPS_SUPPORTED_SERIES" || fips_status="$fips_status (not available)"
+        is_supported_series "$FIPS_SUPPORTED_SERIES" || fips_status="disabled (not available)"
     fi
     echo "fips: $fips_status"
 }
