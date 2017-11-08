@@ -82,6 +82,18 @@ install_package_if_missing_file() {
     fi
 }
 
+# Write an APT sources file
+write_apt_list_file() {
+    local repo_file="$1"
+    local repo_url="$2"
+    local credentials="$3"
+
+    cat >"$repo_file" <<EOF
+deb https://${credentials}@${repo_url}/ubuntu ${SERIES} main
+# deb-src https://${credentials}@${repo_url}/ubuntu ${SERIES} main
+EOF
+}
+
 # Whether the current series is among supported ones.
 is_supported_series() {
     local s
@@ -155,16 +167,9 @@ disable_livepatch() {
     fi
 }
 
-write_esm_list_file() {
-    cat > "$ESM_REPO_LIST" <<EOF
-deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
-EOF
-}
-
 enable_esm() {
     cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_esm_list_file "$1"
+    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$1"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -260,19 +265,11 @@ configure_fips() {
     fi
 }
 
-write_fips_list_file() {
-    cat >"$FIPS_REPO_LIST" <<EOF
-deb https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
-EOF
-}
-
 enable_fips() {
     fips_prep_check || exit 6
 
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_fips_list_file "$1"
-
+    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$1"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
