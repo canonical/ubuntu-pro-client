@@ -9,7 +9,7 @@ test:
 
 lint:
 	@tox -e lint
-	@shellcheck -s dash ubuntu-advantage update-motd.d/*
+	@shellcheck -s dash ubuntu-advantage modules/* update-motd.d/*
 
 
 .PHONY: build testdep test lint
