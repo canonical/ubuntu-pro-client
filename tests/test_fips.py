@@ -164,7 +164,7 @@ class FIPSTest(UbuntuAdvantageTest):
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
-            'FIPS not supported on this CPU', process.stdout.strip())
+            'FIPS requires POWER8 or later', process.stdout.strip())
 
     def test_is_fips_enabled_true(self):
         """is-fips-enabled returns 0 if fips is enabled."""

@@ -192,7 +192,7 @@ fips_prep_check() {
         ppc64le)
             power_cpu_ver="$(power_cpu_version)"
             if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
-                echo 'FIPS not supported on this CPU'
+                echo 'FIPS requires POWER8 or later'
                 return 1
             fi
             ;;
