@@ -26,6 +26,8 @@ SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 FSTAB=${FSTAB:-"/etc/fstab"}
+CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
+
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
@@ -82,6 +84,16 @@ is_supported_series() {
         fi
     done
     return 1
+}
+
+# check if the CPU flag is available in the system.
+check_cpu_flag() {
+    grep -q '^flags.*\b'"$1"'\b' "$CPUINFO"
+}
+
+# return the version of a POWER CPU
+power_cpu_version() {
+    sed -r -n '/^cpu\s*:\s*POWER([0-9]+).*/ { s//\1/; p; q }' "$CPUINFO"
 }
 
 install_livepatch_prereqs() {
@@ -166,11 +178,28 @@ disable_esm() {
 }
 
 fips_prep_check() {
-    local fips_hmacs pkg
+    local fips_hmacs pkg power_cpu_ver
 
     # sanity check
     case "$ARCH" in
-        s390x|x86_64|ppc64le) ;;
+        x86_64)
+            if ! check_cpu_flag aes; then
+                echo 'FIPS requires AES CPU extensions'
+                return 1
+            fi
+            ;;
+
+        ppc64le)
+            power_cpu_ver="$(power_cpu_version)"
+            if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
+                echo 'FIPS requires POWER8 or later'
+                return 1
+            fi
+            ;;
+
+        s390x)
+            ;;
+
         *)
             echo "FIPS is not supported on $ARCH."
             return 1
