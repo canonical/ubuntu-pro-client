@@ -5,7 +5,7 @@ ESM_REPO_URL="esm.ubuntu.com"
 ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 
-enable_esm() {
+esm_enable() {
     local token="$1"
 
     check_token "$ESM_REPO_URL" "$token"
@@ -18,7 +18,7 @@ enable_esm() {
     echo 'Ubuntu ESM repository enabled.'
 }
 
-disable_esm() {
+esm_disable() {
     if [ -f "$ESM_REPO_LIST" ]; then
         mv "$ESM_REPO_LIST" "${ESM_REPO_LIST}.save"
         rm -f "$APT_KEYS_DIR/$ESM_REPO_KEY_FILE"
@@ -30,10 +30,10 @@ disable_esm() {
     fi
 }
 
-is_esm_enabled() {
+esm_is_enabled() {
     apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
 
-check_esm_support() {
+esm_check_support() {
     check_service_support "Extended Security Maintenance" "$ESM_SUPPORTED_SERIES"
 }

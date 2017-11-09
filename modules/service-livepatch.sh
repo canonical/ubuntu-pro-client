@@ -2,11 +2,11 @@
 
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 
-enable_livepatch() {
+livepatch_enable() {
     local token="$1"
 
     _install_livepatch_prereqs
-    if ! is_livepatch_enabled; then
+    if ! livepatch_is_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
             canonical-livepatch enable "$token"
@@ -28,8 +28,8 @@ enable_livepatch() {
     echo 'Use "canonical-livepatch status" to verify current patch status.'
 }
 
-disable_livepatch() {
-    if is_livepatch_enabled; then
+livepatch_disable() {
+    if livepatch_is_enabled; then
         echo 'Disabling Livepatch...'
         canonical-livepatch disable
         if [ "$1" = "yes" ]; then
@@ -44,17 +44,17 @@ disable_livepatch() {
     fi
 }
 
-is_livepatch_enabled() {
+livepatch_is_enabled() {
     # it's fine if it fails because the snap isn't installed. It's still
     # a non-zero return value
     canonical-livepatch status >/dev/null 2>&1
 }
 
-check_livepatch_support() {
+livepatch_check_support() {
     check_service_support "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES"
 }
 
-validate_livepatch_token() {
+livepatch_validate_token() {
     # the livepatch token is an hex string 32 characters long
     echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
 }

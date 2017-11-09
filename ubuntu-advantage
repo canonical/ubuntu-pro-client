@@ -31,7 +31,7 @@ load_modules
 
 print_status() {
     local esm_status
-    if is_esm_enabled; then
+    if esm_is_enabled; then
         esm_status="enabled"
     else
         esm_status="disabled"
@@ -40,7 +40,7 @@ print_status() {
     echo "esm: $esm_status"
 
     local livepatch_status livepatch_output
-    if is_livepatch_enabled; then
+    if livepatch_is_enabled; then
         livepatch_status="enabled"
         livepatch_output=$(canonical-livepatch status)
     else
@@ -53,7 +53,7 @@ print_status() {
     fi
 
     local fips_status
-    if is_fips_enabled; then
+    if fips_is_enabled; then
         fips_status="enabled"
     else
         fips_status="disabled"
@@ -93,19 +93,19 @@ EOF
 case "$1" in
     enable-livepatch)
         check_user
-        check_livepatch_support
+        livepatch_check_support
         token="$2"
-        if ! validate_livepatch_token "$token"; then
+        if ! livepatch_validate_token "$token"; then
             error_msg "Invalid or missing Livepatch token"
             error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
             exit 3
         fi
-        enable_livepatch "$token"
+        livepatch_enable "$token"
         ;;
 
     disable-livepatch)
         check_user
-        check_livepatch_support
+        livepatch_check_support
         remove_snap="no"
         if [ -n "$2" ]; then
             if [ "$2" = "-r" ]; then
@@ -116,39 +116,39 @@ case "$1" in
                 exit 1
             fi
         fi
-        disable_livepatch "$remove_snap"
+        livepatch_disable "$remove_snap"
         ;;
 
     is-livepatch-enabled)
         # no root needed
-        is_livepatch_enabled
+        livepatch_is_enabled
         ;;
 
     enable-esm)
         check_user
-        check_esm_support
+        esm_check_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
             error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
-        enable_esm "$token"
+        esm_enable "$token"
         ;;
 
     disable-esm)
         check_user
-        check_esm_support
-        disable_esm
+        esm_check_support
+        esm_disable
         ;;
 
     is-esm-enabled)
         # no root needed
-        is_esm_enabled
+        esm_is_enabled
         ;;
 
     enable-fips)
         check_user
-        check_fips_support
+        fips_check_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
             error_msg 'Invalid token, it must be in the form "user:password"'
@@ -159,7 +159,7 @@ case "$1" in
         ;;
 
     disable-fips)
-        if is_fips_enabled; then
+        if fips_is_enabled; then
             not_supported 'Disabling FIPS'
         else
             error_msg 'FIPS is not enabled.'
@@ -169,7 +169,7 @@ case "$1" in
 
     is-fips-enabled)
         # no root needed
-        is_fips_enabled
+        fips_is_enabled
         ;;
 
     status)

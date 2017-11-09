@@ -38,11 +38,11 @@ enable_fips() {
     echo "Successfully configured FIPS. Please reboot into the FIPS kernel to enable it."
 }
 
-is_fips_enabled() {
+fips_is_enabled() {
     is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
 }
 
-check_fips_support() {
+fips_check_support() {
     check_service_support "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES"
 }
 
@@ -118,7 +118,7 @@ _fips_prep_check() {
                 linux-fips strongswan-hmac"
     for pkg in $fips_hmacs; do
         if is_package_installed "$pkg"; then
-            if is_fips_enabled; then
+            if fips_is_enabled; then
                 error_msg "FIPS is already enabled."
             else
                 error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
