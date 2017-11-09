@@ -53,11 +53,14 @@ apt_get() {
                    apt-get -y -o Dpkg::Options::='--force-confold' "$@"
 }
 
-
 is_package_installed() {
-    dpkg-query -s "$1" > /dev/null 2>&1
+    dpkg-query -s "$1" >/dev/null 2>&1
 }
 
+package_version() {
+    [ -z "$1" ] && return 1
+    dpkg-query -W -f '${Version}\n' "$1" 2>/dev/null
+}
 
 # Install a package if the specified file doesn't exist
 install_package_if_missing_file() {
@@ -70,7 +73,6 @@ install_package_if_missing_file() {
     fi
 }
 
-
 # Whether the current series is among supported ones.
 is_supported_series() {
     local s
@@ -81,7 +83,6 @@ is_supported_series() {
     done
     return 1
 }
-
 
 install_livepatch_prereqs() {
     install_package_if_missing_file "$SNAPD" snapd
@@ -136,7 +137,7 @@ disable_livepatch() {
 }
 
 write_esm_list_file() {
-    cat > "$REPO_LIST" <<EOF
+    cat >"$REPO_LIST" <<EOF
 deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 EOF
@@ -211,20 +212,20 @@ configure_fips() {
     else
         result=0
         if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
-            mkdir "$FIPS_BOOT_CFG_DIR" > /dev/null 2>&1 || result=$?
+            mkdir "$FIPS_BOOT_CFG_DIR" >/dev/null 2>&1 || result=$?
             if [ $result -ne 0 ]; then
                 echo "Failed to make directory, $FIPS_BOOT_CFG_DIR."
                 return 1
             fi
         fi
-        echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" > "$FIPS_BOOT_CFG"
+        echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" >"$FIPS_BOOT_CFG"
         echo -n 'Updating grub to enable fips... '
         check_result update-grub
     fi
 }
 
 write_fips_list_file() {
-    cat > "$FIPS_REPO_LIST" <<EOF
+    cat >"$FIPS_REPO_LIST" <<EOF
 deb https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
 EOF
@@ -322,7 +323,6 @@ check_user() {
     fi
 }
 
-
 print_status() {
     local livepatch_status livepatch_output
     if is_livepatch_enabled; then
@@ -374,6 +374,7 @@ Currently available are:
 - Canonical FIPS 140-2 Certified Modules
 
 Commands:
+ version                   show the tool version
  status                    show current status of Ubuntu Advantage offerings
  enable-esm <token>        enable the ESM repository
  disable-esm               disable the ESM repository
@@ -461,6 +462,10 @@ case "$1" in
 
     status)
         print_status
+        ;;
+
+    version)
+        package_version ubuntu-advantage-tools
         ;;
 
     *)
