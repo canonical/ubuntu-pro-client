@@ -45,7 +45,6 @@ class UbuntuAdvantageTest(TestWithFixtures):
     def setUp(self):
         super(UbuntuAdvantageTest, self).setUp()
         self.tempdir = self.useFixture(TempDir())
-        self.ua_modules_dir = Path('modules')
         self.repo_list = Path(self.tempdir.join('repo.list'))
         self.boot_cfg = Path(self.tempdir.join('boot.cfg'))
         self.fstab = Path(self.tempdir.join('fstab'))
@@ -97,7 +96,6 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'PATH': path,
             'FSTAB': str(self.fstab),
             'CPUINFO': str(self.cpuinfo),
-            'UA_MODULES_DIR': str(self.ua_modules_dir),
             'ESM_REPO_LIST': str(self.repo_list),
             'FIPS_REPO_LIST': str(self.repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),

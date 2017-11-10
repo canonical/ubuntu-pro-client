@@ -18,11 +18,17 @@ CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 APT_HELPER=${APT_HELPER:-"/usr/lib/apt/apt-helper"}
 
-UA_MODULES_DIR=${UA_MODULES_DIR:-"/usr/lib/ubuntu-advantage/modules"}
-
 load_modules() {
+    local script_dir modules_dir
+    script_dir=$(dirname "$0")
+    if [ "$script_dir" = "/usr/bin" ]; then
+        modules_dir="/usr/lib/ubuntu-advantage/modules"
+    else
+        modules_dir="${script_dir}/modules"
+    fi
+
     local module
-    for module in "$UA_MODULES_DIR"/*.sh; do
+    for module in "$modules_dir"/*.sh; do
         . "$module"
     done
 }
