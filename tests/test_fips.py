@@ -180,3 +180,24 @@ class FIPSTest(UbuntuAdvantageTest):
         p.write_text('0')
         process = self.script('is-fips-enabled')
         self.assertEqual(1, process.returncode)
+
+    def test_fips_cannot_be_disabled_if_enabled(self):
+        """disable-fips says FIPS cannot be deactivated if it's enabled"""
+        self.make_fake_binary('dpkg-query')
+        p = self.fips_enabled_file
+        p.write_text('1')
+        process = self.script('disable-fips')
+        self.assertEqual(1, process.returncode)
+        self.assertEqual(
+            'Disabling FIPS is currently not supported.',
+            process.stderr.strip())
+
+    def test_disable_fips_warns_if_not_enabled(self):
+        """disable-fips will warn if FIPS is not enabled"""
+        self.make_fake_binary('dpkg-query')
+        p = self.fips_enabled_file
+        p.write_text('0')
+        process = self.script('disable-fips')
+        self.assertEqual(1, process.returncode)
+        self.assertEqual(
+            'FIPS is not enabled.', process.stderr.strip())
