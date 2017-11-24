@@ -3,37 +3,44 @@
 
 SCRIPTNAME=$(basename "$0")
 
-ESM_SUPPORTED_SERIES="precise"
-LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
-FIPS_SUPPORTED_SERIES="xenial"
-
+# system details
 SERIES=${SERIES:-$(lsb_release -cs)}
 KERNEL_VERSION=${KERNEL_VERSION:-$(uname -r)}
 ARCH=${ARCH:-$(uname -m)}
-
-FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
-FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
-FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
-REPO_URL="esm.ubuntu.com"
-REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
-REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+# system files
+FSTAB=${FSTAB:-"/etc/fstab"}
+CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
-
+# system binaries
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 
-FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
-FSTAB=${FSTAB:-"/etc/fstab"}
-CPUINFO=${CPUINFO:-"/proc/cpuinfo"}
+# supported series for each product
+ESM_SUPPORTED_SERIES="precise"
+LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+FIPS_SUPPORTED_SERIES="xenial"
 
+# ESM config
+ESM_REPO_URL="esm.ubuntu.com"
+ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
+ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+# FIPS config
+FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
+FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
+FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
+FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
 else
     FIPS_BOOT_CFG_DIR=${FIPS_BOOT_CFG_DIR:-"/etc/default/grub.d"}
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"${FIPS_BOOT_CFG_DIR}/99-fips.cfg"}
 fi
+
+error_msg() {
+    echo "$@" >&2
+}
 
 check_result() {
     local result output
@@ -42,7 +49,7 @@ check_result() {
     if [ $result -ne 0 ]; then
         echo "ERROR"
         if [ -n "$output" ]; then
-            echo "$output" >&2
+            error_msg "$output"
         fi
         exit $result
     else
@@ -73,6 +80,18 @@ install_package_if_missing_file() {
         echo -n "Installing missing dependency $package... "
         check_result apt_get install "$package"
     fi
+}
+
+# Write an APT sources file
+write_apt_list_file() {
+    local repo_file="$1"
+    local repo_url="$2"
+    local credentials="$3"
+
+    cat >"$repo_file" <<EOF
+deb https://${credentials}@${repo_url}/ubuntu ${SERIES} main
+# deb-src https://${credentials}@${repo_url}/ubuntu ${SERIES} main
+EOF
 }
 
 # Whether the current series is among supported ones.
@@ -148,16 +167,10 @@ disable_livepatch() {
     fi
 }
 
-write_esm_list_file() {
-    cat >"$REPO_LIST" <<EOF
-deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
-EOF
-}
-
 enable_esm() {
-    cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_esm_list_file "$1"
+    local credentials="$1"
+    cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$credentials"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -166,9 +179,9 @@ enable_esm() {
 }
 
 disable_esm() {
-    if [ -f "$REPO_LIST" ]; then
-        mv "$REPO_LIST" "${REPO_LIST}.save"
-        rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
+    if [ -f "$ESM_REPO_LIST" ]; then
+        mv "$ESM_REPO_LIST" "${ESM_REPO_LIST}.save"
+        rm -f "$APT_KEYS_DIR/$ESM_REPO_KEY_FILE"
         echo -n 'Running apt-get update... '
         check_result apt_get update
         echo 'Ubuntu ESM repository disabled.'
@@ -184,7 +197,7 @@ fips_prep_check() {
     case "$ARCH" in
         x86_64)
             if ! check_cpu_flag aes; then
-                echo 'FIPS requires AES CPU extensions'
+                error_msg 'FIPS requires AES CPU extensions'
                 return 1
             fi
             ;;
@@ -192,7 +205,7 @@ fips_prep_check() {
         ppc64le)
             power_cpu_ver="$(power_cpu_version)"
             if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
-                echo 'FIPS requires POWER8 or later'
+                error_msg 'FIPS requires POWER8 or later'
                 return 1
             fi
             ;;
@@ -201,7 +214,7 @@ fips_prep_check() {
             ;;
 
         *)
-            echo "FIPS is not supported on $ARCH."
+            error_msg "FIPS is not supported on $ARCH."
             return 1
             ;;
     esac
@@ -212,9 +225,9 @@ fips_prep_check() {
     for pkg in $fips_hmacs; do
         if is_package_installed "$pkg"; then
             if is_fips_enabled; then
-                echo 'FIPS is already enabled.'
+                error_msg "FIPS is already enabled."
             else
-                echo 'FIPS is already installed. Please reboot into the FIPS kernel to enable it.'
+                error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
             fi
             return 1
         fi
@@ -243,7 +256,7 @@ configure_fips() {
         if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
             mkdir "$FIPS_BOOT_CFG_DIR" >/dev/null 2>&1 || result=$?
             if [ $result -ne 0 ]; then
-                echo "Failed to make directory, $FIPS_BOOT_CFG_DIR."
+                error_msg "Failed to make directory, $FIPS_BOOT_CFG_DIR."
                 return 1
             fi
         fi
@@ -253,19 +266,13 @@ configure_fips() {
     fi
 }
 
-write_fips_list_file() {
-    cat >"$FIPS_REPO_LIST" <<EOF
-deb https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${FIPS_REPO_URL}/ubuntu ${SERIES} main
-EOF
-}
-
 enable_fips() {
+    local credentials="$1"
+
     fips_prep_check || exit 6
 
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_fips_list_file "$1"
-
+    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$credentials"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -297,7 +304,7 @@ is_fips_enabled() {
 }
 
 is_esm_enabled() {
-    apt-cache policy | grep -Fq "$REPO_URL"
+    apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
 
 is_livepatch_enabled() {
@@ -340,14 +347,14 @@ check_service_support() {
     local supported_series="$2"
 
     if ! is_supported_series "$supported_series"; then
-        echo "Sorry, but $title is not supported on $SERIES" >&2
+        error_msg "Sorry, but $title is not supported on $SERIES"
         exit 4
     fi
 }
 
 check_user() {
     if [ "$(id -u)" -ne 0 ]; then
-        echo 'This command must be run as root (try using sudo)' >&2
+        error_msg "This command must be run as root (try using sudo)"
         exit 2
     fi
 }
@@ -418,8 +425,8 @@ case "$1" in
         check_livepatch_support
         token="$2"
         if ! validate_livepatch_token "$token"; then
-            echo 'Invalid or missing Livepatch token' >&2
-            echo 'Please visit https://ubuntu.com/livepatch to obtain a Livepatch token.' >&2
+            error_msg "Invalid or missing Livepatch token"
+            error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
             exit 3
         fi
         enable_livepatch "$token"
@@ -433,7 +440,7 @@ case "$1" in
             if [ "$2" = "-r" ]; then
                 remove_snap="yes"
             else
-                echo "Unknown option \"$2\"" >&2
+                error_msg "Unknown option \"$2\""
                 usage
                 exit 1
             fi
@@ -451,7 +458,7 @@ case "$1" in
         check_esm_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
-            echo 'Invalid token, it must be in the form "user:password"' >&2
+            error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
         enable_esm "$token"
@@ -473,7 +480,7 @@ case "$1" in
         check_fips_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
-            echo 'Invalid token, it must be in the form "user:password"' >&2
+            error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
 
