@@ -168,8 +168,9 @@ disable_livepatch() {
 }
 
 enable_esm() {
+    local credentials="$1"
     cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$1"
+    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$credentials"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -266,10 +267,12 @@ configure_fips() {
 }
 
 enable_fips() {
+    local credentials="$1"
+
     fips_prep_check || exit 6
 
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$1"
+    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$credentials"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
