@@ -415,9 +415,15 @@ Commands:
                            canonical-livepatch snap will also be removed
  enable-fips <token>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
+ disabe-fips               currently not supported
 EOF
 }
 
+not_supported() {
+    local message="$1"
+    error_msg "$message is currently not supported."
+    exit 1
+}
 
 case "$1" in
     enable-livepatch)
@@ -485,6 +491,15 @@ case "$1" in
         fi
 
         enable_fips "$token"
+        ;;
+
+    disable-fips)
+        if is_fips_enabled; then
+            not_supported 'Disabling FIPS'
+        else
+            error_msg 'FIPS is not enabled.'
+            exit 1
+        fi
         ;;
 
     is-fips-enabled)
