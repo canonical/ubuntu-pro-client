@@ -12,8 +12,11 @@ matrix:
       dist: trusty
       python: 3.6
       
-install: pip install tox
-script: make test lint
+install: make testdep
+script:
+  - make lint
+  - make test
+
 addons:
   apt:
     sources:
