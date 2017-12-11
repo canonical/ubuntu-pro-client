@@ -16,6 +16,7 @@ APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
 CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 # system binaries
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
+APT_HELPER=${APT_HELPER:-"/usr/lib/apt/apt-helper"}
 
 # supported series for each product
 ESM_SUPPORTED_SERIES="precise"
@@ -57,6 +58,13 @@ check_result() {
     fi
 }
 
+private_repo_url() {
+    local repo_url="$1"
+    local credentials="$2"
+    local file="$3"
+    echo "https://${credentials}@${repo_url}/ubuntu${file}"
+}
+
 apt_get() {
     DEBIAN_FRONTEND=noninteractive \
                    apt-get -y -o Dpkg::Options::='--force-confold' "$@"
@@ -86,11 +94,13 @@ install_package_if_missing_file() {
 write_apt_list_file() {
     local repo_file="$1"
     local repo_url="$2"
-    local credentials="$3"
+    local token="$3"
 
+    local url
+    url=$(private_repo_url "$repo_url" "$token")
     cat >"$repo_file" <<EOF
-deb https://${credentials}@${repo_url}/ubuntu ${SERIES} main
-# deb-src https://${credentials}@${repo_url}/ubuntu ${SERIES} main
+deb ${url} ${SERIES} main
+# deb-src ${url} ${SERIES} main
 EOF
 }
 
@@ -168,9 +178,11 @@ disable_livepatch() {
 }
 
 enable_esm() {
-    local credentials="$1"
+    local token="$1"
+
+    check_token "$ESM_REPO_URL" "$token"
+    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$token"
     cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$credentials"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -267,12 +279,13 @@ configure_fips() {
 }
 
 enable_fips() {
-    local credentials="$1"
+    local token="$1"
 
     fips_prep_check || exit 6
 
+    check_token "$FIPS_REPO_URL" "$token"
     cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$credentials"
+    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -313,8 +326,52 @@ is_livepatch_enabled() {
     canonical-livepatch status >/dev/null 2>&1
 }
 
-validate_user_pass_token(){
+validate_user_pass_token() {
     echo "$1" | grep -q '^[^:]\+:[^:]\+$'
+}
+
+check_url_with_token() {
+    local repo_url="$1"
+    local token="$2"
+    local file="$3"
+
+    local url
+    url=$(private_repo_url "$repo_url" "$token" "$file")
+
+    local discard log
+    # apt-helper needs a filename to download to, which is just removed at the
+    # end
+    discard="$(mktemp)"
+    log="$(mktemp)"
+    if "$APT_HELPER" download-file "$url" "$discard" >"$log" 2>&1; then
+        rm -f "$discard" "$log"
+        return 0
+    fi
+
+    local error_line
+    error_line=$(sed -n 's/^E: Failed to fetch [^ ]\+ \+//p' "$log")
+    if echo "$error_line" | grep -q '^\(HttpError\)\?401'; then
+        error_msg 'Invalid token'
+    else
+        error_msg "Failed checking token ($error_line)"
+    fi
+
+    rm -f "$discard" "$log"
+    return 3
+}
+
+check_token() {
+    local repo_url="$1"
+    local token="$2"
+
+    echo -n 'Checking token... '
+
+    if [ -x "$APT_HELPER" ]; then
+        check_result check_url_with_token "$repo_url" "$token" \
+                     "/dists/${SERIES}/Release"
+    else
+        echo 'SKIPPED'
+    fi
 }
 
 validate_livepatch_token() {

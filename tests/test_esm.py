@@ -49,6 +49,49 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertIn(
             'DEBIAN_FRONTEND=noninteractive', self.read_file('apt_get.env'))
 
+    def test_enable_esm_invalid_token(self):
+        """If token is invalid, an error is returned."""
+        message = (
+            'E: Failed to fetch https://esm.ubuntu.com/'
+            '  401  Unauthorized [IP: 1.2.3.4]')
+        self.make_fake_binary(
+            'apt-helper', command='echo "{}"; exit 1'.format(message))
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(3, process.returncode)
+        self.assertIn('Checking token... ERROR', process.stdout)
+        self.assertIn('Invalid token', process.stderr)
+
+    def test_enable_esm_invalid_token_trusty(self):
+        """Invalid token error is caught with apt-helper in trusty."""
+        message = 'E: Failed to fetch https://esm.ubuntu.com/  HttpError401'
+        self.make_fake_binary(
+            'apt-helper', command='echo "{}"; exit 1'.format(message))
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(3, process.returncode)
+        self.assertIn('Checking token... ERROR', process.stdout)
+        self.assertIn('Invalid token', process.stderr)
+
+    def test_enable_esm_error_checking_token(self):
+        """If token check fails, an error is returned."""
+        message = (
+            'E: Failed to fetch https://esm.ubuntu.com/'
+            '  404  Not Found [IP: 1.2.3.4]')
+        self.make_fake_binary(
+            'apt-helper', command='echo "{}"; exit 1'.format(message))
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(3, process.returncode)
+        self.assertIn('Checking token... ERROR', process.stdout)
+        self.assertIn(
+            'Failed checking token (404  Not Found [IP: 1.2.3.4])',
+            process.stderr)
+
+    def test_enable_esm_skip_token_check_no_helper(self):
+        """If apt-helper is not found, the token check is skipped."""
+        self.apt_helper.unlink()
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn('Checking token... SKIPPED', process.stdout)
+
     def test_enable_esm_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
         self.apt_method_https.unlink()
@@ -97,7 +140,7 @@ class ESMTest(UbuntuAdvantageTest):
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
-    def test_enable_esm_invalid_token(self):
+    def test_enable_esm_invalid_token_format(self):
         """The ESM token must be specified as "user:password"."""
         process = self.script('enable-esm', 'foo-bar')
         self.assertEqual(3, process.returncode)

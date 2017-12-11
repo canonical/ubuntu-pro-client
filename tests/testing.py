@@ -57,6 +57,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
+        self.apt_helper = self.bin_dir / 'apt-helper'
         # setup directories and files
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
@@ -67,6 +68,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
         self.cpuinfo.write_text('flags\t\t: fpu apic')
         self.make_fake_binary('apt-get')
+        self.make_fake_binary('apt-helper')
         self.make_fake_binary('apt-method-https')
         self.make_fake_binary('update-ca-certificates')
         self.make_fake_binary('id', command='echo 0')
@@ -100,6 +102,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'KEYRINGS_DIR': str(self.keyrings_dir),
+            'APT_HELPER': str(self.apt_helper),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
             'APT_METHOD_HTTPS': str(self.apt_method_https),
             'CA_CERTIFICATES': str(self.ca_certificates),
