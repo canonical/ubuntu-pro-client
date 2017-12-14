@@ -1,4 +1,4 @@
 ubuntu-advantage usr/bin/
 keyrings/*.gpg usr/share/keyrings/
-modules/* usr/share/ubuntu-advantage/modules
+modules/* usr/share/ubuntu-advantage-tools/modules
 update-motd.d etc/

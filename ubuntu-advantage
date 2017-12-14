@@ -22,7 +22,7 @@ load_modules() {
     local script_dir modules_dir
     script_dir=$(dirname "$0")
     if [ "$script_dir" = "/usr/bin" ]; then
-        modules_dir="/usr/share/ubuntu-advantage/modules"
+        modules_dir="/usr/share/ubuntu-advantage-tools/modules"
     else
         modules_dir="${script_dir}/modules"
     fi
