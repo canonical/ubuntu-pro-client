@@ -78,5 +78,6 @@ _apt_add_auth() {
 _apt_remove_auth() {
     local repo_host="$1"
 
+    # shellcheck disable=SC1117
     sed -i "/^machine ${repo_host}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
 }
