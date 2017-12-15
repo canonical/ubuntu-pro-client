@@ -1,5 +1,5 @@
 #!/bin/sh -e
-# shellcheck disable=SC2039
+# shellcheck disable=SC2039,SC1090
 
 SCRIPTNAME=$(basename "$0")
 
@@ -18,407 +18,26 @@ CA_CERTIFICATES=${CA_CERTIFICATES:-"/usr/sbin/update-ca-certificates"}
 SNAPD=${SNAPD:-"/usr/lib/snapd/snapd"}
 APT_HELPER=${APT_HELPER:-"/usr/lib/apt/apt-helper"}
 
-# supported series for each product
-ESM_SUPPORTED_SERIES="precise"
-LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
-FIPS_SUPPORTED_SERIES="xenial"
-
-# ESM config
-ESM_REPO_URL="esm.ubuntu.com"
-ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
-ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
-# FIPS config
-FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
-FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
-FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
-FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
-if [ "$ARCH" = "s390x" ]; then
-    FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
-else
-    FIPS_BOOT_CFG_DIR=${FIPS_BOOT_CFG_DIR:-"/etc/default/grub.d"}
-    FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"${FIPS_BOOT_CFG_DIR}/99-fips.cfg"}
-fi
-
-error_msg() {
-    echo "$@" >&2
-}
-
-check_result() {
-    local result output
-    result=0
-    output=$("$@" 2>&1) || result=$?
-    if [ $result -ne 0 ]; then
-        echo "ERROR"
-        if [ -n "$output" ]; then
-            error_msg "$output"
-        fi
-        exit $result
+load_modules() {
+    local script_dir modules_dir
+    script_dir=$(dirname "$0")
+    if [ "$script_dir" = "/usr/bin" ]; then
+        modules_dir="/usr/share/ubuntu-advantage-tools/modules"
     else
-        echo "OK"
+        modules_dir="${script_dir}/modules"
     fi
-}
 
-private_repo_url() {
-    local repo_url="$1"
-    local credentials="$2"
-    local file="$3"
-    echo "https://${credentials}@${repo_url}/ubuntu${file}"
-}
-
-apt_get() {
-    DEBIAN_FRONTEND=noninteractive \
-                   apt-get -y -o Dpkg::Options::='--force-confold' "$@"
-}
-
-is_package_installed() {
-    dpkg-query -s "$1" >/dev/null 2>&1
-}
-
-package_version() {
-    [ -z "$1" ] && return 1
-    dpkg-query -W -f '${Version}\n' "$1" 2>/dev/null
-}
-
-# Install a package if the specified file doesn't exist
-install_package_if_missing_file() {
-    local file="$1"
-    local package="$2"
-
-    if [ ! -f "$file" ]; then
-        echo -n "Installing missing dependency $package... "
-        check_result apt_get install "$package"
-    fi
-}
-
-# Write an APT sources file
-write_apt_list_file() {
-    local repo_file="$1"
-    local repo_url="$2"
-    local token="$3"
-
-    local url
-    url=$(private_repo_url "$repo_url" "$token")
-    cat >"$repo_file" <<EOF
-deb ${url} ${SERIES} main
-# deb-src ${url} ${SERIES} main
-EOF
-}
-
-# Whether the current series is among supported ones.
-is_supported_series() {
-    local s
-    for s in $1; do
-        if [ "$s" = "$SERIES" ]; then
-            return 0
-        fi
+    local module
+    for module in "$modules_dir"/*.sh; do
+        . "$module"
     done
-    return 1
 }
 
-# check if the CPU flag is available in the system.
-check_cpu_flag() {
-    grep -q '^flags.*\b'"$1"'\b' "$CPUINFO"
-}
-
-# return the version of a POWER CPU
-power_cpu_version() {
-    sed -r -n '/^cpu\s*:\s*POWER([0-9]+).*/ { s//\1/; p; q }' "$CPUINFO"
-}
-
-install_livepatch_prereqs() {
-    install_package_if_missing_file "$SNAPD" snapd
-    if ! snap list canonical-livepatch >/dev/null 2>&1; then
-        echo 'Installing the canonical-livepatch snap.'
-        echo 'This may take a few minutes depending on your bandwidth.'
-        # show output as it has a nice progress bar and isn't too verbose
-        snap install canonical-livepatch
-    fi
-}
-
-enable_livepatch() {
-    local token="$1"
-
-    install_livepatch_prereqs
-    if ! is_livepatch_enabled; then
-        if check_snapd_kernel_support; then
-            echo 'Enabling Livepatch with the given token, stand by...'
-            canonical-livepatch enable "$token"
-        else
-            echo
-            echo "Your currently running kernel ($KERNEL_VERSION) is too old to"
-            echo "support snaps. Version 4.4.0 or higher is needed."
-            echo
-            echo "Please reboot your system into a supported kernel version"
-            echo "and run the following command one more time to complete the"
-            echo "installation:"
-            echo
-            echo "sudo $SCRIPTNAME enable-livepatch $token"
-            exit 5
-        fi
-    else
-        echo 'Livepatch already enabled.'
-    fi
-    echo 'Use "canonical-livepatch status" to verify current patch status.'
-}
-
-disable_livepatch() {
-    if is_livepatch_enabled; then
-        echo 'Disabling Livepatch...'
-        canonical-livepatch disable
-        if [ "$1" = "yes" ]; then
-            echo 'Removing the canonical-livepatch snap...'
-            snap remove canonical-livepatch
-        else
-            echo 'Note: the canonical-livepatch snap is still installed.'
-            echo 'To remove it, run sudo snap remove canonical-livepatch'
-        fi
-    else
-        echo 'Livepatch is already disabled.'
-    fi
-}
-
-enable_esm() {
-    local token="$1"
-
-    check_token "$ESM_REPO_URL" "$token"
-    write_apt_list_file "$ESM_REPO_LIST" "$ESM_REPO_URL" "$token"
-    cp "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
-    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
-    echo -n 'Running apt-get update... '
-    check_result apt_get update
-    echo 'Ubuntu ESM repository enabled.'
-}
-
-disable_esm() {
-    if [ -f "$ESM_REPO_LIST" ]; then
-        mv "$ESM_REPO_LIST" "${ESM_REPO_LIST}.save"
-        rm -f "$APT_KEYS_DIR/$ESM_REPO_KEY_FILE"
-        echo -n 'Running apt-get update... '
-        check_result apt_get update
-        echo 'Ubuntu ESM repository disabled.'
-    else
-        echo 'Ubuntu ESM repository was not enabled.'
-    fi
-}
-
-fips_prep_check() {
-    local fips_hmacs pkg power_cpu_ver
-
-    # sanity check
-    case "$ARCH" in
-        x86_64)
-            if ! check_cpu_flag aes; then
-                error_msg 'FIPS requires AES CPU extensions'
-                return 1
-            fi
-            ;;
-
-        ppc64le)
-            power_cpu_ver="$(power_cpu_version)"
-            if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
-                error_msg 'FIPS requires POWER8 or later'
-                return 1
-            fi
-            ;;
-
-        s390x)
-            ;;
-
-        *)
-            error_msg "FIPS is not supported on $ARCH."
-            return 1
-            ;;
-    esac
-
-    # check to see if fips pkgs already installed.
-    fips_hmacs="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
-                linux-fips strongswan-hmac"
-    for pkg in $fips_hmacs; do
-        if is_package_installed "$pkg"; then
-            if is_fips_enabled; then
-                error_msg "FIPS is already enabled."
-            else
-                error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
-            fi
-            return 1
-        fi
-    done
-
-    return 0
-}
-
-configure_fips() {
-    local bootdev fips_params result
-
-    # if /boot has its own partition, then get the bootdevice
-    # Note: /boot/efi  does not count
-    bootdev=$(awk '!/^\s*#/ && $2 ~ /^\/boot\/?$/ { print $1 }' "$FSTAB")
-    fips_params="fips=1"
-    if [ -n "$bootdev" ]; then
-        fips_params="$fips_params bootdev=$bootdev"
-    fi
-
-    if [ "$ARCH" = "s390x" ]; then
-        sed -i -e 's,^parameters\s*=.*,& '"$fips_params"',' "$FIPS_BOOT_CFG"
-        echo -n 'Updating zipl to enable fips... '
-        check_result zipl
-    else
-        result=0
-        if [ ! -d "$FIPS_BOOT_CFG_DIR" ]; then
-            mkdir "$FIPS_BOOT_CFG_DIR" >/dev/null 2>&1 || result=$?
-            if [ $result -ne 0 ]; then
-                error_msg "Failed to make directory, $FIPS_BOOT_CFG_DIR."
-                return 1
-            fi
-        fi
-        echo "GRUB_CMDLINE_LINUX_DEFAULT=\"\$GRUB_CMDLINE_LINUX_DEFAULT $fips_params\"" >"$FIPS_BOOT_CFG"
-        echo -n 'Updating grub to enable fips... '
-        check_result update-grub
-    fi
-}
-
-enable_fips() {
-    local token="$1"
-
-    fips_prep_check || exit 6
-
-    check_token "$FIPS_REPO_URL" "$token"
-    cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
-    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token"
-    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
-    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
-    echo -n 'Running apt-get update... '
-    check_result apt_get update
-    echo 'Ubuntu FIPS PPA repository enabled.'
-
-    # install all the fips packages
-    echo -n 'Installing FIPS packages (this may take a while)... '
-    check_result apt_get install openssh-client openssh-client-hmac \
-                 openssh-server openssh-server-hmac openssl libssl1.0.0 \
-                 libssl1.0.0-hmac fips-initramfs linux-fips \
-                 strongswan strongswan-hmac
-
-    echo "Configuring FIPS... "
-    configure_fips
-    echo "Successfully configured FIPS. Please reboot into the FIPS kernel to enable it."
-}
-
-fips_enabled_check() {
-    if [ -f "$FIPS_ENABLED_FILE" ]; then
-        cat "$FIPS_ENABLED_FILE"
-        return
-    fi
-    echo 0
-}
-
-is_fips_enabled() {
-    is_package_installed fips-initramfs && [ "$(fips_enabled_check)" -eq 1 ]
-}
-
-is_esm_enabled() {
-    apt-cache policy | grep -Fq "$ESM_REPO_URL"
-}
-
-is_livepatch_enabled() {
-    # it's fine if it fails because the snap isn't installed. It's still
-    # a non-zero return value
-    canonical-livepatch status >/dev/null 2>&1
-}
-
-validate_user_pass_token() {
-    echo "$1" | grep -q '^[^:]\+:[^:]\+$'
-}
-
-check_url_with_token() {
-    local repo_url="$1"
-    local token="$2"
-    local file="$3"
-
-    local url
-    url=$(private_repo_url "$repo_url" "$token" "$file")
-
-    local discard log
-    # apt-helper needs a filename to download to, which is just removed at the
-    # end
-    discard="$(mktemp)"
-    log="$(mktemp)"
-    if "$APT_HELPER" download-file "$url" "$discard" >"$log" 2>&1; then
-        rm -f "$discard" "$log"
-        return 0
-    fi
-
-    local error_line
-    error_line=$(sed -n 's/^E: Failed to fetch [^ ]\+ \+//p' "$log")
-    if echo "$error_line" | grep -q '^\(HttpError\)\?401'; then
-        error_msg 'Invalid token'
-    else
-        error_msg "Failed checking token ($error_line)"
-    fi
-
-    rm -f "$discard" "$log"
-    return 3
-}
-
-check_token() {
-    local repo_url="$1"
-    local token="$2"
-
-    echo -n 'Checking token... '
-
-    if [ -x "$APT_HELPER" ]; then
-        check_result check_url_with_token "$repo_url" "$token" \
-                     "/dists/${SERIES}/Release"
-    else
-        echo 'SKIPPED'
-    fi
-}
-
-validate_livepatch_token() {
-    # the livepatch token is an hex string 32 characters long
-    echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
-}
-
-# snapd needs a 4.4.x *running* kernel
-check_snapd_kernel_support() {
-    local v1 v2
-    v1=$(echo "$KERNEL_VERSION" | cut -d . -f 1)
-    v2=$(echo "$KERNEL_VERSION" | cut -d . -f 2)
-    test "$v1" -ge "4" -a "$v2" -ge "4"
-}
-
-check_esm_support() {
-    check_service_support "Extended Security Maintenance" "$ESM_SUPPORTED_SERIES"
-}
-
-check_livepatch_support() {
-    check_service_support "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES"
-}
-
-check_fips_support() {
-    check_service_support "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES"
-}
-
-check_service_support() {
-    local title="$1"
-    local supported_series="$2"
-
-    if ! is_supported_series "$supported_series"; then
-        error_msg "Sorry, but $title is not supported on $SERIES"
-        exit 4
-    fi
-}
-
-check_user() {
-    if [ "$(id -u)" -ne 0 ]; then
-        error_msg "This command must be run as root (try using sudo)"
-        exit 2
-    fi
-}
+load_modules
 
 print_status() {
     local esm_status
-    if is_esm_enabled; then
+    if esm_is_enabled; then
         esm_status="enabled"
     else
         esm_status="disabled"
@@ -427,7 +46,7 @@ print_status() {
     echo "esm: $esm_status"
 
     local livepatch_status livepatch_output
-    if is_livepatch_enabled; then
+    if livepatch_is_enabled; then
         livepatch_status="enabled"
         livepatch_output=$(canonical-livepatch status)
     else
@@ -440,7 +59,7 @@ print_status() {
     fi
 
     local fips_status
-    if is_fips_enabled; then
+    if fips_is_enabled; then
         fips_status="enabled"
     else
         fips_status="disabled"
@@ -476,28 +95,23 @@ Commands:
 EOF
 }
 
-not_supported() {
-    local message="$1"
-    error_msg "$message is currently not supported."
-    exit 1
-}
 
 case "$1" in
     enable-livepatch)
         check_user
-        check_livepatch_support
+        livepatch_check_support
         token="$2"
-        if ! validate_livepatch_token "$token"; then
+        if ! livepatch_validate_token "$token"; then
             error_msg "Invalid or missing Livepatch token"
             error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
             exit 3
         fi
-        enable_livepatch "$token"
+        livepatch_enable "$token"
         ;;
 
     disable-livepatch)
         check_user
-        check_livepatch_support
+        livepatch_check_support
         remove_snap="no"
         if [ -n "$2" ]; then
             if [ "$2" = "-r" ]; then
@@ -508,39 +122,39 @@ case "$1" in
                 exit 1
             fi
         fi
-        disable_livepatch "$remove_snap"
+        livepatch_disable "$remove_snap"
         ;;
 
     is-livepatch-enabled)
         # no root needed
-        is_livepatch_enabled
+        livepatch_is_enabled
         ;;
 
     enable-esm)
         check_user
-        check_esm_support
+        esm_check_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
             error_msg 'Invalid token, it must be in the form "user:password"'
             exit 3
         fi
-        enable_esm "$token"
+        esm_enable "$token"
         ;;
 
     disable-esm)
         check_user
-        check_esm_support
-        disable_esm
+        esm_check_support
+        esm_disable
         ;;
 
     is-esm-enabled)
         # no root needed
-        is_esm_enabled
+        esm_is_enabled
         ;;
 
     enable-fips)
         check_user
-        check_fips_support
+        fips_check_support
         token="$2"
         if ! validate_user_pass_token "$token"; then
             error_msg 'Invalid token, it must be in the form "user:password"'
@@ -551,7 +165,7 @@ case "$1" in
         ;;
 
     disable-fips)
-        if is_fips_enabled; then
+        if fips_is_enabled; then
             not_supported 'Disabling FIPS'
         else
             error_msg 'FIPS is not enabled.'
@@ -561,7 +175,7 @@ case "$1" in
 
     is-fips-enabled)
         # no root needed
-        is_fips_enabled
+        fips_is_enabled
         ;;
 
     status)
