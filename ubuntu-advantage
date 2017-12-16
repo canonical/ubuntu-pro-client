@@ -163,7 +163,7 @@ case "$1" in
             exit 3
         fi
 
-        enable_fips "$token"
+        fips_enable "$token"
         ;;
 
     disable-fips)
