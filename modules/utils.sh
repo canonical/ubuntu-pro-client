@@ -26,51 +26,15 @@ check_user() {
     fi
 }
 
-not_supported() {
-    local message="$1"
+name_in_list() {
+    local name="$1"
+    local list="$2"
 
-    error_msg "$message is currently not supported."
-    exit 1
-}
-
-is_supported_series() {
-    local supported_series_list="$1"
-
-    local supported
-    for supported in $supported_series_list; do
-        if [ "$supported" = "$SERIES" ]; then
+    local elem
+    for elem in $list; do
+        if [ "$elem" = "$name" ]; then
             return 0
         fi
     done
     return 1
-}
-
-is_supported_arch() {
-    local supported_archs="$1"
-
-    # if list is empty, any arch is supported
-    [ -n "$supported_archs" ] || return 0
-
-    local supported
-    for supported in $supported_archs; do
-        if [ "$supported" = "$ARCH" ]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-check_service_support() {
-    local title="$1"
-    local supported_series="$2"
-    local supported_archs="$3"
-
-    if ! is_supported_arch "$supported_archs"; then
-        error_msg "Sorry, but $title is not supported on $ARCH"
-        exit 7
-    fi
-    if ! is_supported_series "$supported_series"; then
-        error_msg "Sorry, but $title is not supported on $SERIES"
-        exit 4
-    fi
 }
