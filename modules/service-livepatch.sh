@@ -1,6 +1,7 @@
 # shellcheck disable=SC2039
 
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+LIVEPATCH_SUPPORTED_ARCHS="x86_64"
 
 livepatch_enable() {
     local token="$1"
@@ -51,7 +52,9 @@ livepatch_is_enabled() {
 }
 
 livepatch_check_support() {
-    check_service_support "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES"
+    check_service_support \
+        "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES" \
+        "$LIVEPATCH_SUPPORTED_ARCHS"
 }
 
 livepatch_validate_token() {

@@ -28,15 +28,32 @@ check_user() {
 
 not_supported() {
     local message="$1"
+
     error_msg "$message is currently not supported."
     exit 1
 }
 
-# Whether the current series is among supported ones.
 is_supported_series() {
-    local s
-    for s in $1; do
-        if [ "$s" = "$SERIES" ]; then
+    local supported_series_list="$1"
+
+    local supported
+    for supported in $supported_series_list; do
+        if [ "$supported" = "$SERIES" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+is_supported_arch() {
+    local supported_archs="$1"
+
+    # if list is empty, any arch is supported
+    [ -n "$supported_archs" ] || return 0
+
+    local supported
+    for supported in $supported_archs; do
+        if [ "$supported" = "$ARCH" ]; then
             return 0
         fi
     done
@@ -46,7 +63,12 @@ is_supported_series() {
 check_service_support() {
     local title="$1"
     local supported_series="$2"
+    local supported_archs="$3"
 
+    if ! is_supported_arch "$supported_archs"; then
+        error_msg "Sorry, but $title is not supported on $ARCH"
+        exit 7
+    fi
     if ! is_supported_series "$supported_series"; then
         error_msg "Sorry, but $title is not supported on $SERIES"
         exit 4
