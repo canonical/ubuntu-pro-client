@@ -77,9 +77,10 @@ class FIPSTest(UbuntuAdvantageTest):
         """FIPS is unsupported on i686 arch."""
         self.ARCH = 'i686'
         process = self.script('enable-fips', 'user:pass')
-        self.assertEqual(6, process.returncode)
-        self.assertEqual(
-            'FIPS is not supported on i686.', process.stderr.strip())
+        self.assertEqual(7, process.returncode)
+        self.assertIn(
+            'Sorry, but Canonical FIPS 140-2 Modules is not supported on i686',
+            process.stderr)
 
     def test_enable_fips_install_apt_transport_https(self):
         """enable-fips installs apt-transport-https if needed."""
