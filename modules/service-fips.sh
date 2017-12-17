@@ -20,8 +20,8 @@ enable_fips() {
     _fips_prep_check || exit 6
 
     check_token "$FIPS_REPO_URL" "$token"
-    write_apt_list_file "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token"
-    cp "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    apt_add_repo "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token" \
+                 "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '

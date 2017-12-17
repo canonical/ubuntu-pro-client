@@ -18,11 +18,16 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu FIPS PPA repository enabled.', process.stdout)
         expected = (
-            'deb https://user:pass@private-ppa.launchpad.net/ubuntu-advantage/'
+            'deb https://private-ppa.launchpad.net/ubuntu-advantage/'
             'fips/ubuntu xenial main\n'
-            '# deb-src https://user:pass@private-ppa.launchpad.net/'
+            '# deb-src https://private-ppa.launchpad.net/'
             'ubuntu-advantage/fips/ubuntu xenial main\n')
         self.assertEqual(expected, self.repo_list.read_text())
+        self.assertEqual(
+            self.apt_auth_file.read_text(),
+            'machine private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu/'
+            ' login user password pass\n')
+        self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         keyring_file = self.trusted_gpg_dir / 'ubuntu-fips-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
         self.assertIn(
@@ -33,6 +38,14 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
             process.stdout)
+
+    def test_enable_fips_auth_if_other_entries(self):
+        """Existing auth.conf entries are preserved."""
+        auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(auth)
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn(auth, self.apt_auth_file.read_text())
 
     def test_enable_fips_already_enabled(self):
         """If fips is already enabled, an error is returned."""
