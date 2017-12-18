@@ -1,7 +1,8 @@
 # shellcheck disable=SC2039
 
-LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
-LIVEPATCH_SUPPORTED_ARCHS="x86_64"
+LIVEPATCH_SERVICE_NAME="Canonical Livepatch" # shellcheck disable=SC2034
+LIVEPATCH_SUPPORTED_SERIES="trusty xenial" # shellcheck disable=SC2034
+LIVEPATCH_SUPPORTED_ARCHS="x86_64" # shellcheck disable=SC2034
 
 livepatch_enable() {
     local token="$1"
@@ -50,15 +51,11 @@ livepatch_is_enabled() {
     canonical-livepatch status >/dev/null 2>&1 || return 1
 }
 
-livepatch_check_support() {
-    check_service_support \
-        "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES" \
-        "$LIVEPATCH_SUPPORTED_ARCHS"
-}
-
 livepatch_validate_token() {
+    local token="$1"
+
     # the livepatch token is an hex string 32 characters long
-    echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
+    echo "$token" | grep -q -E '^[0-9a-fA-F]{32}$'
 }
 
 _install_livepatch_prereqs() {

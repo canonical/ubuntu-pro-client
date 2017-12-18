@@ -116,7 +116,7 @@ main() {
 
         enable-livepatch)
             check_user
-            livepatch_check_support
+            service_check_support livepatch
             token="$2"
             if ! livepatch_validate_token "$token"; then
                 error_msg "Invalid or missing Livepatch token"
@@ -128,7 +128,7 @@ main() {
 
         disable-livepatch)
             check_user
-            livepatch_check_support
+            service_check_support livepatch
             remove_snap="no"
             if [ -n "$2" ]; then
                 if [ "$2" = "-r" ]; then
@@ -143,7 +143,7 @@ main() {
 
         enable-esm)
             check_user
-            esm_check_support
+            service_check_support esm
             token="$2"
             if ! validate_user_pass_token "$token"; then
                 error_msg 'Invalid token, it must be in the form "user:password"'
@@ -154,13 +154,13 @@ main() {
 
         disable-esm)
             check_user
-            esm_check_support
+            service_check_support esm
             esm_disable
             ;;
 
         enable-fips)
             check_user
-            fips_check_support
+            service_check_support fips
             token="$2"
             if ! validate_user_pass_token "$token"; then
                 error_msg 'Invalid token, it must be in the form "user:password"'

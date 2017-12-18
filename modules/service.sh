@@ -27,3 +27,15 @@ service_is_enabled() {
 
     "${service}_is_enabled"
 }
+
+service_check_support() {
+    local service="$1"
+
+    local service_upper
+    service_upper=$(uppercase "$service")
+    local name series archs
+    name=$(expand_var "${service_upper}_SERVICE_NAME")
+    series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
+    archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
+    check_service_support "$name" "$series" "$archs"
+}

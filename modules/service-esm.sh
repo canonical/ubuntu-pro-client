@@ -1,7 +1,8 @@
 # shellcheck disable=SC2039
 
-ESM_SUPPORTED_SERIES="precise"
-ESM_SUPPORTED_ARCHS="ALL"
+ESM_SERVICE_NAME="Extended Security Maintenance" # shellcheck disable=SC2034
+ESM_SUPPORTED_SERIES="precise" # shellcheck disable=SC2034
+ESM_SUPPORTED_ARCHS="ALL" # shellcheck disable=SC2034
 
 ESM_REPO_URL="esm.ubuntu.com"
 ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
@@ -34,10 +35,4 @@ esm_disable() {
 
 esm_is_enabled() {
     apt-cache policy | grep -Fq "$ESM_REPO_URL"
-}
-
-esm_check_support() {
-    check_service_support \
-        "Extended Security Maintenance" "$ESM_SUPPORTED_SERIES" \
-        "$ESM_SUPPORTED_ARCHS"
 }
