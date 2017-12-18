@@ -19,13 +19,6 @@ check_result() {
     fi
 }
 
-check_user() {
-    if [ "$(id -u)" -ne 0 ]; then
-        error_msg "This command must be run as root (try using sudo)"
-        exit 2
-    fi
-}
-
 name_in_list() {
     local name="$1"
     local list="$2"
@@ -37,4 +30,14 @@ name_in_list() {
         fi
     done
     return 1
+}
+
+expand_var() {
+    local var="$1"
+
+    echo "${!var}"
+}
+
+uppercase() {
+    echo "$@" | tr '[:lower:]' '[:upper:]'
 }

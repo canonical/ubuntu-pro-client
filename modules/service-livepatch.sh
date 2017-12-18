@@ -46,9 +46,8 @@ livepatch_disable() {
 }
 
 livepatch_is_enabled() {
-    # it's fine if it fails because the snap isn't installed. It's still
-    # a non-zero return value
-    canonical-livepatch status >/dev/null 2>&1
+    # Explicitly return 1 for the case where the command is not found.
+    canonical-livepatch status >/dev/null 2>&1 || return 1
 }
 
 livepatch_check_support() {
