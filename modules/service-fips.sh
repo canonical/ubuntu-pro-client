@@ -54,6 +54,15 @@ fips_check_support() {
     _fips_check_arch
 }
 
+fips_validate_token() {
+    local token="$1"
+
+    if ! validate_user_pass_token "$token"; then
+        error_msg 'Invalid token, it must be in the form "user:password"'
+        return 1
+    fi
+}
+
 _fips_configure() {
     local bootdev fips_params result
 

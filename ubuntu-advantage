@@ -104,27 +104,12 @@ main() {
 
     local service
     service=$(service_from_command "$command")
-
+    # if the command contains a service name, check that it's valid
     if [ "$service" ] && ! name_in_list "$service" "$SERVICES"; then
         usage
     fi
 
     case "$command" in
-        is-*-enabled)
-            service_is_enabled "$service"
-            ;;
-
-        enable-livepatch)
-            check_user
-            service_check_support livepatch
-            token="$2"
-            if ! livepatch_validate_token "$token"; then
-                error_msg "Invalid or missing Livepatch token"
-                error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
-                exit 3
-            fi
-            livepatch_enable "$token"
-            ;;
 
         disable-livepatch)
             check_user
@@ -141,33 +126,10 @@ main() {
             livepatch_disable "$remove_snap"
             ;;
 
-        enable-esm)
-            check_user
-            service_check_support esm
-            token="$2"
-            if ! validate_user_pass_token "$token"; then
-                error_msg 'Invalid token, it must be in the form "user:password"'
-                exit 3
-            fi
-            esm_enable "$token"
-            ;;
-
         disable-esm)
             check_user
             service_check_support esm
             esm_disable
-            ;;
-
-        enable-fips)
-            check_user
-            service_check_support fips
-            token="$2"
-            if ! validate_user_pass_token "$token"; then
-                error_msg 'Invalid token, it must be in the form "user:password"'
-                exit 3
-            fi
-
-            fips_enable "$token"
             ;;
 
         disable-fips)
@@ -185,6 +147,15 @@ main() {
 
         version)
             package_version ubuntu-advantage-tools
+            ;;
+
+        enable-*)
+            local token="$2"
+            service_enable "$service" "$token"
+            ;;
+
+        is-*-enabled)
+            service_is_enabled "$service"
             ;;
 
         *)

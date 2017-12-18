@@ -22,6 +22,16 @@ service_from_command() {
     '
 }
 
+service_enable() {
+    local service="$1"
+    local token="$2"
+
+    check_user
+    service_check_support "$service"
+    "${service}_validate_token" "$token" || exit 3
+    "${service}_enable" "$token"
+}
+
 service_is_enabled() {
     local service="$1"
 

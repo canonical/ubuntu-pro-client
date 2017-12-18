@@ -36,3 +36,12 @@ esm_disable() {
 esm_is_enabled() {
     apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
+
+esm_validate_token() {
+    local token="$1"
+
+    if ! validate_user_pass_token "$token"; then
+        error_msg 'Invalid token, it must be in the form "user:password"'
+        return 1
+    fi
+}

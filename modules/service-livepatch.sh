@@ -7,7 +7,7 @@ LIVEPATCH_SUPPORTED_ARCHS="x86_64" # shellcheck disable=SC2034
 livepatch_enable() {
     local token="$1"
 
-    _install_livepatch_prereqs
+    _livepatch_install_prereqs
     if ! livepatch_is_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
@@ -54,11 +54,21 @@ livepatch_is_enabled() {
 livepatch_validate_token() {
     local token="$1"
 
+    if ! _livepatch_validate_token "$token"; then
+        error_msg "Invalid or missing Livepatch token"
+        error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
+        return 1
+    fi
+}
+
+_livepatch_validate_token() {
+    local token="$1"
+
     # the livepatch token is an hex string 32 characters long
     echo "$token" | grep -q -E '^[0-9a-fA-F]{32}$'
 }
 
-_install_livepatch_prereqs() {
+_livepatch_install_prereqs() {
     install_package_if_missing_file "$SNAPD" snapd
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
