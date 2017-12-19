@@ -7,9 +7,14 @@ testdep:
 test:
 	@tox -e python
 
-lint:
+lint: lint-py lint-sh
+
+lint-py:
 	@tox -e lint
-	@shellcheck -s dash ubuntu-advantage modules/* update-motd.d/*
+
+lint-sh:
+	@shellcheck -s bash ubuntu-advantage modules/*
+	@shellcheck -s dash update-motd.d/*
 
 
-.PHONY: build testdep test lint
+.PHONY: build testdep test lint lint-py lint-sh
