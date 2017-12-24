@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 # shellcheck disable=SC2039,SC1090
 
 SCRIPTNAME=$(basename "$0")
@@ -55,6 +55,7 @@ print_status() {
     fi
     echo "livepatch: $livepatch_status"
     if [ "$livepatch_output" ]; then
+        # shellcheck disable=SC2001
         echo "$livepatch_output" | sed 's/^/  /'  # indent output
     fi
 
