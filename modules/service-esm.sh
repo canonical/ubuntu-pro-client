@@ -1,7 +1,7 @@
 # shellcheck disable=SC2039
 
 ESM_SUPPORTED_SERIES="precise"
-ESM_SUPPORTED_ARCHS=""
+ESM_SUPPORTED_ARCHS="ALL"
 
 ESM_REPO_URL="esm.ubuntu.com"
 ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"

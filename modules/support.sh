@@ -29,7 +29,8 @@ is_supported_series() {
 
 is_supported_arch() {
     local supported_archs="$1"
-    # if list is empty, any arch is supported
-    [ -n "$supported_archs" ] || return 0
+    if [ "$supported_archs" = "ALL" ]; then
+        return 0
+    fi
     name_in_list "$ARCH" "$supported_archs"
 }

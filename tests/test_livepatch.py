@@ -43,8 +43,8 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertEqual(3, process.returncode)
         self.assertIn('Invalid or missing Livepatch token', process.stderr)
 
-    def test_enable_livepatch_unsupported_on_non_x86_64(self):
-        """Livepatch is only supported on x86_64."""
+    def test_enable_livepatch_unsupported_on_ii686(self):
+        """Livepatch is only supported on i686."""
         self.ARCH = 'i686'
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(7, process.returncode)
