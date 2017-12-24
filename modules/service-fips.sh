@@ -1,6 +1,8 @@
 # shellcheck disable=SC2039
 
 FIPS_SUPPORTED_SERIES="xenial"
+FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
+
 FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
@@ -43,7 +45,9 @@ fips_is_enabled() {
 }
 
 fips_check_support() {
-    check_service_support "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES"
+    check_service_support \
+        "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES" \
+        "$FIPS_SUPPORTED_ARCHS"
 }
 
 _configure_fips() {
@@ -87,7 +91,6 @@ _fips_enabled_check() {
 _fips_prep_check() {
     local fips_hmacs pkg power_cpu_ver
 
-    # sanity check
     case "$ARCH" in
         x86_64)
             if ! check_cpu_flag aes; then
@@ -102,14 +105,6 @@ _fips_prep_check() {
                 error_msg 'FIPS requires POWER8 or later'
                 return 1
             fi
-            ;;
-
-        s390x)
-            ;;
-
-        *)
-            error_msg "FIPS is not supported on $ARCH."
-            return 1
             ;;
     esac
 

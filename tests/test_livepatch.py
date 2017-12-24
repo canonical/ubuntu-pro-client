@@ -7,6 +7,7 @@ from fakes import APT_GET_LOG_WRAPPER
 class LivepatchTest(UbuntuAdvantageTest):
 
     SERIES = 'trusty'
+    ARCH = 'x86_64'
     KERNEL_VERSION = '4.4.0-89-generic'
 
     def setUp(self):
@@ -41,6 +42,15 @@ class LivepatchTest(UbuntuAdvantageTest):
         process = self.script('enable-livepatch', 'invalid:token')
         self.assertEqual(3, process.returncode)
         self.assertIn('Invalid or missing Livepatch token', process.stderr)
+
+    def test_enable_livepatch_unsupported_on_ii686(self):
+        """Livepatch is only supported on i686."""
+        self.ARCH = 'i686'
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertEqual(7, process.returncode)
+        self.assertIn(
+            'Sorry, but Canonical Livepatch is not supported on i686',
+            process.stderr)
 
     def test_enable_livepatch_installs_snapd(self):
         """enable-livepatch installs snapd if needed."""

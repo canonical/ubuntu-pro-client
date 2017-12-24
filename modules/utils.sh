@@ -26,29 +26,15 @@ check_user() {
     fi
 }
 
-not_supported() {
-    local message="$1"
-    error_msg "$message is currently not supported."
-    exit 1
-}
+name_in_list() {
+    local name="$1"
+    local list="$2"
 
-# Whether the current series is among supported ones.
-is_supported_series() {
-    local s
-    for s in $1; do
-        if [ "$s" = "$SERIES" ]; then
+    local elem
+    for elem in $list; do
+        if [ "$elem" = "$name" ]; then
             return 0
         fi
     done
     return 1
-}
-
-check_service_support() {
-    local title="$1"
-    local supported_series="$2"
-
-    if ! is_supported_series "$supported_series"; then
-        error_msg "Sorry, but $title is not supported on $SERIES"
-        exit 4
-    fi
 }
