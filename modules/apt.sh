@@ -63,7 +63,7 @@ EOF
 }
 
 _apt_add_auth() {
-    local repo_url="$1"
+    local repo_host="$1"
     local credentials="$2"
 
     local login password
@@ -71,18 +71,12 @@ _apt_add_auth() {
     password=$(echo "$credentials" | cut -d: -f2)
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
-    echo "machine ${repo_url}/ubuntu/ login ${login} password ${password}" \
+    echo "machine ${repo_host}/ubuntu/ login ${login} password ${password}" \
          >>"$APT_AUTH_FILE"
 }
 
 _apt_remove_auth() {
-    local repo_url="$1"
+    local repo_host="$1"
 
-    local tempfile
-    tempfile=$(mktemp)
-    chmod 600 "$tempfile"
-    awk -v url="$repo_url" \
-        'BEGIN { pattern = "^machine " url "/ubuntu/ "; }; $0 !~ pattern;' \
-        "$APT_AUTH_FILE"  >"$tempfile"
-    mv "$tempfile" "$APT_AUTH_FILE"
+    sed -i "/^machine ${repo_host}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
 }
