@@ -20,7 +20,7 @@ ProcessResult = namedtuple('ProcessResult', ['returncode', 'stdout', 'stderr'])
 
 
 if sys.version_info < (3, 5):
-    # Python 3,4 doesn't provide methods to read/write Paths directly
+    # Python 3.4 doesn't provide methods to read/write Paths directly
 
     def _read(self):
         with self.open() as fd:
@@ -54,6 +54,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.etc_dir = Path(self.tempdir.join('etc'))
         self.keyrings_dir = Path(self.tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(self.tempdir.join('trusted.gpg.d'))
+        self.apt_auth_file = Path(self.tempdir.join('auth.conf'))
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
@@ -103,6 +104,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_HELPER': str(self.apt_helper),
+            'APT_AUTH_FILE': str(self.apt_auth_file),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
             'APT_METHOD_HTTPS': str(self.apt_method_https),
             'CA_CERTIFICATES': str(self.ca_certificates),

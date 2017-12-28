@@ -14,9 +14,13 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
         expected = (
-            'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
+            'deb https://esm.ubuntu.com/ubuntu precise main\n'
+            '# deb-src https://esm.ubuntu.com/ubuntu precise main\n')
         self.assertEqual(expected, self.repo_list.read_text())
+        self.assertEqual(
+            self.apt_auth_file.read_text(),
+            'machine esm.ubuntu.com/ubuntu/ login user password pass\n')
+        self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
@@ -30,6 +34,14 @@ class ESMTest(UbuntuAdvantageTest):
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
+
+    def test_enable_esm_auth_with_other_entries(self):
+        """Existing auth.conf entries are preserved."""
+        auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(auth)
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn(auth, self.apt_auth_file.read_text())
 
     def test_enable_esm_install_apt_transport_https(self):
         """enable-esm installs apt-transport-https if needed."""
@@ -166,6 +178,8 @@ class ESMTest(UbuntuAdvantageTest):
 
     def test_disable_esm(self):
         """The disable-esm option disables the ESM repository."""
+        other_auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(other_auth)
         self.script('enable-esm', 'user:pass')
         process = self.script('disable-esm')
         self.assertEqual(0, process.returncode)
@@ -174,6 +188,8 @@ class ESMTest(UbuntuAdvantageTest):
         # the keyring file is removed
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertFalse(keyring_file.exists())
+        # credentials are removed
+        self.assertEqual(self.apt_auth_file.read_text(), other_auth)
 
     def test_disable_esm_disabled(self):
         """If the ESM repo is not enabled, disable-esm is a no-op."""
