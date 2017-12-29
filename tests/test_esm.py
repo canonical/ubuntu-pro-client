@@ -194,6 +194,7 @@ class ESMTest(UbuntuAdvantageTest):
         other_auth = 'machine example.com login user password pass\n'
         self.apt_auth_file.write_text(other_auth)
         self.script('enable-esm', 'user:pass')
+        self.setup_esm(enabled=True)
         process = self.script('disable-esm')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository disabled', process.stdout)
@@ -204,11 +205,12 @@ class ESMTest(UbuntuAdvantageTest):
         # credentials are removed
         self.assertEqual(self.apt_auth_file.read_text(), other_auth)
 
-    def test_disable_esm_disabled(self):
-        """If the ESM repo is not enabled, disable-esm is a no-op."""
+    def test_disable_esm_fails_already_disabled(self):
+        """If the ESM repo is not enabled, disable-esm returns an error."""
         process = self.script('disable-esm')
-        self.assertEqual(0, process.returncode)
-        self.assertIn('Ubuntu ESM repository was not enabled', process.stdout)
+        self.assertEqual(8, process.returncode)
+        self.assertIn(
+            'Extended Security Maintenance is not enabled', process.stderr)
 
     def test_disable_esm_only_supported_on_precise(self):
         """The disable-esm option fails if not on Precise."""

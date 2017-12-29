@@ -152,3 +152,10 @@ class UbuntuAdvantageTest(TestWithFixtures):
         """Setup the ESM repository."""
         command = ESM_ENABLED if enabled else ESM_DISABLED
         self.make_fake_binary('apt-cache', command=command)
+
+    def setup_fips(self, enabled=None):
+        """Setup FIPS."""
+        if enabled is None:
+            return
+        self.make_fake_binary('dpkg-query')
+        self.fips_enabled_file.write_text('1' if enabled else '0')

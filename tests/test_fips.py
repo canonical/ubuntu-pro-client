@@ -10,6 +10,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def setUp(self):
         super().setUp()
+        self.setup_fips()
         self.cpuinfo.write_text('flags\t\t: fpu aes apic')
 
     def test_enable_fips(self):
@@ -49,9 +50,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_already_enabled(self):
         """If FIPS is already enabled, an error is returned."""
-        self.make_fake_binary('dpkg-query')
-        p = self.fips_enabled_file
-        p.write_text('1')
+        self.setup_fips(enabled=True)
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
@@ -60,7 +59,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_enable_fips_installed_not_enabled(self):
         """If fips is installed but not enabled an error is returned."""
-        self.make_fake_binary('dpkg-query')
+        self.setup_fips(enabled=False)
         process = self.script('enable-fips', 'user:pass')
         self.assertEqual(6, process.returncode)
         self.assertEqual(
@@ -226,37 +225,27 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_is_fips_enabled_true(self):
         """is-fips-enabled returns 0 if fips is enabled."""
-        self.make_fake_binary('dpkg-query')
-        p = self.fips_enabled_file
-        p.write_text('1')
+        self.setup_fips(enabled=True)
         process = self.script('is-fips-enabled')
         self.assertEqual(0, process.returncode)
 
     def test_is_fips_enabled_false(self):
         """is-fips-enabled returns 1 if fips is not enabled."""
-        self.make_fake_binary('dpkg-query')
-        p = self.fips_enabled_file
-        p.write_text('0')
         process = self.script('is-fips-enabled')
         self.assertEqual(1, process.returncode)
 
     def test_fips_cannot_be_disabled_if_enabled(self):
         """disable-fips says FIPS cannot be deactivated if it's enabled"""
-        self.make_fake_binary('dpkg-query')
-        p = self.fips_enabled_file
-        p.write_text('1')
+        self.setup_fips(enabled=True)
         process = self.script('disable-fips')
         self.assertEqual(1, process.returncode)
-        self.assertEqual(
-            'Disabling FIPS is currently not supported.',
-            process.stderr.strip())
+        self.assertIn(
+            'Disabling FIPS is currently not supported.', process.stderr)
 
-    def test_disable_fips_warns_if_not_enabled(self):
-        """disable-fips will warn if FIPS is not enabled"""
-        self.make_fake_binary('dpkg-query')
-        p = self.fips_enabled_file
-        p.write_text('0')
+    def test_disable_fips_fails_if_not_enabled(self):
+        """disable-fips will fails if FIPS is not enabled."""
         process = self.script('disable-fips')
-        self.assertEqual(1, process.returncode)
-        self.assertEqual(
-            'FIPS is not enabled.', process.stderr.strip())
+        self.assertEqual(8, process.returncode)
+        self.assertIn(
+            'Canonical FIPS 140-2 Modules is not enabled',
+            process.stderr)

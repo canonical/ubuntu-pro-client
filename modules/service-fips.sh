@@ -43,6 +43,10 @@ fips_enable() {
     echo "Successfully configured FIPS. Please reboot into the FIPS kernel to enable it."
 }
 
+fips_disable() {
+    not_supported 'Disabling FIPS'
+}
+
 fips_is_enabled() {
     is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
 }

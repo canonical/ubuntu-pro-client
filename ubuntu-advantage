@@ -101,6 +101,7 @@ EOF
 
 main() {
     local command="$1"
+    shift 1 || true
 
     local service
     service=$(service_from_command "$command")
@@ -111,37 +112,6 @@ main() {
     fi
 
     case "$command" in
-
-        disable-livepatch)
-            check_user
-            service_check_support livepatch
-            local remove_snap="no"
-            if [ -n "$2" ]; then
-                if [ "$2" = "-r" ]; then
-                    remove_snap="yes"
-                else
-                    error_msg "Unknown option \"$2\""
-                    usage
-                fi
-            fi
-            livepatch_disable "$remove_snap"
-            ;;
-
-        disable-esm)
-            check_user
-            service_check_support esm
-            esm_disable
-            ;;
-
-        disable-fips)
-            if fips_is_enabled; then
-                not_supported 'Disabling FIPS'
-            else
-                error_msg 'FIPS is not enabled.'
-                exit 1
-            fi
-            ;;
-
         status)
             print_status
             ;;
@@ -151,8 +121,11 @@ main() {
             ;;
 
         enable-*)
-            local token="$2"
-            service_enable "$service" "$token"
+            service_enable "$service" "$@"
+            ;;
+
+        disable-*)
+            service_disable "$service" "$@"
             ;;
 
         is-*-enabled)
