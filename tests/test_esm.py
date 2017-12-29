@@ -8,6 +8,10 @@ class ESMTest(UbuntuAdvantageTest):
 
     SERIES = 'precise'
 
+    def setUp(self):
+        super().setUp()
+        self.setup_esm()
+
     def test_enable_esm(self):
         """The enable-esm option enables the ESM repository."""
         process = self.script('enable-esm', 'user:pass')
@@ -27,6 +31,15 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
             process.stdout)
+
+    def test_enable_esm_enabled(self):
+        """The enable-esm command fails if ESM is already enabled."""
+        self.setup_esm(enabled=True)
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(1, process.returncode)
+        self.assertIn(
+            'Extended Security Maintenance is already enabled',
+            process.stderr)
 
     def test_enable_esm_any_arch(self):
         """ESM can be enabled on any arch."""

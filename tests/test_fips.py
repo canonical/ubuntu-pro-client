@@ -48,13 +48,15 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertIn(auth, self.apt_auth_file.read_text())
 
     def test_enable_fips_already_enabled(self):
-        """If fips is already enabled, an error is returned."""
+        """If FIPS is already enabled, an error is returned."""
         self.make_fake_binary('dpkg-query')
         p = self.fips_enabled_file
         p.write_text('1')
         process = self.script('enable-fips', 'user:pass')
-        self.assertEqual(6, process.returncode)
-        self.assertEqual('FIPS is already enabled.', process.stderr.strip())
+        self.assertEqual(1, process.returncode)
+        self.assertEqual(
+            'Canonical FIPS 140-2 Modules is already enabled',
+            process.stderr.strip())
 
     def test_enable_fips_installed_not_enabled(self):
         """If fips is installed but not enabled an error is returned."""
