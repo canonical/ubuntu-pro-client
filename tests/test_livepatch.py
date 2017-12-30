@@ -1,4 +1,4 @@
-# Tests for Livepatch-related commands.
+"""Tests for Livepatch-related commands."""
 
 from testing import UbuntuAdvantageTest
 from fakes import APT_GET_LOG_WRAPPER

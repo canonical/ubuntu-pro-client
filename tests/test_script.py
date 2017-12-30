@@ -1,4 +1,4 @@
-# Tests for the ubuntu-advantage script.
+"""Tests for the ubuntu-advantage script."""
 
 from testing import UbuntuAdvantageTest
 
@@ -71,6 +71,13 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         # the livepatch status output is also included
         self.assertIn("patchState: applied", process.stdout)
         self.assertIn("esm: disabled (not available)", process.stdout)
+
+    def test_status_i686_livepatch_not_avaiable(self):
+        """The status command shows livepatch as not available on i686."""
+        self.SERIES = 'xenial'
+        self.ARCH = 'i686'
+        process = self.script('status')
+        self.assertIn("livepatch: disabled (not available)", process.stdout)
 
     def test_version(self):
         """The version command shows the package version."""
