@@ -38,37 +38,10 @@ load_modules() {
 }
 
 print_status() {
-    local esm_status
-    if esm_is_enabled; then
-        esm_status="enabled"
-    else
-        esm_status="disabled"
-        is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="disabled (not available)"
-    fi
-    echo "esm: $esm_status"
-
-    local livepatch_status livepatch_output
-    if livepatch_is_enabled; then
-        livepatch_status="enabled"
-        livepatch_output=$(canonical-livepatch status)
-    else
-        livepatch_status="disabled"
-        is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="disabled (not available)"
-    fi
-    echo "livepatch: $livepatch_status"
-    if [ "$livepatch_output" ]; then
-        # shellcheck disable=SC2001
-        echo "$livepatch_output" | sed 's/^/  /'  # indent output
-    fi
-
-    local fips_status
-    if fips_is_enabled; then
-        fips_status="enabled"
-    else
-        fips_status="disabled"
-        is_supported_series "$FIPS_SUPPORTED_SERIES" || fips_status="disabled (not available)"
-    fi
-    echo "fips: $fips_status"
+    local service
+    for service in $SERVICES; do
+        service_print_status "$service"
+    done
 }
 
 usage() {

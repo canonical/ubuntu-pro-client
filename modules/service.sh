@@ -35,6 +35,31 @@ service_is_enabled() {
     "${service}_is_enabled"
 }
 
+service_print_status() {
+    local service="$1"
+
+    local service_upper
+    service_upper=$(uppercase "$service")
+    local series archs
+    series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
+    archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
+
+    local status=""
+    if "${service}_is_enabled"; then
+        status="enabled"
+    else
+        status="disabled"
+        if ! is_supported "$series" "$archs"; then
+            status+=" (not available)"
+        fi
+    fi
+
+    echo "$service: $status"
+    if [ "$status" = enabled ]; then
+        _service_print_detailed_status "$service"
+    fi
+}
+
 _service_check_user() {
     if [ "$(id -u)" -ne 0 ]; then
         error_msg "This command must be run as root (try using sudo)"
@@ -73,4 +98,11 @@ _service_check_disabled() {
         error_msg "$title is not enabled"
         return 1
     fi
+}
+
+_service_print_detailed_status() {
+    local service="$1"
+
+    # indent output
+    call_if_defined "${service}_print_status" | sed 's/^/  /'
 }

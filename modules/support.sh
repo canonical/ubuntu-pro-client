@@ -41,3 +41,10 @@ is_supported_arch() {
     fi
     name_in_list "$ARCH" "$supported_archs"
 }
+
+is_supported() {
+    local supported_series_list="$1"
+    local supported_archs="$2"
+
+    is_supported_series "$supported_series_list" && is_supported_arch "$supported_archs"
+}
