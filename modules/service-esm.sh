@@ -1,8 +1,8 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
-ESM_SERVICE_NAME="Extended Security Maintenance" # shellcheck disable=SC2034
-ESM_SUPPORTED_SERIES="precise" # shellcheck disable=SC2034
-ESM_SUPPORTED_ARCHS="ALL" # shellcheck disable=SC2034
+ESM_SERVICE_NAME="Extended Security Maintenance"
+ESM_SUPPORTED_SERIES="precise"
+ESM_SUPPORTED_ARCHS="ALL"
 
 ESM_REPO_URL="esm.ubuntu.com"
 ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"

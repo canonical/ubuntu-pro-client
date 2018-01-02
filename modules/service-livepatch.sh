@@ -1,8 +1,8 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
-LIVEPATCH_SERVICE_NAME="Canonical Livepatch" # shellcheck disable=SC2034
-LIVEPATCH_SUPPORTED_SERIES="trusty xenial" # shellcheck disable=SC2034
-LIVEPATCH_SUPPORTED_ARCHS="x86_64" # shellcheck disable=SC2034
+LIVEPATCH_SERVICE_NAME="Canonical Livepatch"
+LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
+LIVEPATCH_SUPPORTED_ARCHS="x86_64"
 
 livepatch_enable() {
     local token="$1"

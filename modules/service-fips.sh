@@ -1,8 +1,8 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
-FIPS_SERVICE_NAME="Canonical FIPS 140-2 Modules" # shellcheck disable=SC2034
-FIPS_SUPPORTED_SERIES="xenial" # shellcheck disable=SC2034
-FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x" # shellcheck disable=SC2034
+FIPS_SERVICE_NAME="Canonical FIPS 140-2 Modules"
+FIPS_SUPPORTED_SERIES="xenial"
+FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 
 FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
