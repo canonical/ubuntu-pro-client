@@ -49,7 +49,7 @@ fips_is_enabled() {
 fips_check_support() {
     check_service_support \
         "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES" \
-        "$FIPS_SUPPORTED_ARCHS" || return 1
+        "$FIPS_SUPPORTED_ARCHS"
     _fips_check_arch
 }
 
@@ -97,7 +97,7 @@ _fips_check_arch() {
         x86_64)
             if ! check_cpu_flag aes; then
                 error_msg 'FIPS requires AES CPU extensions'
-                return 1
+                return 7
             fi
             ;;
 
@@ -105,7 +105,7 @@ _fips_check_arch() {
             power_cpu_ver="$(power_cpu_version)"
             if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
                 error_msg 'FIPS requires POWER8 or later'
-                return 1
+                return 7
             fi
             ;;
     esac

@@ -201,7 +201,7 @@ class FIPSTest(UbuntuAdvantageTest):
         """The enable-fips command fails if AESNI is not available."""
         self.cpuinfo.write_text('flags\t\t: fpu tsc')
         process = self.script('enable-fips', 'user:pass')
-        self.assertEqual(1, process.returncode)
+        self.assertEqual(7, process.returncode)
         self.assertEqual(
             'FIPS requires AES CPU extensions', process.stderr.strip())
 
@@ -218,7 +218,7 @@ class FIPSTest(UbuntuAdvantageTest):
         self.ARCH = 'ppc64le'
         self.cpuinfo.write_text('cpu\t\t: POWER7')
         process = self.script('enable-fips', 'user:pass')
-        self.assertEqual(1, process.returncode)
+        self.assertEqual(7, process.returncode)
         self.assertEqual(
             'FIPS requires POWER8 or later', process.stderr.strip())
 
