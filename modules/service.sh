@@ -48,4 +48,5 @@ service_check_support() {
     series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
     archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
     check_service_support "$name" "$series" "$archs"
+    call_if_defined "${service}_check_support"
 }

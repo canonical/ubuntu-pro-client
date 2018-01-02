@@ -19,6 +19,13 @@ check_result() {
     fi
 }
 
+call_if_defined() {
+    local command="$1"
+
+    type -t "$command" >/dev/null || return 0
+    "$@"
+}
+
 name_in_list() {
     local name="$1"
     local list="$2"
