@@ -4,12 +4,14 @@ private_repo_url() {
     local repo_url="$1"
     local credentials="$2"
     local file="$3"
+
     echo "https://${credentials}@${repo_url}/ubuntu${file}"
 }
 
 package_version() {
-    [ -z "$1" ] && return 1
-    dpkg-query -W -f '${Version}\n' "$1" 2>/dev/null
+    local package="$1"
+
+    dpkg-query -W -f '${Version}\n' "$package" 2>/dev/null
 }
 
 apt_add_repo() {
@@ -38,7 +40,9 @@ apt_get() {
 }
 
 is_package_installed() {
-    dpkg-query -s "$1" >/dev/null 2>&1
+    local package="$1"
+
+    dpkg-query -s "$package" >/dev/null 2>&1
 }
 
 # Install a package if the specified file doesn't exist
