@@ -81,6 +81,12 @@ _apt_add_auth() {
 _apt_remove_auth() {
     local repo_path="$1"
 
-    # shellcheck disable=SC1117
-    sed -i "/^machine ${repo_path}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
+    local tempfile
+    tempfile=$(mktemp)
+    chmod 600 "$tempfile"
+    # don't use pattern matching as the repo path contains slashes and dots
+    awk -v repo_path="${repo_path}/ubuntu/" \
+        '! ($1 == "machine" && $2 == repo_path)' \
+        "$APT_AUTH_FILE"  >"$tempfile"
+    mv "$tempfile" "$APT_AUTH_FILE"
 }
