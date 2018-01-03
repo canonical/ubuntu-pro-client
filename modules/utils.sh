@@ -60,7 +60,3 @@ expand_var() {
 
     echo "${!var}"
 }
-
-uppercase() {
-    echo "$@" | tr '[:lower:]' '[:upper:]'
-}

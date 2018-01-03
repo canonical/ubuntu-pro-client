@@ -70,9 +70,8 @@ _apt_add_auth() {
     local repo_host="$1"
     local credentials="$2"
 
-    local login password
-    login=$(echo "$credentials" | cut -d: -f1)
-    password=$(echo "$credentials" | cut -d: -f2)
+    local login="${credentials%:*}"
+    local password="${credentials#*:}"
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
     echo "machine ${repo_host}/ubuntu/ login ${login} password ${password}" \
