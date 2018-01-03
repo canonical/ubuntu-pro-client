@@ -20,7 +20,7 @@ FIPS_HMAC_PACKAGES="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
 fips_enable() {
     local token="$1"
 
-    _fips_check_packages_installed || exit 6
+    _fips_check_packages_installed || error_exit service_already_enabled
 
     check_token "$FIPS_REPO_URL" "$token"
     apt_add_repo "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token" \
@@ -66,7 +66,7 @@ fips_check_support() {
         x86_64)
             if ! check_cpu_flag aes; then
                 error_msg 'FIPS requires AES CPU extensions'
-                return 7
+                error_exit arch_not_supported
             fi
             ;;
 
@@ -74,7 +74,7 @@ fips_check_support() {
             power_cpu_ver="$(power_cpu_version)"
             if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
                 error_msg 'FIPS requires POWER8 or later'
-                return 7
+                error_exit arch_not_supported
             fi
             ;;
     esac
@@ -130,6 +130,4 @@ _fips_check_packages_installed() {
             return 1
         fi
     done
-
-    return 0
 }

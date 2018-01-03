@@ -45,5 +45,5 @@ check_url_with_token() {
     fi
 
     rm -f "$discard" "$log"
-    return 3
+    error_exit invalid_token
 }
