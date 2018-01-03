@@ -223,12 +223,11 @@ class ESMTest(UbuntuAdvantageTest):
 
     def test_is_esm_enabled_true(self):
         """is-esm-enabled returns 0 if the repository is enabled."""
-        self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        self.setup_esm(enabled=True)
         process = self.script('is-esm-enabled')
         self.assertEqual(0, process.returncode)
 
     def test_is_esm_enabled_false(self):
         """is-esm-enabled returns 1 if the repository is not enabled."""
-        self.make_fake_binary('apt-cache')
         process = self.script('is-esm-enabled')
         self.assertEqual(1, process.returncode)

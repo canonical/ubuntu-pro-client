@@ -5,7 +5,7 @@ private_repo_url() {
     local credentials="$2"
     local file="$3"
 
-    echo "https://${credentials}@${repo_url}/ubuntu${file}"
+    echo "https://${credentials}@${repo_url##https://}/ubuntu${file}"
 }
 
 package_version() {
@@ -21,7 +21,7 @@ apt_add_repo() {
     local keyring_file="$4"
 
     _apt_write_list_file "$repo_file" "$repo_url"
-    _apt_add_auth "$repo_url" "$credentials"
+    _apt_add_auth "${repo_url##https://}" "$credentials"
     cp "$keyring_file" "$APT_KEYS_DIR"
 }
 
@@ -31,7 +31,7 @@ apt_remove_repo() {
     local keyring_file="$3"
 
     rm -f "$repo_file" "$keyring_file"
-    _apt_remove_auth "$repo_url"
+    _apt_remove_auth "${repo_url##https://}"
 }
 
 apt_get() {
@@ -61,26 +61,26 @@ _apt_write_list_file() {
     local repo_url="$2"
 
     cat >"$repo_file" <<EOF
-deb https://${repo_url}/ubuntu ${SERIES} main
-# deb-src https://${repo_url}/ubuntu ${SERIES} main
+deb ${repo_url}/ubuntu ${SERIES} main
+# deb-src ${repo_url}/ubuntu ${SERIES} main
 EOF
 }
 
 _apt_add_auth() {
-    local repo_host="$1"
+    local repo_path="$1"
     local credentials="$2"
 
     local login="${credentials%:*}"
     local password="${credentials#*:}"
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
-    echo "machine ${repo_host}/ubuntu/ login ${login} password ${password}" \
+    echo "machine ${repo_path}/ubuntu/ login ${login} password ${password}" \
          >>"$APT_AUTH_FILE"
 }
 
 _apt_remove_auth() {
-    local repo_host="$1"
+    local repo_path="$1"
 
     # shellcheck disable=SC1117
-    sed -i "/^machine ${repo_host}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
+    sed -i "/^machine ${repo_path}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
 }

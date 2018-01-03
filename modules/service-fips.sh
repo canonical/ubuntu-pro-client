@@ -4,7 +4,7 @@ FIPS_SERVICE_TITLE="Canonical FIPS 140-2 Modules"
 FIPS_SUPPORTED_SERIES="xenial"
 FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 
-FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
+FIPS_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
