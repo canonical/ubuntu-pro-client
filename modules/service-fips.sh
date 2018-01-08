@@ -7,6 +7,7 @@ FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 FIPS_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
+FIPS_REPO_PREFERENCES=${FIPS_REPO_PREFERENCES:-"/etc/apt/preferences.d/ubuntu-fips-${SERIES}"}
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
@@ -25,6 +26,8 @@ fips_enable() {
     check_token "$FIPS_REPO_URL" "$token"
     apt_add_repo "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token" \
                  "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}"
+    apt_add_repo_pinning "$FIPS_REPO_PREFERENCES" \
+                         LP-PPA-ubuntu-advantage-fips 1001
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
