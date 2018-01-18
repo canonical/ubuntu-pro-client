@@ -41,12 +41,6 @@ service_is_enabled() {
 service_check_support() {
     local service="$1"
 
-    local service_upper
-    service_upper=$(uppercase "$service")
-    local title series archs
-    title=$(expand_var "${service_upper}_SERVICE_TITLE")
-    series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
-    archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
-    check_supported "$title" "$series" "$archs"
+    check_series_arch_supported "$service"
     call_if_defined "${service}_check_support"
 }
