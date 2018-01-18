@@ -7,7 +7,7 @@ not_supported() {
     exit 1
 }
 
-check_service_support() {
+check_supported() {
     local title="$1"
     local supported_series="$2"
     local supported_archs="$3"

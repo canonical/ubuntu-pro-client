@@ -1,6 +1,6 @@
 # shellcheck disable=SC2034,SC2039
 
-ESM_SERVICE_NAME="Extended Security Maintenance"
+ESM_SERVICE_TITLE="Extended Security Maintenance"
 ESM_SUPPORTED_SERIES="precise"
 ESM_SUPPORTED_ARCHS="ALL"
 

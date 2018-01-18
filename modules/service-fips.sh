@@ -1,6 +1,6 @@
 # shellcheck disable=SC2034,SC2039
 
-FIPS_SERVICE_NAME="Canonical FIPS 140-2 Modules"
+FIPS_SERVICE_TITLE="Canonical FIPS 140-2 Modules"
 FIPS_SUPPORTED_SERIES="xenial"
 FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 

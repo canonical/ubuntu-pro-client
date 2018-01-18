@@ -43,10 +43,10 @@ service_check_support() {
 
     local service_upper
     service_upper=$(uppercase "$service")
-    local name series archs
-    name=$(expand_var "${service_upper}_SERVICE_NAME")
+    local title series archs
+    title=$(expand_var "${service_upper}_SERVICE_TITLE")
     series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
     archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
-    check_service_support "$name" "$series" "$archs"
+    check_supported "$title" "$series" "$archs"
     call_if_defined "${service}_check_support"
 }

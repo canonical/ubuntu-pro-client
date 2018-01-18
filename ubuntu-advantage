@@ -106,6 +106,7 @@ main() {
     service=$(service_from_command "$command")
     # if the command contains a service name, check that it's valid
     if [ "$service" ] && ! name_in_list "$service" "$SERVICES"; then
+        error_msg "Invalid command: \"$command\""
         usage
     fi
 
@@ -114,7 +115,7 @@ main() {
         disable-livepatch)
             check_user
             service_check_support livepatch
-            remove_snap="no"
+            local remove_snap="no"
             if [ -n "$2" ]; then
                 if [ "$2" = "-r" ]; then
                     remove_snap="yes"
@@ -159,6 +160,7 @@ main() {
             ;;
 
         *)
+            error_msg "Invalid command: \"$command\""
             usage
             ;;
     esac

@@ -1,6 +1,6 @@
 # shellcheck disable=SC2034,SC2039
 
-LIVEPATCH_SERVICE_NAME="Canonical Livepatch"
+LIVEPATCH_SERVICE_TITLE="Canonical Livepatch"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 LIVEPATCH_SUPPORTED_ARCHS="x86_64"
 
