@@ -3,6 +3,9 @@
 
 SCRIPTNAME=$(basename "$0")
 
+# Services managed by the script
+SERVICES="esm fips livepatch"
+
 # system details
 SERIES=${SERIES:-$(lsb_release -cs)}
 KERNEL_VERSION=${KERNEL_VERSION:-$(uname -r)}
@@ -33,8 +36,6 @@ load_modules() {
         . "$module"
     done
 }
-
-load_modules
 
 print_status() {
     local esm_status
@@ -70,7 +71,6 @@ print_status() {
     echo "fips: $fips_status"
 }
 
-
 usage() {
     cat >&2 <<EOF
 usage: ${SCRIPTNAME} <command> [parameters]
@@ -94,102 +94,78 @@ Commands:
  enable-fips <token>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
  disabe-fips               currently not supported
+
 EOF
+    exit 1
+}
+
+main() {
+    local command="$1"
+
+    local service
+    service=$(service_from_command "$command")
+    # if the command contains a service name, check that it's valid
+    if [ "$service" ] && ! name_in_list "$service" "$SERVICES"; then
+        error_msg "Invalid command: \"$command\""
+        usage
+    fi
+
+    case "$command" in
+
+        disable-livepatch)
+            check_user
+            service_check_support livepatch
+            local remove_snap="no"
+            if [ -n "$2" ]; then
+                if [ "$2" = "-r" ]; then
+                    remove_snap="yes"
+                else
+                    error_msg "Unknown option \"$2\""
+                    usage
+                fi
+            fi
+            livepatch_disable "$remove_snap"
+            ;;
+
+        disable-esm)
+            check_user
+            service_check_support esm
+            esm_disable
+            ;;
+
+        disable-fips)
+            if fips_is_enabled; then
+                not_supported 'Disabling FIPS'
+            else
+                error_msg 'FIPS is not enabled.'
+                exit 1
+            fi
+            ;;
+
+        status)
+            print_status
+            ;;
+
+        version)
+            package_version ubuntu-advantage-tools
+            ;;
+
+        enable-*)
+            local token="$2"
+            service_enable "$service" "$token"
+            ;;
+
+        is-*-enabled)
+            service_is_enabled "$service"
+            ;;
+
+        *)
+            error_msg "Invalid command: \"$command\""
+            usage
+            ;;
+    esac
 }
 
 
-case "$1" in
-    enable-livepatch)
-        check_user
-        livepatch_check_support
-        token="$2"
-        if ! livepatch_validate_token "$token"; then
-            error_msg "Invalid or missing Livepatch token"
-            error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
-            exit 3
-        fi
-        livepatch_enable "$token"
-        ;;
-
-    disable-livepatch)
-        check_user
-        livepatch_check_support
-        remove_snap="no"
-        if [ -n "$2" ]; then
-            if [ "$2" = "-r" ]; then
-                remove_snap="yes"
-            else
-                error_msg "Unknown option \"$2\""
-                usage
-                exit 1
-            fi
-        fi
-        livepatch_disable "$remove_snap"
-        ;;
-
-    is-livepatch-enabled)
-        # no root needed
-        livepatch_is_enabled
-        ;;
-
-    enable-esm)
-        check_user
-        esm_check_support
-        token="$2"
-        if ! validate_user_pass_token "$token"; then
-            error_msg 'Invalid token, it must be in the form "user:password"'
-            exit 3
-        fi
-        esm_enable "$token"
-        ;;
-
-    disable-esm)
-        check_user
-        esm_check_support
-        esm_disable
-        ;;
-
-    is-esm-enabled)
-        # no root needed
-        esm_is_enabled
-        ;;
-
-    enable-fips)
-        check_user
-        fips_check_support
-        token="$2"
-        if ! validate_user_pass_token "$token"; then
-            error_msg 'Invalid token, it must be in the form "user:password"'
-            exit 3
-        fi
-
-        fips_enable "$token"
-        ;;
-
-    disable-fips)
-        if fips_is_enabled; then
-            not_supported 'Disabling FIPS'
-        else
-            error_msg 'FIPS is not enabled.'
-            exit 1
-        fi
-        ;;
-
-    is-fips-enabled)
-        # no root needed
-        fips_is_enabled
-        ;;
-
-    status)
-        print_status
-        ;;
-
-    version)
-        package_version ubuntu-advantage-tools
-        ;;
-
-    *)
-        usage
-        exit 1
-        ;;
-esac
+load_modules
+main "$@"

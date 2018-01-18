@@ -23,6 +23,20 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         self.assertEqual(1, process.returncode)
         self.assertIn('usage: ubuntu-advantage', process.stderr)
 
+    def test_invalid_command(self):
+        """Calling the script with an unknown command prints an error."""
+        process = self.script('invalid')
+        self.assertEqual(1, process.returncode)
+        self.assertIn('Invalid command: "invalid"', process.stderr)
+        self.assertIn('usage: ubuntu-advantage', process.stderr)
+
+    def test_unknown_service_command(self):
+        """Calling the script with an unknown service arg prints an error."""
+        process = self.script('break-esm')
+        self.assertEqual(1, process.returncode)
+        self.assertIn('Invalid command: "break-esm"', process.stderr)
+        self.assertIn('usage: ubuntu-advantage', process.stderr)
+
     def test_status_precise(self):
         """The status command shows livepatch not available on precise."""
         self.SERIES = 'precise'

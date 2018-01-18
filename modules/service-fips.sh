@@ -1,5 +1,6 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
+FIPS_SERVICE_TITLE="Canonical FIPS 140-2 Modules"
 FIPS_SUPPORTED_SERIES="xenial"
 FIPS_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 
@@ -46,11 +47,33 @@ fips_is_enabled() {
     is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
 }
 
+fips_validate_token() {
+    local token="$1"
+
+    if ! validate_user_pass_token "$token"; then
+        error_msg 'Invalid token, it must be in the form "user:password"'
+        return 1
+    fi
+}
+
 fips_check_support() {
-    check_service_support \
-        "Canonical FIPS 140-2 Modules" "$FIPS_SUPPORTED_SERIES" \
-        "$FIPS_SUPPORTED_ARCHS"
-    _fips_check_arch
+    local power_cpu_ver
+    case "$ARCH" in
+        x86_64)
+            if ! check_cpu_flag aes; then
+                error_msg 'FIPS requires AES CPU extensions'
+                return 7
+            fi
+            ;;
+
+        ppc64le)
+            power_cpu_ver="$(power_cpu_version)"
+            if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
+                error_msg 'FIPS requires POWER8 or later'
+                return 7
+            fi
+            ;;
+    esac
 }
 
 _fips_configure() {
@@ -89,26 +112,6 @@ _fips_enabled_check() {
         return
     fi
     echo 0
-}
-
-_fips_check_arch() {
-    local power_cpu_ver
-    case "$ARCH" in
-        x86_64)
-            if ! check_cpu_flag aes; then
-                error_msg 'FIPS requires AES CPU extensions'
-                return 7
-            fi
-            ;;
-
-        ppc64le)
-            power_cpu_ver="$(power_cpu_version)"
-            if [ -z "$power_cpu_ver" ] || [ "$power_cpu_ver" -lt 8 ]; then
-                error_msg 'FIPS requires POWER8 or later'
-                return 7
-            fi
-            ;;
-    esac
 }
 
 _fips_check_packages_installed() {

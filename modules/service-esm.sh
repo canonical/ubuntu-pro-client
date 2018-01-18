@@ -1,5 +1,6 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
+ESM_SERVICE_TITLE="Extended Security Maintenance"
 ESM_SUPPORTED_SERIES="precise"
 ESM_SUPPORTED_ARCHS="ALL"
 
@@ -36,8 +37,11 @@ esm_is_enabled() {
     apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
 
-esm_check_support() {
-    check_service_support \
-        "Extended Security Maintenance" "$ESM_SUPPORTED_SERIES" \
-        "$ESM_SUPPORTED_ARCHS"
+esm_validate_token() {
+    local token="$1"
+
+    if ! validate_user_pass_token "$token"; then
+        error_msg 'Invalid token, it must be in the form "user:password"'
+        return 1
+    fi
 }

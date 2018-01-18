@@ -1,12 +1,13 @@
-# shellcheck disable=SC2039
+# shellcheck disable=SC2034,SC2039
 
+LIVEPATCH_SERVICE_TITLE="Canonical Livepatch"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 LIVEPATCH_SUPPORTED_ARCHS="x86_64"
 
 livepatch_enable() {
     local token="$1"
 
-    _install_livepatch_prereqs
+    _livepatch_install_prereqs
     if ! livepatch_is_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
@@ -46,23 +47,28 @@ livepatch_disable() {
 }
 
 livepatch_is_enabled() {
-    # it's fine if it fails because the snap isn't installed. It's still
-    # a non-zero return value
-    canonical-livepatch status >/dev/null 2>&1
-}
-
-livepatch_check_support() {
-    check_service_support \
-        "Canonical Livepatch" "$LIVEPATCH_SUPPORTED_SERIES" \
-        "$LIVEPATCH_SUPPORTED_ARCHS"
+    # Explicitly return 1 for the case where the command is not found.
+    canonical-livepatch status >/dev/null 2>&1 || return 1
 }
 
 livepatch_validate_token() {
-    # the livepatch token is an hex string 32 characters long
-    echo "$1" | grep -q -E '^[0-9a-fA-F]{32}$'
+    local token="$1"
+
+    if ! _livepatch_validate_token "$token"; then
+        error_msg "Invalid or missing Livepatch token"
+        error_msg "Please visit https://ubuntu.com/livepatch to obtain a Livepatch token."
+        return 1
+    fi
 }
 
-_install_livepatch_prereqs() {
+_livepatch_validate_token() {
+    local token="$1"
+
+    # the livepatch token is an hex string 32 characters long
+    echo "$token" | grep -q -E '^[0-9a-fA-F]{32}$'
+}
+
+_livepatch_install_prereqs() {
     install_package_if_missing_file "$SNAPD" snapd
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
