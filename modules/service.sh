@@ -12,7 +12,7 @@ service_from_command() {
 
      echo "$command" | sed -n -r \
          "s,^is-([^-]+)-enabled$,\1,p;\
-          s,^(enable|disabled)-([^-]+)$,\2,p"
+          s,^(enable|disable)-([^-]+)$,\2,p"
 }
 
 service_enable() {
