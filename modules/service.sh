@@ -11,8 +11,8 @@ service_from_command() {
     local command="$1"
 
      echo "$command" | sed -n -r \
-         "s,^is-([^-]+)-enabled$,\1,p;\
-          s,^(enable|disable)-([^-]+)$,\2,p"
+         "s,^is-(.+)-enabled$,\1,p;\
+          s,^(enable|disable)-(.+)$,\2,p"
 }
 
 service_enable() {
