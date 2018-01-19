@@ -10,16 +10,9 @@ check_user() {
 service_from_command() {
     local command="$1"
 
-     echo "$command" | awk '
-         /^is-.*-enabled$/ {
-             match($0, /^is-(.*)-enabled$/, m);
-             print m[1];
-         }
-         /^(enable|disable)-/ {
-             match($0, /^(enable|disable)-(.*)/, m);
-             print m[2];
-         }
-    '
+     echo "$command" | sed -n -r \
+         's,^is-(.+)-enabled$,\1,p;
+          s,^(enable|disable)-(.+)$,\2,p'
 }
 
 service_enable() {
