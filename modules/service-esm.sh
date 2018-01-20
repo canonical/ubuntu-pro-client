@@ -14,8 +14,8 @@ esm_enable() {
     check_token "$ESM_REPO_URL" "$token"
     apt_add_repo "$ESM_REPO_LIST" "$ESM_REPO_URL" "$token" \
                  "${KEYRINGS_DIR}/${ESM_REPO_KEY_FILE}"
-    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
-    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
+    apt_install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    apt_install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu ESM repository enabled.'

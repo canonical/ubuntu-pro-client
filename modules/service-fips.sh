@@ -30,8 +30,8 @@ fips_enable() {
                  "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}"
     apt_add_repo_pinning "$FIPS_REPO_PREFERENCES" \
                          LP-PPA-ubuntu-advantage-fips 1001
-    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
-    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
+    apt_install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    apt_install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu FIPS PPA repository enabled.'
@@ -51,7 +51,7 @@ fips_disable() {
 }
 
 fips_is_enabled() {
-    is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
+    apt_is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
 }
 
 fips_validate_token() {
@@ -137,6 +137,6 @@ _fips_check_installed() {
 _fips_check_packages_installed() {
     local pkg
     for pkg in $FIPS_HMAC_PACKAGES; do
-        is_package_installed "$pkg" || return 1
+        apt_is_package_installed "$pkg" || return 1
     done
 }
