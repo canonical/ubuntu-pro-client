@@ -68,7 +68,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-updates-keyring.gpg').write_text(
-								'GPG key')
+                                                                     'GPG key')
         self.cpuinfo.write_text('flags\t\t: fpu apic')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-helper')

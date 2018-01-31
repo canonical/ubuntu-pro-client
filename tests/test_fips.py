@@ -264,7 +264,7 @@ class FIPSTest(UbuntuAdvantageTest):
         process = self.script('update-fips', 'user:pass', '-y')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu FIPS-UPDATES PPA repository enabled.',
-            process.stdout)
+                      process.stdout)
         expected = (
             'deb https://private-ppa.launchpad.net/ubuntu-advantage/'
             'fips-updates/ubuntu xenial main\n'
