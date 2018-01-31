@@ -258,12 +258,13 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertEqual(1, process.returncode)
         self.assertEqual(
             'FIPS is not enabled.', process.stderr.strip())
-    
+
     def test_update_fips(self):
         """The update-fips option enables the FIPS-UPDATES repository."""
         process = self.script('update-fips', 'user:pass', '-y')
         self.assertEqual(0, process.returncode)
-        self.assertIn('Ubuntu FIPS-UPDATES PPA repository enabled.', process.stdout)
+        self.assertIn('Ubuntu FIPS-UPDATES PPA repository enabled.',
+            process.stdout)
         expected = (
             'deb https://private-ppa.launchpad.net/ubuntu-advantage/'
             'fips-updates/ubuntu xenial main\n'
@@ -272,7 +273,8 @@ class FIPSTest(UbuntuAdvantageTest):
         self.assertEqual(expected, self.repo_list.read_text())
         self.assertEqual(
             self.apt_auth_file.read_text(),
-            'machine private-ppa.launchpad.net/ubuntu-advantage/fips-updates/ubuntu/'
+            'machine private-ppa.launchpad.net/ubuntu-advantage/'
+            'fips-updates/ubuntu/'
             ' login user password pass\n')
         self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         keyring_file = self.trusted_gpg_dir / 'ubuntu-fips-updates-keyring.gpg'
@@ -281,7 +283,8 @@ class FIPSTest(UbuntuAdvantageTest):
             'Configuring FIPS...',
             process.stdout)
         self.assertIn(
-            'Successfully updated FIPS packages. Please reboot into the new FIPS kernel',
+            'Successfully updated FIPS packages. '
+            'Please reboot into the new FIPS kernel',
             process.stdout)
 
     def test_update_fips_auth_if_other_entries(self):
