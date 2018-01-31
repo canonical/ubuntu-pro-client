@@ -12,7 +12,7 @@ service_from_command() {
 
      echo "$command" | sed -n -r \
          's,^is-(.+)-enabled$,\1,p;
-          s,^(enable|disable)-(.+)$,\2,p'
+          s,^(enable|disable|update)-(.+)$,\2,p'
 }
 
 service_enable() {
@@ -23,6 +23,17 @@ service_enable() {
     service_check_support "$service"
     "${service}_validate_token" "$token" || exit 3
     "${service}_enable" "$token"
+}
+
+service_update() {
+    local service="$1"
+    local token="$2"
+    local bypass_prompt="$3"
+
+    check_user
+    service_check_support "$service"
+    "${service}_validate_token" "$token" || exit 3
+    "${service}_update" "$token" "$bypass_prompt"
 }
 
 service_is_enabled() {
