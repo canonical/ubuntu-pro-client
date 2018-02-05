@@ -12,7 +12,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def setUp(self):
         super().setUp()
-        self.setup_livepatch(installed=True, enabled=True)
+        self.setup_livepatch()
         self.livepatch_token = '0123456789abcdef1234567890abcdef'
 
     def test_livepatch_supported_trusty_xenial_not_precise(self):
@@ -54,6 +54,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_enable_livepatch_installs_snapd(self):
         """enable-livepatch installs snapd if needed."""
+        self.setup_livepatch(enabled=False)
         self.snapd.unlink()
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(0, process.returncode)
@@ -72,7 +73,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_enable_livepatch_installs_snap(self):
         """enable-livepatch installs the livepatch snap if needed."""
-        self.setup_livepatch(installed=False)
+        self.setup_livepatch(enabled=False)
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(0, process.returncode)
         self.assertIn(
@@ -80,24 +81,31 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_is_livepatch_enabled_true(self):
         """is-livepatch-enabled returns 0 if the service is enabled."""
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('is-livepatch-enabled')
         self.assertEqual(0, process.returncode)
 
     def test_is_livepatch_enabled_false(self):
         """is-livepatch-enabled returns 1 if the service is not enabled."""
-        self.setup_livepatch(enabled=False)
+        self.setup_livepatch(installed=False)
+        process = self.script('is-livepatch-enabled')
+        self.assertEqual(1, process.returncode)
+
+    def test_is_livepatch_enabled_false_not_instaled(self):
+        """is-livepatch-enabled returns 1 if the service is not installed."""
         process = self.script('is-livepatch-enabled')
         self.assertEqual(1, process.returncode)
 
     def test_enable_livepatch_enabled(self):
         """enable-livepatch when it's already enabled is detected."""
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('enable-livepatch', self.livepatch_token)
-        self.assertEqual(0, process.returncode)
-        self.assertIn('Livepatch already enabled.', process.stdout)
+        self.assertEqual(6, process.returncode)
+        self.assertIn('Canonical Livepatch is already enabled', process.stderr)
 
     def test_enable_livepatch(self):
         """enable-livepatch enables the livepatch service."""
-        self.setup_livepatch(enabled=False)
+        self.setup_livepatch(installed=True, enabled=False)
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(0, process.returncode)
         self.assertIn('Successfully enabled device. Using machine-token:',
@@ -105,13 +113,13 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_disable_livepatch_invalid_remove_snap_option(self):
         """disable-livepatch complains if given an invalid argument."""
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('disable-livepatch', '-invalidargument')
         self.assertEqual(1, process.returncode)
         self.assertIn('Unknown option "-invalidargument"', process.stderr)
 
     def test_disable_livepatch_already_disabled(self):
         """disable-livepatch when it's already disabled is detected."""
-        self.setup_livepatch(enabled=False)
         process = self.script('disable-livepatch')
         self.assertEqual(0, process.returncode)
         self.assertIn('Livepatch is already disabled.', process.stdout)
@@ -131,6 +139,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_disable_livepatch(self):
         """disable-livepatch disables the service."""
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('disable-livepatch')
         self.assertEqual(0, process.returncode)
         self.assertIn('Successfully disabled device. Removed machine-token: '
@@ -140,6 +149,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_disable_livepatch_removing_snap(self):
         """disable-livepatch with '-r' will also remove the snap."""
+        self.setup_livepatch(installed=True, enabled=True)
         process = self.script('disable-livepatch', '-r')
         self.assertEqual(0, process.returncode)
         self.assertIn('Successfully disabled device. Removed machine-token: '
@@ -148,7 +158,7 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_enable_livepatch_old_kernel(self):
         """enable-livepatch with an old kernel will not enable livepatch."""
-        self.setup_livepatch(enabled=False)
+        self.setup_livepatch(installed=True, enabled=False)
         self.KERNEL_VERSION = '3.10.0-30-generic'
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(5, process.returncode)
@@ -160,7 +170,7 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.make_fake_binary('apt-get',
                               command='echo this goes to stderr >&2;'
                               'echo this goes to stdout;exit 0')
-        self.setup_livepatch(enabled=False)
+        self.setup_livepatch(installed=True, enabled=False)
         self.snapd.unlink()
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(0, process.returncode)
@@ -175,7 +185,6 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.make_fake_binary(
             'apt-get', command='echo this goes to stderr >&2;'
             'echo this goes to stdout;exit {}'.format(apt_error_code))
-        self.setup_livepatch(enabled=False)
         self.snapd.unlink()
         process = self.script('enable-livepatch', self.livepatch_token)
         self.assertEqual(apt_error_code, process.returncode)

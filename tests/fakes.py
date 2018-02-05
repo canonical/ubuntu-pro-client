@@ -1,6 +1,6 @@
 # Fake for commands invoked by the script.
 
-SNAP_LIVEPATCH_INSTALLED = """\n
+SNAP_LIVEPATCH_INSTALLED = """
 if [ "$1" = "list" ]; then
     cat <<EOF
 Name                 Version  Rev  Developer  Notes
@@ -16,7 +16,7 @@ fi
 exit 0
 """
 
-SNAP_LIVEPATCH_NOT_INSTALLED = """\n
+SNAP_LIVEPATCH_NOT_INSTALLED = """
 if [ "$1" = "list" ]; then
     cat <<EOF
 error: no matching snaps installed
@@ -30,7 +30,7 @@ EOF
 fi
 """
 
-LIVEPATCH_ENABLED = """\n
+LIVEPATCH_ENABLED = """
 if [ "$1" = "status" ]; then
     cat <<EOF
 client-version: "7.23"
@@ -62,7 +62,7 @@ fi
 exit 0
 """
 
-LIVEPATCH_DISABLED = """\n
+LIVEPATCH_DISABLED = """
 if [ "$1" = "status" ]; then
     cat <<EOF
 Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
@@ -76,7 +76,15 @@ fi
 exit 0
 """
 
-APT_GET_LOG_WRAPPER = """#!/bin/sh
+ESM_DISABLED = """
+echo "500 http://archive.ubuntu.com/ubuntu precise/main amd64 Packages"
+"""
+
+ESM_ENABLED = """
+echo "500 http://esm.ubuntu.com/ubuntu precise/main amd64 Packages"
+"""
+
+APT_GET_LOG_WRAPPER = """
 log_path=$(dirname "$0")/../
 echo -- "$@" >> "${log_path}/apt_get.args"
 env >> "${log_path}/apt_get.env"

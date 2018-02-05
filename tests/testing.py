@@ -8,13 +8,17 @@ from collections import namedtuple
 
 from fixtures import (
     TestWithFixtures,
-    TempDir)
+    TempDir,
+)
 
 from fakes import (
     SNAP_LIVEPATCH_INSTALLED,
     SNAP_LIVEPATCH_NOT_INSTALLED,
     LIVEPATCH_ENABLED,
-    LIVEPATCH_DISABLED)
+    LIVEPATCH_DISABLED,
+    ESM_ENABLED,
+    ESM_DISABLED,
+)
 
 ProcessResult = namedtuple('ProcessResult', ['returncode', 'stdout', 'stderr'])
 
@@ -130,17 +134,21 @@ class UbuntuAdvantageTest(TestWithFixtures):
         process.stderr.close()
         return result
 
-    def setup_livepatch(self, installed=None, enabled=None,
+    def setup_livepatch(self, installed=False, enabled=None,
                         livepatch_command=None):
         """Setup livepatch-related fakes."""
-        if installed is not None:
-            command = (
-                SNAP_LIVEPATCH_INSTALLED if installed
-                else SNAP_LIVEPATCH_NOT_INSTALLED)
-            self.make_fake_binary('snap', command=command)
+        command = (
+            SNAP_LIVEPATCH_INSTALLED if installed
+            else SNAP_LIVEPATCH_NOT_INSTALLED)
+        self.make_fake_binary('snap', command=command)
         if enabled is not None:
             if livepatch_command is not None:
                 command = livepatch_command
             else:
                 command = LIVEPATCH_ENABLED if enabled else LIVEPATCH_DISABLED
             self.make_fake_binary('canonical-livepatch', command=command)
+
+    def setup_esm(self, enabled=False):
+        """Setup the ESM repository."""
+        command = ESM_ENABLED if enabled else ESM_DISABLED
+        self.make_fake_binary('apt-cache', command=command)
