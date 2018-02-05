@@ -38,11 +38,9 @@ service_is_enabled() {
 service_print_status() {
     local service="$1"
 
-    local service_upper
-    service_upper=$(uppercase "$service")
     local series archs
-    series=$(expand_var "${service_upper}_SUPPORTED_SERIES")
-    archs=$(expand_var "${service_upper}_SUPPORTED_ARCHS")
+    series=$(expand_var "${service^^}_SUPPORTED_SERIES")
+    archs=$(expand_var "${service^^}_SUPPORTED_ARCHS")
 
     local status=""
     if "${service}_is_enabled"; then
@@ -77,10 +75,8 @@ _service_check_support() {
 _service_check_enabled() {
     local service="$1"
 
-    local service_upper title
-    service_upper=$(uppercase "$service")
-    title=$(expand_var "${service_upper}_SERVICE_TITLE")
-
+    local title
+    title=$(expand_var "${service^^}_SERVICE_TITLE")
     if service_is_enabled "$service"; then
         error_msg "$title is already enabled"
         return 1
@@ -90,10 +86,8 @@ _service_check_enabled() {
 _service_check_disabled() {
     local service="$1"
 
-    local service_upper title
-    service_upper=$(uppercase "$service")
-    title=$(expand_var "${service_upper}_SERVICE_TITLE")
-
+    local title
+    title=$(expand_var "${service^^}_SERVICE_TITLE")
     if ! service_is_enabled "$service"; then
         error_msg "$title is not enabled"
         return 1
