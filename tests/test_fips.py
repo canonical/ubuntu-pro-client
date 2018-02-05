@@ -53,7 +53,7 @@ class FIPSTest(UbuntuAdvantageTest):
         p = self.fips_enabled_file
         p.write_text('1')
         process = self.script('enable-fips', 'user:pass')
-        self.assertEqual(1, process.returncode)
+        self.assertEqual(6, process.returncode)
         self.assertEqual(
             'Canonical FIPS 140-2 Modules is already enabled',
             process.stderr.strip())

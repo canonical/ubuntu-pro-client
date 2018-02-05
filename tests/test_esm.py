@@ -36,7 +36,7 @@ class ESMTest(UbuntuAdvantageTest):
         """The enable-esm command fails if ESM is already enabled."""
         self.setup_esm(enabled=True)
         process = self.script('enable-esm', 'user:pass')
-        self.assertEqual(1, process.returncode)
+        self.assertEqual(6, process.returncode)
         self.assertIn(
             'Extended Security Maintenance is already enabled',
             process.stderr)

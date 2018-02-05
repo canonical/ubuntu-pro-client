@@ -62,7 +62,6 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.apt_auth_file = Path(self.tempdir.join('auth.conf'))
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
-        self.snap = self.bin_dir / 'snap'
         self.snapd = self.bin_dir / 'snapd'
         self.apt_helper = self.bin_dir / 'apt-helper'
         # setup directories and files

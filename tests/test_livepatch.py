@@ -87,6 +87,12 @@ class LivepatchTest(UbuntuAdvantageTest):
 
     def test_is_livepatch_enabled_false(self):
         """is-livepatch-enabled returns 1 if the service is not enabled."""
+        self.setup_livepatch(installed=False)
+        process = self.script('is-livepatch-enabled')
+        self.assertEqual(1, process.returncode)
+
+    def test_is_livepatch_enabled_false_not_instaled(self):
+        """is-livepatch-enabled returns 1 if the service is not installed."""
         process = self.script('is-livepatch-enabled')
         self.assertEqual(1, process.returncode)
 
@@ -94,7 +100,7 @@ class LivepatchTest(UbuntuAdvantageTest):
         """enable-livepatch when it's already enabled is detected."""
         self.setup_livepatch(installed=True, enabled=True)
         process = self.script('enable-livepatch', self.livepatch_token)
-        self.assertEqual(1, process.returncode)
+        self.assertEqual(6, process.returncode)
         self.assertIn('Canonical Livepatch is already enabled', process.stderr)
 
     def test_enable_livepatch(self):

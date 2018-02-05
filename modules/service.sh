@@ -21,7 +21,7 @@ service_enable() {
 
     check_user
     service_check_support "$service"
-    _service_check_enabled "$service"
+    _service_check_enabled "$service" || exit 6
     "${service}_validate_token" "$token" || exit 3
     "${service}_enable" "$token"
 }
