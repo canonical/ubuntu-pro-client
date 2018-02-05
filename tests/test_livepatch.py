@@ -118,24 +118,26 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertEqual(1, process.returncode)
         self.assertIn('Unknown option "-invalidargument"', process.stderr)
 
-    def test_disable_livepatch_already_disabled(self):
-        """disable-livepatch when it's already disabled is detected."""
+    def test_disable_livepatch_fails_if_disabled(self):
+        """disable-livepatch fails when it's already disabled."""
         process = self.script('disable-livepatch')
-        self.assertEqual(0, process.returncode)
-        self.assertIn('Livepatch is already disabled.', process.stdout)
+        self.assertEqual(8, process.returncode)
+        self.assertIn('Canonical Livepatch is not enabled', process.stderr)
 
     def test_disable_livepatch_supported_t_x_b_not_precise(self):
         """Livepatch can't be disabled on unsupported distros."""
-        for series in ['trusty', 'xenial', 'bionic']:
+        self.setup_livepatch(installed=True, enabled=True)
+        for series in ('trusty', 'xenial', 'bionic'):
             self.SERIES = series
             process = self.script('disable-livepatch')
             self.assertEqual(0, process.returncode)
         # precise is not supported
         self.SERIES = 'precise'
         process = self.script('disable-livepatch')
-        # self.assertEqual(4, process.returncode)
-        self.assertIn('Sorry, but Canonical Livepatch is not supported on '
-                      'precise', process.stderr)
+        self.assertEqual(4, process.returncode)
+        self.assertIn(
+            'Sorry, but Canonical Livepatch is not supported on precise',
+            process.stderr)
 
     def test_disable_livepatch(self):
         """disable-livepatch disables the service."""

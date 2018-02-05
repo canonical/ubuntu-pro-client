@@ -29,11 +29,13 @@ check_series_arch_supported() {
 
 is_supported_series() {
     local supported_series_list="$1"
+
     name_in_list "$SERIES" "$supported_series_list"
 }
 
 is_supported_arch() {
     local supported_archs="$1"
+
     if [ "$supported_archs" = "ALL" ]; then
         return 0
     fi

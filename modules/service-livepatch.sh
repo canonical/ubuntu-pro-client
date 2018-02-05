@@ -31,18 +31,26 @@ livepatch_enable() {
 }
 
 livepatch_disable() {
-    if livepatch_is_enabled; then
-        echo 'Disabling Livepatch...'
-        canonical-livepatch disable
-        if [ "$1" = "yes" ]; then
-            echo 'Removing the canonical-livepatch snap...'
-            snap remove canonical-livepatch
+    local arg="$1"
+
+    local remove_snap=""
+    if [ -n "$arg" ]; then
+        if [ "$arg" = "-r" ]; then
+            remove_snap="yes"
         else
-            echo 'Note: the canonical-livepatch snap is still installed.'
-            echo 'To remove it, run sudo snap remove canonical-livepatch'
+            error_msg "Unknown option \"$arg\""
+            usage
         fi
+    fi
+
+    echo 'Disabling Livepatch...'
+    canonical-livepatch disable
+    if [ "$remove_snap" ]; then
+        echo 'Removing the canonical-livepatch snap...'
+        snap remove canonical-livepatch
     else
-        echo 'Livepatch is already disabled.'
+        echo 'Note: the canonical-livepatch snap is still installed.'
+        echo 'To remove it, run sudo snap remove canonical-livepatch'
     fi
 }
 
