@@ -59,6 +59,10 @@ livepatch_is_enabled() {
     canonical-livepatch status >/dev/null 2>&1 || return 1
 }
 
+livepatch_print_status() {
+    canonical-livepatch status
+}
+
 livepatch_validate_token() {
     local token="$1"
 

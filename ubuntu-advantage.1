@@ -34,20 +34,6 @@ Enable the ESM repository. The \fItoken\fR argument must be in the form
 disable-esm
 Disable the ESM repository.
 
-.SH Livepatch (Canonical Livepatch Service)
-Managed live kernel patching. For more information, visit
-https://www.ubuntu.com/server/livepatch
-.TP
-.B
-enable-livepatch \fI<token>\fR
-Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
-https://ubuntu.com/livepatch
-.TP
-.B
-disable-livepatch \fR[\fB\-r\fR]
-Disable the Livepatch service. If the \fB\-r\fR option is given, the
-canonical-livepatch snap will be removed after the sevice is disabled.
-
 .SH FIPS (Canonical FIPS 140-2 certified modules)
 Install, Configure, and Enable FIPS 140-2 certified modules.
 .TP
@@ -68,6 +54,20 @@ cryptoapi.
 .B
 disable-fips
 It's currently not possible to disable FIPS after it has been enabled.
+
+.SH Livepatch (Canonical Livepatch Service)
+Managed live kernel patching. For more information, visit
+https://www.ubuntu.com/server/livepatch
+.TP
+.B
+enable-livepatch \fI<token>\fR
+Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
+https://ubuntu.com/livepatch
+.TP
+.B
+disable-livepatch \fR[\fB\-r\fR]
+Disable the Livepatch service. If the \fB\-r\fR option is given, the
+canonical-livepatch snap will be removed after the sevice is disabled.
 
 .SH EXIT STATUS
 .TP

@@ -1,4 +1,4 @@
-# Tests for ESM-related commands.
+"""Tests for ESM-related commands."""
 
 from testing import UbuntuAdvantageTest
 from fakes import APT_GET_LOG_WRAPPER

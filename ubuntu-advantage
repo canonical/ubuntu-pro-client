@@ -3,7 +3,7 @@
 
 SCRIPTNAME=$(basename "$0")
 
-# Services managed by the script
+# Services managed by the script (in alphabetical order)
 SERVICES="esm fips livepatch"
 
 # system details
@@ -38,37 +38,10 @@ load_modules() {
 }
 
 print_status() {
-    local esm_status
-    if esm_is_enabled; then
-        esm_status="enabled"
-    else
-        esm_status="disabled"
-        is_supported_series "$ESM_SUPPORTED_SERIES" || esm_status="disabled (not available)"
-    fi
-    echo "esm: $esm_status"
-
-    local livepatch_status livepatch_output
-    if livepatch_is_enabled; then
-        livepatch_status="enabled"
-        livepatch_output=$(canonical-livepatch status)
-    else
-        livepatch_status="disabled"
-        is_supported_series "$LIVEPATCH_SUPPORTED_SERIES" || livepatch_status="disabled (not available)"
-    fi
-    echo "livepatch: $livepatch_status"
-    if [ "$livepatch_output" ]; then
-        # shellcheck disable=SC2001
-        echo "$livepatch_output" | sed 's/^/  /'  # indent output
-    fi
-
-    local fips_status
-    if fips_is_enabled; then
-        fips_status="enabled"
-    else
-        fips_status="disabled"
-        is_supported_series "$FIPS_SUPPORTED_SERIES" || fips_status="disabled (not available)"
-    fi
-    echo "fips: $fips_status"
+    local service
+    for service in $SERVICES; do
+        service_print_status "$service"
+    done
 }
 
 usage() {
@@ -80,20 +53,20 @@ Ubuntu Advantage offerings.
 
 Currently available are:
 - Ubuntu Extended Security Maintenance archive (https://ubuntu.com/esm)
-- Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 - Canonical FIPS 140-2 Certified Modules
+- Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 
 Commands:
  version                   show the tool version
  status                    show current status of Ubuntu Advantage offerings
  enable-esm <token>        enable the ESM repository
  disable-esm               disable the ESM repository
- enable-livepatch <token>  enable the Livepatch service
- disable-livepatch [-r]    disable the Livepatch service. With "-r", the
-                           canonical-livepatch snap will also be removed
  enable-fips <token>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
  disabe-fips               currently not supported
+ enable-livepatch <token>  enable the Livepatch service
+ disable-livepatch [-r]    disable the Livepatch service. With "-r", the
+                           canonical-livepatch snap will also be removed
 
 EOF
     exit 1

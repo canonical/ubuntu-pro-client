@@ -1,4 +1,4 @@
-# Tests for FIPS-related commands.
+"""Tests for FIPS-related commands."""
 
 from testing import UbuntuAdvantageTest
 

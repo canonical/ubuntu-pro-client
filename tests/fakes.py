@@ -1,4 +1,4 @@
-# Fake for commands invoked by the script.
+"""Fake for commands invoked by the script."""
 
 SNAP_LIVEPATCH_INSTALLED = """
 if [ "$1" = "list" ]; then
