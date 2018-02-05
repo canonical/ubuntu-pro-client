@@ -41,6 +41,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
     SERIES = None
     KERNEL_VERSION = None
     ARCH = None
+    SCRIPT = './ubuntu-advantage'
 
     def setUp(self):
         super(UbuntuAdvantageTest, self).setUp()
@@ -88,12 +89,13 @@ class UbuntuAdvantageTest(TestWithFixtures):
         with open(self.tempdir.join(path)) as fh:
             return fh.read()
 
-    def script(self, *args):
-        """Run the script."""
-        command = ['./ubuntu-advantage']
+    def script(self, *args, env_update=None):
+        """Run the specified script."""
+        command = [self.SCRIPT]
         command.extend(args)
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
+            'UA': './ubuntu-advantage',
             'PATH': path,
             'FSTAB': str(self.fstab),
             'CPUINFO': str(self.cpuinfo),
@@ -109,6 +111,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'APT_METHOD_HTTPS': str(self.apt_method_https),
             'CA_CERTIFICATES': str(self.ca_certificates),
             'SNAPD': str(self.snapd)}
+        if env_update:
+            env.update(env_update)
         if self.SERIES:
             env['SERIES'] = self.SERIES
         if self.KERNEL_VERSION:
@@ -126,7 +130,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
         process.stderr.close()
         return result
 
-    def setup_livepatch(self, installed=None, enabled=None):
+    def setup_livepatch(self, installed=None, enabled=None,
+                        livepatch_command=None):
         """Setup livepatch-related fakes."""
         if installed is not None:
             command = (
@@ -134,5 +139,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
                 else SNAP_LIVEPATCH_NOT_INSTALLED)
             self.make_fake_binary('snap', command=command)
         if enabled is not None:
-            command = LIVEPATCH_ENABLED if enabled else LIVEPATCH_DISABLED
+            if livepatch_command is not None:
+                command = livepatch_command
+            else:
+                command = LIVEPATCH_ENABLED if enabled else LIVEPATCH_DISABLED
             self.make_fake_binary('canonical-livepatch', command=command)

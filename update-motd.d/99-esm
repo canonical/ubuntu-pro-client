@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SERIES=$(lsb_release -cs)
 DESCRIPTION=$(lsb_release -ds)

@@ -33,9 +33,22 @@ fi
 LIVEPATCH_ENABLED = """\n
 if [ "$1" = "status" ]; then
     cat <<EOF
-kernel: 4.4.0-87.110-generic
-fully-patched: true
-version: "27.3"
+client-version: "7.23"
+architecture: x86_64
+cpu-model: QEMU Virtual CPU version 2.5+
+last-check: 2018-01-30T16:50:01.99308582Z
+boot-time: 2018-01-30T12:49:32Z
+uptime: 4h56m26s
+status:
+- kernel: 4.4.0-87.110-generic
+  running: true
+  livepatch:
+    checkState: checked
+    patchState: applied
+    version: "33.2"
+    fixes: |-
+      * CVE-2015-7837 LP: #1509563
+      * CVE-2016-0758 LP: #1581202
 EOF
 elif [ "$1" = "enable" ]; then
     echo -n "2017/08/04 18:03:47 Error executing enable?auth-token="
@@ -67,4 +80,48 @@ APT_GET_LOG_WRAPPER = """#!/bin/sh
 log_path=$(dirname "$0")/../
 echo -- "$@" >> "${log_path}/apt_get.args"
 env >> "${log_path}/apt_get.env"
+"""
+
+LIVEPATCH_ENABLED_STATUS = """
+cat <<EOF
+client-version: "7.23"
+status:
+- kernel: 4.4.0-87.110-generic
+  running: true
+  livepatch:
+    checkState: {check_state}
+    patchState: {patch_state}
+"""
+
+LIVEPATCH_CHECKED_UNAPPLIED = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='checked', patch_state='unapplied')
+
+LIVEPATCH_CHECKED_APPLIED_WITH_BUG = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='checked', patch_state='applied-with-bug')
+
+LIVEPATCH_CHECKED_NOTHING_TO_APPLY = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='checked', patch_state='nothing-to-apply')
+
+LIVEPATCH_CHECKED_APPLY_FAILED = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='checked', patch_state='apply-failed')
+
+LIVEPATCH_CHECKED_APPLYING = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='checked', patch_state='applying')
+
+LIVEPATCH_NEEDS_CHECK = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='needs-check', patch_state='does not matter')
+
+LIVEPATCH_CHECK_FAILED = LIVEPATCH_ENABLED_STATUS.format(
+    check_state='check-failed', patch_state='does not matter')
+
+UA_STATE_ELSEWHERE = """
+cat <<EOF
+fips: disabled
+esm: enabled
+    patchState: should-not-be-here
+    checkState: should-not-be-here
+livepatch: enabled
+    checkState: checked
+    patchState: applied
+EOF
 """

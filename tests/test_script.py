@@ -69,7 +69,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         process = self.script('status')
         self.assertIn("livepatch: enabled", process.stdout)
         # the livepatch status output is also included
-        self.assertIn("fully-patched: true", process.stdout)
+        self.assertIn("patchState: applied", process.stdout)
         self.assertIn("esm: disabled (not available)", process.stdout)
 
     def test_version(self):
