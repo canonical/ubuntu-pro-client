@@ -15,9 +15,9 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.setup_livepatch()
         self.livepatch_token = '0123456789abcdef1234567890abcdef'
 
-    def test_livepatch_supported_trusty_xenial_not_precise(self):
-        """Livepatch is supported in trusty and xenial but not precise."""
-        for series in ['trusty', 'xenial']:
+    def test_livepatch_supported_t_x_b_not_precise(self):
+        """Livepatch is supported in trusty, xenial, bionic but not precise."""
+        for series in ['trusty', 'xenial', 'bionic']:
             self.SERIES = series
             process = self.script('enable-livepatch')
             # if we get a token error, that means we passed the ubuntu
