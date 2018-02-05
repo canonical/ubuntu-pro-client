@@ -29,4 +29,8 @@ lint-sh/docker: _lint-sh-command
 _lint-sh-command:
 	@$(SHELLCHECK) -s bash $(BASH_SCRIPTS)
 
-.PHONY: build testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command
+clean:
+	find . -type f -name '*.pyc' -delete
+	rm -rf .tox tests/__pycache__
+
+.PHONY: build testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command clean
