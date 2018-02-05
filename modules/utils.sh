@@ -4,6 +4,26 @@ error_msg() {
     echo "$@" >&2
 }
 
+# prompt the user to confirm
+#
+prompt_user() {
+    local answer
+
+    echo >&2
+    while true; do
+        read -p "$* [N/y] " answer 2>&1
+        case "$answer" in
+        y|Y)
+            return 0
+            ;;
+        ''|n|N)
+            return 1
+            ;;
+        esac
+    done
+    echo >&2
+}
+
 check_result() {
     local result output
     result=0

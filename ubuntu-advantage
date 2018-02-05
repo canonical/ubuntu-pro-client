@@ -93,8 +93,10 @@ Commands:
                            canonical-livepatch snap will also be removed
  enable-fips <token>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
- disabe-fips               currently not supported
-
+ disable-fips               currently not supported
+ update-fips <token> [-y]  Install and enable updated non-certified FIPS
+                           modules. With "-y" or "--yes" the user prompt
+                           will be bypassed.
 EOF
     exit 1
 }
@@ -153,6 +155,23 @@ main() {
         enable-*)
             local token="$2"
             service_enable "$service" "$token"
+            ;;
+
+        update-*)
+            local token="$2"
+            local bypass_prompt=0
+            while true ; do
+               case "$3" in
+                  --yes | -y)
+                     bypass_prompt=1
+                     break;
+                     ;;
+                  *)
+                     break;
+                     ;;
+               esac
+            done;
+            service_update "$service" "$token" "$bypass_prompt"
             ;;
 
         is-*-enabled)

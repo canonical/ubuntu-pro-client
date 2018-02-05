@@ -66,6 +66,24 @@ cryptoapi.
 
 .TP
 .B
+update-fips \fItoken\fR[\fB\-y\fR]
+Updating the FIPS modules will take the system out of FIPS compliance as the
+updated modules are not FIPS certified. Enable the FIPS UPDATE PPA repository,
+install the updated FIPS modules and configure the bootloader on the system.
+If the system is installing FIPS modules for the first time, it configures
+FIPS on the system. After successfully executing the ubuntu-advantage script
+to update fips modules, the system MUST be rebooted to complete the update
+process. Failing to reboot will result in the system not running the
+updated FIPS kernel.
+The \fItoken\fR argument must be in the form "user:password".
+The \fB\-y\fR argument is optional to bypass the user prompt and install updates.
+
+The following FIPS modules will be updated and put in fips mode;
+openssh-server, openssh-client, strongswan, openssl, and the kernel
+cryptoapi.
+
+.TP
+.B
 disable-fips
 It's currently not possible to disable FIPS after it has been enabled.
 
