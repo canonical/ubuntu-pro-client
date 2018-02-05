@@ -124,9 +124,9 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Livepatch is already disabled.', process.stdout)
 
-    def test_disable_livepatch_supported_trusty_xenial_not_precise(self):
+    def test_disable_livepatch_supported_t_x_b_not_precise(self):
         """Livepatch can't be disabled on unsupported distros."""
-        for series in ['trusty', 'xenial']:
+        for series in ['trusty', 'xenial', 'bionic']:
             self.SERIES = series
             process = self.script('disable-livepatch')
             self.assertEqual(0, process.returncode)
