@@ -22,7 +22,7 @@ livepatch_enable() {
             echo "installation:"
             echo
             echo "sudo $SCRIPTNAME enable-livepatch $token"
-            exit 5
+            error_exit kernel_too_old
         fi
     else
         echo 'Livepatch already enabled.'

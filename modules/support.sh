@@ -4,7 +4,7 @@ not_supported() {
     local message="$1"
 
     error_msg "$message is currently not supported."
-    exit 1
+    return 1
 }
 
 check_series_arch_supported() {
@@ -17,11 +17,11 @@ check_series_arch_supported() {
 
     if ! is_supported_arch "$supported_archs"; then
         error_msg "Sorry, but $title is not supported on $ARCH"
-        exit 7
+        error_exit arch_not_supported
     fi
     if ! is_supported_series "$supported_series"; then
         error_msg "Sorry, but $title is not supported on $SERIES"
-        exit 4
+        error_exit release_not_supported
     fi
 }
 

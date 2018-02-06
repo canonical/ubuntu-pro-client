@@ -14,8 +14,8 @@ service_enable() {
 
     _service_check_user
     _service_check_support "$service"
-    _service_check_enabled "$service" || exit 6
-    "${service}_validate_token" "$token" || exit 3
+    _service_check_enabled "$service" || error_exit service_already_enabled
+    "${service}_validate_token" "$token" || error_exit invalid_token
     "${service}_enable" "$token"
 }
 
@@ -24,7 +24,7 @@ service_disable() {
 
     _service_check_user
     _service_check_support "$service"
-    _service_check_disabled "$service" || exit 8
+    _service_check_disabled "$service" || error_exit service_already_disabled
     shift 1
    "${service}_disable" "$@"
 }
@@ -61,7 +61,7 @@ service_print_status() {
 _service_check_user() {
     if [ "$(id -u)" -ne 0 ]; then
         error_msg "This command must be run as root (try using sudo)"
-        return 2
+        error_exit not_root
     fi
 }
 
