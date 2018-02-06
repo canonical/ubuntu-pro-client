@@ -1,3 +1,16 @@
+ubuntu-advantage-tools (14) bionic; urgency=medium
+
+  * New upstream release:
+    - repositories are only added after credentials are verified
+      (LP: #1730361)
+    - Livepatch MOTD script (LP: #1710976)
+    - better "status" command output formatting (LP: #1719034)
+    - sources.list.d files no longer contain credentials. The "auth.conf"
+      facility is used instead. (LP: #1700611)
+    - enabled Livepatch support for Bionic 18.04 LTS
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 06 Feb 2018 09:58:03 -0200
+
 ubuntu-advantage-tools (13) bionic; urgency=medium
 
   * New upstream release:
