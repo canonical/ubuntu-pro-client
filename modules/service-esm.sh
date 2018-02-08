@@ -4,7 +4,7 @@ ESM_SERVICE_TITLE="Extended Security Maintenance"
 ESM_SUPPORTED_SERIES="precise"
 ESM_SUPPORTED_ARCHS="ALL"
 
-ESM_REPO_URL="esm.ubuntu.com"
+ESM_REPO_URL="https://esm.ubuntu.com"
 ESM_REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
 ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 

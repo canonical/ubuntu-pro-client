@@ -80,8 +80,9 @@ ESM_DISABLED = """
 echo "500 http://archive.ubuntu.com/ubuntu precise/main amd64 Packages"
 """
 
+
 ESM_ENABLED = """
-echo "500 http://esm.ubuntu.com/ubuntu precise/main amd64 Packages"
+echo "500 https://esm.ubuntu.com/ubuntu precise/main amd64 Packages"
 """
 
 APT_GET_LOG_WRAPPER = """

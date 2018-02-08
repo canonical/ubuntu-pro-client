@@ -5,7 +5,8 @@ private_repo_url() {
     local credentials="$2"
     local file="$3"
 
-    echo "https://${credentials}@${repo_url}/ubuntu${file}"
+    local repo_scheme="${repo_url/:\/\/*/}}"
+    echo "${repo_scheme}://${credentials}@${repo_url/*:\/\//}/ubuntu${file}"
 }
 
 package_version() {
@@ -61,26 +62,34 @@ _apt_write_list_file() {
     local repo_url="$2"
 
     cat >"$repo_file" <<EOF
-deb https://${repo_url}/ubuntu ${SERIES} main
-# deb-src https://${repo_url}/ubuntu ${SERIES} main
+deb ${repo_url}/ubuntu ${SERIES} main
+# deb-src ${repo_url}/ubuntu ${SERIES} main
 EOF
 }
 
 _apt_add_auth() {
-    local repo_host="$1"
+    local repo_url="$1"
     local credentials="$2"
 
     local login="${credentials%:*}"
     local password="${credentials#*:}"
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
-    echo "machine ${repo_host}/ubuntu/ login ${login} password ${password}" \
+    local repo_host_path="${repo_url/*:\/\//}"
+    echo "machine ${repo_host_path}/ubuntu/ login ${login} password ${password}" \
          >>"$APT_AUTH_FILE"
 }
 
 _apt_remove_auth() {
-    local repo_host="$1"
+    local repo_url="$1"
 
-    # shellcheck disable=SC1117
-    sed -i "/^machine ${repo_host}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
+    local repo_host_path="${repo_url/*:\/\//}"
+    local tempfile
+    tempfile=$(mktemp)
+    chmod 600 "$tempfile"
+    # don't use pattern matching as the repo path contains slashes and dots
+    awk -v repo_host_path="${repo_host_path}/ubuntu/" \
+        '! ($1 == "machine" && $2 == repo_host_path)' \
+        "$APT_AUTH_FILE"  >"$tempfile"
+    mv "$tempfile" "$APT_AUTH_FILE"
 }
