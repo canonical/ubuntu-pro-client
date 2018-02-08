@@ -5,8 +5,8 @@ private_repo_url() {
     local credentials="$2"
     local file="$3"
 
-    local repo_schema="${repo_url/:\/\/*/}}"
-    echo "${repo_schema}://${credentials}@${repo_url/*:\/\//}/ubuntu${file}"
+    local repo_scheme="${repo_url/:\/\/*/}}"
+    echo "${repo_scheme}://${credentials}@${repo_url/*:\/\//}/ubuntu${file}"
 }
 
 package_version() {
@@ -75,14 +75,15 @@ _apt_add_auth() {
     local password="${credentials#*:}"
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
-    echo "machine ${repo_url/*:\/\//}/ubuntu/ login ${login} password ${password}" \
+    local repo_host_path="${repo_url/*:\/\//}"
+    echo "machine ${repo_host_path}/ubuntu/ login ${login} password ${password}" \
          >>"$APT_AUTH_FILE"
 }
 
 _apt_remove_auth() {
     local repo_url="$1"
 
-    local repo_host_path=${repo_url/*:\/\//}
+    local repo_host_path="${repo_url/*:\/\//}"
     local tempfile
     tempfile=$(mktemp)
     chmod 600 "$tempfile"
