@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 UA=${UA:-"/usr/bin/ubuntu-advantage"}
 
@@ -54,8 +54,8 @@ print_status() {
 }
 
 
-if [[ ":$PATH:" != *":/snap/bin:"* ]]; then
-    PATH=:/snap/bin:$PATH
+if ! echo "$PATH" | grep -qE "/snap/bin(:|$|/:/$)"; then
+    PATH="/snap/bin:$PATH"
 fi
 
 service_name="livepatch"
