@@ -54,7 +54,7 @@ print_status() {
 }
 
 
-if ! echo "$PATH" | grep -qE "/snap/bin(:|$|/:/$)"; then
+if ! echo "$PATH" | grep -qE "(^|:)/snap/bin/?(:|$)"; then
     PATH="/snap/bin:$PATH"
 fi
 
