@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+STAMP_FILE=/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.stamp
+
+if [ "$1" = purge -a -f $STAMP_FILE ]; then
+    rm $STAMP_FILE
+fi
+
+#DEBHELPER#
+
