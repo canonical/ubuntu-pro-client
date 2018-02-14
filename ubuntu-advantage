@@ -38,8 +38,15 @@ load_modules() {
 }
 
 print_status() {
-    local service
-    for service in $SERVICES; do
+    local service="$1"
+
+    local services="$SERVICES"
+    if [ "$service" ]; then
+        name_in_list "$service" "$SERVICES" || error_exit invalid_command
+        services="$service"
+    fi
+
+    for service in $services; do
         service_print_status "$service"
     done
 }
@@ -58,13 +65,14 @@ Currently available are:
 
 Commands:
  version                   show the tool version
- status                    show current status of Ubuntu Advantage offerings
- enable-esm <token>        enable the ESM repository
+ status [NAME]             show current status of Ubuntu Advantage offerings
+                           (or of a specific one if provided)
+ enable-esm <TOKEN>        enable the ESM repository
  disable-esm               disable the ESM repository
- enable-fips <token>       enable the FIPS PPA repository and install,
+ enable-fips <TOKEN>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
  disabe-fips               currently not supported
- enable-livepatch <token>  enable the Livepatch service
+ enable-livepatch <TOKEN>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
                            canonical-livepatch snap will also be removed
 
@@ -86,7 +94,7 @@ main() {
 
     case "$command" in
         status)
-            print_status
+            print_status "$@"
             ;;
 
         version)
