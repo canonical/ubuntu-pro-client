@@ -1,12 +1,12 @@
 #!/bin/sh -e
 
 UA="/usr/bin/ubuntu-advantage"
-STAMP_DIR="/var/cache/ubuntu-advantage-tools"
-STAMP_FILE="$STAMP_DIR/ubuntu-advantage-status.stamp"
+CACHE_DIR="/var/cache/ubuntu-advantage-tools"
+CACHE_FILE="$CACHE_DIR/ubuntu-advantage-status.stamp"
 
 [ -x "$UA" ] || exit 0
 
-[ -d "$STAMP_DIR" ] || mkdir -p "$STAMP_DIR"
+[ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
 
-"$UA" status > "$STAMP_FILE"
+"$UA" status > "$CACHE_FILE"
 
