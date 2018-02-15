@@ -1,6 +1,4 @@
-#!/bin/sh
-
-set -e
+#!/bin/sh -e
 
 STAMP_FILE=/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.stamp
 

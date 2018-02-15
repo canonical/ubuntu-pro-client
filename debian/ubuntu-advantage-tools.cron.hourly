@@ -1,6 +1,4 @@
-#!/bin/sh
-
-set -e
+#!/bin/sh -e
 
 UA="/usr/bin/ubuntu-advantage"
 STAMP_DIR="/var/cache/ubuntu-advantage-tools"
