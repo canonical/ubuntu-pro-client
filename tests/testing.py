@@ -64,6 +64,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
         self.apt_helper = self.bin_dir / 'apt-helper'
+        self.ua_status_cache = Path(self.tempdir.join('ua-status-cache'))
         # setup directories and files
         self.bin_dir.mkdir()
         self.keyrings_dir.mkdir()
@@ -100,6 +101,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         path = os.pathsep.join([str(self.bin_dir), os.environ['PATH']])
         env = {
             'UA': './ubuntu-advantage',
+            'UA_STATUS_CACHE': str(self.ua_status_cache),
             'PATH': path,
             'FSTAB': str(self.fstab),
             'CPUINFO': str(self.cpuinfo),

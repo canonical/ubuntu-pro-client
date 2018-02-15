@@ -1,6 +1,7 @@
 #!/bin/sh
 
 UA=${UA:-"/usr/bin/ubuntu-advantage"}
+UA_STATUS_CACHE=${UA_STATUS_CACHE:-"/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.cache"}
 
 [ -x "$UA" ] || exit 0
 
@@ -59,7 +60,10 @@ if ! echo "$PATH" | grep -qE "(^|:)/snap/bin/?(:|$)"; then
 fi
 
 service_name="livepatch"
-ua_status=$($UA status 2>&1)
+# if there is no cache file yet (the cron job hasn't run yet), create a
+# fresh one. We also want to ignore an empty cache file.
+[ -s "$UA_STATUS_CACHE" ] || "$UA" status > "$UA_STATUS_CACHE" 2>/dev/null
+ua_status=$(cat "$UA_STATUS_CACHE")
 # if there is no livepatch section at all in the output, silently
 # bail
 has_livepatch=$(echo "${ua_status}" | grep "^${service_name}")

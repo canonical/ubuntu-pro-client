@@ -232,3 +232,60 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['patch-state-unknown']:
             self.assertIn(line.format(random_state), process.stdout)
+
+    def test_script_uses_cached_status(self):
+        """The script uses the cached status when it exists."""
+        random_state = 'patch-state-{}'.format(randrange(99999))
+        ua_status_cache = """esm: disabled (not available)
+fips: disabled (not available)
+livepatch: enabled
+  client-version: "7.23"
+  status:
+  - kernel: 4.4.0-87.110-generic
+    running: true
+    livepatch:
+      checkState: checked
+      patchState: {}
+"""
+        self.ua_status_cache.write_text(ua_status_cache.format(random_state))
+        self.setup_livepatch(
+            installed=True, enabled=True,
+            livepatch_command=LIVEPATCH_CHECKED_UNAPPLIED)
+        process = self.script()
+        self.assertEqual(0, process.returncode)
+        # this confirms the cached data was used
+        for line in LIVEPATCH_STATE_MESSAGES['patch-state-unknown']:
+            self.assertIn(line.format(random_state), process.stdout)
+        # this confirms that LIVEPATCH_CHECKED_UNAPPLIED was not used
+        for line in LIVEPATCH_STATE_MESSAGES['checked']['unapplied'][1:]:
+            self.assertNotIn(line, process.stdout)
+        # this confirms the cached file did not change after the script ran
+        self.assertEqual(ua_status_cache.format(random_state),
+                         self.ua_status_cache.read_text())
+
+    def test_script_creates_cache_if_not_there(self):
+        """The script creates the cache file if it does not exist yet."""
+        random_state = 'patch-state-{}'.format(randrange(99999))
+        command = LIVEPATCH_ENABLED_STATUS.format(
+            check_state='checked', patch_state=random_state)
+        self.setup_livepatch(
+            installed=True, enabled=True,
+            livepatch_command=command)
+        process = self.script()
+        self.assertEqual(0, process.returncode)
+        ua_status_cache = self.ua_status_cache.read_text()
+        self.assertIn('patchState: {}'.format(random_state), ua_status_cache)
+
+    def test_empty_status_cache_is_ignored_and_updated(self):
+        """An empty status cache is ignored and treated as non existent."""
+        self.ua_status_cache.write_text('')
+        random_state = 'patch-state-{}'.format(randrange(99999))
+        command = LIVEPATCH_ENABLED_STATUS.format(
+            check_state='checked', patch_state=random_state)
+        self.setup_livepatch(
+            installed=True, enabled=True,
+            livepatch_command=command)
+        process = self.script()
+        self.assertEqual(0, process.returncode)
+        ua_status_cache = self.ua_status_cache.read_text()
+        self.assertIn('patchState: {}'.format(random_state), ua_status_cache)

@@ -1,0 +1,12 @@
+#!/bin/sh -e
+
+UA="/usr/bin/ubuntu-advantage"
+CACHE_DIR="/var/cache/ubuntu-advantage-tools"
+CACHE_FILE="$CACHE_DIR/ubuntu-advantage-status.cache"
+
+[ -x "$UA" ] || exit 0
+
+[ -d "$CACHE_DIR" ] || mkdir -p "$CACHE_DIR"
+
+"$UA" status > "$CACHE_FILE"
+
