@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-CACHE_FILE=/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.stamp
+CACHE_FILE=/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.cache
 
 if [ "$1" = purge -a -f "$CACHE_FILE" ]; then
     rm "$CACHE_FILE"

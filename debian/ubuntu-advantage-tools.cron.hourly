@@ -2,7 +2,7 @@
 
 UA="/usr/bin/ubuntu-advantage"
 CACHE_DIR="/var/cache/ubuntu-advantage-tools"
-CACHE_FILE="$CACHE_DIR/ubuntu-advantage-status.stamp"
+CACHE_FILE="$CACHE_DIR/ubuntu-advantage-status.cache"
 
 [ -x "$UA" ] || exit 0
 
