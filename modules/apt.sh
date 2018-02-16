@@ -5,7 +5,7 @@ private_repo_url() {
     local credentials="$2"
     local file="$3"
 
-    local repo_scheme="${repo_url/:\/\/*/}}"
+    local repo_scheme="${repo_url/:\/\/*/}"
     echo "${repo_scheme}://${credentials}@${repo_url/*:\/\//}/ubuntu${file}"
 }
 
