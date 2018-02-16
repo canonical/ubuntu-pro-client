@@ -23,7 +23,12 @@ class FIPSTest(UbuntuAdvantageTest):
             'fips/ubuntu xenial main\n'
             '# deb-src https://private-ppa.launchpad.net/'
             'ubuntu-advantage/fips/ubuntu xenial main\n')
-        self.assertEqual(expected, self.repo_list.read_text())
+        self.assertEqual(expected, self.fips_repo_list.read_text())
+        expected = (
+            'Package: *\n'
+            'Pin: release o=LP-PPA-ubuntu-advantage-fips, n=xenial\n'
+            'Pin-Priority: 1001\n')
+        self.assertEqual(self.fips_repo_preferences.read_text(), expected)
         self.assertEqual(
             self.apt_auth_file.read_text(),
             'machine private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu/'

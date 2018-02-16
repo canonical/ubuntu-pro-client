@@ -35,6 +35,18 @@ apt_remove_repo() {
     _apt_remove_auth "$repo_url"
 }
 
+apt_add_repo_pinning() {
+    local repo_file="$1"
+    local origin="$2"
+    local priority="$3"
+
+    cat <<EOF >"$repo_file"
+Package: *
+Pin: release o=${origin}, n=${SERIES}
+Pin-Priority: ${priority}
+EOF
+}
+
 apt_get() {
     DEBIAN_FRONTEND=noninteractive \
                    apt-get -y -o Dpkg::Options::='--force-confold' "$@"

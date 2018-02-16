@@ -20,7 +20,7 @@ class ESMTest(UbuntuAdvantageTest):
         expected = (
             'deb https://esm.ubuntu.com/ubuntu precise main\n'
             '# deb-src https://esm.ubuntu.com/ubuntu precise main\n')
-        self.assertEqual(expected, self.repo_list.read_text())
+        self.assertEqual(expected, self.esm_repo_list.read_text())
         self.assertEqual(
             self.apt_auth_file.read_text(),
             'machine esm.ubuntu.com/ubuntu/ login user password pass\n')
@@ -198,7 +198,7 @@ class ESMTest(UbuntuAdvantageTest):
         process = self.script('disable-esm')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository disabled', process.stdout)
-        self.assertFalse(self.repo_list.exists())
+        self.assertFalse(self.esm_repo_list.exists())
         # the keyring file is removed
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertFalse(keyring_file.exists())
