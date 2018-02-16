@@ -55,10 +55,6 @@ print_status() {
 }
 
 
-if ! echo "$PATH" | grep -qE "(^|:)/snap/bin/?(:|$)"; then
-    PATH="/snap/bin:$PATH"
-fi
-
 service_name="livepatch"
 # if there is no cache file yet (the cron job hasn't run yet), create a
 # fresh one. We also want to ignore an empty cache file.
