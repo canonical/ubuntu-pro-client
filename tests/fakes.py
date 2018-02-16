@@ -123,14 +123,47 @@ LIVEPATCH_NEEDS_CHECK = LIVEPATCH_ENABLED_STATUS.format(
 LIVEPATCH_CHECK_FAILED = LIVEPATCH_ENABLED_STATUS.format(
     check_state='check-failed', patch_state='does not matter')
 
-UA_STATE_ELSEWHERE = """
-cat <<EOF
-fips: disabled
+STATUS_CACHE_LIVEPATCH_ENABLED = """\
+esm: disabled (not available)
+fips: disabled (not available)
+livepatch: enabled
+  client-version: "7.23"
+  status:
+  - kernel: 4.4.0-87.110-generic
+    running: true
+    livepatch:
+      checkState: {check_state}
+      patchState: {patch_state}
+"""
+
+STATUS_CACHE_NO_LIVEPATCH = """\
+esm: disabled (not available)
+fips: disabled (not available)
+"""
+
+STATUS_CACHE_LIVEPATCH_ENABLED_NO_CONTENT = """\
+esm: disabled (not available)
+fips: disabled (not available)
+livepatch: enabled
+"""
+
+STATUS_CACHE_LIVEPATCH_DISABLED_AVAILABLE = """\
+esm: disabled (not available)
+fips: disabled (not available)
+livepatch: disabled
+"""
+
+STATUS_CACHE_LIVEPATCH_DISABLED_UNAVAILABLE = """\
+esm: disabled (not available)
+fips: disabled (not available)
+livepatch: disabled (not available)
+"""
+
+STATUS_CACHE_MIXED_CONTENT = """\
 esm: enabled
     patchState: should-not-be-here
     checkState: should-not-be-here
 livepatch: enabled
     checkState: checked
     patchState: applied
-EOF
 """
