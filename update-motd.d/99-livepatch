@@ -56,9 +56,8 @@ print_status() {
 
 
 service_name="livepatch"
-# if there is no cache file yet (the cron job hasn't run yet), create a
-# fresh one. We also want to ignore an empty cache file.
-[ -s "$UA_STATUS_CACHE" ] || "$UA" status > "$UA_STATUS_CACHE" 2>/dev/null
+# if there is no cache file yet (the cron job hasn't run yet), bail
+[ -s "$UA_STATUS_CACHE" ] || exit 0
 ua_status=$(cat "$UA_STATUS_CACHE")
 # if there is no livepatch section at all in the output, silently
 # bail

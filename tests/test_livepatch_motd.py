@@ -4,13 +4,12 @@ from testing import UbuntuAdvantageTest
 from fakes import (
     LIVEPATCH_ENABLED_STATUS,
     LIVEPATCH_CHECKED_UNAPPLIED,
-    LIVEPATCH_CHECKED_APPLIED_WITH_BUG,
-    LIVEPATCH_CHECKED_NOTHING_TO_APPLY,
-    LIVEPATCH_CHECKED_APPLY_FAILED,
-    LIVEPATCH_CHECKED_APPLYING,
-    LIVEPATCH_NEEDS_CHECK,
-    LIVEPATCH_CHECK_FAILED,
-    UA_STATE_ELSEWHERE)
+    STATUS_CACHE_LIVEPATCH_ENABLED,
+    STATUS_CACHE_NO_LIVEPATCH,
+    STATUS_CACHE_LIVEPATCH_ENABLED_NO_CONTENT,
+    STATUS_CACHE_LIVEPATCH_DISABLED_AVAILABLE,
+    STATUS_CACHE_LIVEPATCH_DISABLED_UNAVAILABLE,
+    STATUS_CACHE_MIXED_CONTENT)
 from random import randrange
 
 LIVEPATCH_IS_ENABLED = 'Canonical Livepatch is enabled.'
@@ -66,19 +65,14 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
         super().setUp()
         self.setup_livepatch(installed=True, enabled=True)
         self.livepatch_token = '0123456789abcdef1234567890abcdef'
-        self.ua_no_livepatch = str(self.bin_dir / 'ua-no-livepatch')
-        self.make_fake_binary(
-            'ua-no-livepatch',
-            command='echo -e esm: disabled\nfips: disabled\n')
-        self.ua_state_elsewhere = str(self.bin_dir / 'ua-state-elsewhere')
-        self.make_fake_binary(
-            'ua-state-elsewhere',
-            command=UA_STATE_ELSEWHERE)
+        self.ua_status_cache.write_text(
+            STATUS_CACHE_LIVEPATCH_ENABLED.format(check_state="checked",
+                                                  patch_state="applied"))
 
     def test_no_livepatch_content_in_status(self):
         """motd displays unknown check state if livepatch section is empty."""
-        self.setup_livepatch(installed=True, enabled=True,
-                             livepatch_command="exit 0")
+        self.ua_status_cache.write_text(
+            STATUS_CACHE_LIVEPATCH_ENABLED_NO_CONTENT)
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['check-state-unknown']:
@@ -86,7 +80,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_disabled_but_available(self):
         """Livepatch is disabled but available for installation."""
-        self.setup_livepatch(installed=True, enabled=False)
+        self.ua_status_cache.write_text(
+            STATUS_CACHE_LIVEPATCH_DISABLED_AVAILABLE)
         process = self.script()
         self.assertEqual(0, process.returncode)
         self.assertIn('Canonical Livepatch is available for installation',
@@ -97,29 +92,25 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_disabled_unavailable(self):
         """Livepatch is disabled and not available."""
-        self.SERIES = 'precise'
-        self.setup_livepatch(installed=False, enabled=False)
+        self.ua_status_cache.write_text(
+            STATUS_CACHE_LIVEPATCH_DISABLED_UNAVAILABLE)
         process = self.script()
         self.assertEqual(0, process.returncode)
         self.assertEqual('', process.stdout)
 
     def test_other_state_fields_ignored(self):
         """The MOTD script ignores *State fields not from livepatch."""
-        env_update = {"UA": self.ua_state_elsewhere}
-        process = self.script(env_update=env_update)
+        self.ua_status_cache.write_text(STATUS_CACHE_MIXED_CONTENT)
+        process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['applied']:
             self.assertIn(line, process.stdout)
-        # make sure the bad fields were actually there and this test is
-        # valid
-        self.SCRIPT = self.ua_state_elsewhere
-        ua_status = self.script()
-        self.assertIn('should-not-be-here', ua_status.stdout)
+        self.assertNotIn('should-not-be-here', process.stdout)
 
     def test_ua_script_without_livepatch(self):
         """MOTD is empty if there is no livepatch section in ua's output."""
-        env_update = {"UA": self.ua_no_livepatch}
-        process = self.script(env_update=env_update)
+        self.ua_status_cache.write_text(STATUS_CACHE_NO_LIVEPATCH)
+        process = self.script()
         self.assertEqual(0, process.returncode)
         self.assertEqual('', process.stdout)
 
@@ -139,9 +130,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_checked_unapplied(self):
         """checkState is checked, patchState is unapplied."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECKED_UNAPPLIED)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state='unapplied'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['unapplied']:
@@ -149,9 +139,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_checked_applied_with_bug(self):
         """checkState is checked, patchState is applied-with-bug."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECKED_APPLIED_WITH_BUG)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state='applied-with-bug'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['applied-with-bug']:
@@ -159,9 +148,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_checked_nothing_to_apply(self):
         """checkState is checked, patchState is nothing-to-apply."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECKED_NOTHING_TO_APPLY)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state='nothing-to-apply'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['nothing-to-apply']:
@@ -169,9 +157,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_checked_apply_failed(self):
         """checkState is checked, patchState is apply-failed."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECKED_APPLY_FAILED)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state='apply-failed'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['apply-failed']:
@@ -179,9 +166,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_checked_applying(self):
         """checkState is checked, patchState is applying."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECKED_APPLYING)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state='applying'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['checked']['applying']:
@@ -189,9 +175,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_needs_check(self):
         """checkState is needs-check."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_NEEDS_CHECK)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='needs-check', patch_state='irrelevant'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['needs-check']:
@@ -199,9 +184,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
 
     def test_check_failed(self):
         """checkState is check-failed."""
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=LIVEPATCH_CHECK_FAILED)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='check-failed', patch_state='irrelevant'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['check-failed']:
@@ -210,11 +194,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
     def test_check_unknown_state(self):
         """checkState is something unexpected."""
         random_state = 'check-state-{}'.format(randrange(99999))
-        command = LIVEPATCH_ENABLED_STATUS.format(
-            check_state=random_state, patch_state='foo')
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=command)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state=random_state, patch_state='irrelevant'))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['check-state-unknown']:
@@ -223,11 +204,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
     def test_patch_unknown_state(self):
         """patchState is something unexpected."""
         random_state = 'patch-state-{}'.format(randrange(99999))
-        command = LIVEPATCH_ENABLED_STATUS.format(
-            check_state='checked', patch_state=random_state)
-        self.setup_livepatch(
-            installed=True, enabled=True,
-            livepatch_command=command)
+        self.ua_status_cache.write_text(STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state=random_state))
         process = self.script()
         self.assertEqual(0, process.returncode)
         for line in LIVEPATCH_STATE_MESSAGES['patch-state-unknown']:
@@ -236,18 +214,11 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
     def test_script_uses_cached_status(self):
         """The script uses the cached status when it exists."""
         random_state = 'patch-state-{}'.format(randrange(99999))
-        ua_status_cache = """esm: disabled (not available)
-fips: disabled (not available)
-livepatch: enabled
-  client-version: "7.23"
-  status:
-  - kernel: 4.4.0-87.110-generic
-    running: true
-    livepatch:
-      checkState: checked
-      patchState: {}
-"""
-        self.ua_status_cache.write_text(ua_status_cache.format(random_state))
+        ua_status_cache = STATUS_CACHE_LIVEPATCH_ENABLED.format(
+            check_state='checked', patch_state=random_state)
+        self.ua_status_cache.write_text(ua_status_cache)
+        # setup the livepatch command to show a status different from
+        # the cache
         self.setup_livepatch(
             installed=True, enabled=True,
             livepatch_command=LIVEPATCH_CHECKED_UNAPPLIED)
@@ -263,8 +234,9 @@ livepatch: enabled
         self.assertEqual(ua_status_cache.format(random_state),
                          self.ua_status_cache.read_text())
 
-    def test_script_creates_cache_if_not_there(self):
-        """The script creates the cache file if it does not exist yet."""
+    def test_script_exits_if_no_cache(self):
+        """The motd exits silently if the cache file does not exist."""
+        self.ua_status_cache.unlink()
         random_state = 'patch-state-{}'.format(randrange(99999))
         command = LIVEPATCH_ENABLED_STATUS.format(
             check_state='checked', patch_state=random_state)
@@ -273,11 +245,12 @@ livepatch: enabled
             livepatch_command=command)
         process = self.script()
         self.assertEqual(0, process.returncode)
-        ua_status_cache = self.ua_status_cache.read_text()
-        self.assertIn('patchState: {}'.format(random_state), ua_status_cache)
+        self.assertEqual('', process.stdout)
+        # the cache file is not created by the script
+        self.assertEqual(False, self.ua_status_cache.is_file())
 
-    def test_empty_status_cache_is_ignored_and_updated(self):
-        """An empty status cache is ignored and treated as non existent."""
+    def test_empty_status_cache_is_ignored(self):
+        """The motd exits silently if the cache file is empty."""
         self.ua_status_cache.write_text('')
         random_state = 'patch-state-{}'.format(randrange(99999))
         command = LIVEPATCH_ENABLED_STATUS.format(
@@ -287,5 +260,7 @@ livepatch: enabled
             livepatch_command=command)
         process = self.script()
         self.assertEqual(0, process.returncode)
-        ua_status_cache = self.ua_status_cache.read_text()
-        self.assertIn('patchState: {}'.format(random_state), ua_status_cache)
+        # cache is not updated and is still empty
+        self.assertEqual('', self.ua_status_cache.read_text())
+        # motd output is empty
+        self.assertEqual('', process.stdout)
