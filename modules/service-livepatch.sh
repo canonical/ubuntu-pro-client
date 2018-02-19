@@ -81,7 +81,7 @@ _livepatch_validate_token() {
 }
 
 _livepatch_install_prereqs() {
-    install_package_if_missing_file "$SNAPD" snapd
+    apt_install_package_if_missing_file "$SNAPD" snapd
     if ! snap list canonical-livepatch >/dev/null 2>&1; then
         echo 'Installing the canonical-livepatch snap.'
         echo 'This may take a few minutes depending on your bandwidth.'

@@ -72,6 +72,15 @@ class FIPSTest(UbuntuAdvantageTest):
             'Please reboot into the FIPS kernel to enable it.',
             process.stderr.strip())
 
+    def test_enable_fips_not_all_packages_installed(self):
+        # one of the packages is not installed
+        self.make_fake_binary(
+            'dpkg-query', command='[ $2 != openssh-client-hmac ]')
+        process = self.script('enable-fips', 'user:pass')
+        self.assertEqual(process.returncode, 0)
+        self.assertIn('Installing FIPS packages', process.stdout)
+        self.assertIn('Successfully configured FIPS', process.stdout)
+
     def test_enable_fips_writes_config(self):
         """The enable-fips option writes fips configuration."""
         self.script('enable-fips', 'user:pass')

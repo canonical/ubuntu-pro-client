@@ -16,30 +16,30 @@ else
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"${FIPS_BOOT_CFG_DIR}/99-fips.cfg"}
 fi
 FIPS_HMAC_PACKAGES="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
-        linux-fips strongswan-hmac"
+    linux-fips strongswan-hmac"
+FIPS_OTHER_PACKAGES="openssh-client openssh-server openssl libssl1.0.0 \
+    fips-initramfs strongswan"
 
 fips_enable() {
     local token="$1"
 
-    _fips_check_packages_installed || error_exit service_already_enabled
+    _fips_check_installed || error_exit service_already_enabled
 
     check_token "$FIPS_REPO_URL" "$token"
     apt_add_repo "$FIPS_REPO_LIST" "$FIPS_REPO_URL" "$token" \
                  "${KEYRINGS_DIR}/${FIPS_REPO_KEY_FILE}"
     apt_add_repo_pinning "$FIPS_REPO_PREFERENCES" \
                          LP-PPA-ubuntu-advantage-fips 1001
-    install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
-    install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
+    apt_install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+    apt_install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo 'Ubuntu FIPS PPA repository enabled.'
 
     # install all the fips packages
     echo -n 'Installing FIPS packages (this may take a while)... '
-    check_result apt_get install openssh-client openssh-client-hmac \
-                 openssh-server openssh-server-hmac openssl libssl1.0.0 \
-                 libssl1.0.0-hmac fips-initramfs linux-fips \
-                 strongswan strongswan-hmac
+    # shellcheck disable=SC2086
+    check_result apt_get install $FIPS_HMAC_PACKAGES $FIPS_OTHER_PACKAGES
 
     echo "Configuring FIPS... "
     _fips_configure
@@ -51,7 +51,7 @@ fips_disable() {
 }
 
 fips_is_enabled() {
-    is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
+    apt_is_package_installed fips-initramfs && [ "$(_fips_enabled_check)" -eq 1 ]
 }
 
 fips_validate_token() {
@@ -121,16 +121,22 @@ _fips_enabled_check() {
     echo 0
 }
 
+_fips_check_installed() {
+    if ! _fips_check_packages_installed; then
+        return
+    fi
+
+    if fips_is_enabled; then
+        error_msg "FIPS is already enabled."
+    else
+        error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
+    fi
+    return 1
+}
+
 _fips_check_packages_installed() {
     local pkg
     for pkg in $FIPS_HMAC_PACKAGES; do
-        if is_package_installed "$pkg"; then
-            if fips_is_enabled; then
-                error_msg "FIPS is already enabled."
-            else
-                error_msg "FIPS is already installed. Please reboot into the FIPS kernel to enable it."
-            fi
-            return 1
-        fi
+        apt_is_package_installed "$pkg" || return 1
     done
 }

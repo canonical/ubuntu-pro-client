@@ -52,14 +52,14 @@ apt_get() {
                    apt-get -y -o Dpkg::Options::='--force-confold' "$@"
 }
 
-is_package_installed() {
+apt_is_package_installed() {
     local package="$1"
 
     dpkg-query -s "$package" >/dev/null 2>&1
 }
 
 # Install a package if the specified file doesn't exist
-install_package_if_missing_file() {
+apt_install_package_if_missing_file() {
     local file="$1"
     local package="$2"
 
