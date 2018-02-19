@@ -79,6 +79,17 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         process = self.script('status')
         self.assertIn("livepatch: disabled (not available)", process.stdout)
 
+    def test_status_with_one_service(self):
+        """The status for a single service can be returned."""
+        process = self.script('status', 'fips')
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(process.stdout, 'fips: disabled (not available)\n')
+
+    def test_status_with_one_service_unknown(self):
+        """The script exits with error on unknown service status name."""
+        process = self.script('status', 'unknown')
+        self.assertEqual(process.returncode, 1)
+
     def test_version(self):
         """The version command shows the package version."""
         self.make_fake_binary('dpkg-query', command='echo 123')
