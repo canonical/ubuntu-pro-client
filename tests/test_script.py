@@ -81,6 +81,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
 
     def test_status_with_one_service(self):
         """The status for a single service can be returned."""
+        self.SERIES = 'precise'
         process = self.script('status', 'fips')
         self.assertEqual(process.returncode, 0)
         self.assertEqual(process.stdout, 'fips: disabled (not available)\n')
