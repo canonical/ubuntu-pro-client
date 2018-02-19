@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (15) bionic; urgency=medium
+
+  * New upstream release
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 19 Feb 2018 14:29:15 -0300
+
 ubuntu-advantage-tools (14) bionic; urgency=medium
 
   * New upstream release:
