@@ -8,6 +8,10 @@ FIPS_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
 FIPS_REPO_PREFERENCES=${FIPS_REPO_PREFERENCES:-"/etc/apt/preferences.d/ubuntu-fips-${SERIES}"}
+FIPS_UPDATES_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates"
+FIPS_UPDATES_REPO_KEY_FILE="ubuntu-fips-updates-keyring.gpg"
+FIPS_UPDATES_REPO_LIST=${FIPS_UPDATES_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-updates-${SERIES}.list"}
+FIPS_UPDATES_REPO_PREFERENCES=${FIPS_UPDATE_REPO_PREFERENCES:-"/etc/apt/preferences.d/ubuntu-fips-updates-${SERIES}"}
 FIPS_ENABLED_FILE=${FIPS_ENABLED_FILE:-"/proc/sys/crypto/fips_enabled"}
 if [ "$ARCH" = "s390x" ]; then
     FIPS_BOOT_CFG=${FIPS_BOOT_CFG:-"/etc/zipl.conf"}
@@ -48,6 +52,62 @@ fips_enable() {
 
 fips_disable() {
     not_supported 'Disabling FIPS'
+}
+
+fips_update() {
+    local token="$1"
+    local bypass_prompt="$2"
+    local fips_configured=0
+
+    check_token "$FIPS_UPDATES_REPO_URL" "$token"
+
+    echo -n "Updating FIPS packages will take the system out of FIPS compliance."
+    if [ "$bypass_prompt" -ne 1 ]; then
+        if ! prompt_user 'Do you want to proceed?'; then
+            error_msg "Aborting updating FIPS packages..."
+            error_exit no_updates_selected
+        fi
+    fi
+
+    #add the fips-updates repo if the system is undergoing updates the first time
+    if [ ! -f "$FIPS_UPDATES_REPO_LIST" ]; then
+        apt_add_repo "$FIPS_UPDATES_REPO_LIST" "$FIPS_UPDATES_REPO_URL" "$token" \
+                 "${KEYRINGS_DIR}/${FIPS_UPDATES_REPO_KEY_FILE}"
+        apt_add_repo_pinning "$FIPS_UPDATES_REPO_PREFERENCES" \
+                         LP-PPA-ubuntu-advantage-fips-updates 1001
+        apt_install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
+        apt_install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
+        echo -n 'Running apt-get update... '
+        check_result apt_get update
+        echo 'Ubuntu FIPS-UPDATES PPA repository enabled.'
+    fi
+
+    #if a fips package is found on the system, assume fips was configured before
+    #users could be running with fips=0 or fips=1, so just checking package here
+    if apt_is_package_installed fips-initramfs; then
+       fips_configured=1
+    fi
+
+    # update all the fips packages
+    echo -n 'Updating FIPS packages (this may take a while)... '
+    # shellcheck disable=SC2086
+    check_result apt_get install $FIPS_HMAC_PACKAGES $FIPS_OTHER_PACKAGES
+
+    #if fips was configured before, just update the boot loader
+    #if fips is enabled for the first time, configure fips
+    if [ "$fips_configured" -eq 1 ]; then
+        if [ "$ARCH" = "s390x" ]; then
+            echo -n 'Updating zipl to enable updated fips kernel... '
+            check_result zipl
+        else
+            echo -n 'Updating grub to enable updated fips kernel... '
+            check_result update-grub
+        fi
+    else
+        echo "Configuring FIPS... "
+        _fips_configure
+    fi
+    echo "Successfully updated FIPS packages. Please reboot into the new FIPS kernel."
 }
 
 fips_is_enabled() {

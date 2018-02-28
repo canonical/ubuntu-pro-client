@@ -75,7 +75,9 @@ Commands:
  enable-livepatch <TOKEN>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
                            canonical-livepatch snap will also be removed
-
+ update-fips <token> [-y]  Install and enable updated non-certified FIPS
+                           modules. With "-y" or "--yes" the user prompt
+                           will be bypassed.
 EOF
     error_exit invalid_command
 }
@@ -107,6 +109,23 @@ main() {
 
         disable-*)
             service_disable "$service" "$@"
+            ;;
+
+        update-*)
+            local token="$1"
+            local bypass_prompt=0
+            while true ; do
+               case "$2" in
+                  --yes | -y)
+                     bypass_prompt=1
+                     break;
+                     ;;
+                  *)
+                     break;
+                     ;;
+               esac
+            done;
+            service_update "$service" "$token" "$bypass_prompt"
             ;;
 
         is-*-enabled)

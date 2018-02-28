@@ -16,10 +16,30 @@ error_exit() {
         [service_already_enabled]=6
         [arch_not_supported]=7
         [service_already_disabled]=8
+        [no_updates_selected]=9
     )
     exit "${codes[$code]}"
 }
 
+# prompt the user to confirm
+#
+prompt_user() {
+    local answer
+
+    echo >&2
+    while true; do
+        read -r -p "$* [N/y] " answer 2>&1
+        case "$answer" in
+        y|Y)
+            return 0
+            ;;
+        ''|n|N)
+            return 1
+            ;;
+        esac
+    done
+    echo >&2
+}
 check_result() {
     local result output
     result=0
