@@ -5,15 +5,15 @@ service_from_command() {
 
      echo "$command" | sed -n -r \
          's,^is-(.+)-enabled$,\1,p;
-          s,^(enable|disable|update)-(.+)$,\2,p'
+          s,^(enable|disable)-(.+)$,\2,p'
 }
 
 service_enable() {
     local service="$1"
     local token="$2"
 
-    _service_check_user
-    _service_check_support "$service"
+    service_check_user
+    service_check_support "$service"
     _service_check_enabled "$service" || error_exit service_already_enabled
     "${service}_validate_token" "$token" || error_exit invalid_token
     "${service}_enable" "$token"
@@ -22,22 +22,11 @@ service_enable() {
 service_disable() {
     local service="$1"
 
-    _service_check_user
-    _service_check_support "$service"
+    service_check_user
+    service_check_support "$service"
     _service_check_disabled "$service" || error_exit service_already_disabled
     shift 1
    "${service}_disable" "$@"
-}
-
-service_update() {
-    local service="$1"
-    local token="$2"
-    local bypass_prompt="$3"
-
-    _service_check_user
-    _service_check_support "$service"
-    "${service}_validate_token" "$token" || error_exit invalid_token
-    "${service}_update" "$token" "$bypass_prompt"
 }
 
 service_is_enabled() {
@@ -69,14 +58,14 @@ service_print_status() {
     fi
 }
 
-_service_check_user() {
+service_check_user() {
     if [ "$(id -u)" -ne 0 ]; then
         error_msg "This command must be run as root (try using sudo)"
         error_exit not_root
     fi
 }
 
-_service_check_support() {
+service_check_support() {
     local service="$1"
 
     check_series_arch_supported "$service"

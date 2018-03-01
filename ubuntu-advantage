@@ -71,13 +71,13 @@ Commands:
  disable-esm               disable the ESM repository
  enable-fips <TOKEN>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
- disabe-fips               currently not supported
+ disable-fips              currently not supported
+ update-fips <TOKEN> [-y|  Install and enable updated non-certified FIPS
+                    --yes] modules. With an optional "-y" or "--yes" the
+                           user prompt will be bypassed.
  enable-livepatch <TOKEN>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
                            canonical-livepatch snap will also be removed
- update-fips <token> [-y]  Install and enable updated non-certified FIPS
-                           modules. With "-y" or "--yes" the user prompt
-                           will be bypassed.
 EOF
     error_exit invalid_command
 }
@@ -111,7 +111,7 @@ main() {
             service_disable "$service" "$@"
             ;;
 
-        update-*)
+        update-fips)
             local token="$1"
             local bypass_prompt=0
             while true ; do
@@ -125,7 +125,10 @@ main() {
                      ;;
                esac
             done;
-            service_update "$service" "$token" "$bypass_prompt"
+            service_check_user
+            service_check_support "fips"
+            fips_validate_token "$token" || error_exit invalid_token
+            fips_update "$token" "$bypass_prompt"
             ;;
 
         is-*-enabled)
