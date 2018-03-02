@@ -57,7 +57,7 @@ It's currently not possible to disable FIPS after it has been enabled.
 
 .TP
 .B
-update-fips \fItoken\fR[\fB\-y|--yes\fR]
+update-fips \fItoken\fR [\fB\-y\fR]
 Updating the FIPS modules will take the system out of FIPS compliance as the
 updated modules are not FIPS certified. The option enables the FIPS-UPDATES
 PPA repository, installs the updated FIPS modules and configures the bootloader
@@ -67,7 +67,7 @@ ubuntu-advantage script to update FIPS modules, the system MUST be rebooted
 to complete the update process. Failing to reboot will result in the system
 not running the updated FIPS kernel.
 The \fItoken\fR argument must be in the form "user:password".
-The \fB\-y|--yes\fR argument is optional to bypass the user prompt and
+The \fB\-y\fR argument is optional to bypass the user prompt and
 install updates.
 
 The following FIPS modules will be updated and put in FIPS mode -

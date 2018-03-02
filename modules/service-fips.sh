@@ -61,7 +61,7 @@ fips_update() {
 
     check_token "$FIPS_UPDATES_REPO_URL" "$token"
 
-    echo -n "Updating FIPS packages will take the system out of FIPS compliance."
+    echo "Updating FIPS packages will take the system out of FIPS compliance."
     if [ "$bypass_prompt" -ne 1 ]; then
         if ! prompt_user 'Do you want to proceed?'; then
             error_msg "Aborting updating FIPS packages..."

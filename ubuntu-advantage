@@ -72,9 +72,9 @@ Commands:
  enable-fips <TOKEN>       enable the FIPS PPA repository and install,
                            configure and enable FIPS certified modules
  disable-fips              currently not supported
- update-fips <TOKEN> [-y|  Install and enable updated non-certified FIPS
-                    --yes] modules. With an optional "-y" or "--yes" the
-                           user prompt will be bypassed.
+ update-fips <TOKEN> [-y]  Install and enable updated non-certified FIPS
+                           modules. With an optional "-y" the user prompt
+                           will be bypassed.
  enable-livepatch <TOKEN>  enable the Livepatch service
  disable-livepatch [-r]    disable the Livepatch service. With "-r", the
                            canonical-livepatch snap will also be removed
@@ -114,17 +114,14 @@ main() {
         update-fips)
             local token="$1"
             local bypass_prompt=0
-            while true ; do
-               case "$2" in
-                  --yes | -y)
-                     bypass_prompt=1
-                     break;
-                     ;;
-                  *)
-                     break;
-                     ;;
-               esac
-            done;
+            if [ -n "$2" ]; then
+                if [ "$2" = "-y" ]; then
+                    bypass_prompt=1
+                else
+                    error_msg "Unknown option \"$2\""
+                    usage
+                fi
+            fi
             service_check_user
             service_check_support "fips"
             fips_validate_token "$token" || error_exit invalid_token
