@@ -1,6 +1,8 @@
 ubuntu-advantage-tools (15) bionic; urgency=medium
 
   * New upstream release
+    - added update-fips command. This command installs FIPS modules updated
+      with CVEs and bug fixes.
 
  -- Andreas Hasenack <andreas@canonical.com>  Mon, 19 Feb 2018 14:29:15 -0300
 
