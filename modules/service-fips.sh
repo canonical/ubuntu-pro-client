@@ -106,7 +106,7 @@ fips_update() {
 
     # show the message to reboot only if fips kernel has undergone an upgrade or fips is
     # being configured the first time
-    if [ "$fips_kernel_version" != $(package_version linux-fips) ] || [ "$fips_configured" -eq 0 ]; then
+    if [ "$fips_kernel_version" != "$(package_version linux-fips)" ] || [ "$fips_configured" -eq 0 ]; then
         echo " Please reboot into the new FIPS kernel."
     fi
 }
