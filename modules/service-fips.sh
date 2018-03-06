@@ -58,6 +58,7 @@ fips_update() {
     local token="$1"
     local bypass_prompt="$2"
     local fips_configured=0
+    local fips_kernel_version=0
 
     check_token "$FIPS_UPDATES_REPO_URL" "$token"
 
@@ -86,6 +87,8 @@ fips_update() {
     # users could be running with fips=0 or fips=1, so just checking package here
     if apt_is_package_installed fips-initramfs; then
        fips_configured=1
+       # get the fips kernel version installed here
+       fips_kernel_version=$(package_version linux-fips)
     fi
 
     # update all the fips packages
@@ -93,21 +96,19 @@ fips_update() {
     # shellcheck disable=SC2086
     check_result apt_get install $FIPS_HMAC_PACKAGES $FIPS_OTHER_PACKAGES
 
-    # if fips was configured before, just update the boot loader
-    # if fips is enabled for the first time, configure fips
-    if [ "$fips_configured" -eq 1 ]; then
-        if [ "$ARCH" = "s390x" ]; then
-            echo -n 'Updating zipl to enable updated fips kernel... '
-            check_result zipl
-        else
-            echo -n 'Updating grub to enable updated fips kernel... '
-            check_result update-grub
-        fi
-    else
+    # if fips was never configured before and is enabled for the
+    # first time, configure fips
+    if [ "$fips_configured" -eq 0 ]; then
         echo "Configuring FIPS... "
         _fips_configure
     fi
-    echo "Successfully updated FIPS packages. Please reboot into the new FIPS kernel."
+    echo -n "Successfully updated FIPS packages."
+
+    # show the message to reboot only if fips kernel has undergone an upgrade or fips is
+    # being configured the first time
+    if [ "$fips_kernel_version" != $(package_version linux-fips) ] || [ "$fips_configured" -eq 0 ]; then
+        echo " Please reboot into the new FIPS kernel."
+    fi
 }
 
 fips_is_enabled() {
