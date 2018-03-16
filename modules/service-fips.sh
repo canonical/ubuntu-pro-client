@@ -145,8 +145,10 @@ fips_check_support() {
 }
 
 fips_print_status() {
-    apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL"
-    if [ $? -eq 0 ]; then
+    local result=0
+
+    apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL" || result=$?
+    if [ $result -eq 0 ]; then
         echo "fips-updates (uncertified):enabled"
     else
         echo "fips-updates (uncertified):disabled"
