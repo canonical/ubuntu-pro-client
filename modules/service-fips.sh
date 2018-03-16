@@ -54,7 +54,7 @@ fips_disable() {
     not_supported 'Disabling FIPS'
 }
 
-fips_update() {
+fips_updates_enable() {
     local token="$1"
     local bypass_prompt="$2"
     local fips_configured=0
@@ -142,6 +142,15 @@ fips_check_support() {
             fi
             ;;
     esac
+}
+
+fips_print_status() {
+    apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL"
+    if [ $? -eq 0 ]; then
+        echo "fips-updates (uncertified):enabled"
+    else
+        echo "fips-updates (uncertified):disabled"
+    fi
 }
 
 _fips_configure() {

@@ -61,23 +61,25 @@ Ubuntu Advantage offerings.
 Currently available are:
 - Ubuntu Extended Security Maintenance archive (https://ubuntu.com/esm)
 - Canonical FIPS 140-2 Certified Modules
+- Canonical FIPS 140-2 Non-Certified Module Updates
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 
 Commands:
- version                   show the tool version
- status [NAME]             show current status of Ubuntu Advantage offerings
-                           (or of a specific one if provided)
- enable-esm <TOKEN>        enable the ESM repository
- disable-esm               disable the ESM repository
- enable-fips <TOKEN>       enable the FIPS PPA repository and install,
-                           configure and enable FIPS certified modules
- disable-fips              currently not supported
- update-fips <TOKEN> [-y]  Install and enable updated non-certified FIPS
-                           modules. With an optional "-y" the user prompt
-                           will be bypassed.
- enable-livepatch <TOKEN>  enable the Livepatch service
- disable-livepatch [-r]    disable the Livepatch service. With "-r", the
-                           canonical-livepatch snap will also be removed
+ version                           show the tool version
+ status [NAME]                     show current status of Ubuntu Advantage
+                                   offerings (or of a specific one if provided)
+ enable-esm <TOKEN>                enable the ESM repository
+ disable-esm                       disable the ESM repository
+ enable-fips <TOKEN>               enable the FIPS PPA repository and install,
+                                   configure and enable FIPS certified modules
+ disable-fips                      currently not supported
+ enable-fips-updates <TOKEN> [-y]  enable non-certified FIPS-UPDATES PPA
+                                   repository and install updates. With an
+                                   optional "-y" the user prompt will be
+                                   bypassed.
+ enable-livepatch <TOKEN>          enable the Livepatch service
+ disable-livepatch [-r]            disable the Livepatch service. With "-r", the
+                                   canonical-livepatch snap will also be removed
 EOF
     error_exit invalid_command
 }
@@ -89,7 +91,8 @@ main() {
     local service
     service=$(service_from_command "$command")
     # if the command contains a service name, check that it's valid
-    if [ "$service" ] && ! name_in_list "$service" "$SERVICES"; then
+    if [ "$service" ] && ! name_in_list "$service" "$SERVICES" \
+           && [ "$service" != "fips-updates" ]; then
         error_msg "Invalid command: \"$command\""
         usage
     fi
@@ -103,15 +106,9 @@ main() {
             package_version ubuntu-advantage-tools
             ;;
 
-        enable-*)
-            service_enable "$service" "$@"
-            ;;
-
-        disable-*)
-            service_disable "$service" "$@"
-            ;;
-
-        update-fips)
+        # special case, adding it above enable-*. There is no separate
+        # fips-update service.
+        enable-fips-updates)
             local token="$1"
             local bypass_prompt=0
             if [ -n "$2" ]; then
@@ -125,7 +122,15 @@ main() {
             service_check_user
             service_check_support "fips"
             fips_validate_token "$token" || error_exit invalid_token
-            fips_update "$token" "$bypass_prompt"
+            fips_updates_enable "$token" "$bypass_prompt"
+            ;;
+
+        enable-*)
+            service_enable "$service" "$@"
+            ;;
+
+        disable-*)
+            service_disable "$service" "$@"
             ;;
 
         is-*-enabled)

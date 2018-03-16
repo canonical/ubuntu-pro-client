@@ -265,8 +265,8 @@ class FIPSTest(UbuntuAdvantageTest):
             process.stderr)
 
     def test_update_fips(self):
-        """The update-fips option enables the FIPS-UPDATES repository."""
-        process = self.script('update-fips', 'user:pass', '-y')
+        """The enable-fips-updates option enables FIPS-UPDATES repository."""
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu FIPS-UPDATES PPA repository enabled.',
                       process.stdout)
@@ -302,13 +302,13 @@ class FIPSTest(UbuntuAdvantageTest):
         """Existing auth.conf entries are preserved."""
         auth = 'machine example.com login user password pass\n'
         self.apt_auth_file.write_text(auth)
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(0, process.returncode)
         self.assertIn(auth, self.apt_auth_file.read_text())
 
     def test_update_fips_writes_config(self):
-        """The update-fips option writes fips configuration."""
-        self.script('update-fips', 'user:pass', '-y')
+        """The enable-fips-updates option writes fips configuration."""
+        self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(
             'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT fips=1"',
             self.boot_cfg.read_text().strip())
@@ -316,28 +316,28 @@ class FIPSTest(UbuntuAdvantageTest):
     def test_update_fips_writes_config_with_boot_partition(self):
         """The fips configuration includes the /boot partition."""
         self.fstab.write_text('/dev/sda1 /boot ext2 defaults 0 1\n')
-        self.script('update-fips', 'user:pass', '-y')
+        self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertIn('bootdev=/dev/sda1', self.boot_cfg.read_text())
 
     def test_update_fips_writes_config_s390x_parameters(self):
         """On S390x, FIPS parameters are appended to the config file."""
         self.ARCH = 's390x'
         self.boot_cfg.write_text('parameters=foo\n')
-        self.script('update-fips', 'user:pass', '-y')
+        self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual('parameters=foo fips=1\n', self.boot_cfg.read_text())
 
     def test_update_unsupported_on_i686(self):
         """FIPS is unsupported on i686 arch."""
         self.ARCH = 'i686'
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(7, process.returncode)
         self.assertIn(
             'Sorry, but Canonical FIPS 140-2 Modules is not supported on i686',
             process.stderr)
 
     def test_update_fips_missing_token(self):
-        """The token must be specified when using update-fips."""
-        process = self.script('update-fips')
+        """The token must be specified when using enable-fips-updates."""
+        process = self.script('enable-fips-updates')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
@@ -345,7 +345,7 @@ class FIPSTest(UbuntuAdvantageTest):
 
     def test_update_fips_invalid_token_format(self):
         """The FIPS token must be specified as "user:password"."""
-        process = self.script('update-fips', 'foo-bar', '-y')
+        process = self.script('enable-fips-updates', 'foo-bar', '-y')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
@@ -358,7 +358,7 @@ class FIPSTest(UbuntuAdvantageTest):
             '  401  Unauthorized [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn('Invalid token', process.stderr)
@@ -368,7 +368,7 @@ class FIPSTest(UbuntuAdvantageTest):
         message = 'E: Failed to fetch https://esm.ubuntu.com/  HttpError401'
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn('Invalid token', process.stderr)
@@ -380,7 +380,7 @@ class FIPSTest(UbuntuAdvantageTest):
             '  404  Not Found [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn(
@@ -388,18 +388,18 @@ class FIPSTest(UbuntuAdvantageTest):
             process.stderr)
 
     def test_update_fips_only_supported_on_xenial(self):
-        """The update-fips option fails if not on Xenial."""
+        """The enable-fips-updates option fails if not on Xenial."""
         self.SERIES = 'zesty'
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(4, process.returncode)
         self.assertIn(
             'Canonical FIPS 140-2 Modules is not supported on zesty',
             process.stderr)
 
     def test_update_fips_x86_64_aes_not_available(self):
-        """The update-fips command fails if AESNI is not available."""
+        """The enable-fips-updates command fails if AESNI is not available."""
         self.cpuinfo.write_text('flags\t\t: fpu tsc')
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(7, process.returncode)
         self.assertEqual(
             'FIPS requires AES CPU extensions', process.stderr.strip())
@@ -408,7 +408,7 @@ class FIPSTest(UbuntuAdvantageTest):
         """POWER8 processors are supported by FIPS."""
         self.ARCH = 'ppc64le'
         self.cpuinfo.write_text('cpu\t\t: POWER8 (raw), altivec supported')
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(0, process.returncode)
         self.assertIn('Successfully updated FIPS packages', process.stdout)
 
@@ -416,7 +416,7 @@ class FIPSTest(UbuntuAdvantageTest):
         """processors older than POWER8 are not supported by FIPS."""
         self.ARCH = 'ppc64le'
         self.cpuinfo.write_text('cpu\t\t: POWER7')
-        process = self.script('update-fips', 'user:pass', '-y')
+        process = self.script('enable-fips-updates', 'user:pass', '-y')
         self.assertEqual(7, process.returncode)
         self.assertEqual(
             'FIPS requires POWER8 or later', process.stderr.strip())
