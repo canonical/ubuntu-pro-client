@@ -62,7 +62,7 @@ fips_updates_enable() {
 
     check_token "$FIPS_UPDATES_REPO_URL" "$token"
 
-    echo "Updating FIPS packages will take the system out of FIPS compliance."
+    echo "Installing updates from FIPS-UPDATES repository will take the system out of FIPS compliance."
     if [ "$bypass_prompt" -ne 1 ]; then
         if ! prompt_user 'Do you want to proceed?'; then
             error_msg "Aborting updating FIPS packages..."
@@ -149,9 +149,9 @@ fips_print_status() {
 
     apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL" || result=$?
     if [ $result -eq 0 ]; then
-        echo "fips-updates (uncertified):enabled"
+        echo "fips-updates (uncertified): enabled"
     else
-        echo "fips-updates (uncertified):disabled"
+        echo "fips-updates (uncertified): disabled"
     fi
 }
 
