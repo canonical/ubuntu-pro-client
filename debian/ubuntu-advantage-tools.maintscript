@@ -1,0 +1,2 @@
+mv_conffile /etc/update-motd.d/99-livepatch /etc/update-motd.d/80-livepatch 15~
+mv_conffile /etc/update-motd.d/99-esm /etc/update-motd.d/80-esm 15~
