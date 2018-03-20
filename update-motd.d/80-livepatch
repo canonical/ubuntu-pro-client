@@ -74,20 +74,20 @@ case "$livepatch_status" in
         # do nothing
         ;;
     "enabled")
+        echo
         echo " * Canonical Livepatch is enabled."
         print_status "${check_state}" "${patch_state}"
-        echo
         ;;
     "disabled")
+        echo
         echo " * Canonical Livepatch is available for installation."
         echo "   - Reduce system reboots and improve kernel security. Activate at:"
         echo "     https://ubuntu.com/livepatch"
-        echo
         ;;
     *)
+        echo
         echo " * Canonical Livepatch is in an unknown state."
         echo "   - Please see /var/log/syslog for more information."
         echo "     Status: \"$livepatch_status\""
-        echo
         ;;
 esac
