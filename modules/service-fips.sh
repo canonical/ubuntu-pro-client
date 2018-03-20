@@ -59,8 +59,14 @@ fips_updates_enable() {
     local bypass_prompt="$2"
     local fips_configured=0
     local fips_kernel_version=0
+    local result=0
 
     check_token "$FIPS_UPDATES_REPO_URL" "$token"
+    _fips_updates_is_enabled || result=$?
+    if [ $result -eq 0 ]; then
+        error_msg "FIPS-UPDATES repository is already enabled."
+        return;
+    fi
 
     echo "Installing updates from FIPS-UPDATES repository will take the system out of FIPS compliance."
     if [ "$bypass_prompt" -ne 1 ]; then
@@ -102,12 +108,12 @@ fips_updates_enable() {
         echo "Configuring FIPS... "
         _fips_configure
     fi
-    echo -n "Successfully updated FIPS packages."
+    echo "Successfully updated FIPS packages."
 
     # show the message to reboot only if fips kernel has undergone an upgrade or fips is
     # being configured the first time
     if [ "$fips_kernel_version" != "$(package_version linux-fips)" ] || [ "$fips_configured" -eq 0 ]; then
-        echo " Please reboot into the new FIPS kernel."
+        echo "Please reboot into the new FIPS kernel."
     fi
 }
 
@@ -147,12 +153,16 @@ fips_check_support() {
 fips_print_status() {
     local result=0
 
-    apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL" || result=$?
+    _fips_updates_is_enabled || result=$?
     if [ $result -eq 0 ]; then
         echo "fips-updates (uncertified): enabled"
     else
         echo "fips-updates (uncertified): disabled"
     fi
+}
+
+_fips_updates_is_enabled() {
+    apt-cache policy | grep -Fq "$FIPS_UPDATES_REPO_URL"
 }
 
 _fips_configure() {
