@@ -1,8 +1,9 @@
 ubuntu-advantage-tools (15) bionic; urgency=medium
 
   * New upstream release
+  * Reorder esm and livepatch MOTDs (LP: #1757171)
 
- -- Andreas Hasenack <andreas@canonical.com>  Mon, 19 Feb 2018 14:29:15 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 20 Mar 2018 11:59:30 -0300
 
 ubuntu-advantage-tools (14) bionic; urgency=medium
 
