@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (17) bionic; urgency=medium
+
+  * New upstream release
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 21 Mar 2018 14:20:04 -0300
+
 ubuntu-advantage-tools (16) bionic; urgency=medium
 
   * d/t/update-motd-run: fix path to the esm motd (LP: #1757490)
