@@ -6,10 +6,11 @@ ubuntu-advantage-tools (16) bionic; urgency=medium
 
 ubuntu-advantage-tools (15) bionic; urgency=medium
 
-  * New upstream release
-  * Reorder esm and livepatch MOTDs (LP: #1757171)
+  * Rename motd scripts so they are shown a bit earlier (LP: #1757171)
+  * Move empty line placement in the livepatch motd to the beginning of the
+    message to avoid double blank lines.
 
- -- Andreas Hasenack <andreas@canonical.com>  Tue, 20 Mar 2018 11:59:30 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 20 Mar 2018 16:44:31 -0300
 
 ubuntu-advantage-tools (14) bionic; urgency=medium
 
