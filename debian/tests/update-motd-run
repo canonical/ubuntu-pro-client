@@ -5,7 +5,7 @@ set -ex
 # virgin system should not have esm enabled
 codename=`lsb_release -cs`
 description=`lsb_release -ds`
-motd_text=`/bin/sh /etc/update-motd.d/99-esm`
+motd_text=`/bin/sh /etc/update-motd.d/80-esm`
 
 if [ "$codename" = "precise" ]; then
 	echo $motd_text | grep "This ${description} system is past"
