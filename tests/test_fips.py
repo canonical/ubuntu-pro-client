@@ -294,7 +294,7 @@ class FIPSTest(UbuntuAdvantageTest):
             'Configuring FIPS...',
             process.stdout)
         self.assertIn(
-            'Successfully updated FIPS packages. '
+            'Successfully updated FIPS packages.\n'
             'Please reboot into the new FIPS kernel',
             process.stdout)
 

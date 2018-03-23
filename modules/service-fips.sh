@@ -61,12 +61,13 @@ fips_updates_enable() {
     local fips_kernel_version=0
     local result=0
 
-    check_token "$FIPS_UPDATES_REPO_URL" "$token"
     _fips_updates_is_enabled || result=$?
     if [ $result -eq 0 ]; then
         error_msg "FIPS-UPDATES repository is already enabled."
         return;
     fi
+
+    check_token "$FIPS_UPDATES_REPO_URL" "$token"
 
     echo "Installing updates from FIPS-UPDATES repository will take the system out of FIPS compliance."
     if [ "$bypass_prompt" -ne 1 ]; then
