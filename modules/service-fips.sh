@@ -65,7 +65,7 @@ fips_updates_enable() {
     _fips_updates_is_enabled || result=$?
     if [ $result -eq 0 ]; then
         error_msg "FIPS-UPDATES repository is already enabled."
-        return;
+        error_exit service_already_enabled
     fi
 
     check_token "$FIPS_UPDATES_REPO_URL" "$token"
@@ -74,7 +74,7 @@ fips_updates_enable() {
     if [ "$bypass_prompt" -ne 1 ]; then
         if ! prompt_user 'Do you want to proceed?'; then
             error_msg "Aborting updating FIPS packages..."
-            error_exit service_already_enabled
+            return
         fi
     fi
 
