@@ -1,11 +1,25 @@
-ubuntu-advantage-tools (15) bionic; urgency=medium
+ubuntu-advantage-tools (17) bionic; urgency=medium
 
   * New upstream release
     - added enable-fips-updates command. This command enables the fips-updates
       repository to install updates to FIPS modules. The updated modules from
       fips-updates repository are non-certified.
 
- -- Andreas Hasenack <andreas@canonical.com>  Mon, 19 Feb 2018 14:29:15 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 21 Mar 2018 14:20:04 -0300
+
+ubuntu-advantage-tools (16) bionic; urgency=medium
+
+  * d/t/update-motd-run: fix path to the esm motd (LP: #1757490)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 21 Mar 2018 13:58:34 -0300
+
+ubuntu-advantage-tools (15) bionic; urgency=medium
+
+  * Rename motd scripts so they are shown a bit earlier (LP: #1757171)
+  * Move empty line placement in the livepatch motd to the beginning of the
+    message to avoid double blank lines.
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 20 Mar 2018 16:44:31 -0300
 
 ubuntu-advantage-tools (14) bionic; urgency=medium
 

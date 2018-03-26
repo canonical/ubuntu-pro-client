@@ -59,7 +59,7 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
     SERIES = 'trusty'
     ARCH = 'x86_64'
     KERNEL_VERSION = '4.4.0-89-generic'
-    SCRIPT = 'update-motd.d/99-livepatch'
+    SCRIPT = 'update-motd.d/80-livepatch'
 
     def setUp(self):
         super().setUp()
