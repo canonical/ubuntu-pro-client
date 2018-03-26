@@ -57,6 +57,7 @@ fips_disable() {
 fips_updates_enable() {
     local token="$1"
     local bypass_prompt="$2"
+
     local fips_configured=0
     local fips_kernel_version=0
     local result=0
@@ -73,7 +74,7 @@ fips_updates_enable() {
     if [ "$bypass_prompt" -ne 1 ]; then
         if ! prompt_user 'Do you want to proceed?'; then
             error_msg "Aborting updating FIPS packages..."
-            return
+            error_exit service_already_enabled
         fi
     fi
 

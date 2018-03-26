@@ -34,7 +34,7 @@ prompt_user() {
         ''|n|N)
             return 1
             ;;
-        * ) echo "Please answer y or n."
+        *) echo "Please answer y or n."
             ;;
         esac
     done
