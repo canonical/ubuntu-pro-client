@@ -122,7 +122,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'FIPS_REPO_PREFERENCES': str(self.fips_repo_preferences),
             'FIPS_UPDATES_REPO_PREFERENCES': str(
-                                        self.fips_updates_repo_preferences),
+                self.fips_updates_repo_preferences),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_HELPER': str(self.apt_helper),
             'APT_AUTH_FILE': str(self.apt_auth_file),
