@@ -1,6 +1,9 @@
 ubuntu-advantage-tools (17) bionic; urgency=medium
 
   * New upstream release
+    - added enable-fips-updates command. This command enables the fips-updates
+      repository to install updates to FIPS modules. The updated modules from
+      fips-updates repository are non-certified.
 
  -- Andreas Hasenack <andreas@canonical.com>  Wed, 21 Mar 2018 14:20:04 -0300
 

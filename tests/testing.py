@@ -55,8 +55,12 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.cpuinfo = Path(self.tempdir.join('cpuinfo'))
         self.esm_repo_list = Path(self.tempdir.join('esm-repo.list'))
         self.fips_repo_list = Path(self.tempdir.join('fips-repo.list'))
+        self.fips_updates_repo_list = Path(
+            self.tempdir.join('fips-updates-repo.list'))
         self.fips_repo_preferences = Path(
             self.tempdir.join('preferences-fips'))
+        self.fips_updates_repo_preferences = Path(
+            self.tempdir.join('preferences-fips-updates'))
         self.fips_enabled_file = Path(self.tempdir.join('fips_enabled_file'))
         self.bin_dir = Path(self.tempdir.join('bin'))
         self.etc_dir = Path(self.tempdir.join('etc'))
@@ -76,6 +80,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
+        (self.keyrings_dir / 'ubuntu-fips-updates-keyring.gpg').write_text(
+            'GPG key')
         self.cpuinfo.write_text('flags\t\t: fpu apic')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-helper')
@@ -110,10 +116,13 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'CPUINFO': str(self.cpuinfo),
             'ESM_REPO_LIST': str(self.esm_repo_list),
             'FIPS_REPO_LIST': str(self.fips_repo_list),
+            'FIPS_UPDATES_REPO_LIST': str(self.fips_updates_repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'FIPS_REPO_PREFERENCES': str(self.fips_repo_preferences),
+            'FIPS_UPDATES_REPO_PREFERENCES': str(
+                                        self.fips_updates_repo_preferences),
             'KEYRINGS_DIR': str(self.keyrings_dir),
             'APT_HELPER': str(self.apt_helper),
             'APT_AUTH_FILE': str(self.apt_auth_file),
