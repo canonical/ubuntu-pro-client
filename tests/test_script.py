@@ -1,6 +1,7 @@
 """Tests for the ubuntu-advantage script."""
 
 from testing import UbuntuAdvantageTest
+from fakes import LIVEPATCH_UNSUPPORTED_KERNEL
 
 
 class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
@@ -90,6 +91,16 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         """The script exits with error on unknown service status name."""
         process = self.script('status', 'unknown')
         self.assertEqual(process.returncode, 1)
+
+    def test_status_livepatch_unsupported_kernel(self):
+        """Livepatch is unavailable on an unsupported kernel."""
+        self.SERIES = 'xenial'
+        self.setup_livepatch(
+            installed=True, enabled=False,
+            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
+        process = self.script('status')
+        self.assertIn('livepatch: disabled (unsupported kernel)',
+                      process.stdout)
 
     def test_version(self):
         """The version command shows the package version."""

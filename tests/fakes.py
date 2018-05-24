@@ -30,6 +30,16 @@ EOF
 fi
 """
 
+# regardless of the command, canonical-livepatch will always exit with
+# status 1 and a message like this
+LIVEPATCH_UNSUPPORTED_KERNEL = """
+cat <<EOF
+2018/05/24 18:51:29 cannot use livepatch: your kernel "4.15.0-1010-kvm" \
+is not eligible for livepatch updates
+EOF
+exit 1
+"""
+
 LIVEPATCH_ENABLED = """
 if [ "$1" = "status" ]; then
     cat <<EOF
