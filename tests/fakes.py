@@ -169,6 +169,12 @@ fips: disabled (not available)
 livepatch: disabled (not available)
 """
 
+STATUS_CACHE_LIVEPATCH_DISABLED_UNSUPPORTED = """\
+esm: disabled (not available)
+fips: disabled (not available)
+livepatch: disabled (unsupported kernel)
+"""
+
 STATUS_CACHE_MIXED_CONTENT = """\
 esm: enabled
     patchState: should-not-be-here

@@ -9,6 +9,7 @@ from fakes import (
     STATUS_CACHE_LIVEPATCH_ENABLED_NO_CONTENT,
     STATUS_CACHE_LIVEPATCH_DISABLED_AVAILABLE,
     STATUS_CACHE_LIVEPATCH_DISABLED_UNAVAILABLE,
+    STATUS_CACHE_LIVEPATCH_DISABLED_UNSUPPORTED,
     STATUS_CACHE_MIXED_CONTENT)
 from random import randrange
 
@@ -97,6 +98,19 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
         process = self.script()
         self.assertEqual(0, process.returncode)
         self.assertEqual('', process.stdout)
+
+    def test_disabled_unsupported(self):
+        """Livepatch is disabled and unsupported."""
+        self.KERNEL_VERSION = '4.15.0-1010-kvm'
+        self.ua_status_cache.write_text(
+            STATUS_CACHE_LIVEPATCH_DISABLED_UNSUPPORTED)
+        process = self.script()
+        self.assertEqual(0, process.returncode)
+        self.assertIn('Canonical Livepatch is installed but disabled',
+                      process.stdout)
+        self.assertIn('Your running kernel {} is not supported.'.format(
+                      self.KERNEL_VERSION),
+                      process.stdout)
 
     def test_other_state_fields_ignored(self):
         """The MOTD script ignores *State fields not from livepatch."""
