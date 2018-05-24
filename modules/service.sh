@@ -49,6 +49,8 @@ service_print_status() {
         status="disabled"
         if ! is_supported "$series" "$archs"; then
             status+=" (not available)"
+        else
+            status+=$(service_disabled_reason "${service}")
         fi
     fi
 
@@ -56,6 +58,12 @@ service_print_status() {
     if [ "$status" = enabled ]; then
         _service_print_detailed_status "$service"
     fi
+}
+
+service_disabled_reason() {
+    local service="$1"
+
+    call_if_defined "${service}_disabled_reason"
 }
 
 service_check_user() {

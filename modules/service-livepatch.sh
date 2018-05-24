@@ -59,6 +59,17 @@ livepatch_is_enabled() {
     canonical-livepatch status >/dev/null 2>&1 || return 1
 }
 
+livepatch_disabled_reason() {
+    local output
+    local result=0
+    local unsupported_kernel_msg="is not eligible for livepatch updates"
+
+    output=$(canonical-livepatch status 2>&1) || result=$?
+    if echo "${output}" | grep -q "${unsupported_kernel_msg}"; then
+        echo " (unsupported kernel)"
+    fi
+}
+
 livepatch_print_status() {
     canonical-livepatch status
 }
