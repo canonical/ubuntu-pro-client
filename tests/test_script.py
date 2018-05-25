@@ -95,6 +95,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
     def test_status_livepatch_unsupported_kernel(self):
         """Livepatch is unavailable on an unsupported kernel."""
         self.SERIES = 'xenial'
+        self.ARCH = 'x86_64'
         self.setup_livepatch(
             installed=True, enabled=False,
             livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
