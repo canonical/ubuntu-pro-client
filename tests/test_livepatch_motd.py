@@ -108,8 +108,8 @@ class LivepatchMOTDTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Canonical Livepatch is installed but disabled',
                       process.stdout)
-        self.assertIn('Your running kernel {} is not supported.'.format(
-                      self.KERNEL_VERSION),
+        self.assertIn('Kernel {} is not supported (https://bit.ly/'
+                      'livepatch-faq)'.format(self.KERNEL_VERSION),
                       process.stdout)
 
     def test_other_state_fields_ignored(self):

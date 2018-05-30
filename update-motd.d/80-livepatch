@@ -77,7 +77,7 @@ case "$livepatch_status" in
     "disabled (unsupported kernel)")
         echo
         echo " * Canonical Livepatch is installed but disabled"
-        echo "   - Your running kernel ${KERNEL_VERSION} is not supported."
+        echo "   - Kernel ${KERNEL_VERSION} is not supported (https://bit.ly/livepatch-faq)"
         ;;
     "enabled")
         echo
