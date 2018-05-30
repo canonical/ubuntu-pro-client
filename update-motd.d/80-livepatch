@@ -2,6 +2,7 @@
 
 UA=${UA:-"/usr/bin/ubuntu-advantage"}
 UA_STATUS_CACHE=${UA_STATUS_CACHE:-"/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.cache"}
+KERNEL_VERSION=${KERNEL_VERSION:-"$(uname -r)"}
 
 [ -x "$UA" ] || exit 0
 
@@ -72,6 +73,11 @@ check_state=$(echo "$ua_status"|sed -r -n "/^${service_name}:/,/^\\S/s,^[[:blank
 case "$livepatch_status" in
     "disabled (not available)")
         # do nothing
+        ;;
+    "disabled (unsupported kernel)")
+        echo
+        echo " * Canonical Livepatch is installed but disabled"
+        echo "   - Kernel ${KERNEL_VERSION} is not supported (https://bit.ly/livepatch-faq)"
         ;;
     "enabled")
         echo
