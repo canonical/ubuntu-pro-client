@@ -77,7 +77,10 @@ Commands:
                                    repository and install updates. With an
                                    optional "-y" the user prompt will be
                                    bypassed.
- enable-livepatch <TOKEN>          enable the Livepatch service
+ enable-livepatch <TOKEN> [--no-kernel-change]
+                                   enable the Livepatch service, installing a
+                                   compatible kernel if necessary unless
+                                   --no-kernel-change is also given.
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
 EOF

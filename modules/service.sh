@@ -11,12 +11,14 @@ service_from_command() {
 service_enable() {
     local service="$1"
     local token="$2"
+    shift 2
+    local opts="$@"
 
     service_check_user
     service_check_support "$service"
     _service_check_enabled "$service" || error_exit service_already_enabled
     "${service}_validate_token" "$token" || error_exit invalid_token
-    "${service}_enable" "$token"
+    "${service}_enable" "$token" "$opts"
 }
 
 service_disable() {

@@ -3,15 +3,35 @@
 LIVEPATCH_SERVICE_TITLE="Canonical Livepatch"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial bionic"
 LIVEPATCH_SUPPORTED_ARCHS="x86_64"
+LIVEPATCH_FALLBACK_KERNEL="linux-image-generic"
 
 livepatch_enable() {
     local token="$1"
+    local no_kernel_change=""
+
+    local extra_arg="$*"
+    if [ -n "$extra_arg" ]; then
+        if [ "$extra_arg" = "--no-kernel-change" ]; then
+            no_kernel_change="yes"
+        else
+            error_msg "Unknown option \"$extra_arg\""
+            usage
+        fi
+    fi
 
     _livepatch_install_prereqs
     if ! livepatch_is_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
             canonical-livepatch enable "$token"
+            # if this failed, and the reason is an unsupported kernel, and
+            # we are allowed to change the kernel, then:
+            # - install the right kernel;
+            # - ask the user to reboot;
+            # - and run the same enable command again.
+            #
+            # try to reuse the code from livepatch_disabled_reason(), or
+            # refactor things so that it's not repeated here
         else
             echo
             echo "Your currently running kernel ($KERNEL_VERSION) is too old to"
