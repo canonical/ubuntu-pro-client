@@ -24,6 +24,7 @@ _livepatch_try_enable() {
 
     output=$(canonical-livepatch enable "$token" 2>&1) || result=$?
     if [ "${result}" -eq "0" ]; then
+        echo "${output}"
         return 0
     fi
     # ok, we failed, why?
