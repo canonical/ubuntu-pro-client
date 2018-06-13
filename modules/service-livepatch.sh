@@ -17,7 +17,7 @@ _livepatch_install_supported_kernel() {
 
 _livepatch_try_enable() {
     local token="$1"
-    local no_kernel_change="$2"
+    local allow_kernel_change="$2"
     local output=""
     local result=0
     local disabled_reason=""
@@ -30,7 +30,7 @@ _livepatch_try_enable() {
     # ok, we failed, why?
     disabled_reason=$(livepatch_disabled_reason "${output}")
     if echo "${disabled_reason}" | grep -q "unsupported kernel"; then
-        if [ "${no_kernel_change}" = "no" ]; then
+        if [ "${allow_kernel_change}" = "yes" ]; then
             _livepatch_install_supported_kernel
             echo "A new kernel was installed to support Livepatch."
             echo "Please reboot into it and then run the enable command again:"
@@ -64,13 +64,13 @@ _old_kernel_message() {
 
 livepatch_enable() {
     local token="$1"
-    local no_kernel_change="no"
+    local allow_kernel_change="no"
 
     shift
     local extra_arg="$*"
     if [ -n "$extra_arg" ]; then
-        if [ "$extra_arg" = "--no-kernel-change" ]; then
-            no_kernel_change="yes"
+        if [ "$extra_arg" = "--allow-kernel-change" ]; then
+            allow_kernel_change="yes"
         else
             error_msg "Unknown option for enable-livepatch: \"$extra_arg\""
             usage
@@ -81,7 +81,7 @@ livepatch_enable() {
     if ! livepatch_is_enabled; then
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
-            _livepatch_try_enable "${token}" "${no_kernel_change}"
+            _livepatch_try_enable "${token}" "${allow_kernel_change}"
         else
             _old_kernel_message "${token}"
             error_exit kernel_too_old
