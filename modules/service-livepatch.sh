@@ -138,7 +138,7 @@ livepatch_disabled_reason() {
     if [ -z "${message_to_check}" ]; then
         output=$(canonical-livepatch status 2>&1) || result=$?
     else
-        outout="${message_to_check}"
+        output="${message_to_check}"
     fi
     if echo "${output}" | grep -q "${unsupported_kernel_msg}"; then
         echo " (unsupported kernel)"
