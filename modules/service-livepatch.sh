@@ -9,6 +9,8 @@ _livepatch_install_supported_kernel() {
     if apt_is_package_installed "${LIVEPATCH_FALLBACK_KERNEL}"; then
         return 0
     fi
+    echo -n "Your running kernel ${KERNEL_VERSION} is not supported"
+    echo "by Livepatch. Installing ${LIVEPATCH_FALLBACK_KERNEL}."
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo -n "Installing ${LIVEPATCH_FALLBACK_KERNEL}... "
