@@ -79,11 +79,16 @@ Managed live kernel patching. For more information, visit
 https://www.ubuntu.com/server/livepatch
 .TP
 .B
-enable-livepatch \fI<token>\fR [\fB\-\-no\-kernel\-change\fR]
+enable-livepatch \fI<token>\fR [\fB\-\-allow\-kernel\-change\fR]
+                                   enable the Livepatch service. If the
+                                   --allow-kernel-change option is provided, a
+                                   Livepatch compatible kernel may be installed
+                                   if needed.
 Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
-https://ubuntu.com/livepatch. Unless \fB\-\-no\-kernel\-change\fR is
-given, this will attempt to install a kernel compatible with Livepatch if
-needed.
+https://ubuntu.com/livepatch. If a Livepatch incompatible kernel is running,
+the installation will fail unless \fB\-\-allow\-kernel\-change\fR is given.
+With this option, a Livepatch compatible kernel will be selected and installed
+if needed.
 .TP
 .B
 disable-livepatch \fR[\fB\-r\fR]
