@@ -40,8 +40,8 @@ _livepatch_try_enable() {
             echo
             echo "Your running kernel ${KERNEL_VERSION} is not supported for"
             echo "the Livepatch service and you requested to not change it."
-            error_exit livepatch_unsupported_kernel
         fi
+        error_exit livepatch_unsupported_kernel
     else
         echo "${output}"
         exit "${result}"
@@ -82,14 +82,6 @@ livepatch_enable() {
         if check_snapd_kernel_support; then
             echo 'Enabling Livepatch with the given token, stand by...'
             _livepatch_try_enable "${token}" "${no_kernel_change}"
-            # if this failed, and the reason is an unsupported kernel, and
-            # we are allowed to change the kernel, then:
-            # - install the right kernel;
-            # - ask the user to reboot;
-            # - and run the same enable command again.
-            #
-            # try to reuse the code from livepatch_disabled_reason(), or
-            # refactor things so that it's not repeated here
         else
             _old_kernel_message "${token}"
             error_exit kernel_too_old
