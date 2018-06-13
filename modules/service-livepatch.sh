@@ -9,12 +9,13 @@ livepatch_enable() {
     local token="$1"
     local no_kernel_change=""
 
+    shift
     local extra_arg="$*"
     if [ -n "$extra_arg" ]; then
         if [ "$extra_arg" = "--no-kernel-change" ]; then
             no_kernel_change="yes"
         else
-            error_msg "Unknown option \"$extra_arg\""
+            error_msg "Unknown option for enable-livepatch: \"$extra_arg\""
             usage
         fi
     fi
