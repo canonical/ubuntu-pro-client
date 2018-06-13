@@ -79,9 +79,11 @@ Managed live kernel patching. For more information, visit
 https://www.ubuntu.com/server/livepatch
 .TP
 .B
-enable-livepatch \fI<token>\fR
+enable-livepatch \fI<token>\fR [\fB\-\-no\-kernel\-change\fR]
 Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
-https://ubuntu.com/livepatch
+https://ubuntu.com/livepatch. Unless \fB\-\-no\-kernel\-change\fR is
+given, this will attempt to install a kernel compatible with Livepatch if
+needed.
 .TP
 .B
 disable-livepatch \fR[\fB\-r\fR]
