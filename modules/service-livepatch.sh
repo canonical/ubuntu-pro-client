@@ -9,8 +9,7 @@ _livepatch_install_supported_kernel() {
     if apt_is_package_installed "${LIVEPATCH_FALLBACK_KERNEL}"; then
         return 0
     fi
-    echo -n "Your running kernel ${KERNEL_VERSION} is not supported"
-    echo "by Livepatch. Installing ${LIVEPATCH_FALLBACK_KERNEL}."
+    echo 'A Livepatch compatible kernel will be installed.'
     echo -n 'Running apt-get update... '
     check_result apt_get update
     echo -n "Installing ${LIVEPATCH_FALLBACK_KERNEL}... "
@@ -32,21 +31,25 @@ _livepatch_try_enable() {
     # ok, we failed, why?
     disabled_reason=$(livepatch_disabled_reason "${output}")
     if echo "${disabled_reason}" | grep -q "unsupported kernel"; then
+        echo "Your running kernel ${KERNEL_VERSION} is not supported by"
+        echo 'Livepatch.'
         if [ "${allow_kernel_change}" = "yes" ]; then
             _livepatch_install_supported_kernel
-            echo "A new kernel was installed to support Livepatch."
-            echo "Please reboot into it and then run the enable command again:"
+            echo 'A new kernel was installed to support Livepatch.'
+            echo 'Please reboot into it and then run the enable command again:'
             echo
             echo "sudo $SCRIPTNAME enable-livepatch $token"
         else
             echo
-            echo "Your running kernel ${KERNEL_VERSION} is not supported for"
-            echo "the Livepatch service and you requested to not change it."
+            echo 'If you want to automatically install a Livepatch supported'
+            echo 'kernel, please run:'
+            echo -n "sudo $SCRIPTNAME enable-livepatch $token "
+            echo '--allow-kernel-change'
         fi
         error_exit livepatch_unsupported_kernel
     else
         echo "${output}"
-        exit "${result}"
+        exit ${result}
     fi
 }
 
