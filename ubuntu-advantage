@@ -4,7 +4,7 @@
 SCRIPTNAME=$(basename "$0")
 
 # Services managed by the script (in alphabetical order)
-SERVICES="esm fips livepatch"
+SERVICES="esm fips livepatch cc"
 
 # system details
 SERIES=${SERIES:-$(lsb_release -cs)}
@@ -80,6 +80,8 @@ Commands:
  enable-livepatch <TOKEN>          enable the Livepatch service
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
+ install-cc <TOKEN>                enable the commoncriteria PPA repository and
+                                   install the ubuntu-commoncriteria .DEB package
 EOF
     error_exit invalid_command
 }
@@ -106,6 +108,15 @@ main() {
             package_version ubuntu-advantage-tools
             ;;
 
+        install-cc)
+            local token="$1"
+
+            service_check_user
+            service_check_support "cc"
+            cc_validate_token "$token" || error_exit invalid_token
+            cc_install "$token"
+            ;;
+
         # special case, adding it above enable-*. There is no separate
         # fips-update service.
         enable-fips-updates)
@@ -126,10 +137,18 @@ main() {
             ;;
 
         enable-*)
+            if [ $service = "cc" ]; then
+                cc_enable
+                error_exit invalid_command
+            fi
             service_enable "$service" "$@"
             ;;
 
         disable-*)
+            if [ $service = "cc" ]; then
+                cc_disable
+                error_exit invalid_command
+            fi
             service_disable "$service" "$@"
             ;;
 

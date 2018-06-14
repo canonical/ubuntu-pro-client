@@ -88,6 +88,16 @@ disable-livepatch \fR[\fB\-r\fR]
 Disable the Livepatch service. If the \fB\-r\fR option is given, the
 canonical-livepatch snap will be removed after the sevice is disabled.
 
+.SH CC (Canonical Common Critieria EAL2)
+Install Common Criteria EAL2 artifacts
+.TP
+.B
+install-cc \fItoken\fR
+Enables the Commoncriteria PPA repository, installs the ubuntu-commoncriteria
+package which has the common criteria artifacts. The artifacts include a
+configure script, a tarball with additional packages and post install scripts
+and a Common Criteria configuration guide. The artifacts will be installed in
+/usr/lib/common-criteria directory.
 .SH EXIT STATUS
 .TP
 .B
