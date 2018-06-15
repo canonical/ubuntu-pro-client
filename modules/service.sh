@@ -12,7 +12,7 @@ service_enable() {
     local service="$1"
     local token="$2"
     shift 2 || shift
-    local opts="$@"
+    local opts="$*"
 
     service_check_user
     service_check_support "$service"
