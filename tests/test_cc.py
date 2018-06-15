@@ -16,8 +16,9 @@ class CCTest(UbuntuAdvantageTest):
         """The install-cc option enables the commoncriteria repository."""
         process = self.script('install-cc', 'user:pass')
         self.assertEqual(0, process.returncode)
-        self.assertIn('Ubuntu Common Criteria PPA repository enabled.',
-             process.stdout)
+        self.assertIn(
+            'Ubuntu Common Criteria PPA repository enabled.',
+            process.stdout)
         expected = (
             'deb https://private-ppa.launchpad.net/fips-cc-stig/'
             'fipsdevppa/ubuntu xenial main\n'
