@@ -137,7 +137,7 @@ main() {
             ;;
 
         enable-*)
-            if [ $service = "cc" ]; then
+            if [ "$service" = "cc" ]; then
                 cc_enable
                 error_exit invalid_command
             fi
@@ -145,7 +145,7 @@ main() {
             ;;
 
         disable-*)
-            if [ $service = "cc" ]; then
+            if [ "$service" = "cc" ]; then
                 cc_disable
                 error_exit invalid_command
             fi
