@@ -63,6 +63,7 @@ Currently available are:
 - Canonical FIPS 140-2 Certified Modules
 - Canonical FIPS 140-2 Non-Certified Module Updates
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
+- Canonical Common Criteria EAL2
 
 Commands:
  version                           show the tool version

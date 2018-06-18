@@ -33,8 +33,8 @@ class CCTest(UbuntuAdvantageTest):
         keyring_file = self.trusted_gpg_dir / 'ubuntu-cc-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
         self.assertIn(
-            'Successfully installed Common Criteria artifacts. Please check'
-            ' in /usr/lib/common-criteria.',
+            'Successfully prepared this machine to host'
+            ' the Common Criteria artifacts',
             process.stdout)
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
@@ -139,4 +139,22 @@ class CCTest(UbuntuAdvantageTest):
         self.assertEqual(4, process.returncode)
         self.assertIn(
             'Canonical Common Criteria is not supported on zesty',
+            process.stderr)
+
+    def test_unsupported_on_i686(self):
+        """CC is unsupported on i686 arch."""
+        self.ARCH = 'i686'
+        process = self.script('install-cc', 'user:pass')
+        self.assertEqual(7, process.returncode)
+        self.assertIn(
+            'Sorry, but Canonical Common Criteria is not supported on i686',
+            process.stderr)
+
+    def test_unsupported_on_arm64(self):
+        """CC is unsupported on arm64 arch."""
+        self.ARCH = 'arm64'
+        process = self.script('install-cc', 'user:pass')
+        self.assertEqual(7, process.returncode)
+        self.assertIn(
+            'Sorry, but Canonical Common Criteria is not supported on arm64',
             process.stderr)

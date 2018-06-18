@@ -29,11 +29,12 @@ cc_install() {
     check_result apt_get update
     echo 'Ubuntu Common Criteria PPA repository enabled.'
 
-    echo -n 'Installing Common Criteria artifacts (this may take a while)...'
+    echo -n 'Installing Common Criteria artifacts (this may take a while)... '
     # shellcheck disable=SC2086
     check_result apt_get install $CC_UBUNTU_COMMONCRITERIA
 
-    echo "Successfully installed Common Criteria artifacts. Please check in /usr/lib/common-criteria."
+    echo -n "Successfully prepared this machine to host the Common Criteria artifacts. "
+    echo "Please follow instructions in Ubuntu-1604-Configuration-Guide in /usr/lib/common-criteria to configure EAL2 on the target machine(s)."
 }
 
 cc_enable() {
