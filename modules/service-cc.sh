@@ -4,7 +4,7 @@ CC_SERVICE_TITLE="Canonical Common Criteria"
 CC_SUPPORTED_SERIES="xenial"
 CC_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 
-CC_REPO_URL="https://private-ppa.launchpad.net/fips-cc-stig/fipsdevppa"
+CC_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/commoncriteria"
 CC_REPO_KEY_FILE="ubuntu-cc-keyring.gpg"
 CC_REPO_LIST=${CC_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-cc-${SERIES}.list"}
 CC_REPO_PREFERENCES=${CC_REPO_PREFERENCES:-"/etc/apt/preferences.d/ubuntu-cc-${SERIES}"}
