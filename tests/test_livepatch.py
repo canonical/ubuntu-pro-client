@@ -2,7 +2,7 @@
 
 from testing import UbuntuAdvantageTest
 from fakes import (APT_GET_LOG_WRAPPER, LIVEPATCH_UNSUPPORTED_KERNEL,
-                  LIVEPATCH_UNKNOWN_ERROR)
+                   LIVEPATCH_UNKNOWN_ERROR)
 
 
 class LivepatchTest(UbuntuAdvantageTest):
