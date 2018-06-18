@@ -219,3 +219,33 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertIn('enable-livepatch {} --allow-kernel-change'.format(
                       self.livepatch_token), process.stdout)
         self.assertEqual(9, process.returncode)
+
+    def test_unsupported_kernel_change_allowed_fallback_not_installed(self):
+        """
+        Enabling livepatch with an unsupported kernel, but allowing the
+        installation of a new kernel, installs the fallback kernel if it's
+        not already installed.
+        """
+        self.SERIES = 'xenial'
+        self.ARCH = 'x86_64'
+        self.KERNEL_VERSION = '4.15.0-1010-kvm'
+        # this is LIVEPATCH_FALLBACK_KERNEL in modules/service-livepatch.sh
+        LIVEPATCH_FALLBACK_KERNEL = 'linux-image-generic'
+        # the fallback kernel is not installed
+        self.make_fake_binary(
+            'dpkg-query',
+            command='[ $2 != {} ]'.format(LIVEPATCH_FALLBACK_KERNEL))
+        self.setup_livepatch(
+            installed=True, enabled=False,
+            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
+        process = self.script('enable-livepatch', self.livepatch_token,
+                              '--allow-kernel-change')
+        self.assertIn('Your running kernel {} is not supported by '
+                      'Livepatch.'.format(self.KERNEL_VERSION), process.stdout)
+        self.assertIn('A Livepatch compatible kernel will be installed.',
+                      process.stdout)
+        self.assertIn('Installing {}'.format(LIVEPATCH_FALLBACK_KERNEL),
+                      process.stdout)
+        self.assertIn('A new kernel was installed to support Livepatch.',
+                      process.stdout)
+        self.assertEqual(9, process.returncode)
