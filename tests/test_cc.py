@@ -27,7 +27,8 @@ class CCTest(UbuntuAdvantageTest):
         self.assertEqual(expected, self.cc_repo_list.read_text())
         self.assertEqual(
             self.apt_auth_file.read_text(),
-            'machine private-ppa.launchpad.net/ubuntu-advantage/commoncriteria/ubuntu/'
+            'machine private-ppa.launchpad.net/ubuntu-advantage/'
+            'commoncriteria/ubuntu/'
             ' login user password pass\n')
         self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         keyring_file = self.trusted_gpg_dir / 'ubuntu-cc-keyring.gpg'
