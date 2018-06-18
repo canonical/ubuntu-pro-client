@@ -194,3 +194,11 @@ class LivepatchTest(UbuntuAdvantageTest):
         # but then writing everything back to stderr if there was an error
         self.assertIn('this goes to stderr', process.stderr)
         self.assertIn('this goes to stdout', process.stderr)
+
+    def test_enable_livepatch_invalid_option(self):
+        """Livepatch enable takes only --allow-kernel-switch besides token."""
+        process = self.script('enable-livepatch', self.livepatch_token,
+                              '--invalid-option')
+        self.assertIn('Unknown option for enable-livepatch: '
+                      '\"--invalid-option\"', process.stderr)
+        self.assertEqual(1, process.returncode)
