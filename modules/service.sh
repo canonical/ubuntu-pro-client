@@ -11,7 +11,11 @@ service_from_command() {
 service_enable() {
     local service="$1"
     local token="$2"
-    shift 2 || shift
+    if [ -n "$token" ]; then
+        shift 2
+    else
+        shift
+    fi
     local opts="$*"
 
     service_check_user
