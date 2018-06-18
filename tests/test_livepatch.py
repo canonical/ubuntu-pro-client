@@ -1,7 +1,8 @@
 """Tests for Livepatch-related commands."""
 
 from testing import UbuntuAdvantageTest
-from fakes import APT_GET_LOG_WRAPPER, LIVEPATCH_UNSUPPORTED_KERNEL
+from fakes import (APT_GET_LOG_WRAPPER, LIVEPATCH_UNSUPPORTED_KERNEL,
+                  LIVEPATCH_UNKNOWN_ERROR)
 
 
 class LivepatchTest(UbuntuAdvantageTest):
@@ -279,3 +280,15 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertIn('A new kernel was installed to support Livepatch.',
                       process.stdout)
         self.assertEqual(9, process.returncode)
+
+    def test_enable_livepatch_output_shown_if_unknown_error(self):
+        """
+        If Livepatch fails to enable due to unknown errors, the error
+        output is shown.
+        """
+        self.setup_livepatch(
+            installed=True, enabled=False,
+            livepatch_command=LIVEPATCH_UNKNOWN_ERROR)
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertIn('something wicked happened here', process.stderr)
+        self.assertEqual(1, process.returncode)

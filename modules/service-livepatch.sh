@@ -48,7 +48,7 @@ _livepatch_try_enable() {
         fi
         error_exit livepatch_unsupported_kernel
     else
-        echo "${output}"
+        error_msg "${output}"
         exit ${result}
     fi
 }
