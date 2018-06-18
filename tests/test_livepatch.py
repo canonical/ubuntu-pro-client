@@ -1,7 +1,7 @@
 """Tests for Livepatch-related commands."""
 
 from testing import UbuntuAdvantageTest
-from fakes import APT_GET_LOG_WRAPPER
+from fakes import APT_GET_LOG_WRAPPER, LIVEPATCH_UNSUPPORTED_KERNEL
 
 
 class LivepatchTest(UbuntuAdvantageTest):
@@ -202,3 +202,20 @@ class LivepatchTest(UbuntuAdvantageTest):
         self.assertIn('Unknown option for enable-livepatch: '
                       '\"--invalid-option\"', process.stderr)
         self.assertEqual(1, process.returncode)
+
+    def test_enable_livepatch_unsupported_kernel_no_change_allowed(self):
+        """Livepatch enable on unsupported kernel and no kernel change."""
+        self.SERIES = 'xenial'
+        self.ARCH = 'x86_64'
+        self.KERNEL_VERSION = '4.15.0-1010-kvm'
+        self.setup_livepatch(
+            installed=True, enabled=False,
+            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
+        process = self.script('enable-livepatch', self.livepatch_token)
+        self.assertIn('Your running kernel {} is not supported by '
+                      'Livepatch.'.format(self.KERNEL_VERSION), process.stdout)
+        self.assertIn('If you want to automatically install a Livepatch '
+                      'supported kernel', process.stdout)
+        self.assertIn('enable-livepatch {} --allow-kernel-change'.format(
+                      self.livepatch_token), process.stdout)
+        self.assertEqual(9, process.returncode)

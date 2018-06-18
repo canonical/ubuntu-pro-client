@@ -31,7 +31,7 @@ _livepatch_try_enable() {
     # ok, we failed, why?
     disabled_reason=$(livepatch_disabled_reason "${output}")
     if echo "${disabled_reason}" | grep -q "unsupported kernel"; then
-        echo "Your running kernel ${KERNEL_VERSION} is not supported by"
+        echo -n "Your running kernel ${KERNEL_VERSION} is not supported by "
         echo 'Livepatch.'
         if [ "${allow_kernel_change}" = "yes" ]; then
             _livepatch_install_supported_kernel
@@ -41,7 +41,7 @@ _livepatch_try_enable() {
             echo "sudo $SCRIPTNAME enable-livepatch $token"
         else
             echo
-            echo 'If you want to automatically install a Livepatch supported'
+            echo -n 'If you want to automatically install a Livepatch supported '
             echo 'kernel, please run:'
             echo -n "sudo $SCRIPTNAME enable-livepatch $token "
             echo '--allow-kernel-change'
