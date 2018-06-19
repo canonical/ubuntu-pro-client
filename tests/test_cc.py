@@ -12,9 +12,9 @@ class CCTest(UbuntuAdvantageTest):
         super().setUp()
         self.setup_cc()
 
-    def test_install_cc(self):
-        """The install-cc option enables the commoncriteria repository."""
-        process = self.script('install-cc', 'user:pass')
+    def test_enable_cc_provisioning(self):
+        """The enable-cc_provisioning enables commoncriteria repository."""
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Ubuntu Common Criteria PPA repository enabled.',
@@ -42,120 +42,123 @@ class CCTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
-    def test_install_cc_auth_if_other_entries(self):
+    def test_enable_cc_provisioning_auth_if_other_entries(self):
         """Existing auth.conf entries are preserved."""
         auth = 'machine example.com login user password pass\n'
         self.apt_auth_file.write_text(auth)
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(auth, self.apt_auth_file.read_text())
 
-    def test_install_cc_install_apt_transport_https(self):
-        """install-cc installs apt-transport-https if needed."""
+    def test_enable_cc_provisioning_install_apt_transport_https(self):
+        """enable-cc_provisioning installs apt-transport-https if needed."""
         self.apt_method_https.unlink()
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
-    def test_install_cc_install_apt_transport_https_fails(self):
+    def test_enable_cc_provisioning_install_apt_transport_https_fails(self):
         """Stderr is printed if apt-transport-https install fails."""
         self.apt_method_https.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(1, process.returncode)
         self.assertIn('failed', process.stderr)
 
-    def test_install_cc_install_ca_certificates(self):
+    def test_enable_cc_provisioning_install_ca_certificates(self):
         """enable-fips installs ca-certificates if needed."""
         self.ca_certificates.unlink()
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Installing missing dependency ca-certificates',
             process.stdout)
 
-    def test_install_cc_install_ca_certificates_fails(self):
+    def test_enable_cc_provisioning_install_ca_certificates_fails(self):
         """Stderr is printed if ca-certificates install fails."""
         self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(1, process.returncode)
         self.assertIn('failed', process.stderr)
 
-    def test_install_cc_missing_token(self):
+    def test_enable_cc_provisioning_missing_token(self):
         """The token must be specified when using enable-fips."""
-        process = self.script('install-cc')
+        process = self.script('enable-cc_provisioning')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
-    def test_install_cc_invalid_token_format(self):
+    def test_enable_cc_provisioning_invalid_token_format(self):
         """The CC token must be specified as "user:password"."""
-        process = self.script('install-cc', 'foo-bar')
+        process = self.script('enable-cc_provisioning', 'foo-bar')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
-    def test_install_cc_invalid_token(self):
+    def test_enable_cc_provisioning_invalid_token(self):
         """If token is invalid, an error is returned."""
         message = (
             'E: Failed to fetch https://esm.ubuntu.com/'
             '  401  Unauthorized [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn('Invalid token', process.stderr)
 
-    def test_install_cc_error_checking_token(self):
+    def test_enable_cc_provisioning_error_checking_token(self):
         """If token check fails, an error is returned."""
         message = (
             'E: Failed to fetch https://esm.ubuntu.com/'
             '  404  Not Found [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn(
             'Failed checking token (404  Not Found [IP: 1.2.3.4])',
             process.stderr)
 
-    def test_install_cc_skip_token_check_no_helper(self):
+    def test_enable_cc_provisioning_skip_token_check_no_helper(self):
         """If apt-helper is not found, the token check is skipped."""
         self.apt_helper.unlink()
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Checking token... SKIPPED', process.stdout)
 
-    def test_install_cc_only_supported_on_xenial(self):
-        """The install-cc option fails if not on Xenial."""
+    def test_enable_cc_provisioning_only_supported_on_xenial(self):
+        """The enable-cc_provisioning option fails if not on Xenial."""
         self.SERIES = 'zesty'
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(4, process.returncode)
         self.assertIn(
-            'Canonical Common Criteria is not supported on zesty',
+            'Canonical Common Criteria EAL2 Provisioning is '
+            'not supported on zesty',
             process.stderr)
 
     def test_unsupported_on_i686(self):
         """CC is unsupported on i686 arch."""
         self.ARCH = 'i686'
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
-            'Sorry, but Canonical Common Criteria is not supported on i686',
+            'Sorry, but Canonical Common Criteria EAL2 Provisioning '
+            'is not supported on i686',
             process.stderr)
 
     def test_unsupported_on_arm64(self):
         """CC is unsupported on arm64 arch."""
         self.ARCH = 'arm64'
-        process = self.script('install-cc', 'user:pass')
+        process = self.script('enable-cc_provisioning', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
-            'Sorry, but Canonical Common Criteria is not supported on arm64',
+            'Sorry, but Canonical Common Criteria EAL2 Provisioning '
+            'is not supported on arm64',
             process.stderr)
