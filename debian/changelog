@@ -2,8 +2,10 @@ ubuntu-advantage-tools (18) UNRELEASED; urgency=medium
 
   * Have ua status cope with the additional livepatch of running a kernel
     that is not supported for livepatches.
+  * Have an option for enable-livepatch to install a compatible kernel if
+    needed.
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 24 May 2018 17:26:25 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 19 Jun 2018 11:44:27 -0300
 
 ubuntu-advantage-tools (17) bionic; urgency=medium
 
