@@ -13,8 +13,8 @@ class CCTest(UbuntuAdvantageTest):
         self.setup_cc()
 
     def test_enable_cc_provisioning(self):
-        """The enable-cc_provisioning enables commoncriteria repository."""
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        """The enable-cc-provisioning enables commoncriteria repository."""
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Ubuntu Common Criteria PPA repository enabled.',
@@ -46,14 +46,14 @@ class CCTest(UbuntuAdvantageTest):
         """Existing auth.conf entries are preserved."""
         auth = 'machine example.com login user password pass\n'
         self.apt_auth_file.write_text(auth)
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(auth, self.apt_auth_file.read_text())
 
     def test_enable_cc_provisioning_install_apt_transport_https(self):
-        """enable-cc_provisioning installs apt-transport-https if needed."""
+        """enable-cc-provisioning installs apt-transport-https if needed."""
         self.apt_method_https.unlink()
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Installing missing dependency apt-transport-https',
@@ -63,14 +63,14 @@ class CCTest(UbuntuAdvantageTest):
         """Stderr is printed if apt-transport-https install fails."""
         self.apt_method_https.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(1, process.returncode)
         self.assertIn('failed', process.stderr)
 
     def test_enable_cc_provisioning_install_ca_certificates(self):
         """enable-fips installs ca-certificates if needed."""
         self.ca_certificates.unlink()
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn(
             'Installing missing dependency ca-certificates',
@@ -80,13 +80,13 @@ class CCTest(UbuntuAdvantageTest):
         """Stderr is printed if ca-certificates install fails."""
         self.ca_certificates.unlink()
         self.make_fake_binary('apt-get', command='echo failed >&2; false')
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(1, process.returncode)
         self.assertIn('failed', process.stderr)
 
     def test_enable_cc_provisioning_missing_token(self):
         """The token must be specified when using enable-fips."""
-        process = self.script('enable-cc_provisioning')
+        process = self.script('enable-cc-provisioning')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
@@ -94,7 +94,7 @@ class CCTest(UbuntuAdvantageTest):
 
     def test_enable_cc_provisioning_invalid_token_format(self):
         """The CC token must be specified as "user:password"."""
-        process = self.script('enable-cc_provisioning', 'foo-bar')
+        process = self.script('enable-cc-provisioning', 'foo-bar')
         self.assertEqual(3, process.returncode)
         self.assertIn(
             'Invalid token, it must be in the form "user:password"',
@@ -107,7 +107,7 @@ class CCTest(UbuntuAdvantageTest):
             '  401  Unauthorized [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn('Invalid token', process.stderr)
@@ -119,7 +119,7 @@ class CCTest(UbuntuAdvantageTest):
             '  404  Not Found [IP: 1.2.3.4]')
         self.make_fake_binary(
             'apt-helper', command='echo "{}"; exit 1'.format(message))
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(3, process.returncode)
         self.assertIn('Checking token... ERROR', process.stdout)
         self.assertIn(
@@ -129,14 +129,14 @@ class CCTest(UbuntuAdvantageTest):
     def test_enable_cc_provisioning_skip_token_check_no_helper(self):
         """If apt-helper is not found, the token check is skipped."""
         self.apt_helper.unlink()
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Checking token... SKIPPED', process.stdout)
 
     def test_enable_cc_provisioning_only_supported_on_xenial(self):
-        """The enable-cc_provisioning option fails if not on Xenial."""
+        """The enable-cc-provisioning option fails if not on Xenial."""
         self.SERIES = 'zesty'
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(4, process.returncode)
         self.assertIn(
             'Canonical Common Criteria EAL2 Provisioning is '
@@ -146,7 +146,7 @@ class CCTest(UbuntuAdvantageTest):
     def test_unsupported_on_i686(self):
         """CC is unsupported on i686 arch."""
         self.ARCH = 'i686'
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
             'Sorry, but Canonical Common Criteria EAL2 Provisioning '
@@ -156,7 +156,7 @@ class CCTest(UbuntuAdvantageTest):
     def test_unsupported_on_arm64(self):
         """CC is unsupported on arm64 arch."""
         self.ARCH = 'arm64'
-        process = self.script('enable-cc_provisioning', 'user:pass')
+        process = self.script('enable-cc-provisioning', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
             'Sorry, but Canonical Common Criteria EAL2 Provisioning '

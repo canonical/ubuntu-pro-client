@@ -15,8 +15,8 @@ service_enable() {
     service_check_user
     service_check_support "$service"
     _service_check_enabled "$service" || error_exit service_already_enabled
-    "${service}_validate_token" "$token" || error_exit invalid_token
-    "${service}_enable" "$token"
+    "${service//-/_}_validate_token" "$token" || error_exit invalid_token
+    "${service//-/_}_enable" "$token"
 }
 
 service_disable() {
@@ -26,24 +26,25 @@ service_disable() {
     service_check_support "$service"
     _service_check_disabled "$service" || error_exit service_already_disabled
     shift 1
-   "${service}_disable" "$@"
+   "${service//-/_}_disable" "$@"
 }
 
 service_is_enabled() {
     local service="$1"
 
-    "${service}_is_enabled"
+    "${service//-/_}_is_enabled"
 }
 
 service_print_status() {
     local service="$1"
+    local service_u=${service^^}
 
     local series archs
-    series=$(expand_var "${service^^}_SUPPORTED_SERIES")
-    archs=$(expand_var "${service^^}_SUPPORTED_ARCHS")
+    series=$(expand_var "${service_u//-/_}_SUPPORTED_SERIES")
+    archs=$(expand_var "${service_u//-/_}_SUPPORTED_ARCHS")
 
     local status=""
-    if "${service}_is_enabled"; then
+    if "${service//-/_}_is_enabled"; then
         status="enabled"
     else
         status="disabled"
@@ -63,7 +64,7 @@ service_print_status() {
 service_disabled_reason() {
     local service="$1"
 
-    call_if_defined "${service}_disabled_reason"
+    call_if_defined "${service//-/_}_disabled_reason"
 }
 
 service_check_user() {
@@ -77,14 +78,15 @@ service_check_support() {
     local service="$1"
 
     check_series_arch_supported "$service"
-    call_if_defined "${service}_check_support"
+    call_if_defined "${service//-/_}_check_support"
 }
 
 _service_check_enabled() {
     local service="$1"
+    local service_u=${service^^}
 
     local title
-    title=$(expand_var "${service^^}_SERVICE_TITLE")
+    title=$(expand_var "${service_u//-/_}_SERVICE_TITLE")
     if service_is_enabled "$service"; then
         error_msg "$title is already enabled"
         return 1
@@ -93,9 +95,10 @@ _service_check_enabled() {
 
 _service_check_disabled() {
     local service="$1"
+    local service_u=${service^^}
 
     local title
-    title=$(expand_var "${service^^}_SERVICE_TITLE")
+    title=$(expand_var "${service_u//-/_}_SERVICE_TITLE")
     if ! service_is_enabled "$service"; then
         error_msg "$title is not enabled"
         return 1
@@ -106,5 +109,5 @@ _service_print_detailed_status() {
     local service="$1"
 
     # indent output
-    call_if_defined "${service}_print_status" | sed 's/^/  /'
+    call_if_defined "${service//-/_}_print_status" | sed 's/^/  /'
 }

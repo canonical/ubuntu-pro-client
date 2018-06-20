@@ -45,7 +45,7 @@ cc_provisioning_is_enabled() {
 }
 
 cc_provisioning_print_status() {
-    echo "cc_provisioning: artifacts are in /usr/lib/common-criteria"
+    echo "cc-provisioning: artifacts are in /usr/lib/common-criteria"
 }
 
 _cc_is_installed() {

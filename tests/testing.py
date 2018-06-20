@@ -119,7 +119,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'ESM_REPO_LIST': str(self.esm_repo_list),
             'FIPS_REPO_LIST': str(self.fips_repo_list),
             'FIPS_UPDATES_REPO_LIST': str(self.fips_updates_repo_list),
-            'CC_REPO_LIST': str(self.cc_repo_list),
+            'CC_PROVISIONING_REPO_LIST': str(self.cc_repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),

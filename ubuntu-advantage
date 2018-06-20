@@ -4,7 +4,7 @@
 SCRIPTNAME=$(basename "$0")
 
 # Services managed by the script (in alphabetical order)
-SERVICES="cc_provisioning esm fips livepatch"
+SERVICES="cc-provisioning esm fips livepatch"
 
 # system details
 SERIES=${SERIES:-$(lsb_release -cs)}
@@ -81,7 +81,7 @@ Commands:
  enable-livepatch <TOKEN>          enable the Livepatch service
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
- enable-cc_provisioning <TOKEN>    enable the commoncriteria PPA repository and
+ enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
                                    install the ubuntu-commoncriteria .DEB package
 EOF
     error_exit invalid_command
