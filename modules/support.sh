@@ -9,12 +9,11 @@ not_supported() {
 
 check_series_arch_supported() {
     local service="$1"
-    local service_u=${service^^}
 
     local title supported_series supported_archs
-    title=$(expand_var "${service_u//-/_}_SERVICE_TITLE")
-    supported_series=$(expand_var "${service_u//-/_}_SUPPORTED_SERIES")
-    supported_archs=$(expand_var "${service_u//-/_}_SUPPORTED_ARCHS")
+    title=$(expand_var "${service^^}_SERVICE_TITLE")
+    supported_series=$(expand_var "${service^^}_SUPPORTED_SERIES")
+    supported_archs=$(expand_var "${service^^}_SUPPORTED_ARCHS")
 
     if ! is_supported_arch "$supported_archs"; then
         error_msg "Sorry, but $title is not supported on $ARCH"
