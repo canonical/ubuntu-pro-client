@@ -54,7 +54,7 @@ service_print_status() {
         fi
     fi
 
-    echo "$service: $status"
+    echo "${service//_/-}: $status"
     if [ "$status" = enabled ]; then
         _service_print_detailed_status "$service"
     fi
