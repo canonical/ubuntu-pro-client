@@ -78,7 +78,11 @@ Commands:
                                    repository and install updates. With an
                                    optional "-y" the user prompt will be
                                    bypassed.
- enable-livepatch <TOKEN>          enable the Livepatch service
+ enable-livepatch <TOKEN> [--allow-kernel-change]
+                                   enable the Livepatch service. If the
+                                   --allow-kernel-change option is provided, a
+                                   Livepatch compatible kernel may be installed
+                                   if needed.
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
  enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
