@@ -4,7 +4,7 @@
 SCRIPTNAME=$(basename "$0")
 
 # Services managed by the script (in alphabetical order)
-SERVICES="esm fips livepatch"
+SERVICES="cc-provisioning esm fips livepatch"
 
 # system details
 SERIES=${SERIES:-$(lsb_release -cs)}
@@ -42,12 +42,12 @@ print_status() {
 
     local services="$SERVICES"
     if [ "$service" ]; then
-        name_in_list "$service" "$SERVICES" || error_exit invalid_command
+        name_in_list "${service//_/-}" "$SERVICES" || error_exit invalid_command
         services="$service"
     fi
 
     for service in $services; do
-        service_print_status "$service"
+        service_print_status "${service//-/_}"
     done
 }
 
@@ -63,6 +63,7 @@ Currently available are:
 - Canonical FIPS 140-2 Certified Modules
 - Canonical FIPS 140-2 Non-Certified Module Updates
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
+- Canonical Common Criteria EAL2 certification artifacts provisioning
 
 Commands:
  version                           show the tool version
@@ -84,6 +85,9 @@ Commands:
                                    if needed.
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
+ enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
+                                   install the ubuntu-commoncriteria .DEB package
+ disable-cc-provisioning           currently not supported
 EOF
     error_exit invalid_command
 }
@@ -100,6 +104,10 @@ main() {
         error_msg "Invalid command: \"$command\""
         usage
     fi
+    # replace -(hyphen) in service commands with _(underscore) (eg: cc-provisioning) to
+    # use in generic service function invocations. Adding it here so the name_in_list
+    # function call above uses the original command.
+    service=${service//-/_}
 
     case "$command" in
         status)

@@ -57,6 +57,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.fips_repo_list = Path(self.tempdir.join('fips-repo.list'))
         self.fips_updates_repo_list = Path(
             self.tempdir.join('fips-updates-repo.list'))
+        self.cc_repo_list = Path(self.tempdir.join('cc-repo.list'))
         self.fips_repo_preferences = Path(
             self.tempdir.join('preferences-fips'))
         self.fips_updates_repo_preferences = Path(
@@ -82,6 +83,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-fips-updates-keyring.gpg').write_text(
             'GPG key')
+        (self.keyrings_dir / 'ubuntu-cc-keyring.gpg').write_text('GPG key')
         self.cpuinfo.write_text('flags\t\t: fpu apic')
         self.make_fake_binary('apt-get')
         self.make_fake_binary('apt-helper')
@@ -117,6 +119,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'ESM_REPO_LIST': str(self.esm_repo_list),
             'FIPS_REPO_LIST': str(self.fips_repo_list),
             'FIPS_UPDATES_REPO_LIST': str(self.fips_updates_repo_list),
+            'CC_PROVISIONING_REPO_LIST': str(self.cc_repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
@@ -174,3 +177,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
             return
         self.make_fake_binary('dpkg-query')
         self.fips_enabled_file.write_text('1' if enabled else '0')
+
+    def setup_cc(self, enabled=False):
+        """Setup the CC repository."""
+        self.make_fake_binary(
+            'dpkg-query', command='[ $2 != ubuntu-commoncriteria ]')
