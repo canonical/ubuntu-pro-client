@@ -32,7 +32,7 @@ cc_provisioning_enable() {
     # shellcheck disable=SC2086
     check_result apt_get install $CC_PROVISIONING_UBUNTU_COMMONCRITERIA
 
-    echo "Successfully prepared this machine to host the Common Criteria artifacts. "
+    echo "Successfully prepared this machine to host the Common Criteria artifacts."
     echo "Please follow instructions in /usr/lib/common-criteria/README to configure EAL2 on the target machine(s)."
 }
 
