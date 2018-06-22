@@ -68,6 +68,9 @@ status:
       * CVE-2015-7837 LP: #1509563
       * CVE-2016-0758 LP: #1581202
 EOF
+# empty lines, for regression testing of
+# https://github.com/CanonicalLtd/ubuntu-advantage-script/issues/145
+echo
 echo
 elif [ "$1" = "enable" ]; then
     echo -n "2017/08/04 18:03:47 Error executing enable?auth-token="

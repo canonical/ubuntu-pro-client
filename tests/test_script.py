@@ -59,7 +59,7 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         """The status output has no empty lines when livepatch is enabled."""
         self.setup_livepatch(installed=True, enabled=True)
         process = self.script('status', 'livepatch')
-        lines = process.stdout.split('\n')
+        lines = process.stdout.split('\n')[:-1]
         for line in lines:
             self.assertNotEqual('', line.strip())
 
