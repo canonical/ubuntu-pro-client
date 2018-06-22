@@ -143,7 +143,8 @@ livepatch_disabled_reason() {
 }
 
 livepatch_print_status() {
-    canonical-livepatch status
+    # remove empty lines
+    canonical-livepatch status | grep -vE '^[[:blank:]]*$'
 }
 
 livepatch_validate_token() {

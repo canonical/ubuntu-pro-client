@@ -55,6 +55,14 @@ class UbuntuAdvantageScriptTest(UbuntuAdvantageTest):
         self.assertIn("livepatch: disabled (not available)", process.stdout)
         self.assertIn("esm: enabled", process.stdout)
 
+    def test_livepatch_status_no_empty_line(self):
+        """The status output has no empty lines when livepatch is enabled."""
+        self.setup_livepatch(installed=True, enabled=True)
+        process = self.script('status', 'livepatch')
+        lines = process.stdout.split('\n')[:-1]
+        for line in lines:
+            self.assertNotEqual('', line.strip())
+
     def test_status_xenial(self):
         """The status command shows only livepatch available on xenial."""
         self.SERIES = 'xenial'
