@@ -71,10 +71,10 @@ Commands:
                                    offerings (or of a specific one if provided)
  enable-esm <TOKEN>                enable the ESM repository
  disable-esm                       disable the ESM repository
- enable-fips <TOKEN>               enable the FIPS PPA repository and install,
+ enable-fips <TOKEN>               enable the FIPS repository and install,
                                    configure and enable FIPS certified modules
  disable-fips                      currently not supported
- enable-fips-updates <TOKEN> [-y]  enable non-certified FIPS-UPDATES PPA
+ enable-fips-updates <TOKEN> [-y]  enable non-certified FIPS-UPDATES
                                    repository and install updates. With an
                                    optional "-y" the user prompt will be
                                    bypassed.
