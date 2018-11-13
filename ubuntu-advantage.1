@@ -101,10 +101,16 @@ package which has the common criteria artifacts. The artifacts include a
 configure script, a tarball with additional packages and post install scripts
 and an evaluated configuration guide. The artifacts will be installed in
 /usr/lib/common-criteria directory.
+.SH CIS (Canonical CIS Audit tooling)
+Enable CIS Auditing PPA and install CIS audit tool package
 .TP
 .B
-disable-cc-provisioning
-Disabling common criteria provisioning is not supported
+enable-cisaudit \fItoken\fR
+Enables the Security Benchmarks PPA, installs the ubuntu-cisbenchmark-16.04
+package which has the CIS Audit tooling files. They include the xccdf and xml
+files and scripts to check compliance against the CIS 16.04 benchmark. The
+files will be installed in /usr/lib/ubuntu-securityguides/cisbenchmark-16.04.
+The documentation for the tool is available in /usr/share/doc/cisbenchmark-16.04.
 .SH EXIT STATUS
 .TP
 .B

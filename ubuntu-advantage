@@ -4,7 +4,7 @@
 SCRIPTNAME=$(basename "$0")
 
 # Services managed by the script (in alphabetical order)
-SERVICES="cc-provisioning esm fips livepatch"
+SERVICES="cc-provisioning esm fips livepatch cisaudit"
 
 # system details
 SERIES=${SERIES:-$(lsb_release -cs)}
@@ -88,6 +88,9 @@ Commands:
  enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
                                    install the ubuntu-commoncriteria .DEB package
  disable-cc-provisioning           currently not supported
+ enable-cisaudit                   enable the security benchmarks PPA repository
+                                   and install the ubuntu-securityguides .DEB
+                                   package.
 EOF
     error_exit invalid_command
 }
