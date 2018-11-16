@@ -1,13 +1,13 @@
 # shellcheck disable=SC2034,SC2039
  
-CISAUDIT_SERVICE_TITLE="Canonical CIS 16.04 Benchmark Audit Tool"
+CISAUDIT_SERVICE_TITLE="Canonical CIS Benchmark 16.04 Audit Tool"
 CISAUDIT_SUPPORTED_SERIES="xenial"
 CISAUDIT_SUPPORTED_ARCHS="x86_64 ppc64le s390x"
 
 CISAUDIT_REPO_URL="https://private-ppa.launchpad.net/ubuntu-advantage/security-benchmarks"
 CISAUDIT_REPO_KEY_FILE="ubuntu-securitybenchmarks-keyring.gpg"
 CISAUDIT_REPO_LIST=${CISAUDIT_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-cis-${SERIES}.list"}
-CISAUDIT_UBUNTU_CISBENCHMARK="cisbenchmark-16.04"
+CISAUDIT_UBUNTU_CISBENCHMARK="ubuntu-cisbenchmark-16.04"
 
 cisaudit_enable() {
     local token="$1"
@@ -15,7 +15,7 @@ cisaudit_enable() {
 
     _cisaudit_is_installed || result=$?
     if [ $result -eq 0 ]; then
-        error_msg "CIS audit package is already installed and files are available in /usr/lib/ubuntu-securityguides/cisbenchmark-16.04."
+        error_msg "CIS benchmark audit package is already installed and files are available in /usr/share/ubuntu-securityguides/$CISAUDIT_UBUNTU_CISBENCHMARK."
         error_exit service_already_enabled
     fi
 
@@ -33,11 +33,20 @@ cisaudit_enable() {
     check_result apt_get install $CISAUDIT_UBUNTU_CISBENCHMARK
 
     echo "Successfully installed the CIS audit tool."
-    echo "Please follow instructions in /usr/share/doc/cisbenchmark-16.04/README to run the CIS audit tool on the target machine(s)."
+    echo "Please follow instructions in /usr/share/doc/$CISAUDIT_UBUNTU_CISBENCHMARK/README to run the CIS audit tool on the target machine(s)."
 }
 
 cisaudit_disable() {
-    not_supported 'Disabling CIS Audit tool install'
+    if [ -f "$CISAUDIT_REPO_LIST" ]; then
+        apt_remove_repo "$CISAUDIT_REPO_LIST" "$CISAUDIT_REPO_URL" \
+                        "$APT_KEYS_DIR/$CISAUDIT_REPO_KEY_FILE"
+        echo -n 'Running apt-get update... '
+        check_result apt_get update
+        check_result apt_get remove $CISAUDIT_UBUNTU_CISBENCHMARK
+        echo "Canonical CIS Benchmark 16.04 Audit Tool Disabled."
+    else
+        echo 'Canonical CIS Benchmark 16.04 Audit Tool is not enabled.'
+    fi
 }
 
 cisaudit_is_enabled() {
@@ -45,7 +54,7 @@ cisaudit_is_enabled() {
 }
 
 cisaudit_print_status() {
-    echo "cisaudit: files are in /usr/lib/ubuntu-securityguides/cisbenchmark-16.04"
+    echo "cisaudit: files are in /usr/share/ubuntu-securityguides/$CISAUDIT_UBUNTU_CISBENCHMARK"
 }
 
 _cisaudit_is_installed() {

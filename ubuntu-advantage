@@ -89,8 +89,9 @@ Commands:
                                    install the ubuntu-commoncriteria .DEB package
  disable-cc-provisioning           currently not supported
  enable-cisaudit                   enable the security benchmarks PPA repository
-                                   and install the ubuntu-securityguides .DEB
-                                   package.
+                                   and install the ubuntu-cisbenchmark-16.04 DEB package.
+ disable-cisaudit                  disable the security benchmarks PPA repository
+                                   and uninstall the ubuntu-cisbenchmark-16.04 DEB package.
 EOF
     error_exit invalid_command
 }

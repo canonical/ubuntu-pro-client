@@ -12,7 +12,7 @@ class CISAUDITTest(UbuntuAdvantageTest):
         super().setUp()
         self.setup_cisaudit()
 
-    def test_enable_cisaudit_provisioning(self):
+    def test_enable_cisaudit(self):
         """The enable-cisaudit enables security benchmarks repository."""
         process = self.script('enable-cisaudit', 'user:pass')
         self.assertEqual(0, process.returncode)
@@ -139,8 +139,8 @@ class CISAUDITTest(UbuntuAdvantageTest):
         process = self.script('enable-cisaudit', 'user:pass')
         self.assertEqual(4, process.returncode)
         self.assertIn(
-            'Canonical CIS 16.04 Benchmark Audit Tool '
-            'is not supported on zesty',
+            'Sorry, but Canonical CIS Benchmark 16.04 '
+            'Audit Tool is not supported on zesty\n',
             process.stderr)
 
     def test_unsupported_on_i686(self):
@@ -149,7 +149,7 @@ class CISAUDITTest(UbuntuAdvantageTest):
         process = self.script('enable-cisaudit', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
-            'Sorry, but Canonical CIS 16.04 Benchmark Audit Tool '
+            'Sorry, but Canonical CIS Benchmark 16.04 Audit Tool '
             'is not supported on i686',
             process.stderr)
 
@@ -159,6 +159,27 @@ class CISAUDITTest(UbuntuAdvantageTest):
         process = self.script('enable-cisaudit', 'user:pass')
         self.assertEqual(7, process.returncode)
         self.assertIn(
-            'Sorry, but Canonical CIS 16.04 Benchmark Audit Tool '
+            'Sorry, but Canonical CIS Benchmark 16.04 Audit Tool '
             'is not supported on arm64',
             process.stderr)
+
+    def test_disable_cisaudit(self):
+        """The disable-cisaudit option disables the security benchmarks repository."""
+        self.setup_cisaudit(enabled=True)
+        other_auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(other_auth)
+        process = self.script('disable-cisaudit')
+        self.assertEqual(0, process.returncode)
+        self.assertFalse(self.cisaudit_repo_list.exists())
+        # the keyring file is removed
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-securitybenchmarks-keyring.gpg'
+        self.assertFalse(keyring_file.exists())
+        # credentials are removed
+        self.assertEqual(self.apt_auth_file.read_text(), other_auth)
+
+    def test_disable_cisaudit_fails_already_disabled(self):
+        """If the security benchmarks repo is not enabled, disable-cisaudit returns an error."""
+        process = self.script('disable-cisaudit')
+        self.assertEqual(8, process.returncode)
+        self.assertIn(
+            'Canonical CIS Benchmark 16.04 Audit Tool is not enabled\n', process.stderr)
