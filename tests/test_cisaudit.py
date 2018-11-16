@@ -183,5 +183,5 @@ class CISAUDITTest(UbuntuAdvantageTest):
         process = self.script('disable-cisaudit')
         self.assertEqual(8, process.returncode)
         self.assertIn(
-            'Canonical CIS Benchmark 16.04 Audit Tool is not enabled\n', 
+            'Canonical CIS Benchmark 16.04 Audit Tool is not enabled\n',
             process.stderr)
