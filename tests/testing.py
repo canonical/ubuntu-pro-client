@@ -191,7 +191,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         """Setup the CISAudit repository."""
         if enabled is True:
             self.make_fake_binary(
-            'dpkg-query', command='[ $2 = ubuntu-cisbenchmark-16.04 ]')
+                'dpkg-query', command='[ $2 = ubuntu-cisbenchmark-16.04 ]')
         else:
             self.make_fake_binary(
-            'dpkg-query', command='[ $2 != ubuntu-cisbenchmark-16.04 ]')
+                'dpkg-query', command='[ $2 != ubuntu-cisbenchmark-16.04 ]')
