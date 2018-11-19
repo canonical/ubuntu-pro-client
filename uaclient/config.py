@@ -3,10 +3,11 @@ import logging
 import os
 import six
 import yaml
+from subprocess import check_output
 
 LOG = logging.getLogger(__name__)
 
-UA_VERSION = '18.1.0-{gitrev}'
+PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/uaclient/uaclient.conf'
 
@@ -77,7 +78,10 @@ def parse_config(config_path=None):
 def print_version(_args=None):
     print(get_version())
 
+
 def get_version(_args=None):
-    if 'gitrev' not in UA_VERSION:
-        return UA_VERSION
-    return UA_VERSION.format(gitrev='dev')
+    """Return the package version if set, otherwise return git describe."""
+    if PACKAGED_VERSION != '@@PACKAGED_VERSION@@':
+        return  PACKAGED_VERSION
+    return check_output([
+        'git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']).strip()
