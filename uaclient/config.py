@@ -10,9 +10,13 @@ LOG = logging.getLogger(__name__)
 PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/uaclient/uaclient.conf'
+BASE_AUTH_URL = 'https://login.ubuntu.com'
+#BASE_AUTH_URL = 'http://10.7.118.234:8080'
+BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 
 CONFIG_DEFAULTS = {
-    'service_url': 'https://uaservice.canonical.com:8080',
+    'sso_auth_url': BASE_AUTH_URL,
+    'service_url': BASE_SERVICE_URL,
     'data_dir': '/var/lib/uaclient/',
     'log_level': 'info'
 }
@@ -53,6 +57,8 @@ def parse_config(config_path=None):
     Attempt to find configuration in cwd and fallback to DEFAULT_CONFIG_FILE.
     Any missing configuration keys will be set to CONFIG_DEFAULTS.
 
+    Values are overridden by any environment variable with prefix 'UA_'.
+
     @param config_path: Fullpath to ua configfile. If unspecified, use
         DEFAULT_CONFIG_FILE.
 
@@ -71,6 +77,11 @@ def parse_config(config_path=None):
         LOG.error(msg)
         raise ConfigAbsentError(msg)
     cfg.update(yaml.load(load_file(config_path)))
+    env_keys = {}
+    for key, value in os.environ.items():
+       if key.startswith('UA_'):
+           env_keys[key.lower()[3:]]= value   # Strip leading UA_
+    cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     return cfg
 
