@@ -17,50 +17,67 @@ API_ERROR_2FA_FAILURE = 'twofactor-failure'
 API_ERROR_ACCOUNT_DEACTIVATED = 'account-deactivated'
 API_ERROR_ACCOUNT_SUSPENDED = 'account-suspended'
 API_ERROR_EMAIL_INVALIDATED = 'email-invalidated'
+API_ERROR_INVALID_DATA = 'invalid-data'
 API_ERROR_INVALID_CREDENTIALS = 'invalid-credentials'
 API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
 API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
 
-class SSOAuthError(six.moves.urllib.error.URLError):
-    pass
+class UrlError(IOError):
+
+    def __init__(self, cause, code=None, headers=None, url=None):
+        super(UrlError, self).__init__(str(cause))
+        self.cause = cause
+        self.code = code
+        self.headers = headers
+        if self.headers is None:
+            self.headers = {}
+        self.url = url
 
 
-class SSOAuthMissingOTPError(SSOAuthError):
-    pass
+class SSOAuthError(UrlError):
 
-
-class UbuntuSSOAPIErrors(object):
-    """Optional Ubuntu SSO detailed error response."""
-
-    def __init__(self, error_response):
-        try:
-            parsed_response = json.loads(error_response)
-        except ValueError:
-            parsed_response = {}
-        self.errors = parsed_response.get('error_list', [])
-
-    def __str__(self):
-        if not self.errors:
-            return ''
-        return 'SSO API errors: ' + ', '.join(
-            ['%s:%s' % (error['code'], error['message'])
-             for error in self.errors])
+    def __init__(self, e, error_response):
+        super(SSOAuthError, self).__init__(e, e.code, e.headers, e.url)
+        self.full_api_response = error_response
+        if 'error_list' in error_response:
+            self.api_errors = error_response['error_list']
+        else:
+            self.api_errors = [error_response]
 
     def __contains__(self, error_code):
-        return error_code in self.codes()
+        return error_code in [error['code'] for error in self.api_errors]
 
     def __get__(self, error_code, default=None):
-        for error in self.errors:
+        for error in self.api_errors:
             if error['code'] == error_code:
                 return error['message']
         return default
 
-    def codes(self):
-        return [error['code'] for error in self.errors]
+    def __str__(self):
+        prefix = super(SSOAuthError, self).__str__()
+        details = []
+        for err in self.api_errors:
+            if not err.get('extra'):
+                details.append(err['message'])
+            else:
+                for extra in err['extra'].values():
+                    if isinstance(extra, list):
+                        details.extend(extra)
+                    else:
+                        details.append(extra)
+        return prefix + ': ' + ', '.join(details)
 
-    def messages(self):
-        return [error['message'] for error in self.errors]
+
+def maybe_parse_json(content):
+    """Attempt to parse json content.
+
+    @return: Structured content on success and None on failure.
+    """
+    try:
+        return json.loads(content)
+    except ValueError:
+        return None
 
 
 class UbuntuSSOClient(object):
@@ -100,9 +117,8 @@ class UbuntuSSOClient(object):
         @return: the response from the SSO service for a macaroon request.
 
         @raises:
-             SSOMissingOTPError when authenticate requires otp
-             SSOInvalidCredentials on invalid email, password or otp
-             SSOError for unexcected SSO Authentication issues
+             UrlError on unexpected url handling errors, timeouts etc
+             SSOAuthError on expected SSO authentication issues
         """
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
@@ -110,27 +126,19 @@ class UbuntuSSOClient(object):
         try:
             response = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
         except six.moves.urllib.error.URLError as e:
-            import pdb; pdb.set_trace()
-            if e.code in (401, 403):
-                if API_ERROR_2FA_REQUIRED in e.api_errors:
-                    msg = (
-                        "Missing Two factor authentication for '%s'" % email)
-                    raise SSOAuthMissingOTPError(msg)
-            msg = 'Unexpected SSO error: [%s] %s' % (e.code, e)
-            raise SSOAuthError(msg)
-        return
+            sso_error_details = maybe_parse_json(e.read())
+            if sso_error_details:
+                raise SSOAuthError(e, sso_error_details)
+            raise URLError(e, code=e.code, headers=e.hdrs, url=e.url)
+        return response
 
 
-def readurl(url, data=None, headers=None):
+def readurl(url, data=None, headers=None, quiet=False):
     req = six.moves.urllib.request.Request(url, data=data, headers=headers)
-    logging.debug(
-       'Reading url: %s, headers: %s, data: %s', url, headers, data)
-    try:
-        resp = six.moves.urllib.request.urlopen(req)
-    except six.moves.urllib.error.URLError as e:
-        e.api_errors = UbuntuSSOAPIErrors(e.read())
-        logging.error('URLError: %s %s', e, e.api_errors)
-        raise
+    if not quiet:
+        logging.debug(
+            'Reading url: %s, headers: %s, data: %s', url, headers, data)
+    resp = six.moves.urllib.request.urlopen(req)
     content = config.decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
@@ -147,12 +155,11 @@ def prompt_request_macaroon(caveat_id=None):
     try:
         content = client.request_discharge_macaroon(
             email=email, password=password, caveat_id=caveat_id)
-    except SSOAuthMissingOTPError as e:
+    except SSOAuthError as e:
+        if not API_ERROR_2FA_REQUIRED in e:
+            raise
         otp = six.moves.input('Second-factor auth: ')
     if not content:
-        try:
-            content = client.request_discharge_macaroon(
-                email=email, password=password, caveat_id=caveat_id, otp=otp)
-        except SSOAuthError as e:
-            import pdb; pdb.set_trace()
+        content = client.request_discharge_macaroon(
+            email=email, password=password, caveat_id=caveat_id, otp=otp)
     return content
