@@ -42,10 +42,14 @@ cisaudit_disable() {
                         "$APT_KEYS_DIR/$CISAUDIT_REPO_KEY_FILE"
         echo -n 'Running apt-get update... '
         check_result apt_get update
-        check_result apt_get remove $CISAUDIT_UBUNTU_CISBENCHMARK
-        echo "Canonical CIS Benchmark 16.04 Audit Tool Disabled."
+        echo "Canonical CIS Benchmark 16.04 Audit Tool Repository Disabled."
     else
-        echo 'Canonical CIS Benchmark 16.04 Audit Tool is not enabled.'
+        echo 'Canonical CIS Benchmark 16.04 Audit Tool Repository is not Enabled.'
+    fi
+
+    if apt_is_package_installed $CISAUDIT_UBUNTU_CISBENCHMARK; then
+        check_result apt_get remove $CISAUDIT_UBUNTU_CISBENCHMARK
+        echo 'Canonical CIS Benchmark 16.04 Audit Tool Removed.'
     fi
 }
 
