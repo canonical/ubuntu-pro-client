@@ -105,6 +105,23 @@ and an evaluated configuration guide. The artifacts will be installed in
 .B
 disable-cc-provisioning
 Disabling common criteria provisioning is not supported
+.SH CIS (Canonical CIS Audit tooling)
+Enable CIS Auditing PPA and install CIS audit tool package
+.TP
+.B
+enable-cisaudit \fItoken\fR
+Enables the Security Benchmarks PPA, installs the ubuntu-cisbenchmark-16.04
+package which has the CIS Audit tooling files. They include the xccdf and xml
+files and scripts to check compliance against the CIS 16.04 benchmark. The
+files will be installed in
+/usr/share/ubuntu-securityguides/ubuntu-cisbenchmark-16.04.
+The documentation for the tool is available in
+/usr/share/doc/ubuntu-cisbenchmark-16.04.
+.TP
+.B
+disable-cisaudit
+Disables the security benchmarks PPA repository and removes the
+ubuntu-cisbenchmark-16.04 DEB package installed on the machine.
 .SH EXIT STATUS
 .TP
 .B
