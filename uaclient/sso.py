@@ -1,3 +1,4 @@
+import getpass
 import json
 import oauth
 import six
@@ -8,10 +9,13 @@ import logging
 
 API_PATH_V2 = '/api/v2'
 API_PATH_USER_KEYS = API_PATH_V2 + '/keys/'
+API_PATH_OAUTH_TOKEN = API_PATH_V2 + '/tokens/oauth'
 API_PATH_TOKEN_DISCHARGE = API_PATH_V2 + '/tokens/discharge'
 API_PATH_TOKEN_REFRESH = API_PATH_V2 + '/tokens/refresh'
 
 
+# Some Ubuntu SSO API responses use UNDERSCORE_DELIMITED codes, others use
+# lowercase-hyphenated. We'll standardize on lowercase-hyphenated
 API_ERROR_2FA_REQUIRED = 'twofactor-required'
 API_ERROR_2FA_FAILURE = 'twofactor-failure'
 API_ERROR_ACCOUNT_DEACTIVATED = 'account-deactivated'
@@ -44,6 +48,9 @@ class SSOAuthError(UrlError):
             self.api_errors = error_response['error_list']
         else:
             self.api_errors = [error_response]
+        # Convert old api error codes from ERROR_CODE to error-code
+        for error in self.api_errors:
+            error['code'] = error['code'].lower().replace('_', '-')
 
     def __contains__(self, error_code):
         return error_code in [error['code'] for error in self.api_errors]
@@ -100,11 +107,35 @@ class UbuntuSSOClient(object):
         if headers.get('content-type') == 'application/json' and data:
             data = json.dumps(data).encode('utf-8')
         url = self.base_url + path
-        return readurl(url=url, data=data, headers=headers)
+        try:
+            response = readurl(url=url, data=data, headers=headers)
+        except six.moves.urllib.error.URLError as e:
+            sso_error_details = maybe_parse_json(e.read())
+            if sso_error_details:
+                raise SSOAuthError(e, sso_error_details)
+            raise URLError(e, code=e.code, headers=e.hdrs, url=e.url)
+        return response
 
     def get_user_keys(self, email):
         return self.request_url(
             API_PATH_USER_KEYS + six.moves.urllib.parse.quote(email))
+
+    def request_oauth_token(self, email, password, token_name, otp=None):
+        """Request a named oauth token for the authenticated user
+        @param email: String with the email address of the SSO account holder.
+        @param password: String with the password of the SSO account holder.
+        @param token_name: String of the unique name to give the Oauth token.
+
+        @return: the response from the SSO service for a OAuth token request.
+
+        @raises:
+             UrlError on unexpected url handling errors, timeouts etc
+             SSOAuthError on expected SSO authentication issues
+        """
+        data = {'email': email, 'password': password, 'token_name': token_name}
+        if otp:
+            data['otp'] = otp
+        return self.request_url(API_PATH_OAUTH_TOKEN, data=data)
 
     def request_discharge_macaroon(self, email, password, caveat_id, otp=None):
         """Request a discharge macaroon for the authenticated user
@@ -123,14 +154,7 @@ class UbuntuSSOClient(object):
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
             data['otp'] = otp
-        try:
-            response = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
-        except six.moves.urllib.error.URLError as e:
-            sso_error_details = maybe_parse_json(e.read())
-            if sso_error_details:
-                raise SSOAuthError(e, sso_error_details)
-            raise URLError(e, code=e.code, headers=e.hdrs, url=e.url)
-        return response
+        return self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
 
 
 def readurl(url, data=None, headers=None, quiet=False):
@@ -145,6 +169,24 @@ def readurl(url, data=None, headers=None, quiet=False):
     return content
 
 
+def prompt_oauth_token(caveat_id=None):
+    email = six.moves.input('Email: ')
+    password = six.moves.input('Password: ')
+    token_name = six.moves.input('Unique OAuth token name: ')
+    client = UbuntuSSOClient()
+    try:
+        content = client.request_oauth_token(
+            email=email, password=password, token_name=token_name)
+    except SSOAuthError as e:
+        if not API_ERROR_2FA_REQUIRED in e:
+            raise
+    if content:
+        return content
+    otp = six.moves.input('Second-factor auth: ')
+    return client.request_oauth_token(
+        email=email, password=password, token_name=token_name, otp=otp)
+
+
 def prompt_request_macaroon(caveat_id=None):
     content = None
     if not caveat_id:
@@ -157,7 +199,8 @@ def prompt_request_macaroon(caveat_id=None):
             email=email, password=password, caveat_id=caveat_id)
     except SSOAuthError as e:
         if not API_ERROR_2FA_REQUIRED in e:
-            raise
+            logging.error(str(e))
+            return None
         otp = six.moves.input('Second-factor auth: ')
     if not content:
         content = client.request_discharge_macaroon(
