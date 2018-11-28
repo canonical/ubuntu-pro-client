@@ -64,6 +64,7 @@ Currently available are:
 - Canonical FIPS 140-2 Non-Certified Module Updates
 - Canonical Livepatch Service (https://www.ubuntu.com/server/livepatch)
 - Canonical Common Criteria EAL2 certification artifacts provisioning
+- Canonical CIS Ubuntu Benchmark Audit tool
 
 Commands:
  version                           show the tool version
@@ -86,12 +87,15 @@ Commands:
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
  enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
-                                   install the ubuntu-commoncriteria .DEB package
- disable-cc-provisioning           currently not supported
- enable-cisaudit                   enable the security benchmarks PPA repository
-                                   and install the ubuntu-cisbenchmark-16.04 DEB package.
+                                   install the ubuntu-commoncriteria DEB package
+ disable-cc-provisioning           disable the commoncriteria PPA repository and
+                                   remove the ubuntu-commoncriteria DEB package
+ enable-cisaudit <TOKEN>           enable the security benchmarks PPA repository
+                                   and install the ubuntu-cisbenchmark-16.04 DEB
+                                   package.
  disable-cisaudit                  disable the security benchmarks PPA repository
-                                   and uninstall the ubuntu-cisbenchmark-16.04 DEB package.
+                                   and uninstall the ubuntu-cisbenchmark-16.04 DEB
+                                   package.
 EOF
     error_exit invalid_command
 }

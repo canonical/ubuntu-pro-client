@@ -33,11 +33,24 @@ cc_provisioning_enable() {
     check_result apt_get install $CC_PROVISIONING_UBUNTU_COMMONCRITERIA
 
     echo "Successfully prepared this machine to host the Common Criteria artifacts."
-    echo "Please follow instructions in /usr/lib/common-criteria/README to configure EAL2 on the target machine(s)."
+    echo "Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2 on the target machine(s)."
 }
 
 cc_provisioning_disable() {
-    not_supported 'Disabling Common Criteria EAL2 Provisioning'
+    if [ -f "$CC_PROVISIONING_REPO_LIST" ]; then
+        apt_remove_repo "$CC_PROVISIONING_REPO_LIST" "$CC_PROVISIONING_REPO_URL" \
+                        "$APT_KEYS_DIR/$CC_PROVISIONING_REPO_KEY_FILE"
+        echo -n 'Running apt-get update... '
+        check_result apt_get update
+        echo 'Canonical Common Criteria EAL2 Provisioning Disabled.'
+    else
+        echo 'Canonical Common Criteria EAL2 Provisioning is not Enabled.'
+    fi
+
+    if apt_is_package_installed $CC_PROVISIONING_UBUNTU_COMMONCRITERIA; then
+        check_result apt_get remove $CC_PROVISIONING_UBUNTU_COMMONCRITERIA
+        echo 'Canonical Common Criteria EAL2 Artifacts Removed.'
+    fi
 }
 
 cc_provisioning_is_enabled() {
