@@ -67,11 +67,30 @@ class SSOAuthError(util.UrlError):
 
 class UbuntuSSOClient(object):
 
+
+    data_paths = {'oauth': 'sso-oauth.json', 'macaroon': 'sso-macaroon.json'}
+
     def __init__(self, cfg=None):
         if not cfg:
             self.cfg = config.parse_config()
         else:
             self.cfg = cfg
+
+    def data_path(self, key=None):
+        """Return the file path in the data directory represented by the key"""
+        if not key:
+            return self.cfg['data_dir']
+        return os.path.join(self.cfg['data_dir'], self.data_paths[key])
+
+    def read_cached_data(self, key):
+        if key not in self.data_paths:
+            return None
+        cache_path = self.data_path(key)
+        if not os.path.exists(cache_path):
+            return None
+        content = util.load_file(cache_path)
+        json_content = util.maybe_parse_json(content)
+        return json_content if json_content else content
 
     def headers(self):
         return {'user-agent': 'UA-Client/%s' % config.get_version(),
@@ -114,12 +133,11 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
-        data_dir = ua_cfg['data_dir']
-        token_path = os.path.join(data_dir, 'sso-oauth.json')
+        token_path = self.data_path('oauth')
         if os.path.exists(token_path):  # Use cached oauth token
             return json.load(util.load_file(token_path))
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+        if not os.path.exists(self.data_path()):
+            os.makedirs(self.data_path())
         data = {'email': email, 'password': password, 'token_name': token_name}
         if otp:
             data['otp'] = otp
@@ -141,12 +159,11 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
-        data_dir = self.cfg['data_dir']
-        macaroon_path = os.path.join(data_dir, 'sso-macaroon.json')
+        macaroon_path = self.datapath('sso-macaroon')
         if os.path.exists(macaroon_path):  # Use cached macaroon
             return json.load(util.load_file(macaroon_path))
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+        if not os.path.exists(self.data_path()):
+            os.makedirs(self.data_path())
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
             data['otp'] = otp
@@ -155,29 +172,32 @@ class UbuntuSSOClient(object):
         return content
 
 
-def prompt_oauth_token(caveat_id=None):
-    email = six.moves.input('Email: ')
-    password = getpass('Password: ')
-    token_name = six.moves.input('Unique OAuth token name: ')
+def prompt_oauth_token():
     client = UbuntuSSOClient()
+    oauth_token = client.read_cached_data('oauth')
+    if oauth_token:
+        return oauth_token
+    email = six.moves.input('Email: ')
+    password = getpass.getpass('Password: ')
+    token_name = six.moves.input('Unique OAuth token name: ')
     try:
-        content = client.request_oauth_token(
+        oauth_token = client.request_oauth_token(
             email=email, password=password, token_name=token_name)
     except SSOAuthError as e:
         if not API_ERROR_2FA_REQUIRED in e:
             logging.error(str(e))
             return None
         otp = six.moves.input('Second-factor auth: ')
-        content = client.request_oauth_token(
+        oauth_token = client.request_oauth_token(
             email=email, password=password, token_name=token_name, otp=otp)
-    return content
+    return oauth_token
 
 
 def prompt_request_macaroon(caveat_id=None):
     if not caveat_id:
         caveat_id='{"secret": "thesecret", "version": 1}'
     email = six.moves.input('Email: ')
-    password = six.moves.input('Password: ')
+    password = getpass.getpass('Password: ')
     client = UbuntuSSOClient()
     try:
         content = client.request_discharge_macaroon(

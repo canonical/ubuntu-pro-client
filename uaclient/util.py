@@ -52,11 +52,13 @@ def maybe_parse_json(content):
 def readurl(url, data=None, headers=None):
     req = six.moves.urllib.request.Request(url, data=data, headers=headers)
     logging.debug(
-        'Reading url: %s, headers: %s, data: %s', url, headers, data)
+        'URL read: %s, headers: %s, data: %s', url, headers, data)
     resp = six.moves.urllib.request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
+    logging.debug(
+        'URL response: %s, headers: %s, data: %s', url, headers, content)
     return content
 
 

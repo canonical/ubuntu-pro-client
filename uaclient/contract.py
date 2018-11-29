@@ -9,7 +9,7 @@ import logging
 
 
 API_PATH_MACHINE_ATTACH = '/contract/machine/attach'
-API_PATH_MACHINE_STATUS = '/account/machine/services'
+API_PATH_MACHINE_STATUS = '/account/machine/entitlements'
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
@@ -18,7 +18,6 @@ API_ERROR_INVALID_DATA = 'BAD REQUEST'
 class ContractAPIError(util.UrlError):
 
     def __init__(self, e, error_response):
-        import pdb; pdb.set_trace()
         super(ContractAPIError, self).__init__(e, e.code, e.headers, e.url)
         self.full_api_response = error_response
         if 'error_list' in error_response:
@@ -49,9 +48,7 @@ class ContractAPIError(util.UrlError):
                         details.extend(extra)
                     else:
                         details.append(extra)
-        return prefix + ': ' + ', '.join(details)
-
-
+        return prefix + ': [' + self.url + ']' + ', '.join(details)
 
 
 class UAServiceClient(object):
@@ -59,11 +56,30 @@ class UAServiceClient(object):
     # Set in subclasses to the config key referenced by this client
     service_url_cfg_key = None
 
+    # Set in subclasses to define any cached data files stored by this class
+    data_paths = {}
+
     def __init__(self, cfg=None):
         if not cfg:
             self.cfg = config.parse_config()
         else:
             self.cfg = cfg
+
+    def data_path(self, key):
+        """Return the file path in the data directory represented by the key"""
+        if not key:
+            return self.cfg['data_dir']
+        return os.path.join(self.cfg['data_dir'], self.data_paths[key])
+
+    def read_cached_data(self, key):
+        if key not in self.data_paths:
+            return None
+        cache_path = self.data_path(key)
+        if not os.path.exists(cache_path):
+            return None
+        content = util.load_file(cache_path)
+        json_content = util.maybe_parse_json(content)
+        return json_content if json_content else content
 
     def headers(self):
         return {'user-agent': 'UA-Client/%s' % config.get_version(),
@@ -74,6 +90,8 @@ class UAServiceClient(object):
 class UAContractClient(UAServiceClient):
 
     service_url_cfg_key = 'contract_url'
+
+    data_paths = {'machine-token': 'machine-token.json', 'status': 'entitlement-satus.json'}
 
     def request_url(self, path, data=None, headers=None):
         if path[0] != '/':
@@ -102,33 +120,24 @@ class UAContractClient(UAServiceClient):
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
         data = {'machine-token': machine_token, 'machine-id': machine_id}
-        return self.request_url(API_PATH_MACHINE_STATUS, data=data)
-
-        return {'account': 'Blackberry Limited',
-                'subscription':  'blackberry/desktops',
-                'contract-expiry': '2019-12-31',
-                'entitlement-expiry': '2018-12-01',
-                'entitlements': {
-                  'esm': {'token': '<ppa_username:password> ppa_url'},
-                  'fips': {},  # Notoken == Not authorized
-                   # PPA changes per series for FIPS should contract service contstuct this url in token?
-                  'fips-updates': {'token': '<ppa_username:password> ppa_url'},
-                }
-               }
-        # TODO Alternative could be macaroon with first_party_caveats describing
-        # the keys above
-
+        entitlement_status = self.request_url(
+            API_PATH_MACHINE_STATUS, data=data)
+        util.write_file(
+            self.data_path('status'), json.dumps(entitlement_status))
+        return entitlement_status
 
     def request_machine_attach(self, user_token, machine_id=None):
         """Requests machine attach from Contract service.
 
         @return: Dict of the JSON response containing the machine-token.
         """
-        data_dir = self.cfg['data_dir']
-        token_path = os.path.join(data_dir, 'machine-token.json')
-        if os.path.exists(token_path):  # Use cached token
-            return util.load_file(token_path)
+        machine_token = self.read_cached_data('machine-token')
+        if machine_token:
+            return machine_token
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
         data = {'user-token': user_token, 'machine-id': machine_id}
-        return self.request_url(API_PATH_MACHINE_ATTACH, data=data)
+        machine_token = self.request_url(API_PATH_MACHINE_ATTACH, data=data)
+        util.write_file(
+            self.data_path('machine-token'), json.dumps(machine_token))
+        return machine_token

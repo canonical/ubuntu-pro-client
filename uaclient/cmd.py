@@ -58,27 +58,26 @@ def ua_attach(args):
               entitlements['subscription'])
         return 0
     if not args.token:
-        caveat_id = {'version': 1, 'secret': 'encoded-secret'}
-        try:
-         user_token = sso.prompt_request_macaroon(caveat_id=caveat_id)
-        except sso.SSOAuthError as e:
-         import pdb; pdb.set_trace()
+        user_token = sso.prompt_oauth_token()
     else:
         user_token = args.token
-    machine_token_path = os.path.join(data_dir, 'machine-token.json')
-    contract_client = contract.UAContractClient()
+    if not user_token:
+        print('Could not attach machine. Unable to obtain authenticated user'
+              ' token')
+        return 1
+    contract_client = contract.UAContractClient(cfg)
     try:
-        token_response = contract_client.request_machine_attach(user_token)
+        token_response = contract_client.request_machine_attach(
+            user_token['token_key'])
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
-    util.write_file(machine_token_path, token_response)
     machine_token = token_response['machine-token']
-    entitlements = contract_client.request_entitlements(machine_token)
+    entitlement_status = contract_client.request_status(machine_token)
     print("This machine is now attached to '%s'.\n" %
-          entitlements['subscription'])
-    get_status()
-    util.write_file(entitlements_path, json.dumps(entitlements))
+          entitlement_status['subscription'])
+    print_status()
+    util.write_file(entitlements_path, json.dumps(entitlement_status))
     return 0
 
 
@@ -94,7 +93,7 @@ def get_parser():
     subparsers.required = True
     parser_status = subparsers.add_parser(
         'status', help='current status of all ubuntu advantage entitlements')
-    parser_status.set_defaults(action=get_status)
+    parser_status.set_defaults(action=print_status)
     parser_attach = subparsers.add_parser(
         'attach',
         help='attach this machine to an ubuntu advantage subscription')
@@ -119,13 +118,27 @@ def get_parser():
 STATUS_HEADER_TMPL = """\
 Account: {account}
 Subscription: {subscription}
-Valid until: {expiry}
+Valid until: {contract-expiry}
 """
 
 
-def get_status(args=None):
-
-    print(STATUS_HEADER_TMPL.format(**get_entitlements()))
+def print_status(args=None):
+    cfg = config.parse_config()
+    data_dir = cfg['data_dir']
+    token_path = os.path.join(data_dir, 'machine-token.json')
+    if not os.path.exists(token_path):
+        print('This machine is not attached to a UA subscription.\n'
+              'See `ua attach` or https://ubuntu.com/advantage')
+        return
+    entitlement_path = os.path.join(data_dir, 'entitlements-status.json')
+    if os.path.exists(entitlement_path):
+         entitlement_status = util.load_file(entitlement_path)
+    else:
+         machine_token = json.loads(
+             util.load_file(token_path))['machine-token']
+         contract_client = contract.UAContractClient(cfg)
+         entitlement_status = contract_client.request_status(machine_token)
+    print(STATUS_HEADER_TMPL.format(**entitlement_status))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls()
