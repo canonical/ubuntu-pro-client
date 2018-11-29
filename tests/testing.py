@@ -184,8 +184,12 @@ class UbuntuAdvantageTest(TestWithFixtures):
 
     def setup_cc(self, enabled=False):
         """Setup the CC repository."""
-        self.make_fake_binary(
-            'dpkg-query', command='[ $2 != ubuntu-commoncriteria ]')
+        if enabled is True:
+            self.make_fake_binary(
+                'dpkg-query', command='[ $2 = ubuntu-commoncriteria ]')
+        else:
+            self.make_fake_binary(
+                'dpkg-query', command='[ $2 != ubuntu-commoncriteria ]')
 
     def setup_cisaudit(self, enabled=False):
         """Setup the CISAudit repository."""

@@ -98,13 +98,16 @@ Enable Common Criteria PPA and install Common Criteria EAL2 artifacts
 enable-cc-provisioning \fItoken\fR
 Enables the Commoncriteria PPA repository, installs the ubuntu-commoncriteria
 package which has the common criteria artifacts. The artifacts include a
-configure script, a tarball with additional packages and post install scripts
-and an evaluated configuration guide. The artifacts will be installed in
-/usr/lib/common-criteria directory.
+configure script, a tarball with additional packages and post install scripts.
+The artifacts will be installed in /usr/lib/common-criteria directory. The
+evaluated configuration guide and README instructions on how to set up a
+system to be Common Criteria compliant are available in
+/usr/share/doc/ubuntu-commoncriteria directory.
 .TP
 .B
 disable-cc-provisioning
-Disabling common criteria provisioning is not supported
+Disables the commoncriteria PPA repository and removes the ubuntu-commoncriteria
+DEB package.
 .SH CIS (Canonical CIS Audit tooling)
 Enable CIS Auditing PPA and install CIS audit tool package
 .TP

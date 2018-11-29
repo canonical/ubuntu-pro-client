@@ -162,3 +162,25 @@ class CCTest(UbuntuAdvantageTest):
             'Sorry, but Canonical Common Criteria EAL2 Provisioning '
             'is not supported on arm64',
             process.stderr)
+
+    def test_disable_cc_provisioning(self):
+        """The disable-cc-provisioning option disables commoncriteria repo."""
+        self.setup_cc(enabled=True)
+        other_auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(other_auth)
+        process = self.script('disable-cc-provisioning')
+        self.assertEqual(0, process.returncode)
+        self.assertFalse(self.cc_repo_list.exists())
+        # the keyring file is removed
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-cc-keyring.gpg'
+        self.assertFalse(keyring_file.exists())
+        # credentials are removed
+        self.assertEqual(self.apt_auth_file.read_text(), other_auth)
+
+    def test_disable_cc_provisioning_fails_already_disabled(self):
+        """If commoncriteria repo is not enabled, disable fails."""
+        process = self.script('disable-cc-provisioning')
+        self.assertEqual(8, process.returncode)
+        self.assertIn(
+            'Canonical Common Criteria EAL2 Provisioning is not enabled\n',
+            process.stderr)
