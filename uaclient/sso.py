@@ -1,9 +1,10 @@
 import getpass
 import json
-import oauth
+import os
 import six
 
 from uaclient import config
+from uaclient import util
 import logging
 
 
@@ -27,19 +28,7 @@ API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
 API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
 
-class UrlError(IOError):
-
-    def __init__(self, cause, code=None, headers=None, url=None):
-        super(UrlError, self).__init__(str(cause))
-        self.cause = cause
-        self.code = code
-        self.headers = headers
-        if self.headers is None:
-            self.headers = {}
-        self.url = url
-
-
-class SSOAuthError(UrlError):
+class SSOAuthError(util.UrlError):
 
     def __init__(self, e, error_response):
         super(SSOAuthError, self).__init__(e, e.code, e.headers, e.url)
@@ -76,23 +65,13 @@ class SSOAuthError(UrlError):
         return prefix + ': ' + ', '.join(details)
 
 
-def maybe_parse_json(content):
-    """Attempt to parse json content.
-
-    @return: Structured content on success and None on failure.
-    """
-    try:
-        return json.loads(content)
-    except ValueError:
-        return None
-
-
 class UbuntuSSOClient(object):
 
-    def __init__(self, base_url=None):
-        if not base_url:
-            base_url = config.parse_config()['sso_auth_url']
-        self.base_url = base_url
+    def __init__(self, cfg=None):
+        if not cfg:
+            self.cfg = config.parse_config()
+        else:
+            self.cfg = cfg
 
     def headers(self):
         return {'user-agent': 'UA-Client/%s' % config.get_version(),
@@ -105,18 +84,21 @@ class UbuntuSSOClient(object):
         if not headers:
             headers=self.headers()
         if headers.get('content-type') == 'application/json' and data:
-            data = json.dumps(data).encode('utf-8')
-        url = self.base_url + path
+            data = util.encode_text(json.dumps(data))
+        url = self.cfg['sso_auth_url'] + path
         try:
-            response = readurl(url=url, data=data, headers=headers)
+            response = util.readurl(url=url, data=data, headers=headers)
         except six.moves.urllib.error.URLError as e:
-            sso_error_details = maybe_parse_json(e.read())
+            if hasattr(e, 'read'):
+                sso_error_details = util.maybe_parse_json(e.read())
+            else:
+                sso_error_details = None
             if sso_error_details:
                 raise SSOAuthError(e, sso_error_details)
-            raise URLError(e, code=e.code, headers=e.hdrs, url=e.url)
+            raise util.UrlError(e, code=e.code, headers=e.hdrs, url=e.url)
         return response
 
-    def get_user_keys(self, email):
+    def request_user_keys(self, email):
         return self.request_url(
             API_PATH_USER_KEYS + six.moves.urllib.parse.quote(email))
 
@@ -132,10 +114,18 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
+        data_dir = ua_cfg['data_dir']
+        token_path = os.path.join(data_dir, 'sso-oauth.json')
+        if os.path.exists(token_path):  # Use cached oauth token
+            return json.load(util.load_file(token_path))
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
         data = {'email': email, 'password': password, 'token_name': token_name}
         if otp:
             data['otp'] = otp
-        return self.request_url(API_PATH_OAUTH_TOKEN, data=data)
+        content = self.request_url(API_PATH_OAUTH_TOKEN, data=data)
+        util.write_file(token_path, json.dumps(content))
+        return content
 
     def request_discharge_macaroon(self, email, password, caveat_id, otp=None):
         """Request a discharge macaroon for the authenticated user
@@ -151,27 +141,23 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
+        data_dir = self.cfg['data_dir']
+        macaroon_path = os.path.join(data_dir, 'sso-macaroon.json')
+        if os.path.exists(macaroon_path):  # Use cached macaroon
+            return json.load(util.load_file(macaroon_path))
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
             data['otp'] = otp
-        return self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
-
-
-def readurl(url, data=None, headers=None, quiet=False):
-    req = six.moves.urllib.request.Request(url, data=data, headers=headers)
-    if not quiet:
-        logging.debug(
-            'Reading url: %s, headers: %s, data: %s', url, headers, data)
-    resp = six.moves.urllib.request.urlopen(req)
-    content = config.decode_binary(resp.read())
-    if 'application/json' in resp.headers.get('Content-type', ''):
-        content = json.loads(content)
-    return content
+        content = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
+        util.write_file(macaroon_path, json.dumps(content))
+        return content
 
 
 def prompt_oauth_token(caveat_id=None):
     email = six.moves.input('Email: ')
-    password = six.moves.input('Password: ')
+    password = getpass('Password: ')
     token_name = six.moves.input('Unique OAuth token name: ')
     client = UbuntuSSOClient()
     try:
@@ -179,16 +165,15 @@ def prompt_oauth_token(caveat_id=None):
             email=email, password=password, token_name=token_name)
     except SSOAuthError as e:
         if not API_ERROR_2FA_REQUIRED in e:
-            raise
-    if content:
-        return content
-    otp = six.moves.input('Second-factor auth: ')
-    return client.request_oauth_token(
-        email=email, password=password, token_name=token_name, otp=otp)
+            logging.error(str(e))
+            return None
+        otp = six.moves.input('Second-factor auth: ')
+        content = client.request_oauth_token(
+            email=email, password=password, token_name=token_name, otp=otp)
+    return content
 
 
 def prompt_request_macaroon(caveat_id=None):
-    content = None
     if not caveat_id:
         caveat_id='{"secret": "thesecret", "version": 1}'
     email = six.moves.input('Email: ')
@@ -202,7 +187,6 @@ def prompt_request_macaroon(caveat_id=None):
             logging.error(str(e))
             return None
         otp = six.moves.input('Second-factor auth: ')
-    if not content:
         content = client.request_discharge_macaroon(
             email=email, password=password, caveat_id=caveat_id, otp=otp)
     return content

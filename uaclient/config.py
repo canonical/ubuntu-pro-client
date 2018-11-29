@@ -17,7 +17,7 @@ BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 CONFIG_DEFAULTS = {
     'sso_auth_url': BASE_AUTH_URL,
     'service_url': BASE_SERVICE_URL,
-    'data_dir': '/var/lib/uaclient/',
+    'data_dir': '~/.local/share/ua-client',
     'log_level': 'info'
 }
 
@@ -83,6 +83,7 @@ def parse_config(config_path=None):
            env_keys[key.lower()[3:]]= value   # Strip leading UA_
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
+    cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
     return cfg
 
 

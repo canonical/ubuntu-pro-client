@@ -14,6 +14,8 @@ Available entitlements:
 NAME = 'ubuntu-advantage-client'
 
 import argparse
+import json
+import logging
 import os
 import sys
 
@@ -21,6 +23,9 @@ import sys
 from uaclient import config
 from uaclient import entitlements
 from uaclient import status as ua_status
+from uaclient import sso
+from uaclient import contract
+from uaclient import util
 
 
 USAGE = '{name} [command] [flags]'.format(name=NAME)
@@ -36,6 +41,45 @@ def attach_parser(parser=None):
             prog='attach',
             description=('Remove logs and artifacts so cloud-init re-runs on '
                          'a clean system'))
+    parser.add_argument('token', nargs='?', help='Support Token obtained from Ubuntu Advantage dashboard')
+    parser.add_argument('--email', action='store', help='Optional email address for Ubuntu SSO login')
+    parser.add_argument('--password', action='store', help='Optional password for Ubuntu SSO login')
+
+    parser.add_argument('--otp', action='store', help='Optional one-time password for login to Ubuntu Advantage Dashboard')
+
+
+def ua_attach(args):
+    cfg = config.parse_config()
+    data_dir = cfg['data_dir']
+    entitlements_path = os.path.join(data_dir, 'entitlements.json')
+    if os.path.exists(entitlements_path):
+        entitlements = json.loads(util.load_file(entitlements_path))
+        print("This machine is already attached to '%s'." %
+              entitlements['subscription'])
+        return 0
+    if not args.token:
+        caveat_id = {'version': 1, 'secret': 'encoded-secret'}
+        try:
+         token = sso.prompt_request_macaroon(caveat_id=caveat_id)
+        except sso.SSOAuthError as e:
+         import pdb; pdb.set_trace()
+    else:
+        token = args.token
+    token_path = os.path.join(data_dir, 'machine-token.json')
+    contract_client = contract.UAContractClient()
+    try:
+        machine_token = contract_client.request_machine_attach(token)
+    except (sso.SSOAuthError, util.UrlError) as e:
+        logging.error(str(e))
+        return 1
+    util.write_file(token_path, machine_token)
+    entitlements = get_entitlements()
+    print("This machine is now attached to '%s'.\n" %
+          entitlements['subscription'])
+    get_status()
+    util.write_file(entitlements_path, json.dumps(entitlements))
+    return 0
+
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -53,6 +97,8 @@ def get_parser():
     parser_attach = subparsers.add_parser(
         'attach',
         help='attach this machine to an ubuntu advantage subscription')
+    attach_parser(parser_attach)
+    parser_attach.set_defaults(action=ua_attach)
     parser_detach = subparsers.add_parser(
         'detach',
          help='remove this machine from an ubuntu advantage subscription')
@@ -84,6 +130,7 @@ def get_entitlements():
 
 
 def get_status(args=None):
+
     print(STATUS_HEADER_TMPL.format(**get_entitlements()))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
@@ -98,13 +145,25 @@ def get_status(args=None):
     print('')
 
 
+def setup_logging(level=logging.ERROR):
+    fmt = '[%(levelname)s]: %(message)s'
+    formatter = logging.Formatter(fmt)
+    root = logging.getLogger()
+    console = logging.StreamHandler(sys.stderr)
+    console.setFormatter(formatter)
+    console.setLevel(level)
+    root.addHandler(console)
+    root.setLevel(level)
+
+
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
     parser = get_parser()
     args = parser.parse_args(args=sys_argv[1:])
-    args.action(args)
-    return 0
+    log_level = logging.DEBUG if args.debug else logging.ERROR
+    setup_logging(log_level)
+    return args.action(args)
 
 
 if __name__ == '__main__':

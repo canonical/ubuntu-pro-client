@@ -1,0 +1,198 @@
+# Copy this into https://editor.swagger.io/ for a simple API representation
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: Ubuntu Advantage Service API
+  description: Backend API services for the Ubuntu Advantage entitlement management
+  contact:
+    name: Canonical Support
+    email: support@canonical.com
+    url: http://support.canonical.com/
+host: ua-entitlements.canonical.com
+
+
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /dashboard/macaroon:
+    post:
+      summary: Generate a 3rd party macaroon for discharge with Ubuntu SSO
+      description: |
+        Create a root macaroon with an encrypted third party caveat
+
+        This macaroon will need to be discharged @ login.ubuntu.com/api/v2/tokens/discharge
+      parameters:
+        - in: body
+          name: uamacaroon
+          schema:
+            $ref: '#/definitions/reqUAMacaroon'
+      responses:
+        '200':
+          description: Successful macaroon response for USSO discharge
+          schema:
+            $ref: '#/definitions/respUAMacaroon'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/respError'
+  /contract/machine/attach:
+    post:
+      summary: Attach a machine to an existing UA account
+      parameters:
+        - in: body
+          name: machine
+          schema:
+              $ref: '#/definitions/reqMachine'
+      responses:
+        '200':
+          description: Machine-Token response, existing machine-token is returned if already attached
+          schema:
+            $ref: '#/definitions/respMachineToken'
+        '403':
+          description: "Unauthorized error. This will occur if the user-token isn't known."
+          schema:
+            $ref: '#/definitions/respError'
+        '409':
+          description: "Conflict error due to a machine-token already existing for this machine-id but the machine-id is part of another account."
+          schema:
+            $ref: '#/definitions/respError'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/respError'
+  /contract/entitlement/enable:
+    post:
+      summary: Enable a specific Ubuntu Advantage entitlement on a machine
+      parameters:
+        - in: body
+          name: entitlement
+          schema:
+            $ref: '#/definitions/reqEntitlementChange'
+      responses:
+        '200':
+          description: Optional pointer to URL of livepatch, or empty document if there is none.
+          schema:
+            $ref: '#/definitions/respSuccess'
+        '403':
+          description: "Unauthorized error. This will occur if the Machine-Token isn't known."
+          schema:
+            $ref: '#/definitions/respError'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/respError'
+
+  /contract/entitlement/disable:
+    post:
+      summary: Disable a specific entitlement on a machine
+      parameters:
+        - in: body
+          name: entitlement
+          schema:
+            $ref: '#/definitions/reqEntitlementChange'
+      responses:
+        '200':
+          description: Disabed the requested entitlement for this machine
+          schema:
+            $ref: '#/definitions/respSuccess'
+        '403':
+          description: "Unauthorized error. This will occur if the Machine-Token isn't known."
+          schema:
+            $ref: '#/definitions/respError'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/respError'
+
+definitions:
+    reqUAMacaroon:
+      type: object
+      required:
+        - permissions
+      properties:
+        permissions:
+          type: array
+          items:
+            type: string
+            enum:
+              - CREATE_USER_TOKEN
+              - CREATE_MACHINE_TOKEN
+              - ENABLE_ENTITLEMENT
+              - DISABLE_ENTITLEMENT
+    reqEntitlementChange:
+      type: object
+      required:
+        - entitlement-name
+        - machine-id
+        - machine-token
+      properties:
+        entitlement-name:
+          type: string
+          enum:
+            - esm
+            - livepatch
+            - fips
+            - fips-updates
+          description: Name of the unique UA entitilements supported
+        machine-id:
+          type: string
+          description: A stable identifier from /etc/machine-id of the Ubuntu machine running UA client entitlements.
+        machine-token:
+          type: string
+          description: This token is obtained from Contract API via a /contract/machine/attach and authenticates the machine in all Contract API interactions.
+    reqMachine:
+      type: object
+      required:
+        - user-token
+        - machine-id
+      properties:
+        user-token:
+          type: string
+          description: This token is obtained from UA Dashboard and identifies the user that should be used to generate a machine-token.
+        machine-id:
+          type: string
+          description: A stable identifier from /etc/machine-id of the Ubuntu machine running UA client entitlements.
+    respUAMacaroon:
+      type: object
+      required:
+        - macaroon
+      properties:
+        macaroon:
+          type: string
+          description: Serialized Macaroon containing a third party caveat for login.ubuntu.com or login.staging.ubuntu.com to discharge via UbuntuSSO.
+    respMachineToken:
+      type: object
+      required:
+        - machine-token
+      properties:
+        machine-token:
+          type: string
+          description: This token is unique for each machine and ties the machine to a contract. It is used for all subsequent authentication to contract and account service endpoints.
+    respSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Optional human readable message describing 
+    respError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Unique error code defined for the specific failure mode
+          enum:
+              - INVALID_USER_TOKEN
+              - EXPIRED_USER_TOKEN
+              - DUPLICATE_MACHINE_ID
+              - ...
+        details:
+          type: string
+          description: Human-readable detailed message about the specific failure.
+          example: There is another machine currrently registered with a duplicate machine-id under another account. Please reset
