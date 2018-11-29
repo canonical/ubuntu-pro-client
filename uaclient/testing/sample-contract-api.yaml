@@ -25,7 +25,7 @@ paths:
       description: |
         Create a root macaroon with an encrypted third party caveat
 
-        This macaroon will need to be discharged @ login.ubuntu.com/api/v2/tokens/discharge
+        This macaroon will need to be discharged @ login.ubuntu.com/api/v2/tokens/discharge       
       parameters:
         - in: body
           name: uamacaroon
@@ -77,7 +77,29 @@ paths:
         '200':
           description: Optional pointer to URL of livepatch, or empty document if there is none.
           schema:
-            $ref: '#/definitions/respSuccess'
+            $ref: '#/definitions/respSuccessEnable'
+        '403':
+          description: "Unauthorized error. This will occur if the Machine-Token isn't known."
+          schema:
+            $ref: '#/definitions/respError'
+        '500':
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/respError'
+            
+  /account/machine/entitlements:
+    post:
+      summary: Get the status of all entitlements authorized for a machine
+      parameters:
+        - in: body
+          name: entitlement
+          schema:
+            $ref: '#/definitions/reqStatus'
+      responses:
+        '200':
+          description: Optional pointer to URL of livepatch, or empty document if there is none.
+          schema:
+            $ref: '#/definitions/respSuccessStatus'
         '403':
           description: "Unauthorized error. This will occur if the Machine-Token isn't known."
           schema:
@@ -145,6 +167,18 @@ definitions:
         machine-token:
           type: string
           description: This token is obtained from Contract API via a /contract/machine/attach and authenticates the machine in all Contract API interactions.
+    reqStatus:
+      type: object
+      required:
+        - machine-id
+        - machine-token
+      properties:
+        machine-id:
+          type: string
+          description: A stable identifier from /etc/machine-id of the Ubuntu machine running UA client entitlements.
+        machine-token:
+          type: string
+          description: This token is obtained from Contract API via a /contract/machine/attach and authenticates the machine in all Contract API interactions.
     reqMachine:
       type: object
       required:
@@ -173,6 +207,24 @@ definitions:
         machine-token:
           type: string
           description: This token is unique for each machine and ties the machine to a contract. It is used for all subsequent authentication to contract and account service endpoints.
+    respSuccessEnable:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Optional human readable message describing the operation performed
+        token:
+          type: string
+          description: Serialized Macaroon containing all caveats authorized for this entitlement
+    respSuccessStatus:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Optional human readable message describing the operation performed
+        token:
+          type: string
+          description: Serialized Macaroon containing all entitlements and caveats authorized for this machine
     respSuccess:
       type: object
       properties:
@@ -194,5 +246,5 @@ definitions:
               - ...
         details:
           type: string
-          description: Human-readable detailed message about the specific failure.
+          description: Optional English, human-readable detailed message about the specific failure.
           example: There is another machine currrently registered with a duplicate machine-id under another account. Please reset

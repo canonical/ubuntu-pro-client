@@ -9,20 +9,24 @@ import logging
 
 
 API_PATH_MACHINE_ATTACH = '/contract/machine/attach'
+API_PATH_MACHINE_STATUS = '/account/machine/services'
+
+# API Errors for Contract service
+API_ERROR_INVALID_DATA = 'BAD REQUEST'
 
 
-class SSOAuthError(util.UrlError):
+class ContractAPIError(util.UrlError):
 
     def __init__(self, e, error_response):
-        super(SSOAuthError, self).__init__(e, e.code, e.headers, e.url)
+        import pdb; pdb.set_trace()
+        super(ContractAPIError, self).__init__(e, e.code, e.headers, e.url)
         self.full_api_response = error_response
         if 'error_list' in error_response:
             self.api_errors = error_response['error_list']
         else:
             self.api_errors = [error_response]
-        # Convert old api error codes from ERROR_CODE to error-code
         for error in self.api_errors:
-            error['code'] = error['code'].lower().replace('_', '-')
+            error['code'] = error['title']
 
     def __contains__(self, error_code):
         return error_code in [error['code'] for error in self.api_errors]
@@ -30,15 +34,15 @@ class SSOAuthError(util.UrlError):
     def __get__(self, error_code, default=None):
         for error in self.api_errors:
             if error['code'] == error_code:
-                return error['message']
+                return error['detail']
         return default
 
     def __str__(self):
-        prefix = super(SSOAuthError, self).__str__()
+        prefix = super(ContractAPIError, self).__str__()
         details = []
         for err in self.api_errors:
             if not err.get('extra'):
-                details.append(err['message'])
+                details.append(err['detail'])
             else:
                 for extra in err['extra'].values():
                     if isinstance(extra, list):
@@ -86,9 +90,34 @@ class UAContractClient(UAServiceClient):
             if hasattr(e, 'read'):
                 error_details = util.maybe_parse_json(e.read())
                 if error_details:
-                    raise SSOAuthError(e, error_details)
+                    raise ContractAPIError(e, error_details)
             raise util.UrlError(e, code=code, headers=headers, url=url)
         return response
+
+    def request_status(self, machine_token, machine_id=None):
+        """Request entitlement status details for a given machine.
+
+        @return: Dict of JSON reposnse from entitlements endpoint
+        """
+        if not machine_id:
+            machine_id = util.load_file('/etc/machine-id')
+        data = {'machine-token': machine_token, 'machine-id': machine_id}
+        return self.request_url(API_PATH_MACHINE_STATUS, data=data)
+
+        return {'account': 'Blackberry Limited',
+                'subscription':  'blackberry/desktops',
+                'contract-expiry': '2019-12-31',
+                'entitlement-expiry': '2018-12-01',
+                'entitlements': {
+                  'esm': {'token': '<ppa_username:password> ppa_url'},
+                  'fips': {},  # Notoken == Not authorized
+                   # PPA changes per series for FIPS should contract service contstuct this url in token?
+                  'fips-updates': {'token': '<ppa_username:password> ppa_url'},
+                }
+               }
+        # TODO Alternative could be macaroon with first_party_caveats describing
+        # the keys above
+
 
     def request_machine_attach(self, user_token, machine_id=None):
         """Requests machine attach from Contract service.

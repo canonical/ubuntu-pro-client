@@ -60,20 +60,21 @@ def ua_attach(args):
     if not args.token:
         caveat_id = {'version': 1, 'secret': 'encoded-secret'}
         try:
-         token = sso.prompt_request_macaroon(caveat_id=caveat_id)
+         user_token = sso.prompt_request_macaroon(caveat_id=caveat_id)
         except sso.SSOAuthError as e:
          import pdb; pdb.set_trace()
     else:
-        token = args.token
-    token_path = os.path.join(data_dir, 'machine-token.json')
+        user_token = args.token
+    machine_token_path = os.path.join(data_dir, 'machine-token.json')
     contract_client = contract.UAContractClient()
     try:
-        machine_token = contract_client.request_machine_attach(token)
+        token_response = contract_client.request_machine_attach(user_token)
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
-    util.write_file(token_path, machine_token)
-    entitlements = get_entitlements()
+    util.write_file(machine_token_path, token_response)
+    machine_token = token_response['machine-token']
+    entitlements = contract_client.request_entitlements(machine_token)
     print("This machine is now attached to '%s'.\n" %
           entitlements['subscription'])
     get_status()
@@ -120,13 +121,6 @@ Account: {account}
 Subscription: {subscription}
 Valid until: {expiry}
 """
-
-
-def get_entitlements():
-    """Return a dictionary of entitlement details."""
-    return {'account': 'Blackberry Limited',
-            'subscription':  'blackberry/desktops',
-            'expiry': '2019-12-31'}
 
 
 def get_status(args=None):
