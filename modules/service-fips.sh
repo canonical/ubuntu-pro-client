@@ -23,6 +23,10 @@ FIPS_HMAC_PACKAGES="openssh-client-hmac openssh-server-hmac libssl1.0.0-hmac \
     linux-fips strongswan-hmac"
 FIPS_OTHER_PACKAGES="openssh-client openssh-server openssl libssl1.0.0 \
     fips-initramfs strongswan"
+FIPS_SSL_PACKAGES="openssl libssl1.0.0 libssl1.0.0-hmac"
+FIPS_SSH_SERVER_PACKAGES="openssh-server openssh-server-hmac"
+FIPS_SSH_CLIENT_PACKAGES="openssh-client openssh-client-hmac"
+FIPS_STRONGSWAN_PACKAGES="strongswan strongswan-hmac"
 
 fips_enable() {
     local token="$1"
@@ -99,11 +103,32 @@ fips_updates_enable() {
        fips_kernel_version=$(package_version linux-fips)
     fi
 
-    # update all the fips packages
+    # update all the installed fips packages
     echo -n 'Updating FIPS packages (this may take a while)... '
     # shellcheck disable=SC2086
-    check_result apt_get install $FIPS_HMAC_PACKAGES $FIPS_OTHER_PACKAGES
-
+    # update fips kernel and initramfs
+    check_result apt_get install "linux-fips"
+    check_result apt_get install "fips-initramfs"
+    # update openssl if it is installed
+    if apt_is_package_installed "libssl1.0.0"; then
+        check_result apt_get install $FIPS_SSL_PACKAGES
+        echo "FIPS OpenSSL packages updated."
+    fi
+    # update openssh-server if it is installed
+    if apt_is_package_installed "openssh-server"; then
+        check_result apt_get install $FIPS_SSH_SERVER_PACKAGES
+        echo "FIPS OpenSSH-server packages updated."
+    fi
+    # update openssh-client if it is installed
+    if apt_is_package_installed "openssh-client"; then
+        check_result apt_get install $FIPS_SSH_CLIENT_PACKAGES
+        echo "FIPS OpenSSH-client packages updated."
+    fi
+    # update strongswan if it is installed
+    if apt_is_package_installed "strongswan"; then
+        check_result apt_get install $FIPS_STRONGSWAN_PACKAGES
+        echo "FIPS Strongswan packages updated."
+    fi
     # if fips was never configured before and is enabled for the
     # first time, configure fips
     if [ "$fips_configured" -eq 0 ]; then
