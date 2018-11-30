@@ -111,21 +111,25 @@ fips_updates_enable() {
     check_result apt_get install "fips-initramfs"
     # update openssl if it is installed
     if apt_is_package_installed "libssl1.0.0"; then
+        # shellcheck disable=SC2086
         check_result apt_get install $FIPS_SSL_PACKAGES
         echo "FIPS OpenSSL packages updated."
     fi
     # update openssh-server if it is installed
     if apt_is_package_installed "openssh-server"; then
+        # shellcheck disable=SC2086
         check_result apt_get install $FIPS_SSH_SERVER_PACKAGES
         echo "FIPS OpenSSH-server packages updated."
     fi
     # update openssh-client if it is installed
     if apt_is_package_installed "openssh-client"; then
+        # shellcheck disable=SC2086
         check_result apt_get install $FIPS_SSH_CLIENT_PACKAGES
         echo "FIPS OpenSSH-client packages updated."
     fi
     # update strongswan if it is installed
     if apt_is_package_installed "strongswan"; then
+        # shellcheck disable=SC2086
         check_result apt_get install $FIPS_STRONGSWAN_PACKAGES
         echo "FIPS Strongswan packages updated."
     fi
