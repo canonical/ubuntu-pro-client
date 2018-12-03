@@ -4,6 +4,7 @@ import os
 import six
 
 from uaclient import config
+from uaclient import serviceclient
 from uaclient import util
 import logging
 
@@ -27,6 +28,8 @@ API_ERROR_INVALID_CREDENTIALS = 'invalid-credentials'
 API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
 API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
+PATH_SSO_TOKEN = 'sso-oauth.json'
+PATH_MACAROON_TOKEN = 'sso-macaroon.json'
 
 class SSOAuthError(util.UrlError):
 
@@ -65,57 +68,11 @@ class SSOAuthError(util.UrlError):
         return prefix + ': ' + ', '.join(details)
 
 
-class UbuntuSSOClient(object):
+class UbuntuSSOClient(serviceclient.UAServiceClient):
 
 
-    data_paths = {'oauth': 'sso-oauth.json', 'macaroon': 'sso-macaroon.json'}
-
-    def __init__(self, cfg=None):
-        if not cfg:
-            self.cfg = config.parse_config()
-        else:
-            self.cfg = cfg
-
-    def data_path(self, key=None):
-        """Return the file path in the data directory represented by the key"""
-        if not key:
-            return self.cfg['data_dir']
-        return os.path.join(self.cfg['data_dir'], self.data_paths[key])
-
-    def read_cached_data(self, key):
-        if key not in self.data_paths:
-            return None
-        cache_path = self.data_path(key)
-        if not os.path.exists(cache_path):
-            return None
-        content = util.load_file(cache_path)
-        json_content = util.maybe_parse_json(content)
-        return json_content if json_content else content
-
-    def headers(self):
-        return {'user-agent': 'UA-Client/%s' % config.get_version(),
-                'accept': 'application/json',
-                'content-type': 'application/json'}
-
-    def request_url(self, path, data=None, headers=None):
-        if path[0] != '/':
-            path = '/' + path
-        if not headers:
-            headers=self.headers()
-        if headers.get('content-type') == 'application/json' and data:
-            data = util.encode_text(json.dumps(data))
-        url = self.cfg['sso_auth_url'] + path
-        try:
-            response = util.readurl(url=url, data=data, headers=headers)
-        except six.moves.urllib.error.URLError as e:
-            if hasattr(e, 'read'):
-                sso_error_details = util.maybe_parse_json(e.read())
-            else:
-                sso_error_details = None
-            if sso_error_details:
-                raise SSOAuthError(e, sso_error_details)
-            raise util.UrlError(e, code=e.code, headers=e.hdrs, url=e.url)
-        return response
+    api_error_cls = SSOAuthError
+    cfg_url_base_attr = 'sso_auth_url'
 
     def request_user_keys(self, email):
         return self.request_url(
@@ -133,16 +90,14 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
-        token_path = self.data_path('oauth')
-        if os.path.exists(token_path):  # Use cached oauth token
-            return json.load(util.load_file(token_path))
-        if not os.path.exists(self.data_path()):
-            os.makedirs(self.data_path())
+        sso_token = self.cfg.read_cache('oauth')
+        if sso_token:
+            return sso_token
         data = {'email': email, 'password': password, 'token_name': token_name}
         if otp:
             data['otp'] = otp
         content = self.request_url(API_PATH_OAUTH_TOKEN, data=data)
-        util.write_file(token_path, json.dumps(content))
+        self.cfg.write_cache('oauth', json.dumps(content))
         return content
 
     def request_discharge_macaroon(self, email, password, caveat_id, otp=None):
@@ -159,22 +114,20 @@ class UbuntuSSOClient(object):
              UrlError on unexpected url handling errors, timeouts etc
              SSOAuthError on expected SSO authentication issues
         """
-        macaroon_path = self.datapath('sso-macaroon')
-        if os.path.exists(macaroon_path):  # Use cached macaroon
-            return json.load(util.load_file(macaroon_path))
-        if not os.path.exists(self.data_path()):
-            os.makedirs(self.data_path())
+        macaroon_token = self.cfg.read_cache('macaroon')
+        if macaroon_token:
+            return macaroon_token
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
             data['otp'] = otp
         content = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
-        util.write_file(macaroon_path, json.dumps(content))
+        self.cfg.write_cache('macaroon', json.dumps(content))
         return content
 
 
 def prompt_oauth_token():
     client = UbuntuSSOClient()
-    oauth_token = client.read_cached_data('oauth')
+    oauth_token = client.cfg.read_cache('oauth')
     if oauth_token:
         return oauth_token
     email = six.moves.input('Email: ')

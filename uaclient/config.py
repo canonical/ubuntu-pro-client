@@ -5,6 +5,8 @@ import six
 import yaml
 from subprocess import check_output
 
+from uaclient import util
+
 LOG = logging.getLogger(__name__)
 
 PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
@@ -25,6 +27,71 @@ CONFIG_DEFAULTS = {
 class ConfigAbsentError(RuntimeError):
     """Raised when no valid config is discovered."""
     pass
+
+
+class UAConfig(object):
+
+
+    data_paths = {'entitlements': 'entitlements.json',
+                  'machine-token': 'machine-token.json',
+                  'macaroon': 'sso-macaroon.json',
+                  'oauth': 'sso-pauth.json'}
+
+    def __init__(self, cfg=None):
+        """"""
+        if not cfg:
+            self.cfg = parse_config()
+
+    @property
+    def contract_url(self):
+        return self.cfg['contract_url']
+
+    @property
+    def data_dir(self):
+        return self.cfg['data_dir']
+
+    @property
+    def log_level(self):
+        return self.cfg['log_level']
+
+    @property
+    def sso_auth_url(self):
+        return self.cfg['sso_auth_url']
+
+    @property
+    def entitlements(self):
+        """Return the machine-token if cached in the machine token response."""
+        return self.read_cache('entitlements')
+
+    @property
+    def machine_token(self):
+        """Return the machine-token if cached in the machine token response."""
+        token_response = self.read_cache('machine-token')
+        if not token_response:
+            return None
+        return token_response['machine-token']
+
+    def data_path(self, key):
+        """Return the file path in the data directory represented by the key"""
+        if not key:
+            return self.cfg['data_dir']
+        if key in self.data_paths:
+            return os.path.join(self.cfg['data_dir'], self.data_paths[key])
+        return os.path.join(self.cfg['data_dir'], key)
+
+    def read_cache(self, key):
+        cache_path = self.data_path(key)
+        if not os.path.exists(cache_path):
+            return None
+        content = util.load_file(cache_path)
+        json_content = util.maybe_parse_json(content)
+        return json_content if json_content else content
+
+    def write_cache(self, key, content):
+        if not os.path.exists(self.data_dir):
+            os.makedirs(self.data_dir)
+        filepath = self.data_path(key)
+        util.write_file(filepath, content)
 
 
 def decode_binary(blob, encoding='utf-8'):
