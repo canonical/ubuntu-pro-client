@@ -39,24 +39,51 @@ def attach_parser(parser=None):
     if not parser:
         parser = argparse.ArgumentParser(
             prog='attach',
-            description=('Remove logs and artifacts so cloud-init re-runs on '
-                         'a clean system'))
+            description=('Attach this machine to an existing Ubuntu Advantage'
+                         ' support subscription'))
     parser.add_argument('token', nargs='?', help='Support Token obtained from Ubuntu Advantage dashboard')
     parser.add_argument('--email', action='store', help='Optional email address for Ubuntu SSO login')
     parser.add_argument('--password', action='store', help='Optional password for Ubuntu SSO login')
 
     parser.add_argument('--otp', action='store', help='Optional one-time password for login to Ubuntu Advantage Dashboard')
+    return parser
 
 
-def ua_attach(args):
-    cfg = config.parse_config()
-    data_dir = cfg['data_dir']
-    entitlements_path = os.path.join(data_dir, 'entitlements.json')
-    if os.path.exists(entitlements_path):
-        entitlements = json.loads(util.load_file(entitlements_path))
+def enable_parser(parser=None):
+    """Build or extend an arg parser for enable subcommand."""
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog='enable',
+            description='Enable a support entitlement on this machine')
+    entitlement_names = list(
+        cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
+    parser.add_argument(
+        'name', action='store', choices=entitlement_names,
+        help='The name of the support entitlement to enable')
+    return parser
+
+
+def action_enable(args):
+    """Perform the enable action on a named entitlement.
+
+    @return: 0 on success, 1 otherwise
+    """
+    cfg = config.UAConfig()
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
+    entitlement =  ent_cls(cfg)
+    return 0 if entitlement.enable() else 1
+
+
+def action_attach(args):
+    cfg = config.UAConfig()
+    entitlement_status = cfg.entitlements
+    if entitlement_status:
         print("This machine is already attached to '%s'." %
-              entitlements['subscription'])
+              entitlement_status['subscription'])
         return 0
+    if os.getuid() != 0:
+        print(ua_status.MESSAGE_NONROOT_USER)
+        return 1
     if not args.token:
         user_token = sso.prompt_oauth_token()
     else:
@@ -77,7 +104,6 @@ def ua_attach(args):
     print("This machine is now attached to '%s'.\n" %
           entitlement_status['subscription'])
     print_status()
-    util.write_file(entitlements_path, json.dumps(entitlement_status))
     return 0
 
 
@@ -98,13 +124,15 @@ def get_parser():
         'attach',
         help='attach this machine to an ubuntu advantage subscription')
     attach_parser(parser_attach)
-    parser_attach.set_defaults(action=ua_attach)
+    parser_attach.set_defaults(action=action_attach)
     parser_detach = subparsers.add_parser(
         'detach',
          help='remove this machine from an ubuntu advantage subscription')
     parser_enable = subparsers.add_parser(
         'enable',
          help='enable a specific support entitlement on this machine')
+    enable_parser(parser_enable)
+    parser_enable.set_defaults(action=action_enable)
     parser_enable = subparsers.add_parser(
         'disable',
          help='disable a specific support entitlement on this machine')
@@ -123,33 +151,26 @@ Valid until: {contract-expiry}
 
 
 def print_status(args=None):
-    cfg = config.parse_config()
-    data_dir = cfg['data_dir']
-    token_path = os.path.join(data_dir, 'machine-token.json')
-    if not os.path.exists(token_path):
+    cfg = config.UAConfig()
+    if not cfg.machine_token:
         print('This machine is not attached to a UA subscription.\n'
               'See `ua attach` or https://ubuntu.com/advantage')
         return
-    entitlement_path = os.path.join(data_dir, 'entitlements-status.json')
-    if os.path.exists(entitlement_path):
-         entitlement_status = util.load_file(entitlement_path)
-    else:
-         machine_token = json.loads(
-             util.load_file(token_path))['machine-token']
+    entitlement_status = cfg.entitlements
+    if not entitlement_status:
          contract_client = contract.UAContractClient(cfg)
          entitlement_status = contract_client.request_status(machine_token)
     print(STATUS_HEADER_TMPL.format(**entitlement_status))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls()
-        operational_state, status = ent.status()
         print(ua_status.format_entitlement_status(ent))
     print(ua_status.STATUS_TMPL.format(
           name='support',
           contract_state=ua_status.STATUS_COLOR.get(
               ua_status.ESSENTIAL, ua_status.ESSENTIAL),
           status=''))
-    print('')
+    print('\nEnable entitlements with `ua enable <service>\n')
 
 
 def setup_logging(level=logging.ERROR):

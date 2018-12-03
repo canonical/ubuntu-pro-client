@@ -1,10 +1,11 @@
 from uaclient.entitlements import base
-from uaclient.status import ENTITLED, INACTIVE, EntitlementStatus
+from uaclient.status import ENTITLED, INACTIVE
 
 
 class ESMEntitlement(base.UAEntitlement):
 
     name = 'esm'
+    title = 'Extended Security Maintenance'
     description = (
         'Ubuntu Extended Security Maintenance archive'
         ' (https://ubuntu.com/esm)')
@@ -14,6 +15,8 @@ class ESMEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
+        if not self.can_enable():
+            return False
         print('Extended Security and Maintenance archive access enabled.')
         return True
 
@@ -25,6 +28,6 @@ class ESMEntitlement(base.UAEntitlement):
         print('Extended Security and Maintenance archive access disabled.')
         return True
 
-    def status(self):
-        """Return EntitlementStatus tuple"""
-        return EntitlementStatus(self.contract_status(), INACTIVE)
+    def operational_status(self):
+        """Return operational status of ESM service."""
+        return INACTIVE

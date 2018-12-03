@@ -1,10 +1,11 @@
 from uaclient.entitlements import base
-from uaclient.status import UNENTITLED, INAPPLICABLE, EntitlementStatus
+from uaclient.status import UNENTITLED, INAPPLICABLE
 
 
 class FIPSEntitlement(base.UAEntitlement):
 
     name = 'fips'
+    title = 'FIPS'
     description = 'Canonical FIPS 140-2 Certified Modules'
 
     def enable(self):
@@ -12,6 +13,8 @@ class FIPSEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
+        if not self.can_enable():
+            return False
         print('FIPS configured, please reboot to enable.')
         return True
 
@@ -23,14 +26,15 @@ class FIPSEntitlement(base.UAEntitlement):
         print('Warning: no option to disable FIPS')
         return False
 
-    def status(self):
-        """Return tuple contract_status, service_status"""
-        return EntitlementStatus(self.contract_status(), INAPPLICABLE)
+    def operational_status(self):
+        """Return operational status of FIPS entitlement."""
+        return INAPPLICABLE
 
 
 class FIPSUpdatesEntitlement(base.UAEntitlement):
 
     name = 'fips-updates'
+    title = 'FIPS Updates'
     description = 'Canonical FIPS 140-2 Certified Modules'
 
     def enable(self):
@@ -38,6 +42,8 @@ class FIPSUpdatesEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
+        if not self.can_enable():
+            return False
         print('FIPS Updates configured, please reboot to enable.')
         return True
 
@@ -49,6 +55,6 @@ class FIPSUpdatesEntitlement(base.UAEntitlement):
         print('Warning: no option to disable FIPS Updates')
         return False
 
-    def status(self):
-        """Return tuple contract_status, service_status"""
-        return EntitlementStatus(self.contract_status(), INAPPLICABLE)
+    def operational_status(self):
+        """Return operational status of FIPS-updates entitlement."""
+        return INAPPLICABLE
