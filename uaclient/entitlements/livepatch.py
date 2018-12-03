@@ -4,7 +4,8 @@ import json
 
 from uaclient import status
 from uaclient.entitlements import base
-from uaclient.status import ACTIVE, INACTIVE, ENTITLED, UNENTITLED
+from uaclient.status import (
+    ACTIVE, INACTIVE, ENTITLED, UNENTITLED, MESSAGE_DISABLED_TMPL)
 from uaclient import util
 
 
@@ -42,7 +43,12 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        print('Canonical livepatch disabled.')
+        if not self.can_disable():
+            return False
+        subp(['canonical-livepatch', 'disable'])
+        logging.debug('Removing canonical-livepatch snap')
+        subp(['snap', 'remove', 'canonical-livepatch'])
+        print(MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):

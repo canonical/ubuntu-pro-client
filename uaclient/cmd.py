@@ -63,6 +63,30 @@ def enable_parser(parser=None):
     return parser
 
 
+def disable_parser(parser=None):
+    """Build or extend an arg parser for disable subcommand."""
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog='disable',
+            description='Disable a support entitlement on this machine')
+    entitlement_names = list(
+        cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
+    parser.add_argument(
+        'name', action='store', choices=entitlement_names,
+        help='The name of the support entitlement to disable')
+    return parser
+
+
+def action_disable(args):
+    """Perform the disable action on a named entitlement.
+
+    @return: 0 on success, 1 otherwise
+    """
+    cfg = config.UAConfig()
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
+    entitlement = ent_cls(cfg)
+    return 0 if entitlement.disable() else 1
+
 def action_enable(args):
     """Perform the enable action on a named entitlement.
 
@@ -70,7 +94,7 @@ def action_enable(args):
     """
     cfg = config.UAConfig()
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement =  ent_cls(cfg)
+    entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
 
 
@@ -133,9 +157,11 @@ def get_parser():
          help='enable a specific support entitlement on this machine')
     enable_parser(parser_enable)
     parser_enable.set_defaults(action=action_enable)
-    parser_enable = subparsers.add_parser(
+    parser_disable = subparsers.add_parser(
         'disable',
          help='disable a specific support entitlement on this machine')
+    disable_parser(parser_disable)
+    parser_disable.set_defaults(action=action_disable)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
     parser_version.set_defaults(action=config.print_version)

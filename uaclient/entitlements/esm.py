@@ -1,5 +1,5 @@
 from uaclient.entitlements import base
-from uaclient.status import ENTITLED, INACTIVE
+from uaclient.status import ENTITLED, INACTIVE, MESSAGE_DISABLED_TMPL
 
 
 class ESMEntitlement(base.UAEntitlement):
@@ -25,7 +25,9 @@ class ESMEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        print('Extended Security and Maintenance archive access disabled.')
+        if not self.can_disable():
+            return False
+        print(MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):

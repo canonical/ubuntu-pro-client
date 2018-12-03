@@ -23,6 +23,8 @@ class FIPSEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
+        if not self.can_disable():
+            return False
         print('Warning: no option to disable FIPS')
         return False
 
@@ -52,6 +54,8 @@ class FIPSUpdatesEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
+        if not self.can_disable():
+            return False
         print('Warning: no option to disable FIPS Updates')
         return False
 
