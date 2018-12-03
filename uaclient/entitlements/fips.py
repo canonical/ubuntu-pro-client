@@ -1,5 +1,5 @@
 from uaclient.entitlements import base
-from uaclient.status import UNENTITLED, UNAVAILABLE, EntitlementStatus
+from uaclient.status import UNENTITLED, INAPPLICABLE, EntitlementStatus
 
 
 class FIPSEntitlement(base.UAEntitlement):
@@ -25,7 +25,7 @@ class FIPSEntitlement(base.UAEntitlement):
 
     def status(self):
         """Return tuple contract_status, service_status"""
-        return EntitlementStatus(UNENTITLED, UNAVAILABLE)
+        return EntitlementStatus(self.contract_status(), INAPPLICABLE)
 
 
 class FIPSUpdatesEntitlement(base.UAEntitlement):
@@ -51,4 +51,4 @@ class FIPSUpdatesEntitlement(base.UAEntitlement):
 
     def status(self):
         """Return tuple contract_status, service_status"""
-        return EntitlementStatus(UNENTITLED, UNAVAILABLE)
+        return EntitlementStatus(self.contract_status(), INAPPLICABLE)

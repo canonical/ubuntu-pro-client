@@ -27,4 +27,4 @@ class ESMEntitlement(base.UAEntitlement):
 
     def status(self):
         """Return EntitlementStatus tuple"""
-        return EntitlementStatus(ENTITLED, INACTIVE)
+        return EntitlementStatus(self.contract_status(), INACTIVE)

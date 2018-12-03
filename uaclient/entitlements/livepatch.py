@@ -1,5 +1,9 @@
+import os
+import json
 from uaclient.entitlements import base
-from uaclient.status import ENTITLED, ACTIVE, EntitlementStatus
+from uaclient.status import (
+    ACTIVE, INACTIVE, ENTITLED, UNENTITLED, EntitlementStatus)
+from uaclient import util
 
 
 class LivepatchEntitlement(base.UAEntitlement):
@@ -27,4 +31,8 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def status(self):
         """Return tuple contract_status, service_status"""
-        return EntitlementStatus(ENTITLED, ACTIVE)
+        if not util.which('canonical-livepatch'):
+            operational_status = INACTIVE
+        else:
+            operational_status = ACTIVE
+        return EntitlementStatus(self.contract_status(), operational_status)
