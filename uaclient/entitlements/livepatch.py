@@ -45,9 +45,9 @@ class LivepatchEntitlement(base.UAEntitlement):
         """
         if not self.can_disable():
             return False
-        subp(['canonical-livepatch', 'disable'])
+        util.subp(['canonical-livepatch', 'disable'])
         logging.debug('Removing canonical-livepatch snap')
-        subp(['snap', 'remove', 'canonical-livepatch'])
+        util.subp(['snap', 'remove', 'canonical-livepatch'])
         print(MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
