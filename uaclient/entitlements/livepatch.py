@@ -9,6 +9,12 @@ from uaclient.status import (
 from uaclient import util
 
 
+ERROR_MSG_MAP = {
+ 'Unknown Auth-Token': 'Invalid Auth-Token provided to livepatch.',
+ 'unsupported kernel': 'Your running kernel is not supported by Livepatch.',
+}
+
+
 class LivepatchEntitlement(base.UAEntitlement):
 
     name = 'livepatch'
@@ -24,14 +30,20 @@ class LivepatchEntitlement(base.UAEntitlement):
         """
         if not self.can_enable():
             return False
-        livepatch_token = self.cfg.entitlements['livepatch']['token']
+        if not util.which('canonical-livepatch'):
+            print('Installing canonical-livepatch snap...')
+            util.subp(['snap', 'install', 'canonical-livepatch'])
+        livepatch_token = (
+            self.cfg.entitlements['entitlements']['livepatch']['token'])
         try:
             util.subp(['canonical-livepatch', 'enable', livepatch_token])
         except util.ProcessExecutionError as e:
-            message = 'Unable to enable Livepatch: '
-            if 'unsupported kernel' in str(e):
-                msg += 'Your running kernel is not supported by Livepatch.'
-            else:
+            msg = 'Unable to enable Livepatch: '
+            for error_message, print_message in ERROR_MSG_MAP.items():
+                if error_message in str(e):
+                    msg += print_message
+                    break
+            if msg == 'Unable to enable Livepatch: ':
                msg += str(e)
             print(msg)
             return False
