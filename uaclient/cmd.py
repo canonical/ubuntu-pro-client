@@ -28,33 +28,53 @@ from uaclient import contract
 from uaclient import util
 
 
-USAGE = '{name} [command] [flags]'.format(name=NAME)
-EPILOG = (
-    'Use {name} [command] --help for more information about a command.'.format(
-        name=NAME))
+USAGE_TMPL = '{name} {command} [flags]'
+EPILOG_TMPL = (
+    'Use {name} {command} --help for more information about a command.')
 
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
+    usage = usage=USAGE_TMPL.format(name=NAME, command='attach [token]')
     if not parser:
         parser = argparse.ArgumentParser(
             prog='attach',
             description=('Attach this machine to an existing Ubuntu Advantage'
-                         ' support subscription'))
-    parser.add_argument('token', nargs='?', help='Support Token obtained from Ubuntu Advantage dashboard')
-    parser.add_argument('--email', action='store', help='Optional email address for Ubuntu SSO login')
-    parser.add_argument('--password', action='store', help='Optional password for Ubuntu SSO login')
-
-    parser.add_argument('--otp', action='store', help='Optional one-time password for login to Ubuntu Advantage Dashboard')
+                         ' support subscription'),
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'attach'
+    parser._optionals.title = 'Flags'
+    parser.add_argument(
+        'token', nargs='?',
+        help='Optional token obtained from Ubuntu Advantage dashboard')
+    parser.add_argument(
+        '--email', action='store',
+        help='Optional email address for Ubuntu SSO login')
+    parser.add_argument(
+        '--password', action='store',
+        help='Optional password for Ubuntu SSO login')
+    parser.add_argument(
+        '--otp', action='store',
+        help=('Optional one-time password for login to Ubuntu Advantage'
+              ' Dashboard'))
     return parser
 
 
 def enable_parser(parser=None):
     """Build or extend an arg parser for enable subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command='enable') + ' <entitlement>'
     if not parser:
         parser = argparse.ArgumentParser(
             prog='enable',
-            description='Enable a support entitlement on this machine')
+            description='Enable a support entitlement on this machine',
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'enable'
+    parser._positionals.title = 'Entitlements'
+    parser._optionals.title = 'Flags'
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
     parser.add_argument(
@@ -65,10 +85,17 @@ def enable_parser(parser=None):
 
 def disable_parser(parser=None):
     """Build or extend an arg parser for disable subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command='disable') + ' <entitlement>'
     if not parser:
         parser = argparse.ArgumentParser(
             prog='disable',
-            description='Disable a support entitlement on this machine')
+            description='Disable a support entitlement on this machine',
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'disable'
+    parser._positionals.title = 'Entitlements'
+    parser._optionals.title = 'Flags'
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
     parser.add_argument(
@@ -134,9 +161,11 @@ def action_attach(args):
 def get_parser():
     parser = argparse.ArgumentParser(
         prog=NAME, formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=__doc__, usage=USAGE,
-         epilog=EPILOG)
-    parser.add_argument('--debug', action='store_true', help='Show all debug messages')
+        description=__doc__,
+        usage=USAGE_TMPL.format(name=NAME, command='[command]'),
+        epilog=EPILOG_TMPL.format(name=NAME, command='[command]'))
+    parser.add_argument(
+        '--debug', action='store_true', help='Show all debug messages')
     parser._optionals.title = 'Flags'
     subparsers = parser.add_subparsers(
         title='Available Commands', dest='command', metavar='')
