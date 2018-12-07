@@ -1,5 +1,5 @@
 from uaclient.entitlements import base
-from uaclient.status import ENTITLED, INACTIVE, MESSAGE_DISABLED_TMPL
+from uaclient import status
 
 
 class ESMEntitlement(base.UAEntitlement):
@@ -27,9 +27,9 @@ class ESMEntitlement(base.UAEntitlement):
         """
         if not self.can_disable():
             return False
-        print(MESSAGE_DISABLED_TMPL.format(title=self.title))
+        print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):
         """Return operational status of ESM service."""
-        return INACTIVE
+        return status.INACTIVE

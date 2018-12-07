@@ -3,8 +3,8 @@ import json
 import logging
 import os
 import six
-import yaml
 from subprocess import check_output
+import yaml
 
 from uaclient import util
 
@@ -14,7 +14,6 @@ PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/uaclient/uaclient.conf'
 BASE_AUTH_URL = 'https://login.ubuntu.com'
-#BASE_AUTH_URL = 'http://10.7.118.234:8080'
 BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 
 CONFIG_DEFAULTS = {
@@ -31,7 +30,6 @@ class ConfigAbsentError(RuntimeError):
 
 
 class UAConfig(object):
-
 
     data_paths = {'accounts': 'accounts.json',
                   'account-contracts': 'account-contracts.json',
@@ -123,14 +121,8 @@ def decode_binary(blob, encoding='utf-8'):
 
 def load_file(fname, read_cb=None, decode=True):
     LOG.debug("Reading from '%s'", fname)
-    try:
-        with open(fname, 'rb') as ifh:
-            content = ifh.read()
-    except IOError as e:
-        if not quiet:
-            raise
-        if e.errno != ENOENT:
-            raise
+    with open(fname, 'rb') as ifh:
+        content = ifh.read()
     LOG.debug("Read %s bytes from %s", len(content), fname)
     if decode:
         return decode_binary(content)
@@ -166,8 +158,8 @@ def parse_config(config_path=None):
     cfg.update(yaml.load(load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
-       if key.startswith('UA_'):
-           env_keys[key.lower()[3:]]= value   # Strip leading UA_
+        if key.startswith('UA_'):
+            env_keys[key.lower()[3:]] = value   # Strip leading UA_
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
@@ -181,6 +173,6 @@ def print_version(_args=None):
 def get_version(_args=None):
     """Return the package version if set, otherwise return git describe."""
     if PACKAGED_VERSION != '@@PACKAGED_VERSION@@':
-        return  PACKAGED_VERSION
+        return PACKAGED_VERSION
     return check_output([
         'git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']).strip()

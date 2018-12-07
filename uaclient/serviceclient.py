@@ -31,7 +31,7 @@ class UAServiceClient(object):
         if path[0] != '/':
             path = '/' + path
         if not headers:
-            headers=self.headers()
+            headers = self.headers()
         if headers.get('content-type') == 'application/json' and data:
             data = util.encode_text(json.dumps(data))
         url = getattr(self.cfg, self.cfg_url_base_attr) + path
@@ -45,5 +45,3 @@ class UAServiceClient(object):
                     raise self.api_error_cls(e, error_details)
             raise util.UrlError(e, code=code, headers=headers, url=url)
         return response
-
-

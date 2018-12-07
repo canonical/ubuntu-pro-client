@@ -1,5 +1,5 @@
 
-class TxtColor:
+class TxtColor(object):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
@@ -9,6 +9,7 @@ class TxtColor:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
 
 ACTIVE = 'active'
 INACTIVE = 'inactive'

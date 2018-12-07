@@ -11,31 +11,35 @@ Available entitlements:
 
 """
 
-NAME = 'ubuntu-advantage-client'
-
 import argparse
-import json
 import logging
 import os
 import sys
-
+import textwrap
 
 from uaclient import config
-from uaclient import entitlements
-from uaclient import status as ua_status
-from uaclient import sso
 from uaclient import contract
+from uaclient import entitlements
+from uaclient import sso
+from uaclient import status as ua_status
 from uaclient import util
 
+NAME = 'ubuntu-advantage-client'
 
 USAGE_TMPL = '{name} {command} [flags]'
 EPILOG_TMPL = (
     'Use {name} {command} --help for more information about a command.')
 
+STATUS_HEADER_TMPL = """\
+Account: {account}
+Subscription: {subscription}
+Valid until: {contract_expiry}
+"""
+
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
-    usage = usage=USAGE_TMPL.format(name=NAME, command='attach [token]')
+    usage = USAGE_TMPL.format(name=NAME, command='attach [token]')
     if not parser:
         parser = argparse.ArgumentParser(
             prog='attach',
@@ -59,6 +63,23 @@ def attach_parser(parser=None):
         '--otp', action='store',
         help=('Optional one-time password for login to Ubuntu Advantage'
               ' Dashboard'))
+    return parser
+
+
+def detach_parser(parser=None):
+    """Build or extend an arg parser for detach subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command='detach')
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog='detach',
+            description=(
+                'Detach this machine from an existing Ubuntu Advantage'
+                ' support subscription'),
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'attach'
+    parser._optionals.title = 'Flags'
     return parser
 
 
@@ -126,6 +147,23 @@ def action_enable(args):
     return 0 if entitlement.enable() else 1
 
 
+def action_detach(args):
+    """Perform the detach action for this machine.
+
+    @return: 0 on success, 1 otherwise
+    """
+    cfg = config.UAConfig()
+    contracts = cfg.contracts
+    if not contracts:
+        print(textwrap.dedent("""\
+            This machine is not attached to a UA Subscription, sign up here:
+                  https://ubuntu.com/advantage
+        """))
+        return 1
+    logging.error('Not implemented')
+    return 1
+
+
 def action_attach(args):
     cfg = config.UAConfig()
     contracts = cfg.contracts
@@ -182,29 +220,23 @@ def get_parser():
     parser_attach.set_defaults(action=action_attach)
     parser_detach = subparsers.add_parser(
         'detach',
-         help='remove this machine from an ubuntu advantage subscription')
+        help='remove this machine from an ubuntu advantage subscription')
+    detach_parser(parser_detach)
+    parser_detach.set_defaults(action=action_detach)
     parser_enable = subparsers.add_parser(
         'enable',
-         help='enable a specific support entitlement on this machine')
+        help='enable a specific support entitlement on this machine')
     enable_parser(parser_enable)
     parser_enable.set_defaults(action=action_enable)
     parser_disable = subparsers.add_parser(
         'disable',
-         help='disable a specific support entitlement on this machine')
+        help='disable a specific support entitlement on this machine')
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
     parser_version.set_defaults(action=config.print_version)
     return parser
-
-
-
-STATUS_HEADER_TMPL = """\
-Account: {account}
-Subscription: {subscription}
-Valid until: {contract_expiry}
-"""
 
 
 def print_status(args=None):
@@ -253,6 +285,4 @@ def main(sys_argv=None):
 
 
 if __name__ == '__main__':
-   sys.exit(main())
-
-
+    sys.exit(main())

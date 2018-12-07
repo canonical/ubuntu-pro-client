@@ -107,7 +107,7 @@ def subp(args, rcs=None):
         proc = subprocess.Popen(
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = proc.communicate()
-    except OSError as e:
+    except OSError:
         raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
@@ -141,4 +141,3 @@ def write_file(filename, content, omode='wb'):
     with open(filename, omode) as fh:
         fh.write(content)
         fh.flush()
-

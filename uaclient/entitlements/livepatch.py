@@ -1,11 +1,7 @@
 import logging
-import os
-import json
 
-from uaclient import status
 from uaclient.entitlements import base
-from uaclient.status import (
-    ACTIVE, INACTIVE, ENTITLED, UNENTITLED, MESSAGE_DISABLED_TMPL)
+from uaclient import status
 from uaclient import util
 
 
@@ -43,7 +39,7 @@ class LivepatchEntitlement(base.UAEntitlement):
                     msg += print_message
                     break
             if msg == 'Unable to enable Livepatch: ':
-               msg += str(e)
+                msg += str(e)
             print(msg)
             return False
         print('Canonical livepatch enabled.')
@@ -59,16 +55,16 @@ class LivepatchEntitlement(base.UAEntitlement):
         util.subp(['canonical-livepatch', 'disable'])
         logging.debug('Removing canonical-livepatch snap')
         util.subp(['snap', 'remove', 'canonical-livepatch'])
-        print(MESSAGE_DISABLED_TMPL.format(title=self.title))
+        print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):
         """Return entitlement operational status as ACTIVE or INACTIVE."""
-        operational_status = ACTIVE
+        operational_status = status.ACTIVE
         try:
             util.subp(['canonical-livepatch', 'status'])
         except util.ProcessExecutionError as e:
-            # TODO: May want to parse INACTIVE/failure assessment
+            # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug('Livepatch not enabled. %s', str(e))
-            operational_status = INACTIVE
+            operational_status = status.INACTIVE
         return operational_status

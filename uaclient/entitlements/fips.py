@@ -1,5 +1,5 @@
 from uaclient.entitlements import base
-from uaclient.status import UNENTITLED, INAPPLICABLE
+from uaclient.status import INAPPLICABLE
 
 
 class FIPSEntitlement(base.UAEntitlement):

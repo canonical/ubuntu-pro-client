@@ -1,11 +1,9 @@
 from uaclient.entitlements.esm import ESMEntitlement
-from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
+from uaclient.entitlements import fips
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 
-from uaclient.entitlements.base import request_entitlements
-
 ENTITLEMENT_CLASSES = [
-    ESMEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement,
+    ESMEntitlement, fips.FIPSEntitlement, fips.FIPSUpdatesEntitlement,
     LivepatchEntitlement]
 
 ENTITLEMENT_CLASS_BY_NAME = dict(

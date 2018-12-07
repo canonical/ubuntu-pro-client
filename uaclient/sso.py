@@ -1,12 +1,10 @@
 import getpass
 import json
-import os
+import logging
 import six
 
-from uaclient import config
 from uaclient import serviceclient
 from uaclient import util
-import logging
 
 
 API_PATH_V2 = '/api/v2'
@@ -30,6 +28,7 @@ API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
 PATH_SSO_TOKEN = 'sso-oauth.json'
 PATH_MACAROON_TOKEN = 'sso-macaroon.json'
+
 
 class SSOAuthError(util.UrlError):
 
@@ -70,7 +69,6 @@ class SSOAuthError(util.UrlError):
 
 class UbuntuSSOClient(serviceclient.UAServiceClient):
 
-
     api_error_cls = SSOAuthError
     cfg_url_base_attr = 'sso_auth_url'
 
@@ -80,6 +78,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
 
     def request_oauth_token(self, email, password, token_name, otp=None):
         """Request a named oauth token for the authenticated user
+
         @param email: String with the email address of the SSO account holder.
         @param password: String with the password of the SSO account holder.
         @param token_name: String of the unique name to give the Oauth token.
@@ -137,7 +136,7 @@ def prompt_oauth_token():
         oauth_token = client.request_oauth_token(
             email=email, password=password, token_name=token_name)
     except SSOAuthError as e:
-        if not API_ERROR_2FA_REQUIRED in e:
+        if API_ERROR_2FA_REQUIRED not in e:
             logging.error(str(e))
             return None
         otp = six.moves.input('Second-factor auth: ')
@@ -148,7 +147,7 @@ def prompt_oauth_token():
 
 def prompt_request_macaroon(caveat_id=None):
     if not caveat_id:
-        caveat_id='{"secret": "thesecret", "version": 1}'
+        caveat_id = '{"secret": "thesecret", "version": 1}'
     email = six.moves.input('Email: ')
     password = getpass.getpass('Password: ')
     client = UbuntuSSOClient()
@@ -156,7 +155,7 @@ def prompt_request_macaroon(caveat_id=None):
         content = client.request_discharge_macaroon(
             email=email, password=password, caveat_id=caveat_id)
     except SSOAuthError as e:
-        if not API_ERROR_2FA_REQUIRED in e:
+        if API_ERROR_2FA_REQUIRED not in e:
             logging.error(str(e))
             return None
         otp = six.moves.input('Second-factor auth: ')

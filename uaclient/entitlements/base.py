@@ -1,6 +1,6 @@
 import abc
-import six
 import os
+import six
 
 from uaclient import config
 from uaclient import status
@@ -86,7 +86,3 @@ class UAEntitlement(object):
     def operational_status(self):
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVILABLE"""
         pass
-
-
-def request_entitlements():
-    return {}

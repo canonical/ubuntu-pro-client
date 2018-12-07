@@ -1,11 +1,5 @@
-import getpass
-import os
-import six
-
-from uaclient import config
 from uaclient import serviceclient
 from uaclient import util
-import logging
 
 
 API_PATH_ACCOUNTS = '/accounts'
@@ -109,10 +103,11 @@ class UAContractClient(serviceclient.UAServiceClient):
         data = {'machine': machine_id}
         if product_name:
             data['product'] = product_name
-        url = API_PATH_TMPL_MACHINE_CONTRACT.format(machine=contract_machine_id)
+        url = API_PATH_TMPL_MACHINE_CONTRACT.format(
+            machine=contract_machine_id)
         contracts = self.request_url(url, data=data)
         self.cfg.write_cache('machine-contracts', contracts)
-        return entitlement_status
+        return contracts
 
     def request_contract_machine_attach(self, contract_id, user_token,
                                         machine_id=None):
@@ -131,7 +126,6 @@ class UAContractClient(serviceclient.UAServiceClient):
             return token_response
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
-        # TODO obtain and persist contract ID from machine token
         data = {'machineId': machine_id}
         machine_token = self.request_url(
             API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
