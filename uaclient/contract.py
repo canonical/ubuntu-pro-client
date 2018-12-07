@@ -1,5 +1,4 @@
 import getpass
-import json
 import os
 import six
 
@@ -9,8 +8,11 @@ from uaclient import util
 import logging
 
 
-API_PATH_MACHINE_ATTACH = '/contract/machine/attach'
-API_PATH_MACHINE_STATUS = '/account/machine/entitlements'
+API_PATH_ACCOUNTS = '/accounts'
+API_PATH_TMPL_ACCOUNT_CONTRACTS = '/accounts/{account}/contracts'
+API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
+API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
+API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
@@ -57,21 +59,70 @@ class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
 
-    def request_status(self, machine_token, machine_id=None):
-        """Request entitlement status details for a given machine.
+    def request_accounts(self):
+        """Request list of accounts this user has access to."""
+        accounts = self.cfg.read_cache('accounts')
+        if accounts:
+            return accounts
+        accounts = self.request_url(API_PATH_ACCOUNTS)
+        self.cfg.write_cache('accounts', accounts)
+        return accounts
 
-        @return: Dict of JSON reposnse from entitlements endpoint
+    def request_account_contracts(self, account_id):
+        """Request a list of contracts authorized for account_id."""
+        account_contracts = self.cfg.read_cache('account-contracts')
+        if account_contracts:
+            return account_contracts
+        url = API_PATH_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
+        account_contracts = self.request_url(url)
+        self.cfg.write_cache('account-contracts', account_contracts)
+        return account_contracts
+
+    def request_account_users(self, account_id):
+        """Request a list of users authorized for account_id."""
+        account_users = self.cfg.read_cache('account-users')
+        if account_users:
+            return account_users
+        url = API_PATH_TMPL_ACCOUNT_USERS.format(account=account_id)
+        account_users = self.request_url(url)
+        self.cfg.write_cache('account-users', account_users)
+        return account_users
+
+    def request_machine_contract_status(
+            self, machine_token, contract_machine_id, machine_id=None,
+            product_name=None):
+        """Request contract and entitlement status details for a given machine.
+
+        @param machine_token: The authentication token needed to talk to
+            the contract service endpoints.
+        @param contract_machine_id: The machine id obtained from the contract
+            service.
+        @param machine_id: Optional unique system machine id. When absent,
+            contents of /etc/machine-id will be used.
+        @param product_name: Optional specific product name to limit query to
+            a specific entitlement: livepatch, esm, fips, or fips-updates.
+
+        @return: Dict of JSON response from machine contracts endpoint
         """
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
-        data = {'machine-token': machine_token, 'machine-id': machine_id}
-        entitlement_status = self.request_url(
-            API_PATH_MACHINE_STATUS, data=data)
-        self.cfg.write_cache('entitlements', json.dumps(entitlement_status))
+        data = {'machine': machine_id}
+        if product_name:
+            data['product'] = product_name
+        url = API_PATH_TMPL_MACHINE_CONTRACT.format(machine=contract_machine_id)
+        contracts = self.request_url(url, data=data)
+        self.cfg.write_cache('machine-contracts', contracts)
         return entitlement_status
 
-    def request_machine_attach(self, user_token, machine_id=None):
-        """Requests machine attach from Contract service.
+    def request_contract_machine_attach(self, contract_id, user_token,
+                                        machine_id=None):
+        """Requests machine attach to the provided contact_id.
+
+        @param contract_id: Unique contract id provided by contract service.
+        @param user_token: Token string providing authentication to contract
+            service endpoints.
+        @param machine_id: Optional unique system machine id. When absent,
+            contents of /etc/machine-id will be used.
 
         @return: Dict of the JSON response containing the machine-token.
         """
@@ -80,7 +131,10 @@ class UAContractClient(serviceclient.UAServiceClient):
             return token_response
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
-        data = {'user-token': user_token, 'machine-id': machine_id}
-        machine_token = self.request_url(API_PATH_MACHINE_ATTACH, data=data)
-        self.cfg.write_cache('machine-token', json.dumps(machine_token))
+        # TODO obtain and persist contract ID from machine token
+        data = {'machineId': machine_id}
+        machine_token = self.request_url(
+            API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
+            data=data)
+        self.cfg.write_cache('machine-token', machine_token)
         return machine_token

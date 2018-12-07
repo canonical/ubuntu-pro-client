@@ -114,6 +114,7 @@ def action_disable(args):
     entitlement = ent_cls(cfg)
     return 0 if entitlement.disable() else 1
 
+
 def action_enable(args):
     """Perform the enable action on a named entitlement.
 
@@ -127,10 +128,10 @@ def action_enable(args):
 
 def action_attach(args):
     cfg = config.UAConfig()
-    entitlement_status = cfg.entitlements
-    if entitlement_status:
+    contracts = cfg.contracts
+    if contracts:
         print("This machine is already attached to '%s'." %
-              entitlement_status['subscription'])
+              contracts[0]['contractInfo']['name'])
         return 0
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
@@ -144,16 +145,17 @@ def action_attach(args):
               ' token')
         return 1
     contract_client = contract.UAContractClient(cfg)
+    accounts = contract_client.request_accounts()
+    contracts = contract_client.request_account_contracts(accounts[0]['id'])
+    contract_id = contracts[0]['contractInfo']['id']
     try:
-        token_response = contract_client.request_machine_attach(
-            user_token['token_key'])
+        token_response = contract_client.request_contract_machine_attach(
+            contract_id=contract_id, user_token=user_token['token_key'])
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
-    machine_token = token_response['machine-token']
-    entitlement_status = contract_client.request_status(machine_token)
     print("This machine is now attached to '%s'.\n" %
-          entitlement_status['subscription'])
+          token_response['machineTokenInfo']['contractInfo']['name'])
     print_status()
     return 0
 
@@ -201,7 +203,7 @@ def get_parser():
 STATUS_HEADER_TMPL = """\
 Account: {account}
 Subscription: {subscription}
-Valid until: {contract-expiry}
+Valid until: {contract_expiry}
 """
 
 
@@ -211,11 +213,12 @@ def print_status(args=None):
         print('This machine is not attached to a UA subscription.\n'
               'See `ua attach` or https://ubuntu.com/advantage')
         return
-    entitlement_status = cfg.entitlements
-    if not entitlement_status:
-         contract_client = contract.UAContractClient(cfg)
-         entitlement_status = contract_client.request_status(machine_token)
-    print(STATUS_HEADER_TMPL.format(**entitlement_status))
+    account = cfg.accounts[0]
+    contract = cfg.contracts[0]
+    print(STATUS_HEADER_TMPL.format(
+        account=account['name'],
+        subscription=contract['contractInfo']['name'],
+        contract_expiry=contract['contractInfo']['effectiveTo']))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls()

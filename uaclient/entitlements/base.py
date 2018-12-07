@@ -40,7 +40,7 @@ class UAEntitlement(object):
         if not entitlements:
             print(status.MESSAGE_UNATTACHED)
             return False
-        if not entitlements['entitlements'].get(self.name, {}).get('token'):
+        if not entitlements.get(self.name, {}).get('enabled'):
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         if self.operational_status() == status.INACTIVE:
@@ -58,7 +58,7 @@ class UAEntitlement(object):
         if not entitlements:
             print(status.MESSAGE_UNATTACHED)
             return False
-        if not entitlements['entitlements'].get(self.name, {}).get('token'):
+        if not entitlements.get(self.name, {}).get('enabled'):
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         if self.operational_status() == status.ACTIVE:
@@ -77,8 +77,8 @@ class UAEntitlement(object):
     def contract_status(self):
         """Return whether contract entitlement is ENTITLED or UNENTITLED."""
         entitlements = self.cfg.entitlements
-        entitlement_status = entitlements['entitlements'].get(self.name)
-        if entitlement_status.get('token'):
+        entitlement_status = entitlements.get(self.name)
+        if entitlement_status.get('enabled'):
             return status.ENTITLED
         return status.UNENTITLED
 

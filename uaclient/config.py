@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 import os
 import six
@@ -32,15 +33,23 @@ class ConfigAbsentError(RuntimeError):
 class UAConfig(object):
 
 
-    data_paths = {'entitlements': 'entitlements.json',
+    data_paths = {'accounts': 'accounts.json',
+                  'account-contracts': 'account-contracts.json',
+                  'account-users': 'account-users.json',
+                  'machine-contracts': 'machine-contracts.json',
                   'machine-token': 'machine-token.json',
                   'macaroon': 'sso-macaroon.json',
-                  'oauth': 'sso-pauth.json'}
+                  'oauth': 'sso-oauth.json'}
 
     def __init__(self, cfg=None):
         """"""
         if not cfg:
             self.cfg = parse_config()
+
+    @property
+    def accounts(self):
+        """Return the list of accounts that apply to this authorized user."""
+        return self.read_cache('accounts')
 
     @property
     def contract_url(self):
@@ -59,9 +68,18 @@ class UAConfig(object):
         return self.cfg['sso_auth_url']
 
     @property
+    def contracts(self):
+        """Return the list of contracts that apply to this account."""
+        return self.read_cache('account-contracts')
+
+    @property
     def entitlements(self):
         """Return the machine-token if cached in the machine token response."""
-        return self.read_cache('entitlements')
+        token = self.read_cache('machine-token')
+        if not token:
+            return None
+        return (
+            token['machineTokenInfo']['contractInfo']['resourceEntitlements'])
 
     @property
     def machine_token(self):
@@ -69,7 +87,7 @@ class UAConfig(object):
         token_response = self.read_cache('machine-token')
         if not token_response:
             return None
-        return token_response['machine-token']
+        return token_response['machineSecret']
 
     def data_path(self, key):
         """Return the file path in the data directory represented by the key"""
@@ -91,6 +109,8 @@ class UAConfig(object):
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
         filepath = self.data_path(key)
+        if not isinstance(content, six.string_types):
+            content = json.dumps(content)
         util.write_file(filepath, content)
 
 
