@@ -11,6 +11,8 @@ class UAEntitlement(object):
 
     # The lowercase name of this entitlement
     name = None
+    # The human readable title of this entitlement
+    title = None
     # A sentence describing this entitlement
     description = None
 

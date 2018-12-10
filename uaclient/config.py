@@ -41,7 +41,9 @@ class UAConfig(object):
 
     def __init__(self, cfg=None):
         """"""
-        if not cfg:
+        if cfg:
+            self.cfg = cfg
+        else:
             self.cfg = parse_config()
 
     @property

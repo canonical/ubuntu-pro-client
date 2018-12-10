@@ -1,5 +1,8 @@
+import functools
 import logging
 import six
+import shutil
+import tempfile
 import unittest2
 
 
@@ -19,6 +22,12 @@ class TestCase(unittest2.TestCase):
             self.old_handlers = self.logger.handlers
             self.logger.handlers = [handler]
 
+    def tearDown(self):
+        if self.with_logs:
+            # Remove the handler we setup
+            logging.getLogger().handlers = self.old_handlers
+        super(TestCase, self).tearDown()
+
     @property
     def logs(self):
         """Return the contents of logs written during the unit test run."""
@@ -27,8 +36,12 @@ class TestCase(unittest2.TestCase):
                 'Cannot reference test.logs when with_logs == False')
         return self._logs.getvalue()
 
-    def tearDown(self):
-        if self.with_logs:
-            # Remove the handler we setup
-            logging.getLogger().handlers = self.old_handlers
-        super(TestCase, self).tearDown()
+    def tmp_dir(self, dir=None):
+        if dir is None:
+            tmpd = tempfile.mkdtemp(
+                prefix='uaclient-%s.' % self.__class__.__name__)
+        else:
+            tmpd = tempfile.mkdtemp(dir=dir)
+        self.addCleanup(functools.partial(shutil.rmtree, tmpd))
+        return tmpd
+
