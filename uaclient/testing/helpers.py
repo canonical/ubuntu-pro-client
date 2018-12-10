@@ -44,4 +44,3 @@ class TestCase(unittest2.TestCase):
             tmpd = tempfile.mkdtemp(dir=dir)
         self.addCleanup(functools.partial(shutil.rmtree, tmpd))
         return tmpd
-
