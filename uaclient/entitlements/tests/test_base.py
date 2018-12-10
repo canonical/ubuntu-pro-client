@@ -4,8 +4,8 @@ import mock
 from six import StringIO
 
 from uaclient import config
-from uaclient import status
 from uaclient.entitlements import base
+from uaclient import status
 from uaclient.testing.helpers import TestCase
 
 
