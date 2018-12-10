@@ -1,0 +1,5 @@
+# Pip requirements for uaclint unittests
+coverage
+mock
+nose
+unittest2
