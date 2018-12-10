@@ -3,13 +3,17 @@ MOTD_SCRIPTS = $(wildcard update-motd.d/*)
 
 
 build:
-	@echo Nothing to build.
+	@echo Nothing to be done for build
+
+deb:
+	@echo Building unsigned debian package
+	dpkg-buildpackage -us -uc
 
 testdep:
 	pip install tox
 
 test:
-	@tox -e py3
+	@tox
 
 lint: lint-py lint-sh
 
@@ -33,7 +37,9 @@ _lint-sh-command:
 	@$(SHELLCHECK) -s dash $(DASH_SCRIPTS)
 
 clean:
+	rm -f ubuntu-advantage-tools*gz
 	find . -type f -name '*.pyc' -delete
-	rm -rf .tox tests/__pycache__
+	rm -rf .tox
+	find . -type d -name '*__pycache__' -delete
 
-.PHONY: build testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command clean
+.PHONY: build deb testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command clean

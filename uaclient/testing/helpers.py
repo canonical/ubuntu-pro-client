@@ -1,7 +1,7 @@
 import functools
 import logging
-import six
 import shutil
+import six
 import tempfile
 import unittest2
 

@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 %:
-	dh $@
+	dh $@ --with python2,python3
+
 override_dh_auto_test:
-	python3 -m unittest discover tests
-	python3 /usr/bin/flake8 tests
+	python3 -m unittest discover uaclient
+	python3 -m flake8 uaclient
