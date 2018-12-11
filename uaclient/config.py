@@ -114,24 +114,6 @@ class UAConfig(object):
         util.write_file(filepath, content)
 
 
-def decode_binary(blob, encoding='utf-8'):
-    # Converts a binary type into a text type using given encoding.
-    if isinstance(blob, six.string_types):
-        return blob
-    return blob.decode(encoding)
-
-
-def load_file(fname, read_cb=None, decode=True):
-    LOG.debug("Reading from '%s'", fname)
-    with open(fname, 'rb') as ifh:
-        content = ifh.read()
-    LOG.debug("Read %s bytes from %s", len(content), fname)
-    if decode:
-        return decode_binary(content)
-    else:
-        return content
-
-
 def parse_config(config_path=None):
     """Parse known UA config file
 
@@ -157,7 +139,7 @@ def parse_config(config_path=None):
         msg = 'No UA client configuration file found at %s' % config_path
         LOG.error(msg)
         raise ConfigAbsentError(msg)
-    cfg.update(yaml.load(load_file(config_path)))
+    cfg.update(yaml.load(util.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
         if key.startswith('UA_'):
@@ -176,5 +158,5 @@ def get_version(_args=None):
     """Return the package version if set, otherwise return git describe."""
     if PACKAGED_VERSION != '@@PACKAGED_VERSION@@':
         return PACKAGED_VERSION
-    return check_output([
-        'git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']).strip()
+    return util.decode_binary(check_output([
+        'git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']).strip())

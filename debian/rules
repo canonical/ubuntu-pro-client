@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 %:
-	dh $@ --with python2,python3
+	dh $@ --with python2,python3 --buildsystem=pybuild
 
 override_dh_auto_test:
 	python3 -m unittest discover uaclient
