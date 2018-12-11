@@ -67,6 +67,7 @@ def is_exe(path):
 
 def load_file(filename, decode=True):
     """Read filename and decode content."""
+    logging.debug('Reading file: %s', filename)
     with open(filename, 'rb') as stream:
         content = stream.read()
     if decode:
@@ -92,7 +93,8 @@ def readurl(url, data=None, headers=None, method=None):
     if method:
         req.get_method = lambda: method
     logging.debug(
-        'URL read: %s, headers: %s, data: %s', url, headers, data)
+        'URL read: %s, headers: %s, data: %s method: %s',
+        url, headers, data, method)
     resp = six.moves.urllib.request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
@@ -153,6 +155,7 @@ def write_file(filename, content, mode=0o644, omode='wb'):
     @param mode: The filesystem mode to set on the file.
     @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
+    logging.debug('Writing file: %s', filename)
     if 'b' in omode.lower():
         content = encode_text(content)
     else:
