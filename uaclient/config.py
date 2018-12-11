@@ -35,6 +35,7 @@ class UAConfig(object):
                   'account-contracts': 'account-contracts.json',
                   'account-users': 'account-users.json',
                   'machine-contracts': 'machine-contracts.json',
+                  'machine-detach': 'machine-detach.json',
                   'machine-token': 'machine-token.json',
                   'macaroon': 'sso-macaroon.json',
                   'oauth': 'sso-oauth.json'}

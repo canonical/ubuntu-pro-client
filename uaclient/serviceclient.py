@@ -27,7 +27,7 @@ class UAServiceClient(object):
                 'accept': 'application/json',
                 'content-type': 'application/json'}
 
-    def request_url(self, path, data=None, headers=None):
+    def request_url(self, path, data=None, headers=None, method=None):
         if path[0] != '/':
             path = '/' + path
         if not headers:
@@ -36,7 +36,8 @@ class UAServiceClient(object):
             data = util.encode_text(json.dumps(data))
         url = getattr(self.cfg, self.cfg_url_base_attr) + path
         try:
-            response = util.readurl(url=url, data=data, headers=headers)
+            response = util.readurl(
+                url=url, data=data, headers=headers, method=method)
         except six.moves.urllib.error.URLError as e:
             code = e.errno
             if hasattr(e, 'read'):
