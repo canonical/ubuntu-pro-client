@@ -1,5 +1,6 @@
 import abc
 import os
+import platform
 import six
 
 from uaclient import config
@@ -65,6 +66,11 @@ class UAEntitlement(object):
             return False
         if self.operational_status() == status.ACTIVE:
             print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(title=self.title))
+            return False
+        if self.operational_status() == status.INAPPLICABLE:
+            series = platform.dist()[2]
+            print(status.MESSAGE_INAPPLICABLE_TMPL.format(
+                title=self.title, series=series))
             return False
         return True
 

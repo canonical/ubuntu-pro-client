@@ -1,3 +1,4 @@
+from errno import ENOENT
 import json
 import logging
 import os
@@ -44,6 +45,14 @@ def decode_binary(blob, encoding='utf-8'):
     return blob.decode(encoding)
 
 
+def del_file(path):
+    try:
+        os.unlink(path)
+    except OSError as e:
+        if e.errno != ENOENT:
+            raise e
+
+
 def encode_text(text, encoding='utf-8'):
     """Convert a text string into a binary type using given encoding."""
     if isinstance(text, six.binary_type):
@@ -76,8 +85,12 @@ def maybe_parse_json(content):
         return None
 
 
-def readurl(url, data=None, headers=None):
+def readurl(url, data=None, headers=None, method=None):
+    if data and not method:
+        method = 'POST'
     req = six.moves.urllib.request.Request(url, data=data, headers=headers)
+    if method:
+        req.get_method = lambda: method
     logging.debug(
         'URL read: %s, headers: %s, data: %s', url, headers, data)
     resp = six.moves.urllib.request.urlopen(req)
@@ -132,8 +145,14 @@ def which(program):
     return None
 
 
-def write_file(filename, content, omode='wb'):
-    """Write content to the provided filename encoding it if necessary."""
+def write_file(filename, content, mode=0o644, omode='wb'):
+    """Write content to the provided filename encoding it if necessary.
+
+    @param filename: The full path of the file to write.
+    @param content: The content to write to the file.
+    @param mode: The filesystem mode to set on the file.
+    @param omode: The open mode used when opening the file (w, wb, a, etc.)
+    """
     if 'b' in omode.lower():
         content = encode_text(content)
     else:
@@ -141,3 +160,4 @@ def write_file(filename, content, omode='wb'):
     with open(filename, omode) as fh:
         fh.write(content)
         fh.flush()
+    os.chmod(filename, mode)
