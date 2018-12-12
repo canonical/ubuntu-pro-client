@@ -129,9 +129,12 @@ def prompt_oauth_token():
     oauth_token = client.cfg.read_cache('oauth')
     if oauth_token:
         return oauth_token
-    email = six.moves.input('Email: ')
-    password = getpass.getpass('Password: ')
-    token_name = six.moves.input('Unique OAuth token name: ')
+    try:
+        email = six.moves.input('Email: ')
+        password = getpass.getpass('Password: ')
+        token_name = six.moves.input('Unique OAuth token name: ')
+    except KeyboardInterrupt:
+        return None
     try:
         oauth_token = client.request_oauth_token(
             email=email, password=password, token_name=token_name)
@@ -139,7 +142,10 @@ def prompt_oauth_token():
         if API_ERROR_2FA_REQUIRED not in e:
             logging.error(str(e))
             return None
-        otp = six.moves.input('Second-factor auth: ')
+        try:
+            otp = six.moves.input('Second-factor auth: ')
+        except KeyboardInterrupt:
+            return None
         oauth_token = client.request_oauth_token(
             email=email, password=password, token_name=token_name, otp=otp)
     return oauth_token
