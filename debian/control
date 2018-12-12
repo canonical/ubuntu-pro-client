@@ -2,8 +2,10 @@ Source: ubuntu-advantage-tools
 Section: misc
 Priority: important
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>=9), flake8 | python3-flake8, python3 (>= 3.4), fakeroot,
- python3-fixtures, lsb-release
+Build-Depends: debhelper (>=9),
+               flake8 | python3-flake8,
+               python3 (>= 3.4),
+               python3-nose
 Standards-Version: 3.9.6
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
@@ -11,7 +13,9 @@ Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
 
 Package: ubuntu-advantage-tools
 Architecture: all
-Depends: ${misc:Depends}
+Depends: ${misc:Depends},
+         ${python3:Depends}
+XB-Python-Version: ${python:Versions}
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world
