@@ -1,11 +1,4 @@
-ubuntu-advantage-tools (18.1-23-g710de8c) UNRELEASED; urgency=medium
-
-  * New upstream release
-    - Added sample uaclient python implementation for entitlement management
-
- -- Chad Smith <chad.smith@canonical.com>  Mon, 10 Dec 2018 14:59:29 -0700
-
-ubuntu-advantage-tools (18) disco; urgency=medium
+ubuntu-advantage-tools (18) UNRELEASED; urgency=medium
 
   * Have ua status cope with the additional livepatch of running a kernel
     that is not supported for livepatches.
