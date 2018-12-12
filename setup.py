@@ -37,6 +37,7 @@ setuptools.setup(
                  ' and livepatch'),
     license='GPLv3',
     url='https://ubuntu.com/advantage',
-    entry_points={'console_scripts': ['ubuntu-advantage=uaclient.cli:main']}
+    entry_points={'console_scripts': ['ubuntu-advantage=uaclient.cli:main',
+                                      'ua=uaclient.cli:main']}
 )
 
