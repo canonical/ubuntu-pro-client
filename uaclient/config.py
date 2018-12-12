@@ -101,6 +101,7 @@ class UAConfig(object):
     def read_cache(self, key):
         cache_path = self.data_path(key)
         if not os.path.exists(cache_path):
+            logging.debug('File does not exist: %s', cache_path)
             return None
         content = util.load_file(cache_path)
         json_content = util.maybe_parse_json(content)
@@ -136,11 +137,8 @@ def parse_config(config_path=None):
     if os.path.exists(local_cfg):
         LOG.debug('Using local UA client configuration file at %s', local_cfg)
         config_path = local_cfg
-    if not os.path.exists(config_path):
-        msg = 'No UA client configuration file found at %s' % config_path
-        LOG.error(msg)
-        raise ConfigAbsentError(msg)
-    cfg.update(yaml.load(util.load_file(config_path)))
+    if os.path.exists(config_path):
+        cfg.update(yaml.load(util.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
         if key.startswith('UA_'):
