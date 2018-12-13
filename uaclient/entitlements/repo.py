@@ -10,11 +10,15 @@ from uaclient import util
 class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = '/etc/apt/sources.list.d/ubuntu-{name}-{series}.list'
+    repo_pref_file_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
+    repo_pref_origin_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
+
     # TODO(Get repo_url from Contract service's Entitlements response)
     # https://github.com/CanonicalLtd/ua-service/issues/7
     # Set by subclasses
     repo_url = 'UNSET'
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
+    repo_pin_priority = None      # Optional repo pin priority in subclass
 
     def enable(self):
         """Enable specific entitlement.
@@ -31,6 +35,12 @@ class RepoEntitlement(base.UAEntitlement):
         credentials = 'user{name}:pass'.format(name=self.name)
         apt.add_auth_apt_repo(
             repo_filename, self.repo_url, credentials, keyring_file)
+        if self.repo_pin_priority:
+            repo_pref_file = self.repo_pref_file_tmpl.format(
+                name=self.name, series=series)
+            apt.add_repo_pinning(
+                repo_pref_file, 'LP-PPA-ubuntu-advantage-fips',
+                self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'])
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):

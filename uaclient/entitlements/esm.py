@@ -30,7 +30,3 @@ class ESMEntitlement(repo.RepoEntitlement):
         apt.remove_auth_apt_repo(repo_filename, self.repo_url, keyring_file)
         print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
-
-    def operational_status(self):
-        """Return operational status of ESM service."""
-        return status.INACTIVE

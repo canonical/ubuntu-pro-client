@@ -48,3 +48,14 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file):
         os.unlink(APT_AUTH_FILE)
     else:
         util.write_file(APT_AUTH_FILE, content, mode=0o600)
+
+
+def add_repo_pinning(apt_preference_file, origin, priority):
+    """Add an apt preferences file and pin for a PPA."""
+    series = platform.dist()[2]
+    content = (
+        'Package: *\n'
+        'Pin: release o={origin}, n={series}\n'
+        'Pin-Priority: ${priority}\n'.format(
+            origin=origin, priority=priority, series=series))
+    util.write_file(apt_preference_file, content)
