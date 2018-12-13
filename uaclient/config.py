@@ -135,8 +135,10 @@ def parse_config(config_path=None):
     cfg = copy.copy(CONFIG_DEFAULTS)
     local_cfg = os.path.join(os.getcwd(), os.path.basename(config_path))
     if os.path.exists(local_cfg):
-        LOG.debug('Using local UA client configuration file at %s', local_cfg)
         config_path = local_cfg
+    if os.environ.get('UA_CONFIG_FILE'):
+        config_path = os.environ.get('UA_CONFIG_FILE')
+    LOG.debug('Using UA client configuration file at %s', config_path)
     if os.path.exists(config_path):
         cfg.update(yaml.load(util.load_file(config_path)))
     env_keys = {}

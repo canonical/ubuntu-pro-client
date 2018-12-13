@@ -45,7 +45,7 @@ class TestUaEntitlement(TestCase):
     def test_init_default_sets_up_uaconfig(self):
         """UAEntitlement sets up a uaconfig instance upon init."""
         entitlement = TestConcreteEntitlement()
-        self.assertEqual('/tmp/uaclient', entitlement.cfg.data_dir)
+        self.assertEqual('/var/lib/ubuntu-advantage', entitlement.cfg.data_dir)
 
     def test_init_accepts_a_uaconfig(self):
         """An instance of UAConfig can be passed to UAEntitlement."""
