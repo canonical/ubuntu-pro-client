@@ -1,4 +1,7 @@
+*debhelper*
+debian/ubuntu-advantage-tools.substvars
 *.pyc
 *.pyo
 __pycache__
 .tox
+.pybuild
