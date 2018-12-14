@@ -12,7 +12,7 @@ LOG = logging.getLogger(__name__)
 
 PACKAGED_VERSION = '18.1-40-g2327a5c'
 
-DEFAULT_CONFIG_FILE = '/etc/uaclient/uaclient.conf'
+DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
 BASE_AUTH_URL = 'https://login.ubuntu.com'
 BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 
