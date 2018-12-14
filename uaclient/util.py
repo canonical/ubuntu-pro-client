@@ -2,6 +2,7 @@ from errno import ENOENT
 import json
 import logging
 import os
+import re
 import six
 import subprocess
 
@@ -164,3 +165,47 @@ def write_file(filename, content, mode=0o644, omode='wb'):
         fh.write(content)
         fh.flush()
     os.chmod(filename, mode)
+
+
+def parse_os_release(release_file=None):
+    if not release_file:
+        release_file = '/etc/os-release'
+    data = {}
+    for line in load_file(release_file).splitlines():
+        key, value = line.split('=', 1)
+        if value:
+            data[key] = value.strip().strip('"')
+    return data
+
+
+REGEX_OS_RELEASE_VERSION_1 = (  # Precise, Trusty
+    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS)?, (?P<series>\w+).*')
+REGEX_OS_RELEASE_VERSION_2 = (  # >= Xenial
+    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS)? \((?P<series>\w+).*')
+
+
+def get_platform_info(key=None):
+    os_release = parse_os_release()
+    platform_info = {
+        'distribution': os_release.get('NAME', 'UNKNOWN'),
+        'type': 'Linux'}
+
+    if key in (None, 'release', 'series'):
+        version = os_release['VERSION']
+        match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
+        if not match:
+            match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+        if not match:
+            raise RuntimeError(
+                'Could not parse /etc/os-release VERSION: %s' %
+                os_release['VERSION'])
+        match_dict = match.groupdict()
+        platform_info.update({'release': match_dict['version'],
+                              'series': match_dict['series'].lower()})
+    if key in (None, 'kernel'):
+        kernel_ver_out, _err = subp(['uname', '-r'])
+        platform_info['kernel'] = kernel_ver_out.strip()
+    if key in (None, 'arch'):
+        arch, _err = subp(['uname', '-i'])
+        platform_info['arch'] = arch.strip()
+    return platform_info if not key else platform_info[key]

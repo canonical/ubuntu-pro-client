@@ -7,6 +7,7 @@ API_PATH_TMPL_ACCOUNT_CONTRACTS = '/accounts/{account}/contracts'
 API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
 API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
+API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
@@ -126,7 +127,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             return token_response
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
-        data = {'machineId': machine_id}
+        os = util.get_platform_info()
+        arch = os.pop('arch')
+        data = {'machineId': machine_id, 'arch': arch, 'os': os}
         machine_token = self.request_url(
             API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
             data=data)
@@ -147,3 +150,18 @@ class UAContractClient(serviceclient.UAServiceClient):
             method='DELETE')
         self.cfg.write_cache('machine-detach', machine_token)
         return machine_token
+
+    def request_resource_machine_access(self, machine_token, resource):
+        """Requests machine access context for a given resource
+
+        @param machine_token: The authentication token needed to talk to
+            this contract service endpoint.
+        @param resource: Entitlement name. One of: livepatch, esm, fips or
+            fips-updates.
+
+        @return: Dict of the JSON response containing entitlement accessInfo.
+        """
+        url = API_PATH_TMPL_RESOURCE_MACHINE_ACCESS.format(resource=resource)
+        resource_access = self.request_url(url)
+        self.cfg.write_cache('machine-access-%s' % resource, resource_access)
+        return resource_access

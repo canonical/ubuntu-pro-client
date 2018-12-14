@@ -1,10 +1,10 @@
 import abc
 import os
-import platform
 import six
 
 from uaclient import config
 from uaclient import status
+from uaclient import util
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -68,10 +68,29 @@ class UAEntitlement(object):
             print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(title=self.title))
             return False
         if self.operational_status() == status.INAPPLICABLE:
-            series = platform.dist()[2]
+            series = util.get_platform_info('series')
             print(status.MESSAGE_INAPPLICABLE_TMPL.format(
                 title=self.title, series=series))
             return False
+        return True
+
+    def passes_affordances(self):
+        """Check all contract affordances to vet current platform
+
+        Affordances are a list of support constraints for the entitlement.
+        Examples include a list of supported series, architectures for kernel
+        revisions.
+
+        @return: True if platform passes any defined affordances, False if
+            it doesn't meet provided constraints.
+        """
+        entitlements = self.cfg.entitlements
+        entitlement_status = entitlements.get(self.name)
+        affordances = entitlement_status.get('affordances', {})
+        series = util.get_platform_info('series')
+        for affordance in affordances:
+            if 'series' in affordance and series not in affordance['series']:
+                return False
         return True
 
     @abc.abstractmethod

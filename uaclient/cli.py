@@ -173,7 +173,8 @@ def action_detach(args):
     machine_token_path = cfg.data_path('machine-token')
     if os.path.exists(machine_token_path):
         os.unlink(machine_token_path)
-    return 1
+    print('This machine is now detached')
+    return 0
 
 
 def action_attach(args):
@@ -204,6 +205,11 @@ def action_attach(args):
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
+    contractInfo = token_response['machineTokenInfo']['contractInfo']
+    for entitlement_name in contractInfo['resourceEntitlements'].keys():
+        # Obtain each entitlement accessContext for this machine
+        contract_client.request_resource_machine_access(
+            machine_token, entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
     print_status()

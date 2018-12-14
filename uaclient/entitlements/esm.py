@@ -1,9 +1,9 @@
 import os
-import platform
 
 from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient import status
+from uaclient import util
 
 
 class ESMEntitlement(repo.RepoEntitlement):
@@ -23,7 +23,7 @@ class ESMEntitlement(repo.RepoEntitlement):
         """
         if not self.can_disable():
             return False
-        series = platform.dist()[2]
+        series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)

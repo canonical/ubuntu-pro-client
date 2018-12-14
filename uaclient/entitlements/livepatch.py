@@ -60,6 +60,8 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def operational_status(self):
         """Return entitlement operational status as ACTIVE or INACTIVE."""
+        if not self.passes_affordances():
+            return status.INAPPLICABLE
         operational_status = status.ACTIVE
         try:
             util.subp(['canonical-livepatch', 'status'])
