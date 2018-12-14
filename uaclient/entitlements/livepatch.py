@@ -18,6 +18,8 @@ class LivepatchEntitlement(base.UAEntitlement):
     description = (
         'Canonical Livepatch Service'
         ' (https://www.ubuntu.com/server/livepatch)')
+    static_affordances = (
+        ('Cannot install Livepatch on a container', util.is_container, False))
 
     def enable(self):
         """Enable specific entitlement.

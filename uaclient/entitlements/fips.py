@@ -12,6 +12,8 @@ class FIPSEntitlement(repo.RepoEntitlement):
     description = 'Canonical FIPS 140-2 Certified Modules'
     repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
+    static_affordances = (
+        ('Cannot install FIPS on a container', util.is_container, False))
 
     def enable(self):
         """Enable specific entitlement.
@@ -56,6 +58,9 @@ class FIPSUpdatesEntitlement(repo.RepoEntitlement):
     repo_url = (
         'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates')
     repo_key_file = 'ubuntu-fips-updates-keyring.gpg'
+    static_affordances = (
+        ('Cannot install FIPS Updates on a container',
+         util.is_container, False))
 
     def enable(self):
         """Enable specific entitlement.

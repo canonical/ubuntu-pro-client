@@ -17,6 +17,11 @@ class UAEntitlement(object):
     # A sentence describing this entitlement
     description = None
 
+    # A tuple of 3-tuples with (failure_message, functor, expected_results)
+    # If any static_affordance does not match expected_results fail with
+    # <failure_message>.
+    static_affordances = ()   # Overridden in livepatch and fips
+
     def __init__(self, cfg=None):
         """Setup UAEntitlement instance
 
@@ -90,6 +95,11 @@ class UAEntitlement(object):
         series = util.get_platform_info('series')
         for affordance in affordances:
             if 'series' in affordance and series not in affordance['series']:
+                return False
+        for error_message, functor, expected_result in self.static_affordances:
+            if functor() != expected_result:
+                if error_message:
+                    print(error_message)
                 return False
         return True
 
