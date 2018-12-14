@@ -7,6 +7,11 @@ import six
 import subprocess
 
 
+CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
+                   ['running-in-container'],
+                   ['lxc-is-container'])
+
+
 class UrlError(IOError):
 
     def __init__(self, cause, code=None, headers=None, url=None):
@@ -59,6 +64,19 @@ def encode_text(text, encoding='utf-8'):
     if isinstance(text, six.binary_type):
         return text
     return text.encode(encoding)
+
+
+def is_container():
+    """Checks to see if this code running in a container of some sort"""
+    for helper in CONTAINER_TESTS:
+        try:
+            # try to run a helper program. if it returns true/zero
+            # then we're inside a container. otherwise, no
+            subp(helper)
+            return True
+        except (IOError, OSError):
+            pass
+    return False
 
 
 def is_exe(path):
