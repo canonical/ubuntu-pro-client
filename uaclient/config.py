@@ -19,7 +19,7 @@ BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 CONFIG_DEFAULTS = {
     'sso_auth_url': BASE_AUTH_URL,
     'service_url': BASE_SERVICE_URL,
-    'data_dir': '~/.local/share/ua-client',
+    'data_dir': '/var/lib/ubuntu-advantage',
     'log_level': 'info'
 }
 
