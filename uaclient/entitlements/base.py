@@ -79,12 +79,14 @@ class UAEntitlement(object):
             return False
         return True
 
-    def passes_affordances(self):
+    def passes_affordances(self, verbose=True):
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
         Examples include a list of supported series, architectures for kernel
         revisions.
+
+        @param verbose: Boolean set True to print affordance failure messages.
 
         @return: True if platform passes any defined affordances, False if
             it doesn't meet provided constraints.
@@ -98,7 +100,7 @@ class UAEntitlement(object):
                 return False
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
-                if error_message:
+                if error_message and verbose:
                     print(error_message)
                 return False
         return True
