@@ -109,7 +109,8 @@ class TestUaEntitlement(TestCase):
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
-            'Test Concrete Entitlement is not currently enabled.\n',
+            'Test Concrete Entitlement is not currently enabled.\n'
+            'See `ua status`\n',
             m_stdout.getvalue())
 
     @mock.patch('os.getuid', return_value=0)
@@ -183,7 +184,7 @@ class TestUaEntitlement(TestCase):
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
-            'Test Concrete Entitlement is already enabled.\n',
+            'Test Concrete Entitlement is already enabled.\nSee `ua status`\n',
             m_stdout.getvalue())
 
     @mock.patch('os.getuid', return_value=0)
