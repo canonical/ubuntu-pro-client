@@ -12,6 +12,8 @@ API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
 
+# TODO(Add bearer token route handshake once contract service defines it)
+
 
 class ContractAPIError(util.UrlError):
 
