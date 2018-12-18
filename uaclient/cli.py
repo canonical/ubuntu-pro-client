@@ -12,6 +12,7 @@ Available entitlements:
 """
 
 import argparse
+from datetime import datetime
 import logging
 import os
 import sys
@@ -265,10 +266,12 @@ def print_status(args=None):
         return
     account = cfg.accounts[0]
     contract = cfg.contracts[0]
+    expiry = datetime.strptime(
+        contract['contractInfo']['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
     print(STATUS_HEADER_TMPL.format(
         account=account['name'],
         subscription=contract['contractInfo']['name'],
-        contract_expiry=contract['contractInfo']['effectiveTo']))
+        contract_expiry=expiry.date()))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls()

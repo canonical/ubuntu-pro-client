@@ -42,7 +42,8 @@ MESSAGE_ALREADY_DISABLED_TMPL = '\
 {title} is not currently enabled.\nSee `ua status`'
 MESSAGE_ENABLED_TMPL = '{title} enabled.'
 MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
-MESSAGE_INAPPLICABLE_TMPL = '{title} is not available for Ubuntu {series}.'
+MESSAGE_INAPPLICABLE_SERIES_TMPL = '\
+{title} is not available for Ubuntu {series}.'
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 See `ua status` or https://ubuntu.com/advantage
@@ -58,7 +59,7 @@ STATUS_TMPL = '{name: <14}{contract_state: <26}{status}'
 
 def format_entitlement_status(entitlement):
     contract_status = entitlement.contract_status()
-    operational_status = entitlement.operational_status()
+    operational_status, _details = entitlement.operational_status()
     fmt_args = {
         'name': entitlement.name,
         'contract_state': STATUS_COLOR.get(contract_status, contract_status),

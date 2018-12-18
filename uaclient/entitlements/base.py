@@ -51,7 +51,8 @@ class UAEntitlement(object):
         if not entitlements.get(self.name, {}).get('enabled'):
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
-        if self.operational_status() == status.INACTIVE:
+        op_status, _status_details = self.operational_status()
+        if op_status == status.INACTIVE:
             print(
                 status.MESSAGE_ALREADY_DISABLED_TMPL.format(title=self.title))
             return False
@@ -69,27 +70,25 @@ class UAEntitlement(object):
         if not entitlements.get(self.name, {}).get('enabled'):
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
-        if self.operational_status() == status.ACTIVE:
+        op_status, op_status_details = self.operational_status()
+        if op_status == status.ACTIVE:
             print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(title=self.title))
             return False
-        if self.operational_status() == status.INAPPLICABLE:
-            series = util.get_platform_info('series')
-            print(status.MESSAGE_INAPPLICABLE_TMPL.format(
-                title=self.title, series=series))
+        if op_status == status.INAPPLICABLE:
+            print(op_status_details)
             return False
         return True
 
-    def passes_affordances(self, verbose=True):
+    def check_affordances(self):
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
         Examples include a list of supported series, architectures for kernel
         revisions.
 
-        @param verbose: Boolean set True to print affordance failure messages.
-
-        @return: True if platform passes any defined affordances, False if
-            it doesn't meet provided constraints.
+        @return: Tuple (boolean, detailed_message). True if platform passes
+            all defined affordances, False if it doesn't meet any of the
+            provided constraints.
         """
         entitlements = self.cfg.entitlements
         entitlement_status = entitlements.get(self.name)
@@ -97,13 +96,12 @@ class UAEntitlement(object):
         series = util.get_platform_info('series')
         for affordance in affordances:
             if 'series' in affordance and series not in affordance['series']:
-                return False
+                return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
+                                  title=self.title, series=series)
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
-                if error_message and verbose:
-                    print(error_message)
-                return False
-        return True
+                return False, error_message
+        return True, ''
 
     @abc.abstractmethod
     def disable(self):
@@ -123,5 +121,5 @@ class UAEntitlement(object):
 
     @abc.abstractmethod
     def operational_status(self):
-        """Return whether entitlement is ACTIVE, INACTIVE or UNAVILABLE"""
+        """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
         pass

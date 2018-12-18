@@ -51,9 +51,10 @@ class RepoEntitlement(base.UAEntitlement):
 
     def operational_status(self):
         """Return operational status of RepoEntitlement."""
-        if not self.passes_affordances(verbose=False):
-            return status.INAPPLICABLE
+        passed_affordances, details = self.check_affordances()
+        if not passed_affordances:
+            return status.INAPPLICABLE, details
         apt_policy = util.subp(['apt-cache', 'policy'])
         if ' %s ' % self.repo_url in apt_policy:
-            return status.ACTIVE
-        return status.INACTIVE
+            return status.ACTIVE, '%s PPA is active' % self.title
+        return status.INACTIVE, '%s PPA is not configured' % self.title

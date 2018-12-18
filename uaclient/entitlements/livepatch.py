@@ -55,20 +55,22 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not self.can_disable():
             return False
         util.subp(['canonical-livepatch', 'disable'])
-        logging.debug('Removing canonical-livepatch snap')
+        logging.debug('Removing canonical-livepatch snap...')
+        print('Removing canonical-livepatch snap...')
         util.subp(['snap', 'remove', 'canonical-livepatch'])
         print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):
         """Return entitlement operational status as ACTIVE or INACTIVE."""
-        if not self.passes_affordances(verbose=False):
-            return status.INAPPLICABLE
-        operational_status = status.ACTIVE
+        passed_affordances, details = self.check_affordances()
+        if not passed_affordances:
+            return status.INAPPLICABLE, details
+        operational_status = (status.ACTIVE, '')
         try:
             util.subp(['canonical-livepatch', 'status'])
         except util.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug('Livepatch not enabled. %s', str(e))
-            operational_status = status.INACTIVE
+            operational_status = (status.INACTIVE, str(e))
         return operational_status

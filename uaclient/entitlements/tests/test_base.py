@@ -87,7 +87,7 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': False}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.INACTIVE)
+            cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
@@ -105,7 +105,8 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': True}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.INACTIVE)
+            cfg,
+            operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
@@ -123,7 +124,7 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': True}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.ACTIVE)
+            cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(entitlement.can_disable())
         self.assertEqual('', m_stdout.getvalue())
@@ -162,7 +163,7 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': False}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.INACTIVE)
+            cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
@@ -180,7 +181,7 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': True}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.ACTIVE)
+            cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
@@ -197,7 +198,7 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': True}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(
-            cfg, operational_status=status.INACTIVE)
+            cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(entitlement.can_enable())
         self.assertEqual('', m_stdout.getvalue())
