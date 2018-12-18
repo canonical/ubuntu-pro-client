@@ -38,8 +38,9 @@ STATUS_COLOR = {
 
 MESSAGE_DISABLED_TMPL = '{title} disabled.'
 MESSAGE_NONROOT_USER = 'This command must be run as root (try using sudo)'
-MESSAGE_ALREADY_DISABLED_TMPL = '{title} is not currently enabled.'
-MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.'
+MESSAGE_ALREADY_DISABLED_TMPL = '\
+{title} is not currently enabled.\nSee `ua status`'
+MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
 MESSAGE_INAPPLICABLE_TMPL = '{title} is not available for Ubuntu {series}.'
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
