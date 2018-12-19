@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 
@@ -31,8 +32,14 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        # TODO(Get credentials from Contract service's Entitlements response)
-        credentials = 'user{name}:pass'.format(name=self.name)
+        # TODO(Contract service needs to commit to a token directive)
+        credentials = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('directives', {}).get('token')
+        if not credentials:
+            logging.debug(
+                'No specific entitlement token present. Using machine token'
+                ' as %s credentials', self.title)
+            credentials = self.cfg.read_cache('machine-token')['machineSecret']
         apt.add_auth_apt_repo(
             repo_filename, self.repo_url, credentials, keyring_file)
         if self.repo_pin_priority:

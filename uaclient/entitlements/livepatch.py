@@ -31,7 +31,14 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which('canonical-livepatch'):
             print('Installing canonical-livepatch snap...')
             util.subp(['snap', 'install', 'canonical-livepatch'])
-        livepatch_token = self.cfg.read_cache('machine-token')['machineSecret']
+        livepatch_token = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('directives', {}).get('token')
+        if not livepatch_token:
+            logging.debug(
+                'No specific entitlement token present. Using machine token'
+                ' as %s credentials', self.title)
+            livepatch_token = self.cfg.read_cache(
+                'machine-token')['machineSecret']
         try:
             util.subp(['canonical-livepatch', 'enable', livepatch_token])
         except util.ProcessExecutionError as e:
