@@ -20,6 +20,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         'deb {url}/ubuntu {series} main\n'
         '# deb-src {url}/ubuntu {series} main\n'.format(
             url=repo_url, series=series))
+    util.write_file(repo_filename, content)
     # TODO(Confirm that machine-token or entitlement token provides format)
     # which is supported by /etc/apt/auth.conf
     login, password = credentials.split(':')
