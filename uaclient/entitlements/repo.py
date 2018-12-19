@@ -45,8 +45,11 @@ class RepoEntitlement(base.UAEntitlement):
             keyring_file = None
         else:
             keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
+        repo_url = access_directives.get('repo_url')
+        if not repo_url:
+            repo_url = self.repo_url
         apt.add_auth_apt_repo(
-            repo_filename, self.repo_url, token, keyring_file, ppa_fingerprint)
+            repo_filename, repo_url, token, keyring_file, ppa_fingerprint)
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
