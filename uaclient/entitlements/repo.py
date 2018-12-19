@@ -31,17 +31,22 @@ class RepoEntitlement(base.UAEntitlement):
         series = platform.dist()[2]
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
-        keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
         # TODO(Contract service needs to commit to a token directive)
-        credentials = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {}).get('token')
-        if not credentials:
+        access_directives = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('directives', {})
+        token = access_directives.get('token')
+        if not token:
             logging.debug(
                 'No specific entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
-            credentials = self.cfg.read_cache('machine-token')['machineSecret']
+            token = self.cfg.read_cache('machine-token')['machineSecret']
+        ppa_fingerprint = access_directives.get('repo_key')
+        if ppa_fingerprint:
+            keyring_file = None
+        else:
+            keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
         apt.add_auth_apt_repo(
-            repo_filename, self.repo_url, credentials, keyring_file)
+            repo_filename, self.repo_url, token, keyring_file, ppa_fingerprint)
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)

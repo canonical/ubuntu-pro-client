@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import shutil
@@ -11,7 +12,8 @@ APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file):
+def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
+                      fingerprint=None):
     """Add an authenticated apt repo and credentials to the system"""
     series = platform.dist()[2]
     content = (
@@ -31,7 +33,14 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file):
         ' {password}\n'.format(
             repo_path=repo_path, login=login, password=password))
     util.write_file(APT_AUTH_FILE, content, mode=0o600)
-    shutil.copy(keyring_file, APT_KEYS_DIR)
+    if keyring_file:
+        logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
+        shutil.copy(keyring_file, APT_KEYS_DIR)
+    elif fingerprint:
+        logging.debug('Importing APT PPA key %s', fingerprint)
+        util.subp(
+            ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
+             '--receive-keys', fingerprint])
 
 
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file):
