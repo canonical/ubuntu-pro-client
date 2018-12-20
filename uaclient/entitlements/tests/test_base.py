@@ -82,10 +82,14 @@ class TestUaEntitlement(TestCase):
         """When entitlement contract is not enabled, can_disable is False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': False}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {
+                  'resourceEntitlements': {
+                      'testconcreteentitlement': {}}}}])
+        cfg.write_cache(
+            'machine-access-testconcreteentitlement', {'enabled': False})
         entitlement = TestConcreteEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -100,10 +104,13 @@ class TestUaEntitlement(TestCase):
         """When operational status is INACTIVE, can_disable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': True}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': True})
         entitlement = TestConcreteEntitlement(
             cfg,
             operational_status=(status.INACTIVE, ''))
@@ -119,10 +126,13 @@ class TestUaEntitlement(TestCase):
         """When operational status is ACTIVE, can_disable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': True}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': True})
         entitlement = TestConcreteEntitlement(
             cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -158,10 +168,13 @@ class TestUaEntitlement(TestCase):
         """When entitlement contract is not enabled, can_enable is False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': False}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': False})
         entitlement = TestConcreteEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -176,10 +189,13 @@ class TestUaEntitlement(TestCase):
         """When operational status is ACTIVE, can_enable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': True}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': True})
         entitlement = TestConcreteEntitlement(
             cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -193,10 +209,13 @@ class TestUaEntitlement(TestCase):
         """When operational status is INACTIVE, can_enable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': True}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': True})
         entitlement = TestConcreteEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -207,10 +226,13 @@ class TestUaEntitlement(TestCase):
         """The contract_status returns ENTITLED when entitlement enabled."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        fake_machine_token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': {
-                'testconcreteentitlement': {'enabled': True}}}}}
-        cfg.write_cache('machine-token', fake_machine_token)
+        cfg.write_cache('machine-token', {'machineSecret': 'blah'})
+        cfg.write_cache(
+            'account-contracts',
+            [{'contractInfo': {'resourceEntitlements': {
+                                   'testconcreteentitlement': {}}}}])
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'enabled': True})
         entitlement = TestConcreteEntitlement(cfg)
         self.assertEqual(status.ENTITLED, entitlement.contract_status())
 

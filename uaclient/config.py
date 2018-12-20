@@ -45,7 +45,9 @@ class UAConfig(object):
                   'macaroon': 'sso-macaroon.json',
                   'oauth': 'sso-oauth.json'}
 
-    _machine_token = None  # cached to avoid repetitive reading of token file
+    _contracts = None  # caching to avoid repetitive file reads
+    _entitlements = None  # caching to avoid repetitive file reads
+    _machine_token = None  # caching to avoid repetitive file reading
 
     def __init__(self, cfg=None):
         """"""
@@ -78,16 +80,22 @@ class UAConfig(object):
     @property
     def contracts(self):
         """Return the list of contracts that apply to this account."""
-        return self.read_cache('account-contracts')
+        if not self._contracts:
+            self._contracts = self.read_cache('account-contracts')
+        return self._contracts or []
 
     @property
     def entitlements(self):
         """Return the machine-token if cached in the machine token response."""
-        token = self.machine_token
-        if not token:
-            return None
-        return token[
-            'machineTokenInfo']['contractInfo']['resourceEntitlements']
+        if self._entitlements:
+            return self._entitlements
+        self._entitlements = {}
+        for contract in self.contracts:
+            ent_names = contract['contractInfo']['resourceEntitlements'].keys()
+            for entitlement_name in ent_names:
+                self._entitlements[entitlement_name] = self.read_cache(
+                    'machine-access-%s' % entitlement_name)
+        return self._entitlements
 
     @property
     def machine_token(self):

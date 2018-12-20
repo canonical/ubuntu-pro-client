@@ -1,4 +1,5 @@
 import abc
+from datetime import datetime
 import os
 import six
 
@@ -113,11 +114,21 @@ class UAEntitlement(object):
 
     def contract_status(self):
         """Return whether contract entitlement is ENTITLED or UNENTITLED."""
-        entitlements = self.cfg.entitlements
-        entitlement_status = entitlements.get(self.name)
-        if entitlement_status.get('enabled'):
+        entitlement_contract = self.cfg.entitlements.get(self.name, {})
+        if entitlement_contract.get('enabled'):
             return status.ENTITLED
         return status.UNENTITLED
+
+    def is_access_expired(self):
+        """Return entitlement access info as stale and needing refresh."""
+        entitlement_contract = self.cfg.entitlements.get(self.name, {})
+        expire_str = entitlement_contract.get('expires')
+        if not expire_str:
+            return False
+        expiry = datetime.strptime(expire_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        if expiry >= datetime.utcnow():
+            return False
+        return True
 
     @abc.abstractmethod
     def operational_status(self):
