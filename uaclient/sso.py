@@ -125,8 +125,8 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         return content
 
 
-def prompt_oauth_token():
-    client = UbuntuSSOClient()
+def prompt_oauth_token(cfg):
+    client = UbuntuSSOClient(cfg)
     oauth_token = client.cfg.read_cache('oauth')
     if oauth_token:
         return oauth_token

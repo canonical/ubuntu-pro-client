@@ -126,34 +126,31 @@ def disable_parser(parser=None):
     return parser
 
 
-def action_disable(args):
+def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    cfg = config.UAConfig()
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.disable() else 1
 
 
-def action_enable(args):
+def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    cfg = config.UAConfig()
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
 
 
-def action_detach(args):
+def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
     """
-    cfg = config.UAConfig()
     machine_token = cfg.machine_token
     if not machine_token:
         print(textwrap.dedent("""\
@@ -178,8 +175,7 @@ def action_detach(args):
     return 0
 
 
-def action_attach(args):
-    cfg = config.UAConfig()
+def action_attach(args, cfg):
     machine_token = cfg.machine_token
     if machine_token:
         print("This machine is already attached to '%s'." %
@@ -189,7 +185,7 @@ def action_attach(args):
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
     if not args.token:
-        user_token = sso.prompt_oauth_token()
+        user_token = sso.prompt_oauth_token(cfg)
     else:
         user_token = args.token
     if not user_token:
@@ -213,7 +209,7 @@ def action_attach(args):
             machine_token, entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
-    print_status()
+    print_status(cfg=cfg)
     return 0
 
 
@@ -258,8 +254,9 @@ def get_parser():
     return parser
 
 
-def print_status(args=None):
-    cfg = config.UAConfig()
+def print_status(args=None, cfg=None):
+    if not cfg:
+        cfg = config.UAConfig()
     if not cfg.machine_token:
         print('This machine is not attached to a UA subscription.\n'
               'See `ua attach` or https://ubuntu.com/advantage')
@@ -275,7 +272,7 @@ def print_status(args=None):
         contract_expiry=expiry.date()))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls()
+        ent = ent_cls(cfg)
         status_content.append(ua_status.format_entitlement_status(ent))
     status_content.append(ua_status.STATUS_TMPL.format(
         name='support',
@@ -304,7 +301,8 @@ def main(sys_argv=None):
     args = parser.parse_args(args=sys_argv[1:])
     log_level = logging.DEBUG if args.debug else logging.ERROR
     setup_logging(log_level)
-    return args.action(args)
+    cfg = config.UAConfig()
+    return args.action(args, cfg)
 
 
 if __name__ == '__main__':

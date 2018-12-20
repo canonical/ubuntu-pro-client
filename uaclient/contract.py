@@ -124,9 +124,9 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the machine-token.
         """
-        token_response = self.cfg.read_cache('machine-token')
-        if token_response:
-            return token_response
+        machine_token = self.cfg.machine_token
+        if machine_token:
+            return machine_token
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
         os = util.get_platform_info()

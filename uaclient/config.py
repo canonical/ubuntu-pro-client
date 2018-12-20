@@ -45,6 +45,8 @@ class UAConfig(object):
                   'macaroon': 'sso-macaroon.json',
                   'oauth': 'sso-oauth.json'}
 
+    _machine_token = None  # cached to avoid repetitive reading of token file
+
     def __init__(self, cfg=None):
         """"""
         if cfg:
@@ -81,19 +83,18 @@ class UAConfig(object):
     @property
     def entitlements(self):
         """Return the machine-token if cached in the machine token response."""
-        token = self.read_cache('machine-token')
+        token = self.machine_token
         if not token:
             return None
-        return (
-            token['machineTokenInfo']['contractInfo']['resourceEntitlements'])
+        return token[
+            'machineTokenInfo']['contractInfo']['resourceEntitlements']
 
     @property
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
-        token_response = self.read_cache('machine-token')
-        if not token_response:
-            return None
-        return token_response['machineSecret']
+        if not self._machine_token:
+            self._machine_token = self.read_cache('machine-token')
+        return self._machine_token
 
     def data_path(self, key):
         """Return the file path in the data directory represented by the key"""

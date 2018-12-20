@@ -37,8 +37,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             logging.debug(
                 'No specific entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
-            livepatch_token = self.cfg.read_cache(
-                'machine-token')['machineSecret']
+            livepatch_token = self.cfg.machine_token['machineSecret']
         try:
             util.subp(['canonical-livepatch', 'enable', livepatch_token])
         except util.ProcessExecutionError as e:

@@ -39,7 +39,7 @@ class RepoEntitlement(base.UAEntitlement):
             logging.debug(
                 'No specific entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
-            token = self.cfg.read_cache('machine-token')['machineSecret']
+            token = self.cfg.machine_token['machineSecret']
         ppa_fingerprint = access_directives.get('repo_key')
         if ppa_fingerprint:
             keyring_file = None
