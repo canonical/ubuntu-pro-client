@@ -268,20 +268,22 @@ def print_status(args=None):
     contract = cfg.contracts[0]
     expiry = datetime.strptime(
         contract['contractInfo']['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
-    print(STATUS_HEADER_TMPL.format(
+    status_content = []
+    status_content.append(STATUS_HEADER_TMPL.format(
         account=account['name'],
         subscription=contract['contractInfo']['name'],
         contract_expiry=expiry.date()))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls()
-        print(ua_status.format_entitlement_status(ent))
-    print(ua_status.STATUS_TMPL.format(
-          name='support',
-          contract_state=ua_status.STATUS_COLOR.get(
-              ua_status.ESSENTIAL, ua_status.ESSENTIAL),
-          status=''))
-    print('\nEnable entitlements with `ua enable <service>\n')
+        status_content.append(ua_status.format_entitlement_status(ent))
+    status_content.append(ua_status.STATUS_TMPL.format(
+        name='support',
+        contract_state=ua_status.STATUS_COLOR.get(
+            ua_status.ESSENTIAL, ua_status.ESSENTIAL),
+        status=''))
+    status_content.append('\nEnable entitlements with `ua enable <service>\n')
+    print('\n'.join(status_content))
 
 
 def setup_logging(level=logging.ERROR):
