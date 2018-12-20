@@ -61,7 +61,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         accounts = self.cfg.read_cache('accounts')
         if accounts:
             return accounts
-        accounts = self.request_url(API_PATH_ACCOUNTS)
+        accounts, _headers = self.request_url(API_PATH_ACCOUNTS)
         self.cfg.write_cache('accounts', accounts)
         return accounts
 
@@ -71,7 +71,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if account_contracts:
             return account_contracts
         url = API_PATH_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
-        account_contracts = self.request_url(url)
+        account_contracts, _headers = self.request_url(url)
         self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
 
@@ -81,7 +81,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if account_users:
             return account_users
         url = API_PATH_TMPL_ACCOUNT_USERS.format(account=account_id)
-        account_users = self.request_url(url)
+        account_users, _headers = self.request_url(url)
         self.cfg.write_cache('account-users', account_users)
         return account_users
 
@@ -108,7 +108,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             data['product'] = product_name
         url = API_PATH_TMPL_MACHINE_CONTRACT.format(
             machine=contract_machine_id)
-        contracts = self.request_url(url, data=data)
+        contracts, _headers = self.request_url(url, data=data)
         self.cfg.write_cache('machine-contracts', contracts)
         return contracts
 
@@ -132,7 +132,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         os = util.get_platform_info()
         arch = os.pop('arch')
         data = {'machineId': machine_id, 'arch': arch, 'os': os}
-        machine_token = self.request_url(
+        machine_token, _headers = self.request_url(
             API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
             data=data)
         self.cfg.write_cache('machine-token', machine_token)
@@ -147,7 +147,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the machine-token.
         """
-        machine_token = self.request_url(
+        machine_token, _headers = self.request_url(
             API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
             method='DELETE')
         self.cfg.write_cache('machine-detach', machine_token)
@@ -164,6 +164,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         @return: Dict of the JSON response containing entitlement accessInfo.
         """
         url = API_PATH_TMPL_RESOURCE_MACHINE_ACCESS.format(resource=resource)
-        resource_access = self.request_url(url)
+        resource_access, headers = self.request_url(url)
+        if headers.get('expires'):
+            resource_access['expires'] = headers['expires']
         self.cfg.write_cache('machine-access-%s' % resource, resource_access)
         return resource_access

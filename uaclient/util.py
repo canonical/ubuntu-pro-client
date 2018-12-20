@@ -119,8 +119,8 @@ def readurl(url, data=None, headers=None, method=None):
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
     logging.debug(
-        'URL response: %s, headers: %s, data: %s', url, headers, content)
-    return content
+        'URL response: %s, headers: %s, data: %s', url, resp.headers, content)
+    return content, resp.headers
 
 
 def subp(args, rcs=None):

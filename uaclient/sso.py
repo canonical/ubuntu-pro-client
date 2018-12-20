@@ -73,8 +73,9 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = 'sso_auth_url'
 
     def request_user_keys(self, email):
-        return self.request_url(
+        content, _headers = self.request_url(
             API_PATH_USER_KEYS + six.moves.urllib.parse.quote(email))
+        return content
 
     def request_oauth_token(self, email, password, token_name, otp=None):
         """Request a named oauth token for the authenticated user
@@ -95,7 +96,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         data = {'email': email, 'password': password, 'token_name': token_name}
         if otp:
             data['otp'] = otp
-        content = self.request_url(API_PATH_OAUTH_TOKEN, data=data)
+        content, _headers = self.request_url(API_PATH_OAUTH_TOKEN, data=data)
         self.cfg.write_cache('oauth', json.dumps(content))
         return content
 
@@ -119,7 +120,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         data = {'email': email, 'password': password, 'caveat_id': caveat_id}
         if otp:
             data['otp'] = otp
-        content = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
+        content, _hdrs = self.request_url(API_PATH_TOKEN_DISCHARGE, data=data)
         self.cfg.write_cache('macaroon', json.dumps(content))
         return content
 

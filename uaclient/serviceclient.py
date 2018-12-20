@@ -36,7 +36,7 @@ class UAServiceClient(object):
             data = util.encode_text(json.dumps(data))
         url = getattr(self.cfg, self.cfg_url_base_attr) + path
         try:
-            response = util.readurl(
+            response, headers = util.readurl(
                 url=url, data=data, headers=headers, method=method)
         except six.moves.urllib.error.URLError as e:
             code = e.errno
@@ -45,4 +45,4 @@ class UAServiceClient(object):
                 if error_details:
                     raise self.api_error_cls(e, error_details)
             raise util.UrlError(e, code=code, headers=headers, url=url)
-        return response
+        return response, headers
