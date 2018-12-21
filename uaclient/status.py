@@ -86,7 +86,7 @@ def get_motd_summary(cfg):
     expiry = datetime.strptime(
         contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
     if expiry >= datetime.utcnow():
-       return MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date())
+        return MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date())
     else:
-       return MESSAGE_MOTD_EXPIRED_TMPL.format(
-           name=contractInfo['name'], date=expiry.date())
+        return MESSAGE_MOTD_EXPIRED_TMPL.format(
+            name=contractInfo['name'], date=expiry.date())
