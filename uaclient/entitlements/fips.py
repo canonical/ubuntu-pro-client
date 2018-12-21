@@ -31,10 +31,12 @@ class FIPSEntitlement(repo.RepoEntitlement):
         apt.add_auth_apt_repo(
             repo_filename, self.repo_url, credentials, keyring_file)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'])
+            util.subp(['apt-get', 'install', 'apt-transport-https'],
+                      capture=True)
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'])
-        util.subp(['apt-get', 'update'])
+            util.subp(['apt-get', 'install', 'ca-certificates'],
+                      capture=True)
+        util.subp(['apt-get', 'update'], capture=True)
         print('{title} configured, please reboot to enable.'.format(
             title=self.title))
         return True

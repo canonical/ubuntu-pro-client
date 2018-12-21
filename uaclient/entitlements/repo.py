@@ -57,10 +57,11 @@ class RepoEntitlement(base.UAEntitlement):
                 repo_pref_file, 'LP-PPA-ubuntu-advantage-fips',
                 self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'])
+            util.subp(['apt-get', 'install', 'apt-transport-https'],
+                      capture=True)
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'])
-        util.subp(['apt-get', 'update'])
+            util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
+        util.subp(['apt-get', 'update'], capture=True)
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         return True
 

@@ -123,12 +123,13 @@ def readurl(url, data=None, headers=None, method=None):
     return content, resp.headers
 
 
-def subp(args, rcs=None):
+def subp(args, rcs=None, capture=False):
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
     @param rcs: A list of allowed return_codes. If returncode not in rcs
         raise a ProcessExecutionError.
+    @param capture: Boolean set True to log the command and response.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -142,11 +143,20 @@ def subp(args, rcs=None):
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = proc.communicate()
     except OSError:
+        if capture:
+            logging.error('Failed running cmd: %s, rc: %s stderr: %s',
+                          ' '.join(args), proc.returncode, err)
         raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
+        if capture:
+            logging.error('Failed running cmd: %s, rc: %s stderr: %s',
+                          ' '.join(args), proc.returncode, err)
         raise ProcessExecutionError(
             cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
             stderr=err)
+    if capture:
+        logging.debug('Ran cmd: %s, rc: %s stderr: %s',
+                      ' '.join(args), proc.returncode, err)
     return (decode_binary(out), decode_binary(err))
 
 

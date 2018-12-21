@@ -42,7 +42,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         logging.debug('Importing APT PPA key %s', fingerprint)
         util.subp(
             ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-             '--receive-keys', fingerprint])
+             '--receive-keys', fingerprint], capture=True)
 
 
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
@@ -53,7 +53,7 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
     if keyring_file:
         util.del_file(keyring_file)
     elif fingerprint:
-        util.subp(['apt-key', 'del', fingerprint])
+        util.subp(['apt-key', 'del', fingerprint], capture=True)
     _protocol, repo_path = repo_url.split('://')
     apt_auth = util.load_file(APT_AUTH_FILE)
     auth_prefix = 'machine {repo_path}/ubuntu/ login'.format(

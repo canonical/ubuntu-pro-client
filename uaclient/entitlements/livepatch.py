@@ -30,7 +30,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             return False
         if not util.which('canonical-livepatch'):
             print('Installing canonical-livepatch snap...')
-            util.subp(['snap', 'install', 'canonical-livepatch'])
+            util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
         livepatch_token = self.cfg.read_cache(
             'machine-access-%s' % self.name).get('directives', {}).get('token')
         if not livepatch_token:
@@ -39,7 +39,8 @@ class LivepatchEntitlement(base.UAEntitlement):
                 ' as %s credentials', self.title)
             livepatch_token = self.cfg.machine_token['machineSecret']
         try:
-            util.subp(['canonical-livepatch', 'enable', livepatch_token])
+            util.subp(['canonical-livepatch', 'enable', livepatch_token],
+                      capture=True)
         except util.ProcessExecutionError as e:
             msg = 'Unable to enable Livepatch: '
             for error_message, print_message in ERROR_MSG_MAP.items():
@@ -60,10 +61,10 @@ class LivepatchEntitlement(base.UAEntitlement):
         """
         if not self.can_disable():
             return False
-        util.subp(['canonical-livepatch', 'disable'])
+        util.subp(['canonical-livepatch', 'disable'], capture=True)
         logging.debug('Removing canonical-livepatch snap...')
         print('Removing canonical-livepatch snap...')
-        util.subp(['snap', 'remove', 'canonical-livepatch'])
+        util.subp(['snap', 'remove', 'canonical-livepatch'], capture=True)
         print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
