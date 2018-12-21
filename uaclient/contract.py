@@ -58,18 +58,12 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def request_accounts(self):
         """Request list of accounts this user has access to."""
-        accounts = self.cfg.read_cache('accounts')
-        if accounts:
-            return accounts
         accounts, _headers = self.request_url(API_PATH_ACCOUNTS)
         self.cfg.write_cache('accounts', accounts)
         return accounts
 
     def request_account_contracts(self, account_id):
         """Request a list of contracts authorized for account_id."""
-        account_contracts = self.cfg.read_cache('account-contracts')
-        if account_contracts:
-            return account_contracts
         url = API_PATH_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
         account_contracts, _headers = self.request_url(url)
         self.cfg.write_cache('account-contracts', account_contracts)
@@ -77,9 +71,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def request_account_users(self, account_id):
         """Request a list of users authorized for account_id."""
-        account_users = self.cfg.read_cache('account-users')
-        if account_users:
-            return account_users
         url = API_PATH_TMPL_ACCOUNT_USERS.format(account=account_id)
         account_users, _headers = self.request_url(url)
         self.cfg.write_cache('account-users', account_users)
@@ -124,9 +115,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the machine-token.
         """
-        machine_token = self.cfg.machine_token
-        if machine_token:
-            return machine_token
         if not machine_id:
             machine_id = util.load_file('/etc/machine-id')
         os = util.get_platform_info()
