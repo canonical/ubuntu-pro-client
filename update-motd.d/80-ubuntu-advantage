@@ -1,4 +1,4 @@
-#!/usb/bin/env python
+#!/usr/bin/python3
 import sys
 
 from uaclient.config import UAConfig
