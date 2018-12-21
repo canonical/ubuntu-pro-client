@@ -33,7 +33,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         'machine {repo_path}/ubuntu/ login {login} password'
         ' {password}\n'.format(
             repo_path=repo_path, login=login, password=password))
-    util.write_file(APT_AUTH_FILE, content, mode=0o600)
+    util.write_file(APT_AUTH_FILE, auth_content, mode=0o600)
     if keyring_file:
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
