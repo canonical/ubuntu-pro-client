@@ -304,9 +304,9 @@ def main(sys_argv=None):
         sys_argv = sys.argv
     parser = get_parser()
     args = parser.parse_args(args=sys_argv[1:])
-    log_level = logging.DEBUG if args.debug else logging.ERROR
-    setup_logging(log_level)
     cfg = config.UAConfig()
+    log_level = logging.DEBUG if args.debug else cfg.log_level
+    setup_logging(log_level)
     return args.action(args, cfg)
 
 
