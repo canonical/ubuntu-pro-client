@@ -1,3 +1,5 @@
+from datetime import datetime
+
 
 class TxtColor(object):
     HEADER = '\033[95m'
@@ -53,6 +55,13 @@ This machine is not attached to a UA subscription.
 
 See `ua attach` or https://ubuntu.com/advantage
 """
+MESSAGE_MOTD_ACTIVE_TMPL = """\
+This This system is covered by Ubuntu Advantage until {date}
+Run `ua status` for details.
+"""
+MESSAGE_MOTD_EXPIRED_TMPL = """\
+Your Ubuntu Advantage subscription {name} expired on {date}!
+"""
 
 STATUS_TMPL = '{name: <14}{contract_state: <26}{status}'
 
@@ -65,3 +74,19 @@ def format_entitlement_status(entitlement):
         'contract_state': STATUS_COLOR.get(contract_status, contract_status),
         'status': STATUS_COLOR.get(operational_status, operational_status)}
     return STATUS_TMPL.format(**fmt_args)
+
+
+def get_motd_summary(cfg):
+    """Return MOTD summary text for all UA entitlements"""
+    contracts = cfg.contracts
+    if not contracts:
+        return ""   # No UA attached, so don't announce anything
+    # TODO(Support multiple contracts)
+    contractInfo = contracts[0]['contractInfo']
+    expiry = datetime.strptime(
+        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    if expiry >= datetime.utcnow():
+       return MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date())
+    else:
+       return MESSAGE_MOTD_EXPIRED_TMPL.format(
+           name=contractInfo['name'], date=expiry.date())
