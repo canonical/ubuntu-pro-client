@@ -69,7 +69,10 @@ class RepoEntitlement(base.UAEntitlement):
         passed_affordances, details = self.check_affordances()
         if not passed_affordances:
             return status.INAPPLICABLE, details
-        apt_policy = util.subp(['apt-cache', 'policy'])
-        if ' %s ' % self.repo_url in apt_policy:
+        apt_policy, _err = util.subp(['apt-cache', 'policy'])
+        access_directives = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('directives', {})
+        repo_url = access_directives.get('repo_url', self.repo_url)
+        if ' %s' % repo_url in apt_policy:
             return status.ACTIVE, '%s PPA is active' % self.title
         return status.INACTIVE, '%s PPA is not configured' % self.title
