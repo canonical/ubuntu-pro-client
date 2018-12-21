@@ -15,6 +15,7 @@ CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
                       fingerprint=None):
     """Add an authenticated apt repo and credentials to the system"""
+    logging.info('Enabling authticated apt PPA: %s', repo_url)
     series = platform.dist()[2]
     content = (
         'deb {url}/ubuntu {series} main\n'
@@ -47,6 +48,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
                          fingerprint=None):
     """Remove an authenticated apt repo and credentials to the system"""
+    logging.info('Removing authticated apt PPA: %s', repo_url)
     util.del_file(repo_filename)
     if keyring_file:
         util.del_file(keyring_file)
