@@ -143,6 +143,11 @@ def action_enable(args, cfg):
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
+    if entitlement.is_access_expired():
+        machine_secret = cfg.machine_token['machineSecret']
+        contract_client = contract.UAContractClient(cfg)
+        contract_client.request_resource_machine_access(
+            machine_secret, args.name)
     return 0 if entitlement.enable() else 1
 
 
@@ -204,7 +209,7 @@ def action_attach(args, cfg):
         return 1
     contractInfo = token_response['machineTokenInfo']['contractInfo']
     for entitlement_name in contractInfo['resourceEntitlements'].keys():
-        # Obtain each entitlement accessContext for this machine
+        # Obtain each entitlement's accessContext for this machine
         contract_client.request_resource_machine_access(
             machine_token, entitlement_name)
     print("This machine is now attached to '%s'.\n" %
