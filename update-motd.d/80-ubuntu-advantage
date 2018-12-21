@@ -1,0 +1,13 @@
+#!/usb/bin/env python
+import sys
+
+from uaclient.config import UAConfig
+from uaclient import status
+
+
+def main():
+  cfg = UAConfig()
+  print(status.get_motd_summary(cfg))
+
+if __name__ == '__main__':
+    sys.exit(main())
