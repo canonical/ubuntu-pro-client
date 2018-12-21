@@ -55,12 +55,12 @@ This machine is not attached to a UA subscription.
 
 See `ua attach` or https://ubuntu.com/advantage
 """
-MESSAGE_MOTD_ACTIVE_TMPL = """\
-This This system is covered by Ubuntu Advantage until {date}
+MESSAGE_MOTD_ACTIVE_TMPL = """
+ * This system is covered by Ubuntu Advantage until {date}
 Run `ua status` for details.
 """
-MESSAGE_MOTD_EXPIRED_TMPL = """\
-Your Ubuntu Advantage subscription {name} expired on {date}!
+MESSAGE_MOTD_EXPIRED_TMPL = """
+ * Your Ubuntu Advantage subscription {name} expired on {date}!
 """
 
 STATUS_TMPL = '{name: <14}{contract_state: <26}{status}'
