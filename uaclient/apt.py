@@ -44,10 +44,14 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
              '--receive-keys', fingerprint])
 
 
-def remove_auth_apt_repo(repo_filename, repo_url, keyring_file):
+def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
+                         fingerprint=None):
     """Remove an authenticated apt repo and credentials to the system"""
     util.del_file(repo_filename)
-    util.del_file(keyring_file)
+    if keyring_file:
+        util.del_file(keyring_file)
+    elif fingerprint:
+        util.subp(['apt-key', 'del', fingerprint])
     _protocol, repo_path = repo_url.split('://')
     apt_auth = util.load_file(APT_AUTH_FILE)
     auth_prefix = 'machine {repo_path}/ubuntu/ login'.format(
