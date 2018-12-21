@@ -289,13 +289,21 @@ def print_status(args=None, cfg=None):
 
 
 def setup_logging(level=logging.ERROR):
-    fmt = '[%(levelname)s]: %(message)s'
     formatter = logging.Formatter(fmt)
     root = logging.getLogger()
-    console = logging.StreamHandler(sys.stderr)
-    console.setFormatter(formatter)
-    console.setLevel(level)
-    root.addHandler(console)
+    stderr_found = False
+    for handler in root.handlers:
+        if hasattr(handler, 'stream') and  hasattr(handler.stream, 'name'):
+            if handler.stream.name == '<stderr>':
+                handler.setLevel(level)
+                handler.setFormatter(formatter)
+                stderr_found = True
+                break
+    if not stderr_found:
+        console = logging.StreamHandler(sys.stderr)
+        console.setFormatter(formatter)
+        console.setLevel(level)
+        root.addHandler(console)
     root.setLevel(level)
 
 
