@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+"""Use multipass or lxc to setup uaclients running ubuntu-advantage-client"""
+
+import argparse
+import sys
+
+from uaclient import util
+
+PROG='run-uaclient'
+
+
+def get_parser():
+    """Build an arg parser for run-uaclient utility."""
+    parser = argparse.ArgumentParser(
+        prog=PROG,
+        description='Create an lxc or kvm runing uaclient')
+    parser.add_argument(
+        '--backend', '-b', required=False, default='multipass',
+        choices=['multipass', 'lxc'],
+        help=('The backend to talk to when creating a vm: multipass or lxc. '
+              'Default:"lxc"'))
+    parser.add_argument(
+        '--series', '-s', required=False, default='bionic',
+        help='The Ubuntu series to deploy in the vm. Default: bionic')
+    parser.add_argument(
+        '--name', '-n',
+        help='The name of the vm to create. Default: uaclient-<series>')
+    return parser
+
+
+def create_uaclient_vm(backend, series, name=None):
+    """Create a uaclient named uaclient vm if absent.
+
+    @param backend: multipass or lxc
+    @param series: Ubuntu series to deploy
+    @param name: Name of the vm
+
+    """
+    cmd = []
+    if not name:
+        name = 'uaclient-%s' % series
+    if backend == 'multipass':
+        util.subp(['multipass', 'launch', 'daily:%s' % series, '-n', name])
+        util.subp(['multipass', 'copy-files', '../ubuntu-advantage-tools_18_all.deb',  '%s:.' % name])
+        util.subp(['multipass', 'exec', 'uaclient-%s' % series, '--', 'sudo', 'dpkg', '-i', 'ubuntu-advantage-tools_18_all.deb'])
+        util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:/etc/ubuntu-advantage/uaclient.conf' % name])
+        print('Access demo uaclient with:\nmultipass exec %s ua status' % name)
+    elif backend == 'lxc':
+        util.subp(['lxc', 'launch', 'ubuntu-daily:%s' % series, name])
+        util.subp(['lxc', 'file', 'push', '../ubuntu-advantage-tools_18_all.deb', '%s/root/' % name])
+        util.subp(['lxc', 'exec', 'uaclient-%s' % series, '--', 'sudo', 'dpkg', '-i', '/root/ubuntu-advantage-tools_18_all.deb'])
+        util.subp(['lxc', 'file', 'push', 'uaclient-devel.conf',  '%s/etc/ubuntu-advantage/uaclient.conf' % name])
+        print('Access demo uaclient with:\nlxc exec %s ua status' % name)
+    else:
+        raise ValueError("Invalid backend %s. Not multipass|lxc" % backend)
+
+
+def main():
+    """Tool to collect and tar all cloud-init related logs."""
+    parser = get_parser()
+    args = parser.parse_args()
+    create_uaclient_vm(args.backend, args.series, args.name)
+
+if __name__ == '__main__':
+    sys.exit(main())

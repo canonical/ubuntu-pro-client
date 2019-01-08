@@ -60,8 +60,12 @@ Setup Contract Service API with sample data:
 ```
 # Launch a bionic container to host your Contact service with sample data
 make demo
+
 # Create a deb based on python version of ubuntu-advatange-tools
 make deb
+
+# Create a vm or container running the python uaclient
+$ PYTHONPATH=. ./dev/run-uaclient --series disco --backend multipass
 
 # play with uaclient on your local dev system
 $ sudo UA_CONFIG_FILE=uaclient-devel.conf python -m uaclient.cli
