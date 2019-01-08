@@ -58,29 +58,18 @@ $ autopkgtest --shell-fail . -- lxd ubuntu:xenial
 
 Setup Contract Service API with sample data:
 ```
-# Launch a bionic container to host your Contact service
-$ lxc launch ubuntu-daily:bionic contract-api
-$ lxc exec contract-api bash
-
-# Grab openapi-generator script from  https://github.com/OpenAPITools/openapi-generator#launcher-script
-# Place openapi-generator in your PATH
-<contract-api> $ git clone git@github.com:CanonicalLtd/ua-service.git
-<contract-api> $ cd ua-service/contracts
-<contract-api> $ apt-install openjdk-11-jdk-headless
-# Download and install latest maven https://maven.apache.org/download.cgi
-
-# Generate a default openapi python server
-<contract-api> $ ./scripts/generate-python-server.bash
-# Install openapi server deps
-<contract-api> $ pip3 install -r requirements.txt
-# Patch default_controller.py with sample response content.
-# Run the openapiserver in your container
-<contract-api> $ python3 -m openapi_server
-
-# Edit uaclient-devel.conf with contract-api ipaddress
-$ lxc list contract-api -c 4 | grep 10 | awk '{print $2}'
-$ vi uaclient-devel.conf
+# Launch a bionic container to host your Contact service with sample data
+make demo
+# Create a deb based on python version of ubuntu-advatange-tools
+make deb
 
 # play with uaclient on your local dev system
 $ sudo UA_CONFIG_FILE=uaclient-devel.conf python -m uaclient.cli
 ```
+
+
+
+### Disclaimer
+The python implementation of this ubuntu-advantage-tools will replace the original shell scripts
+under modules/. They have been left in this branch until a final release of ubuntu-advantage-tools has been SRU'd.
+After that point, all shell functions and methods will be dropped from this repository.
