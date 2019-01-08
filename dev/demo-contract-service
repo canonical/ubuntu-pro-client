@@ -44,7 +44,7 @@ if [ $? -eq 1 ]; then
   lxc file push -r ua-service $LXC_NAME/root/
   lxc file push dev/install-contracts-server dev/contracts*patch dev/runserver.sh $LXC_NAME/root/
   # Rename LP creds to /root/entitlement-creds.json
-  lxc file push $CREDS.$LP_ID $LXC_NAME/root/entitlement-creds.json
+  lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
   lxc exec $LXC_NAME /root/install-contracts-server
 fi
 lxc exec $LXC_NAME -- cloud-init status --wait;
@@ -52,5 +52,5 @@ lxc exec $LXC_NAME -- cloud-init status --wait;
 VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`
 echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
 sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
-echo "Start demo contract server API with:\nlxc exec $NAME /root/runserver.sh"
-lxc exec $NAME /root/runserver.sh
+echo -e "Start demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
+lxc exec $LXC_NAME /root/runserver.sh
