@@ -12,11 +12,11 @@ curl https://raw.githubusercontent.com/OpenAPITools/openapi-generator/master/bin
 chmod u+x ~/bin/openapitools/openapi-generator-cli
 export PATH=$PATH:~/apache-maven-3.6.0/bin/:~/bin/openapitools/
 cd ~/ua-service/contracts
-patch -p2 < ~/contracts-schema.patch
+patch -p2 -i ~/contracts-schema.patch
 ./scripts/generate-python-server.bash
 pip3 install -r requirements.txt
 python3 -m openapi_server
 
-patch -p1 < ~/contract-controller.patch
+patch -p1 -i ~/contracts-controller.patch
 
 

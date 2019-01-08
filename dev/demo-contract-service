@@ -8,7 +8,7 @@
 
 # 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
 
-NAME=contract-demo-bionic
+LXC_NAME=contract-demo-bionic
 [ -d ua-service ] || git clone git@github.com:CanonicalLtd/ua-service.git
 
 
@@ -36,16 +36,16 @@ fi
 
 echo 'About to launch bionic lxc for contract sevice API...'
 sleep 5
-lxc list | grep -q $NAME
+lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
-    lxc launch ubuntu-daily:bionic $NAME
+    lxc launch ubuntu-daily:bionic $LXC_NAME
 fi
-VM_IP=`lxc list -c n4 | grep $NAME | awk '{print $4}'`a
+lxc exec $LXC_NAME -- cloud-init status --wait --long;
+VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`a
 echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
 sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
 
-lxc file push -r ua-service $NAME/root/
-lxc file push dev/install-contracts-server $NAME/root/
-lxc file push dev/contracts*patch $NAME/root/
+lxc file push -r ua-service $LXC_NAME/root/
+lxc file push dev/install-contracts-server $CREDS dev/contracts*patch $LXC_NAME/root/
 
-lxc exec $NAME /root/install-contracts-server
+lxc exec $LXC_NAME /root/install-contracts-server
