@@ -41,7 +41,7 @@ if [ $? -eq 1 ]; then
     lxc launch ubuntu-daily:bionic $LXC_NAME
 fi
 lxc exec $LXC_NAME -- cloud-init status --wait --long;
-VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`a
+VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`
 echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
 sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
 
