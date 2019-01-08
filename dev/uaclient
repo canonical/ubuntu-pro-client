@@ -1,0 +1,2 @@
+# rc file to setup an alias for uaclient testing
+alias ua='sudo UA_CONFIG_FILE=uaclient-devel.conf python -m uaclient.cli'
