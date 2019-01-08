@@ -11,8 +11,6 @@ deb:
 
 
 demo: deb
-	@echo Setting up a terminal with alias to run uaclient locally
-	xterm -e 'bash --rcfile dev/uaclient'
 	@echo Cloning ua-service repo and building a python openapi service
 	./dev/demo-contract-service
 
