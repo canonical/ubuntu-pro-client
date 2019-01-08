@@ -40,6 +40,10 @@ lxc list | grep -q $NAME
 if [ $? -eq 1 ]; then
     lxc launch ubuntu-daily:bionic $NAME
 fi
+VM_IP=`lxc list -c n4 | grep $NAME | awk '{print $4}'`a
+echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
+sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
+
 lxc file push -r ua-service $NAME/root/
 lxc file push dev/install-contracts-server $NAME/root/
 lxc file push dev/contracts*patch $NAME/root/
