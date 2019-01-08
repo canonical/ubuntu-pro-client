@@ -15,8 +15,6 @@ cd ~/ua-service/contracts
 patch -p2 -i ~/contracts-schema.patch
 ./scripts/generate-python-server.bash
 pip3 install -r requirements.txt
-python3 -m openapi_server
-
 patch -p1 -i ~/contracts-controller.patch
-
+python3 -m openapi_server
 
