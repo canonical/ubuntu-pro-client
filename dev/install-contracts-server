@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Simple script to install and patch contract-service locally on this machine.
+# The expectation is that this is run in a bionic container.
+
+sudo apt-get update
+sudo apt install openjdk-11-jdk-headless python python3-pip -y
+curl http://apache.mirrors.ionfish.org/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz --output apache-maven-3.6.0-bin.tar.gz
+tar zxvf apache-maven-3.6.0-bin.tar.gz
+mkdir -p ~/bin/openapitools
+curl https://raw.githubusercontent.com/OpenAPITools/openapi-generator/master/bin/utils/openapi-generator-cli.sh --output ~/bin/openapitools/openapi-generator-cli
+chmod u+x ~/bin/openapitools/openapi-generator-cli
+export PATH=$PATH:~/apache-maven-3.6.0/bin/:~/bin/openapitools/
+cd ~/ua-service/contracts
+patch -p2 < ~/contracts-schema.patch
+./scripts/generate-python-server.bash
+pip3 install -r requirements.txt
+python3 -m openapi_server
+
+patch -p1 < ~/contract-controller.patch
+
+

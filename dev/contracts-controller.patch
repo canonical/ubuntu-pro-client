@@ -1,0 +1,154 @@
+--- ./openapi_server/controllers/default_controller.py.orig	2019-01-07 21:10:26.077956811 +0000
++++ ./openapi_server/controllers/default_controller.py	2019-01-07 21:29:36.153674961 +0000
+@@ -1,13 +1,14 @@
+ import connexion
+ import six
++import datetime
+ 
+ from openapi_server.models.account_contract_info import AccountContractInfo  # noqa: E501
+ from openapi_server.models.account_info import AccountInfo  # noqa: E501
+ from openapi_server.models.account_user_access import AccountUserAccess  # noqa: E501
+ from openapi_server.models.contract_info import ContractInfo  # noqa: E501
+ from openapi_server.models.contract_token_info import ContractTokenInfo  # noqa: E501
+-from openapi_server.models.entitlement import Entitlement  # noqa: E501
+ from openapi_server.models.error import Error  # noqa: E501
++from openapi_server.models.entitlement import Entitlement  # noqa: E501
+ from openapi_server.models.inline_object import InlineObject  # noqa: E501
+ from openapi_server.models.machine_token_info import MachineTokenInfo  # noqa: E501
+ from openapi_server.models.new_account_contract import NewAccountContract  # noqa: E501
+@@ -23,6 +24,51 @@
+ from openapi_server.models.user_accounts_response import UserAccountsResponse  # noqa: E501
+ from openapi_server.models.user_contracts_response import UserContractsResponse  # noqa: E501
+ from openapi_server import util
++import json
++
++
++
++CREDS_FILE = '/root/entitlement-creds.json'
++with open(CREDS_FILE) as stream:
++    creds = json.loads(stream.read())
++
++now = datetime.datetime.utcnow()
++contract_expiry = now + datetime.timedelta(days=100)
++entitlement_expiry = now + datetime.timedelta(days=1)
++entitlement_expiry_str = entitlement_expiry.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
++revoked_date = now + datetime.timedelta(hours=1)
++machine_token_expiry = now + datetime.timedelta(days=5)
++
++
++entitlementESM = Entitlement(
++    enabled=True, affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
++    directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-esm/esm', 'repo_key': 'DBB1FC89762BF6B96707C4059BC0A1A1622CF918', 'token': creds['esm']})
++entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'repo_key': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips']})
++entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'repo_key': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips-updates']})
++entitlementLivepatch = Entitlement(enabled=True, affordances=[
++    {'kernel-flavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
++     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}],
++    directives={'token': creds['livepatch']})
++contract1 = ContractInfo(
++    name='blackberry/desktop',
++    id='cid_1',
++    created_at=now,
++    effective_from=now,
++    effective_to=contract_expiry,
++    resource_entitlements={
++        'fips': entitlementFIPS, 'esm': entitlementESM,
++        'fips-updates': entitlementFIPSUpdates, 'livepatch': entitlementLivepatch})
++
++machinetokeninfo1 = MachineTokenInfo(
++    created_at = now,
++    expires_at = machine_token_expiry,
++    machine_id='remote_machine_1', contract_info=contract1)
++machinetokeninfo2 = MachineTokenInfo(  # disabled
++    revoked_at = revoked_date,
++    created_at = now,
++    expires_at = machine_token_expiry,
++    machine_id='remote_machine_1', contract_info=contract1)
++account1 = AccountInfo(id='aid_1', name='Blackberry Limited')
+ 
+ 
+ def add_account(new_account_params=None):  # noqa: E501
+@@ -88,7 +134,8 @@
+     """
+     if connexion.request.is_json:
+         inline_object = InlineObject.from_dict(connexion.request.get_json())  # noqa: E501
+-    return 'do some magic!'
++    return NewMachineToken(machine_secret='7ce82fe124134c93951f9c95aefea6b2',
++                           machine_token_info=machinetokeninfo1)
+ 
+ 
+ def add_contract_token(contract, user, body=None):  # noqa: E501
+@@ -133,7 +180,7 @@
+ 
+     :rtype: None
+     """
+-    return 'do some magic!'
++    return 'Do some magic!'
+ 
+ 
+ def find_account(name=None, id=None, admin_user=None, user=None):  # noqa: E501
+@@ -152,7 +199,7 @@
+ 
+     :rtype: List[AccountInfo]
+     """
+-    return 'do some magic!'
++    return [account1]
+ 
+ 
+ def find_account_contract(account):  # noqa: E501
+@@ -165,7 +212,7 @@
+ 
+     :rtype: List[AccountContractInfo]
+     """
+-    return 'do some magic!'
++    return [AccountContractInfo(account_info=account1, contract_info=contract1)]
+ 
+ 
+ def find_account_id(account):  # noqa: E501
+@@ -191,7 +238,7 @@
+ 
+     :rtype: List[AccountUserAccess]
+     """
+-    return 'do some magic!'
++    return [AccountUserAccess(user_id=42, user_access='delegated')]
+ 
+ 
+ def find_account_user_access_id(account, user):  # noqa: E501
+@@ -232,7 +279,7 @@
+ 
+     :rtype: List[MachineTokenInfo]
+     """
+-    return 'do some magic!'
++    return [machinetokeninfo1]
+ 
+ 
+ def find_contract_token(contract, user):  # noqa: E501
+@@ -346,9 +393,17 @@
+     :param resource: Resource name
+     :type resource: str
+ 
+-    :rtype: Entitlement
++    :rtype: ContextAccess
+     """
+-    return 'do some magic!'
++    if resource == 'fips':
++        return entitlementFIPS, 200, {'Expires': entitlement_expiry_str}
++    elif resource == 'fips-updates':
++        return entitlementFIPSUpdates, 200, {'Expires': entitlement_expiry_str}
++    elif resource == 'esm':
++        return entitlementESM, 200, {'Expires': entitlement_expiry_str}
++    elif resource == 'livepatch':
++        return entitlementLivepatch, 200, {'Expires': entitlement_expiry_str}
++    return 'invalid resource requested %s' % resource
+ 
+ 
+ def reauthorize_contract_machines(contract):  # noqa: E501
+@@ -389,7 +444,7 @@
+ 
+     :rtype: MachineTokenInfo
+     """
+-    return 'do some magic!'
++    return machinetokeninfo2
+ 
+ 
+ def revoke_contract_token_id(contract, user, token):  # noqa: E501

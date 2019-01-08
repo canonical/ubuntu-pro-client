@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Simple script used to setup and patch up ua-service contract backend api with
+# sample data in an lxc.
+
+# This script will be killed once implementation of Contract Service API is
+# functional in the repo https://github.com/CanonicalLtd/ua-service
+
+# 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
+
+NAME=contract-demo-bionic
+[ -d ua-service ] || git clone git@github.com:CanonicalLtd/ua-service.git
+
+
+CREDS="./dev/entitlement-creds.json"
+echo -n "Setup local $CREDS to seed demo contract service (y/n)? "
+read RESPONSE
+if [ "$RESPONSE" == "y" ]; then
+  echo -n "Enter your LaunchpadID: "
+  read LP_ID
+
+  echo "Find PPA credentials (user:passwd) by clicking the 'View' links next to the named PPA at:
+https://launchpad.net/~$LP_ID/+archivesubscriptions/"
+
+  echo -n "Enter your ESM Staging creds (user.name:key): "
+  read ESM_TOKEN
+echo -n "Enter your FIPS ppa creds (user.name:key): "
+read FIPS_TOKEN
+  echo -n "Enter your FIPS Updates ppa creds (user.name:key): "
+  read FIPS_UPDATES_TOKEN
+  echo -n "Enter your Livepatch token from https://auth.livepatch.canonical.com/: "
+  read LIVEPATCH_TOKEN
+
+  sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" dev/entitlement-creds.json
+fi
+
+echo 'About to launch bionic lxc for contract sevice API...'
+sleep 5
+lxc list | grep -q $NAME
+if [ $? -eq 1 ]; then
+    lxc launch ubuntu-daily:bionic $NAME
+fi
+lxc file push -r ua-service $NAME/root/
+lxc file push dev/install-contracts-server $NAME/root/
+lxc file push dev/contracts*patch $NAME/root/
+
+lxc exec $NAME /root/install-contracts-server

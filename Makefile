@@ -9,6 +9,11 @@ deb:
 	@echo Building unsigned debian package
 	dpkg-buildpackage -us -uc
 
+
+demo:
+	@echo Cloning ua-service repo and building a python openapi service
+	./dev/demo-contract-service
+
 testdep:
 	pip install tox
 
