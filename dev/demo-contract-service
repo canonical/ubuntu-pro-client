@@ -34,10 +34,10 @@ read FIPS_TOKEN
   sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
 fi
 
-echo 'About to launch bionic lxc for contract sevice API...'
-sleep 5
 lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
+  echo 'About to launch bionic lxc for contract sevice API...'
+  sleep 5
   echo "Deploying demo contract api service to a bionic container"
   lxc launch ubuntu-daily:bionic $LXC_NAME
   lxc exec $LXC_NAME -- cloud-init status --wait;
@@ -50,7 +50,7 @@ fi
 lxc exec $LXC_NAME -- cloud-init status --wait;
 
 VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`
-echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
+echo "Changing uaclient-devel.conf to point to your lxc @ $VM_IP:8080"
 sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
-echo -e "Start demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
+echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
 lxc exec $LXC_NAME /root/runserver.sh
