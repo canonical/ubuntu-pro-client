@@ -16,5 +16,4 @@ patch -p2 -i ~/contracts-schema.patch
 ./scripts/generate-python-server.bash
 pip3 install -r requirements.txt
 patch -p1 -i ~/contracts-controller.patch
-python3 -m openapi_server
-
+echo -e "Install complete: start contract server with: /root/runserver.sh"

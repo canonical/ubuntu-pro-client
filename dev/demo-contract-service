@@ -12,12 +12,12 @@ LXC_NAME=contract-demo-bionic
 [ -d ua-service ] || git clone git@github.com:CanonicalLtd/ua-service.git
 
 
-CREDS="./dev/entitlement-creds.json"
-echo -n "Setup local $CREDS to seed demo contract service (y/n)? "
-read RESPONSE
-if [ "$RESPONSE" == "y" ]; then
-  echo -n "Enter your LaunchpadID: "
-  read LP_ID
+CREDS_FILE="./dev/entitlement-creds.json"
+echo -n "Enter your LaunchpadID: "
+read LP_ID
+USERCREDS_FILE="$CREDS_FILE.$LP_ID"
+if [ ! -f $USERCREDS_FILE ]; then
+  echo -n "Configuring local $CREDS_FILE to seed demo contract service"
 
   echo "Find PPA credentials (user:passwd) by clicking the 'View' links next to the named PPA at:
 https://launchpad.net/~$LP_ID/+archivesubscriptions/"
@@ -31,21 +31,26 @@ read FIPS_TOKEN
   echo -n "Enter your Livepatch token from https://auth.livepatch.canonical.com/: "
   read LIVEPATCH_TOKEN
 
-  sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" dev/entitlement-creds.json
+  sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
 fi
 
 echo 'About to launch bionic lxc for contract sevice API...'
 sleep 5
 lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
-    lxc launch ubuntu-daily:bionic $LXC_NAME
+  echo "Deploying demo contract api service to a bionic container"
+  lxc launch ubuntu-daily:bionic $LXC_NAME
+  lxc exec $LXC_NAME -- cloud-init status --wait;
+  lxc file push -r ua-service $LXC_NAME/root/
+  lxc file push dev/install-contracts-server dev/contracts*patch dev/runserver.sh $LXC_NAME/root/
+  # Rename LP creds to /root/entitlement-creds.json
+  lxc file push $CREDS.$LP_ID $LXC_NAME/root/entitlement-creds.json
+  lxc exec $LXC_NAME /root/install-contracts-server
 fi
-lxc exec $LXC_NAME -- cloud-init status --wait --long;
+lxc exec $LXC_NAME -- cloud-init status --wait;
+
 VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`
 echo "Changing uaclient-devel.conf to point to your lxc @ $VP_IP:8080"
 sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
-
-lxc file push -r ua-service $LXC_NAME/root/
-lxc file push dev/install-contracts-server $CREDS dev/contracts*patch $LXC_NAME/root/
-
-lxc exec $LXC_NAME /root/install-contracts-server
+echo "Start demo contract server API with:\nlxc exec $NAME /root/runserver.sh"
+lxc exec $NAME /root/runserver.sh

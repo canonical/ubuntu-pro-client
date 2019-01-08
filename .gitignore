@@ -1,5 +1,6 @@
 *debhelper*
 debian/ubuntu-advantage-tools.substvars
+dev/entitlement-creds.json.*
 *.pyc
 *.pyo
 __pycache__
