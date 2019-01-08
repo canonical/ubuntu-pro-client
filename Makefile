@@ -10,7 +10,7 @@ deb:
 	dpkg-buildpackage -us -uc
 
 
-demo:
+demo: deb
 	@echo Setting up a terminal with alias to run uaclient locally
 	xterm -e 'bash --rcfile dev/uaclient'
 	@echo Cloning ua-service repo and building a python openapi service
