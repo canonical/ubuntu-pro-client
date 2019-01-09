@@ -163,6 +163,9 @@ def action_detach(args, cfg):
                   https://ubuntu.com/advantage
         """))
         return 1
+    if os.getuid() != 0:
+        print(ua_status.MESSAGE_NONROOT_USER)
+        return 1
     user_token = cfg.read_cache('oauth')
     if not user_token:
         logging.error(
