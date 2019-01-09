@@ -165,10 +165,6 @@ def parse_config(config_path=None):
     return cfg
 
 
-def print_version(_args=None):
-    print(get_version())
-
-
 def get_version(_args=None):
     """Return the package version if set, otherwise return git describe."""
     if PACKAGED_VERSION != '@@PACKAGED_VERSION@@':

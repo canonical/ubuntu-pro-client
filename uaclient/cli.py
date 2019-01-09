@@ -258,7 +258,7 @@ def get_parser():
     parser_disable.set_defaults(action=action_disable)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
-    parser_version.set_defaults(action=config.print_version)
+    parser_version.set_defaults(action=print_version)
     return parser
 
 
@@ -289,6 +289,10 @@ def print_status(args=None, cfg=None):
         status=''))
     status_content.append('\nEnable entitlements with `ua enable <service>\n')
     print('\n'.join(status_content))
+
+
+def print_version(_args=None, _cfg=None):
+    print(config.get_version())
 
 
 def setup_logging(level=logging.ERROR):
