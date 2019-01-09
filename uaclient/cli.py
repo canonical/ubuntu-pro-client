@@ -195,7 +195,11 @@ def action_attach(args, cfg):
     if not args.token:
         user_token = sso.prompt_oauth_token(cfg)
     else:
-        user_token = args.token
+        user_token = {
+            'date_created': datetime.utcnow().strftime(
+                '%Y-%m-%dT%H:%M:%S.%fZ'),
+            'token_key': args.token}
+        cfg.write_cache('oauth', user_token)
     if not user_token:
         print('Could not attach machine. Unable to obtain authenticated user'
               ' token')
@@ -258,7 +262,7 @@ def get_parser():
     parser_disable.set_defaults(action=action_disable)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
-    parser_version.set_defaults(action=print_version)
+    parser_version.set_defaults(action=config.print_version)
     return parser
 
 
@@ -289,10 +293,6 @@ def print_status(args=None, cfg=None):
         status=''))
     status_content.append('\nEnable entitlements with `ua enable <service>\n')
     print('\n'.join(status_content))
-
-
-def print_version(_args=None, _cfg=None):
-    print(config.get_version())
 
 
 def setup_logging(level=logging.ERROR):
