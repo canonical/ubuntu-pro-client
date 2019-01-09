@@ -44,7 +44,8 @@ def create_uaclient_vm(backend, series, name=None):
         util.subp(['multipass', 'launch', 'daily:%s' % series, '-n', name])
         util.subp(['multipass', 'copy-files', '../ubuntu-advantage-tools_18_all.deb',  '%s:.' % name])
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'dpkg', '-i', 'ubuntu-advantage-tools_18_all.deb'])
-        util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:/etc/ubuntu-advantage/uaclient.conf' % name])
+        util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:.' % name])
+        util.subp(['multipass', 'exec', name, '--', 'sudo', 'mv', './uaclient-devel.conf', '/etc/ubuntu-advantage/uaclient.conf'])
         print('Access demo uaclient with:\nmultipass exec %s ua status' % name)
     elif backend == 'lxc':
         util.subp(['lxc', 'launch', 'ubuntu-daily:%s' % series, name])
