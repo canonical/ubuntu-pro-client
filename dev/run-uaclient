@@ -43,13 +43,13 @@ def create_uaclient_vm(backend, series, name=None):
     if backend == 'multipass':
         util.subp(['multipass', 'launch', 'daily:%s' % series, '-n', name])
         util.subp(['multipass', 'copy-files', '../ubuntu-advantage-tools_18_all.deb',  '%s:.' % name])
-        util.subp(['multipass', 'exec', 'uaclient-%s' % series, '--', 'sudo', 'dpkg', '-i', 'ubuntu-advantage-tools_18_all.deb'])
+        util.subp(['multipass', 'exec', name, '--', 'sudo', 'dpkg', '-i', 'ubuntu-advantage-tools_18_all.deb'])
         util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:/etc/ubuntu-advantage/uaclient.conf' % name])
         print('Access demo uaclient with:\nmultipass exec %s ua status' % name)
     elif backend == 'lxc':
         util.subp(['lxc', 'launch', 'ubuntu-daily:%s' % series, name])
         util.subp(['lxc', 'file', 'push', '../ubuntu-advantage-tools_18_all.deb', '%s/root/' % name])
-        util.subp(['lxc', 'exec', 'uaclient-%s' % series, '--', 'sudo', 'dpkg', '-i', '/root/ubuntu-advantage-tools_18_all.deb'])
+        util.subp(['lxc', 'exec', name, '--', 'sudo', 'dpkg', '-i', '/root/ubuntu-advantage-tools_18_all.deb'])
         util.subp(['lxc', 'file', 'push', 'uaclient-devel.conf',  '%s/etc/ubuntu-advantage/uaclient.conf' % name])
         print('Access demo uaclient with:\nlxc exec %s ua status' % name)
     else:
