@@ -27,6 +27,11 @@ class ESMEntitlement(repo.RepoEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-        apt.remove_auth_apt_repo(repo_filename, self.repo_url, keyring_file)
+        access_directives = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('directives', {})
+        repo_url = access_directives.get('repo_url')
+        if not repo_url:
+            repo_url = self.repo_url
+        apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
         print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
