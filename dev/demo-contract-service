@@ -9,7 +9,10 @@
 # 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
 
 LXC_NAME=contract-demo-bionic
-[ -d ua-service ] || git clone git@github.com:CanonicalLtd/ua-service.git
+if [ ! -d ua-contracts ]; then
+   git clone git@github.com:CanonicalLtd/ua-contracts.git
+   patch -p1 -i dev/contracts-schema.patch
+fi
 
 
 CREDS_FILE="./dev/entitlement-creds.json"
@@ -34,15 +37,15 @@ read FIPS_TOKEN
   sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
 fi
 
-lxc list | grep -q $LXC_NAME
 UACLIENT_DEB=`cd ..; ls ubuntu-advantage-tools*deb`
+lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
   echo 'About to launch bionic lxc for contract sevice API...'
   sleep 5
   echo "Deploying demo contract api service to a bionic container"
   lxc launch ubuntu-daily:bionic $LXC_NAME
   lxc exec $LXC_NAME -- cloud-init status --wait;
-  lxc file push -r ua-service $LXC_NAME/root/
+  lxc file push -r ua-contracts $LXC_NAME/root/
   lxc file push ../$UACLIENT_DEB dev/install-contracts-server dev/contracts*patch dev/runserver.sh $LXC_NAME/root/
   # Rename LP creds to /root/entitlement-creds.json
   lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json

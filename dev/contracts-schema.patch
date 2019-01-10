@@ -1,7 +1,7 @@
-diff --git a/contracts/contracts.yaml b/contracts/contracts.yaml
-index c7483e9..eba492c 100644
---- a/contracts/contracts.yaml
-+++ b/contracts/contracts.yaml
+diff --git a/ua-contracts/docs/contracts.yaml b/ua-contracts/docs/contracts.yaml
+index 0b045a0..d754767 100644
+--- a/ua-contracts/docs/contracts.yaml
++++ b/ua-contracts/docs/contracts.yaml
 @@ -7,30 +7,6 @@ info:
      products and services under those contracts.
  
@@ -218,7 +218,7 @@ index c7483e9..eba492c 100644
      get:
        description: Find contracts that an account is party to.
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
 -      - CandidAuth: [admin,agent,user]
        operationId: FindAccountContract
        parameters:
@@ -237,7 +237,7 @@ index c7483e9..eba492c 100644
      get:
        description: Find a contract by ID.
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
 -      - CandidAuth: [admin,agent,user]
        operationId: FindContractID
        parameters:
@@ -247,7 +247,7 @@ index c7483e9..eba492c 100644
      get:
        description: Find machine authorizations for a contract
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
 -      - CandidAuth: [admin,user]
        operationId: FindContractMachines
        parameters:
@@ -257,7 +257,7 @@ index c7483e9..eba492c 100644
      post:
        description: Authorize machine(s) under this contract.
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
        operationId: AddContractMachine
        parameters:
        - name: contract
@@ -266,7 +266,7 @@ index c7483e9..eba492c 100644
  
          If any of the above requirements are not met, error response and nothing is changed.
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
 -      - CandidAuth: [admin,user]
        operationId: ReauthorizeContractMachines
        parameters:
@@ -276,7 +276,7 @@ index c7483e9..eba492c 100644
          Remove machine(s) from a contract, revoking their authorization tokens. Once revoked,
          the machine(s) will need to be re-authorized with new tokens using a POST.
 -      security:
--      - ContractBearerAuth
+-      - ContractBearerAuth: []
 -      - CandidAuth: [user]
        operationId: RevokeContractMachines
        parameters:
@@ -286,7 +286,7 @@ index c7483e9..eba492c 100644
          Find contract and entitlements by machine ID. Used by machines to check
          the status of their authorization token.
 -      security:
--      - ContextBearerAuth
+-      - ContextBearerAuth: []
        operationId: FindMachineContract
        parameters:
        - name: machine
@@ -295,7 +295,7 @@ index c7483e9..eba492c 100644
          of a machine token if they receive such a token. v1 API supported values for
          {resource} are "esm" "fips" "fips-updates" "livepatch" "support"
 -      security:
--      - ContextBearerAuth
+-      - ContextBearerAuth: []
        operationId: CheckResourceMachineAccess
        parameters:
        - name: resource
@@ -304,7 +304,7 @@ index c7483e9..eba492c 100644
          Affordances are domain-specific to the service that provides the resource, and determined
          by the contract.
 -      security:
--      - ContextBearerAuth
+-      - ContextBearerAuth: []
        operationId: GetResourceMachineAccess
        parameters:
        - name: resource
