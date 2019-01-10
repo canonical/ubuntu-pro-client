@@ -1,4 +1,5 @@
 *debhelper*
+debian/ubuntu-advantage-tools/
 debian/ubuntu-advantage-tools.substvars
 dev/entitlement-creds.json.*
 *.pyc

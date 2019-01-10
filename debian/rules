@@ -1,8 +1,13 @@
 #!/usr/bin/make -f
 export DH_VERBOSE=1
+DEB_VERSION := $(shell dpkg-parsechangelog --show-field=Version)
 %:
 	dh $@ --with python2,python3 --buildsystem=pybuild
 
 override_dh_auto_test:
 	python3 -m unittest discover uaclient
 	python3 -m flake8 uaclient
+
+override_dh_auto_install:
+	dh_auto_install --destdir=debian/ubuntu-advantage-tools
+	flist=$$(find $(CURDIR)/debian/ -type f -name config.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
