@@ -180,7 +180,7 @@ def action_detach(args, cfg):
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
-            ent.disable()
+            ent.disable(silent=True)
     if os.path.exists(machine_token_path):
         os.unlink(machine_token_path)
     print('This machine is now detached')

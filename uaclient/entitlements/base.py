@@ -62,8 +62,8 @@ class UAEntitlement(object):
         elif not force:
             op_status, _status_details = self.operational_status()
             if op_status == status.INACTIVE:
-                print(status.MESSAGE_ALREADY_DISABLED_TMPL.format(
-                          title=self.title))
+                message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                          title=self.title)
                 retval = False
         if message and not silent:
             print(message)
