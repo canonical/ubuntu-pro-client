@@ -38,9 +38,9 @@
 +
 +entitlementESM = Entitlement(
 +    enabled=True, affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
-+    directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-esm/esm', 'repo_key': 'DBB1FC89762BF6B96707C4059BC0A1A1622CF918', 'token': creds['esm']})
-+entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'repo_key': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips']})
-+entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'repo_url': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'repo_key': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips-updates']})
++    directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-esm/esm', 'aptKey': 'DBB1FC89762BF6B96707C4059BC0A1A1622CF918', 'token': creds['esm']})
++entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips']})
++entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips-updates']})
 +entitlementLivepatch = Entitlement(enabled=True, affordances=[
 +    {'kernel-flavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
 +     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}],

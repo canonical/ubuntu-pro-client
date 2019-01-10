@@ -14,7 +14,7 @@ class RepoEntitlement(base.UAEntitlement):
     repo_pref_file_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
     repo_pref_origin_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
 
-    # TODO(Get repo_url from Contract service's Entitlements response)
+    # TODO(Get serviceURL from Contract service's Entitlements response)
     # https://github.com/CanonicalLtd/ua-service/issues/7
     # Set by subclasses
     repo_url = 'UNSET'
@@ -40,12 +40,12 @@ class RepoEntitlement(base.UAEntitlement):
                 'No specific entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
-        ppa_fingerprint = access_directives.get('repo_key')
+        ppa_fingerprint = access_directives.get('aptKey')
         if ppa_fingerprint:
             keyring_file = None
         else:
             keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        repo_url = access_directives.get('repo_url')
+        repo_url = access_directives.get('serviceURL')
         if not repo_url:
             repo_url = self.repo_url
         apt.add_auth_apt_repo(
@@ -79,7 +79,7 @@ class RepoEntitlement(base.UAEntitlement):
         apt_policy, _err = util.subp(['apt-cache', 'policy'])
         access_directives = self.cfg.read_cache(
             'machine-access-%s' % self.name).get('directives', {})
-        repo_url = access_directives.get('repo_url', self.repo_url)
+        repo_url = access_directives.get('serviceURL', self.repo_url)
         if ' %s' % repo_url in apt_policy:
             return status.ACTIVE, '%s PPA is active' % self.title
         return status.INACTIVE, '%s PPA is not configured' % self.title
