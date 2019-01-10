@@ -1,4 +1,10 @@
-ubuntu-advantage-tools (18) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (18.1-ga9917552-0ubuntu1~18.04.1) bionic; urgency=medium
+
+  * Initial Python implementation of ubuntu advantage client
+
+ -- Chad Smith <chad.smith@canonical.com>  Thu, 10 Jan 2019 11:08:46 -0700
+
+ubuntu-advantage-tools (18) bionic; urgency=medium
 
   * Have ua status cope with the additional livepatch of running a kernel
     that is not supported for livepatches.
