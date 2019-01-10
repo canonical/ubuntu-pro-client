@@ -7,6 +7,9 @@ build:
 
 deb:
 	@echo Building unsigned debian package
+	@which dpkg-buildpackage || \
+               { echo -e "Missing build dependencies. Install with:" \
+                 "\n sudo apt-get install devscripts"; exit 1; }
 	dpkg-buildpackage -us -uc
 
 

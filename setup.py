@@ -19,6 +19,7 @@ with open(os.path.join(_dir, 'requirements.txt')) as stream:
 TEST_REQUIRES = [
     'coverage',
     'flake8',
+    'nose',
     'pylint',
     'testtools',
 ]
