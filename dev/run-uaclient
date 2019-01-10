@@ -5,9 +5,16 @@
 import argparse
 import glob
 import os
+import re
 import sys
 
-from uaclient import util
+try:
+    from uaclient import util
+except ImportError:
+    # Add out cwd to path for dev tools
+    _tdir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.insert(0, _tdir)
+    from uaclient import util
 
 PROG='run-uaclient'
 
@@ -18,7 +25,7 @@ def get_parser():
         prog=PROG,
         description='Create an lxc or kvm runing uaclient')
     parser.add_argument(
-        '--backend', '-b', required=False, default='multipass',
+        '--backend', '-b', required=False, default='lxc',
         choices=['multipass', 'lxc'],
         help=('The backend to talk to when creating a vm: multipass or lxc. '
               'Default:"lxc"'))
@@ -29,6 +36,24 @@ def get_parser():
         '--name', '-n',
         help='The name of the vm to create. Default: uaclient-<series>')
     return parser
+
+
+def get_vm_name(backend, desired_name=None):
+    """Find the appropriate unique vm name which doesn't aleady exist."""
+    vm_list, _err = util.subp([backend, 'list'])
+    if desired_name not in vm_list:
+        return desired_name
+    match = re.match(r'[^\d]+(\d+)', desired_name)
+    if not match:
+        base_id = 1
+        desired_basename = desired_name
+    else:
+        base_id = match[0]
+        desired_basename = desired_name.replace(base_id, '')
+    while desired_name in vm_list:
+         base_id = int(base_id) + 1
+         desired_name = '%s%d' % (desired_basename, base_id)
+    return desired_name
 
 
 def create_uaclient_vm(backend, series, name=None):
@@ -42,6 +67,7 @@ def create_uaclient_vm(backend, series, name=None):
     cmd = []
     if not name:
         name = 'uaclient-%s' % series
+    name = get_vm_name(backend, name)
     debs = glob.glob('../ubuntu-advantage-*.deb')
     if not debs:
         raise RuntimeError(
@@ -73,6 +99,7 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
     create_uaclient_vm(args.backend, args.series, args.name)
+
 
 if __name__ == '__main__':
     sys.exit(main())
