@@ -61,7 +61,13 @@ class RepoEntitlement(base.UAEntitlement):
                       capture=True)
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
             util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
-        util.subp(['apt-get', 'update'], capture=True)
+        try:
+            util.subp(['apt-get', 'update'], capture=True)
+        except util.ProcessExecutionError:
+            self.disable(silent=True, force=True)
+            logging.error(
+                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
+            return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         return True
 

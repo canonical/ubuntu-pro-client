@@ -16,12 +16,12 @@ class ESMEntitlement(repo.RepoEntitlement):
     repo_url = 'https://esm.ubuntu.com'
     repo_key_file = 'ubuntu-esm-keyring.gpg'
 
-    def disable(self):
+    def disable(self, silent=False, force=False):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.
         """
-        if not self.can_disable():
+        if not self.can_disable(silent, force):
             return False
         series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(
@@ -29,7 +29,7 @@ class ESMEntitlement(repo.RepoEntitlement):
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
         access_directives = self.cfg.read_cache(
             'machine-access-%s' % self.name).get('directives', {})
-        repo_url = access_directives.get('repo_url')
+        repo_url = access_directives.get('repo_url', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)

@@ -42,6 +42,7 @@ MESSAGE_DISABLED_TMPL = '{title} disabled.'
 MESSAGE_NONROOT_USER = 'This command must be run as root (try using sudo)'
 MESSAGE_ALREADY_DISABLED_TMPL = '\
 {title} is not currently enabled.\nSee `ua status`'
+MESSAGE_ENABLED_FAILED_TMPL = 'Could not enable {title}.'
 MESSAGE_ENABLED_TMPL = '{title} enabled.'
 MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
 MESSAGE_INAPPLICABLE_SERIES_TMPL = '\

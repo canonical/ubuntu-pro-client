@@ -40,26 +40,32 @@ class UAEntitlement(object):
         """
         pass
 
-    def can_disable(self, silent=False):
-        """Report whether or not disabling is possible for the entitlement."""
+    def can_disable(self, silent=False, force=False):
+        """Report whether or not disabling is possible for the entitlement.
+
+        @param silent: Boolean set True to silence printed messages/warnings.
+        @param force: Boolean set True to allow disable even if entitlement
+            doesn't appear 'enabled'.
+        """
         message = ''
         retval = True
-        if os.getuid() != 0:
+        entitlements = self.cfg.entitlements
+        if os.getuid() != 0:   # Ignore 'force' here. We always need sudo check
             message = status.MESSAGE_NONROOT_USER
             retval = False
-        elif not self.cfg.entitlements:
+        elif not any([entitlements, force]):
             message = status.MESSAGE_UNATTACHED
             retval = False
-        elif not self.cfg.entitlements.get(self.name, {}).get('enabled'):
+        elif not any([entitlements.get(self.name, {}).get('enabled'), force]):
             message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
             retval = False
-        else:
+        elif not force:
             op_status, _status_details = self.operational_status()
             if op_status == status.INACTIVE:
                 print(status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                           title=self.title))
                 retval = False
-        if not silent and message:
+        if message and not silent:
             print(message)
         return retval
 
@@ -109,8 +115,12 @@ class UAEntitlement(object):
         return True, ''
 
     @abc.abstractmethod
-    def disable(self):
+    def disable(self, silent=False, force=False):
         """Disable specific entitlement
+
+        @param silent: Boolean set True to silence print/log of messages
+        @param force: Boolean set True to perform disable logic even if
+            entitlement doesn't appear fully configured.
 
         @return: True on success, False otherwise.
         """
