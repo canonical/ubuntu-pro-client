@@ -79,7 +79,7 @@ def detach_parser(parser=None):
             usage=usage)
     else:
         parser.usage = usage
-        parser.prog = 'attach'
+        parser.prog = 'detach'
     parser._optionals.title = 'Flags'
     return parser
 
@@ -177,6 +177,10 @@ def action_detach(args, cfg):
     contract_client.request_contract_machine_detach(
         contract_id=contract_id, user_token=user_token)
     machine_token_path = cfg.data_path('machine-token')
+    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
+        ent = ent_cls(cfg)
+        if ent.can_disable(silent=True):
+            ent.disable()
     if os.path.exists(machine_token_path):
         os.unlink(machine_token_path)
     print('This machine is now detached')

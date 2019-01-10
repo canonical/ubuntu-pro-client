@@ -41,14 +41,12 @@ class FIPSEntitlement(repo.RepoEntitlement):
             title=self.title))
         return True
 
-    def disable(self):
-        """Disable specific entitlement
-
-        @return: True on success, False otherwise.
-        """
-        if not self.can_disable():
+    def can_disable(self, silent=False):
+        can_disable = super(FIPSEntitlement, self).can_disable(silent)
+        if not can_disable:
             return False
-        print('Warning: no option to disable FIPS')
+        if not silent:
+            print('Warning: no option to disable FIPS')
         return False
 
 
@@ -74,12 +72,10 @@ class FIPSUpdatesEntitlement(repo.RepoEntitlement):
         print('FIPS Updates configured, please reboot to enable.')
         return True
 
-    def disable(self):
-        """Disable specific entitlement
-
-        @return: True on success, False otherwise.
-        """
-        if not self.can_disable():
+    def can_disable(self, silent=False):
+        can_disable = super(FIPSUpdatesEntitlement, self).can_disable(silent)
+        if not can_disable:
             return False
-        print('Warning: no option to disable FIPS Updates')
+        if not silent:
+            print('Warning: no option to disable FIPS')
         return False

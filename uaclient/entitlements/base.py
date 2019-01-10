@@ -40,24 +40,28 @@ class UAEntitlement(object):
         """
         pass
 
-    def can_disable(self):
+    def can_disable(self, silent=False):
         """Report whether or not disabling is possible for the entitlement."""
+        message = ''
+        retval = True
         if os.getuid() != 0:
-            print(status.MESSAGE_NONROOT_USER)
-            return False
-        entitlements = self.cfg.entitlements
-        if not entitlements:
-            print(status.MESSAGE_UNATTACHED)
-            return False
-        if not entitlements.get(self.name, {}).get('enabled'):
-            print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
-            return False
-        op_status, _status_details = self.operational_status()
-        if op_status == status.INACTIVE:
-            print(
-                status.MESSAGE_ALREADY_DISABLED_TMPL.format(title=self.title))
-            return False
-        return True
+            message = status.MESSAGE_NONROOT_USER
+            retval = False
+        elif not self.cfg.entitlements:
+            message = status.MESSAGE_UNATTACHED
+            retval = False
+        elif not self.cfg.entitlements.get(self.name, {}).get('enabled'):
+            message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
+            retval = False
+        else:
+            op_status, _status_details = self.operational_status()
+            if op_status == status.INACTIVE:
+                print(status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                          title=self.title))
+                retval = False
+        if not silent and message:
+            print(message)
+        return retval
 
     def can_enable(self):
         """Report whether or not enabling is possible for the entitlement."""
