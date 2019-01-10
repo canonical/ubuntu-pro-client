@@ -10,7 +10,7 @@ from uaclient import util
 
 LOG = logging.getLogger(__name__)
 
-PACKAGED_VERSION = '18.1-40-g2327a5c'
+PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
 BASE_AUTH_URL = 'https://login.ubuntu.com'
