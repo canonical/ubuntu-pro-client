@@ -26,15 +26,21 @@ def valid_apt_credentials(repo_url, series, credentials):
 
     @return: True if valid or unable to validate
     """
+    protocol, repo_path = repo_url.split('://')
     if not os.path.exists('/usr/lib/apt/apt-helper'):
         return True   # Do not validate
     try:
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
-                   'https://%s@%s.dists/%s/Release' % (
-                       credentials, repo_url, series)],
-                  capture=True)
+                   '%s://%s@%s/ubuntu/dists/%s/Release' % (
+                       protocol, credentials, repo_path, series),
+                   '/tmp/uaclient-apt-test'],
+                  capture=False)  # Hide credentials from logs
+        os.unlink('/tmp/uaclient-apt-test')
+        return True
     except util.ProcessExecutionError:
-        return False
+        pass
+    if os.path.exists('/tmp/uaclient-apt-test'):
+        os.unlink('/tmp/uaclient-apt-test')
     return False
 
 

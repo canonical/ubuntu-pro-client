@@ -1,4 +1,5 @@
 import logging
+import glob
 import os
 import platform
 
@@ -86,6 +87,8 @@ class RepoEntitlement(base.UAEntitlement):
         repo_url = access_directives.get('serviceURL')
         if not repo_url:
             repo_url = self.repo_url
-        if ' %s' % repo_url in apt_policy:
+        protocol, repo_path = repo_url.split('://')
+        apt_repo_file = repo_url.split('://')[1].replace('/', '_')
+        if glob.glob('/var/lib/apt/lists/%s*' % apt_repo_file):
             return status.ACTIVE, '%s PPA is active' % self.title
         return status.INACTIVE, '%s PPA is not configured' % self.title
