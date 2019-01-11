@@ -1,5 +1,5 @@
-import logging
 import glob
+import logging
 import os
 import platform
 
