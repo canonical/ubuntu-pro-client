@@ -65,7 +65,8 @@ make demo
 make deb
 
 # Create a vm or container running the python uaclient
-$ PYTHONPATH=. ./dev/run-uaclient --series disco --backend multipass
+$ ./dev/run-uaclient --series disco
+$ ./dev/run-uaclient --series xenial -b multipass
 
 # play with uaclient on your local dev system
 $ sudo UA_CONFIG_FILE=uaclient-devel.conf python -m uaclient.cli
