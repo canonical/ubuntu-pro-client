@@ -92,6 +92,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             if not repo_url:
                 repo_url = self.repo_url
             apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+            util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print('Warning: no option to disable {title}'.format(
                       title=self.title))

@@ -33,6 +33,7 @@ class ESMEntitlement(repo.RepoEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+        util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
