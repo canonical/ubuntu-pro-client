@@ -16,7 +16,6 @@ error_exit() {
         [service_already_enabled]=6
         [arch_not_supported]=7
         [service_already_disabled]=8
-        [livepatch_unsupported_kernel]=9
     )
     exit "${codes[$code]}"
 }

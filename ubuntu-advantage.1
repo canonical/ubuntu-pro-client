@@ -79,12 +79,9 @@ Managed live kernel patching. For more information, visit
 https://www.ubuntu.com/server/livepatch
 .TP
 .B
-enable-livepatch \fItoken\fR [\fB\-\-allow\-kernel\-change\fR]
+enable-livepatch \fI<token>\fR
 Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
-https://ubuntu.com/livepatch. If a Livepatch incompatible kernel is running,
-the installation will fail unless \fB\-\-allow\-kernel\-change\fR is given.
-With this option, a Livepatch compatible kernel will be selected and installed
-if needed.
+https://ubuntu.com/livepatch
 .TP
 .B
 disable-livepatch \fR[\fB\-r\fR]
@@ -162,9 +159,5 @@ The requested service is not supported on the current architecture
 .B
 8
 The requested service is already disabled
-.TP
-.B
-9
-The running kernel does not support Livepatch
 .TP
 If apt commands run by the tool fail, the exit status from apt is returned.
