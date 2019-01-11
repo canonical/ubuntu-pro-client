@@ -112,7 +112,7 @@ livepatch_disable() {
 
     echo 'Disabling Livepatch...'
     canonical-livepatch disable
-    if [ "$remove_snap" ]; then
+    if [ -n "$remove_snap" ]; then
         echo 'Removing the canonical-livepatch snap...'
         snap remove canonical-livepatch
     else
