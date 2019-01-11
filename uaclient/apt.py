@@ -94,15 +94,16 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
     elif fingerprint:
         util.subp(['apt-key', 'del', fingerprint], capture=True)
     _protocol, repo_path = repo_url.split('://')
-    apt_auth = util.load_file(APT_AUTH_FILE)
-    auth_prefix = 'machine {repo_path}/ubuntu/ login'.format(
-        repo_path=repo_path)
-    content = '\n'.join([
-        line for line in apt_auth.split('\n') if auth_prefix not in line])
-    if not content:
-        os.unlink(APT_AUTH_FILE)
-    else:
-        util.write_file(APT_AUTH_FILE, content, mode=0o600)
+    if os.path.exists(APT_AUTH_FILE):
+        apt_auth = util.load_file(APT_AUTH_FILE)
+        auth_prefix = 'machine {repo_path}/ubuntu/ login'.format(
+            repo_path=repo_path)
+        content = '\n'.join([
+            line for line in apt_auth.split('\n') if auth_prefix not in line])
+        if not content:
+            os.unlink(APT_AUTH_FILE)
+        else:
+            util.write_file(APT_AUTH_FILE, content, mode=0o600)
 
 
 def add_repo_pinning(apt_preference_file, origin, priority):
