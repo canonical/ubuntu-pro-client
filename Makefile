@@ -50,4 +50,4 @@ clean:
 	rm -rf .tox
 	find . -type d -name '*__pycache__' -delete
 
-.PHONY: build deb testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command clean
+.PHONY: build deb demo testdep test lint lint/docker lint-py lint-sh lint-sh/docker _lint-sh-command clean
