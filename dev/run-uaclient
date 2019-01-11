@@ -81,7 +81,7 @@ def create_uaclient_vm(backend, series, name=None):
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'mv',
                    './uaclient-devel.conf',
                    '/etc/ubuntu-advantage/uaclient.conf'])
-        print('Access demo uaclient with:\nmultipass exec %s ua status' % name)
+        print('Access demo uaclient with:\nmultipass exec %s -- bash -l' % name)
     elif backend == 'lxc':
         util.subp(['lxc', 'launch', 'ubuntu-daily:%s' % series, name])
         util.subp(['lxc', 'file', 'push', '../%s' % deb, '%s/root/' % name])
