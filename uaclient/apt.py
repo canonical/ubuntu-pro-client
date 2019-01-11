@@ -12,11 +12,44 @@ APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
 
+class InvalidAPTCredentialsError(RuntimeError):
+    """Raised when invalid token is provided for APT PPA access"""
+    pass
+
+
+def valid_apt_credentials(repo_url, series, credentials):
+    """Validate apt credentials for a PPA.
+
+    @param repo_url: private-ppa url path
+    @param credentials: PPA credentials string username:password.
+    @param series: xenial, bionic ...
+
+    @return: True if valid or unable to validate
+    """
+    if not os.path.exists('/usr/lib/apt/apt-helper'):
+        return True   # Do not validate
+    try:
+        util.subp(['/usr/lib/apt/apt-helper', 'download-file',
+                   'https://%s@%s.dists/%s/Release' % (
+                       credentials, repo_url, series)],
+                  capture=True)
+    except util.ProcessExecutionError:
+        return False
+    return False
+
+
 def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
                       fingerprint=None):
-    """Add an authenticated apt repo and credentials to the system"""
-    logging.info('Enabling authenticated apt PPA: %s', repo_url)
+    """Add an authenticated apt repo and credentials to the system.
+
+    @raises: InvalidAPTCredentialsError when the token provided can't access
+        the repo PPA.
+    """
     series = platform.dist()[2]
+    if not valid_apt_credentials(repo_url, series, credentials):
+        raise InvalidAPTCredentialsError(
+            'Invalid APT credentials provided for %s' % repo_url)
+    logging.info('Enabling authenticated apt PPA: %s', repo_url)
     content = (
         'deb {url}/ubuntu {series} main\n'
         '# deb-src {url}/ubuntu {series} main\n'.format(

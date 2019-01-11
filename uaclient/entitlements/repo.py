@@ -48,13 +48,17 @@ class RepoEntitlement(base.UAEntitlement):
         repo_url = access_directives.get('serviceURL')
         if not repo_url:
             repo_url = self.repo_url
-        apt.add_auth_apt_repo(
-            repo_filename, repo_url, token, keyring_file, ppa_fingerprint)
+        try:
+            apt.add_auth_apt_repo(
+                repo_filename, repo_url, token, keyring_file, ppa_fingerprint)
+        except apt.InvalidAPTCredentialsError as e:
+            logging.error(str(e))
+            return False
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
             apt.add_repo_pinning(
-                repo_pref_file, 'LP-PPA-ubuntu-advantage-fips',
+                repo_pref_file, 'LP-PPA-ubuntu-advantage-%s' % self.name,
                 self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
@@ -79,7 +83,9 @@ class RepoEntitlement(base.UAEntitlement):
         apt_policy, _err = util.subp(['apt-cache', 'policy'])
         access_directives = self.cfg.read_cache(
             'machine-access-%s' % self.name).get('directives', {})
-        repo_url = access_directives.get('serviceURL', self.repo_url)
+        repo_url = access_directives.get('serviceURL')
+        if not repo_url:
+            repo_url = self.repo_url
         if ' %s' % repo_url in apt_policy:
             return status.ACTIVE, '%s PPA is active' % self.title
         return status.INACTIVE, '%s PPA is not configured' % self.title
