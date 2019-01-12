@@ -240,11 +240,13 @@ def get_platform_info(key=None):
     return platform_info if not key else platform_info[key]
 
 
-def get_machine_id(fallback_machine_id_file):
+def get_machine_id(data_dir):
+    """Get system's unique machine-id or create our own in data_dir."""
     if os.path.exists('/etc/machine-id'):
         return load_file('/etc/machine-id')
     if os.path.exists('/var/lib/dbus/machine-id'):  # Trusty
         return load_file('/var/lib/dbus/machine-id')
+    fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
     if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
         return load_file(fallback_machine_id_file)
     machine_id = uuid.uuid4()
