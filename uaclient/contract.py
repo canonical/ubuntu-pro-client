@@ -93,7 +93,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         @return: Dict of JSON response from machine contracts endpoint
         """
         if not machine_id:
-            machine_id = util.get_machine_id(cfg.data_dir)
+            machine_id = util.get_machine_id(self.cfg.data_dir)
         data = {'machine': machine_id}
         if product_name:
             data['product'] = product_name
@@ -116,7 +116,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         @return: Dict of the JSON response containing the machine-token.
         """
         if not machine_id:
-            machine_id = util.get_machine_id(cfg.data_dir)
+            machine_id = util.get_machine_id(self.cfg.data_dir)
         os = util.get_platform_info()
         arch = os.pop('arch')
         data = {'machineId': machine_id, 'arch': arch, 'os': os}
