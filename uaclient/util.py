@@ -243,7 +243,9 @@ def get_platform_info(key=None):
 def get_machine_id(fallback_machine_id_file):
     if os.path.exists('/etc/machine-id'):
         return load_file('/etc/machine-id')
-    if os.path.exists(fallback_machine_id_file):
+    if os.path.exists('/var/lib/dbus/machine-id'):  # Trusty
+        return load_file('/var/lib/dbus/machine-id')
+    if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
         return load_file(fallback_machine_id_file)
     machine_id = uuid.uuid4()
     write_file(fallback_machine_id_file, machine_id)
