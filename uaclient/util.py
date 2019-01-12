@@ -5,6 +5,7 @@ import os
 import re
 import six
 import subprocess
+import uuid
 
 
 CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
@@ -237,3 +238,13 @@ def get_platform_info(key=None):
         arch, _err = subp(['uname', '-i'])
         platform_info['arch'] = arch.strip()
     return platform_info if not key else platform_info[key]
+
+
+def get_machine_id(fallback_machine_id_file):
+    if os.path.exists('/etc/machine-id'):
+        return load_file('/etc/machine-id')
+    if os.path.exists(fallback_machine_id_file):
+        return load_file(fallback_machine_id_file)
+    machine_id = uuid.uuid4()
+    write_file(fallback_machine_id_file, machine_id)
+    return machine_id

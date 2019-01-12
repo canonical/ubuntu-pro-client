@@ -211,7 +211,7 @@ def action_attach(args, cfg):
     contract_client = contract.UAContractClient(cfg)
     try:
         accounts = contract_client.request_accounts()
-    except util.UrlError as e:
+    except util.UrlError:
         logging.error(
             'Could not connect to contract_url: %s', cfg.contract_url)
         return 1
