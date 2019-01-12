@@ -207,8 +207,8 @@ def parse_os_release(release_file=None):
 
 
 REGEX_OS_RELEASE_VERSION_1 = (  # Precise, Trusty
-    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS,)?(?P<series>\w+).*')
-REGEX_OS_RELEASE_VERSION_2 = (  # >= Xenial
+    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS,?) ?(?P<series>\w+).*')
+REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
     r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
 
 
