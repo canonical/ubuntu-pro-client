@@ -55,18 +55,20 @@ class LivepatchEntitlement(base.UAEntitlement):
         print('Canonical livepatch enabled.')
         return True
 
-    def disable(self):
+    def disable(self, silent=False, force=True):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.
         """
-        if not self.can_disable():
+        if not self.can_disable(silent, force):
             return False
         util.subp(['/snap/bin/canonical-livepatch', 'disable'], capture=True)
         logging.debug('Removing canonical-livepatch snap...')
-        print('Removing canonical-livepatch snap...')
+        if not silent:
+            print('Removing canonical-livepatch snap...')
         util.subp(['snap', 'remove', 'canonical-livepatch'], capture=True)
-        print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
+        if not silent:
+            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def operational_status(self):
