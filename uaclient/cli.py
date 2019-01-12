@@ -209,7 +209,12 @@ def action_attach(args, cfg):
               ' token')
         return 1
     contract_client = contract.UAContractClient(cfg)
-    accounts = contract_client.request_accounts()
+    try:
+        accounts = contract_client.request_accounts()
+    except util.UrlError as e:
+        logging.error(
+            'Could not connect to contract_url: %s', cfg.contract_url)
+        return 1
     contracts = contract_client.request_account_contracts(accounts[0]['id'])
     contract_id = contracts[0]['contractInfo']['id']
     try:
