@@ -81,7 +81,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         logging.debug('Importing APT PPA key %s', fingerprint)
         util.subp(
             ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-             '--receive-keys', fingerprint], capture=True)
+             '--recv-keys', fingerprint], capture=True)
 
 
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
