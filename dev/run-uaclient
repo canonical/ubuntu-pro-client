@@ -71,10 +71,10 @@ def create_uaclient_vm(backend, series, name=None):
     if series == 'trusty':
         debs = glob.glob('../ubuntu-advantage-*14.04.1_all.deb')
     else:
-        debs = glob.glob('../ubuntu-advantage-*.deb')
+        debs = glob.glob('../ubuntu-advantage-*18.04.1_all.deb')
     if not debs:
         raise RuntimeError(
-            'Found no ubuntu-advnatage-debs in ../,'
+            'Found no ubuntu-advantage-debs in ../,'
             ' try make deb and make deb-trusty')
     deb = os.path.basename(debs[0])
     if backend == 'multipass':

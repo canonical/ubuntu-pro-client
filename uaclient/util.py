@@ -144,9 +144,12 @@ def subp(args, rcs=None, capture=False):
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (out, err) = proc.communicate()
     except OSError:
-        if capture:
-            logging.error('Failed running cmd: %s, rc: %s stderr: %s',
-                          ' '.join(args), proc.returncode, err)
+        try:
+            if capture:
+                logging.error('Failed running cmd: %s, rc: %s stderr: %s',
+                              ' '.join(args), proc.returncode, err)
+        except UnboundLocalError:
+           pass
         raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         if capture:

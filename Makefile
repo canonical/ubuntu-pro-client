@@ -8,12 +8,12 @@ build:
 deb-trusty:
 	# TODO provide proper py2 py3 package build script
 	@echo Building unsigned debian package for trusty
-	patch -p0 -i dev/trusty-deb.patch
+	patch -p1 -i dev/trusty-deb.patch
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
                  "\n sudo apt-get install devscripts"; exit 1; }
 	dpkg-buildpackage -us -uc
-	patch -p0 -i -R -i dev/trusty-deb.patch
+	patch -p1 -R -i dev/trusty-deb.patch
 
 deb:
 	@echo Building unsigned debian package
