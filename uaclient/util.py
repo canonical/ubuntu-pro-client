@@ -149,7 +149,7 @@ def subp(args, rcs=None, capture=False):
                 logging.error('Failed running cmd: %s, rc: %s stderr: %s',
                               ' '.join(args), proc.returncode, err)
         except UnboundLocalError:
-           pass
+            pass
         raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         if capture:
