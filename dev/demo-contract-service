@@ -37,7 +37,7 @@ read FIPS_TOKEN
   sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
 fi
 
-UACLIENT_DEB=`cd ..; ls ubuntu-advantage-tools*deb`
+UACLIENT_DEB=`cd ..; ls ubuntu-advantage-tools*18.04.1_all.deb`
 lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
   echo 'About to launch bionic lxc for contract sevice API...'
