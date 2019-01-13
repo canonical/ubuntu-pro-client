@@ -18,7 +18,7 @@ index 0ddf18d..832d634 100644
  Build-Depends: debhelper (>=9), dh-python,
 -               flake8 | python3-flake8, python3-mock,
 -               python3 (>= 3.4), python3-nose, python3-unittest2
-+               flake8 | python-flake8, python-mock,
++               flake8 | python-flake8, python-mock, python-setuptools,
 +               python (>= 2.7), python-nose, python-unittest2
  Standards-Version: 3.9.6
  Homepage: https://buy.ubuntu.com
