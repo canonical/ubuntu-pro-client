@@ -1,0 +1,34 @@
+diff --git a/debian/changelog b/debian/changelog
+index cbad0d2..65be364 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-ubuntu-advantage-tools (18.1-ga9917552-0ubuntu1~18.04.1) bionic; urgency=medium
++ubuntu-advantage-tools (18.1-ga9917552-0ubuntu1~14.04.1) trusty; urgency=medium
+ 
+   * Initial Python implementation of ubuntu advantage client
+ 
+diff --git a/debian/control b/debian/control
+index 0ddf18d..832d634 100644
+--- a/debian/control
++++ b/debian/control
+@@ -3,8 +3,8 @@ Section: misc
+ Priority: important
+ Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+ Build-Depends: debhelper (>=9), dh-python,
+-               flake8 | python3-flake8, python3-mock,
+-               python3 (>= 3.4), python3-nose, python3-unittest2
++               flake8 | python-flake8, python-mock,
++               python (>= 2.7), python-nose, python-unittest2
+ Standards-Version: 3.9.6
+ Homepage: https://buy.ubuntu.com
+ Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
+@@ -13,7 +13,7 @@ Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
+ Package: ubuntu-advantage-tools
+ Architecture: all
+ Depends: ${misc:Depends},
+-         ${python3:Depends}
++         ${python:Depends}
+ XB-Python-Version: ${python:Versions}
+ Description: management tools for Ubuntu Advantage
+  Ubuntu Advantage is the professional package of tooling, technology
