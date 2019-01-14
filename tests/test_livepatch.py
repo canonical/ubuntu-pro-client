@@ -1,8 +1,7 @@
 """Tests for Livepatch-related commands."""
 
 from testing import UbuntuAdvantageTest
-from fakes import (APT_GET_LOG_WRAPPER, LIVEPATCH_UNSUPPORTED_KERNEL,
-                   LIVEPATCH_UNKNOWN_ERROR)
+from fakes import APT_GET_LOG_WRAPPER
 
 
 class LivepatchTest(UbuntuAdvantageTest):
@@ -195,100 +194,3 @@ class LivepatchTest(UbuntuAdvantageTest):
         # but then writing everything back to stderr if there was an error
         self.assertIn('this goes to stderr', process.stderr)
         self.assertIn('this goes to stdout', process.stderr)
-
-    def test_enable_livepatch_invalid_option(self):
-        """Livepatch enable takes only --allow-kernel-switch besides token."""
-        process = self.script('enable-livepatch', self.livepatch_token,
-                              '--invalid-option')
-        self.assertIn('Unknown option for enable-livepatch: '
-                      '\"--invalid-option\"', process.stderr)
-        self.assertEqual(1, process.returncode)
-
-    def test_enable_livepatch_unsupported_kernel_no_change_allowed(self):
-        """Livepatch enable on unsupported kernel and no kernel change."""
-        self.SERIES = 'xenial'
-        self.ARCH = 'x86_64'
-        self.KERNEL_VERSION = '4.15.0-1010-kvm'
-        self.setup_livepatch(
-            installed=True, enabled=False,
-            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
-        process = self.script('enable-livepatch', self.livepatch_token)
-        self.assertIn('Your running kernel {} is not supported by '
-                      'Livepatch.'.format(self.KERNEL_VERSION), process.stdout)
-        self.assertIn('If you want to automatically install a Livepatch '
-                      'supported kernel', process.stdout)
-        self.assertIn('enable-livepatch {} --allow-kernel-change'.format(
-                      self.livepatch_token), process.stdout)
-        self.assertEqual(9, process.returncode)
-
-    def test_unsupported_kernel_change_allowed_fallback_not_installed(self):
-        """
-        Enabling livepatch with an unsupported kernel, but allowing the
-        installation of a new kernel, installs the fallback kernel if it's
-        not already installed.
-        """
-        self.SERIES = 'xenial'
-        self.ARCH = 'x86_64'
-        self.KERNEL_VERSION = '4.15.0-1010-kvm'
-        # this is LIVEPATCH_FALLBACK_KERNEL in modules/service-livepatch.sh
-        LIVEPATCH_FALLBACK_KERNEL = 'linux-image-generic'
-        # the fallback kernel is not installed
-        self.make_fake_binary(
-            'dpkg-query',
-            command='[ $2 != {} ]'.format(LIVEPATCH_FALLBACK_KERNEL))
-        self.setup_livepatch(
-            installed=True, enabled=False,
-            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
-        process = self.script('enable-livepatch', self.livepatch_token,
-                              '--allow-kernel-change')
-        self.assertIn('Your running kernel {} is not supported by '
-                      'Livepatch.'.format(self.KERNEL_VERSION), process.stdout)
-        self.assertIn('A Livepatch compatible kernel will be installed.',
-                      process.stdout)
-        self.assertIn('Installing {}'.format(LIVEPATCH_FALLBACK_KERNEL),
-                      process.stdout)
-        self.assertIn('A new kernel was installed to support Livepatch.',
-                      process.stdout)
-        self.assertEqual(9, process.returncode)
-
-    def test_unsupported_kernel_change_allowed_fallback_installed(self):
-        """
-        Enabling livepatch with an unsupported kernel, but allowing the
-        installation of a new kernel, does not try to install the fallback
-        kernel if it's already installed.
-        """
-        self.SERIES = 'xenial'
-        self.ARCH = 'x86_64'
-        self.KERNEL_VERSION = '4.15.0-1010-kvm'
-        # this is LIVEPATCH_FALLBACK_KERNEL in modules/service-livepatch.sh
-        LIVEPATCH_FALLBACK_KERNEL = 'linux-image-generic'
-        # the fallback kernel is installed
-        self.make_fake_binary(
-            'dpkg-query',
-            command='[ $2 = {} ]'.format(LIVEPATCH_FALLBACK_KERNEL))
-        self.setup_livepatch(
-            installed=True, enabled=False,
-            livepatch_command=LIVEPATCH_UNSUPPORTED_KERNEL)
-        process = self.script('enable-livepatch', self.livepatch_token,
-                              '--allow-kernel-change')
-        self.assertIn('Your running kernel {} is not supported by '
-                      'Livepatch.'.format(self.KERNEL_VERSION), process.stdout)
-        self.assertNotIn('A Livepatch compatible kernel will be installed.',
-                         process.stdout)
-        self.assertNotIn('Installing {}'.format(LIVEPATCH_FALLBACK_KERNEL),
-                         process.stdout)
-        self.assertIn('A new kernel was installed to support Livepatch.',
-                      process.stdout)
-        self.assertEqual(9, process.returncode)
-
-    def test_enable_livepatch_output_shown_if_unknown_error(self):
-        """
-        If Livepatch fails to enable due to unknown errors, the error
-        output is shown.
-        """
-        self.setup_livepatch(
-            installed=True, enabled=False,
-            livepatch_command=LIVEPATCH_UNKNOWN_ERROR)
-        process = self.script('enable-livepatch', self.livepatch_token)
-        self.assertIn('something wicked happened here', process.stderr)
-        self.assertEqual(1, process.returncode)

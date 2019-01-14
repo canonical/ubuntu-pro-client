@@ -30,14 +30,6 @@ EOF
 fi
 """
 
-# the error string is made up
-LIVEPATCH_UNKNOWN_ERROR = """
-cat <<EOF
-2018-06-18 17:46:11 something wicked happened here
-EOF
-exit 1
-"""
-
 # regardless of the command, canonical-livepatch will always exit with
 # status 1 and a message like this
 LIVEPATCH_UNSUPPORTED_KERNEL = """

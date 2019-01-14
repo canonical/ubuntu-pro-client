@@ -2,13 +2,11 @@ ubuntu-advantage-tools (18) UNRELEASED; urgency=medium
 
   * Have ua status cope with the additional livepatch of running a kernel
     that is not supported for livepatches.
-  * Have an option for enable-livepatch to install a compatible kernel if
-    needed.
 
-  [ Vineetha Kamath ]
+    [ Vineetha Kamath ]
   * Add support to common criteria EAL2 artifacts installation #144
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 21 Jun 2018 14:30:57 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 24 May 2018 17:26:25 -0300
 
 ubuntu-advantage-tools (17) bionic; urgency=medium
 
