@@ -1,0 +1,200 @@
+#!/usr/bin/env python
+"""List pip dependencies or system package dependencies for cloud-init."""
+
+try:
+    from argparse import ArgumentParser
+except ImportError:
+    raise RuntimeError(
+        'Could not import python-argparse. Please install python-argparse '
+        'package to continue')
+
+import json
+import os
+import re
+import subprocess
+import sys
+
+DEFAULT_REQUIREMENTS = 'requirements.txt'
+
+
+# List of base system packages required to enable ci automation
+CI_SYSTEM_BASE_PKGS = [
+    'make', 'sudo', 'tar', 'devscripts', 'python3-dev', 'tox', 'sbuild']
+
+
+# JSON definition of distro-specific package dependencies
+DISTRO_PKG_DEPS_PATH = "dev/pkg-deps.json"
+
+
+def get_parser():
+    """Return an argument parser for this command."""
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '-r', '--requirements-file', type=str, dest='req_files',
+        action='append', default=None,
+        help='pip-style requirements file [default=%s]' % DEFAULT_REQUIREMENTS)
+    parser.add_argument(
+        '--dry-run', action='store_true', default=False, dest='dry_run',
+        help='Dry run the install, making no package changes.')
+    parser.add_argument(
+        '-s', '--system-pkg-names', action='store_true', default=False,
+        dest='system_pkg_names',
+        help='Only generate distro package names, not pip names.')
+    parser.add_argument(
+        '-i', '--install', action='store_true', default=False,
+        dest='install',
+        help='When specified, install the required system packages.')
+    parser.add_argument(
+        '-t', '--test-distro', action='store_true', default=False,
+        dest='test_distro',
+        help='Additionally install continuous integration system packages '
+             'required for build and test automation.')
+    parser.add_argument(
+        '-v', '--python-version', type=str, dest='python_version',
+        default="3", choices=["2", "3"],
+        help='Override the version of python we want to generate system '
+             'package dependencies for. Defaults to the version of python '
+             'this script is called with')
+    return parser
+
+
+def get_package_deps_from_json(topdir):
+    """Get a dict of build and runtime package requirements for a distro.
+
+    @param topdir: The root directory in which to search for the
+        DISTRO_PKG_DEPS_PATH json blob of package requirements information.
+    @param distro: The specific distribution shortname to pull dependencies
+        for.
+    @return: Dict containing "requires", "build-requires" and "rename" lists
+        for a given distribution.
+    """
+    with open(os.path.join(topdir, DISTRO_PKG_DEPS_PATH), 'r') as stream:
+        deps = json.loads(stream.read())
+    return deps
+
+
+def parse_pip_requirements(requirements_path):
+    """Return the pip requirement names from pip-style requirements_path."""
+    dep_names = []
+    with open(requirements_path, "r") as fp:
+        for line in fp:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            # remove pip-style markers
+            dep = line.split(';')[0]
+
+            # remove version requirements
+            if re.search('[>=.<]+', dep):
+                dep_names.append(re.split(r'[>=.<]+', dep)[0].strip())
+            else:
+                dep_names.append(dep)
+    return dep_names
+
+
+def translate_pip_to_system_pkg(pip_requires, renames, python_ver):
+    """Translate pip package names to distro-specific package names.
+
+    @param pip_requires: List of versionless pip package names to translate.
+    @param renames: Dict containg special case renames from pip name to system
+        package name for the distro.
+    @param python_ver: Optional python version string "2" or "3". When None,
+     use the python version that is calling this script via sys.version_info.
+    """
+    if python_ver is None:
+        python_ver = str(sys.version_info[0])
+    if python_ver == "2":
+        prefix = "python-"
+    else:
+        prefix = "python3-"
+    standard_pkg_name = "{0}{1}"
+    translated_names = []
+    for pip_name in pip_requires:
+        pip_name = pip_name.lower()
+        # Find a rename if present for the distro package and python version
+        rename = renames.get(pip_name, {}).get(python_ver, None)
+        if rename:
+            translated_names.append(rename)
+        else:
+            translated_names.append(
+                standard_pkg_name.format(prefix, pip_name))
+    return translated_names
+
+
+def main():
+    parser = get_parser()
+    args = parser.parse_args()
+    if 'UACLIENT_TOP_D' in os.environ:
+        topd = os.path.realpath(os.environ.get('UACLIENT_TOP_D'))
+    else:
+        topd = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    if args.test_distro:
+        # Give us all the system deps we need for continuous integration
+        if args.req_files:
+            sys.stderr.write(
+                "Parameter --test-distro overrides --requirements-file. Use "
+                "one or the other.\n")
+            sys.exit(1)
+        args.req_files = [os.path.join(topd, DEFAULT_REQUIREMENTS),
+                          os.path.join(topd, 'test-' + DEFAULT_REQUIREMENTS)]
+        args.install = True
+    if args.req_files is None:
+        args.req_files = [os.path.join(topd, DEFAULT_REQUIREMENTS)]
+        if not os.path.isfile(args.req_files[0]):
+            sys.stderr.write("Unable to locate '%s' file that should "
+                             "exist in cloud-init root directory." %
+                             args.req_files[0])
+            sys.exit(1)
+
+    bad_files = [r for r in args.req_files if not os.path.isfile(r)]
+    if bad_files:
+        sys.stderr.write(
+            "Unable to find requirements files: %s\n" % ','.join(bad_files))
+        sys.exit(1)
+
+    pip_pkg_names = set()
+    for req_path in args.req_files:
+        pip_pkg_names.update(set(parse_pip_requirements(req_path)))
+    deps_from_json = get_package_deps_from_json(topd)
+    renames = deps_from_json.get('renames', {})
+    translated_pip_names = translate_pip_to_system_pkg(
+        pip_pkg_names, renames, args.python_version)
+    all_deps = (
+        translated_pip_names + deps_from_json.get('requires', []) +
+        deps_from_json.get('build-requires', []))
+    if args.system_pkg_names:
+        all_deps = translated_pip_names
+    else:
+        all_deps = pip_pkg_names
+    if args.install:
+        pkg_install(all_deps, args.test_distro, args.dry_run)
+    else:
+        print('\n'.join(all_deps))
+
+
+def pkg_install(pkg_list, test_distro=False, dry_run=False):
+    """Install a list of packages."""
+    if test_distro:
+        pkg_list = list(pkg_list) + CI_SYSTEM_BASE_PKGS
+    print('Installing deps: {0}{1}'.format(
+          '(dryrun)' if dry_run else '', ' '.join(pkg_list)))
+    install_cmd = []
+    if dry_run:
+        install_cmd.append('echo')
+    if os.geteuid() != 0:
+        install_cmd.append('sudo')
+
+    install_cmd.extend(['apt-get', 'install', '-y'])
+
+    subprocess.check_call(install_cmd + pkg_list)
+
+
+if __name__ == "__main__":
+    parser = get_parser()
+    args = parser.parse_args()
+    sys.exit(main())
+
+
+# vi: ts=4 expandtab
