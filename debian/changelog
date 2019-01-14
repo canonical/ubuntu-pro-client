@@ -1,12 +1,15 @@
-ubuntu-advantage-tools (18) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (18) disco; urgency=medium
 
-  * Have ua status cope with the additional livepatch of running a kernel
-    that is not supported for livepatches.
+  [ Andreas Hasenack ]
+  * Have ua status cope with the additional livepatch status of running a
+    kernel that is not supported for livepatches.
 
-    [ Vineetha Kamath ]
+  [ Vineetha Kamath ]
   * Add support to common criteria EAL2 artifacts installation #144
+  * Add new flag enable-cisaudit to support cis audit
+  * Add support for disable-cc-provisioning
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 24 May 2018 17:26:25 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 14 Jan 2019 16:39:31 -0200
 
 ubuntu-advantage-tools (17) bionic; urgency=medium
 
