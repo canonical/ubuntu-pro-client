@@ -1,0 +1,23 @@
+Source: ubuntu-advantage-tools
+Section: misc
+Priority: important
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Build-Depends: debhelper (>=9), dh-python, %BUILD_DEPS%
+Standards-Version: 3.9.6
+Homepage: https://buy.ubuntu.com
+Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
+Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
+
+Package: ubuntu-advantage-tools
+Architecture: all
+Depends: ${misc:Depends},
+         ${python3:Depends}
+XB-Python-Version: ${python:Versions}
+Description: management tools for Ubuntu Advantage
+ Ubuntu Advantage is the professional package of tooling, technology
+ and expertise from Canonical, helping organisations around the world
+ manage their Ubuntu deployments.
+ .
+ Subscribers to Ubuntu Advantage will find helpful tools for accessing
+ services in this package.
+
