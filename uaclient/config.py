@@ -10,6 +10,7 @@ from uaclient import util
 
 LOG = logging.getLogger(__name__)
 
+__VERSION__ = '18.1'
 PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
@@ -169,5 +170,9 @@ def get_version(_args=None):
     """Return the package version if set, otherwise return git describe."""
     if not PACKAGED_VERSION.startswith('@@PACKAGED_VERSION'):
         return PACKAGED_VERSION
-    return util.decode_binary(check_output([
-        'git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']).strip())
+    topdir = os.path.dirname(os.path.dirname(__file__))
+    if os.path.exists(os.path.join(topdir, '.git')):
+        return util.decode_binary(check_output([
+            'git', 'describe', '--abbrev=8', '--match=[0-9]*',
+            '--long']).strip())
+    return __VERSION__
