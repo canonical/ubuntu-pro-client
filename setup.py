@@ -11,7 +11,7 @@ def get_version():
     parts = config.get_version().split('-')
     if len(parts) == 1:
        return parts
-    parts major_minor, _subrev, _commitish = parts
+    major_minor, _subrev, _commitish = parts
     return major_minor
 
 
