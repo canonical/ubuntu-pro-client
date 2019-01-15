@@ -8,7 +8,10 @@ NAME = 'ubuntu-advantage-tools'
 
 
 def get_version():
-    major_minor, subrev, commitish  = config.get_version().split('-')
+    parts = config.get_version().split('-')
+    if len(parts) == 1:
+       return parts
+    parts major_minor, _subrev, _commitish = parts
     return major_minor
 
 
