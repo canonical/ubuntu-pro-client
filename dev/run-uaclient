@@ -69,9 +69,9 @@ def create_uaclient_vm(backend, series, name=None):
         name = 'uaclient-%s' % series
     name = get_vm_name(backend, name)
     if series == 'trusty':
-        debs = glob.glob('../ubuntu-advantage-*14.04.1_all.deb')
+        debs = glob.glob('./ubuntu-advantage-tools*14.04.1_all.deb')
     else:
-        debs = glob.glob('../ubuntu-advantage-*18.04.1_all.deb')
+        debs = glob.glob('./ubuntu-advantage-tools*bddeb_all.deb')
     if not debs:
         raise RuntimeError(
             'Found no ubuntu-advantage-debs in ../,'
@@ -88,7 +88,7 @@ def create_uaclient_vm(backend, series, name=None):
         print('Access demo uaclient with:\nmultipass exec %s -- bash -l' % name)
     elif backend == 'lxc':
         util.subp(['lxc', 'launch', 'ubuntu-daily:%s' % series, name])
-        util.subp(['lxc', 'file', 'push', '../%s' % deb, '%s/root/' % name])
+        util.subp(['lxc', 'file', 'push', '%s' % deb, '%s/root/' % name])
         util.subp(['lxc', 'exec', name, '--', 'sudo', 'dpkg', '-i',
                    '/root/%s' % deb])
         util.subp(['lxc', 'file', 'push', 'uaclient-devel.conf',

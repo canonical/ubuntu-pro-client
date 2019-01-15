@@ -7,20 +7,18 @@ build:
 
 deb-trusty:
 	# TODO provide proper py2 py3 package build script
-	@echo Building unsigned debian package for trusty
-	patch -p1 -i dev/trusty-deb.patch
+	@echo Building unsigned debian package for trusty 14.04.1
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
                  "\n sudo apt-get install devscripts"; exit 1; }
-	dpkg-buildpackage -us -uc
-	patch -p1 -R -i dev/trusty-deb.patch
+	./dev/bddeb --series trusty
 
 deb:
 	@echo Building unsigned debian package
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
                  "\n sudo apt-get install devscripts"; exit 1; }
-	dpkg-buildpackage -us -uc
+	./dev/bddeb
 
 
 demo: deb
