@@ -127,11 +127,11 @@ class UAEntitlement(object):
         pass
 
     def contract_status(self):
-        """Return whether contract entitlement is ENTITLED or UNENTITLED."""
+        """Return whether contract entitlement is ENTITLED or NONE."""
         entitlement_contract = self.cfg.entitlements.get(self.name, {})
         if entitlement_contract.get('enabled'):
             return status.ENTITLED
-        return status.UNENTITLED
+        return status.NONE
 
     def is_access_expired(self):
         """Return entitlement access info as stale and needing refresh."""

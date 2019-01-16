@@ -237,7 +237,7 @@ class TestUaEntitlement(TestCase):
         self.assertEqual(status.ENTITLED, entitlement.contract_status())
 
     def test_contract_status_unentitled(self):
-        """The contract_status returns UNENTITLED when entitlement disabled."""
+        """The contract_status returns NONE when entitlement disabled."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         fake_machine_token = {
@@ -245,4 +245,4 @@ class TestUaEntitlement(TestCase):
                 'testconcreteentitlement': {'enabled': False}}}}}
         cfg.write_cache('machine-token', fake_machine_token)
         entitlement = TestConcreteEntitlement(cfg)
-        self.assertEqual(status.UNENTITLED, entitlement.contract_status())
+        self.assertEqual(status.NONE, entitlement.contract_status())

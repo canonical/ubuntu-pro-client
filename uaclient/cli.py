@@ -35,6 +35,7 @@ STATUS_HEADER_TMPL = """\
 Account: {account}
 Subscription: {subscription}
 Valid until: {contract_expiry}
+Technical support: {support_level}
 """
 
 
@@ -286,21 +287,21 @@ def print_status(args=None, cfg=None):
     contract = cfg.contracts[0]
     expiry = datetime.strptime(
         contract['contractInfo']['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
+
     status_content = []
+    # TODO parse from TBD contract api resourceEntitlement response
+    status_level = ua_status.STATUS_COLOR.get(
+            ua_status.STANDARD, ua_status.STANDARD)
     status_content.append(STATUS_HEADER_TMPL.format(
         account=account['name'],
         subscription=contract['contractInfo']['name'],
-        contract_expiry=expiry.date()))
+        contract_expiry=expiry.date(),
+        support_level=status_level))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         status_content.append(ua_status.format_entitlement_status(ent))
-    status_content.append(ua_status.STATUS_TMPL.format(
-        name='support',
-        contract_state=ua_status.STATUS_COLOR.get(
-            ua_status.ESSENTIAL, ua_status.ESSENTIAL),
-        status=''))
-    status_content.append('\nEnable entitlements with `ua enable <service>\n')
+    status_content.append('\nEnable entitlements with `ua enable <service>`\n')
     print('\n'.join(status_content))
 
 

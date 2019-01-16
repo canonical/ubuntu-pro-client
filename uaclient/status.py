@@ -17,10 +17,8 @@ ACTIVE = 'active'
 INACTIVE = 'inactive'
 INAPPLICABLE = 'inapplicable'
 ENTITLED = 'entitled'
-UNENTITLED = 'unentitled'
 EXPIRED = 'expired'
 NONE = 'none'
-ESSENTIAL = 'essential'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
@@ -30,10 +28,8 @@ STATUS_COLOR = {
     INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
     ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
-    UNENTITLED: TxtColor.FAIL + UNENTITLED + TxtColor.ENDC,
     EXPIRED: TxtColor.FAIL + EXPIRED + TxtColor.ENDC,
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
-    ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
 }
