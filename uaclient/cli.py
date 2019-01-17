@@ -289,7 +289,7 @@ def print_status(args=None, cfg=None):
         contract['contractInfo']['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
     status_content = []
-    # TODO parse from TBD contract api resourceEntitlement response
+    # TODO(parse-from-TBD contract-api-resourceEntitlement-response)
     status_level = ua_status.STATUS_COLOR.get(
             ua_status.STANDARD, ua_status.STANDARD)
     status_content.append(STATUS_HEADER_TMPL.format(
