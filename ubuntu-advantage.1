@@ -1,74 +1,105 @@
-.TH UBUNTU-ADVANTAGE 1  "28 April 2017" "" ""
+.TH UBUNTU-ADVANTAGE 1  "16 January 2019" "" ""
 .SH NAME
-ubuntu-advantage \- Enable or disable Ubuntu Advantage offerings from
+ubuntu-advantage \- Enable or disable Ubuntu Advantage entitlements from
 Canonical.
 .SH SYNOPSIS
 .B ubuntu-advantage
-<command> [parameters]
+<subcommand> [parameters]
 .TP
 .B ua
-<command> [parameters]
+<subcommand> [parameters]
 
 .SH DESCRIPTION
-This tool is used to enable or disable specific Ubuntu Advantage offerings
+This tool is used to enable or disable Ubuntu Advantage service entitlements
 from Canonical. The available modules and their commands are described below.
-It must be run with root privileges.
+
+Most subcommands require root privileges.
 .TP
 .B
 status
-Show the status of Ubuntu Advantage offerings.
+Show whether this machine is 'attached' to an Ubuntu Advantage support contract. When attached, report the specific support contract details including contract name, expiry dates, and the status of each entitlement on this system.
+
+Each entitlement status line has 3 columns:
+
+.B service_name:
+the name of the entitlement service.
+Possible values are esm, livepatch, fips or fips-updates
+
+.B entitlement_level:
+whether the contract entitles use of this service.
+Possible values are none or entitled
+
+.B service_status:
+whether the entitled service is activated on this machine.
+Possible values are inapplicable, inactive or active
+
+.TP
+.B
+attach [\fItoken\fR]
+Connect an Ubuntu Advantage support contract to this machine.
+
+The optional \fItoken\fR parameter can be obtained from https://ubuntu.com/advantage.
+When no \fItoken\fR is provided, the user is prompted for their Ubuntu SSO login
+credentials to https://login.ubuntu.com which will obtain an OAuth token on
+to allow interaction with Ubuntu Advantage contract service.
+
+.TP
+.B
+detach
+Remove this machine from Ubuntu Advantage support, disabling all enabled
+entitlements.
+
+.TP
+.B
+enable [\fIentitlement\fR]
+Configure and activate this machine to use a named Ubuntu Advantage support
+entitlement: esm, fips, fips-updates or livepatch.
+
+.TP
+.B
+disable [\fIentitlement\fR]
+Disable this machine's access to a named Ubuntu Advantage support entitlement:
+esm, fips, fips-updates or livepatch.
+
 .TP
 .B
 version
 Show version.
+
 .SH ESM (Extended Security Maintenance)
 Ubuntu Extended Security Maintenance archive. See https://ubuntu.com/esm for
 more information.
 .TP
-.B
-enable-esm \fItoken\fR
-Enable the ESM repository. The \fItoken\fR argument must be in the form
-"user:password".
-.TP
-.B
-disable-esm
-Disable the ESM repository.
+Enabling the ESM repository provides access to ongoing security fixes for
+end-of-life Ubuntu LTS releases.
 
 .SH FIPS (Canonical FIPS 140-2 certified modules)
-Install, Configure, and Enable FIPS 140-2 certified modules.
+Install, configure, and enable FIPS 140-2 certified modules.
 .TP
-.B
-enable-fips \fItoken\fR
-Enable the FIPS PPA repository, install the FIPS modules, configure
-the bootloader and enable fips on the system. After successfully executing the
-ubuntu-advantage script to enable fips, the system MUST be rebooted to
+Enabling the FIPS PPA repository, installs the FIPS modules, configures
+the bootloader and enables fips on the system. After executing
+"ubuntu-advantage enable fips", the system MUST be rebooted to
 complete the enablement process. Failing to reboot will result in the system
 not being fips enabled.
-The \fItoken\fR argument must be in the form "user:password".
 
 The following FIPS certified modules will be installed and put in fips mode;
 openssh-server, openssh-client, strongswan, openssl, and the kernel
 cryptoapi.
 
-.TP
-.B
-disable-fips
-It's currently not possible to disable FIPS after it has been enabled.
+Disabling FIPS is not currently supported.
 
+.SH FIPS (Canonical FIPS 140-2 certified modules with updates)
+Install, configure, and enable FIPS 140-2 certified modules with updates
 .TP
 .B
-enable-fips-updates \fItoken\fR [\fB\-y\fR]
-Updating the FIPS modules will take the system out of FIPS compliance as the
-updated modules are not FIPS certified. The option enables the FIPS-UPDATES
-PPA repository and installs the updated FIPS modules. If the system is
-installing FIPS modules for the first time, it configures FIPS on the
-system. After successfully executing the ubuntu-advantage script to
-update FIPS modules, the system MUST be rebooted if FIPS kernel was
-upgraded in the upgrade process. Failing to reboot will result
+Enabling the FIPS-updates entitlement with "ua enable fips-updates" will take
+the system out of FIPS compliance as the updated modules are not FIPS
+certified. The option enables the FIPS-UPDATES PPA repository and installs the
+updated FIPS modules. If the system is installing FIPS modules for the first
+time, it configures FIPS on the system. After successfully executing the
+ubuntu-advantage to update FIPS modules, the system MUST be rebooted if FIPS
+kernel was upgraded in the upgrade process. Failing to reboot will result
 in the system not running the updated FIPS kernel.
-The \fItoken\fR argument must be in the form "user:password".
-The \fB\-y\fR argument is optional to bypass the user prompt while
-installing updates.
 
 The following FIPS modules will be updated and put in FIPS mode -
 openssh-server, openssh-client, strongswan, openssl, and the kernel
@@ -78,33 +109,9 @@ cryptoapi.
 Managed live kernel patching. For more information, visit
 https://www.ubuntu.com/server/livepatch
 .TP
-.B
-enable-livepatch \fItoken\fR [\fB\-\-allow\-kernel\-change\fR]
-Enable the Livepatch service. The \fItoken\fR can be obtained by visiting
-https://ubuntu.com/livepatch. If a Livepatch incompatible kernel is running,
-the installation will fail unless \fB\-\-allow\-kernel\-change\fR is given.
-With this option, a Livepatch compatible kernel will be selected and installed
-if needed.
-.TP
-.B
-disable-livepatch \fR[\fB\-r\fR]
-Disable the Livepatch service. If the \fB\-r\fR option is given, the
-canonical-livepatch snap will be removed after the service is disabled.
+Enable the Livepatch service on this machine to allow critical kernel patches
+without requiring a reboot.
 
-.SH CC (Canonical Common Critieria EAL2 Provisioning)
-Enable Common Criteria PPA and install Common Criteria EAL2 artifacts
-.TP
-.B
-enable-cc-provisioning \fItoken\fR
-Enables the Commoncriteria PPA repository, installs the ubuntu-commoncriteria
-package which has the common criteria artifacts. The artifacts include a
-configure script, a tarball with additional packages and post install scripts
-and an evaluated configuration guide. The artifacts will be installed in
-/usr/lib/common-criteria directory.
-.TP
-.B
-disable-cc-provisioning
-Disabling common criteria provisioning is not supported
 .SH EXIT STATUS
 .TP
 .B
