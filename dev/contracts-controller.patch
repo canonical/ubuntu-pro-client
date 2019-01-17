@@ -38,13 +38,13 @@
 +
 +entitlementESM = Entitlement(
 +    enabled=True, affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
-+    directives={'serviceURL': 'https://private-ppa.launchpad.net/canonical-server/uaclient-test', 'aptKey': '94E187AD53A59D1847E4880F8A295C4FB8B190B7', 'token': creds['esm']})
-+entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips']})
-+entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'token': creds['fips-updates']})
++    directives={'serviceURL': 'https://private-ppa.launchpad.net/canonical-server/uaclient-test', 'aptKey': '94E187AD53A59D1847E4880F8A295C4FB8B190B7', 'legacyBasicAuth': creds['esm']})
++entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'legacyBasicAuth': creds['fips']})
++entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'legacyBasicAuth': creds['fips-updates']})
 +entitlementLivepatch = Entitlement(enabled=True, affordances=[
-+    {'kernel-flavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
++    {'kernelFlavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
 +     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}],
-+    directives={'token': creds['livepatch']})
++    directives={'legacyToken': creds['livepatch']})
 +contract1 = ContractInfo(
 +    name='blackberry/desktop',
 +    id='cid_1',

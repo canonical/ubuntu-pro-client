@@ -11,6 +11,7 @@
 LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
    git clone git@github.com:CanonicalLtd/ua-contracts.git
+   cd ua-contracts; git fetch origin pull/8/head:pr/8; git checkout pr/8; cd ..
    patch -p1 -i dev/contracts-schema.patch
 fi
 

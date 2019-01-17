@@ -35,10 +35,10 @@ class RepoEntitlement(base.UAEntitlement):
         # TODO(Contract service needs to commit to a token directive)
         access_directives = self.cfg.read_cache(
             'machine-access-%s' % self.name).get('directives', {})
-        token = access_directives.get('token')
+        token = access_directives.get('legacyBasicAuth')
         if not token:
             logging.debug(
-                'No specific entitlement token present. Using machine token'
+                'No legacy entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
         ppa_fingerprint = access_directives.get('aptKey')

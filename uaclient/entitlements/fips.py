@@ -26,10 +26,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             keyring_file = None
         else:
             keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        token = access_directives.get('token')
+        token = access_directives.get('legacyBasicAuth')
         if not token:
             logging.debug(
-                'No specific entitlement token present. Using machine token'
+                'No legacy entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
         repo_url = access_directives.get('serviceURL', self.repo_url)
