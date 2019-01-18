@@ -17,6 +17,10 @@ DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
 BASE_AUTH_URL = 'https://login.ubuntu.com'
 BASE_SERVICE_URL = 'https://uaservice.canonical.com'
 
+CACHE_DIR = '/var/cache/ubuntu-advantage-tools/'
+MOTD_CACHE_FILE = CACHE_DIR + 'motd-ubuntu-advantage-status.cache'
+MOTD_ESM_CACHE_FILE = CACHE_DIR + 'motd-esm-status.cache'
+
 CONFIG_DEFAULTS = {
     'sso_auth_url': BASE_AUTH_URL,
     'service_url': BASE_SERVICE_URL,

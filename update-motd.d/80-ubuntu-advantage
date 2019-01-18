@@ -1,13 +1,6 @@
-#!/usr/bin/python3
-import sys
+#!/bin/bash
+UA_STATUS_CACHE=${UA_STATUS_CACHE:-"/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.cache"}
 
-from uaclient.config import UAConfig
-from uaclient import status
-
-
-def main():
-  cfg = UAConfig()
-  print(status.get_motd_summary(cfg))
-
-if __name__ == '__main__':
-    sys.exit(main())
+# If cache doesn't exist print nothing until we get an update in there
+# cache file is updated either through daily apt-update or ua attach/detach
+[ -s "$UA_STATUS_CACHE" ] && cat $UA_STATUS_CACHE

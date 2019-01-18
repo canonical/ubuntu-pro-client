@@ -33,6 +33,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['*.testing', 'tests.*', '*.tests', 'tests']),
     data_files=[('/etc/ubuntu-advantage', ['uaclient.conf']),
                 ('/etc/update-motd.d', glob.glob('update-motd.d/*')),
+                ('/usr/lib/ubuntu-advantage', glob.glob('lib/*')),
                 ('/usr/share/keyrings', glob.glob('keyrings/*')),
                 (config.CONFIG_DEFAULTS['data_dir'], [])],
     install_requires=INSTALL_REQUIRES,

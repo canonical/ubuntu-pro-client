@@ -59,6 +59,13 @@ Run `ua status` for details.
 MESSAGE_MOTD_EXPIRED_TMPL = """
  * Your Ubuntu Advantage subscription {name} expired on {date}!
 """
+MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL = """\
+ %d are extended security maintenance updates
+"""
+MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL = """\
+ %d additional updates are available with Extended Security Maintenance.
+ See `ua enable esm` or https://ubuntu.com/advantage
+"""
 
 STATUS_TMPL = '{name: <14}{contract_state: <26}{status}'
 
@@ -73,13 +80,40 @@ def format_entitlement_status(entitlement):
     return STATUS_TMPL.format(**fmt_args)
 
 
-def get_motd_summary(cfg):
+def get_upgradeable_esm_package_count():
+    import apt_pkg
+    apt_pkg.init()
+
+    cache = apt_pkg.Cache(None)
+    dependencyCache = apt_pkg.DepCache(cache)
+    upgrade_count = 0
+
+    for package in cache.packages:
+        if not package.current_ver:
+            continue
+        upgrades = [v for v in package.version_list if v > package.current_ver]
+
+        for upgrade in upgrades:
+            for package_file, _idx in upgrade.file_list:
+                if dependencyCache.policy.get_priority(package_file) == -32768:
+                    upgrade_count += 1
+                    break
+    return upgrade_count
+
+
+def get_motd_summary(cfg, esm_only=False):
     """Return MOTD summary text for all UA entitlements"""
-    contracts = cfg.contracts
-    if not contracts:
+    if esm_only:
+        upgrade_count = get_upgradeable_esm_package_count()
+        if cfg.is_attached:
+            enabled = cfg.entitlements.get('esm', {}).get('enabled')
+            if enabled:
+                return MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL % upgrade_count
+        return MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL % upgrade_count
+    if not cfg.is_attached:
         return ""   # No UA attached, so don't announce anything
     # TODO(Support multiple contracts)
-    contractInfo = contracts[0]['contractInfo']
+    contractInfo = cfg.contracts[0]['contractInfo']
     expiry = datetime.strptime(
         contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
     if expiry >= datetime.utcnow():
