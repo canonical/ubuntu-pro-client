@@ -157,8 +157,7 @@ def action_detach(args, cfg):
 
     @return: 0 on success, 1 otherwise
     """
-    machine_token = cfg.machine_token
-    if not machine_token:
+    if not cfg.is_attached:
         print(textwrap.dedent("""\
             This machine is not attached to a UA Subscription, sign up here:
                   https://ubuntu.com/advantage
@@ -189,8 +188,7 @@ def action_detach(args, cfg):
 
 
 def action_attach(args, cfg):
-    machine_token = cfg.machine_token
-    if machine_token:
+    if cfg.is_attached:
         print("This machine is already attached to '%s'." %
               cfg.contracts[0]['contractInfo']['name'])
         return 0
@@ -228,7 +226,7 @@ def action_attach(args, cfg):
     for entitlement_name in contractInfo['resourceEntitlements'].keys():
         # Obtain each entitlement's accessContext for this machine
         contract_client.request_resource_machine_access(
-            machine_token, entitlement_name)
+            cfg.machine_token, entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
     print_status(cfg=cfg)
@@ -279,7 +277,7 @@ def get_parser():
 def print_status(args=None, cfg=None):
     if not cfg:
         cfg = config.UAConfig()
-    if not cfg.machine_token:
+    if not cfg.is_attached:
         print('This machine is not attached to a UA subscription.\n'
               'See `ua attach` or https://ubuntu.com/advantage')
         return

@@ -99,6 +99,11 @@ class UAConfig(object):
         return self._entitlements
 
     @property
+    def is_attached(self):
+        """Report whether this machine configuration is attached to UA."""
+        return bool(self.machine_token)   # machine_token is removed on detach
+
+    @property
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
         if not self._machine_token:

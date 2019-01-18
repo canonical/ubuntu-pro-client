@@ -53,7 +53,7 @@ class UAEntitlement(object):
         if os.getuid() != 0:   # Ignore 'force' here. We always need sudo check
             message = status.MESSAGE_NONROOT_USER
             retval = False
-        elif not any([entitlements, force]):
+        elif not any([self.cfg.is_attached, force]):
             message = status.MESSAGE_UNATTACHED
             retval = False
         elif not any([entitlements.get(self.name, {}).get('enabled'), force]):
@@ -74,11 +74,10 @@ class UAEntitlement(object):
         if os.getuid() != 0:
             print(status.MESSAGE_NONROOT_USER)
             return False
-        entitlements = self.cfg.entitlements
-        if not entitlements:
+        if not self.cfg.is_attached:
             print(status.MESSAGE_UNATTACHED)
             return False
-        if not entitlements.get(self.name, {}).get('enabled'):
+        if not self.cfg.entitlements.get(self.name, {}).get('enabled'):
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         op_status, op_status_details = self.operational_status()
