@@ -114,13 +114,16 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
             util.write_file(apt_auth_file, content, mode=0o600)
 
 
-def add_repo_pinning(apt_preference_file, origin, priority):
+def add_ppa_pinning(apt_preference_file, repo_url, priority):
     """Add an apt preferences file and pin for a PPA."""
     series = platform.dist()[2]
+    _protocol, repo_path = repo_url.split('://')
+    origin = repo_path.replace('private-ppa.launchpad.net/', 'LP-PPA-')
+    origin = origin.replace('/', '-')
     content = (
         'Package: *\n'
         'Pin: release o={origin}, n={series}\n'
-        'Pin-Priority: ${priority}\n'.format(
+        'Pin-Priority: {priority}\n'.format(
             origin=origin, priority=priority, series=series))
     util.write_file(apt_preference_file, content)
 

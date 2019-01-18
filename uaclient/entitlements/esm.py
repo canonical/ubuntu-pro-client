@@ -15,6 +15,7 @@ class ESMEntitlement(repo.RepoEntitlement):
         ' (https://ubuntu.com/esm)')
     repo_url = 'https://esm.ubuntu.com'
     repo_key_file = 'ubuntu-esm-keyring.gpg'
+    repo_pin_priority = -32768   # Allow seeing esm pkg counts but not install
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement
@@ -33,6 +34,11 @@ class ESMEntitlement(repo.RepoEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+        if self.repo_pin_priority:
+            repo_pref_file = self.repo_pref_file_tmpl.format(
+                name=self.name, series=series)
+            if os.path.exists(repo_pref_file):
+                os.unlink(repo_pref_file)
         util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))

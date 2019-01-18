@@ -9,6 +9,8 @@ from uaclient import util
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
 
+    repo_pin_priority = 1001
+
     def enable(self):
         """Enable specific entitlement.
 
@@ -44,9 +46,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
-            apt.add_repo_pinning(
-                repo_pref_file, 'LP-PPA-ubuntu-advantage-%s' % self.name,
-                self.repo_pin_priority)
+            apt.add_ppa_pinning(
+                repo_pref_file, repo_url, self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
                       capture=True)
@@ -92,6 +93,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             if not repo_url:
                 repo_url = self.repo_url
             apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+            if self.repo_pin_priority:
+                repo_pref_file = self.repo_pref_file_tmpl.format(
+                    name=self.name, series=series)
+                if os.path.exists(repo_pref_file):
+                    os.unlink(repo_pref_file)
             util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print('Warning: no option to disable {title}'.format(

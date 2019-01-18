@@ -12,8 +12,7 @@ from uaclient import util
 class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = '/etc/apt/sources.list.d/ubuntu-{name}-{series}.list'
-    repo_pref_file_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
-    repo_pref_origin_tmpl = '/etc/apt/prefrences.d/ubuntu-{name}-{series}'
+    repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
 
     # TODO(Get serviceURL from Contract service's Entitlements response)
     # https://github.com/CanonicalLtd/ua-service/issues/7
@@ -58,9 +57,8 @@ class RepoEntitlement(base.UAEntitlement):
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
-            apt.add_repo_pinning(
-                repo_pref_file, 'LP-PPA-ubuntu-advantage-%s' % self.name,
-                self.repo_pin_priority)
+            apt.add_ppa_pinning(
+                repo_pref_file, repo_url, self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
                       capture=True)
