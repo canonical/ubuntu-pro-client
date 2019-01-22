@@ -82,14 +82,14 @@ Commands:
  enable-livepatch <TOKEN>          enable the Livepatch service
  disable-livepatch [-r]            disable the Livepatch service. With "-r", the
                                    canonical-livepatch snap will also be removed
- enable-cc-provisioning <TOKEN>    enable the commoncriteria PPA repository and
+ enable-cc-provisioning <TOKEN>    enable the commoncriteria repository and
                                    install the ubuntu-commoncriteria DEB package
- disable-cc-provisioning           disable the commoncriteria PPA repository and
+ disable-cc-provisioning           disable the commoncriteria repository and
                                    remove the ubuntu-commoncriteria DEB package
- enable-cisaudit <TOKEN>           enable the security benchmarks PPA repository
+ enable-cisaudit <TOKEN>           enable the security benchmarks repository
                                    and install the ubuntu-cisbenchmark-16.04 DEB
                                    package.
- disable-cisaudit                  disable the security benchmarks PPA repository
+ disable-cisaudit                  disable the security benchmarks repository
                                    and uninstall the ubuntu-cisbenchmark-16.04 DEB
                                    package.
 EOF
