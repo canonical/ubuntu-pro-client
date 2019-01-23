@@ -10,6 +10,7 @@ Currently it supports the following:
 - [Canonical Livepatch](https://www.ubuntu.com/server/livepatch) service for managed live kernel patching.
 - Canonical FIPS 140-2 Certified Modules. Install Configure and Enable FIPS modules.
 - Canonical Common Criteria EAL2 certification artifacts provisioning
+- Canonical CIS Ubuntu Benchmark Audit tool
 
 Run 
 
