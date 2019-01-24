@@ -176,13 +176,12 @@ def action_detach(args, cfg):
     contract_id = cfg.contracts[0]['contractInfo']['id']
     contract_client.request_contract_machine_detach(
         contract_id=contract_id, user_token=user_token)
-    machine_token_path = cfg.data_path('machine-token')
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
-    if os.path.exists(machine_token_path):
-        os.unlink(machine_token_path)
+    cfg.delete_cache('machine-token')
+    cfg.delete_cache('oauth')
     print('This machine is now detached')
     return 0
 
