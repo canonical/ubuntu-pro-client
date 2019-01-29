@@ -1,24 +1,79 @@
-diff --git a/ua-contracts/docs/contracts.yaml b/docs/contracts.yaml
-index c6e245b..b3dc3ae 100644
---- a/ua-contracts/docs/contracts.yaml
-+++ b/ua-contracts/docs/contracts.yaml
-@@ -7,30 +7,6 @@ info:
-     products and services under those contracts.
+diff --git a/ua-contracts/docs/contracts-implemented.yaml b/ua-contracts/docs/contracts-implemented.yaml
+index 7cc38e9..1ea09a8 100644
+--- a/ua-contracts/docs/contracts-implemented.yaml
++++ b/ua-contracts/docs/contracts-implemented.yaml
+@@ -10,23 +10,6 @@ info:
+     be implemented soon).
  
  components:
 -  securitySchemes:
 -# Security is annotated here primarily for documentation purposes, as a general guide.
 -# Access controls are nuanced than any code generator would probably be capable of.
 -# When in doubt, use the source.
--    ContractBearerAuth:
--      type: http
--      description: Contract user access token.
--      scheme: bearer
 -    ContextBearerAuth:
 -      type: http
 -      description: Context (such as machine) authorization token.
 -      scheme: bearer
+-    ContractBearerAuth:
+-      type: http
+-      description: Contract user access token.
+-      scheme: bearer
 -    # TODO: add Oauth for USSO
+-    AdminAuth:
+-      type: http
+-      description: Admin-authenticated endpoint.
+-      scheme: bearer
+   schemas:
+     AddContractBody:
+       type: object
+@@ -173,8 +156,6 @@ paths:
+         
+         TODO declare optional name, capability limits
+         such as: contract ID, context type (machines), lifetime, etc.
+-      security:
+-      - AdminAuth: []
+       operationId: AddContractToken
+       parameters:
+       - name: contract
+@@ -212,8 +193,6 @@ paths:
+         This will eventually be associated with a user,
+         but for now it's restricted to just the admin
+         user - contracts aren't yet associated with users.
+-      security:
+-      - AdminAuth: []
+       operationId: AddContract
+       requestBody:
+         content:
+@@ -248,8 +227,6 @@ paths:
+         Note: Contexts are _where_ resources are used under a contract. Since v1 of this
+         service is specifically targeting UA contracts, supported contexts are always
+         "machines". v2 of this API will expose this as /contract/{contract}/context        
+-      security:
+-      - ContractBearerAuth: []
+       operationId: AddContractMachine
+       requestBody:
+         content:
+@@ -288,8 +265,6 @@ paths:
+         Get affordances and obligations that apply to the resource for the machine token provided.
+         Affordances are domain-specific to the service that provides the resource, and determined
+         by the contract.
+-      security:
+-      - ContextBearerAuth: []
+       operationId: GetResourceMachineAccess
+       parameters:
+       - name: resource
+diff --git a/ua-contracts/docs/contracts.yaml b/ua-contracts/docs/contracts.yaml
+index 3a56cfb..1193c13 100644
+--- a/ua-contracts/docs/contracts.yaml
++++ b/ua-contracts/docs/contracts.yaml
+@@ -10,32 +10,6 @@ info:
+     Most of it is unimplemented as yet.
+ 
+ components:
+-  securitySchemes:
+-# Security is annotated here primarily for documentation purposes, as a general guide.
+-# Access controls are nuanced than any code generator would probably be capable of.
+-# When in doubt, use the source.
 -    CandidAuth:
 -      type: http
 -      description: Candid-authenticated endpoint.
@@ -30,20 +85,22 @@ index c6e245b..b3dc3ae 100644
 -            agent: Grants access to other Canonical services.
 -            admin: Grants access to admin operations. Note that "admin" means "admin of the contract service itself" and not "account administrator user".
 -            user: Grants access to user operations, constrained to entities owned by declared user. Other restrictions may apply to entities involved.
+-    ContextBearerAuth:
+-      type: http
+-      description: Context (such as machine) authorization token.
+-      scheme: bearer
+-    ContractBearerAuth:
+-      type: http
+-      description: Contract user access token.
+-      scheme: bearer
+-    # TODO: add Oauth for USSO
+-
+-
    schemas:
      AccountInfo:
        type: object
-@@ -254,17 +230,12 @@ components:
-           type: string
-           description: Correlation ID for log tracing purposes (OpenZipKin for example) if available.
- 
--security:
--- CandidAuth: [admin]
--
- paths:
- 
- # Accounts
-   /accounts:
+@@ -308,8 +282,6 @@ paths:
+   /v1/accounts:
      get:
        description: Find an account. Admins can search across all accounts. Users can see only those accounts they have access to.
 -      security:
@@ -51,7 +108,7 @@ index c6e245b..b3dc3ae 100644
        operationId: FindAccount
        parameters:
        - name: name
-@@ -309,8 +280,6 @@ paths:
+@@ -354,8 +326,6 @@ paths:
      post:
        description: Add an account. Accounts may be added by an admin or an SF mediator agent.
        # In v1, the "SF mediator" agent might be built in to the contract service; just reserving the option to break it out later.
@@ -60,8 +117,8 @@ index c6e245b..b3dc3ae 100644
        operationId: AddAccount
        requestBody:
          content:
-@@ -354,8 +323,6 @@ paths:
-   /accounts/{account}:
+@@ -399,8 +369,6 @@ paths:
+   /v1/accounts/{account}:
      get:
        description: Find an account by ID.
 -      security:
@@ -69,7 +126,7 @@ index c6e245b..b3dc3ae 100644
        operationId: FindAccountID
        parameters:
        - name: account
-@@ -379,8 +346,6 @@ paths:
+@@ -424,8 +392,6 @@ paths:
                  $ref: "#/components/schemas/Error"
      put:
        description: Update account information. Admins can update anything. Users must have account administrator access.
@@ -78,143 +135,8 @@ index c6e245b..b3dc3ae 100644
        operationId: UpdateAccountID
        parameters:
        - name: account
-@@ -414,8 +379,6 @@ paths:
-   /accounts/{account}/users:
-     get:
-       description: Find user access on the account.
--      security:
--      - CandidAuth: [admin,user]
-       operationId: FindAccountUserAccess
-       parameters:
-       - name: account
-@@ -441,8 +404,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     post:
-       description: Add user access to an account. Users must have account administrator access.
--      security:
--      - CandidAuth: [admin,user]
-       operationId: AddAccountUserAccess
-       parameters:
-       - name: account
-@@ -468,8 +429,6 @@ paths:
-   /accounts/{account}/users/{user}:
-     get:
-       description: Find user access by username.
--      security:
--      - CandidAuth: [admin,user]
-       operationId: FindAccountUserAccessID
-       parameters:
-       - name: account
-@@ -499,8 +458,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     put:
-       description: Update user access to the account.
--      security:
--      - CandidAuth: [admin,user]
-       operationId: UpdateAccountUserAccessID
-       parameters:
-       - name: account
-@@ -538,8 +495,6 @@ paths:
-       description: |-
-         Revoke user access by username. When a user's access is revoked, all
-         issued contract tokens that speak for that user are also revoked.
--      security:
--      - CandidAuth: [admin,user]
-       operationId: RevokeAccountUserAccess
-       parameters:
-       - name: account
-@@ -571,8 +526,6 @@ paths:
-   /users/{user}/accounts:
-     get:
-       description: Find what accounts a user has access to.
--      security:
--      - CandidAuth: [admin,user,agent]
-       operationId: FindUserAccount
-       parameters:
-       - name: user
-@@ -606,8 +559,6 @@ paths:
-   /users/{user}/contracts:
-     get:
-       description: Find what contracts have been entered into, by accounts that a user has access to.
--      security:
--      - CandidAuth: [admin,user,agent]
-       operationId: FindUserContract
-       parameters:
-       - name: user
-@@ -675,8 +626,6 @@ paths:
-     get:
-       description: Find authentication tokens issued for this user.
-       # search by name, capabilities
--      security:
--      - CandidAuth: [user]
-       operationId: FindContractToken
-       parameters:
-       - name: contract
-@@ -708,8 +657,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     post:
-       description: Issue an authentication token that speaks for a user's access to a contract.
--      security:
--      - CandidAuth: [user]
-       operationId: AddContractToken
-       parameters:
-       - name: contract
-@@ -756,8 +703,6 @@ paths:
-   /contracts/{contract}/users/{user}/token/{token}:
-     get:
-       description: Get status of a contract authentication token.
--      security:
--      - CandidAuth: [user]
-       operationId: FindContractTokenID
-       parameters:
-       - name: contract
-@@ -794,8 +739,6 @@ paths:
-     put:
-       description: Rotate a contract token, exchanging the current secret for a new one.
-       # Experimental/Optional/Nice to have. Don't depend on this in v1.
--      security:
--      - CandidAuth: [user]
-       operationId: RotateContractTokenID
-       parameters:
-       - name: contract
-@@ -839,8 +782,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     delete:
-       description: Revoke a contract token.
--      security:
--      - CandidAuth: [user]
-       operationId: RevokeContractTokenID
-       parameters:
-       - name: contract
-@@ -880,8 +821,6 @@ paths:
-     get:
-       description: Find contract templates
-       # user access to templates may be restricted; some templates may be private, so we can cut special deals, etc.
--      security:
--      - CandidAuth: [admin,agent,user]
-       operationId: FindTemplate
-       parameters:
-       - name: name
-@@ -922,8 +861,6 @@ paths:
-       description: Create a contract template
-       # v1: only Canonical can do this, if templates aren't hard-coded
-       # request would contain a template document object
--      security:
--      - CandidAuth: [admin]
-       operationId: AddTemplate
-       requestBody:
-         content:
-@@ -947,8 +884,6 @@ paths:
-   /templates/{template}:
-     get:
-       description: Find contract template by ID
--      security:
--      - CandidAuth: [admin,agent,user]
-       operationId: FindTemplateID
-       parameters:
-       - name: template
-@@ -978,9 +913,6 @@ paths:
-   /accounts/{account}/contracts:
+@@ -458,9 +424,6 @@ paths:
+   /v1/accounts/{account}/contracts:
      get:
        description: Find contracts that an account is party to.
 -      security:
@@ -223,7 +145,7 @@ index c6e245b..b3dc3ae 100644
        operationId: FindAccountContract
        parameters:
        - name: account
-@@ -1007,8 +939,6 @@ paths:
+@@ -487,8 +450,6 @@ paths:
      post:
        description: Record that an account has entered into a contract.
        # account administrator users can enter into contracts
@@ -232,8 +154,62 @@ index c6e245b..b3dc3ae 100644
        operationId: AddAccountContract
        parameters:
        - name: account
-@@ -1043,9 +973,6 @@ paths:
-   /contracts/{contract}:
+@@ -522,8 +483,6 @@ paths:
+   /v1/accounts/{account}/users:
+     get:
+       description: Find user access on the account.
+-      security:
+-      - CandidAuth: [admin,user]
+       operationId: FindAccountUserAccess
+       parameters:
+       - name: account
+@@ -549,8 +508,6 @@ paths:
+                 $ref: "#/components/schemas/Error"
+     post:
+       description: Add user access to an account. Users must have account administrator access.
+-      security:
+-      - CandidAuth: [admin,user]
+       operationId: AddAccountUserAccess
+       parameters:
+       - name: account
+@@ -577,8 +534,6 @@ paths:
+   /v1/accounts/{account}/users/{user}:
+     get:
+       description: Find user access by username.
+-      security:
+-      - CandidAuth: [admin,user]
+       operationId: FindAccountUserAccessID
+       parameters:
+       - name: account
+@@ -608,8 +563,6 @@ paths:
+                 $ref: "#/components/schemas/Error"
+     put:
+       description: Update user access to the account.
+-      security:
+-      - CandidAuth: [admin,user]
+       operationId: UpdateAccountUserAccessID
+       parameters:
+       - name: account
+@@ -647,8 +600,6 @@ paths:
+       description: |-
+         Revoke user access by username. When a user's access is revoked, all
+         issued contract tokens that speak for that user are also revoked.
+-      security:
+-      - CandidAuth: [admin,user]
+       operationId: RevokeAccountUserAccess
+       parameters:
+       - name: account
+@@ -682,8 +633,6 @@ paths:
+       description: |-
+         Authorize a machine under a contract and return a token
+         that allows the machine access.
+-      security:
+-      - ContractBearerAuth: []
+       operationId: AddContractMachine
+       requestBody:
+         content:
+@@ -719,9 +668,6 @@ paths:
+   /v1/contracts/{contract}:
      get:
        description: Find a contract by ID.
 -      security:
@@ -242,26 +218,17 @@ index c6e245b..b3dc3ae 100644
        operationId: FindContractID
        parameters:
        - name: contract
-@@ -1078,9 +1005,6 @@ paths:
-   /contracts/{contract}/context/machines:
-     get:
-       description: Find machine authorizations for a contract
+@@ -751,9 +697,6 @@ paths:
+       description: |-
+         Find machine authorizations for a contract.
+         Note: Contexts are _where_ resources are used under a contract.
 -      security:
 -      - ContractBearerAuth: []
 -      - CandidAuth: [admin,user]
        operationId: FindContractMachines
        parameters:
        - name: contract
-@@ -1106,8 +1030,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     post:
-       description: Authorize machine(s) under this contract.
--      security:
--      - ContractBearerAuth: []
-       operationId: AddContractMachine
-       parameters:
-       - name: contract
-@@ -1167,9 +1089,6 @@ paths:
+@@ -789,9 +732,6 @@ paths:
          requirement.
  
          If any of the above requirements are not met, error response and nothing is changed.
@@ -271,7 +238,16 @@ index c6e245b..b3dc3ae 100644
        operationId: ReauthorizeContractMachines
        parameters:
        - name: contract
-@@ -1195,9 +1114,6 @@ paths:
+@@ -806,7 +746,7 @@ paths:
+           content:
+             application/json:
+               schema:
+-                $ref: "#/components/schemas/NewMachineToken"
++                $ref: "#/components/schemas/MachineTokenInfo"
+         default:
+           description: Unexpected error
+           content:
+@@ -817,9 +757,6 @@ paths:
        description: |-
          Remove machine(s) from a contract, revoking their authorization tokens. Once revoked,
          the machine(s) will need to be re-authorized with new tokens using a POST.
@@ -281,7 +257,52 @@ index c6e245b..b3dc3ae 100644
        operationId: RevokeContractMachines
        parameters:
        - name: contract
-@@ -1226,8 +1142,6 @@ paths:
+@@ -848,8 +785,6 @@ paths:
+     get:
+       description: Find authentication tokens issued for this user.
+       # search by name, capabilities
+-      security:
+-      - CandidAuth: [user]
+       operationId: FindContractToken
+       parameters:
+       - name: contract
+@@ -881,8 +816,6 @@ paths:
+                 $ref: "#/components/schemas/Error"
+     post:
+       description: Issue an authentication token that speaks for a user's access to a contract.
+-      security:
+-      - CandidAuth: [user]
+       operationId: AddContractToken
+       parameters:
+       - name: contract
+@@ -930,8 +863,6 @@ paths:
+   /v1/contracts/{contract}/users/{user}/token/{token}:
+     get:
+       description: Get status of a contract authentication token.
+-      security:
+-      - CandidAuth: [user]
+       operationId: FindContractTokenID
+       parameters:
+       - name: contract
+@@ -968,8 +899,6 @@ paths:
+     put:
+       description: Rotate a contract token, exchanging the current secret for a new one.
+       # Experimental/Optional/Nice to have. Don't depend on this in v1.
+-      security:
+-      - CandidAuth: [user]
+       operationId: RotateContractTokenID
+       parameters:
+       - name: contract
+@@ -1013,8 +942,6 @@ paths:
+                 $ref: "#/components/schemas/Error"
+     delete:
+       description: Revoke a contract token.
+-      security:
+-      - CandidAuth: [user]
+       operationId: RevokeContractTokenID
+       parameters:
+       - name: contract
+@@ -1055,8 +982,6 @@ paths:
        description: |-
          Find contract and entitlements by machine ID. Used by machines to check
          the status of their authorization token.
@@ -290,7 +311,7 @@ index c6e245b..b3dc3ae 100644
        operationId: FindMachineContract
        parameters:
        - name: machine
-@@ -1311,8 +1225,6 @@ paths:
+@@ -1139,8 +1064,6 @@ paths:
          resource-providing services (like Livepatch, ESM, etc.) to check on the status
          of a machine token if they receive such a token. v1 API supported values for
          {resource} are "esm" "fips" "fips-updates" "livepatch" "support"
@@ -299,7 +320,7 @@ index c6e245b..b3dc3ae 100644
        operationId: CheckResourceMachineAccess
        parameters:
        - name: resource
-@@ -1337,8 +1249,6 @@ paths:
+@@ -1171,8 +1094,6 @@ paths:
          Get affordances and obligations that apply to the resource for the machine token provided.
          Affordances are domain-specific to the service that provides the resource, and determined
          by the contract.
@@ -308,3 +329,48 @@ index c6e245b..b3dc3ae 100644
        operationId: GetResourceMachineAccess
        parameters:
        - name: resource
+@@ -1211,8 +1132,6 @@ paths:
+     get:
+       description: Find contract templates
+       # user access to templates may be restricted; some templates may be private, so we can cut special deals, etc.
+-      security:
+-      - CandidAuth: [admin,agent,user]
+       operationId: FindTemplate
+       parameters:
+       - name: name
+@@ -1253,8 +1172,6 @@ paths:
+       description: Create a contract template
+       # v1: only Canonical can do this, if templates aren't hard-coded
+       # request would contain a template document object
+-      security:
+-      - CandidAuth: [admin]
+       operationId: AddTemplate
+       requestBody:
+         content:
+@@ -1279,8 +1196,6 @@ paths:
+   /v1/templates/{template}:
+     get:
+       description: Find contract template by ID
+-      security:
+-      - CandidAuth: [admin,agent,user]
+       operationId: FindTemplateID
+       parameters:
+       - name: template
+@@ -1309,8 +1224,6 @@ paths:
+   /v1/users/{user}/accounts:
+     get:
+       description: Find what accounts a user has access to.
+-      security:
+-      - CandidAuth: [admin,user,agent]
+       operationId: FindUserAccount
+       parameters:
+       - name: user
+@@ -1345,8 +1258,6 @@ paths:
+   /v1/users/{user}/contracts:
+     get:
+       description: Find what contracts have been entered into, by accounts that a user has access to.
+-      security:
+-      - CandidAuth: [admin,user,agent]
+       operationId: FindUserContract
+       parameters:
+       - name: user
