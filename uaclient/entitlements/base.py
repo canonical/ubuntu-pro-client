@@ -106,8 +106,8 @@ class UAEntitlement(object):
             provided constraints.
         """
         entitlements = self.cfg.entitlements
-        entitlement_status = entitlements.get(self.name)
-        affordances = entitlement_status.get('affordances', {})
+        entitlement_cfg = entitlements.get(self.name)
+        affordances = entitlement_cfg['entitlement'].get('affordances', {})
         series = util.get_platform_info('series')
         for affordance in affordances:
             if 'series' in affordance and series not in affordance['series']:
