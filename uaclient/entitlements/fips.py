@@ -21,14 +21,14 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
-        access_directives = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {})
+        resource_cfg = self.cfg.read_cache('machine-access-%s' % self.name)
+        access_directives = resource_cfg['entitlement'].get('directives', {})
         ppa_fingerprint = access_directives.get('aptKey')
         if ppa_fingerprint:
             keyring_file = None
         else:
             keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        token = access_directives.get('legacyBasicAuth')
+        token = resource_cfg.get('resourceToken')
         if not token:
             logging.debug(
                 'No legacy entitlement token present. Using machine token'

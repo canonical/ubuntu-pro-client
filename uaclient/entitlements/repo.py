@@ -29,10 +29,9 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         # TODO(Contract service needs to commit to a token directive)
-        entitlement_cfg = self.cfg.read_cache(
-            'machine-access-%s' % self.name)['entitlement']
-        access_directives = entitlement_cfg.get('directives', {})
-        token = entitlement_cfg.get('resourceToken')
+        resource_cfg = self.cfg.read_cache('machine-access-%s' % self.name)
+        access_directives = resource_cfg['entitlement'].get('directives', {})
+        token = resource_cfg.get('resourceToken')
         if not token:
             logging.debug(
                 'No specific resourceToken present. Using machine token'
