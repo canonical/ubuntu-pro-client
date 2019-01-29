@@ -38,6 +38,9 @@ Valid until: {contract_expiry}
 Technical support: {support_level}
 """
 
+# List of PRS needed for full MVP support
+MISSING_PR22 = 'Missing PR#22'
+
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
@@ -144,11 +147,6 @@ def action_enable(args, cfg):
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
-    if entitlement.is_access_expired():
-        machine_secret = cfg.machine_token['machineSecret']
-        contract_client = contract.UAContractClient(cfg)
-        contract_client.request_resource_machine_access(
-            machine_secret, args.name)
     return 0 if entitlement.enable() else 1
 
 
@@ -166,16 +164,6 @@ def action_detach(args, cfg):
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
-    user_token = cfg.read_cache('oauth')
-    if not user_token:
-        logging.error(
-            'Cannot detach, No user-token persisted at %s.',
-            cfg.data_path('oauth'))
-        return 1
-    contract_client = contract.UAContractClient(cfg)
-    contract_id = cfg.contracts[0]['contractInfo']['id']
-    contract_client.request_contract_machine_detach(
-        contract_id=contract_id, user_token=user_token)
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
@@ -188,8 +176,7 @@ def action_detach(args, cfg):
 
 def action_attach(args, cfg):
     if cfg.is_attached:
-        print("This machine is already attached to '%s'." %
-              cfg.contracts[0]['contractInfo']['name'])
+        print("This machine is already attached to '%s'." % MISSING_PR22)
         return 0
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
@@ -208,16 +195,8 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     try:
-        accounts = contract_client.request_accounts()
-    except util.UrlError:
-        logging.error(
-            'Could not connect to contract_url: %s', cfg.contract_url)
-        return 1
-    contracts = contract_client.request_account_contracts(accounts[0]['id'])
-    contract_id = contracts[0]['contractInfo']['id']
-    try:
         token_response = contract_client.request_contract_machine_attach(
-            contract_id=contract_id, user_token=user_token['token_key'])
+            user_token=user_token['token_key'])
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
@@ -277,21 +256,19 @@ def print_status(args=None, cfg=None):
     if not cfg:
         cfg = config.UAConfig()
     if not cfg.is_attached:
-        print('This machine is not attached to a UA subscription.\n'
-              'See `ua attach` or https://ubuntu.com/advantage')
+        print(ua_status.MESSAGE_UNATTACHED)
         return
-    account = cfg.accounts[0]
-    contract = cfg.contracts[0]
+    contractInfo = cfg.machine_token['machineTokenInfo']['contractInfo']
     expiry = datetime.strptime(
-        contract['contractInfo']['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
     status_content = []
     # TODO(parse-from-TBD contract-api-resourceEntitlement-response)
     status_level = ua_status.STATUS_COLOR.get(
             ua_status.STANDARD, ua_status.STANDARD)
     status_content.append(STATUS_HEADER_TMPL.format(
-        account=account['name'],
-        subscription=contract['contractInfo']['name'],
+        account=MISSING_PR22,
+        subscription=contractInfo['name'],
         contract_expiry=expiry.date(),
         support_level=status_level))
 

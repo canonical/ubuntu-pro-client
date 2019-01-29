@@ -31,13 +31,12 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which('/snap/bin/canonical-livepatch'):
             print('Installing canonical-livepatch snap...')
             util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
-        livepatch_directives = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {})
-        livepatch_token = livepatch_directives.get('legacyToken')
+        livepatch_token = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('resourceToken')
         if not livepatch_token:
             logging.debug(
-                'No legacy entitlement token present. Using machine token'
-                ' as %s credentials', self.title)
+                'No specific resourceToken present. Using machine token as'
+                ' %s credentials', self.title)
             livepatch_token = self.cfg.machine_token['machineSecret']
         try:
             util.subp(['/snap/bin/canonical-livepatch', 'enable',
@@ -56,7 +55,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         print('Canonical livepatch enabled.')
         return True
 
-    def disable(self, silent=False, force=True):
+    def disable(self, silent=False, force=False):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.

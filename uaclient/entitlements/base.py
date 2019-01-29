@@ -49,14 +49,13 @@ class UAEntitlement(object):
         """
         message = ''
         retval = True
-        entitlements = self.cfg.entitlements
         if os.getuid() != 0:   # Ignore 'force' here. We always need sudo check
             message = status.MESSAGE_NONROOT_USER
             retval = False
         elif not any([self.cfg.is_attached, force]):
             message = status.MESSAGE_UNATTACHED
             retval = False
-        elif not any([entitlements.get(self.name, {}).get('enabled'), force]):
+        elif not any([self.contract_status() == status.ENTITLED, force]):
             message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
             retval = False
         elif not force:
@@ -77,7 +76,12 @@ class UAEntitlement(object):
         if not self.cfg.is_attached:
             print(status.MESSAGE_UNATTACHED)
             return False
-        if not self.cfg.entitlements.get(self.name, {}).get('enabled'):
+        if self.is_access_expired():
+            machine_secret = cfg.machine_token['machineSecret']
+            contract_client = contract.UAContractClient(cfg)
+            contract_client.request_resource_machine_access(
+                machine_secret, args.name)
+        if not self.contract_status() == status.ENTITLED:
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         op_status, op_status_details = self.operational_status()
@@ -127,8 +131,10 @@ class UAEntitlement(object):
 
     def contract_status(self):
         """Return whether contract entitlement is ENTITLED or NONE."""
+        if not self.cfg.is_attached:
+            return status.NONE
         entitlement_contract = self.cfg.entitlements.get(self.name, {})
-        if entitlement_contract.get('enabled'):
+        if entitlement_contract['entitlement'].get('entitled'):
             return status.ENTITLED
         return status.NONE
 

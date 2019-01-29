@@ -9,6 +9,9 @@ API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
 API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 
+API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machine/token'
+API_V1_TMPL_RESOURCE_MACHINE_ACCESS = '/v1/resources/{resource}/context/machine/{machine}'
+
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
 
@@ -103,8 +106,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('machine-contracts', contracts)
         return contracts
 
-    def request_contract_machine_attach(self, contract_id, user_token,
-                                        machine_id=None):
+    def request_contract_machine_attach(self, user_token, machine_id=None):
         """Requests machine attach to the provided contact_id.
 
         @param contract_id: Unique contract id provided by contract service.
@@ -119,10 +121,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_id = util.get_machine_id(self.cfg.data_dir)
         os = util.get_platform_info()
         arch = os.pop('arch')
-        data = {'machineId': machine_id, 'arch': arch, 'os': os}
+        data = {'machineId': machine_id, 'architecture': arch, 'os': os}
         machine_token, _headers = self.request_url(
-            API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
-            data=data)
+            API_V1_CONTEXT_MACHINE_TOKEN, data=data)
         self.cfg.write_cache('machine-token', machine_token)
         return machine_token
 
@@ -141,17 +142,23 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('machine-detach', machine_token)
         return machine_token
 
-    def request_resource_machine_access(self, machine_token, resource):
+    def request_resource_machine_access(
+            self, machine_token, resource, machine_id=None):
         """Requests machine access context for a given resource
 
         @param machine_token: The authentication token needed to talk to
             this contract service endpoint.
         @param resource: Entitlement name. One of: livepatch, esm, fips or
             fips-updates.
+        @param machine_id: Optional unique system machine id. When absent,
+            contents of /etc/machine-id will be used.
 
         @return: Dict of the JSON response containing entitlement accessInfo.
         """
-        url = API_PATH_TMPL_RESOURCE_MACHINE_ACCESS.format(resource=resource)
+        if not machine_id:
+            machine_id = util.get_machine_id(self.cfg.data_dir)
+        url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+            resource=resource, machine=machine_id)
         resource_access, headers = self.request_url(url)
         if headers.get('expires'):
             resource_access['expires'] = headers['expires']
