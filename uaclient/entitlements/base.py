@@ -4,6 +4,7 @@ import os
 import six
 
 from uaclient import config
+from uaclient import contract
 from uaclient import status
 from uaclient import util
 
@@ -77,10 +78,10 @@ class UAEntitlement(object):
             print(status.MESSAGE_UNATTACHED)
             return False
         if self.is_access_expired():
-            machine_secret = cfg.machine_token['machineSecret']
-            contract_client = contract.UAContractClient(cfg)
+            machine_secret = self.cfg.machine_token['machineSecret']
+            contract_client = contract.UAContractClient(self.cfg)
             contract_client.request_resource_machine_access(
-                machine_secret, args.name)
+                machine_secret, self.name)
         if not self.contract_status() == status.ENTITLED:
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False

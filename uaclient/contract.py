@@ -10,7 +10,8 @@ API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machine/token'
-API_V1_TMPL_RESOURCE_MACHINE_ACCESS = '/v1/resources/{resource}/context/machine/{machine}'
+API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
+    '/v1/resources/{resource}/context/machine/{machine}')
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
