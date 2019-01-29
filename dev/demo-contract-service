@@ -7,10 +7,14 @@
 # functional in the repo https://github.com/CanonicalLtd/ua-service
 
 # 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
-
+upstream=${1:-CanonicalLtd}
+if [ "$upstream" != "canonical-server" -a "$upstream" != "CanonicalLtd" ]; then
+   echo "Invalid upstream value $upstream, expected canonical-server or CanonicalLtd"
+   exit 1
+fi
 LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
-   git clone git@github.com:canonical-server/ua-contracts.git
+   git clone git@github.com:$upstream/ua-contracts.git
    patch -p1 -i dev/contracts-schema.patch
 fi
 
