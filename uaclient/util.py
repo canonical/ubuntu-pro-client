@@ -101,7 +101,7 @@ def maybe_parse_json(content):
     @return: Structured content on success and None on failure.
     """
     try:
-        return json.loads(content)
+        return json.loads(decode_binary(content))
     except ValueError:
         return None
 
