@@ -1,5 +1,5 @@
 diff --git a/ua-contracts/docs/contracts-implemented.yaml b/ua-contracts/docs/contracts-implemented.yaml
-index 7cc38e9..1ea09a8 100644
+index 85347ba..5ddbcbd 100644
 --- a/ua-contracts/docs/contracts-implemented.yaml
 +++ b/ua-contracts/docs/contracts-implemented.yaml
 @@ -10,23 +10,6 @@ info:
@@ -26,7 +26,7 @@ index 7cc38e9..1ea09a8 100644
    schemas:
      AddContractBody:
        type: object
-@@ -173,8 +156,6 @@ paths:
+@@ -171,8 +154,6 @@ paths:
          
          TODO declare optional name, capability limits
          such as: contract ID, context type (machines), lifetime, etc.
@@ -35,7 +35,7 @@ index 7cc38e9..1ea09a8 100644
        operationId: AddContractToken
        parameters:
        - name: contract
-@@ -212,8 +193,6 @@ paths:
+@@ -210,8 +191,6 @@ paths:
          This will eventually be associated with a user,
          but for now it's restricted to just the admin
          user - contracts aren't yet associated with users.
@@ -44,7 +44,7 @@ index 7cc38e9..1ea09a8 100644
        operationId: AddContract
        requestBody:
          content:
-@@ -248,8 +227,6 @@ paths:
+@@ -246,8 +225,6 @@ paths:
          Note: Contexts are _where_ resources are used under a contract. Since v1 of this
          service is specifically targeting UA contracts, supported contexts are always
          "machines". v2 of this API will expose this as /contract/{contract}/context        
@@ -53,7 +53,7 @@ index 7cc38e9..1ea09a8 100644
        operationId: AddContractMachine
        requestBody:
          content:
-@@ -288,8 +265,6 @@ paths:
+@@ -286,8 +263,6 @@ paths:
          Get affordances and obligations that apply to the resource for the machine token provided.
          Affordances are domain-specific to the service that provides the resource, and determined
          by the contract.
@@ -63,7 +63,7 @@ index 7cc38e9..1ea09a8 100644
        parameters:
        - name: resource
 diff --git a/ua-contracts/docs/contracts.yaml b/ua-contracts/docs/contracts.yaml
-index 3a56cfb..1193c13 100644
+index dadabe1..f28a24a 100644
 --- a/ua-contracts/docs/contracts.yaml
 +++ b/ua-contracts/docs/contracts.yaml
 @@ -10,32 +10,6 @@ info:
@@ -99,7 +99,7 @@ index 3a56cfb..1193c13 100644
    schemas:
      AccountInfo:
        type: object
-@@ -308,8 +282,6 @@ paths:
+@@ -393,8 +367,6 @@ paths:
    /v1/accounts:
      get:
        description: Find an account. Admins can search across all accounts. Users can see only those accounts they have access to.
@@ -108,7 +108,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindAccount
        parameters:
        - name: name
-@@ -354,8 +326,6 @@ paths:
+@@ -439,8 +411,6 @@ paths:
      post:
        description: Add an account. Accounts may be added by an admin or an SF mediator agent.
        # In v1, the "SF mediator" agent might be built in to the contract service; just reserving the option to break it out later.
@@ -117,7 +117,7 @@ index 3a56cfb..1193c13 100644
        operationId: AddAccount
        requestBody:
          content:
-@@ -399,8 +369,6 @@ paths:
+@@ -484,8 +454,6 @@ paths:
    /v1/accounts/{account}:
      get:
        description: Find an account by ID.
@@ -126,7 +126,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindAccountID
        parameters:
        - name: account
-@@ -424,8 +392,6 @@ paths:
+@@ -509,8 +477,6 @@ paths:
                  $ref: "#/components/schemas/Error"
      put:
        description: Update account information. Admins can update anything. Users must have account administrator access.
@@ -135,7 +135,7 @@ index 3a56cfb..1193c13 100644
        operationId: UpdateAccountID
        parameters:
        - name: account
-@@ -458,9 +424,6 @@ paths:
+@@ -543,9 +509,6 @@ paths:
    /v1/accounts/{account}/contracts:
      get:
        description: Find contracts that an account is party to.
@@ -145,7 +145,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindAccountContract
        parameters:
        - name: account
-@@ -487,8 +450,6 @@ paths:
+@@ -572,8 +535,6 @@ paths:
      post:
        description: Record that an account has entered into a contract.
        # account administrator users can enter into contracts
@@ -154,7 +154,7 @@ index 3a56cfb..1193c13 100644
        operationId: AddAccountContract
        parameters:
        - name: account
-@@ -522,8 +483,6 @@ paths:
+@@ -607,8 +568,6 @@ paths:
    /v1/accounts/{account}/users:
      get:
        description: Find user access on the account.
@@ -163,7 +163,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindAccountUserAccess
        parameters:
        - name: account
-@@ -549,8 +508,6 @@ paths:
+@@ -634,8 +593,6 @@ paths:
                  $ref: "#/components/schemas/Error"
      post:
        description: Add user access to an account. Users must have account administrator access.
@@ -172,7 +172,7 @@ index 3a56cfb..1193c13 100644
        operationId: AddAccountUserAccess
        parameters:
        - name: account
-@@ -577,8 +534,6 @@ paths:
+@@ -662,8 +619,6 @@ paths:
    /v1/accounts/{account}/users/{user}:
      get:
        description: Find user access by username.
@@ -181,7 +181,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindAccountUserAccessID
        parameters:
        - name: account
-@@ -608,8 +563,6 @@ paths:
+@@ -693,8 +648,6 @@ paths:
                  $ref: "#/components/schemas/Error"
      put:
        description: Update user access to the account.
@@ -190,7 +190,7 @@ index 3a56cfb..1193c13 100644
        operationId: UpdateAccountUserAccessID
        parameters:
        - name: account
-@@ -647,8 +600,6 @@ paths:
+@@ -732,8 +685,6 @@ paths:
        description: |-
          Revoke user access by username. When a user's access is revoked, all
          issued contract tokens that speak for that user are also revoked.
@@ -199,7 +199,7 @@ index 3a56cfb..1193c13 100644
        operationId: RevokeAccountUserAccess
        parameters:
        - name: account
-@@ -682,8 +633,6 @@ paths:
+@@ -767,8 +718,6 @@ paths:
        description: |-
          Authorize a machine under a contract and return a token
          that allows the machine access.
@@ -208,7 +208,7 @@ index 3a56cfb..1193c13 100644
        operationId: AddContractMachine
        requestBody:
          content:
-@@ -719,9 +668,6 @@ paths:
+@@ -804,9 +753,6 @@ paths:
    /v1/contracts/{contract}:
      get:
        description: Find a contract by ID.
@@ -218,7 +218,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindContractID
        parameters:
        - name: contract
-@@ -751,9 +697,6 @@ paths:
+@@ -836,9 +782,6 @@ paths:
        description: |-
          Find machine authorizations for a contract.
          Note: Contexts are _where_ resources are used under a contract.
@@ -228,7 +228,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindContractMachines
        parameters:
        - name: contract
-@@ -789,9 +732,6 @@ paths:
+@@ -874,9 +817,6 @@ paths:
          requirement.
  
          If any of the above requirements are not met, error response and nothing is changed.
@@ -238,16 +238,7 @@ index 3a56cfb..1193c13 100644
        operationId: ReauthorizeContractMachines
        parameters:
        - name: contract
-@@ -806,7 +746,7 @@ paths:
-           content:
-             application/json:
-               schema:
--                $ref: "#/components/schemas/NewMachineToken"
-+                $ref: "#/components/schemas/MachineTokenInfo"
-         default:
-           description: Unexpected error
-           content:
-@@ -817,9 +757,6 @@ paths:
+@@ -902,9 +842,6 @@ paths:
        description: |-
          Remove machine(s) from a contract, revoking their authorization tokens. Once revoked,
          the machine(s) will need to be re-authorized with new tokens using a POST.
@@ -257,7 +248,16 @@ index 3a56cfb..1193c13 100644
        operationId: RevokeContractMachines
        parameters:
        - name: contract
-@@ -848,8 +785,6 @@ paths:
+@@ -934,8 +871,6 @@ paths:
+         
+         This creates a contract token that can be used to create machine tokens
+         that can be used to access resources.
+-      security:
+-      - CandidAuth: [user]
+       operationId: AddContractToken
+       parameters:
+       - name: contract
+@@ -974,8 +909,6 @@ paths:
      get:
        description: Find authentication tokens issued for this user.
        # search by name, capabilities
@@ -266,16 +266,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindContractToken
        parameters:
        - name: contract
-@@ -881,8 +816,6 @@ paths:
-                 $ref: "#/components/schemas/Error"
-     post:
-       description: Issue an authentication token that speaks for a user's access to a contract.
--      security:
--      - CandidAuth: [user]
-       operationId: AddContractToken
-       parameters:
-       - name: contract
-@@ -930,8 +863,6 @@ paths:
+@@ -1009,8 +942,6 @@ paths:
    /v1/contracts/{contract}/users/{user}/token/{token}:
      get:
        description: Get status of a contract authentication token.
@@ -284,7 +275,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindContractTokenID
        parameters:
        - name: contract
-@@ -968,8 +899,6 @@ paths:
+@@ -1047,8 +978,6 @@ paths:
      put:
        description: Rotate a contract token, exchanging the current secret for a new one.
        # Experimental/Optional/Nice to have. Don't depend on this in v1.
@@ -293,7 +284,7 @@ index 3a56cfb..1193c13 100644
        operationId: RotateContractTokenID
        parameters:
        - name: contract
-@@ -1013,8 +942,6 @@ paths:
+@@ -1092,8 +1021,6 @@ paths:
                  $ref: "#/components/schemas/Error"
      delete:
        description: Revoke a contract token.
@@ -302,7 +293,7 @@ index 3a56cfb..1193c13 100644
        operationId: RevokeContractTokenID
        parameters:
        - name: contract
-@@ -1055,8 +982,6 @@ paths:
+@@ -1134,8 +1061,6 @@ paths:
        description: |-
          Find contract and entitlements by machine ID. Used by machines to check
          the status of their authorization token.
@@ -311,7 +302,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindMachineContract
        parameters:
        - name: machine
-@@ -1139,8 +1064,6 @@ paths:
+@@ -1215,8 +1140,6 @@ paths:
          resource-providing services (like Livepatch, ESM, etc.) to check on the status
          of a machine token if they receive such a token. v1 API supported values for
          {resource} are "esm" "fips" "fips-updates" "livepatch" "support"
@@ -320,7 +311,7 @@ index 3a56cfb..1193c13 100644
        operationId: CheckResourceMachineAccess
        parameters:
        - name: resource
-@@ -1171,8 +1094,6 @@ paths:
+@@ -1247,8 +1170,6 @@ paths:
          Get affordances and obligations that apply to the resource for the machine token provided.
          Affordances are domain-specific to the service that provides the resource, and determined
          by the contract.
@@ -329,7 +320,7 @@ index 3a56cfb..1193c13 100644
        operationId: GetResourceMachineAccess
        parameters:
        - name: resource
-@@ -1211,8 +1132,6 @@ paths:
+@@ -1287,8 +1208,6 @@ paths:
      get:
        description: Find contract templates
        # user access to templates may be restricted; some templates may be private, so we can cut special deals, etc.
@@ -338,7 +329,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindTemplate
        parameters:
        - name: name
-@@ -1253,8 +1172,6 @@ paths:
+@@ -1329,8 +1248,6 @@ paths:
        description: Create a contract template
        # v1: only Canonical can do this, if templates aren't hard-coded
        # request would contain a template document object
@@ -347,7 +338,7 @@ index 3a56cfb..1193c13 100644
        operationId: AddTemplate
        requestBody:
          content:
-@@ -1279,8 +1196,6 @@ paths:
+@@ -1355,8 +1272,6 @@ paths:
    /v1/templates/{template}:
      get:
        description: Find contract template by ID
@@ -356,7 +347,25 @@ index 3a56cfb..1193c13 100644
        operationId: FindTemplateID
        parameters:
        - name: template
-@@ -1309,8 +1224,6 @@ paths:
+@@ -1385,8 +1300,6 @@ paths:
+   /v1/user/accounts:
+     get:
+       description: Find what accounts the authenticated user has access to.
+-      security:
+-      - CandidAuth: [user]
+       operationId: GetUserAccounts
+       responses:
+         '200':
+@@ -1414,8 +1327,6 @@ paths:
+   /v1/user/contracts:
+     get:
+       description: Find what contracts the authenticated user has access to.
+-      security:
+-      - CandidAuth: [user]
+       operationId: GetUserContracts
+       responses:
+         '200':
+@@ -1473,8 +1384,6 @@ paths:
    /v1/users/{user}/accounts:
      get:
        description: Find what accounts a user has access to.
@@ -365,7 +374,7 @@ index 3a56cfb..1193c13 100644
        operationId: FindUserAccount
        parameters:
        - name: user
-@@ -1345,8 +1258,6 @@ paths:
+@@ -1509,8 +1418,6 @@ paths:
    /v1/users/{user}/contracts:
      get:
        description: Find what contracts have been entered into, by accounts that a user has access to.
