@@ -14,9 +14,6 @@ class RepoEntitlement(base.UAEntitlement):
     repo_list_file_tmpl = '/etc/apt/sources.list.d/ubuntu-{name}-{series}.list'
     repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
 
-    # TODO(Get serviceURL from Contract service's Entitlements response)
-    # https://github.com/CanonicalLtd/ua-service/issues/7
-    # Set by subclasses
     repo_url = 'UNSET'
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None      # Optional repo pin priority in subclass
@@ -32,12 +29,12 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         # TODO(Contract service needs to commit to a token directive)
-        access_directives = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {})
-        token = access_directives.get('legacyBasicAuth')
+        resource_cfg = self.cfg.read_cache('machine-access-%s' % self.name)
+        access_directives = resource_cfg['entitlement'].get('directives', {})
+        token = resource_cfg.get('resourceToken')
         if not token:
             logging.debug(
-                'No legacy entitlement token present. Using machine token'
+                'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
         ppa_fingerprint = access_directives.get('aptKey')
@@ -80,8 +77,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not passed_affordances:
             return status.INAPPLICABLE, details
         apt_policy, _err = util.subp(['apt-cache', 'policy'])
-        access_directives = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {})
+        entitlement_cfg = self.cfg.read_cache(
+            'machine-access-%s' % self.name)['entitlement']
+        access_directives = entitlement_cfg.get('directives', {})
         repo_url = access_directives.get('serviceURL')
         if not repo_url:
             repo_url = self.repo_url

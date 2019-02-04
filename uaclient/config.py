@@ -95,11 +95,11 @@ class UAConfig(object):
         if self._entitlements:
             return self._entitlements
         self._entitlements = {}
-        for contract in self.contracts:
-            ent_names = contract['contractInfo']['resourceEntitlements'].keys()
-            for entitlement_name in ent_names:
-                self._entitlements[entitlement_name] = self.read_cache(
-                    'machine-access-%s' % entitlement_name)
+        contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
+        ent_names = contractInfo['resourceEntitlements'].keys()
+        for entitlement_name in ent_names:
+            self._entitlements[entitlement_name] = self.read_cache(
+                'machine-access-%s' % entitlement_name)
         return self._entitlements
 
     @property

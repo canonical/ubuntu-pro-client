@@ -1,26 +1,14 @@
---- ./openapi_server/controllers/default_controller.py.orig	2019-01-07 21:10:26.077956811 +0000
-+++ ./openapi_server/controllers/default_controller.py	2019-01-07 21:29:36.153674961 +0000
-@@ -1,13 +1,14 @@
- import connexion
- import six
-+import datetime
- 
- from openapi_server.models.account_contract_info import AccountContractInfo  # noqa: E501
- from openapi_server.models.account_info import AccountInfo  # noqa: E501
- from openapi_server.models.account_user_access import AccountUserAccess  # noqa: E501
- from openapi_server.models.contract_info import ContractInfo  # noqa: E501
- from openapi_server.models.contract_token_info import ContractTokenInfo  # noqa: E501
--from openapi_server.models.entitlement import Entitlement  # noqa: E501
- from openapi_server.models.error import Error  # noqa: E501
-+from openapi_server.models.entitlement import Entitlement  # noqa: E501
- from openapi_server.models.inline_object import InlineObject  # noqa: E501
- from openapi_server.models.machine_token_info import MachineTokenInfo  # noqa: E501
- from openapi_server.models.new_account_contract import NewAccountContract  # noqa: E501
-@@ -23,6 +24,51 @@
- from openapi_server.models.user_accounts_response import UserAccountsResponse  # noqa: E501
+--- openapi_server/controllers/default_controller.py	2019-02-04 23:34:10.227503021 +0000
++++ openapi_server/controllers/default_controller.py.new	2019-02-04 23:34:05.791511018 +0000
+@@ -24,6 +24,58 @@
  from openapi_server.models.user_contracts_response import UserContractsResponse  # noqa: E501
  from openapi_server import util
+ 
++import datetime
 +import json
++
++from openapi_server.models.entitlement_apt_repository import EntitlementAptRepository  # noqa: E501
++from openapi_server.models.entitlement_livepatch import EntitlementLivepatch  # noqa: E501
 +
 +
 +
@@ -36,15 +24,14 @@
 +machine_token_expiry = now + datetime.timedelta(days=5)
 +
 +
-+entitlementESM = Entitlement(
-+    enabled=True, affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
-+    directives={'serviceURL': 'https://private-ppa.launchpad.net/canonical-server/uaclient-test', 'aptKey': '94E187AD53A59D1847E4880F8A295C4FB8B190B7', 'legacyBasicAuth': creds['esm']})
-+entitlementFIPS = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'legacyBasicAuth': creds['fips']})
-+entitlementFIPSUpdates = Entitlement(enabled=True, affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C', 'legacyBasicAuth': creds['fips-updates']})
-+entitlementLivepatch = Entitlement(enabled=True, affordances=[
++entitlementESM = EntitlementAptRepository(
++    entitled=True, type='esm', affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
++    directives={'serviceURL': 'https://private-ppa.launchpad.net/canonical-server/uaclient-test', 'aptKey': '94E187AD53A59D1847E4880F8A295C4FB8B190B7'})
++entitlementFIPS = EntitlementAptRepository(entitled=True, type='fips', affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C'})
++entitlementFIPSUpdates = EntitlementAptRepository(entitled=True, type='fips-updates', affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C'})
++entitlementLivepatch = EntitlementLivepatch(entitled=True, type='livepatch', affordances=[
 +    {'kernelFlavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
-+     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}],
-+    directives={'legacyToken': creds['livepatch']})
++     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}])
 +contract1 = ContractInfo(
 +    name='blackberry/desktop',
 +    id='cid_1',
@@ -55,30 +42,33 @@
 +        'fips': entitlementFIPS, 'esm': entitlementESM,
 +        'fips-updates': entitlementFIPSUpdates, 'livepatch': entitlementLivepatch})
 +
++
++
 +machinetokeninfo1 = MachineTokenInfo(
 +    created_at = now,
-+    expires_at = machine_token_expiry,
++    expires = machine_token_expiry,
 +    machine_id='remote_machine_1', contract_info=contract1)
 +machinetokeninfo2 = MachineTokenInfo(  # disabled
 +    revoked_at = revoked_date,
 +    created_at = now,
-+    expires_at = machine_token_expiry,
++    expires = machine_token_expiry,
 +    machine_id='remote_machine_1', contract_info=contract1)
++addContractMachineResponse = AddContractMachineResponse(machine_token='sekret1', machine_token_info=machinetokeninfo1)
 +account1 = AccountInfo(id='aid_1', name='Blackberry Limited')
- 
++
  
  def add_account(new_account_params=None):  # noqa: E501
-@@ -88,7 +134,8 @@
+     """add_account
+@@ -86,7 +138,7 @@
      """
      if connexion.request.is_json:
-         inline_object = InlineObject.from_dict(connexion.request.get_json())  # noqa: E501
+         add_contract_machine_body = AddContractMachineBody.from_dict(connexion.request.get_json())  # noqa: E501
 -    return 'do some magic!'
-+    return NewMachineToken(machine_secret='7ce82fe124134c93951f9c95aefea6b2',
-+                           machine_token_info=machinetokeninfo1)
++    return addContractMachineResponse
  
  
- def add_contract_token(contract, user, body=None):  # noqa: E501
-@@ -133,7 +180,7 @@
+ def add_contract_token(contract, body=None):  # noqa: E501
+@@ -131,7 +183,7 @@
  
      :rtype: None
      """
@@ -87,7 +77,7 @@
  
  
  def find_account(name=None, id=None, admin_user=None, user=None):  # noqa: E501
-@@ -152,7 +199,7 @@
+@@ -150,7 +202,7 @@
  
      :rtype: List[AccountInfo]
      """
@@ -96,7 +86,7 @@
  
  
  def find_account_contract(account):  # noqa: E501
-@@ -165,7 +212,7 @@
+@@ -163,7 +215,7 @@
  
      :rtype: List[AccountContractInfo]
      """
@@ -105,7 +95,7 @@
  
  
  def find_account_id(account):  # noqa: E501
-@@ -191,7 +238,7 @@
+@@ -189,7 +241,7 @@
  
      :rtype: List[AccountUserAccess]
      """
@@ -114,7 +104,7 @@
  
  
  def find_account_user_access_id(account, user):  # noqa: E501
-@@ -232,7 +279,7 @@
+@@ -230,7 +282,7 @@
  
      :rtype: List[MachineTokenInfo]
      """
@@ -123,27 +113,32 @@
  
  
  def find_contract_token(contract, user):  # noqa: E501
-@@ -346,9 +393,17 @@
-     :param resource: Resource name
-     :type resource: str
+@@ -348,7 +400,23 @@
  
--    :rtype: Entitlement
-+    :rtype: ContextAccess
+     :rtype: GetResourceMachineAccessResponse
      """
 -    return 'do some magic!'
-+    if resource == 'fips':
-+        return entitlementFIPS, 200, {'Expires': entitlement_expiry_str}
-+    elif resource == 'fips-updates':
-+        return entitlementFIPSUpdates, 200, {'Expires': entitlement_expiry_str}
-+    elif resource == 'esm':
-+        return entitlementESM, 200, {'Expires': entitlement_expiry_str}
-+    elif resource == 'livepatch':
-+        return entitlementLivepatch, 200, {'Expires': entitlement_expiry_str}
++    responses = {
++        'fips': GetResourceMachineAccessResponse(
++                    entitlement=entitlementFIPS,
++                    resource_token=creds['fips']),
++        'fips-updates': GetResourceMachineAccessResponse(
++                    entitlement=entitlementFIPSUpdates,
++                    resource_token=creds['fips-updates']),
++        'esm': GetResourceMachineAccessResponse(
++                    entitlement=entitlementESM,
++                    resource_token=creds['esm']),
++        'livepatch': GetResourceMachineAccessResponse(
++                    entitlement=entitlementLivepatch,
++                    resource_token=creds['livepatch'])}
++
++    if resource in responses:
++        return responses[resource], 200, {'Expires': entitlement_expiry_str}
 +    return 'invalid resource requested %s' % resource
  
  
- def reauthorize_contract_machines(contract):  # noqa: E501
-@@ -389,7 +444,7 @@
+ def get_user_accounts():  # noqa: E501
+@@ -411,7 +479,7 @@
  
      :rtype: MachineTokenInfo
      """

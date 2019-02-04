@@ -12,7 +12,7 @@ curl https://raw.githubusercontent.com/OpenAPITools/openapi-generator/master/bin
 chmod u+x ~/bin/openapitools/openapi-generator-cli
 export PATH=$PATH:~/apache-maven-3.6.0/bin/:~/bin/openapitools/
 cd ~/ua-contracts
-./scripts/generate-python-server.bash
+./scripts/generate-python-server.bash contracts
 pip3 install -r requirements.txt
-patch -p1 -i ~/contracts-controller.patch
+patch -p0 -i ~/contracts-controller.patch
 echo -e "Install complete: start contract server with: /root/runserver.sh"

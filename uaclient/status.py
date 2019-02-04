@@ -49,7 +49,6 @@ See `ua status` or https://ubuntu.com/advantage
 """
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
-
 See `ua attach` or https://ubuntu.com/advantage
 """
 MESSAGE_MOTD_ACTIVE_TMPL = """

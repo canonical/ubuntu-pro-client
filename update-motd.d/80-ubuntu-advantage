@@ -3,4 +3,4 @@ UA_STATUS_CACHE=${UA_STATUS_CACHE:-"/var/cache/ubuntu-advantage-tools/ubuntu-adv
 
 # If cache doesn't exist print nothing until we get an update in there
 # cache file is updated either through daily apt-update or ua attach/detach
-[ -s "$UA_STATUS_CACHE" ] && cat $UA_STATUS_CACHE
+[ -s "$UA_STATUS_CACHE" ] && cat "$UA_STATUS_CACHE"

@@ -28,8 +28,9 @@ class ESMEntitlement(repo.RepoEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-        access_directives = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('directives', {})
+        entitlement_cfg = self.cfg.read_cache(
+            'machine-access-%s' % self.name)['entitlement']
+        access_directives = entitlement_cfg.get('directives', {})
         repo_url = access_directives.get('serviceURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
