@@ -29,7 +29,7 @@ class ContractAPIError(util.UrlError):
         else:
             self.api_errors = [error_response]
         for error in self.api_errors:
-            error['code'] = error['title']
+            error['code'] = error.get('title', error.get('code'))
 
     def __contains__(self, error_code):
         return error_code in [error['code'] for error in self.api_errors]
@@ -45,7 +45,7 @@ class ContractAPIError(util.UrlError):
         details = []
         for err in self.api_errors:
             if not err.get('extra'):
-                details.append(err['detail'])
+                details.append(err.get('detail', err.get('message', '')))
             else:
                 for extra in err['extra'].values():
                     if isinstance(extra, list):
@@ -122,9 +122,11 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_id = util.get_machine_id(self.cfg.data_dir)
         os = util.get_platform_info()
         arch = os.pop('arch')
+        headers = self.headers()
+        headers.update({'Authorization': 'Bearer ABCDEF'})
         data = {'machineId': machine_id, 'architecture': arch, 'os': os}
         machine_token, _headers = self.request_url(
-            API_V1_CONTEXT_MACHINE_TOKEN, data=data)
+            API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers)
         self.cfg.write_cache('machine-token', machine_token)
         return machine_token
 
