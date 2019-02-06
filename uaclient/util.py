@@ -12,6 +12,9 @@ CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
                    ['running-in-container'],
                    ['lxc-is-container'])
 
+ETC_MACHINE_ID = '/etc/machine-id'
+DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
+
 
 class UrlError(IOError):
 
@@ -245,10 +248,10 @@ def get_platform_info(key=None):
 
 def get_machine_id(data_dir):
     """Get system's unique machine-id or create our own in data_dir."""
-    if os.path.exists('/etc/machine-id'):
-        return load_file('/etc/machine-id')
-    if os.path.exists('/var/lib/dbus/machine-id'):  # Trusty
-        return load_file('/var/lib/dbus/machine-id')
+    if os.path.exists(ETC_MACHINE_ID):
+        return load_file(ETC_MACHINE_ID)
+    if os.path.exists(DBUS_MACHINE_ID):  # Trusty
+        return load_file(DBUS_MACHINE_ID)
     fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
     if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
         return load_file(fallback_machine_id_file)

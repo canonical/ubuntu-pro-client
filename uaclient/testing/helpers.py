@@ -1,5 +1,6 @@
 import functools
 import logging
+import os
 import shutil
 import six
 import tempfile
@@ -44,3 +45,11 @@ class TestCase(unittest2.TestCase):
             tmpd = tempfile.mkdtemp(dir=dir)
         self.addCleanup(functools.partial(shutil.rmtree, tmpd))
         return tmpd
+
+    def tmp_path(self, path, dir=None):
+        # return an absolute path to 'path' under dir.
+        # if dir is None, one will be created with tmp_dir()
+        # the file is not created or modified.
+        if dir is None:
+            dir = self.tmp_dir()
+        return os.path.normpath(os.path.abspath(os.path.join(dir, path)))
