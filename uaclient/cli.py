@@ -130,6 +130,25 @@ def disable_parser(parser=None):
     return parser
 
 
+def status_parser(parser=None):
+    """Build or extend an arg parser for status subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command='status')
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog='status',
+            description=('Print status information for Ubuntu Advantage'
+                         ' support subscription'),
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'status'
+    parser._optionals.title = 'Flags'
+    parser.add_argument(
+        '--update-motd', action='store_true', dest='update_motd',
+        help='Write motd cache files with current ubuntu-advantage status')
+    return parser
+
+
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -207,7 +226,7 @@ def action_attach(args, cfg):
             cfg.machine_token, entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
-    print_status(cfg=cfg)
+    action_status(args=None, cfg=cfg)
     return 0
 
 
@@ -225,7 +244,8 @@ def get_parser():
     subparsers.required = True
     parser_status = subparsers.add_parser(
         'status', help='current status of all ubuntu advantage entitlements')
-    parser_status.set_defaults(action=print_status)
+    parser_status.set_defaults(action=action_status)
+    status_parser(parser_status)
     parser_attach = subparsers.add_parser(
         'attach',
         help='attach this machine to an ubuntu advantage subscription')
@@ -252,9 +272,17 @@ def get_parser():
     return parser
 
 
-def print_status(args=None, cfg=None):
+def action_status(args, cfg):
+    update_motd = bool(args and args.update_motd)
     if not cfg:
         cfg = config.UAConfig()
+    if update_motd:
+        esm_status = ua_status.get_motd_summary(cfg, esm_only=True)
+        util.write_file(config.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
+        ua_motd_status = ua_status.get_motd_summary(cfg)
+        util.write_file(config.MOTD_CACHE_FILE, ua_motd_status)
+        print(esm_status)
+        print(ua_motd_status)
     if not cfg.is_attached:
         print(ua_status.MESSAGE_UNATTACHED)
         return
