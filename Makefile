@@ -13,11 +13,15 @@ deb-trusty:
                  "\n sudo apt-get install devscripts"; exit 1; }
 	./dev/bddeb --series trusty
 
+ci-deps:
+	@echo Installing Continuous Integration dependencies
+	./dev/read-dependencies -v 3 --system-pkg-names --test-distro
+
 deb:
 	@echo Building unsigned debian package
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
-                 "\n sudo apt-get install devscripts"; exit 1; }
+                 "\n make ci-deps"; exit 1; }
 	./dev/bddeb
 
 

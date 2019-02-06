@@ -214,7 +214,7 @@ def main():
         if base_fn.endswith('_all.deb'):
             # Add in the local link
             util.del_file(link_fn)
-            os.symlink(base_fn, link_fn)
+            shutil.copy(base_fn, link_fn)
             print("Linked %r to %r" % (base_fn,
                                        os.path.basename(link_fn)))
         if base_fn.endswith('.dsc'):

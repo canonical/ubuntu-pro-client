@@ -3,3 +3,4 @@ coverage
 mock
 nose
 unittest2
+flake8
