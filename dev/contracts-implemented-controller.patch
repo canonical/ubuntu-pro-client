@@ -1,0 +1,132 @@
+--- openapi_server/controllers/default_controller.py.orig	2019-02-08 17:08:43.611137024 +0000
++++ openapi_server/controllers/default_controller.py	2019-02-08 20:47:58.262713336 +0000
+@@ -28,6 +28,62 @@
+         add_contract_body = AddContractBody.from_dict(connexion.request.get_json())  # noqa: E501
+     return 'do some magic!'
+ 
++import datetime
++import json
++
++from openapi_server.models.account_contract_info import AccountContractInfo  # noqa: E501
++from openapi_server.models.account_info import AccountInfo  # noqa: E501
++from openapi_server.models.contract_info import ContractInfo  # noqa: E501
++from openapi_server.models.contract_token_info import ContractTokenInfo  # noqa: E501
++from openapi_server.models.entitlement_apt_repository import EntitlementAptRepository  # noqa: E501
++from openapi_server.models.entitlement_livepatch import EntitlementLivepatch  # noqa: E501
++from openapi_server.models.machine_token_info import MachineTokenInfo  # noqa: E501
++
++
++
++CREDS_FILE = '/root/entitlement-creds.json'
++with open(CREDS_FILE) as stream:
++    creds = json.loads(stream.read())
++
++now = datetime.datetime.utcnow()
++contract_expiry = now + datetime.timedelta(days=100)
++entitlement_expiry = now + datetime.timedelta(days=1)
++entitlement_expiry_str = entitlement_expiry.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
++machine_token_expiry = now + datetime.timedelta(days=5)
++
++
++entitlementESM = EntitlementAptRepository(
++    entitled=True, type='esm', affordances=[{'series': ['trusty', 'xenial', 'bionic']}],
++    directives={'serviceURL': 'https://private-ppa.launchpad.net/canonical-server/uaclient-test', 'aptKey': '94E187AD53A59D1847E4880F8A295C4FB8B190B7'})
++entitlementFIPS = EntitlementAptRepository(entitled=True, type='fips', affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C'})
++entitlementFIPSUpdates = EntitlementAptRepository(entitled=True, type='fips-updates', affordances=[{'series': ['xenial']}], directives={'serviceURL': 'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates', 'aptKey': 'A166877412DAC26E73CEBF3FF6C280178D13028C'})
++entitlementLivepatch = EntitlementLivepatch(entitled=True, type='livepatch', affordances=[
++    {'kernelFlavors': ['generic', 'aws', 'gcp', 'azure', 'ibm'],
++     'series': ['trusty', 'xenial', 'bionic', 'cosmic', 'disco']}])
++contract1 = ContractInfo(
++    name='blackberry/desktop',
++    id='cid_1',
++    created_at=now,
++    effective_from=now,
++    effective_to=contract_expiry,
++    resource_entitlements={
++        'fips': entitlementFIPS, 'esm': entitlementESM,
++        'fips-updates': entitlementFIPSUpdates, 'livepatch': entitlementLivepatch})
++
++
++contracttokeninfo = ContractTokenInfo(
++    contract_info=contract1, expires=machine_token_expiry)
++addContractTokenResponse = AddContractTokenResponse(contract_token='contract_sekret1', contract_token_info=contracttokeninfo)
++
++machinetokeninfo1 = MachineTokenInfo(
++    expires = machine_token_expiry,
++    machine_id='remote_machine_1', contract_info=contract1)
++machinetokeninfo2 = MachineTokenInfo(  # disabled
++    expires = machine_token_expiry,
++    machine_id='remote_machine_1', contract_info=contract1)
++addContractMachineResponse = AddContractMachineResponse(machine_token='sekret1', machine_token_info=machinetokeninfo1)
++account1 = AccountInfo(id='aid_1', name='Blackberry Limited')
++
+ 
+ def add_contract_machine(add_contract_machine_body=None):  # noqa: E501
+     """add_contract_machine
+@@ -41,7 +97,7 @@
+     """
+     if connexion.request.is_json:
+         add_contract_machine_body = AddContractMachineBody.from_dict(connexion.request.get_json())  # noqa: E501
+-    return 'do some magic!'
++    return addContractMachineResponse
+ 
+ 
+ def add_contract_token(contract, body=None):  # noqa: E501
+@@ -56,7 +112,7 @@
+ 
+     :rtype: AddContractTokenResponse
+     """
+-    return 'do some magic!'
++    return addContractTokenResponse
+ 
+ 
+ def get_account_contracts(account):  # noqa: E501
+@@ -69,7 +125,7 @@
+ 
+     :rtype: GetContractsResponse
+     """
+-    return 'do some magic!'
++    return GetContractsResponse(contracts=[AccountContractInfo(account_info=account1, contract_info=contract1)])
+ 
+ 
+ def get_accounts():  # noqa: E501
+@@ -80,7 +136,7 @@
+ 
+     :rtype: GetAccountsResponse
+     """
+-    return 'do some magic!'
++    return GetAccountsResponse(accounts=[account1])
+ 
+ 
+ def get_canonical_sso_macaroon():  # noqa: E501
+@@ -91,7 +147,7 @@
+ 
+     :rtype: GetCanonicalSSOMacaroonResponse
+     """
+-    return 'do some magic!'
++    return GetCanonicalSSOMacaroonResponse(macaroon='MDAwZWxvY2F0aW9uIAowMDQ3aWRlbnRpZmllciBBd29RNEdTQkI5RzRJYmFjeGh0eUZudU5hUklCTUJvUkNnaHpjMjlzYjJkcGJoSUZiRzluYVc0CjAwMzFjaWQgdGltZS1iZWZvcmUgMjAxOS0wMi0xNVQxNzoyODowNC4xMjAxMDg5WgowMTdhY2lkIHsic2VjcmV0Ijoic2ZMc0Y4c1VSUDJBV3Q4NnJva0g0M1NWQXdjcUo2aE1QdTExY3lnQUswR1dDamN4N0REYktKUWFMRSsxUnpSSXlLSWUxS05kVXpGb0ZoNXZNY1FHRnpKVXNaRlZjUlBsMkFCUjgydU9FVnZXK1FNMGJuNWxHVjZ1UWhiUGFLdDdINmd3OGxMV3JreGw0N0FZOVd3THNhR244MFRNdVB1Ym9zc3kweGNsTVVmVS9lR2ZNTTZuQ1JIUzZnMDJ6cUI1YXJkWGFqQTZHQU5NemRpRDhUU2J1dnNlaVhINExVYUFyRTlKNVdSck5sVndYazkrcTZwMzZNUUFsUlg0N1FxZWZuOGpkWkkxTnFENWxHaUh0SzV2TFN2Rk1wMkk0L29zZ01ObHBQWFk1VENTRkJHM2dNU09SM3dpNzVPREZ3N1RUQ2E4cjFkRGcyV1BtWjU3VjZWR3hRPT0iLCJ2ZXJzaW9uIjoxfQowMDUxdmlkIA48kKeLV6UH_kWeflAt6HpgAjI9MEIXOZi4tEMeHYHMWpxGddwpfsgIobKnhJHFoEx00unMqrFHFmaNM4mTyHZ-ATJ6EcjGigowMDE4Y2wgbG9naW4udWJ1bnR1LmNvbQowMDJmc2lnbmF0dXJlINKtgxrlCulP1BT3sUKITGSIp5yRm64fhhe6Iv8iGq-9Cg')
+ 
+ 
+ def get_resource_machine_access(resource, machine):  # noqa: E501
+@@ -106,4 +162,20 @@
+ 
+     :rtype: GetResourceMachineAccessResponse
+     """
+-    return 'do some magic!'
++    responses = {
++        'fips': GetResourceMachineAccessResponse(
++                    entitlement=entitlementFIPS,
++                    resource_token=creds['fips']),
++        'fips-updates': GetResourceMachineAccessResponse(
++                    entitlement=entitlementFIPSUpdates,
++                    resource_token=creds['fips-updates']),
++        'esm': GetResourceMachineAccessResponse(
++                    entitlement=entitlementESM,
++                    resource_token=creds['esm']),
++        'livepatch': GetResourceMachineAccessResponse(
++                    entitlement=entitlementLivepatch,
++                    resource_token=creds['livepatch'])}
++
++    if resource in responses:
++        return responses[resource], 200, {'Expires': entitlement_expiry_str}
++    return 'invalid resource requested %s' % resource
