@@ -8,6 +8,7 @@
 
 # 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
 upstream=${1:-CanonicalLtd}
+server_type=${2:-contracts-implemented}
 if [ "$upstream" != "canonical-server" -a "$upstream" != "CanonicalLtd" ]; then
    echo "Invalid upstream value $upstream, expected canonical-server or CanonicalLtd"
    exit 1
@@ -54,7 +55,7 @@ if [ $? -eq 1 ]; then
   # Rename LP creds to /root/entitlement-creds.json
   lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
   lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB
-  lxc exec $LXC_NAME /root/install-contracts-server
+  lxc exec $LXC_NAME /root/install-contracts-server $server_type
 fi
 lxc exec $LXC_NAME -- cloud-init status --wait;
 
