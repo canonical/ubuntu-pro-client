@@ -39,6 +39,7 @@ class UAConfig(object):
     data_paths = {'accounts': 'accounts.json',
                   'account-contracts': 'account-contracts.json',
                   'account-users': 'account-users.json',
+                  'contract-token': 'contract-token.json',
                   'machine-contracts': 'machine-contracts.json',
                   'machine-access-esm': 'machine-access-esm.json',
                   'machine-access-fips': 'machine-access-fips.json',
@@ -48,6 +49,7 @@ class UAConfig(object):
                   'machine-detach': 'machine-detach.json',
                   'machine-token': 'machine-token.json',
                   'macaroon': 'sso-macaroon.json',
+                  'root-macaroon': 'root-macaroon.json',
                   'oauth': 'sso-oauth.json'}
 
     _contracts = None  # caching to avoid repetitive file reads
@@ -64,7 +66,7 @@ class UAConfig(object):
     @property
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
-        return self.read_cache('accounts')
+        return self.read_cache('accounts')['accounts']
 
     @property
     def contract_url(self):

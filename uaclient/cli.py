@@ -38,9 +38,6 @@ Valid until: {contract_expiry}
 Technical support: {support_level}
 """
 
-# List of PRS needed for full MVP support
-MISSING_PR22 = 'Missing PR#22'
-
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
@@ -195,27 +192,36 @@ def action_detach(args, cfg):
 
 def action_attach(args, cfg):
     if cfg.is_attached:
-        print("This machine is already attached to '%s'." % MISSING_PR22)
+        print("This machine is already attached to '%s'." %
+              cfg.accounts[0]['name'])
         return 0
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
+    contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        user_token = sso.prompt_oauth_token(cfg)
+        root_macaroon = contract_client.request_root_macaroon()
+        caveat_id = sso.extract_macaroon_caveat_id(root_macaroon['macaroon'])
+        user_token = sso.prompt_request_macaroon(cfg, caveat_id)
     else:
         user_token = {
             'date_created': datetime.utcnow().strftime(
                 '%Y-%m-%dT%H:%M:%S.%fZ'),
-            'token_key': args.token}
-        cfg.write_cache('oauth', user_token)
+            'discharge_macaroon': args.token}
+        cfg.write_cache('macaroon', user_token)
     if not user_token:
         print('Could not attach machine. Unable to obtain authenticated user'
               ' token')
         return 1
-    contract_client = contract.UAContractClient(cfg)
+    user_token = user_token['discharge_macaroon']
     try:
+        contract_client.request_accounts(user_token)
+        contracts = contract_client.request_account_contracts(user_token)
+        contract_id = contracts['contracts'][0]['contractInfo']['id']
+        contract_token = contract_client.request_add_contract_token(
+            user_token, contract_id)
         token_response = contract_client.request_contract_machine_attach(
-            user_token=user_token['token_key'])
+            contract_token=contract_token['contractToken'])
     except (sso.SSOAuthError, util.UrlError) as e:
         logging.error(str(e))
         return 1
@@ -294,8 +300,9 @@ def action_status(args, cfg):
     # TODO(parse-from-TBD contract-api-resourceEntitlement-response)
     status_level = ua_status.STATUS_COLOR.get(
             ua_status.STANDARD, ua_status.STANDARD)
+    account = cfg.accounts[0]
     status_content.append(STATUS_HEADER_TMPL.format(
-        account=MISSING_PR22,
+        account=account['name'],
         subscription=contractInfo['name'],
         contract_expiry=expiry.date(),
         support_level=status_level))

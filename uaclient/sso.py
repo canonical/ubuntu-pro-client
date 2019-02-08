@@ -1,6 +1,7 @@
 import getpass
 import json
 import logging
+import pymacaroons
 import six
 
 from uaclient import serviceclient
@@ -26,8 +27,15 @@ API_ERROR_INVALID_CREDENTIALS = 'invalid-credentials'
 API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
 API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
-PATH_SSO_TOKEN = 'sso-oauth.json'
-PATH_MACAROON_TOKEN = 'sso-macaroon.json'
+
+class InvalidRootMacaroonError(RuntimeError):
+    """Raised when root macaroon is not parseable"""
+    pass
+
+
+class NoThirdPartySSOCaveatFoundError(RuntimeError):
+    """Raised when valid Macaroon is found but missing SSO caveat"""
+    pass
 
 
 class SSOAuthError(util.UrlError):
@@ -125,6 +133,30 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         return content
 
 
+def extract_macaroon_caveat_id(macaroon):
+    """Extract the macaroon caveat_id for interaction with Ubuntu SSO
+
+    @param macaroon: Base64 encoded macaroon string
+
+    @return: caveat_id
+    @raises: NoThirdPartySSOCaveatFoundError on missing login.ubuntu.com caveat
+             InvalidRootMacaroonError on inability to parse macaroon
+    """
+    padded_macaroon = macaroon + '=' * (len(macaroon) % 3)
+    try:
+        root_macaroon = pymacaroons.Macaroon.deserialize(padded_macaroon)
+        caveat_id_by_location = dict(
+            (c.location, c.caveat_id)
+            for c in root_macaroon.third_party_caveats())
+    except Exception as e:
+        raise InvalidRootMacaroonError("Invalid root macaroon. %s" % e)
+    if 'login.ubuntu.com' in caveat_id_by_location:
+        return caveat_id_by_location['login.ubuntu.com']
+    raise NoThirdPartySSOCaveatFoundError(
+        'Missing login.ubuntu.com 3rd party caveat. Found caveats: %s' %
+        caveat_id_by_location.keys())
+
+
 def prompt_oauth_token(cfg):
     client = UbuntuSSOClient(cfg)
     oauth_token = client.cfg.read_cache('oauth')
@@ -152,20 +184,24 @@ def prompt_oauth_token(cfg):
     return oauth_token
 
 
-def prompt_request_macaroon(caveat_id=None):
-    if not caveat_id:
-        caveat_id = '{"secret": "thesecret", "version": 1}'
+def prompt_request_macaroon(cfg, caveat_id):
+    discharge_macaroon = cfg.read_cache('macaroon')
+    if discharge_macaroon:
+        # TODO invalidate cached macaroon on root-macaroon or discharge expiry
+        return discharge_macaroon
     email = six.moves.input('Email: ')
     password = getpass.getpass('Password: ')
-    client = UbuntuSSOClient()
-    try:
-        content = client.request_discharge_macaroon(
-            email=email, password=password, caveat_id=caveat_id)
-    except SSOAuthError as e:
-        if API_ERROR_2FA_REQUIRED not in e:
-            logging.error(str(e))
-            return None
-        otp = six.moves.input('Second-factor auth: ')
-        content = client.request_discharge_macaroon(
-            email=email, password=password, caveat_id=caveat_id, otp=otp)
-    return content
+    args = {'email': email, 'password': password, 'caveat_id': caveat_id}
+    sso_client = UbuntuSSOClient(cfg)
+    content = None
+    while True:
+        try:
+            content = sso_client.request_discharge_macaroon(**args)
+        except SSOAuthError as e:
+            if API_ERROR_2FA_REQUIRED not in e:
+                logging.error(str(e))
+                break
+            args['otp'] = six.moves.input('Second-factor auth: ')
+        if content:
+            return content
+    return None

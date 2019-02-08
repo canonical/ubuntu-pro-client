@@ -2,14 +2,16 @@ from uaclient import serviceclient
 from uaclient import util
 
 
-API_PATH_ACCOUNTS = '/accounts'
-API_PATH_TMPL_ACCOUNT_CONTRACTS = '/accounts/{account}/contracts'
 API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
 API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 
+API_V1_ACCOUNTS = '/v1/accounts'
+API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
+API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machine/token'
+API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     '/v1/resources/{resource}/context/machine/{machine}')
 
@@ -60,18 +62,39 @@ class UAContractClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
 
-    def request_accounts(self):
+    def request_root_macaroon(self):
+        """Request root macaroon with 3rd party caveat for Ubuntu SSO."""
+        root_macaroon, _headers = self.request_url(API_V1_SSO_MACAROON)
+        self.cfg.write_cache('root-macaroon', root_macaroon)
+        return root_macaroon
+
+    def request_accounts(self, user_token):
         """Request list of accounts this user has access to."""
-        accounts, _headers = self.request_url(API_PATH_ACCOUNTS)
+        headers = self.headers()
+        headers.update({'Authorization': 'Macaroon %s' % user_token})
+        accounts, _headers = self.request_url(
+            API_V1_ACCOUNTS, headers=headers)
         self.cfg.write_cache('accounts', accounts)
         return accounts
 
     def request_account_contracts(self, account_id):
         """Request a list of contracts authorized for account_id."""
-        url = API_PATH_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
+        url = API_V1_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
         account_contracts, _headers = self.request_url(url)
         self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
+
+    def request_add_contract_token(self, user_token, contract_id):
+        """Create a contract token for use when adding a machine to a contract
+
+        """
+        headers = self.headers()
+        headers.update({'Authorization': 'Macaroon %s' % user_token})
+        url = API_V1_TMPL_ADD_CONTRACT_TOKEN.format(contract=contract_id)
+        contract_token, _headers = self.request_url(
+            url, data={"TODO": "any other request body params?"})
+        self.cfg.write_cache('contract-token', contract_token)
+        return contract_token
 
     def request_account_users(self, account_id):
         """Request a list of users authorized for account_id."""
@@ -107,12 +130,12 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('machine-contracts', contracts)
         return contracts
 
-    def request_contract_machine_attach(self, user_token, machine_id=None):
+    def request_contract_machine_attach(self, contract_token, machine_id=None):
         """Requests machine attach to the provided contact_id.
 
         @param contract_id: Unique contract id provided by contract service.
-        @param user_token: Token string providing authentication to contract
-            service endpoints.
+        @param contract_token: Token string providing authentication to
+            ContractBearer service endpoint.
         @param machine_id: Optional unique system machine id. When absent,
             contents of /etc/machine-id will be used.
 
@@ -123,7 +146,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         os = util.get_platform_info()
         arch = os.pop('arch')
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer ABCDEF'})
+        headers.update({'Authorization': 'Bearer %s' % contract_token})
         data = {'machineId': machine_id, 'architecture': arch, 'os': os}
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers)
@@ -160,6 +183,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
+        headers = self.headers()
+        headers.update({'Authorization': 'Bearer %s' % machine_token})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id)
         resource_access, headers = self.request_url(url)
