@@ -5,7 +5,7 @@
 
 server_type=$1
 sudo apt-get update
-sudo apt install openjdk-11-jdk-headless python python3-pip -y
+sudo apt install openjdk-11-jdk-headless python python3-pip libsodium23 python3-nacl python3-pymacaroons jq -y
 curl http://apache.mirrors.ionfish.org/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.tar.gz --output apache-maven-3.6.0-bin.tar.gz
 tar zxvf apache-maven-3.6.0-bin.tar.gz
 mkdir -p ~/bin/openapitools
