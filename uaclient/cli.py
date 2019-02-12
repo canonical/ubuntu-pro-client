@@ -38,7 +38,8 @@ Valid until: {contract_expiry}
 Technical support: {support_level}
 """
 
-DEFAULT_LOG_FORMAT = '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s'
+DEFAULT_LOG_FORMAT = (
+    '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
 
 
 def attach_parser(parser=None):

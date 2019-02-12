@@ -205,7 +205,7 @@ def prompt_oauth_token(cfg):
 def prompt_request_macaroon(cfg, caveat_id):
     discharge_macaroon = cfg.read_cache('macaroon')
     if discharge_macaroon:
-        # TODO invalidate cached macaroon on root-macaroon or discharge expiry
+        # TODO(invalidate cached macaroon on root-macaroon or discharge expiry)
         return discharge_macaroon
     email = six.moves.input('Email: ')
     password = getpass.getpass('Password: ')
