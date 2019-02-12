@@ -142,7 +142,7 @@ def extract_macaroon_caveat_id(macaroon):
     @raises: NoThirdPartySSOCaveatFoundError on missing login.ubuntu.com caveat
              InvalidRootMacaroonError on inability to parse macaroon
     """
-    padded_macaroon = macaroon + '=' * (len(macaroon) % 3)
+    padded_macaroon = macaroon + b'=' * (len(macaroon) % 3)
     try:
         root_macaroon = pymacaroons.Macaroon.deserialize(padded_macaroon)
         caveat_id_by_location = dict(
@@ -171,8 +171,8 @@ def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
     padded_root = root_mac + '=' * (len(root_mac) % 3)
     discharge_mac = pymacaroons.Macaroon.deserialize(discharge_mac)
     root_mac = pymacaroons.Macaroon.deserialize(padded_root)
-    root_mac.prepare_for_request(discharge_mac)
-    return root_mac.serialize()
+    bound_mac = root_mac.prepare_for_request(discharge_mac)
+    return bound_mac.serialize()
 
 
 def prompt_oauth_token(cfg):
@@ -223,3 +223,30 @@ def prompt_request_macaroon(cfg, caveat_id):
         if content:
             return content
     return None
+
+
+def discharge_root_macaroon(contract_client):
+    """Prompt for SSO authentication to create an discharge macaroon from SSO
+
+    Extract contract client's root_macaroon caveat for login.ubuntu.com and
+    prompt authentication to SSO to provide a discharge macaroon. Bind that
+    discharge macaroon to the root macaroon to provide an authentication
+    token for accessing authenticated UA Contract routes.
+
+    @param contract_client: UAContractClient instance for talking to contract
+        service routes.
+
+    @return: The serialized bound root macaroon or None upon error.
+    """
+    cfg = contract_client.cfg
+    try:
+        root_macaroon = contract_client.request_root_macaroon()
+        caveat_id = extract_macaroon_caveat_id(root_macaroon['macaroon'])
+        user_token = prompt_request_macaroon(cfg, caveat_id)
+    except (util.UrlError) as e:
+        logging.error("Could not reach url '%s' to authenticate.", e.url)
+        return None
+    if not user_token:
+        return None
+    return bind_discharge_macarooon_to_root_macaroon(
+        user_token['discharge_macaroon'], root_macaroon['macaroon'])

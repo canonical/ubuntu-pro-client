@@ -203,16 +203,7 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        try:
-            root_macaroon = contract_client.request_root_macaroon()
-            caveat_id = sso.extract_macaroon_caveat_id(
-                root_macaroon['macaroon'])
-            user_token = sso.prompt_request_macaroon(cfg, caveat_id)
-        except (util.UrlError) as e:
-            logging.error("Could not reach url '%s' to authenticate.", e.url)
-            return 1
-        sso_token = sso.bind_discharge_macarooon_to_root_macaroon(
-            user_token['discharge_macaroon'], root_macaroon['macaroon'])
+        sso_token = sso.discharge_root_macaroon(contract_client)
     else:
         sso_token = args.token
     if not sso_token:
@@ -293,8 +284,7 @@ def action_status(args, cfg):
         util.write_file(config.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
         ua_motd_status = ua_status.get_motd_summary(cfg)
         util.write_file(config.MOTD_CACHE_FILE, ua_motd_status)
-        print(esm_status)
-        print(ua_motd_status)
+        return
     if not cfg.is_attached:
         print(ua_status.MESSAGE_UNATTACHED)
         return
@@ -332,11 +322,7 @@ def setup_logging(level=logging.ERROR, log_file=None):
     console_formatter = logging.Formatter(fmt)
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
-    # Setup debug file logging
-    filehandler = logging.FileHandler(log_file)
-    filehandler.setLevel(logging.DEBUG)
-    filehandler.setFormatter(log_formatter)
-    root.addHandler(filehandler)
+    root.setLevel(logging.DEBUG)
     # Setup console logging
     stderr_found = False
     for handler in root.handlers:
@@ -351,7 +337,11 @@ def setup_logging(level=logging.ERROR, log_file=None):
         console.setFormatter(console_formatter)
         console.setLevel(level)
         root.addHandler(console)
-    root.setLevel(level)
+    # Setup debug file logging
+    filehandler = logging.FileHandler(log_file)
+    filehandler.setLevel(logging.DEBUG)
+    filehandler.setFormatter(log_formatter)
+    root.addHandler(filehandler)
 
 
 def main(sys_argv=None):
@@ -361,6 +351,10 @@ def main(sys_argv=None):
     args = parser.parse_args(args=sys_argv[1:])
     cfg = config.UAConfig()
     log_level = logging.DEBUG if args.debug else cfg.log_level
+    try:
+        int(log_level)
+    except TypeError:
+        log_level = getattr(logging, '%s' % cfg.log_file.upper())
     log_file = logging.DEBUG if args.debug else cfg.log_file
     setup_logging(log_level, log_file)
     return args.action(args, cfg)

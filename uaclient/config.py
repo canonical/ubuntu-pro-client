@@ -79,7 +79,14 @@ class UAConfig(object):
 
     @property
     def log_level(self):
-        return self.cfg.get('log_level', CONFIG_DEFAULTS['log_level'])
+        log_level = self.cfg.get('log_level')
+        if log_level:
+            log_level = getattr(logging, log_level.upper())
+        try:
+            int(log_level)
+        except TypeError:
+            return CONFIG_DEFAULTS['log_level']
+        return log_level
 
     @property
     def log_file(self):

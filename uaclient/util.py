@@ -12,6 +12,8 @@ CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
                    ['running-in-container'],
                    ['lxc-is-container'])
 
+SENSITIVE_KEYS = ['password']
+
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
 
@@ -115,9 +117,17 @@ def readurl(url, data=None, headers=None, method=None):
     req = six.moves.urllib.request.Request(url, data=data, headers=headers)
     if method:
         req.get_method = lambda: method
+    if data:
+        redacted_data = maybe_parse_json(data)
+        for key in SENSITIVE_KEYS:
+            if key in redacted_data:
+                redacted_data[key] = '<REDACTED>'
+        redacted_data = json.dumps(redacted_data)
+    else:
+        redacted_data = data
     logging.debug(
         'URL read: %s, headers: %s, data: %s method: %s',
-        url, headers, data, method)
+        url, headers, redacted_data, method)
     resp = six.moves.urllib.request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
