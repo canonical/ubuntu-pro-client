@@ -1,3 +1,4 @@
 # Pypi requirements for uaclient
+pymacaroons
 pyyaml
 six
