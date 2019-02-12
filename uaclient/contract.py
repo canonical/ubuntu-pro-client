@@ -10,10 +10,10 @@ API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
 API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
-API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machine/token'
+API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
 API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
-    '/v1/resources/{resource}/context/machine/{machine}')
+    '/v1/resources/{resource}/context/machines/{machine}')
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'

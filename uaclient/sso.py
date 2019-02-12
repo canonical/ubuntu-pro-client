@@ -142,7 +142,7 @@ def extract_macaroon_caveat_id(macaroon):
     @raises: NoThirdPartySSOCaveatFoundError on missing login.ubuntu.com caveat
              InvalidRootMacaroonError on inability to parse macaroon
     """
-    padded_macaroon = macaroon + b'=' * (len(macaroon) % 3)
+    padded_macaroon = macaroon + '=' * (len(macaroon) % 3)
     try:
         root_macaroon = pymacaroons.Macaroon.deserialize(padded_macaroon)
         caveat_id_by_location = dict(
