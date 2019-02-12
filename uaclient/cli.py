@@ -38,6 +38,8 @@ Valid until: {contract_expiry}
 Technical support: {support_level}
 """
 
+DEFAULT_LOG_FORMAT = '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s'
+
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
@@ -200,26 +202,29 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        root_macaroon = contract_client.request_root_macaroon()
-        caveat_id = sso.extract_macaroon_caveat_id(root_macaroon['macaroon'])
-        user_token = sso.prompt_request_macaroon(cfg, caveat_id)
+        try:
+            root_macaroon = contract_client.request_root_macaroon()
+            caveat_id = sso.extract_macaroon_caveat_id(
+                root_macaroon['macaroon'])
+            user_token = sso.prompt_request_macaroon(cfg, caveat_id)
+        except (util.UrlError) as e:
+            logging.error("Could not reach url '%s' to authenticate.", e.url)
+            return 1
+        sso_token = sso.bind_discharge_macarooon_to_root_macaroon(
+            user_token['discharge_macaroon'], root_macaroon['macaroon'])
     else:
-        user_token = {
-            'date_created': datetime.utcnow().strftime(
-                '%Y-%m-%dT%H:%M:%S.%fZ'),
-            'discharge_macaroon': args.token}
-        cfg.write_cache('macaroon', user_token)
-    if not user_token:
+        sso_token = args.token
+    if not sso_token:
         print('Could not attach machine. Unable to obtain authenticated user'
               ' token')
         return 1
-    user_token = user_token['discharge_macaroon']
+    cfg.write_cache('bound-macaroon', sso_token)
     try:
-        contract_client.request_accounts(user_token)
-        contracts = contract_client.request_account_contracts(user_token)
+        contract_client.request_accounts(sso_token)
+        contracts = contract_client.request_account_contracts(sso_token)
         contract_id = contracts['contracts'][0]['contractInfo']['id']
         contract_token = contract_client.request_add_contract_token(
-            user_token, contract_id)
+            sso_token, contract_id)
         token_response = contract_client.request_contract_machine_attach(
             contract_token=contract_token['contractToken'])
     except (sso.SSOAuthError, util.UrlError) as e:
@@ -318,21 +323,31 @@ def print_version(_args=None, _cfg=None):
     print(config.get_version())
 
 
-def setup_logging(level=logging.ERROR):
+def setup_logging(level=logging.ERROR, log_file=None):
+    """Setup console logging and debug logging to log_file"""
+    if log_file is None:
+        log_file = config.CONFIG_DEFAULTS['log_file']
     fmt = '[%(levelname)s]: %(message)s'
-    formatter = logging.Formatter(fmt)
+    console_formatter = logging.Formatter(fmt)
+    log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
+    # Setup debug file logging
+    filehandler = logging.FileHandler(log_file)
+    filehandler.setLevel(logging.DEBUG)
+    filehandler.setFormatter(log_formatter)
+    root.addHandler(filehandler)
+    # Setup console logging
     stderr_found = False
     for handler in root.handlers:
         if hasattr(handler, 'stream') and hasattr(handler.stream, 'name'):
             if handler.stream.name == '<stderr>':
                 handler.setLevel(level)
-                handler.setFormatter(formatter)
+                handler.setFormatter(console_formatter)
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
-        console.setFormatter(formatter)
+        console.setFormatter(console_formatter)
         console.setLevel(level)
         root.addHandler(console)
     root.setLevel(level)
@@ -345,7 +360,8 @@ def main(sys_argv=None):
     args = parser.parse_args(args=sys_argv[1:])
     cfg = config.UAConfig()
     log_level = logging.DEBUG if args.debug else cfg.log_level
-    setup_logging(log_level)
+    log_file = logging.DEBUG if args.debug else cfg.log_file
+    setup_logging(log_level, log_file)
     return args.action(args, cfg)
 
 
