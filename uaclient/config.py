@@ -25,7 +25,8 @@ CONFIG_DEFAULTS = {
     'sso_auth_url': BASE_AUTH_URL,
     'service_url': BASE_SERVICE_URL,
     'data_dir': '/var/lib/ubuntu-advantage',
-    'log_level': logging.INFO
+    'log_level': logging.INFO,
+    'log_file': '/var/log/ubuntu-advantage.log'
 }
 
 
@@ -79,6 +80,10 @@ class UAConfig(object):
     @property
     def log_level(self):
         return self.cfg.get('log_level', CONFIG_DEFAULTS['log_level'])
+
+    @property
+    def log_file(self):
+        return self.cfg.get('log_file', CONFIG_DEFAULTS['log_file'])
 
     @property
     def sso_auth_url(self):
