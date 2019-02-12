@@ -157,6 +157,24 @@ def extract_macaroon_caveat_id(macaroon):
         caveat_id_by_location.keys())
 
 
+def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
+    """Bind discharge macaroon to root macaroon.
+
+     The resulting bound macaroons is uses for SSOAuth against UA Contract
+     routes.
+
+     @param discharge_macaroon: The discharge macaroon from Login Ubuntu SSO
+     @param root_macaroon: The root macaroon from UA Contract Service
+
+     @return: The seriealized root_macaroon with the bound discharge macaroon.
+     """
+    padded_root = root_mac + '=' * (len(root_mac) % 3)
+    discharge_mac = pymacaroons.Macaroon.deserialize(discharge_mac)
+    root_mac = pymacaroons.Macaroon.deserialize(padded_root)
+    root_mac.prepare_for_request(discharge_mac)
+    return root_mac.serialize()
+
+
 def prompt_oauth_token(cfg):
     client = UbuntuSSOClient(cfg)
     oauth_token = client.cfg.read_cache('oauth')
