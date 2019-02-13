@@ -28,12 +28,16 @@ API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
 API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
 
-class InvalidRootMacaroonError(RuntimeError):
+class MacaroonFormatError(RuntimeError):
+    pass
+
+
+class InvalidRootMacaroonError(MacaroonFormatError):
     """Raised when root macaroon is not parseable"""
     pass
 
 
-class NoThirdPartySSOCaveatFoundError(RuntimeError):
+class NoThirdPartySSOCaveatFoundError(MacaroonFormatError):
     """Raised when valid Macaroon is found but missing SSO caveat"""
     pass
 
@@ -175,33 +179,6 @@ def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
     return bound_mac.serialize()
 
 
-def prompt_oauth_token(cfg):
-    client = UbuntuSSOClient(cfg)
-    oauth_token = client.cfg.read_cache('oauth')
-    if oauth_token:
-        return oauth_token
-    try:
-        email = six.moves.input('Email: ')
-        password = getpass.getpass('Password: ')
-        token_name = six.moves.input('Unique OAuth token name: ')
-    except KeyboardInterrupt:
-        return None
-    try:
-        oauth_token = client.request_oauth_token(
-            email=email, password=password, token_name=token_name)
-    except SSOAuthError as e:
-        if API_ERROR_2FA_REQUIRED not in e:
-            logging.error(str(e))
-            return None
-        try:
-            otp = six.moves.input('Second-factor auth: ')
-        except KeyboardInterrupt:
-            return None
-        oauth_token = client.request_oauth_token(
-            email=email, password=password, token_name=token_name, otp=otp)
-    return oauth_token
-
-
 def prompt_request_macaroon(cfg, caveat_id):
     discharge_macaroon = cfg.read_cache('macaroon')
     if discharge_macaroon:
@@ -242,11 +219,41 @@ def discharge_root_macaroon(contract_client):
     try:
         root_macaroon = contract_client.request_root_macaroon()
         caveat_id = extract_macaroon_caveat_id(root_macaroon['macaroon'])
-        user_token = prompt_request_macaroon(cfg, caveat_id)
+        discharge_macaroon = prompt_request_macaroon(cfg, caveat_id)
     except (util.UrlError) as e:
         logging.error("Could not reach url '%s' to authenticate.", e.url)
         return None
-    if not user_token:
+    except (MacaroonFormatError) as e:
+        logging.error("Invalid root macaroon: %s", str(e))
+
+    if not discharge_macaroon:
         return None
     return bind_discharge_macarooon_to_root_macaroon(
-        user_token['discharge_macaroon'], root_macaroon['macaroon'])
+        discharge_macaroon['discharge_macaroon'], root_macaroon['macaroon'])
+
+
+def prompt_oauth_token(cfg):
+    client = UbuntuSSOClient(cfg)
+    oauth_token = client.cfg.read_cache('oauth')
+    if oauth_token:
+        return oauth_token
+    try:
+        email = six.moves.input('Email: ')
+        password = getpass.getpass('Password: ')
+        token_name = six.moves.input('Unique OAuth token name: ')
+    except KeyboardInterrupt:
+        return None
+    try:
+        oauth_token = client.request_oauth_token(
+            email=email, password=password, token_name=token_name)
+    except SSOAuthError as e:
+        if API_ERROR_2FA_REQUIRED not in e:
+            logging.error(str(e))
+            return None
+        try:
+            otp = six.moves.input('Second-factor auth: ')
+        except KeyboardInterrupt:
+            return None
+        oauth_token = client.request_oauth_token(
+            email=email, password=password, token_name=token_name, otp=otp)
+    return oauth_token

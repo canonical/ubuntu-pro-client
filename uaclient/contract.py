@@ -68,10 +68,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('root-macaroon', root_macaroon)
         return root_macaroon
 
-    def request_accounts(self, user_token):
+    def request_accounts(self, macaroon_token):
         """Request list of accounts this user has access to."""
         headers = self.headers()
-        headers.update({'Authorization': 'Macaroon %s' % user_token})
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         accounts, _headers = self.request_url(
             API_V1_ACCOUNTS, headers=headers)
         self.cfg.write_cache('accounts', accounts)
@@ -84,12 +84,12 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
 
-    def request_add_contract_token(self, user_token, contract_id):
+    def request_add_contract_token(self, macaroon_token, contract_id):
         """Create a contract token for use when adding a machine to a contract
 
         """
         headers = self.headers()
-        headers.update({'Authorization': 'Macaroon %s' % user_token})
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         url = API_V1_TMPL_ADD_CONTRACT_TOKEN.format(contract=contract_id)
         contract_token, _headers = self.request_url(
             url, data={"TODO": "any other request body params?"})

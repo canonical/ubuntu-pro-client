@@ -126,14 +126,15 @@ def readurl(url, data=None, headers=None, method=None):
     else:
         redacted_data = data
     logging.debug(
-        'URL read: %s, headers: %s, data: %s method: %s',
-        url, headers, redacted_data, method)
+        'URL [%s]: %s, headers: %s, data: %s',
+        method or 'GET', url, headers, redacted_data)
     resp = six.moves.urllib.request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
     logging.debug(
-        'URL response: %s, headers: %s, data: %s', url, resp.headers, content)
+        'URL [%s] response: %s, headers: %s, data: %s',
+        method or 'GET', url, resp.headers, content)
     return content, resp.headers
 
 

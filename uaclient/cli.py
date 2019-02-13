@@ -203,20 +203,20 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        sso_token = sso.discharge_root_macaroon(contract_client)
+        bound_macaroon = sso.discharge_root_macaroon(contract_client)
     else:
-        sso_token = args.token
-    if not sso_token:
+        bound_macaroon = args.token
+    if not bound_macaroon:
         print('Could not attach machine. Unable to obtain authenticated user'
               ' token')
         return 1
-    cfg.write_cache('bound-macaroon', sso_token)
+    cfg.write_cache('bound-macaroon', bound_macaroon)
     try:
-        contract_client.request_accounts(sso_token)
-        contracts = contract_client.request_account_contracts(sso_token)
+        contract_client.request_accounts(bound_macaroon)
+        contracts = contract_client.request_account_contracts(bound_macaroon)
         contract_id = contracts['contracts'][0]['contractInfo']['id']
         contract_token = contract_client.request_add_contract_token(
-            sso_token, contract_id)
+            bound_macaroon, contract_id)
         token_response = contract_client.request_contract_machine_attach(
             contract_token=contract_token['contractToken'])
     except (sso.SSOAuthError, util.UrlError) as e:
