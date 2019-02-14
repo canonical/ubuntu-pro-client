@@ -86,8 +86,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache(
             'machine-access-testconcreteentitlement',
@@ -110,8 +110,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
@@ -134,8 +134,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
@@ -178,8 +178,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': False}})
@@ -201,8 +201,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
@@ -223,8 +223,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
@@ -242,8 +242,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
@@ -258,8 +258,8 @@ class TestUaEntitlement(TestCase):
             'machineSecret': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
-                    'resourceEntitlements': {
-                        'testconcreteentitlement': {}}}}}
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': False}})
