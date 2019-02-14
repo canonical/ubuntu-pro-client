@@ -35,7 +35,7 @@ STATUS_HEADER_TMPL = """\
 Account: {account}
 Subscription: {subscription}
 Valid until: {contract_expiry}
-Technical support: {support_level}
+Technical support: {tech_support_level}
 """
 
 DEFAULT_LOG_FORMAT = (
@@ -213,7 +213,8 @@ def action_attach(args, cfg):
     cfg.write_cache('bound-macaroon', bound_macaroon)
     try:
         contract_client.request_accounts(bound_macaroon)
-        contracts = contract_client.request_account_contracts(bound_macaroon)
+        contracts = contract_client.request_account_contracts(
+            bound_macaroon, cfg.accounts[0]['id'])
         contract_id = contracts['contracts'][0]['contractInfo']['id']
         contract_token = contract_client.request_add_contract_token(
             bound_macaroon, contract_id)
@@ -223,10 +224,11 @@ def action_attach(args, cfg):
         logging.error(str(e))
         return 1
     contractInfo = token_response['machineTokenInfo']['contractInfo']
-    for entitlement_name in contractInfo['resourceEntitlements'].keys():
+    for entitlement in contractInfo['resourceEntitlements']:
+        entitlement_name = entitlement['type']
         # Obtain each entitlement's accessContext for this machine
         contract_client.request_resource_machine_access(
-            cfg.machine_token, entitlement_name)
+            cfg.machine_token['machineToken'], entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
     action_status(args=None, cfg=cfg)
@@ -290,18 +292,22 @@ def action_status(args, cfg):
         return
     contractInfo = cfg.machine_token['machineTokenInfo']['contractInfo']
     expiry = datetime.strptime(
-        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
 
     status_content = []
-    # TODO(parse-from-TBD contract-api-resourceEntitlement-response)
-    status_level = ua_status.STATUS_COLOR.get(
-            ua_status.STANDARD, ua_status.STANDARD)
+    support_entitlement = cfg.entitlements.get('support')
+    tech_support = ua_status.COMMUNITY
+    if support_entitlement:
+        tech_support = support_entitlement.get(
+            'affordances', {}).get('supportLevel', ua_status.COMMUNITY)
+    tech_support_txt = ua_status.STATUS_COLOR.get(
+        tech_support) or ua_status.STATUS_COLOR[ua_status.COMMUNITY]
     account = cfg.accounts[0]
     status_content.append(STATUS_HEADER_TMPL.format(
         account=account['name'],
         subscription=contractInfo['name'],
         contract_expiry=expiry.date(),
-        support_level=status_level))
+        tech_support_level=tech_support_txt))
 
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)

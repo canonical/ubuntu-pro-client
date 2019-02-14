@@ -260,12 +260,12 @@ def get_platform_info(key=None):
 def get_machine_id(data_dir):
     """Get system's unique machine-id or create our own in data_dir."""
     if os.path.exists(ETC_MACHINE_ID):
-        return load_file(ETC_MACHINE_ID)
+        return load_file(ETC_MACHINE_ID).rstrip('\n')
     if os.path.exists(DBUS_MACHINE_ID):  # Trusty
-        return load_file(DBUS_MACHINE_ID)
+        return load_file(DBUS_MACHINE_ID).rstrip('\n')
     fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
     if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
-        return load_file(fallback_machine_id_file)
+        return load_file(fallback_machine_id_file).rstrip('\n')
     machine_id = uuid.uuid4()
     write_file(fallback_machine_id_file, machine_id)
     return machine_id

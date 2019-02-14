@@ -77,10 +77,12 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('accounts', accounts)
         return accounts
 
-    def request_account_contracts(self, account_id):
+    def request_account_contracts(self, macaroon_token, account_id):
         """Request a list of contracts authorized for account_id."""
         url = API_V1_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
-        account_contracts, _headers = self.request_url(url)
+        headers = self.headers()
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
+        account_contracts, _headers = self.request_url(url, headers=headers)
         self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
 
@@ -92,7 +94,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         url = API_V1_TMPL_ADD_CONTRACT_TOKEN.format(contract=contract_id)
         contract_token, _headers = self.request_url(
-            url, data={"TODO": "any other request body params?"})
+            url, headers=headers,
+            data={"TODO": "any other request body params?"})
         self.cfg.write_cache('contract-token', contract_token)
         return contract_token
 
@@ -187,7 +190,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers.update({'Authorization': 'Bearer %s' % machine_token})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id)
-        resource_access, headers = self.request_url(url)
+        resource_access, headers = self.request_url(url, headers=headers)
         if headers.get('expires'):
             resource_access['expires'] = headers['expires']
         self.cfg.write_cache('machine-access-%s' % resource, resource_access)

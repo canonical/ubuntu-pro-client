@@ -1,3 +1,4 @@
+import base64
 import getpass
 import json
 import logging
@@ -137,6 +138,26 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         return content
 
 
+def binary_serialize_macaroons(macaroons):
+    """Encode all serialized macaroons and concatonate as a serialize bytes
+
+    @param macaroons: Iterable of macaroons lead by root_macaroon as first
+       element followed by any discharge macaroons to serialize
+    """
+    serialized_macaroons = []
+    for macaroon in macaroons:
+        serialized = macaroon.serialize()
+        if '_' or '-' in serialized:
+            encoded = serialized.encode('utf-8')
+            padded = encoded + b'=' * (-len(encoded) % 4)
+            serialized_macaroons.append(base64.urlsafe_b64decode(padded))
+        else:
+            padded = serialized + b'=' * (-len(serialized) % 4)
+            serialized_macaroons.append(base64.b64decode(padded))
+    return base64.urlsafe_b64encode(
+        b''.join(serialized_macaroons)).rstrip(b'=')
+
+
 def extract_macaroon_caveat_id(macaroon):
     """Extract the macaroon caveat_id for interaction with Ubuntu SSO
 
@@ -172,11 +193,12 @@ def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
 
      @return: The seriealized root_macaroon with the bound discharge macaroon.
      """
-    padded_root = root_mac + '=' * (len(root_mac) % 3)
+    padded_root = root_mac + '=' * (-len(root_mac) % 4)
     discharge_mac = pymacaroons.Macaroon.deserialize(discharge_mac)
     root_mac = pymacaroons.Macaroon.deserialize(padded_root)
     bound_mac = root_mac.prepare_for_request(discharge_mac)
-    return bound_mac.serialize()
+    serialized_macaroons = binary_serialize_macaroons([root_mac, bound_mac])
+    return serialized_macaroons
 
 
 def prompt_request_macaroon(cfg, caveat_id):

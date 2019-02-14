@@ -37,7 +37,8 @@ class ConfigAbsentError(RuntimeError):
 
 class UAConfig(object):
 
-    data_paths = {'accounts': 'accounts.json',
+    data_paths = {'bound-macaroon': 'accounts.json',
+                  'accounts': 'accounts.json',
                   'account-contracts': 'account-contracts.json',
                   'account-users': 'account-users.json',
                   'contract-token': 'contract-token.json',
@@ -110,10 +111,15 @@ class UAConfig(object):
             return self._entitlements
         self._entitlements = {}
         contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
-        ent_names = contractInfo['resourceEntitlements'].keys()
-        for entitlement_name in ent_names:
-            self._entitlements[entitlement_name] = self.read_cache(
+        ent_by_name = dict(
+            (e['type'], e) for e in contractInfo['resourceEntitlements'])
+        for entitlement_name, ent_value in ent_by_name.items():
+            entitlement_cfg = self.read_cache(
                 'machine-access-%s' % entitlement_name)
+            if not entitlement_cfg:
+                # Fallback to machine-token info on unentitled
+                entitlement_cfg = {'entitlement': ent_value}
+            self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
 
     @property
@@ -141,10 +147,11 @@ class UAConfig(object):
         if os.path.exists(cache_path):
             os.unlink(cache_path)
 
-    def read_cache(self, key):
+    def read_cache(self, key, quiet=False):
         cache_path = self.data_path(key)
         if not os.path.exists(cache_path):
-            logging.debug('File does not exist: %s', cache_path)
+            if not quiet:
+                logging.debug('File does not exist: %s', cache_path)
             return None
         content = util.load_file(cache_path)
         json_content = util.maybe_parse_json(content)

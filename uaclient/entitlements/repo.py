@@ -28,21 +28,20 @@ class RepoEntitlement(base.UAEntitlement):
         series = platform.dist()[2]
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
-        # TODO(Contract service needs to commit to a token directive)
-        resource_cfg = self.cfg.read_cache('machine-access-%s' % self.name)
-        access_directives = resource_cfg['entitlement'].get('directives', {})
+        resource_cfg = self.cfg.entitlements.get(self.name)
+        directives = resource_cfg['entitlement'].get('directives', {})
         token = resource_cfg.get('resourceToken')
         if not token:
             logging.debug(
                 'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
-        ppa_fingerprint = access_directives.get('aptKey')
+        ppa_fingerprint = directives.get('aptKey')
         if ppa_fingerprint:
             keyring_file = None
         else:
             keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        repo_url = access_directives.get('serviceURL')
+        repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
         try:
@@ -77,10 +76,11 @@ class RepoEntitlement(base.UAEntitlement):
         if not passed_affordances:
             return status.INAPPLICABLE, details
         apt_policy, _err = util.subp(['apt-cache', 'policy'])
-        entitlement_cfg = self.cfg.read_cache(
-            'machine-access-%s' % self.name)['entitlement']
-        access_directives = entitlement_cfg.get('directives', {})
-        repo_url = access_directives.get('serviceURL')
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        if not entitlement_cfg:
+            return status.INACTIVE, '%s PPA is not configured' % self.title
+        directives = entitlement_cfg['entitlement'].get('directives', {})
+        repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')

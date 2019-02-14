@@ -31,13 +31,13 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which('/snap/bin/canonical-livepatch'):
             print('Installing canonical-livepatch snap...')
             util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
-        livepatch_token = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('resourceToken')
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        livepatch_token = entitlement_cfg.get('resourceToken')
         if not livepatch_token:
             logging.debug(
                 'No specific resourceToken present. Using machine token as'
                 ' %s credentials', self.title)
-            livepatch_token = self.cfg.machine_token['machineSecret']
+            livepatch_token = self.cfg.machine_token['machineToken']
         try:
             util.subp(['/snap/bin/canonical-livepatch', 'enable',
                        livepatch_token],

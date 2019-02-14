@@ -19,6 +19,7 @@ INAPPLICABLE = 'inapplicable'
 ENTITLED = 'entitled'
 EXPIRED = 'expired'
 NONE = 'none'
+COMMUNITY = 'community'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
@@ -30,6 +31,7 @@ STATUS_COLOR = {
     ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
     EXPIRED: TxtColor.FAIL + EXPIRED + TxtColor.ENDC,
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
+    COMMUNITY: TxtColor.DISABLEGREY + COMMUNITY + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
 }

@@ -107,10 +107,11 @@ class UAEntitlement(object):
         """
         entitlements = self.cfg.entitlements
         entitlement_cfg = entitlements.get(self.name)
-        affordances = entitlement_cfg['entitlement'].get('affordances', {})
-        series = util.get_platform_info('series')
-        for affordance in affordances:
-            if 'series' in affordance and series not in affordance['series']:
+        if entitlement_cfg:
+            affordances = entitlement_cfg['entitlement'].get('affordances', {})
+            series = util.get_platform_info('series')
+            affordance_series = affordances.get('series')
+            if affordance_series and series not in affordance_series:
                 return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
                                   title=self.title, series=series)
         for error_message, functor, expected_result in self.static_affordances:
@@ -134,8 +135,8 @@ class UAEntitlement(object):
         """Return whether contract entitlement is ENTITLED or NONE."""
         if not self.cfg.is_attached:
             return status.NONE
-        entitlement_contract = self.cfg.entitlements.get(self.name, {})
-        if entitlement_contract['entitlement'].get('entitled'):
+        entitlement_cfg = self.cfg.entitlements.get(self.name, {})
+        if entitlement_cfg and entitlement_cfg['entitlement'].get('entitled'):
             return status.ENTITLED
         return status.NONE
 
