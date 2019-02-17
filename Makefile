@@ -27,7 +27,7 @@ deb:
 
 demo: deb
 	@echo Cloning ua-service repo and building a python openapi service
-	./dev/demo-contract-service
+	./dev/demo-contract-service CanonicalLtd go
 
 testdep:
 	pip install tox
