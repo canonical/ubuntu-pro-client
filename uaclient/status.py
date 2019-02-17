@@ -140,4 +140,4 @@ def get_motd_summary(cfg, esm_only=False):
         entitlement_motd = entitlement.get_motd_summary().rstrip('\n')
         if entitlement_motd:
             motd_lines.append(entitlement_motd)
-    return '\n'.join(motd_lines)
+    return '\n'.join(motd_lines) + '\n'
