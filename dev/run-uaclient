@@ -74,12 +74,12 @@ def create_uaclient_vm(backend, series, name=None):
         debs = glob.glob('./ubuntu-advantage-tools*bddeb_all.deb')
     if not debs:
         raise RuntimeError(
-            'Found no ubuntu-advantage-debs in ../,'
+            'Found no ubuntu-advantage-debs in ./,'
             ' try make deb and make deb-trusty')
     deb = os.path.basename(debs[0])
     if backend == 'multipass':
         util.subp(['multipass', 'launch', 'daily:%s' % series, '-n', name])
-        util.subp(['multipass', 'copy-files', '../%s' % deb,  '%s:.' % name])
+        util.subp(['multipass', 'copy-files', './%s' % deb,  '%s:.' % name])
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'dpkg', '-i', deb])
         util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:.' % name])
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'mv',
