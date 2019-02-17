@@ -17,6 +17,7 @@ LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
    git clone git@github.com:$upstream/ua-contracts.git
    patch -p1 -i dev/contracts-schema.patch
+   patch -p1 -i dev/contracts-go.patch
 fi
 
 
@@ -40,7 +41,23 @@ read FIPS_TOKEN
   read LIVEPATCH_TOKEN
 
   sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
+  cat > ${CREDS_FILE/json/sh} <<EOF
+ESM_CRED=$ESM_TOKEN
+FIPS_CRED=$FIPS_TOKEN
+FIPS_UPDATES_CRED=$FIPS_UPDATES_TOKEN
+LIVEPATCH_CRED=$LIVEPATCH_TOKEN
+EOF
+
 fi
+source ${CREDS_FILE/json/sh}
+sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" ua-contracts/internal/v1/api.go
+
+if [ "$server_type" == "go" ]; then
+    echo "Changing uaclient-devel.conf to point to your lxc @ localhost:8080"
+    sed -i "s/contract_url.*/contract_url: 'http:\/\/localhost:8080'/" uaclient-devel.conf
+    cd ua-contracts; make docker; make docker-run;
+    exit
+else:
 
 UACLIENT_DEB=`ls ubuntu-advantage-tools*bddeb_all.deb`
 lxc list | grep -q $LXC_NAME
@@ -66,3 +83,4 @@ sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.c
 lxc file push uaclient-devel.conf $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
 echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
 lxc exec $LXC_NAME /root/runserver.sh
+fi
