@@ -344,11 +344,12 @@ def setup_logging(level=logging.ERROR, log_file=None):
         console.setFormatter(console_formatter)
         console.setLevel(level)
         root.addHandler(console)
-    # Setup debug file logging
-    filehandler = logging.FileHandler(log_file)
-    filehandler.setLevel(logging.DEBUG)
-    filehandler.setFormatter(log_formatter)
-    root.addHandler(filehandler)
+    if os.getuid() != 0:
+        # Setup debug file logging for root user as non-root is read-only
+        filehandler = logging.FileHandler(log_file)
+        filehandler.setLevel(logging.DEBUG)
+        filehandler.setFormatter(log_formatter)
+        root.addHandler(filehandler)
 
 
 def main(sys_argv=None):
