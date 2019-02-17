@@ -8,6 +8,13 @@ import os
 import re
 import sys
 
+MACAROON_DEPS = {
+ 'trusty': ['python-libnacl', 'libsodium18', 'python-pymacaroons'],
+ 'xenial': ['python3-libnacl', 'libsodium18', 'python3-pymacaroons'],
+ 'bionic': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons'],
+ 'disco': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons']}
+
+
 try:
     from uaclient import util
 except ImportError:
@@ -80,6 +87,8 @@ def create_uaclient_vm(backend, series, name=None):
     if backend == 'multipass':
         util.subp(['multipass', 'launch', 'daily:%s' % series, '-n', name])
         util.subp(['multipass', 'copy-files', './%s' % deb,  '%s:.' % name])
+        util.subp(['multipass', 'exec', name, '--', 'sudo', 'apt-get',
+                   'install'] + PYMACAROON_DEPS[series])
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'dpkg', '-i', deb])
         util.subp(['multipass', 'copy-files', 'uaclient-devel.conf',  '%s:.' % name])
         util.subp(['multipass', 'exec', name, '--', 'sudo', 'mv',
