@@ -209,6 +209,7 @@ def action_attach(args, cfg):
         print('Could not attach machine. Unable to obtain authenticated user'
               ' token')
         return 1
+    bound_macaroon = bound_macaroon.decode('utf-8')
     cfg.write_cache('bound-macaroon', bound_macaroon)
     try:
         contract_client.request_accounts(bound_macaroon)
