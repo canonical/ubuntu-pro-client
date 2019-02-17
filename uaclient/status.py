@@ -53,11 +53,11 @@ MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See `ua attach` or https://ubuntu.com/advantage
 """
-MESSAGE_MOTD_ACTIVE_TMPL = """
+MESSAGE_MOTD_ACTIVE_TMPL = """\
  * This system is covered by Ubuntu Advantage until {date}
 Run `ua status` for details.
 """
-MESSAGE_MOTD_EXPIRED_TMPL = """
+MESSAGE_MOTD_EXPIRED_TMPL = """\
  * Your Ubuntu Advantage subscription {name} expired on {date}!
 """
 MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL = """\
@@ -104,21 +104,30 @@ def get_upgradeable_esm_package_count():
 
 def get_motd_summary(cfg, esm_only=False):
     """Return MOTD summary text for all UA entitlements"""
+    from uaclient import entitlements
     if esm_only:
         upgrade_count = get_upgradeable_esm_package_count()
         if cfg.is_attached:
-            enabled = cfg.entitlements.get('esm', {}).get('enabled')
-            if enabled:
+            esm_cfg = cfg.entitlements.get('esm')
+            if esm_cfg and esm_cfg['entitlement'].get('entitled'):
                 return MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL % upgrade_count
         return MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL % upgrade_count
     if not cfg.is_attached:
         return ""   # No UA attached, so don't announce anything
     # TODO(Support multiple contracts)
-    contractInfo = cfg.contracts[0]['contractInfo']
+    contractInfo = cfg.contracts['contracts'][0]['contractInfo']
     expiry = datetime.strptime(
-        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
+    motd_lines = []
     if expiry >= datetime.utcnow():
-        return MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date())
+        motd_lines.append(MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date()))
     else:
-        return MESSAGE_MOTD_EXPIRED_TMPL.format(
-            name=contractInfo['name'], date=expiry.date())
+        motd_lines.append(MESSAGE_MOTD_EXPIRED_TMPL.format(
+            name=contractInfo['name'], date=expiry.date()))
+    for ent_name in ('livepatch', 'fips', 'fips-updates'):
+        ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[ent_name]
+        entitlement = ent_cls(cfg)
+        entitlement_motd = entitlement.get_motd_summary().rstrip('\n')
+        if entitlement_motd:
+            motd_lines.append(entitlement_motd)
+    return '\n'.join(motd_lines)

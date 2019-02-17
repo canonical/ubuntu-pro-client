@@ -143,6 +143,7 @@ class UAEntitlement(object):
     def is_access_expired(self):
         """Return entitlement access info as stale and needing refresh."""
         entitlement_contract = self.cfg.entitlements.get(self.name, {})
+        # TODO(No expiry per resource in MVP yet)
         expire_str = entitlement_contract.get('expires')
         if not expire_str:
             return False
@@ -155,3 +156,7 @@ class UAEntitlement(object):
     def operational_status(self):
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
         pass
+
+    def get_motd_summary(self):
+        """Return motd summary string for this entitlement or empty string """
+        return ""

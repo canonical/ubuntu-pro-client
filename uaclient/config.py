@@ -37,7 +37,7 @@ class ConfigAbsentError(RuntimeError):
 
 class UAConfig(object):
 
-    data_paths = {'bound-macaroon': 'accounts.json',
+    data_paths = {'bound-macaroon': 'bound-macaroon',
                   'accounts': 'accounts.json',
                   'account-contracts': 'account-contracts.json',
                   'account-users': 'account-users.json',
@@ -115,7 +115,7 @@ class UAConfig(object):
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():
             entitlement_cfg = self.read_cache(
-                'machine-access-%s' % entitlement_name)
+                'machine-access-%s' % entitlement_name, quiet=True)
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}
@@ -142,10 +142,16 @@ class UAConfig(object):
             return os.path.join(self.cfg['data_dir'], self.data_paths[key])
         return os.path.join(self.cfg['data_dir'], key)
 
-    def delete_cache(self, key):
-        cache_path = self.data_path(key)
-        if os.path.exists(cache_path):
-            os.unlink(cache_path)
+    def delete_cache(self, key=None):
+        if key is None:
+            for key in self.data_paths.keys():
+                cache_path = self.data_path(key)
+                if os.path.exists(cache_path):
+                    os.unlink(cache_path)
+        else:
+            cache_path = self.data_path(key)
+            if os.path.exists(cache_path):
+                os.unlink(cache_path)
 
     def read_cache(self, key, quiet=False):
         cache_path = self.data_path(key)

@@ -115,6 +115,13 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     static_affordances = (
         ('Cannot install FIPS on a container', util.is_container, False),)
 
+    def get_motd_summary(self):
+        """Return the motd summary for livepatch status or empty string."""
+        op_status, _details = self.operational_status()
+        if op_status != status.ACTIVE:
+            return ''
+        return ' * FIPS is enabled'
+
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
@@ -127,3 +134,10 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     static_affordances = (
         ('Cannot install FIPS Updates on a container',
          util.is_container, False),)
+
+    def get_motd_summary(self):
+        """Return the motd summary for FIPS updates status or empty string."""
+        op_status, _details = self.operational_status()
+        if op_status != status.ACTIVE:
+            return ''
+        return ' * FIPS (with uncertified updates) is enabled'

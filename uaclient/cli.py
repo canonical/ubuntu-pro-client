@@ -187,8 +187,7 @@ def action_detach(args, cfg):
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
-    cfg.delete_cache('machine-token')
-    cfg.delete_cache('oauth')
+    cfg.delete_cache()
     print('This machine is now detached')
     return 0
 
@@ -225,10 +224,11 @@ def action_attach(args, cfg):
         return 1
     contractInfo = token_response['machineTokenInfo']['contractInfo']
     for entitlement in contractInfo['resourceEntitlements']:
-        entitlement_name = entitlement['type']
-        # Obtain each entitlement's accessContext for this machine
-        contract_client.request_resource_machine_access(
-            cfg.machine_token['machineToken'], entitlement_name)
+        if entitlement.get('entitled'):
+            # Obtain each entitlement's accessContext for this machine
+            entitlement_name = entitlement['type']
+            contract_client.request_resource_machine_access(
+                cfg.machine_token['machineToken'], entitlement_name)
     print("This machine is now attached to '%s'.\n" %
           token_response['machineTokenInfo']['contractInfo']['name'])
     action_status(args=None, cfg=cfg)
