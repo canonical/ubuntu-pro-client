@@ -53,8 +53,10 @@ MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See `ua attach` or https://ubuntu.com/advantage
 """
+
+
 MESSAGE_MOTD_ACTIVE_TMPL = """\
- * This system is covered by Ubuntu Advantage until {date}
+ * This system is covered by Ubuntu Advantage{tech_support} until {date}
 Run `ua status` for details.
 """
 MESSAGE_MOTD_EXPIRED_TMPL = """\
@@ -114,13 +116,21 @@ def get_motd_summary(cfg, esm_only=False):
         return MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL % upgrade_count
     if not cfg.is_attached:
         return ""   # No UA attached, so don't announce anything
+    motd_lines = []
+    tech_support = ''
+    support_entitlement = cfg.entitlements.get('support')
+    if support_entitlement:
+        support_level = support_entitlement.get(
+            'affordances', {}).get('supportLevel', COMMUNITY)
+        if support_level != COMMUNITY:
+            tech_support = ' %s support' % support_level
     # TODO(Support multiple contracts)
     contractInfo = cfg.contracts['contracts'][0]['contractInfo']
     expiry = datetime.strptime(
         contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
-    motd_lines = []
     if expiry >= datetime.utcnow():
-        motd_lines.append(MESSAGE_MOTD_ACTIVE_TMPL.format(date=expiry.date()))
+        motd_lines.append(MESSAGE_MOTD_ACTIVE_TMPL.format(
+            tech_support=tech_support, date=expiry.date()))
     else:
         motd_lines.append(MESSAGE_MOTD_EXPIRED_TMPL.format(
             name=contractInfo['name'], date=expiry.date()))
