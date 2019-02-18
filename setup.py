@@ -1,8 +1,10 @@
 import glob
 import setuptools
+import subprocess
 import os
 
 from uaclient import config
+from uaclient.util import subp
 
 NAME = 'ubuntu-advantage-tools'
 
@@ -16,8 +18,10 @@ def get_version():
 
 
 _dir = os.path.dirname(os.path.realpath(__name__))
-with open(os.path.join(_dir, 'requirements.txt')) as stream:
-    INSTALL_REQUIRES = stream.readlines()
+
+
+requirements, _err = subp(['./dev/read-dependencies'])
+INSTALL_REQUIRES =requirements.rstrip('\n').split('\n')
 
 TEST_REQUIRES = [
     'coverage',
