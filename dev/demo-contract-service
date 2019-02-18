@@ -31,17 +31,20 @@ if [ ! -f $USERCREDS_FILE ]; then
   echo "Find PPA credentials (user:passwd) by clicking the 'View' links next to the named PPA at:
 https://launchpad.net/~$LP_ID/+archivesubscriptions/"
 
+  echo -n "Enter your CIS Security Benchmarks (ppa:ubuntu-advantage/security-benchmarks) (user.name:key): "
+  read CIS_TOKEN
   echo -n "Enter your ESM Staging creds (user.name:key): "
   read ESM_TOKEN
-echo -n "Enter your FIPS ppa creds (user.name:key): "
-read FIPS_TOKEN
+  echo -n "Enter your FIPS ppa creds (user.name:key): "
+  read FIPS_TOKEN
   echo -n "Enter your FIPS Updates ppa creds (user.name:key): "
   read FIPS_UPDATES_TOKEN
   echo -n "Enter your Livepatch token from https://auth.livepatch.canonical.com/: "
   read LIVEPATCH_TOKEN
 
-  sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
+  sed "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/; s/%CIS_CRED%/$CIS_TOKEN/" $CREDS_FILE > $USERCREDS_FILE
   cat > ${CREDS_FILE/json/sh} <<EOF
+CIS_CRED=$CIS_TOKEN
 ESM_CRED=$ESM_TOKEN
 FIPS_CRED=$FIPS_TOKEN
 FIPS_UPDATES_CRED=$FIPS_UPDATES_TOKEN
@@ -50,7 +53,7 @@ EOF
 
 fi
 source ${CREDS_FILE/json/sh}
-sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/" ua-contracts/internal/v1/api.go
+sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/; s/%CIS_CRED%/$CIS_TOKEN/" ua-contracts/internal/v1/api.go
 
 if [ "$server_type" == "go" ]; then
     echo "Changing uaclient-devel.conf to point to your lxc @ localhost:8080"
