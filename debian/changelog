@@ -1,6 +1,12 @@
-ubuntu-advantage-tools (19.1-34b270ce2) bionic; urgency=medium
+ubuntu-advantage-tools (19.1-0ubuntu1) bionic; urgency=medium
 
-  * Bump revision to 19.1-34b270ce2
+  * Fix setup deps
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 18 Feb 2019 13:25:43 -0700
+
+ubuntu-advantage-tools (19.1) bionic; urgency=medium
+
+  * Bump revision to 19.1
 
  -- Chad Smith <chad.smith@canonical.com>  Mon, 18 Feb 2019 10:16:53 -0700
 
