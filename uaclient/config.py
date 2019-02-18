@@ -10,7 +10,7 @@ from uaclient import util
 
 LOG = logging.getLogger(__name__)
 
-__VERSION__ = '18.1'
+__VERSION__ = '19.1'
 PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
 
 DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'

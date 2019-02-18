@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (19.1-34b270ce2) bionic; urgency=medium
+
+  * Bump revision to 19.1-34b270ce2
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 18 Feb 2019 10:16:53 -0700
+
 ubuntu-advantage-tools (18.1-ga9917552-0ubuntu1~18.04.1) bionic; urgency=medium
 
   * Initial Python implementation of ubuntu advantage client
