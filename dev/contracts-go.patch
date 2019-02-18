@@ -1,12 +1,53 @@
+diff --git a/ua-contracts/internal/memstore/memstore.go b/ua-contracts/internal/memstore/memstore.go
+index 36982d2..b2bd6e5 100644
+--- a/ua-contracts/internal/memstore/memstore.go
++++ b/ua-contracts/internal/memstore/memstore.go
+@@ -22,6 +22,22 @@ var defaultProduct = store.Product{
+ 				KernelFlavors: []string{"generic", "lowlatency"},
+ 			},
+ 		},
++                // CIS Security Benchmarks is a free product which delivers
++                // a single audit tool deb on Xenial.
++                "cis-audit": params.EntitlementAptRepository{
++                        Type:     "cis-audit",
++                        Entitled: true,
++                        Affordances: params.AffordancesAptRepository{
++                                Series: []string{"xenial"},
++                        },
++                        Obligations: params.Obligations{
++                                EnableByDefault: true,
++                        },
++                        Directives: params.DirectivesAptRepository{
++                                AptURL: "https://private-ppa.launchpad.net/ubuntu-advantage/security-benchmarks",
++                                AptKey: "A166877412DAC26E73CEBF3FF6C280178D13028C ",
++                        },
++                },
+ 		"esm": params.EntitlementAptRepository{
+ 			Type:     "esm",
+ 			Entitled: true,
+diff --git a/ua-contracts/internal/store/store.go b/ua-contracts/internal/store/store.go
+index dca74a2..1e6fa48 100644
+--- a/ua-contracts/internal/store/store.go
++++ b/ua-contracts/internal/store/store.go
+@@ -235,7 +235,7 @@ func EnsureDefaultAccount(ctx context.Context, s Store, user User) error {
+ 		Created:       account.Created,
+ 		CreatedBy:     user.Email,
+ 		EffectiveFrom: account.Created,
+-		EffectiveTo:   time.Time{},
++		EffectiveTo:   time.Date(2019, 6, 1, 0, 0, 0, time.UTC),
+ 	}
+ 	err := s.CreateAccount(ctx, account, user.ID, initialContract)
+ 	if errgo.Cause(err) == ErrAccountExists {
 diff --git a/ua-contracts/internal/v1/api.go b/ua-contracts/internal/v1/api.go
-index fe111f7..d01a3b0 100644
+index fe111f7..341ee5d 100644
 --- a/ua-contracts/internal/v1/api.go
 +++ b/ua-contracts/internal/v1/api.go
-@@ -54,6 +54,14 @@ var reqServer = &httprequest.Server{
+@@ -54,6 +54,15 @@ var reqServer = &httprequest.Server{
  	ErrorMapper: errorMapper,
  }
  
 +var resourceTokens = map[string]string{
++     "cis-audit": "%CIS_CRED%",
 +     "esm": "%ESM_CRED%",
 +     "fips": "%FIPS_CRED%",
 +     "fips-updates": "%FIPS_UPDATES_CRED%",
@@ -17,7 +58,7 @@ index fe111f7..d01a3b0 100644
  // Handlers returns a set of handlers for the v1 HTTP endpoints.
  func Handlers(p Params) ([]httprequest.Handler, error) {
  	return reqServer.Handlers(func(hp httprequest.Params, arg interface{}) (*handler, context.Context, error) {
-@@ -155,8 +163,12 @@ func (h *handler) AddContractMachine(p httprequest.Params, req *params.AddContra
+@@ -155,8 +164,12 @@ func (h *handler) AddContractMachine(p httprequest.Params, req *params.AddContra
  // token when accessing the resource-specific service.
  func (h *handler) GetResourceMachineAccess(p httprequest.Params, req *params.GetResourceMachineAccessRequest) (*params.GetResourceMachineAccessResponse, error) {
  	ctx := p.Context
@@ -31,7 +72,7 @@ index fe111f7..d01a3b0 100644
  	if !tok.IsValid() {
  		// This should never happen because the authorization code
  		// should have filled this in for us.
-@@ -172,7 +184,7 @@ func (h *handler) GetResourceMachineAccess(p httprequest.Params, req *params.Get
+@@ -172,7 +185,7 @@ func (h *handler) GetResourceMachineAccess(p httprequest.Params, req *params.Get
  	}
  	return &params.GetResourceMachineAccessResponse{
  		Entitlement:   ent,
@@ -39,218 +80,218 @@ index fe111f7..d01a3b0 100644
 +		ResourceToken: resourceToken,
  	}, nil
  }
-
+ 
 diff --git a/ua-contracts/internal/v1/api_test.go b/ua-contracts/internal/v1/api_test.go
 index 8eafb00..72c2439 100644
 --- a/ua-contracts/internal/v1/api_test.go
 +++ b/ua-contracts/internal/v1/api_test.go
 @@ -182,209 +182,6 @@ func TestAddContractMachine(t *testing.T) {
-        c.Assert(string(decoded), qt.Equals, "somemachine\n"+cid)
+ 	c.Assert(string(decoded), qt.Equals, "somemachine\n"+cid)
  }
  
 -func TestGetResourceMachineAccess(t *testing.T) {
--       c := qt.New(t)
--       defer c.Done()
+-	c := qt.New(t)
+-	defer c.Done()
 -
--       srvStore := memstore.New()
--       u := newServer(c, srvStore)
--       ctx := context.Background()
+-	srvStore := memstore.New()
+-	u := newServer(c, srvStore)
+-	ctx := context.Background()
 -
--       _, token := getContractToken(ctx, c, u)
--       // Use a client that authorizes with the newly acquired contract token
--       // to acquire a machine token.
--       client, err := contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(token),
--       })
--       c.Assert(err, qt.Equals, nil)
--       resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
--               Body: params.AddContractMachineBody{
--                       Architecture: "amd64",
--                       MachineId:    "somemachine",
--                       Os: params.OS{
--                               Distribution: "ubuntu",
--                               Kernel:       "0.01",
--                               Release:      "aRelease",
--                               Series:       "someSeries",
--                               Type:         "osType",
--                       },
--               },
--       })
--       c.Assert(err, qt.Equals, nil)
+-	_, token := getContractToken(ctx, c, u)
+-	// Use a client that authorizes with the newly acquired contract token
+-	// to acquire a machine token.
+-	client, err := contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(token),
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
+-		Body: params.AddContractMachineBody{
+-			Architecture: "amd64",
+-			MachineId:    "somemachine",
+-			Os: params.OS{
+-				Distribution: "ubuntu",
+-				Kernel:       "0.01",
+-				Release:      "aRelease",
+-				Series:       "someSeries",
+-				Type:         "osType",
+-			},
+-		},
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       // Now we've got the machine token, we can actually
--       // test GetResourceMachineAccess.
+-	// Now we've got the machine token, we can actually
+-	// test GetResourceMachineAccess.
 -
--       // Use a client that authorizes with the newly acquired machine
--       // token to acquire a resource token.
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
--       })
--       c.Assert(err, qt.Equals, nil)
+-	// Use a client that authorizes with the newly acquired machine
+-	// token to acquire a resource token.
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       resp2, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
--               Resource: "esm",
--               Machine:  "somemachine",
--       })
--       c.Assert(err, qt.Equals, nil)
--       c.Assert(resp2, qt.DeepEquals, &params.GetResourceMachineAccessResponse{
--               ResourceToken: resp1.MachineToken,
--               Entitlement: params.EntitlementAptRepository{
--                       Type:     "esm",
--                       Entitled: true,
--                       Affordances: params.AffordancesAptRepository{
--                               Series: []string{"precise", "trusty"},
--                       },
--                       Obligations: params.Obligations{
--                               EnableByDefault: true,
--                       },
--                       Directives: params.DirectivesAptRepository{
--                               AptKey: "67C7A026",
--                               AptURL: "https://esm.ubuntu.com",
--                       },
--               },
--       })
+-	resp2, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
+-		Resource: "esm",
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	c.Assert(resp2, qt.DeepEquals, &params.GetResourceMachineAccessResponse{
+-		ResourceToken: resp1.MachineToken,
+-		Entitlement: params.EntitlementAptRepository{
+-			Type:     "esm",
+-			Entitled: true,
+-			Affordances: params.AffordancesAptRepository{
+-				Series: []string{"precise", "trusty"},
+-			},
+-			Obligations: params.Obligations{
+-				EnableByDefault: true,
+-			},
+-			Directives: params.DirectivesAptRepository{
+-				AptKey: "67C7A026",
+-				AptURL: "https://esm.ubuntu.com",
+-			},
+-		},
+-	})
 -
--       // If we try to acquire a resource token for a resource
--       // we're not entitled to, we get an appropriate not-found error.
--       _, err = client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
--               Resource: "other",
--               Machine:  "somemachine",
--       })
--       c.Assert(errgo.Cause(err), qt.Equals, params.ErrResourceForbidden)
+-	// If we try to acquire a resource token for a resource
+-	// we're not entitled to, we get an appropriate not-found error.
+-	_, err = client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
+-		Resource: "other",
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(errgo.Cause(err), qt.Equals, params.ErrResourceForbidden)
 -
--       // If we use a client without the token, we get an unauthorized error.
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL: u,
--       })
--       c.Assert(err, qt.Equals, nil)
--       _, err = client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
--               Resource: "esm",
--               Machine:  "somemachine",
--       })
--       c.Assert(errgo.Cause(err), qt.Equals, params.ErrUnauthorized)
+-	// If we use a client without the token, we get an unauthorized error.
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL: u,
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	_, err = client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
+-		Resource: "esm",
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(errgo.Cause(err), qt.Equals, params.ErrUnauthorized)
 -}
 -
 -func TestGetResourceInfo(t *testing.T) {
--       c := qt.New(t)
--       defer c.Done()
+-	c := qt.New(t)
+-	defer c.Done()
 -
--       srvStore := memstore.New()
--       u := newServer(c, srvStore)
--       ctx := context.Background()
+-	srvStore := memstore.New()
+-	u := newServer(c, srvStore)
+-	ctx := context.Background()
 -
--       _, token := getContractToken(ctx, c, u)
--       // Use a client that authorizes with the newly acquired contract token
--       // to acquire a machine token.
--       client, err := contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(token),
--       })
--       c.Assert(err, qt.Equals, nil)
--       resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
--               Body: params.AddContractMachineBody{
--                       Architecture: "amd64",
--                       MachineId:    "somemachine",
--                       Os: params.OS{
--                               Distribution: "ubuntu",
--                               Kernel:       "0.01",
--                               Release:      "aRelease",
--                               Series:       "someSeries",
--                               Type:         "osType",
--                       },
--               },
--       })
--       c.Assert(err, qt.Equals, nil)
+-	_, token := getContractToken(ctx, c, u)
+-	// Use a client that authorizes with the newly acquired contract token
+-	// to acquire a machine token.
+-	client, err := contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(token),
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
+-		Body: params.AddContractMachineBody{
+-			Architecture: "amd64",
+-			MachineId:    "somemachine",
+-			Os: params.OS{
+-				Distribution: "ubuntu",
+-				Kernel:       "0.01",
+-				Release:      "aRelease",
+-				Series:       "someSeries",
+-				Type:         "osType",
+-			},
+-		},
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
--       })
--       c.Assert(err, qt.Equals, nil)
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       resp, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
--               Resource: "esm",
--               Machine:  "somemachine",
--       })
--       c.Assert(err, qt.Equals, nil)
+-	resp, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
+-		Resource: "esm",
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BasicAuthorizer("admin", "testpassword"),
--       })
--       c.Assert(err, qt.Equals, nil)
--       resp2, err := client.GetResourceTokenInfo(ctx, &params.GetResourceTokenInfoRequest{
--               Token:    resp.ResourceToken,
--               Resource: "esm",
--       })
--       c.Assert(err, qt.Equals, nil)
--       c.Assert(resp2.MachineId, qt.Equals, "somemachine")
--       c.Assert(resp2.ContractId, qt.Equals, "c0")
--       c.Assert(resp2.Affordances, qt.DeepEquals, map[string]interface{}{"series": []interface{}{"precise", "trusty"}})
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BasicAuthorizer("admin", "testpassword"),
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	resp2, err := client.GetResourceTokenInfo(ctx, &params.GetResourceTokenInfoRequest{
+-		Token:    resp.ResourceToken,
+-		Resource: "esm",
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	c.Assert(resp2.MachineId, qt.Equals, "somemachine")
+-	c.Assert(resp2.ContractId, qt.Equals, "c0")
+-	c.Assert(resp2.Affordances, qt.DeepEquals, map[string]interface{}{"series": []interface{}{"precise", "trusty"}})
 -}
 -
 -func TestGetResourceInfoRevokedMachine(t *testing.T) {
--       c := qt.New(t)
--       defer c.Done()
+-	c := qt.New(t)
+-	defer c.Done()
 -
--       srvStore := memstore.New()
--       u := newServer(c, srvStore)
--       ctx := context.Background()
+-	srvStore := memstore.New()
+-	u := newServer(c, srvStore)
+-	ctx := context.Background()
 -
--       cid, token := getContractToken(ctx, c, u)
--       // Use a client that authorizes with the newly acquired contract token
--       // to acquire a machine token.
--       client, err := contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(token),
--       })
--       c.Assert(err, qt.Equals, nil)
--       resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
--               Body: params.AddContractMachineBody{
--                       Architecture: "amd64",
--                       MachineId:    "somemachine",
--                       Os: params.OS{
--                               Distribution: "ubuntu",
--                               Kernel:       "0.01",
--                               Release:      "aRelease",
--                               Series:       "someSeries",
--                               Type:         "osType",
--                       },
--               },
--       })
--       c.Assert(err, qt.Equals, nil)
+-	cid, token := getContractToken(ctx, c, u)
+-	// Use a client that authorizes with the newly acquired contract token
+-	// to acquire a machine token.
+-	client, err := contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(token),
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	resp1, err := client.AddContractMachine(ctx, &params.AddContractMachineRequest{
+-		Body: params.AddContractMachineBody{
+-			Architecture: "amd64",
+-			MachineId:    "somemachine",
+-			Os: params.OS{
+-				Distribution: "ubuntu",
+-				Kernel:       "0.01",
+-				Release:      "aRelease",
+-				Series:       "someSeries",
+-				Type:         "osType",
+-			},
+-		},
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
--       })
--       c.Assert(err, qt.Equals, nil)
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BearerAuthorizer(resp1.MachineToken),
+-	})
+-	c.Assert(err, qt.Equals, nil)
 -
--       resp, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
--               Resource: "esm",
--               Machine:  "somemachine",
--       })
--       c.Assert(err, qt.Equals, nil)
--       _, err = client.RevokeContractMachine(ctx, &params.RevokeContractMachineRequest{
--               Contract: cid,
--               Machine:  "somemachine",
--       })
--       c.Assert(err, qt.Equals, nil)
--       client, err = contractclient.New(contractclient.NewParams{
--               BaseURL:    u,
--               Authorizer: contractclient.BasicAuthorizer("admin", "testpassword"),
--       })
--       c.Assert(err, qt.Equals, nil)
--       _, err = client.GetResourceTokenInfo(ctx, &params.GetResourceTokenInfoRequest{
--               Token:    resp.ResourceToken,
--               Resource: "esm",
--       })
--       c.Assert(err, qt.ErrorMatches, `Get http://.*/v1/resources/esm\?token=`+resp.ResourceToken+`: machine "somemachine" no longer attached to contract "c0"`)
--       c.Assert(errgo.Cause(err), qt.Equals, params.ErrForbidden)
+-	resp, err := client.GetResourceMachineAccess(ctx, &params.GetResourceMachineAccessRequest{
+-		Resource: "esm",
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	_, err = client.RevokeContractMachine(ctx, &params.RevokeContractMachineRequest{
+-		Contract: cid,
+-		Machine:  "somemachine",
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	client, err = contractclient.New(contractclient.NewParams{
+-		BaseURL:    u,
+-		Authorizer: contractclient.BasicAuthorizer("admin", "testpassword"),
+-	})
+-	c.Assert(err, qt.Equals, nil)
+-	_, err = client.GetResourceTokenInfo(ctx, &params.GetResourceTokenInfoRequest{
+-		Token:    resp.ResourceToken,
+-		Resource: "esm",
+-	})
+-	c.Assert(err, qt.ErrorMatches, `Get http://.*/v1/resources/esm\?token=`+resp.ResourceToken+`: machine "somemachine" no longer attached to contract "c0"`)
+-	c.Assert(errgo.Cause(err), qt.Equals, params.ErrForbidden)
 -}
 -
  func TestGetResourceInfoUnknownToken(t *testing.T) {
-        c := qt.New(t)
-        defer c.Done()
+ 	c := qt.New(t)
+ 	defer c.Done()
