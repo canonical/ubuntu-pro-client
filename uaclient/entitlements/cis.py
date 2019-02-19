@@ -34,9 +34,9 @@ class CISEntitlement(repo.RepoEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+        print('Removing packages: %s' % ', '.join(self.packages))
         try:
             util.subp(['apt-get', 'remove'] + self.packages)
         except util.ProcessExecutionError:
             pass
-        util.subp(['apt-get', 'update'], capture=True)
         return True
