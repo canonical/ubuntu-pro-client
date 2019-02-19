@@ -18,6 +18,8 @@ class RepoEntitlement(base.UAEntitlement):
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None      # Optional repo pin priority in subclass
 
+    packages = []  # Debs to install on enablement
+
     def enable(self):
         """Enable specific entitlement.
 
@@ -62,6 +64,10 @@ class RepoEntitlement(base.UAEntitlement):
             util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
         try:
             util.subp(['apt-get', 'update'], capture=True)
+            if self.packages:
+                print('Installing {title} packages'
+                      ' (this may take a while)'.format(title=self.title))
+                util.subp(['apt-get', 'install'] + self.packages)
         except util.ProcessExecutionError:
             self.disable(silent=True, force=True)
             logging.error(

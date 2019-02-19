@@ -15,13 +15,7 @@ class CISEntitlement(repo.RepoEntitlement):
     repo_url = ('https://private-ppa.launchpad.net/ubuntu-advantage/'
                 'security-benchmarks')
     repo_key_file = 'ubuntu-securitybenchmarks-keyring.gpg'
-
-    def enable(self, silent=False, force=False):
-        enabled = super(CISEntitlement, self).enable()
-        if enabled:
-            util.subp(['apt-get', 'install', 'ubuntu-cisbenchmark-16.04'],
-                      capture=True)
-        return enabled
+    packages = ['ubuntu-cisbenchmark-16.04']
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement

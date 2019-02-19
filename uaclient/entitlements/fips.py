@@ -10,6 +10,10 @@ from uaclient import util
 class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
+    packages = ['openssh-client-hmac', 'openssh-server-hmac',
+                'libssl1.0.0-hmac', 'linux-fips strongswan-hmac',
+                'openssh-client', 'openssh-server', 'openssl', 'libssl1.0.0',
+                'fips-initramfs', 'strongswan']
 
     def enable(self):
         """Enable specific entitlement.
@@ -48,19 +52,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 name=self.name, series=series)
             apt.add_ppa_pinning(
                 repo_pref_file, repo_url, self.repo_pin_priority)
-        if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'],
-                      capture=True)
-        if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
-        try:
-            util.subp(['apt-get', 'update'], capture=True)
-        except util.ProcessExecutionError:
-            self.disable(silent=True, force=True)
-            logging.error(
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
-            return False
-        print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         return True
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
@@ -68,13 +59,17 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
             util.subp(['apt-get', 'install', 'ca-certificates'],
                       capture=True)
+        print('Installing {title} packages (this may take a while)'.format(
+                  title=self.title))
         try:
             util.subp(['apt-get', 'update'], capture=True)
+            util.subp(['apt-get', 'install'] + self.packages)
         except util.ProcessExecutionError:
             self.disable(silent=True, force=True)
             logging.error(
                 status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
             return False
+        print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         print('{title} configured, please reboot to enable.'.format(
             title=self.title))
         return True
