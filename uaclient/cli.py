@@ -344,7 +344,7 @@ def setup_logging(level=logging.ERROR, log_file=None):
         console.setFormatter(console_formatter)
         console.setLevel(level)
         root.addHandler(console)
-    if os.getuid() != 0:
+    if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
         filehandler = logging.FileHandler(log_file)
         filehandler.setLevel(logging.DEBUG)
