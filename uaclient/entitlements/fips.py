@@ -93,6 +93,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     name=self.name, series=series)
                 if os.path.exists(repo_pref_file):
                     os.unlink(repo_pref_file)
+            try:
+                util.subp(['apt-get', 'remove'] + self.packages)
+            except util.ProcessExecutionError:
+                pass
             util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print('Warning: no option to disable {title}'.format(

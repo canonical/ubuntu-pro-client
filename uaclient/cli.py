@@ -8,6 +8,7 @@ Available entitlements:
  - Federal Information Processing Standards
  - Federal Information Processing Standards Updates
  - Canonical Livepatch (https://www.ubuntu.com/server/livepatch)
+ - Canonical CIS Benchmark Auditing
 
 """
 

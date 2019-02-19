@@ -2,7 +2,6 @@ import os
 
 from uaclient import apt
 from uaclient.entitlements import repo
-from uaclient import status
 from uaclient import util
 
 
@@ -35,12 +34,9 @@ class CISEntitlement(repo.RepoEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
-        if self.repo_pin_priority:
-            repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series)
-            if os.path.exists(repo_pref_file):
-                os.unlink(repo_pref_file)
+        try:
+            util.subp(['apt-get', 'remove'] + self.packages)
+        except util.ProcessExecutionError:
+            pass
         util.subp(['apt-get', 'update'], capture=True)
-        if not silent:
-            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
