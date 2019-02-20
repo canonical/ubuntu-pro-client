@@ -58,7 +58,7 @@ See `ua attach` or https://ubuntu.com/advantage
 """
 
 
-MESSAGE_MOTD_ACTIVE_TMPL = """\
+MESSAGE_MOTD_ACTIVE_TMPL = """
  * This system is covered by Ubuntu Advantage{tech_support} until {date}
 Run `ua status` for details.
 """
