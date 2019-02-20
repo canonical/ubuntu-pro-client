@@ -1,5 +1,8 @@
 from datetime import datetime
 
+from uaclient import config
+from uaclient import util
+
 
 class TxtColor(object):
     HEADER = '\033[95m'
@@ -104,6 +107,14 @@ def get_upgradeable_esm_package_count():
     return upgrade_count
 
 
+def write_motd_summary(cfg):
+    """Persist MOTD summary to cache files."""
+    esm_status = get_motd_summary(cfg, esm_only=True)
+    util.write_file(config.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
+    ua_motd_status = get_motd_summary(cfg)
+    util.write_file(config.MOTD_CACHE_FILE, ua_motd_status)
+
+
 def get_motd_summary(cfg, esm_only=False):
     """Return MOTD summary text for all UA entitlements"""
     from uaclient import entitlements
@@ -115,7 +126,7 @@ def get_motd_summary(cfg, esm_only=False):
                 return MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL % upgrade_count
         return MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL % upgrade_count
     if not cfg.is_attached:
-        return ""   # No UA attached, so don't announce anything
+        return ''   # No UA attached, so don't announce anything
     motd_lines = []
     tech_support = ''
     support_entitlement = cfg.entitlements.get('support')
@@ -140,4 +151,6 @@ def get_motd_summary(cfg, esm_only=False):
         entitlement_motd = entitlement.get_motd_summary().rstrip('\n')
         if entitlement_motd:
             motd_lines.append(entitlement_motd)
+    if not motd_lines:
+        return ''
     return '\n'.join(motd_lines) + '\n'

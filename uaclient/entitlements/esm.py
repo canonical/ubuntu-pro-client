@@ -40,7 +40,6 @@ class ESMEntitlement(repo.RepoEntitlement):
                 name=self.name, series=series)
             if os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
-        util.subp(['apt-get', 'update'], capture=True)
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True

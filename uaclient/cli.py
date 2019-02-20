@@ -157,7 +157,12 @@ def action_disable(args, cfg):
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
-    return 0 if entitlement.disable() else 1
+    if entitlement.disable():
+        if hasattr(entitlement, 'repo_url'):
+            util.subp(['apt-get', 'update'], capture=True)
+        return 0
+    else:
+        return 1
 
 
 def action_enable(args, cfg):
@@ -189,6 +194,7 @@ def action_detach(args, cfg):
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
     cfg.delete_cache()
+    ua_status.write_motd_summary(cfg)
     print('This machine is now detached')
     return 0
 
@@ -284,10 +290,7 @@ def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
     if update_motd:
-        esm_status = ua_status.get_motd_summary(cfg, esm_only=True)
-        util.write_file(config.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
-        ua_motd_status = ua_status.get_motd_summary(cfg)
-        util.write_file(config.MOTD_CACHE_FILE, ua_motd_status)
+        ua_status.write_motd_summary(cfg)
         return
     if not cfg.is_attached:
         print(ua_status.MESSAGE_UNATTACHED)

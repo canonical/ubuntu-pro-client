@@ -36,7 +36,8 @@ class CISEntitlement(repo.RepoEntitlement):
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
         print('Removing packages: %s' % ', '.join(self.packages))
         try:
-            util.subp(['apt-get', 'remove'] + self.packages)
+            util.subp(['apt-get', 'remove', '--frontend=noninteractive',
+                       '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
         return True
