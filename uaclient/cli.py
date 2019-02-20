@@ -7,7 +7,7 @@ Available entitlements:
  - Extended Support and Maintenance (https://ubuntu.com/esm)
  - Federal Information Processing Standards
  - Federal Information Processing Standards Updates
- - Canonical Livepatch (https://www.ubuntu.com/server/livepatch)
+ - Canonical Livepatch (https://ubuntu.com/server/livepatch)
  - Canonical CIS Benchmark Auditing
 
 """
