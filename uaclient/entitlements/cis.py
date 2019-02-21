@@ -8,7 +8,7 @@ from uaclient import util
 class CISEntitlement(repo.RepoEntitlement):
 
     name = 'cis-audit'
-    title = 'Canonical CIS Benchmark Auditing'
+    title = 'Canonical CIS Benchmark Audit Tool'
     description = (
         'Canonical Center for Internet Security Benchmark Audit Tool')
     repo_url = ('https://private-ppa.launchpad.net/ubuntu-advantage/'

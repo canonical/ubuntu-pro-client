@@ -4,11 +4,11 @@
 Client to manage Ubuntu Advantage support entitlements on a machine.
 
 Available entitlements:
- - Extended Support and Maintenance (https://ubuntu.com/esm)
- - Federal Information Processing Standards
- - Federal Information Processing Standards Updates
+ - Extended Security Maintenance (https://ubuntu.com/esm)
+ - FIPS 140-2
+ - FIPS 140-2 with updates
  - Canonical Livepatch (https://ubuntu.com/server/livepatch)
- - Canonical CIS Benchmark Auditing
+ - Canonical CIS Benchmark Audit Tool
 
 """
 
