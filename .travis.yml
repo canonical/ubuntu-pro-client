@@ -3,7 +3,8 @@ python:
   - 3.4 # trusty
   - 3.5 # xenial
   - 3.6 # bionic
-  - 3.7 # disco+
+  - 3.7-dev
+dist: trusty
 matrix:
   fast_finish: true
 install:
