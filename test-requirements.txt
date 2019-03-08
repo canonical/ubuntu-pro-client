@@ -1,6 +1,6 @@
-# Pip requirements for uaclint unittests
 coverage
-mock
-nose
-unittest2
 flake8
+mock
+nose2
+pycodestyle
+unittest2
