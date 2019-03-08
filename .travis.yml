@@ -1,25 +1,12 @@
 language: python
 python:
-  - 3.4
-  - 3.6
-dist: precise
-
-services:
-  - docker
-
+  - 3.4 # trusty
+  - 3.5 # xenial
+  - 3.6 # bionic
+  - 3.7 # disco+
 matrix:
   fast_finish: true
-
-stages:
-  - lint
-  - test
-
-jobs:
-  include:
-    - stage: lint
-      script: make lint/docker
-      python: 3.6
-      dist: trusty
-
-install: make testdep
-script: make test
+install:
+  - make testdep
+script:
+  - make test
