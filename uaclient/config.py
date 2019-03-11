@@ -2,7 +2,6 @@ import copy
 import json
 import logging
 import os
-import six
 from subprocess import check_output
 import yaml
 
@@ -37,23 +36,24 @@ class ConfigAbsentError(RuntimeError):
 
 class UAConfig(object):
 
-    data_paths = {'bound-macaroon': 'bound-macaroon',
-                  'accounts': 'accounts.json',
-                  'account-contracts': 'account-contracts.json',
-                  'account-users': 'account-users.json',
-                  'contract-token': 'contract-token.json',
-                  'machine-contracts': 'machine-contracts.json',
-                  'machine-access-cis-audit': 'machine-access-cis-audit.json',
-                  'machine-access-esm': 'machine-access-esm.json',
-                  'machine-access-fips': 'machine-access-fips.json',
-                  'machine-access-fips-updates':
-                      'machine-access-fips-updates.json',
-                  'machine-access-livepatch': 'machine-access-livepatch.json',
-                  'machine-detach': 'machine-detach.json',
-                  'machine-token': 'machine-token.json',
-                  'macaroon': 'sso-macaroon.json',
-                  'root-macaroon': 'root-macaroon.json',
-                  'oauth': 'sso-oauth.json'}
+    data_paths = {
+        'bound-macaroon': 'bound-macaroon',
+        'accounts': 'accounts.json',
+        'account-contracts': 'account-contracts.json',
+        'account-users': 'account-users.json',
+        'contract-token': 'contract-token.json',
+        'machine-contracts': 'machine-contracts.json',
+        'machine-access-cis-audit': 'machine-access-cis-audit.json',
+        'machine-access-esm': 'machine-access-esm.json',
+        'machine-access-fips': 'machine-access-fips.json',
+        'machine-access-fips-updates': 'machine-access-fips-updates.json',
+        'machine-access-livepatch': 'machine-access-livepatch.json',
+        'machine-detach': 'machine-detach.json',
+        'machine-token': 'machine-token.json',
+        'macaroon': 'sso-macaroon.json',
+        'root-macaroon': 'root-macaroon.json',
+        'oauth': 'sso-oauth.json'
+    }
 
     _contracts = None  # caching to avoid repetitive file reads
     _entitlements = None  # caching to avoid repetitive file reads
@@ -168,7 +168,7 @@ class UAConfig(object):
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
         filepath = self.data_path(key)
-        if not isinstance(content, six.string_types):
+        if not isinstance(content, str):
             content = json.dumps(content)
         util.write_file(filepath, content)
 

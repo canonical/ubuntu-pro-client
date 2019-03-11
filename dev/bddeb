@@ -61,7 +61,7 @@ def run_helper(helper, args=None, strip=True):
     return stdout
 
 
-def write_debian_folder(root, templ_data, is_python2):
+def write_debian_folder(root, templ_data, is_python2=False):
     """Create a debian package directory with all rendered template files."""
     print("Creating a debian/ folder in %r" % (root))
     if is_python2:
@@ -189,8 +189,7 @@ def main():
 
     xdir = os.path.join(tdir, "ubuntu-advantage-tools-%s" % ver)
 
-    is_python2 = bool(args.series == 'trusty')
-    write_debian_folder(xdir, templ_data, is_python2=is_python2)
+    write_debian_folder(xdir, templ_data)
 
     print("Running 'debuild %s' in %r" % (' '.join(args.debuild_args),
                                           xdir))

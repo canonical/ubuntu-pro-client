@@ -1,5 +1,5 @@
 import json
-import six
+import urllib
 
 from uaclient import config
 from uaclient import util
@@ -38,7 +38,7 @@ class UAServiceClient(object):
         try:
             response, headers = util.readurl(
                 url=url, data=data, headers=headers, method=method)
-        except six.moves.urllib.error.URLError as e:
+        except urllib.error.URLError as e:
             code = e.errno
             if hasattr(e, 'read'):
                 error_details = util.maybe_parse_json(e.read())

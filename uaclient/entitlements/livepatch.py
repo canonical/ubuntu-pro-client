@@ -1,6 +1,5 @@
 import logging
 import re
-import six
 
 from uaclient.entitlements import base
 from uaclient import status
@@ -17,14 +16,16 @@ PATCH_STATE_UNKNOWN_TMPL = '''\
     - Please see /var/log/syslog for more information.'''
 
 PATCH_STATE_MSG_MAP = {
-  'unapplied': 'Patches are available and will be deployed shortly.',
-  'applied': 'All available patches applied.',
-  'applied-with-bug': ('Live patching failed, please run `ubuntu-bug linux` to'
-                       ' report a bug'),
-  'apply-failed': ('Live patching failed, please run `ubuntu-bug linux` to'
-                   ' report a bug'),
-  'nothing-to-apply': 'All available patches applied.',
-  'applying': 'Live patching currently in progress.'
+    'unapplied': 'Patches are available and will be deployed shortly.',
+    'applied': 'All available patches applied.',
+    'applied-with-bug': (
+        'Live patching failed, please run `ubuntu-bug linux` to report a bug'
+    ),
+    'apply-failed': (
+        'Live patching failed, please run `ubuntu-bug linux` to report a bug'
+    ),
+    'nothing-to-apply': 'All available patches applied.',
+    'applying': 'Live patching currently in progress.'
 }
 
 CHECK_STATE_UNKNOWN_TMPL = '''\
@@ -33,8 +34,10 @@ CHECK_STATE_UNKNOWN_TMPL = '''\
 
 CHECK_STATE_MSG_MAP = {
     'needs-check': 'Regular server check is pending.',
-    'check-failed': ('Livepatch server check failed.\n'
-                     '    Please see /var/log/syslog for more information.'),
+    'check-failed': (
+        'Livepatch server check failed.\n'
+        '    Please see /var/log/syslog for more information.'
+    ),
     'checked': PATCH_STATE_MSG_MAP
 }
 
@@ -163,7 +166,7 @@ def livepatch_status_to_motd(status_output):
             return motd_lines.append(CHECK_STATE_UNKNOWN_TMPL.format(
                 check_state=check_state))
         message_map = CHECK_STATE_MSG_MAP[check_state]
-        if isinstance(message_map, six.string_types):
+        if isinstance(message_map, str):
             motd_lines.append(message_map)
         else:
             prefix = '   - '

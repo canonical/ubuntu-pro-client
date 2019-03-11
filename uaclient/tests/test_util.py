@@ -7,6 +7,10 @@ import os
 from uaclient.testing.helpers import TestCase
 from uaclient import util
 
+PRIVACY_POLICY_URL = (
+    "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+)
+
 OS_RELEASE_DISCO = """\
 NAME="Ubuntu"
 VERSION="19.04 (Disco Dingo)"
@@ -17,10 +21,10 @@ VERSION_ID="19.04"
 HOME_URL="https://www.ubuntu.com/"
 SUPPORT_URL="https://help.ubuntu.com/"
 BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+PRIVACY_POLICY_URL="%s"
 VERSION_CODENAME=disco
 UBUNTU_CODENAME=disco
-"""
+""" % (PRIVACY_POLICY_URL)
 
 OS_RELEASE_BIONIC = """\
 NAME="Ubuntu"
@@ -32,10 +36,10 @@ VERSION_ID="18.04"
 HOME_URL="https://www.ubuntu.com/"
 SUPPORT_URL="https://help.ubuntu.com/"
 BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+PRIVACY_POLICY_URL="%s"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
-"""
+""" % (PRIVACY_POLICY_URL)
 
 OS_RELEASE_XENIAL = """\
 NAME="Ubuntu"

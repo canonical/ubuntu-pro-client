@@ -60,7 +60,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             util.subp(['apt-get', 'install', 'ca-certificates'],
                       capture=True)
         print('Installing {title} packages (this may take a while)'.format(
-                  title=self.title))
+            title=self.title)
+        )
         try:
             util.subp(['apt-get', 'update'], capture=True)
             util.subp(['apt-get', 'install'] + self.packages)
@@ -100,7 +101,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 pass
         if not silent:
             print('Warning: no option to disable {title}'.format(
-                      title=self.title))
+                title=self.title)
+            )
         return False
 
 

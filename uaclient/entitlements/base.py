@@ -1,7 +1,6 @@
 import abc
 from datetime import datetime
 import os
-import six
 
 from uaclient import config
 from uaclient import contract
@@ -9,8 +8,7 @@ from uaclient import status
 from uaclient import util
 
 
-@six.add_metaclass(abc.ABCMeta)
-class UAEntitlement(object):
+class UAEntitlement(object, metaclass=abc.ABCMeta):
 
     # The lowercase name of this entitlement
     name = None
@@ -63,7 +61,8 @@ class UAEntitlement(object):
             op_status, _status_details = self.operational_status()
             if op_status == status.INACTIVE:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
-                          title=self.title)
+                    title=self.title
+                )
                 retval = False
         if message and not silent:
             print(message)
@@ -113,7 +112,8 @@ class UAEntitlement(object):
             affordance_series = affordances.get('series')
             if affordance_series and series not in affordance_series:
                 return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
-                                  title=self.title, series=series)
+                    title=self.title, series=series
+                )
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
                 return False, error_message
