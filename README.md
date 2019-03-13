@@ -28,7 +28,7 @@ tox
 The client also includes built-in dep8 tests. These are run as follows:
 
 ```shell
-autopkgtest --shell-fail . -- lxd ubuntu:xenial
+autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 ```
 
 ## Building
