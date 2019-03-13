@@ -1,80 +1,68 @@
-# ubuntu-advantage tool
+# Ubuntu Advantage Client
 
-[![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script.svg?branch=master)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script)
+[![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-client.svg?branch=master)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-client)
 
-This tool is used to enable or disable specific Ubuntu Advantage offerings from Canonical. Version 18.1 or later is a python-based client which talks to a
-UA Contract backend service API to navigate UA contracts, entitlement details
-and status.
+The Ubuntu Advantage client provides users with a simple mechanism to
+view, enable, and disable offerings from Canonical on their system. The
+following entitlements are supported:
 
-Currently it supports setup and maintenance of the following entitlements:
+- [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm)
+- [Livepatch Service](https://www.ubuntu.com/livepatch)
+- FIPS 140-2 Certified Modules
+- FIPS 140-2 Non-Certified Module Updates
+- Common Criteria EAL2 certification artifacts provisioning
 
-- [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm) archive.
-- [Canonical Livepatch](https://www.ubuntu.com/server/livepatch) service for managed live kernel patching.
-- Canonical FIPS 140-2 Certified Modules. Install Configure and Enable FIPS modules.
-- Canonical Common Criteria EAL2 certification artifacts provisioning
+## Obtaining the Client
 
-Run
-
-``
-$ [sudo] python -m uaclient.cli --help
-```
-
-to display usage information.
-
+The client comes pre-installed on all Ubuntu systems. Users can run the
+`ua` command to learn more or view the manpage.
 
 ## Testing
 
-System tests and tests lint:
+All unit and lint tests are run using tox:
 
-```
-$ tox
-```
-
-Lint:
-
-```
-$ tox -e lint
-
-Style:
-
-```
-$ tox -e pycodestyle
+```shell
+tox
 ```
 
-Build package:
-```
-$ make deb
-OR
-$ dpkg-buildpackage -us -uc
-```
+The client also includes built-in dep8 tests. These are run as follows:
 
-Dep8 Tests:
-
-```
-# To test on 16.04:
-$ autopkgtest --shell-fail . -- lxd ubuntu:xenial
+```shell
+autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 ```
 
+## Building
 
-Setup Contract Service API with sample data:
-```
-# Launch a bionic container to host your Contact service with sample data
-make demo
+To build the Ubuntu Advantage Client package users
 
-# Create a deb based on python version of ubuntu-advatange-tools
+```shell
 make deb
-
-# Create a vm or container running the python uaclient
-$ ./dev/run-uaclient --series disco
-$ ./dev/run-uaclient --series xenial -b multipass
-
-# play with uaclient on your local dev system
-$ sudo UA_CONFIG_FILE=uaclient-devel.conf python -m uaclient.cli
 ```
 
+## Daily Builds
 
+On Launchpad, there is a [daily build recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily),
+which will build the client and place it in the [ua-client-daily PPA](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily).
 
-### Disclaimer
-The python implementation of this ubuntu-advantage-tools will replace the original shell scripts
-under modules/. They have been left in this branch until a final release of ubuntu-advantage-tools has been SRU'd.
-After that point, all shell functions and methods will be dropped from this repository.
+## Demo
+
+Users can demo the client with a fake backend. This can be done with
+the following:
+
+```shell
+make demo
+make deb
+./dev/run-uaclient --series disco
+./dev/run-uaclient --series xenial -b multipass
+```
+
+After creating LXD or Multipass VMs, a user can connect to those
+systems and proceed to use the UA client.
+
+## Disclaimer
+
+The python implementation of this ubuntu-advantage-tools will replace
+the original shell scripts under modules/. They have been left in this
+branch until a final release of ubuntu-advantage-tools has been SRU'd.
+After that point, all shell functions and methods will be dropped from
+this repository.
