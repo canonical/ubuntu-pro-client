@@ -7,3 +7,5 @@ dev/entitlement-creds.json.*
 __pycache__
 .tox
 .pybuild
+.coverage
+*.egg-info/
