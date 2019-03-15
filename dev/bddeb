@@ -61,31 +61,23 @@ def run_helper(helper, args=None, strip=True):
     return stdout
 
 
-def write_debian_folder(root, templ_data, is_python2=False):
+def write_debian_folder(root, templ_data):
     """Create a debian package directory with all rendered template files."""
     print("Creating a debian/ folder in %r" % (root))
-    if is_python2:
-        pyver = "2"
-        python = "python"
-    else:
-        pyver = "3"
-        python = "python3"
-
-
 
     # Write out the control file template
     reqs_output = run_helper(
-        'read-dependencies', args=['--python-version', pyver, '--system-pkg-names'])
+        'read-dependencies', args=['--python-version', '3', '--system-pkg-names'])
     reqs = reqs_output.splitlines()
     test_reqs = run_helper(
         'read-dependencies',
         ['--requirements-file', 'test-requirements.txt',
-         '--system-pkg-names', '--python-version', pyver]).splitlines()
+         '--system-pkg-names', '--python-version', '3']).splitlines()
 
     requires = []
     # We consolidate all deps as Build-Depends as our package build runs all
     # tests so we need all runtime dependencies anyway.
-    requires.extend([python] + reqs + test_reqs)
+    requires.extend(['python3'] + reqs + test_reqs)
     templ_data['%BUILD_DEPS%'] = ','.join(requires)
 
     # Iterate over any .in template files and rendir into deb_dir
@@ -112,10 +104,6 @@ def get_parser():
                               " (default: %(default)s)"),
                         default=False,
                         action='store_true')
-
-    parser.add_argument("--python2", dest="python2",
-                        help=("build debs for python2 rather than python3"),
-                        default=False, action='store_true')
 
     parser.add_argument("--init-system", dest="init_system",
                         help=("build deb with INIT_SYSTEM=xxx"
