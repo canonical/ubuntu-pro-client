@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import subprocess
-import urllib
+from urllib import request
 import uuid
 
 
@@ -114,7 +114,7 @@ def maybe_parse_json(content):
 def readurl(url, data=None, headers=None, method=None):
     if data and not method:
         method = 'POST'
-    req = urllib.request.Request(url, data=data, headers=headers)
+    req = request.Request(url, data=data, headers=headers)
     if method:
         req.get_method = lambda: method
     if data:
@@ -128,7 +128,7 @@ def readurl(url, data=None, headers=None, method=None):
     logging.debug(
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, redacted_data)
-    resp = urllib.request.urlopen(req)
+    resp = request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)

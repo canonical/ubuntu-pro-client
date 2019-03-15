@@ -3,7 +3,7 @@ import getpass
 import json
 import logging
 import pymacaroons
-import urllib
+from urllib import parse
 
 from uaclient import serviceclient
 from uaclient import util
@@ -87,7 +87,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
 
     def request_user_keys(self, email):
         content, _headers = self.request_url(
-            API_PATH_USER_KEYS + urllib.parse.quote(email))
+            API_PATH_USER_KEYS + parse.quote(email))
         return content
 
     def request_oauth_token(self, email, password, token_name, otp=None):
