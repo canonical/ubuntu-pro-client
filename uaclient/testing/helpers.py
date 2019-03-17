@@ -1,13 +1,13 @@
 import functools
+import io
 import logging
 import os
 import shutil
-import six
 import tempfile
-import unittest2
+import unittest
 
 
-class TestCase(unittest2.TestCase):
+class TestCase(unittest.TestCase):
 
     with_logs = False
 
@@ -16,7 +16,7 @@ class TestCase(unittest2.TestCase):
         if self.with_logs:
             # Create a log handler so unit tests can search expected logs.
             self.logger = logging.getLogger()
-            self._logs = six.StringIO()
+            self._logs = io.StringIO()
             formatter = logging.Formatter('%(levelname)s: %(message)s')
             handler = logging.StreamHandler(self._logs)
             handler.setFormatter(formatter)

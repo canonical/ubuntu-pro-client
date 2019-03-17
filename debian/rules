@@ -1,12 +1,19 @@
 #!/usr/bin/make -f
 export DH_VERBOSE=1
 DEB_VERSION := $(shell dpkg-parsechangelog --show-field=Version)
+FLAKE8 := $(shell flake8 --version 2> /dev/null)
+
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
 override_dh_auto_test:
 	python3 -m unittest discover uaclient
+ifdef FLAKE8
+	# required for Trusty
+	flake8 --ignore=E901 uaclient
+else
 	python3 -m flake8 uaclient
+endif
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools

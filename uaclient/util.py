@@ -3,8 +3,8 @@ import json
 import logging
 import os
 import re
-import six
 import subprocess
+from urllib import request
 import uuid
 
 
@@ -52,7 +52,7 @@ class ProcessExecutionError(IOError):
 
 def decode_binary(blob, encoding='utf-8'):
     """Convert a binary type into a text type using given encoding."""
-    if isinstance(blob, six.string_types):
+    if isinstance(blob, str):
         return blob
     return blob.decode(encoding)
 
@@ -67,7 +67,7 @@ def del_file(path):
 
 def encode_text(text, encoding='utf-8'):
     """Convert a text string into a binary type using given encoding."""
-    if isinstance(text, six.binary_type):
+    if isinstance(text, bytes):
         return text
     return text.encode(encoding)
 
@@ -114,7 +114,7 @@ def maybe_parse_json(content):
 def readurl(url, data=None, headers=None, method=None):
     if data and not method:
         method = 'POST'
-    req = six.moves.urllib.request.Request(url, data=data, headers=headers)
+    req = request.Request(url, data=data, headers=headers)
     if method:
         req.get_method = lambda: method
     if data:
@@ -128,7 +128,7 @@ def readurl(url, data=None, headers=None, method=None):
     logging.debug(
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, redacted_data)
-    resp = six.moves.urllib.request.urlopen(req)
+    resp = request.urlopen(req)
     content = decode_binary(resp.read())
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
@@ -149,7 +149,7 @@ def subp(args, rcs=None, capture=False):
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
     """
-    bytes_args = [x if isinstance(x, six.binary_type) else x.encode("utf-8")
+    bytes_args = [x if isinstance(x, bytes) else x.encode("utf-8")
                   for x in args]
     if rcs is None:
         rcs = [0]

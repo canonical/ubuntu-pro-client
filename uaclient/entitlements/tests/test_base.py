@@ -1,7 +1,7 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import mock
-from six import StringIO
+from io import StringIO
 
 from uaclient import config
 from uaclient.entitlements import base

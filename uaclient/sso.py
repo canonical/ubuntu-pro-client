@@ -3,7 +3,7 @@ import getpass
 import json
 import logging
 import pymacaroons
-import six
+from urllib import parse
 
 from uaclient import serviceclient
 from uaclient import util
@@ -87,7 +87,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
 
     def request_user_keys(self, email):
         content, _headers = self.request_url(
-            API_PATH_USER_KEYS + six.moves.urllib.parse.quote(email))
+            API_PATH_USER_KEYS + parse.quote(email))
         return content
 
     def request_oauth_token(self, email, password, token_name, otp=None):
@@ -206,7 +206,7 @@ def prompt_request_macaroon(cfg, caveat_id):
     if discharge_macaroon:
         # TODO(invalidate cached macaroon on root-macaroon or discharge expiry)
         return discharge_macaroon
-    email = six.moves.input('Email: ')
+    email = input('Email: ')
     password = getpass.getpass('Password: ')
     args = {'email': email, 'password': password, 'caveat_id': caveat_id}
     sso_client = UbuntuSSOClient(cfg)
@@ -218,7 +218,7 @@ def prompt_request_macaroon(cfg, caveat_id):
             if API_ERROR_2FA_REQUIRED not in e:
                 logging.error(str(e))
                 break
-            args['otp'] = six.moves.input('Second-factor auth: ')
+            args['otp'] = input('Second-factor auth: ')
         if content:
             return content
     return None
@@ -260,9 +260,9 @@ def prompt_oauth_token(cfg):
     if oauth_token:
         return oauth_token
     try:
-        email = six.moves.input('Email: ')
+        email = input('Email: ')
         password = getpass.getpass('Password: ')
-        token_name = six.moves.input('Unique OAuth token name: ')
+        token_name = input('Unique OAuth token name: ')
     except KeyboardInterrupt:
         return None
     try:
@@ -273,7 +273,7 @@ def prompt_oauth_token(cfg):
             logging.error(str(e))
             return None
         try:
-            otp = six.moves.input('Second-factor auth: ')
+            otp = input('Second-factor auth: ')
         except KeyboardInterrupt:
             return None
         oauth_token = client.request_oauth_token(
