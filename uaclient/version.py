@@ -7,8 +7,6 @@ any of our dependencies installed.
 import os.path
 from subprocess import check_output
 
-from uaclient import util
-
 
 __VERSION__ = '19.1'
 PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
@@ -20,7 +18,6 @@ def get_version(_args=None):
         return PACKAGED_VERSION
     topdir = os.path.dirname(os.path.dirname(__file__))
     if os.path.exists(os.path.join(topdir, '.git')):
-        return util.decode_binary(check_output([
-            'git', 'describe', '--abbrev=8', '--match=[0-9]*',
-            '--long']).strip())
+        cmd = ['git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']
+        return check_output(cmd, text=True, encoding='utf-8').strip()
     return __VERSION__
