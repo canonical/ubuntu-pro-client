@@ -3,6 +3,7 @@ from urllib import error
 
 from uaclient import config
 from uaclient import util
+from uaclient import version
 
 
 class UAServiceClient(object):
@@ -23,7 +24,7 @@ class UAServiceClient(object):
             self.cfg = cfg
 
     def headers(self):
-        return {'user-agent': 'UA-Client/%s' % config.get_version(),
+        return {'user-agent': 'UA-Client/%s' % version.get_version(),
                 'accept': 'application/json',
                 'content-type': 'application/json'}
 

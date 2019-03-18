@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from uaclient import config
+from uaclient import defaults
 from uaclient import util
 
 
@@ -110,9 +110,9 @@ def get_upgradeable_esm_package_count():
 def write_motd_summary(cfg):
     """Persist MOTD summary to cache files."""
     esm_status = get_motd_summary(cfg, esm_only=True)
-    util.write_file(config.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
+    util.write_file(defaults.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
     ua_motd_status = get_motd_summary(cfg)
-    util.write_file(config.MOTD_CACHE_FILE, ua_motd_status)
+    util.write_file(defaults.MOTD_CACHE_FILE, ua_motd_status)
 
 
 def get_motd_summary(cfg, esm_only=False):

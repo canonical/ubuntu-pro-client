@@ -17,4 +17,4 @@ endif
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
-	flist=$$(find $(CURDIR)/debian/ -type f -name config.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
+	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}

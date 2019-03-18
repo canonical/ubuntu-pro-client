@@ -4,7 +4,7 @@
 import glob
 import setuptools
 
-from uaclient import config
+from uaclient import defaults, version
 from uaclient.util import subp
 
 NAME = 'ubuntu-advantage-tools'
@@ -19,7 +19,7 @@ TEST_REQUIRES = raw_test_requirements.rstrip('\n').split('\n')
 
 
 def _get_version():
-    parts = config.get_version().split('-')
+    parts = version.get_version().split('-')
     if len(parts) == 1:
         return parts[0]
     major_minor, _subrev, _commitish = parts
@@ -38,7 +38,7 @@ setuptools.setup(
         ('/etc/update-motd.d', glob.glob('update-motd.d/*')),
         ('/usr/lib/ubuntu-advantage', glob.glob('lib/*')),
         ('/usr/share/keyrings', glob.glob('keyrings/*')),
-        (config.CONFIG_DEFAULTS['data_dir'], [])
+        (defaults.CONFIG_DEFAULTS['data_dir'], [])
     ],
     install_requires=INSTALL_REQUIRES,
     extras_require=dict(test=TEST_REQUIRES),
