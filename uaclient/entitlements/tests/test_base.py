@@ -9,14 +9,14 @@ from uaclient import status
 from uaclient.testing.helpers import TestCase
 
 
-class TestConcreteEntitlement(base.UAEntitlement):
+class ConcreteTestEntitlement(base.UAEntitlement):
 
     name = 'testconcreteentitlement'
     title = 'Test Concrete Entitlement'
 
     def __init__(self, cfg=None, disable=None, enable=None,
                  operational_status=None):
-        super(TestConcreteEntitlement, self).__init__(cfg)
+        super(ConcreteTestEntitlement, self).__init__(cfg)
         self._disable = disable
         self._enable = enable
         self._operational_status = operational_status
@@ -44,20 +44,20 @@ class TestUaEntitlement(TestCase):
 
     def test_init_default_sets_up_uaconfig(self):
         """UAEntitlement sets up a uaconfig instance upon init."""
-        entitlement = TestConcreteEntitlement()
+        entitlement = ConcreteTestEntitlement()
         self.assertEqual('/var/lib/ubuntu-advantage', entitlement.cfg.data_dir)
 
     def test_init_accepts_a_uaconfig(self):
         """An instance of UAConfig can be passed to UAEntitlement."""
         cfg = config.UAConfig(cfg={'data_dir': '/some/path'})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         self.assertEqual('/some/path', entitlement.cfg.data_dir)
 
     @mock.patch('os.getuid', return_value=100)
     def test_can_disable_requires_root(self, m_getuid):
         """Non-root users receive False from UAEntitlement.can_disable."""
         cfg = config.UAConfig(cfg={})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
@@ -69,7 +69,7 @@ class TestUaEntitlement(TestCase):
         """An unattached machine will return False from can_disable."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
@@ -92,7 +92,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache(
             'machine-access-testconcreteentitlement',
             {'entitlement': {'entitled': False}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_disable())
@@ -115,7 +115,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg,
             operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -139,7 +139,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(entitlement.can_disable())
@@ -149,7 +149,7 @@ class TestUaEntitlement(TestCase):
     def test_can_enable_requires_root(self, m_getuid):
         """Non-root users receive False from UAEntitlement.can_enable."""
         cfg = config.UAConfig(cfg={})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
@@ -161,7 +161,7 @@ class TestUaEntitlement(TestCase):
         """An unattached machine will return False from can_enable."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
@@ -183,7 +183,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': False}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
@@ -206,7 +206,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg, operational_status=(status.ACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.can_enable())
@@ -228,7 +228,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
-        entitlement = TestConcreteEntitlement(
+        entitlement = ConcreteTestEntitlement(
             cfg, operational_status=(status.INACTIVE, ''))
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(entitlement.can_enable())
@@ -247,7 +247,7 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': True}})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         self.assertEqual(status.ENTITLED, entitlement.contract_status())
 
     def test_contract_status_unentitled(self):
@@ -263,5 +263,5 @@ class TestUaEntitlement(TestCase):
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': False}})
-        entitlement = TestConcreteEntitlement(cfg)
+        entitlement = ConcreteTestEntitlement(cfg)
         self.assertEqual(status.NONE, entitlement.contract_status())
