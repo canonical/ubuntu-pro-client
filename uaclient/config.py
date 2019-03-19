@@ -197,7 +197,7 @@ def parse_config(config_path=None):
         config_path = os.environ.get('UA_CONFIG_FILE')
     LOG.debug('Using UA client configuration file at %s', config_path)
     if os.path.exists(config_path):
-        cfg.update(yaml.load(util.load_file(config_path)))
+        cfg.update(yaml.safe_load(util.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
         if key.startswith('UA_'):
