@@ -58,11 +58,3 @@ make deb
 
 After creating LXD or Multipass VMs, a user can connect to those
 systems and proceed to use the UA client.
-
-## Disclaimer
-
-The python implementation of this ubuntu-advantage-tools will replace
-the original shell scripts under modules/. They have been left in this
-branch until a final release of ubuntu-advantage-tools has been SRU'd.
-After that point, all shell functions and methods will be dropped from
-this repository.
