@@ -9,3 +9,4 @@ __pycache__
 .pybuild
 .coverage
 *.egg-info/
+.mypy_cache/
