@@ -46,7 +46,7 @@ class NoThirdPartySSOCaveatFoundError(MacaroonFormatError):
 class SSOAuthError(util.UrlError):
 
     def __init__(self, e, error_response):
-        super(SSOAuthError, self).__init__(e, e.code, e.headers, e.url)
+        super().__init__(e, e.code, e.headers, e.url)
         self.full_api_response = error_response
         if 'error_list' in error_response:
             self.api_errors = error_response['error_list']
@@ -66,7 +66,7 @@ class SSOAuthError(util.UrlError):
         return default
 
     def __str__(self):
-        prefix = super(SSOAuthError, self).__str__()
+        prefix = super().__str__()
         details = []
         for err in self.api_errors:
             if not err.get('extra'):
