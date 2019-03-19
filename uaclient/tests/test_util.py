@@ -194,7 +194,7 @@ class TestGetPlatformInfo(TestCase):
 class TestGetMachineId(TestCase):
 
     def setUp(self):
-        super(TestGetMachineId, self).setUp()
+        super().setUp()
         self.tdir = self.tmp_dir()
 
     def test_get_machine_id_from_etc_machine_id(self):

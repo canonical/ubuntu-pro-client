@@ -16,7 +16,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def __init__(self, cfg=None, disable=None, enable=None,
                  operational_status=None):
-        super(ConcreteTestEntitlement, self).__init__(cfg)
+        super().__init__(cfg)
         self._disable = disable
         self._enable = enable
         self._operational_status = operational_status

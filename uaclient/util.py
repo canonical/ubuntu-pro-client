@@ -21,7 +21,7 @@ DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
 class UrlError(IOError):
 
     def __init__(self, cause, code=None, headers=None, url=None):
-        super(UrlError, self).__init__(str(cause))
+        super().__init__(str(cause))
         self.cause = cause
         self.code = code
         self.headers = headers
@@ -46,7 +46,7 @@ class ProcessExecutionError(IOError):
             message_tmpl = (
                 "Failed running command '{cmd}' [exit({exit_code})]."
                 " Message: {stderr}")
-        super(ProcessExecutionError, self).__init__(
+        super().__init__(
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
 
 

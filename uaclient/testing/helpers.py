@@ -12,7 +12,7 @@ class TestCase(unittest.TestCase):
     with_logs = False
 
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()
         if self.with_logs:
             # Create a log handler so unit tests can search expected logs.
             self.logger = logging.getLogger()
@@ -27,7 +27,7 @@ class TestCase(unittest.TestCase):
         if self.with_logs:
             # Remove the handler we setup
             logging.getLogger().handlers = self.old_handlers
-        super(TestCase, self).tearDown()
+        super().tearDown()
 
     @property
     def logs(self):
