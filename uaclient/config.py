@@ -2,31 +2,12 @@ import copy
 import json
 import logging
 import os
-from subprocess import check_output
 import yaml
 
 from uaclient import util
+from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 LOG = logging.getLogger(__name__)
-
-__VERSION__ = '19.1'
-PACKAGED_VERSION = '@@PACKAGED_VERSION@@'
-
-DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
-BASE_AUTH_URL = 'https://login.ubuntu.com'
-BASE_SERVICE_URL = 'https://uaservice.canonical.com'
-
-CACHE_DIR = '/var/cache/ubuntu-advantage-tools/'
-MOTD_CACHE_FILE = CACHE_DIR + 'motd-ubuntu-advantage-status.cache'
-MOTD_UPDATES_AVAILABLE_CACHE_FILE = CACHE_DIR + 'motd-updates-available.cache'
-
-CONFIG_DEFAULTS = {
-    'sso_auth_url': BASE_AUTH_URL,
-    'service_url': BASE_SERVICE_URL,
-    'data_dir': '/var/lib/ubuntu-advantage',
-    'log_level': logging.INFO,
-    'log_file': '/var/log/ubuntu-advantage.log'
-}
 
 
 class ConfigAbsentError(RuntimeError):
@@ -206,15 +187,3 @@ def parse_config(config_path=None):
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
     return cfg
-
-
-def get_version(_args=None):
-    """Return the package version if set, otherwise return git describe."""
-    if not PACKAGED_VERSION.startswith('@@PACKAGED_VERSION'):
-        return PACKAGED_VERSION
-    topdir = os.path.dirname(os.path.dirname(__file__))
-    if os.path.exists(os.path.join(topdir, '.git')):
-        return util.decode_binary(check_output([
-            'git', 'describe', '--abbrev=8', '--match=[0-9]*',
-            '--long']).strip())
-    return __VERSION__

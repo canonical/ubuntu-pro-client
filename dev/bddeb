@@ -28,7 +28,7 @@ if "avoid-pep8-E402-import-not-top-of-file":
     # Use the util functions from uaclient
     sys.path.insert(0, find_root())
     from uaclient import util
-    from uaclient import config
+    from uaclient import version
 
 DEBUILD_ARGS = ["-S", "-d"]
 
@@ -144,7 +144,7 @@ def main():
     if args.verbose:
         capture = False
 
-    ver = config.get_version()
+    ver = version.get_version()
     # templ_data used in sed -e cmd
     templ_data = {
         '%DEBIAN_SERIES%': args.series,

@@ -25,6 +25,7 @@ from uaclient import entitlements
 from uaclient import sso
 from uaclient import status as ua_status
 from uaclient import util
+from uaclient import version
 
 NAME = 'ubuntu-advantage-client'
 
@@ -323,7 +324,7 @@ def action_status(args, cfg):
 
 
 def print_version(_args=None, _cfg=None):
-    print(config.get_version())
+    print(version.get_version())
 
 
 def setup_logging(level=logging.ERROR, log_file=None):
