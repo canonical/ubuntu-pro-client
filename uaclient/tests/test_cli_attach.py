@@ -103,3 +103,21 @@ class TestActionAttach(unittest.TestCase):
         assert 0 == ret
         assert 1 == action_status.call_count
         assert token == cfg._cache_contents['bound-macaroon']
+
+    @mock.patch('uaclient.cli.sys.stdout')
+    @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
+    @mock.patch('uaclient.cli.contract.UAContractClient')
+    @mock.patch('uaclient.cli.action_status')
+    def test_no_discharged_macaroon(self, action_status, contract_client,
+                                    discharge_root_macaroon, stdout):
+        """If we can't discharge the root macaroon, fail gracefully."""
+        discharge_root_macaroon.return_value = None
+        args = mock.MagicMock(token=None)
+        cfg = TestConfig.with_account()
+
+        ret = action_attach(args, cfg)
+
+        assert 1 == ret
+        expected_msg = ('Could not attach machine. Unable to obtain'
+                        ' authenticated user token')
+        assert mock.call(expected_msg) in stdout.write.call_args_list

@@ -209,9 +209,12 @@ def action_attach(args, cfg):
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
     contract_client = contract.UAContractClient(cfg)
+    bound_macaroon = None
     if not args.token:
-        bound_macaroon = sso.discharge_root_macaroon(
-            contract_client).decode('utf-8')
+        bound_macaroon_bytes = sso.discharge_root_macaroon(
+            contract_client)
+        if bound_macaroon_bytes is not None:
+            bound_macaroon = bound_macaroon_bytes.decode('utf-8')
     else:
         bound_macaroon = args.token
     if not bound_macaroon:
