@@ -5,17 +5,11 @@ import glob
 import setuptools
 
 from uaclient import defaults, version
-from uaclient.util import subp
 
 NAME = 'ubuntu-advantage-tools'
 
-raw_requirements, _err = subp(['./dev/read-dependencies'])
-INSTALL_REQUIRES = raw_requirements.rstrip('\n').split('\n')
-
-raw_test_requirements, _err = subp([
-    './dev/read-dependencies', '-r', 'test-requirements.txt']
-)
-TEST_REQUIRES = raw_test_requirements.rstrip('\n').split('\n')
+INSTALL_REQUIRES = open('requirements.txt').read().rstrip('\n').split('\n')
+TEST_REQUIRES = open('test-requirements.txt').read().rstrip('\n').split('\n')
 
 
 def _get_version():
