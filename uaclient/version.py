@@ -19,5 +19,5 @@ def get_version(_args=None):
     topdir = os.path.dirname(os.path.dirname(__file__))
     if os.path.exists(os.path.join(topdir, '.git')):
         cmd = ['git', 'describe', '--abbrev=8', '--match=[0-9]*', '--long']
-        return check_output(cmd, text=True, encoding='utf-8').strip()
+        return check_output(cmd, universal_newlines=True).strip()
     return __VERSION__
