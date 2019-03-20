@@ -1,3 +1,2 @@
 pymacaroons
 pyyaml
-six
