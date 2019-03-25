@@ -11,6 +11,8 @@ from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
 from uaclient.config import UAConfig
 
+M_PATH = 'uaclient.cli.'
+
 
 class TestConfig(UAConfig):
 
@@ -40,8 +42,8 @@ class TestConfig(UAConfig):
         })
 
 
-@mock.patch('uaclient.cli.os.getuid')
-@mock.patch('uaclient.cli.sys.stdout')
+@mock.patch(M_PATH + 'os.getuid')
+@mock.patch(M_PATH + 'sys.stdout')
 def test_non_root_users_are_rejected(stdout, getuid):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
@@ -55,10 +57,10 @@ def test_non_root_users_are_rejected(stdout, getuid):
 
 
 # For all of these tests we want to appear as root, so mock on the class
-@mock.patch('uaclient.cli.os.getuid', mock.Mock(return_value=0))
+@mock.patch(M_PATH + 'os.getuid', mock.Mock(return_value=0))
 class TestActionAttach(unittest.TestCase):
 
-    @mock.patch('uaclient.cli.sys.stdout')
+    @mock.patch(M_PATH + 'sys.stdout')
     def test_already_attached(self, stdout):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = 'test_account'
@@ -71,11 +73,11 @@ class TestActionAttach(unittest.TestCase):
             account_name)
         assert mock.call(expected_msg) in stdout.write.call_args_list
 
-    @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
-    @mock.patch('uaclient.cli.contract.UAContractClient')
-    @mock.patch('uaclient.cli.action_status')
-    def test_happy_path_without_arg(self, action_status, contract_client,
-                                    discharge_root_macaroon):
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(M_PATH + 'contract.UAContractClient')
+    @mock.patch(M_PATH + 'action_status')
+    def test_happy_path_without_token_arg(self, action_status, contract_client,
+                                          discharge_root_macaroon):
         """A mock-heavy test for the happy path without an argument"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -91,15 +93,15 @@ class TestActionAttach(unittest.TestCase):
         expected_macaroon = bound_macaroon.decode('utf-8')
         assert expected_macaroon == cfg._cache_contents['bound-macaroon']
 
-    @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
-    @mock.patch('uaclient.cli.contract.UAContractClient')
-    @mock.patch('uaclient.cli.action_status')
-    def test_happy_path_with_arg(self, action_status, contract_client,
-                                 discharge_root_macaroon):
-        """A mock-heavy test for the happy path without an argument"""
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(M_PATH + 'contract.UAContractClient')
+    @mock.patch(M_PATH + 'action_status')
+    def test_happy_path_with_token_arg(self, action_status, contract_client,
+                                       discharge_root_macaroon):
+        """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
-        token = 'my-token'
+        token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = TestConfig.with_account()
 
