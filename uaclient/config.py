@@ -50,7 +50,10 @@ class UAConfig(object):
     @property
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
-        return self.read_cache('accounts')['accounts']
+        accounts = self.read_cache('accounts')
+        if not accounts:
+            return []
+        return accounts['accounts']
 
     @property
     def contract_url(self):
@@ -116,7 +119,7 @@ class UAConfig(object):
             self._machine_token = self.read_cache('machine-token')
         return self._machine_token
 
-    def data_path(self, key):
+    def data_path(self, key=None):
         """Return the file path in the data directory represented by the key"""
         if not key:
             return self.cfg['data_dir']
