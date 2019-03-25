@@ -212,33 +212,30 @@ def action_attach(args, cfg):
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
     contract_client = contract.UAContractClient(cfg)
-    bound_macaroon = None
     if not args.token:
-        bound_macaroon_bytes = sso.discharge_root_macaroon(
-            contract_client)
+        bound_macaroon = None
+        bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
         if bound_macaroon_bytes is not None:
             bound_macaroon = bound_macaroon_bytes.decode('utf-8')
+        if not bound_macaroon:
+            print('Could not attach machine. Unable to obtain authenticated'
+                  ' user token')
+            return 1
+        cfg.write_cache('bound-macaroon', bound_macaroon)
+        try:
+            contract_token = contract.get_contract_token_for_account(
+                contract_client, bound_macaroon, cfg.accounts[0]['id'])
+        except (sso.SSOAuthError, util.UrlError) as e:
+            logging.error(str(e))
+            print('Could not attach machine. Unable to obtain authenticated'
+                  ' contract token')
+            return 1
     else:
-        bound_macaroon = args.token
-    if not bound_macaroon:
-        print('Could not attach machine. Unable to obtain authenticated user'
-              ' token')
-        return 1
-    bound_macaroon = bound_macaroon
-    cfg.write_cache('bound-macaroon', bound_macaroon)
-    try:
-        contract_client.request_accounts(bound_macaroon)
-        contracts = contract_client.request_account_contracts(
-            bound_macaroon, cfg.accounts[0]['id'])
-        contract_id = contracts['contracts'][0]['contractInfo']['id']
-        contract_token = contract_client.request_add_contract_token(
-            bound_macaroon, contract_id)
-        token_response = contract_client.request_contract_machine_attach(
-            contract_token=contract_token['contractToken'])
-    except (sso.SSOAuthError, util.UrlError) as e:
-        logging.error(str(e))
-        return 1
-    contractInfo = token_response['machineTokenInfo']['contractInfo']
+        contract_token = args.token
+
+    machine_token_response = contract_client.request_contract_machine_attach(
+        contract_token=contract_token)
+    contractInfo = machine_token_response['machineTokenInfo']['contractInfo']
     for entitlement in contractInfo['resourceEntitlements']:
         if entitlement.get('entitled'):
             # Obtain each entitlement's accessContext for this machine
@@ -246,7 +243,7 @@ def action_attach(args, cfg):
             contract_client.request_resource_machine_access(
                 cfg.machine_token['machineToken'], entitlement_name)
     print("This machine is now attached to '%s'.\n" %
-          token_response['machineTokenInfo']['contractInfo']['name'])
+          machine_token_response['machineTokenInfo']['contractInfo']['name'])
     action_status(args=None, cfg=cfg)
     return 0
 
