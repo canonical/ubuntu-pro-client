@@ -94,9 +94,11 @@ class TestActionAttach(unittest.TestCase):
         assert expected_macaroon == cfg._cache_contents['bound-macaroon']
 
     @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
-    @mock.patch(M_PATH + 'contract.UAContractClient')
+    @mock.patch(
+        M_PATH + 'contract.UAContractClient.request_contract_machine_attach')
     @mock.patch(M_PATH + 'action_status')
-    def test_happy_path_with_token_arg(self, action_status, contract_client,
+    def test_happy_path_with_token_arg(self, action_status,
+                                       contract_machine_attach,
                                        discharge_root_macaroon):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
@@ -109,7 +111,8 @@ class TestActionAttach(unittest.TestCase):
 
         assert 0 == ret
         assert 1 == action_status.call_count
-        assert token == cfg._cache_contents['bound-macaroon']
+        contract_machine_attach.called_once_with(contract_token=token)
+        discharge_root_macaroon.assert_not_called()
 
     @mock.patch('uaclient.cli.sys.stdout')
     @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
