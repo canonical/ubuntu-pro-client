@@ -1,9 +1,14 @@
+
 import mock
 import unittest
+
+from nose2.tools.params import params
+
+from io import StringIO
 from typing import Any, Dict, Optional
 
 from uaclient import status
-from uaclient.cli import action_attach
+from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
 from uaclient.config import UAConfig
 
 
@@ -121,3 +126,48 @@ class TestActionAttach(unittest.TestCase):
         expected_msg = ('Could not attach machine. Unable to obtain'
                         ' authenticated user token')
         assert mock.call(expected_msg) in stdout.write.call_args_list
+
+
+class TestParser(unittest.TestCase):
+
+    def test_attach_parser_creates_a_parser_when_not_provided(self):
+        """Create a named parser configured for 'attach' on no arguments."""
+        parser = attach_parser()
+
+        assert 'ubuntu-advantage attach [token] [flags]' == parser.usage
+        descr = ('Attach this machine to an existing Ubuntu Advantage support'
+                 ' subscription')
+        assert descr == parser.description
+        assert 'attach' == parser.prog
+        assert 'Flags' == parser._optionals.title
+
+        with mock.patch('sys.argv', ['attach']):
+            args = parser.parse_args()
+        assert None is args.password
+        assert None is args.token
+        assert None is args.email
+        assert None is args.otp
+
+    @params('email', 'otp', 'password')
+    def test_attach_parser_sets_optional_params(self, param_name):
+        """Optional params are accepted by attach_parser."""
+        parser = attach_parser()
+        arg = '--%s' % param_name
+        value = 'val%s' % param_name
+        with mock.patch('sys.argv', ['attach', arg, value]):
+            args = parser.parse_args()
+        assert value == getattr(args, param_name)
+
+    def test_attach_parser_accepts_positional_token(self):
+        """Token positional param is accepted by attach_parser."""
+        parser = attach_parser()
+        with mock.patch('sys.argv', ['attach', 'tokenval']):
+            args = parser.parse_args()
+        assert 'tokenval' == args.token
+
+    def test_attach_parser_help_points_to_ua_contract_dashboard_url(self):
+        """Contracts' dashboard URL is referenced by ua attach --help."""
+        parser = attach_parser()
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            parser.print_help()
+        assert UA_DASHBOARD_URL in m_stdout.getvalue()
