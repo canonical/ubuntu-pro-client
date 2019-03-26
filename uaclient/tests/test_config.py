@@ -9,6 +9,9 @@ from uaclient.testing.helpers import TestCase
 
 # These are in a variable rather than inline to work around
 # https://github.com/nose-devs/nose2/issues/433
+SIMPLE_PARAMS = (('machine_token', 'machine-token', None),
+                 ('contracts', 'account-contracts', []))
+
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
                     ('accounts', 'accounts.json'))
 
@@ -133,17 +136,33 @@ class TestReadCache(TestCase):
 
 class TestDeleteCache(TestCase):
 
-    def test_delete_cache_unsets_contracts(self):
-        """The delete_cache unsets any cached contracts content."""
+    @params(*SIMPLE_PARAMS)
+    def test_delete_cache_properly_clears_all_caches_simple(
+            self, property_name, data_path_name, expected_null_value):
+        """
+        Ensure that delete_cache clears the cache for simple attributes
+
+        (Simple in this context means those that are simply read from the
+        filesystem and returned.)
+        """
+        property_value = 'our-value'
         tmp_dir = self.tmp_dir()
         cfg = UAConfig({'data_dir': tmp_dir})
-        cfg.write_cache('account-contracts', ['cached'])
-        assert ['cached'] == cfg.contracts
+
+        data_path = cfg.data_path(data_path_name)
+        with open(data_path, 'w') as f:
+            f.write(property_value)
+
+        before_prop_value = getattr(cfg, property_name)
+        assert before_prop_value == property_value
+
         cfg.delete_cache()
-        assert [] == cfg.contracts
+
+        after_prop_value = getattr(cfg, property_name)
+        assert expected_null_value == after_prop_value
 
     def test_delete_cache_unsets_entitlements(self):
-        """The delete_cache unsets any cache accounts content."""
+        """The delete_cache unsets any cached entitlements content."""
         tmp_dir = self.tmp_dir()
         cfg = UAConfig({'data_dir': tmp_dir})
         token = {
