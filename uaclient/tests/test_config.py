@@ -16,6 +16,24 @@ KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
                     ('accounts', 'accounts.json'))
 
 
+class TestAccounts(TestCase):
+
+    def test_accounts_returns_empty_list_when_no_cached_account_value(self):
+        """Config.accounts property returns an empty list when no cache."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+
+        assert [] == cfg.accounts
+
+    def test_accounts_extracts_accounts_key_from_read_cache(self):
+        """Config.accounts property extracts the accounts key from cache."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        cfg.write_cache('accounts', {'accounts': ['acct1', 'acct2']})
+
+        assert ['acct1', 'acct2'] == cfg.accounts
+
+
 class TestDataPath(TestCase):
 
     def test_data_path_returns_data_dir_path_without_key(self):
@@ -36,6 +54,49 @@ class TestDataPath(TestCase):
         """When key is not in Config.data_paths the key is used to data_dir"""
         cfg = UAConfig({'data_dir': '/my/dir'})
         assert '/my/dir/%s' % key == cfg.data_path(key=key)
+
+
+class TestWriteCache(TestCase):
+
+    @params(('unknownkey', 'content1'), ('another-one', 'content2'))
+    def test_write_cache_write_key_name_in_data_dir_when_data_path_absent(
+            self, key, content):
+        """When key is not in data_paths, write content to data_dir/key."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        expected_path = os.path.join(tmp_dir, key)
+
+        assert False is os.path.exists(expected_path), (
+            'Found unexpected file %s' % expected_path)
+        assert None is cfg.write_cache(key, content)
+        assert True is os.path.exists(expected_path), (
+            'Missing expected file %s' % expected_path)
+        assert content == cfg.read_cache(key)
+
+    def test_write_cache_creates_dir_when_data_dir_does_not_exist(self):
+        """When data_dir doesn't exist, create it."""
+        tmp_subdir = self.tmp_path('does/not/exist')
+        cfg = UAConfig({'data_dir': tmp_subdir})
+
+        assert False is os.path.isdir(tmp_subdir), (
+            'Found unexpected directory %s' % tmp_subdir)
+        assert None is cfg.write_cache('somekey', 'someval')
+        assert True is os.path.isdir(tmp_subdir), (
+            'Missing expected directory %s' % tmp_subdir)
+        assert 'someval' == cfg.read_cache('somekey')
+
+    @params(('dictkey', {'1': 'v1'}), ('listkey', [1, 2, 3]))
+    def test_write_cache_writes_json_string_when_content_not_a_string(
+            self, key, value):
+        """When content is not a string, write a json string."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+
+        expected_json_content = json.dumps(value)
+        assert None is cfg.write_cache(key, value)
+        with open(self.tmp_path(key, tmp_dir), 'r') as stream:
+            assert expected_json_content == stream.read()
+        assert value == cfg.read_cache(key)
 
 
 class TestReadCache(TestCase):
@@ -70,3 +131,42 @@ class TestReadCache(TestCase):
             f.write(json.dumps(expected))
 
         assert expected == cfg.read_cache(key)
+
+
+class TestDeleteCache(TestCase):
+
+    @params('_contracts', '_entitlements', '_machine_token')
+    def test_delete_cache_unsets_any_local_cached_class_attributes(self, attr):
+        """The delete_cache unsets any locally cached class attributes."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        assert None is getattr(cfg, attr)
+        setattr(cfg, attr, attr)
+        assert None is not getattr(cfg, attr)
+        assert None is cfg.delete_cache()
+        assert None is getattr(cfg, attr)
+
+    def test_delete_cache_removes_any_cached_data_path_files(self):
+        """Any cached files defined in cfg.data_paths will be removed."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        # Create half of the cached files, but not all
+        odd_keys = list(cfg.data_paths.keys())[::2]
+        for odd_key in odd_keys:
+            cfg.write_cache(odd_key, odd_key)
+
+        assert len(odd_keys) == len(os.listdir(tmp_dir))
+        cfg.delete_cache()
+        dirty_files = os.listdir(tmp_dir)
+        assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
+
+    def test_delete_cache_ignores_files_not_defined_in_data_paths(self):
+        """Any files in data_dir undefined in cfg.data_paths will remain."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        t_file = self.tmp_path('otherfile', tmp_dir)
+        with open(t_file, 'w') as f:
+            f.write('content')
+        assert [os.path.basename(t_file)] == os.listdir(tmp_dir)
+        cfg.delete_cache()
+        assert [os.path.basename(t_file)] == os.listdir(tmp_dir)
