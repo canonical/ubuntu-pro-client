@@ -91,11 +91,18 @@ class UAConfig(object):
 
     @property
     def entitlements(self):
-        """Return the machine-token if cached in the machine token response."""
+        """Return a dictionary of entitlements keyed by entitlement name.
+
+        Return an empty dict if no entitlements are present.
+        """
         if self._entitlements:
             return self._entitlements
+        machine_token = self.machine_token
+        if not machine_token:
+            return {}
+
         self._entitlements = {}
-        contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
+        contractInfo = machine_token['machineTokenInfo']['contractInfo']
         ent_by_name = dict(
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():

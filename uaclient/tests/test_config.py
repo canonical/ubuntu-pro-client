@@ -9,9 +9,6 @@ from uaclient.testing.helpers import TestCase
 
 # These are in a variable rather than inline to work around
 # https://github.com/nose-devs/nose2/issues/433
-SIMPLE_PARAMS = (('machine_token', 'machine-token', None),
-                 ('contracts', 'account-contracts', []))
-
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
                     ('accounts', 'accounts.json'))
 
@@ -104,10 +101,11 @@ class TestReadCache(TestCase):
     @params(*KNOWN_DATA_PATHS)
     def test_read_cache_returns_none_when_data_path_absent(
             self, key, path_basename):
-        """The data_path method returns the data_dir when key is absent."""
-        cfg = UAConfig({'data_dir': '/my/dir'})
+        """Return None when the specified key data_path is not cached."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
         assert None is cfg.read_cache(key)
-        assert False is os.path.exists(os.path.join('/my/dir', path_basename))
+        assert False is os.path.exists(os.path.join(tmp_dir, path_basename))
 
     @params(*KNOWN_DATA_PATHS)
     def test_read_cache_returns_content_when_data_path_present(
@@ -135,16 +133,29 @@ class TestReadCache(TestCase):
 
 class TestDeleteCache(TestCase):
 
-    @params('_contracts', '_entitlements', '_machine_token')
-    def test_delete_cache_unsets_any_local_cached_class_attributes(self, attr):
-        """The delete_cache unsets any locally cached class attributes."""
+    def test_delete_cache_unsets_contracts(self):
+        """The delete_cache unsets any cached contracts content."""
         tmp_dir = self.tmp_dir()
         cfg = UAConfig({'data_dir': tmp_dir})
-        assert None is getattr(cfg, attr)
-        setattr(cfg, attr, attr)
-        assert None is not getattr(cfg, attr)
-        assert None is cfg.delete_cache()
-        assert None is getattr(cfg, attr)
+        cfg.write_cache('account-contracts', ['cached'])
+        assert ['cached'] == cfg.contracts
+        cfg.delete_cache()
+        assert [] == cfg.contracts
+
+    def test_delete_cache_unsets_entitlements(self):
+        """The delete_cache unsets any cache accounts content."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        token = {
+            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [{
+                'type': 'entitlement1', 'entitled': True}]}}}
+        cfg.write_cache('machine-token', token)
+        previous_entitlements = {
+            'entitlement1': {'entitlement':
+                                {'type': 'entitlement1', 'entitled': True}}}
+        assert previous_entitlements == cfg.entitlements
+        cfg.delete_cache()
+        assert {} == cfg.entitlements
 
     def test_delete_cache_removes_any_cached_data_path_files(self):
         """Any cached files defined in cfg.data_paths will be removed."""
