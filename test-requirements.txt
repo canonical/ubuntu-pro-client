@@ -3,4 +3,3 @@ flake8
 mock
 nose2
 pycodestyle
-unittest2
