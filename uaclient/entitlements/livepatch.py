@@ -72,6 +72,13 @@ class LivepatchEntitlement(base.UAEntitlement):
             print('Installing canonical-livepatch snap...')
             util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
         entitlement_cfg = self.cfg.entitlements.get(self.name)
+        try:
+            process_directives(entitlement_cfg)
+        except util.ProcessExecutionError as e:
+            msg = 'Unable to configure Livepatch: '
+            print(msg)
+            logging.error(msg)
+            return False
         livepatch_token = entitlement_cfg.get('resourceToken')
         if not livepatch_token:
             logging.debug(
@@ -126,3 +133,18 @@ class LivepatchEntitlement(base.UAEntitlement):
             logging.debug('Livepatch not enabled. %s', str(e))
             operational_status = (status.INACTIVE, str(e))
         return operational_status
+
+
+def process_directives(entitlement_cfg):
+    """Process livepatch configuration directives.
+
+    @raises: ProcessExecutionError if unable to configure livepatch.
+    """
+    remote_server = entitlement_cfg.get('remoteServer')
+    if remote_server:
+        util.subp(['/snap/bin/canonical-livepatch', 'config',
+                   'remote-server=%s' % remote_server])
+    ca_certs = entitlement_cfg.get('caCerts')
+    if ca_certs:
+        util.subp(['/snap/bin/canonical-livepatch', 'config',
+                   'ca-certs=%s' % ca_certs])
