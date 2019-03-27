@@ -1,7 +1,6 @@
 import glob
 import logging
 import os
-import platform
 
 from uaclient import apt
 from uaclient.entitlements import base
@@ -27,7 +26,7 @@ class RepoEntitlement(base.UAEntitlement):
         """
         if not self.can_enable():
             return False
-        series = platform.dist()[2]
+        series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         resource_cfg = self.cfg.entitlements.get(self.name)
@@ -81,7 +80,6 @@ class RepoEntitlement(base.UAEntitlement):
         passed_affordances, details = self.check_affordances()
         if not passed_affordances:
             return status.INAPPLICABLE, details
-        apt_policy, _err = util.subp(['apt-cache', 'policy'])
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
             return status.INACTIVE, '%s PPA is not configured' % self.title
