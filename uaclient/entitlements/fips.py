@@ -38,7 +38,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 'No legacy entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineSecret']
-        repo_url = access_directives.get('serviceURL', self.repo_url)
+        repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
         try:
@@ -85,7 +85,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
             access_directives = self.cfg.read_cache(
                 'machine-access-%s' % self.name).get('directives', {})
-            repo_url = access_directives.get('serviceURL', self.repo_url)
+            repo_url = access_directives.get('aptURL', self.repo_url)
             if not repo_url:
                 repo_url = self.repo_url
             apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
