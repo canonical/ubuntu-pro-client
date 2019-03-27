@@ -213,14 +213,12 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        bound_macaroon = None
         bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
-        if bound_macaroon_bytes is not None:
-            bound_macaroon = bound_macaroon_bytes.decode('utf-8')
-        if not bound_macaroon:
+        if bound_macaroon_bytes is None:
             print('Could not attach machine. Unable to obtain authenticated'
                   ' user token')
             return 1
+        bound_macaroon = bound_macaroon_bytes.decode('utf-8')
         cfg.write_cache('bound-macaroon', bound_macaroon)
         try:
             contract_client.request_accounts(bound_macaroon)
