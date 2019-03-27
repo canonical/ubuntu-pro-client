@@ -27,7 +27,7 @@ from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
 
-NAME = 'ubuntu-advantage-client'
+NAME = 'ubuntu-advantage'
 
 USAGE_TMPL = '{name} {command} [flags]'
 EPILOG_TMPL = (
@@ -39,6 +39,8 @@ Subscription: {subscription}
 Valid until: {contract_expiry}
 Technical support: {tech_support_level}
 """
+UA_DASHBOARD_URL = 'https://contracts.canonical.com'
+UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
@@ -59,7 +61,8 @@ def attach_parser(parser=None):
     parser._optionals.title = 'Flags'
     parser.add_argument(
         'token', nargs='?',
-        help='Optional token obtained from Ubuntu Advantage dashboard')
+        help=('Optional token obtained from Ubuntu Advantage dashboard: %s' %
+              UA_DASHBOARD_URL))
     parser.add_argument(
         '--email', action='store',
         help='Optional email address for Ubuntu SSO login')
