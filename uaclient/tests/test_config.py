@@ -42,7 +42,7 @@ class TestAccounts(TestCase):
         accountInfo = {'id': '1', 'name': 'accountname'}
 
         cfg.write_cache('machine-token',
-                {'machineTokenInfo': {'accountInfo': accountInfo}})
+                        {'machineTokenInfo': {'accountInfo': accountInfo}})
 
         assert [accountInfo] == cfg.accounts
 

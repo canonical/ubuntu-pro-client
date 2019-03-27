@@ -111,8 +111,9 @@ class TestActionAttach(unittest.TestCase):
 
         assert 0 == ret
         assert 1 == action_status.call_count
-        contract_machine_attach.called_once_with(contract_token=token)
-        discharge_root_macaroon.assert_not_called()
+        expected_calls = [mock.call(contract_token=token)]
+        assert expected_calls == contract_machine_attach.call_args_list
+        assert 0 == discharge_root_macaroon.call_count
 
     @mock.patch('uaclient.cli.sys.stdout')
     @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
