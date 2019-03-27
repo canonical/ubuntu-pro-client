@@ -1,6 +1,5 @@
 import logging
 import os
-import platform
 import shutil
 
 from uaclient import util
@@ -57,7 +56,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     @raises: InvalidAPTCredentialsError when the token provided can't access
         the repo PPA.
     """
-    series = platform.dist()[2]
+    series = util.get_platform_info('series')
     if not valid_apt_credentials(repo_url, series, credentials):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
@@ -67,9 +66,11 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         '# deb-src {url}/ubuntu {series} main\n'.format(
             url=repo_url, series=series))
     util.write_file(repo_filename, content)
-    # TODO(Confirm that machine-token or entitlement token provides format)
-    # which is supported by /etc/apt/auth.conf
-    login, password = credentials.split(':')
+    try:
+        login, password = credentials.split(':')
+    except ValueError:  # Then we have a bearer token
+        login = 'bearer'
+        password = credentials
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         auth_content = util.load_file(apt_auth_file)
@@ -116,7 +117,7 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
 
 def add_ppa_pinning(apt_preference_file, repo_url, priority):
     """Add an apt preferences file and pin for a PPA."""
-    series = platform.dist()[2]
+    series = util.get_platform_info('series')
     _protocol, repo_path = repo_url.split('://')
     origin = repo_path.replace('private-ppa.launchpad.net/', 'LP-PPA-')
     origin = origin.replace('/', '-')

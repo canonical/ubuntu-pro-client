@@ -31,7 +31,7 @@ class ESMEntitlement(repo.RepoEntitlement):
         entitlement_cfg = self.cfg.read_cache(
             'machine-access-%s' % self.name)['entitlement']
         access_directives = entitlement_cfg.get('directives', {})
-        repo_url = access_directives.get('serviceURL', self.repo_url)
+        repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
         apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
