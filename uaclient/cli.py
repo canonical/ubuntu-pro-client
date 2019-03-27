@@ -148,9 +148,6 @@ def status_parser(parser=None):
         parser.usage = usage
         parser.prog = 'status'
     parser._optionals.title = 'Flags'
-    parser.add_argument(
-        '--update-motd', action='store_true', dest='update_motd',
-        help='Write motd cache files with current ubuntu-advantage status')
     return parser
 
 
