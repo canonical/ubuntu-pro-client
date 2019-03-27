@@ -27,13 +27,24 @@ class TestAccounts(TestCase):
 
         assert [] == cfg.accounts
 
-    def test_accounts_extracts_accounts_key_from_read_cache(self):
+    def test_accounts_extracts_accounts_key_from_account_read_cache(self):
         """Config.accounts property extracts the accounts key from cache."""
         tmp_dir = self.tmp_dir()
         cfg = UAConfig({'data_dir': tmp_dir})
         cfg.write_cache('accounts', {'accounts': ['acct1', 'acct2']})
 
         assert ['acct1', 'acct2'] == cfg.accounts
+
+    def test_accounts_extracts_accounts_key_from_machine_token_cache(self):
+        """Use machine_token cached accountInfo when no accounts cache."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        accountInfo = {'id': '1', 'name': 'accountname'}
+
+        cfg.write_cache('machine-token',
+                {'machineTokenInfo': {'accountInfo': accountInfo}})
+
+        assert [accountInfo] == cfg.accounts
 
     def test_accounts_logs_warning_when_non_dictionary_cache_content(self):
         """Config.accounts warns and returns empty list on non-dict cache."""
