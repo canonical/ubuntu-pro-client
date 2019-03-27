@@ -75,7 +75,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         try:
             process_directives(entitlement_cfg)
         except util.ProcessExecutionError as e:
-            msg = 'Unable to configure Livepatch: '
+            msg = 'Unable to configure Livepatch: ' + str(e)
             print(msg)
             logging.error(msg)
             return False
