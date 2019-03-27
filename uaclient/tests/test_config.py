@@ -18,6 +18,8 @@ KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
 
 class TestAccounts(TestCase):
 
+    with_logs = True
+
     def test_accounts_returns_empty_list_when_no_cached_account_value(self):
         """Config.accounts property returns an empty list when no cache."""
         tmp_dir = self.tmp_dir()
@@ -32,6 +34,42 @@ class TestAccounts(TestCase):
         cfg.write_cache('accounts', {'accounts': ['acct1', 'acct2']})
 
         assert ['acct1', 'acct2'] == cfg.accounts
+
+    def test_accounts_logs_warning_when_non_dictionary_cache_content(self):
+        """Config.accounts warns and returns empty list on non-dict cache."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        cfg.write_cache('accounts', 'non-dict-value')
+
+        assert [] == cfg.accounts
+        expected_warning = (
+            "WARNING: Unexpected type <class 'str'> in cache %s" % (
+                self.tmp_path('accounts.json', tmp_dir)))
+        assert expected_warning in self.logs
+
+    def test_accounts_logs_warning_when_missing_accounts_key_in_cache(self):
+        """Config.accounts warns when missing 'accounts' key in cache"""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        cfg.write_cache('accounts', {'non-accounts': 'somethingelse'})
+
+        assert [] == cfg.accounts
+        expected_warning = (
+            "WARNING: Missing 'accounts' key in cache %s" %
+            self.tmp_path('accounts.json', tmp_dir))
+        assert expected_warning in self.logs
+
+    def test_accounts_logs_warning_when_non_list_accounts_cache_content(self):
+        """Config.accounts warns on non-list accounts key."""
+        tmp_dir = self.tmp_dir()
+        cfg = UAConfig({'data_dir': tmp_dir})
+        cfg.write_cache('accounts', {'accounts': 'non-list-value'})
+
+        assert [] == cfg.accounts
+        expected_warning = (
+            "WARNING: Unexpected 'accounts' type <class 'str'> in cache %s" % (
+                self.tmp_path('accounts.json', tmp_dir)))
+        assert expected_warning in self.logs
 
 
 class TestDataPath(TestCase):

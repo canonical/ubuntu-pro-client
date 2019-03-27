@@ -53,6 +53,20 @@ class UAConfig(object):
         accounts = self.read_cache('accounts')
         if not accounts:
             return []
+        warning_msg = None
+        if not isinstance(accounts, dict):
+            warning_msg = ('Unexpected type %s in cache %s' %
+                           (type(accounts), self.data_path('accounts')))
+        elif 'accounts' not in accounts:
+            warning_msg = ("Missing 'accounts' key in cache %s" %
+                           self.data_path('accounts'))
+        elif not isinstance(accounts['accounts'], list):
+            warning_msg = (
+                "Unexpected 'accounts' type %s in cache %s" %
+                (type(accounts['accounts']), self.data_path('accounts')))
+        if warning_msg:
+            LOG.warning(warning_msg)
+            return []
         return accounts['accounts']
 
     @property
