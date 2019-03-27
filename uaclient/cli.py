@@ -37,7 +37,7 @@ STATUS_HEADER_TMPL = """\
 Account: {account}
 Subscription: {subscription}
 Valid until: {contract_expiry}
-Technical support: {tech_support_level}
+Technical support level: {tech_support_level}
 """
 UA_DASHBOARD_URL = 'https://contracts.canonical.com'
 UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
