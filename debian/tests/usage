@@ -2,8 +2,6 @@
 
 set -ex
 
-# virgin system should not have esm enabled
-! ubuntu-advantage is-esm-enabled 
-
 # help output should contain 'enable-esm' in it, and should be on stderr
-ubuntu-advantage --help 2>&1 >/dev/null | grep enable-esm
+ubuntu-advantage --help | grep --silent entitlements
+ubuntu-advantage status | grep --silent 'This machine is not attached'
