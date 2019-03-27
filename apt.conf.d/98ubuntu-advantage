@@ -1,1 +1,0 @@
-APT::Update::Post-Invoke-Success {"/usr/bin/ua --update-motd 2>/dev/null || true";};
