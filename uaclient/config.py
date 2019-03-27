@@ -50,7 +50,24 @@ class UAConfig(object):
     @property
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
-        return self.read_cache('accounts')['accounts']
+        accounts = self.read_cache('accounts')
+        if not accounts:
+            return []
+        warning_msg = None
+        if not isinstance(accounts, dict):
+            warning_msg = ('Unexpected type %s in cache %s' %
+                           (type(accounts), self.data_path('accounts')))
+        elif 'accounts' not in accounts:
+            warning_msg = ("Missing 'accounts' key in cache %s" %
+                           self.data_path('accounts'))
+        elif not isinstance(accounts['accounts'], list):
+            warning_msg = (
+                "Unexpected 'accounts' type %s in cache %s" %
+                (type(accounts['accounts']), self.data_path('accounts')))
+        if warning_msg:
+            LOG.warning(warning_msg)
+            return []
+        return accounts['accounts']
 
     @property
     def contract_url(self):
@@ -88,11 +105,18 @@ class UAConfig(object):
 
     @property
     def entitlements(self):
-        """Return the machine-token if cached in the machine token response."""
+        """Return a dictionary of entitlements keyed by entitlement name.
+
+        Return an empty dict if no entitlements are present.
+        """
         if self._entitlements:
             return self._entitlements
+        machine_token = self.machine_token
+        if not machine_token:
+            return {}
+
         self._entitlements = {}
-        contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
+        contractInfo = machine_token['machineTokenInfo']['contractInfo']
         ent_by_name = dict(
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():
@@ -116,7 +140,7 @@ class UAConfig(object):
             self._machine_token = self.read_cache('machine-token')
         return self._machine_token
 
-    def data_path(self, key):
+    def data_path(self, key=None):
         """Return the file path in the data directory represented by the key"""
         if not key:
             return self.cfg['data_dir']
@@ -124,13 +148,12 @@ class UAConfig(object):
             return os.path.join(self.cfg['data_dir'], self.data_paths[key])
         return os.path.join(self.cfg['data_dir'], key)
 
-    def delete_cache(self, key=None):
-        if key is None:
-            for key in self.data_paths.keys():
-                cache_path = self.data_path(key)
-                if os.path.exists(cache_path):
-                    os.unlink(cache_path)
-        else:
+    def delete_cache(self):
+        """Remove all configuration cached response files class attributes."""
+        self._contracts = None
+        self._entitlements = None
+        self._machine_token = None
+        for key in self.data_paths.keys():
             cache_path = self.data_path(key)
             if os.path.exists(cache_path):
                 os.unlink(cache_path)
