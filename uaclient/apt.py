@@ -68,7 +68,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     util.write_file(repo_filename, content)
     try:
         login, password = credentials.split(':')
-    except ValueError::  # Then we have a bearer token
+    except ValueError:  # Then we have a bearer token
         login = 'bearer'
         password = credentials
     apt_auth_file = get_apt_auth_file_from_apt_config()

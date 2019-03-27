@@ -18,7 +18,7 @@ class TestValidAptCredentials(TestCase):
         assert True is valid_apt_credentials(
             repo_url='http://fakerepo', series='xenial', credentials='mycreds')
         expected_calls = [mock.call('/usr/lib/apt/apt-helper')]
-        assert expected_calls== m_exists.call_args_list
+        assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
 
 
