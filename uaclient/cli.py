@@ -223,6 +223,7 @@ def action_attach(args, cfg):
             return 1
         cfg.write_cache('bound-macaroon', bound_macaroon)
         try:
+            contract_client.request_accounts(bound_macaroon)
             contract_token = contract.get_contract_token_for_account(
                 contract_client, bound_macaroon, cfg.accounts[0]['id'])
         except (sso.SSOAuthError, util.UrlError) as e:
