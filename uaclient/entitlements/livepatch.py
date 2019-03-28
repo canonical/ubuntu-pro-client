@@ -61,6 +61,7 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def __init__(self, cfg=None):
         super().__init__(cfg)
+        # Set static_affordances in init so we can mock is_container in tests
         self.static_affordances = (
             ('Cannot install Livepatch on a container', util.is_container,
              False),)

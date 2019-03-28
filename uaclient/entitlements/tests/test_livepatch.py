@@ -108,6 +108,21 @@ class TestLivepatchProcessDirectives(TestCase):
              livepatch_param_tmpl % directive_value], capture=True)
         assert [expected_subp] == m_subp.call_args_list
 
+    def test_process_directives_handles_multiple_directives(self):
+        """Handle multiple Livepatch directives using livepatch config."""
+        cfg = {
+            'entitlement': {'directives': {'remoteServer': 'value1',
+                                           'caCerts': 'value2',
+                                           'ignored': 'ignoredvalue'}}}
+        with mock.patch('uaclient.util.subp') as m_subp:
+            process_directives(cfg)
+        expected_calls = [
+            mock.call(['/snap/bin/canonical-livepatch', 'config',
+                       'remote-server=value1'], capture=True),
+            mock.call(['/snap/bin/canonical-livepatch', 'config',
+                       'ca-certs=value2'], capture=True)]
+        assert expected_calls == m_subp.call_args_list
+
     @params({}, {'otherkey': 'othervalue'})
     def test_process_directives_ignores_other_or_absent(self, directives):
         """Ignore empty or unexpected directives and do not call livepatch."""
@@ -174,13 +189,15 @@ class TestLivepatchEntitlementEnable(BaseEnabledLivepatchConfig):
         msg = ('Installing canonical-livepatch snap...\n'
                'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
+        expected_calls = [mock.call('/snap/bin/canonical-livepatch')]
+        assert expected_calls == m_which.call_args_list
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value='/found/livepatch')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
-    def test_enable_installs_and_configures_livepatch_snap_when_present(
+    def test_enable_does_not_install_livepatch_snap_when_present(
             self, m_can_enable, m_which, m_subp):
-        """When can_enable returns False enable returns False."""
+        """Do not attempt to install livepatch snap when it is present."""
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(self.entitlement.enable())
         assert self.mocks_config == m_subp.call_args_list
