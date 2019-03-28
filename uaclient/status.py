@@ -18,11 +18,11 @@ class TxtColor(object):
 
 ACTIVE = 'active'
 INACTIVE = 'inactive'
-INAPPLICABLE = 'inapplicable'
+INAPPLICABLE = 'n/a'
 ENTITLED = 'entitled'
 EXPIRED = 'expired'
 NONE = 'none'
-COMMUNITY = 'community'
+COMMUNITY = 'not included'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
