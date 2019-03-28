@@ -22,5 +22,8 @@ deb:
 test:
 	@tox
 
+testdeps:
+	pip install tox
 
-.PHONY: build deps clean deb test
+
+.PHONY: build deps clean deb test testdeps
