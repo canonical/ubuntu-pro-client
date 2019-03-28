@@ -2,6 +2,5 @@
 
 set -ex
 
-# help output should contain 'enable-esm' in it, and should be on stderr
 ubuntu-advantage --help | grep --silent entitlements
 ubuntu-advantage status | grep --silent 'This machine is not attached'
