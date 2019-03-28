@@ -195,3 +195,18 @@ class UAContractClient(serviceclient.UAServiceClient):
             resource_access['expires'] = headers['expires']
         self.cfg.write_cache('machine-access-%s' % resource, resource_access)
         return resource_access
+
+
+def get_contract_token_for_account(contract_client, macaroon, account_id):
+    """Obtain a contract token for the account_id using the contract_client.
+
+    @raises: SSOAuthError on auth failure or util.UrlError on connection
+             failure.
+    """
+    contract_client.request_accounts(macaroon)
+    contracts = contract_client.request_account_contracts(
+        macaroon, account_id)
+    contract_id = contracts['contracts'][0]['contractInfo']['id']
+    contract_token_response = contract_client.request_add_contract_token(
+        macaroon, contract_id)
+    return contract_token_response['contractToken']

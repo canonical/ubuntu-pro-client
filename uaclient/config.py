@@ -52,6 +52,10 @@ class UAConfig(object):
         """Return the list of accounts that apply to this authorized user."""
         accounts = self.read_cache('accounts')
         if not accounts:
+            if self.is_attached:
+                accountInfo = self.machine_token[
+                    'machineTokenInfo']['accountInfo']
+                return [accountInfo]
             return []
         warning_msg = None
         if not isinstance(accounts, dict):
