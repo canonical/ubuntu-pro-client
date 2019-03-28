@@ -14,7 +14,7 @@ from uaclient.config import UAConfig
 M_PATH = 'uaclient.cli.'
 
 
-class TestConfig(UAConfig):
+class FakeConfig(UAConfig):
 
     def __init__(self, cache_contents: Dict[str, str] = None) -> None:
         self._cache_contents = (
@@ -48,7 +48,7 @@ def test_non_root_users_are_rejected(stdout, getuid):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
-    cfg = TestConfig()
+    cfg = FakeConfig()
     ret = action_attach(mock.MagicMock(), cfg)
 
     assert 1 == ret
@@ -64,7 +64,7 @@ class TestActionAttach(unittest.TestCase):
     def test_already_attached(self, stdout):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = 'test_account'
-        cfg = TestConfig.for_attached_machine(account_name=account_name)
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
         ret = action_attach(mock.MagicMock(), cfg)
 
@@ -84,7 +84,7 @@ class TestActionAttach(unittest.TestCase):
         bound_macaroon = b'bound_bytes_macaroon'
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
@@ -105,7 +105,7 @@ class TestActionAttach(unittest.TestCase):
         # post-conditions
         token = 'contract-token'
         args = mock.MagicMock(token=token)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
@@ -124,7 +124,7 @@ class TestActionAttach(unittest.TestCase):
         """If we can't discharge the root macaroon, fail gracefully."""
         discharge_root_macaroon.return_value = None
         args = mock.MagicMock(token=None)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
