@@ -16,7 +16,7 @@ deb:
 	@echo Building unsigned debian package
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
-                 "\n make ci-deps"; exit 1; }
+                 "\n make deps"; exit 1; }
 	./dev/bddeb
 
 test:
