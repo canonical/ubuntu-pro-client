@@ -39,6 +39,8 @@ LIVEPATCH_RESOURCE_ENTITLED = {
     }
 }
 
+M_PATH = 'uaclient.entitlements.livepatch.'  # mock path
+
 
 class TestLivepatchContractStatus(TestCase):
 
@@ -101,16 +103,18 @@ class TestLivepatchProcessDirectives(TestCase):
             self, directive_key, livepatch_param_tmpl):
         """Livepatch config directives are passed to livepatch config."""
         directive_value = '%s-value' % directive_key
-        cfg = {directive_key: directive_value}
+        cfg = {'entitlement': {'directives': {directive_key: directive_value}}}
         with mock.patch('uaclient.util.subp') as m_subp:
             process_directives(cfg)
-        livepatch_cmd = ['/snap/bin/canonical-livepatch', 'config',
-                         livepatch_param_tmpl % directive_value]
-        assert [mock.call(livepatch_cmd)] == m_subp.call_args_list
+        expected_subp = mock.call(
+            ['/snap/bin/canonical-livepatch', 'config',
+             livepatch_param_tmpl % directive_value], capture=True)
+        assert [expected_subp] == m_subp.call_args_list
 
-    def test_process_directives_ignores_other_directives(self):
-        """Only Livepatch directives are passed to livepatch config."""
-        cfg = {'otherkey': 'othervalue'}
+    @params({}, {'otherkey': 'othervalue'})
+    def test_process_directives_ignores_other_or_absent(self, directives):
+        """Ignore empty or unexpected directives and do not call livepatch."""
+        cfg = {'entitlement': {'directives': directives}}
         with mock.patch('uaclient.util.subp') as m_subp:
             process_directives(cfg)
         assert 0 == m_subp.call_count
@@ -118,8 +122,10 @@ class TestLivepatchProcessDirectives(TestCase):
 
 class TestLivepatchEntitlementCanEnable(TestCase):
 
+    @mock.patch('uaclient.util.is_container', return_value=False)
     @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_true_on_entitlement_inactive(self, m_getuid):
+    def test_can_enable_true_on_entitlement_inactive(
+            self, m_getuid, m_is_container):
         """When operational status is INACTIVE, can_enable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -127,34 +133,42 @@ class TestLivepatchEntitlementCanEnable(TestCase):
         cfg.write_cache('machine-access-livepatch',
                         LIVEPATCH_RESOURCE_ENTITLED)
         entitlement = LivepatchEntitlement(cfg)
-        # Unset static affordance container check
-        entitlement.static_affordances = ()
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertTrue(entitlement.can_enable())
         self.assertEqual('', m_stdout.getvalue())
 
+    @mock.patch('uaclient.util.is_container', return_value=True)
     @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_false_on_containers(self, m_getuid):
+    def test_can_enable_false_on_containers(self, m_getuid, m_is_container):
         """When in a is_container is True, can_enable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         cfg.write_cache('machine-token', LIVEPATCH_MACHINE_TOKEN)
         cfg.write_cache('machine-access-livepatch',
                         LIVEPATCH_RESOURCE_ENTITLED)
-        with mock.patch('uaclient.util.is_container') as m_is_container:
-            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                m_is_container.return_value = True
-                entitlement = LivepatchEntitlement(cfg)
-                self.assertFalse(entitlement.can_enable())
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            entitlement = LivepatchEntitlement(cfg)
+            self.assertFalse(entitlement.can_enable())
         msg = 'Cannot install Livepatch on a container\n'
         assert msg == m_stdout.getvalue()
 
 
 class TestLivepatchEntitlementEnable(TestCase):
+
     with_logs = True
 
-    @mock.patch('os.getuid', return_value=1)
-    def test_enable_false_when_can_enable_false(self, m_getuid):
+    mocks_install = [mock.call(
+        ['snap', 'install', 'canonical-livepatch'], capture=True)]
+    mocks_config = [
+        mock.call(
+            ['/snap/bin/canonical-livepatch', 'config',
+             'remote-server=https://alt.livepatch.com'], capture=True),
+        mock.call(
+            ['/snap/bin/canonical-livepatch', 'enable', 'TOKEN'], capture=True)
+    ]
+
+    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=False)
+    def test_enable_false_when_can_enable_false(self, m_can_enable):
         """When can_enable returns False enable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -162,10 +176,45 @@ class TestLivepatchEntitlementEnable(TestCase):
         cfg.write_cache('machine-access-livepatch',
                         LIVEPATCH_RESOURCE_ENTITLED)
         entitlement = LivepatchEntitlement(cfg)
-        # Unset static affordance container check
-        entitlement.static_affordances = ()
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             self.assertFalse(entitlement.enable())
-        msg = 'This command must be run as root (try using sudo)\n'
+        assert '' == self.logs  # No additional logs on can_enable == False
+        assert [mock.call()] == m_can_enable.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.which', return_value=False)
+    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    def test_enable_installs_livepatch_snap_when_absent(
+            self, m_can_enable, m_which, m_subp):
+        """Install canonical-livepatch snap when not present on the system."""
+        tmp_dir = self.tmp_dir()
+        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg.write_cache('machine-token', LIVEPATCH_MACHINE_TOKEN)
+        cfg.write_cache('machine-access-livepatch',
+                        LIVEPATCH_RESOURCE_ENTITLED)
+        entitlement = LivepatchEntitlement(cfg)
+
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            self.assertTrue(entitlement.enable())
+        assert self.mocks_install + self.mocks_config in m_subp.call_args_list
+        msg = ('Installing canonical-livepatch snap...\n'
+               'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
-        assert '' == self.logs
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.which', return_value='/found/livepatch')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    def test_enable_installs_and_configures_livepatch_snap_when_present(
+            self, m_can_enable, m_which, m_subp):
+        """When can_enable returns False enable returns False."""
+        tmp_dir = self.tmp_dir()
+        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg.write_cache('machine-token', LIVEPATCH_MACHINE_TOKEN)
+        cfg.write_cache('machine-access-livepatch',
+                        LIVEPATCH_RESOURCE_ENTITLED)
+        entitlement = LivepatchEntitlement(cfg)
+
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            self.assertTrue(entitlement.enable())
+        assert self.mocks_config == m_subp.call_args_list
+        assert 'Canonical livepatch enabled.\n' == m_stdout.getvalue()

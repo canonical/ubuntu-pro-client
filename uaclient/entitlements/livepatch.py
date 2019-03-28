@@ -139,16 +139,19 @@ class LivepatchEntitlement(base.UAEntitlement):
         return operational_status
 
 
-def process_directives(entitlement_cfg):
+def process_directives(cfg):
     """Process livepatch configuration directives.
 
     @raises: ProcessExecutionError if unable to configure livepatch.
     """
-    remote_server = entitlement_cfg.get('remoteServer')
+    if not cfg:
+        return
+    directives = cfg.get('entitlement', {}).get('directives', {})
+    remote_server = directives.get('remoteServer')
     if remote_server:
         util.subp(['/snap/bin/canonical-livepatch', 'config',
-                   'remote-server=%s' % remote_server])
-    ca_certs = entitlement_cfg.get('caCerts')
+                   'remote-server=%s' % remote_server], capture=True)
+    ca_certs = directives.get('caCerts')
     if ca_certs:
         util.subp(['/snap/bin/canonical-livepatch', 'config',
-                   'ca-certs=%s' % ca_certs])
+                   'ca-certs=%s' % ca_certs], capture=True)
