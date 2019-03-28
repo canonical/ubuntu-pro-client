@@ -28,9 +28,6 @@ setuptools.setup(
     ),
     data_files=[
         ('/etc/ubuntu-advantage', ['uaclient.conf']),
-        ('/etc/apt/apt.conf.d', glob.glob('apt.conf.d/*')),
-        ('/etc/update-motd.d', glob.glob('update-motd.d/*')),
-        ('/usr/lib/ubuntu-advantage', glob.glob('lib/*')),
         ('/usr/share/keyrings', glob.glob('keyrings/*')),
         (defaults.CONFIG_DEFAULTS['data_dir'], [])
     ],

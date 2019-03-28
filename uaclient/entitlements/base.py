@@ -156,7 +156,3 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
     def operational_status(self):
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
         pass
-
-    def get_motd_summary(self):
-        """Return motd summary string for this entitlement or empty string """
-        return ""
