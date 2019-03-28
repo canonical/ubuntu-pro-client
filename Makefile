@@ -7,9 +7,9 @@ deps:
 	./dev/read-dependencies -v 3 --system-pkg-names --test-distro
 
 clean:
-	rm -f ubuntu-advantage-tools*gz
+	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.xz
+	rm -rf *.egg-info/ .tox/
 	find . -type f -name '*.pyc' -delete
-	rm -rf .tox
 	find . -type d -name '*__pycache__' -delete
 
 deb:
