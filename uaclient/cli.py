@@ -356,7 +356,12 @@ def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
     parser = get_parser()
-    args = parser.parse_args(args=sys_argv[1:])
+    cli_arguments = sys_argv[1:]
+    if not cli_arguments:
+        parser.print_usage()
+        print('Try \'ubuntu-advantage --help\' for more information.')
+        sys.exit(1)
+    args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
     log_level = logging.DEBUG if args.debug else cfg.log_level
     try:
