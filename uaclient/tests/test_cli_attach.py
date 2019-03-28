@@ -1,8 +1,5 @@
-
 import mock
 import unittest
-
-from nose2.tools.params import params
 
 from io import StringIO
 try:
@@ -10,6 +7,8 @@ try:
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
+
+import pytest
 
 from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
@@ -138,7 +137,7 @@ class TestActionAttach(unittest.TestCase):
         assert mock.call(expected_msg) in stdout.write.call_args_list
 
 
-class TestParser(unittest.TestCase):
+class TestParser:
 
     def test_attach_parser_creates_a_parser_when_not_provided(self):
         """Create a named parser configured for 'attach' on no arguments."""
@@ -158,7 +157,7 @@ class TestParser(unittest.TestCase):
         assert None is args.email
         assert None is args.otp
 
-    @params('email', 'otp', 'password')
+    @pytest.mark.parametrize('param_name', ('email', 'otp', 'password'))
     def test_attach_parser_sets_optional_params(self, param_name):
         """Optional params are accepted by attach_parser."""
         parser = attach_parser()

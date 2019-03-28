@@ -1,5 +1,5 @@
-coverage
 flake8
 mock
-nose2
 pycodestyle
+pytest
+pytest-cov
