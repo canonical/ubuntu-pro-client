@@ -7,7 +7,7 @@ deps:
 	./dev/read-dependencies -v 3 --system-pkg-names --test-distro
 
 clean:
-	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.xz
+	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.gz
 	rm -rf *.egg-info/ .tox/
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '*__pycache__' -delete
