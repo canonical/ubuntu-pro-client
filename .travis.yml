@@ -11,6 +11,6 @@ install:
   # Required so `git describe` will definitely find a tag; see
   # https://github.com/travis-ci/travis-ci/issues/7422
   - git fetch --unshallow
-  - make testdep
+  - make testdeps
 script:
   - make test
