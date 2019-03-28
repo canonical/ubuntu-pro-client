@@ -148,9 +148,6 @@ def status_parser(parser=None):
         parser.usage = usage
         parser.prog = 'status'
     parser._optionals.title = 'Flags'
-    parser.add_argument(
-        '--update-motd', action='store_true', dest='update_motd',
-        help='Write motd cache files with current ubuntu-advantage status')
     return parser
 
 
@@ -198,7 +195,6 @@ def action_detach(args, cfg):
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
     cfg.delete_cache()
-    ua_status.write_motd_summary(cfg)
     print('This machine is now detached')
     return 0
 
@@ -290,12 +286,8 @@ def get_parser():
 
 
 def action_status(args, cfg):
-    update_motd = bool(args and args.update_motd)
     if not cfg:
         cfg = config.UAConfig()
-    if update_motd:
-        ua_status.write_motd_summary(cfg)
-        return
     if not cfg.is_attached:
         print(ua_status.MESSAGE_UNATTACHED)
         return

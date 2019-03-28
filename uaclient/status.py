@@ -1,9 +1,3 @@
-from datetime import datetime
-
-from uaclient import defaults
-from uaclient import util
-
-
 class TxtColor(object):
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -57,22 +51,6 @@ This machine is not attached to a UA subscription.
 See `ua attach` or https://ubuntu.com/advantage
 """
 
-
-MESSAGE_MOTD_ACTIVE_TMPL = """
- * This system is covered by Ubuntu Advantage{tech_support} until {date}
-Run `ua status` for details.
-"""
-MESSAGE_MOTD_EXPIRED_TMPL = """\
- * Your Ubuntu Advantage subscription {name} expired on {date}!
-"""
-MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL = """\
- %d are extended security maintenance updates
-"""
-MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL = """\
- %d additional updates are available with Extended Security Maintenance.
- See `ua enable esm` or https://ubuntu.com/advantage
-"""
-
 STATUS_TMPL = '{name: <14}{contract_state: <26}{status}'
 
 
@@ -105,52 +83,3 @@ def get_upgradeable_esm_package_count():
                     upgrade_count += 1
                     break
     return upgrade_count
-
-
-def write_motd_summary(cfg):
-    """Persist MOTD summary to cache files."""
-    esm_status = get_motd_summary(cfg, esm_only=True)
-    util.write_file(defaults.MOTD_UPDATES_AVAILABLE_CACHE_FILE, esm_status)
-    ua_motd_status = get_motd_summary(cfg)
-    util.write_file(defaults.MOTD_CACHE_FILE, ua_motd_status)
-
-
-def get_motd_summary(cfg, esm_only=False):
-    """Return MOTD summary text for all UA entitlements"""
-    from uaclient import entitlements
-    if esm_only:
-        upgrade_count = get_upgradeable_esm_package_count()
-        if cfg.is_attached:
-            esm_cfg = cfg.entitlements.get('esm')
-            if esm_cfg and esm_cfg['entitlement'].get('entitled'):
-                return MESSAGE_MOTD_ESM_ENABLED_UPGRADE_TMPL % upgrade_count
-        return MESSAGE_MOTD_ESM_DISABLED_UPGRADE_TMPL % upgrade_count
-    if not cfg.is_attached:
-        return ''   # No UA attached, so don't announce anything
-    motd_lines = []
-    tech_support = ''
-    support_entitlement = cfg.entitlements.get('support')
-    if support_entitlement:
-        support_level = support_entitlement.get(
-            'affordances', {}).get('supportLevel', COMMUNITY)
-        if support_level != COMMUNITY:
-            tech_support = ' %s support' % support_level
-    # TODO(Support multiple contracts)
-    contractInfo = cfg.contracts['contracts'][0]['contractInfo']
-    expiry = datetime.strptime(
-        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
-    if expiry >= datetime.utcnow():
-        motd_lines.append(MESSAGE_MOTD_ACTIVE_TMPL.format(
-            tech_support=tech_support, date=expiry.date()))
-    else:
-        motd_lines.append(MESSAGE_MOTD_EXPIRED_TMPL.format(
-            name=contractInfo['name'], date=expiry.date()))
-    for ent_name in ('livepatch', 'fips', 'fips-updates'):
-        ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[ent_name]
-        entitlement = ent_cls(cfg)
-        entitlement_motd = entitlement.get_motd_summary().rstrip('\n')
-        if entitlement_motd:
-            motd_lines.append(entitlement_motd)
-    if not motd_lines:
-        return ''
-    return '\n'.join(motd_lines) + '\n'
