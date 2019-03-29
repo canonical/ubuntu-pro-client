@@ -58,22 +58,23 @@ class RepoEntitlement(base.UAEntitlement):
                 name=self.name, series=series)
             apt.add_ppa_pinning(
                 repo_pref_file, repo_url, self.repo_pin_priority)
+        install_packages = self.packages
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'],
-                      capture=True)
+            install_packages.append('apt-transport-https')
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
-        try:
-            util.subp(['apt-get', 'update'], capture=True)
-            if self.packages:
-                print(
-                    'Installing {title} packages ...'.format(title=self.title))
-                util.subp(['apt-get', 'install'] + self.packages, capture=True)
-        except util.ProcessExecutionError:
-            self.disable(silent=True, force=True)
-            logging.error(
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
-            return False
+            install_packages.append('ca-certificates')
+        if install_packages:
+            print('Installing {title} packages ...'.format(title=self.title))
+            try:
+                util.subp(['apt-get', 'update'], capture=True)
+                util.subp(['apt-get', 'install'] + install_packages,
+                          capture=True)
+            except util.ProcessExecutionError:
+                self.disable(silent=True, force=True)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
