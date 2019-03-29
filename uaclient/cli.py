@@ -9,6 +9,7 @@ Available entitlements:
  - FIPS 140-2 with updates
  - Canonical Livepatch (https://ubuntu.com/server/livepatch)
  - Canonical CIS Benchmark Audit Tool
+ - Canonical Common Criteria EAL2 Provisioning
 
 """
 

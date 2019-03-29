@@ -24,6 +24,7 @@ class UAConfig(object):
         'account-users': 'account-users.json',
         'contract-token': 'contract-token.json',
         'machine-contracts': 'machine-contracts.json',
+        'machine-access-cc': 'machine-access-cc.json',
         'machine-access-cis-audit': 'machine-access-cis-audit.json',
         'machine-access-esm': 'machine-access-esm.json',
         'machine-access-fips': 'machine-access-fips.json',
