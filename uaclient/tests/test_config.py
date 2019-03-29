@@ -39,7 +39,7 @@ class TestAccounts:
         assert [accountInfo] == cfg.accounts
 
     def test_accounts_logs_warning_when_non_dictionary_cache_content(
-            self, caplog, tmpdir):
+            self, caplog_text, tmpdir):
         """Config.accounts warns and returns empty list on non-dict cache."""
         cfg = UAConfig({'data_dir': tmpdir})
         cfg.write_cache('accounts', 'non-dict-value')
@@ -48,10 +48,10 @@ class TestAccounts:
         expected_warning = (
             "WARNING  Unexpected type <class 'str'> in cache %s" % (
                 tmpdir.join('accounts.json')))
-        assert expected_warning in caplog.text
+        assert expected_warning in caplog_text()
 
     def test_accounts_logs_warning_when_missing_accounts_key_in_cache(
-            self, caplog, tmpdir):
+            self, caplog_text, tmpdir):
         """Config.accounts warns when missing 'accounts' key in cache"""
         cfg = UAConfig({'data_dir': tmpdir})
         cfg.write_cache('accounts', {'non-accounts': 'somethingelse'})
@@ -60,10 +60,10 @@ class TestAccounts:
         expected_warning = (
             "WARNING  Missing 'accounts' key in cache %s" %
             tmpdir.join('accounts.json'))
-        assert expected_warning in caplog.text
+        assert expected_warning in caplog_text()
 
     def test_accounts_logs_warning_when_non_list_accounts_cache_content(
-            self, caplog, tmpdir):
+            self, caplog_text, tmpdir):
         """Config.accounts warns on non-list accounts key."""
         cfg = UAConfig({'data_dir': tmpdir})
         cfg.write_cache('accounts', {'accounts': 'non-list-value'})
@@ -72,7 +72,7 @@ class TestAccounts:
         expected_warning = (
             "WARNING  Unexpected 'accounts' type <class 'str'> in cache %s" % (
                 tmpdir.join('accounts.json')))
-        assert expected_warning in caplog.text
+        assert expected_warning in caplog_text()
 
 
 class TestDataPath:

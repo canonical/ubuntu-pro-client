@@ -176,11 +176,11 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=False)
     def test_enable_false_when_can_enable_false(
-            self, m_can_enable, caplog, livepatch_entitlement):
+            self, m_can_enable, caplog_text, livepatch_entitlement):
         """When can_enable returns False enable returns False."""
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert not livepatch_entitlement.enable()
-        assert '' == caplog.text  # No additional logs on can_enable == False
+        assert '' == caplog_text()  # No additional logs on can_enable == False
         assert '' == m_stdout.getvalue()  # No additional prints
         assert [mock.call()] == m_can_enable.call_args_list
 
