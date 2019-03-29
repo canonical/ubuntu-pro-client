@@ -20,7 +20,7 @@ M_PATH = 'uaclient.cli.'
 
 class FakeConfig(UAConfig):
 
-    def __init__(self, cache_contents: 'Dict[str, str]' = None) -> None:
+    def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
         self._cache_contents = (
             cache_contents if cache_contents is not None else {})
         super().__init__({})
