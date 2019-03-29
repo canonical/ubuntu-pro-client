@@ -69,9 +69,10 @@ class TestCISEntitlementEnable(TestCase):
         # Unset static affordance container check
         entitlement.static_affordances = ()
 
-        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-            with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
-                self.assertTrue(entitlement.enable())
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
+                with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
+                    self.assertTrue(entitlement.enable())
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
@@ -83,5 +84,9 @@ class TestCISEntitlementEnable(TestCase):
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis-audit
-        assert [] == m_add_pinning.call_args_list
+        assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
+        expected_stdout = (
+            'Installing Canonical CIS Benchmark Audit Tool packages (this may'
+            ' take a while)\nCanonical CIS Benchmark Audit Tool enabled.\n')
+        assert expected_stdout == m_stdout.getvalue()
