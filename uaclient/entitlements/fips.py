@@ -52,22 +52,22 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 name=self.name, series=series)
             apt.add_ppa_pinning(
                 repo_pref_file, repo_url, self.repo_pin_priority)
-        return True
+        install_packages = self.packages
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'],
-                      capture=True)
+            install_packages.append('apt-transport-https')
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'],
-                      capture=True)
-        print('Installing {title} packages ...'.format(title=self.title))
-        try:
-            util.subp(['apt-get', 'update'], capture=True)
-            util.subp(['apt-get', 'install'] + self.packages, capture=True)
-        except util.ProcessExecutionError:
-            self.disable(silent=True, force=True)
-            logging.error(
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
-            return False
+            install_packages.append('ca-certificates')
+        if install_packages:
+            print('Installing {title} packages ...'.format(title=self.title))
+            try:
+                util.subp(['apt-get', 'update'], capture=True)
+                util.subp(['apt-get', 'install'] + self.packages, capture=True)
+            except util.ProcessExecutionError:
+                self.disable(silent=True, force=True)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         print('{title} configured, please reboot to enable.'.format(
             title=self.title))
@@ -111,8 +111,11 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     description = 'Canonical FIPS 140-2 Certified Modules'
     repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
+    # Use a lambda so we can mock util.is_container in tests
     static_affordances = (
-        ('Cannot install FIPS on a container', util.is_container, False),)
+        ('Cannot install FIPS on a container',
+         lambda: util.is_container(),
+         False),)
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
@@ -123,6 +126,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     repo_url = (
         'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates')
     repo_key_file = 'ubuntu-fips-updates-keyring.gpg'
+    # Use a lambda so we can mock util.is_container in tests
     static_affordances = (
         ('Cannot install FIPS Updates on a container',
-         util.is_container, False),)
+         lambda: util.is_container(),
+         False),)
