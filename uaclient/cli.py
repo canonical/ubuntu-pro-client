@@ -48,6 +48,9 @@ DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
 
 
+STATUS_FORMATS = ['table', 'json']
+
+
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command='attach [token]')
@@ -150,8 +153,10 @@ def status_parser(parser=None):
         parser.usage = usage
         parser.prog = 'status'
     parser.add_argument(
-        '--json', action='store_true', help='Format output as json',
-        default=False)
+        '--format', action='store', choices=STATUS_FORMATS,
+        default=STATUS_FORMATS[0],
+        help=('Output status in the request format. Default: %s' %
+              STATUS_FORMATS[0]))
     parser._optionals.title = 'Flags'
     return parser
 
@@ -292,7 +297,7 @@ def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
     if not cfg.is_attached:
-        if args.json:
+        if args.format == 'json':
             print(json.dumps({'attached': False}))
         else:
             print(ua_status.MESSAGE_UNATTACHED)
@@ -313,8 +318,8 @@ def action_status(args, cfg):
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         entitlement_content.append(ua_status.format_entitlement_status(
-            ent, args.json))
-    if args.json:
+            ent, bool(args.format == 'json')))
+    if args.format == 'json':
         status_content = json.dumps({
             'attached': True, 'account': account['name'],
             'entitlements': entitlement_content,
