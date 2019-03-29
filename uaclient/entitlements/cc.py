@@ -5,16 +5,21 @@ from uaclient.entitlements import repo
 from uaclient import util
 
 
-class CISEntitlement(repo.RepoEntitlement):
+class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
-    name = 'cis-audit'
-    title = 'Canonical CIS Benchmark Audit Tool'
+    name = 'cc'
+    title = 'Canonical Common Criteria EAL2 Provisioning'
     description = (
-        'Canonical Center for Internet Security Benchmark Audit Tool')
+        'Common Criteria for Information Technology Security Evaluation - EAL2'
+    )
     repo_url = ('https://private-ppa.launchpad.net/ubuntu-advantage/'
-                'security-benchmarks')
-    repo_key_file = 'ubuntu-securitybenchmarks-keyring.gpg'
-    packages = ['ubuntu-cisbenchmark-16.04']
+                'commoncriteria')
+    repo_key_file = 'ubuntu-cc-keyring.gpg'
+    packages = ['ubuntu-commoncriteria']
+    messaging = {
+        'post_enable': [
+            'Please follow instructions in /usr/lib/common-criteria/README'
+            ' to configure EAL2']}
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement
