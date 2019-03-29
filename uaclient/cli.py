@@ -15,6 +15,7 @@ Available entitlements:
 
 import argparse
 from datetime import datetime
+import json
 import logging
 import os
 import sys
@@ -148,6 +149,9 @@ def status_parser(parser=None):
     else:
         parser.usage = usage
         parser.prog = 'status'
+    parser.add_argument(
+        '--json', action='store_true', help='Format output as json',
+        default=False)
     parser._optionals.title = 'Flags'
     return parser
 
@@ -288,13 +292,15 @@ def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
     if not cfg.is_attached:
-        print(ua_status.MESSAGE_UNATTACHED)
+        if args.json:
+            print(json.dumps({'attached': False}))
+        else:
+            print(ua_status.MESSAGE_UNATTACHED)
         return
     contractInfo = cfg.machine_token['machineTokenInfo']['contractInfo']
     expiry = datetime.strptime(
         contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
 
-    status_content = []
     support_entitlement = cfg.entitlements.get('support')
     tech_support = ua_status.COMMUNITY
     if support_entitlement:
@@ -303,17 +309,29 @@ def action_status(args, cfg):
     tech_support_txt = ua_status.STATUS_COLOR.get(
         tech_support) or ua_status.STATUS_COLOR[ua_status.COMMUNITY]
     account = cfg.accounts[0]
-    status_content.append(STATUS_HEADER_TMPL.format(
-        account=account['name'],
-        subscription=contractInfo['name'],
-        contract_expiry=expiry.date(),
-        tech_support_level=tech_support_txt))
-
+    entitlement_content = []
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
-        status_content.append(ua_status.format_entitlement_status(ent))
-    status_content.append('\nEnable entitlements with `ua enable <service>`\n')
-    print('\n'.join(status_content))
+        entitlement_content.append(ua_status.format_entitlement_status(
+            ent, args.json))
+    if args.json:
+        status_content = json.dumps({
+            'attached': True, 'account': account['name'],
+            'entitlements': entitlement_content,
+            'expires': str(expiry.date()),
+            'subscription': contractInfo['name'],
+            'technical_support_level': tech_support})
+    else:
+        status_content = [(STATUS_HEADER_TMPL.format(
+            account=account['name'],
+            subscription=contractInfo['name'],
+            contract_expiry=expiry.date(),
+            tech_support_level=tech_support_txt))]
+        status_content.extend(entitlement_content)
+        status_content.append(
+            '\nEnable entitlements with `ua enable <service>`\n')
+        status_content = '\n'.join(status_content)
+    print(status_content)
 
 
 def print_version(_args=None, _cfg=None):
