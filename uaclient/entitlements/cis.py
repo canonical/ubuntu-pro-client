@@ -37,7 +37,7 @@ class CISEntitlement(repo.RepoEntitlement):
         print('Removing packages: %s' % ', '.join(self.packages))
         try:
             util.subp(['apt-get', 'remove', '--frontend=noninteractive',
-                       '--assume-yes'] + self.packages)
+                       '--assume-yes'] + self.packages, capture=True)
         except util.ProcessExecutionError:
             pass
         return True
