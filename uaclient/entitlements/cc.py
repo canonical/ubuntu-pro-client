@@ -16,6 +16,10 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
                 'commoncriteria')
     repo_key_file = 'ubuntu-cc-keyring.gpg'
     packages = ['ubuntu-commoncriteria']
+    messaging = {
+        'post_enable': [
+            'Please follow instructions in /usr/lib/common-criteria/README'
+            ' to configure EAL2']}
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement

@@ -80,13 +80,14 @@ class TestCISEntitlementEnable(TestCase):
 
         subp_apt_cmds = [
             mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install', 'ubuntu-cisbenchmark-16.04'])]
+            mock.call(['apt-get', 'install', 'ubuntu-cisbenchmark-16.04'],
+                      capture=True)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis-audit
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout = (
-            'Installing Canonical CIS Benchmark Audit Tool packages (this may'
-            ' take a while)\nCanonical CIS Benchmark Audit Tool enabled.\n')
+            'Installing Canonical CIS Benchmark Audit Tool packages ...\n'
+            'Canonical CIS Benchmark Audit Tool enabled.\n')
         assert expected_stdout == m_stdout.getvalue()

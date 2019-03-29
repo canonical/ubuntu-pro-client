@@ -17,6 +17,8 @@ class RepoEntitlement(base.UAEntitlement):
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None      # Optional repo pin priority in subclass
 
+    # Any custom messages to emit pre or post enable or disable operations
+    messaging = {}  # Currently post_enable is used in CommonCriteria
     packages = []  # Debs to install on enablement
 
     def enable(self):
@@ -64,15 +66,17 @@ class RepoEntitlement(base.UAEntitlement):
         try:
             util.subp(['apt-get', 'update'], capture=True)
             if self.packages:
-                print('Installing {title} packages'
-                      ' (this may take a while)'.format(title=self.title))
-                util.subp(['apt-get', 'install'] + self.packages)
+                print(
+                    'Installing {title} packages ...'.format(title=self.title))
+                util.subp(['apt-get', 'install'] + self.packages, capture=True)
         except util.ProcessExecutionError:
             self.disable(silent=True, force=True)
             logging.error(
                 status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
             return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
+        for msg in self.messaging.get('post_enable', []):
+            print(msg)
         return True
 
     def operational_status(self):

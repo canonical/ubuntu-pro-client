@@ -84,14 +84,16 @@ class TestCommonCriteriaEntitlementEnable(TestCase):
 
         subp_apt_cmds = [
             mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install', 'ubuntu-commoncriteria'])]
+            mock.call(['apt-get', 'install', 'ubuntu-commoncriteria'],
+                      capture=True)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cc
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout = (
-            'Installing Canonical Common Criteria EAL2 Provisioning packages'
-            ' (this may take a while)\nCanonical Common Criteria EAL2'
-            ' Provisioning enabled.\n')
+            'Installing Canonical Common Criteria EAL2 Provisioning'
+            ' packages ...\nCanonical Common Criteria EAL2 Provisioning'
+            ' enabled.\nPlease follow instructions in'
+            ' /usr/lib/common-criteria/README to configure EAL2\n')
         assert expected_stdout == m_stdout.getvalue()
