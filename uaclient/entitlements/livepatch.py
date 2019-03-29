@@ -59,7 +59,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         'Canonical Livepatch Service'
         ' (https://www.ubuntu.com/server/livepatch)')
 
-    # Use a lamda so we can mock util.is_container in tests
+    # Use a lambda so we can mock util.is_container in tests
     static_affordances = (
         ('Cannot install Livepatch on a container',
          lambda: util.is_container(),
