@@ -50,7 +50,7 @@ def livepatch_entitlement(tmpdir):
 
     (Uses the tmpdir fixture for the underlying config cache.)
     """
-    cfg = config.UAConfig(cfg={'data_dir': tmpdir})
+    cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
     cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
     cfg.write_cache('machine-access-livepatch',
                     dict(LIVEPATCH_RESOURCE_ENTITLED))
