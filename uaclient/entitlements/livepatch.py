@@ -58,8 +58,12 @@ class LivepatchEntitlement(base.UAEntitlement):
     description = (
         'Canonical Livepatch Service'
         ' (https://www.ubuntu.com/server/livepatch)')
+
+    # Use a lambda so we can mock util.is_container in tests
     static_affordances = (
-        ('Cannot install Livepatch on a container', util.is_container, False),)
+        ('Cannot install Livepatch on a container',
+         lambda: util.is_container(),
+         False),)
 
     def enable(self):
         """Enable specific entitlement.
@@ -72,6 +76,13 @@ class LivepatchEntitlement(base.UAEntitlement):
             print('Installing canonical-livepatch snap...')
             util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
         entitlement_cfg = self.cfg.entitlements.get(self.name)
+        try:
+            process_directives(entitlement_cfg)
+        except util.ProcessExecutionError as e:
+            msg = 'Unable to configure Livepatch: ' + str(e)
+            print(msg)
+            logging.error(msg)
+            return False
         livepatch_token = entitlement_cfg.get('resourceToken')
         if not livepatch_token:
             logging.debug(
@@ -126,3 +137,21 @@ class LivepatchEntitlement(base.UAEntitlement):
             logging.debug('Livepatch not enabled. %s', str(e))
             operational_status = (status.INACTIVE, str(e))
         return operational_status
+
+
+def process_directives(cfg):
+    """Process livepatch configuration directives.
+
+    @raises: ProcessExecutionError if unable to configure livepatch.
+    """
+    if not cfg:
+        return
+    directives = cfg.get('entitlement', {}).get('directives', {})
+    remote_server = directives.get('remoteServer')
+    if remote_server:
+        util.subp(['/snap/bin/canonical-livepatch', 'config',
+                   'remote-server=%s' % remote_server], capture=True)
+    ca_certs = directives.get('caCerts')
+    if ca_certs:
+        util.subp(['/snap/bin/canonical-livepatch', 'config',
+                   'ca-certs=%s' % ca_certs], capture=True)
