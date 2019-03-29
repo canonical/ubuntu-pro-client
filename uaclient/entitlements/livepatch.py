@@ -59,12 +59,11 @@ class LivepatchEntitlement(base.UAEntitlement):
         'Canonical Livepatch Service'
         ' (https://www.ubuntu.com/server/livepatch)')
 
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-        # Set static_affordances in init so we can mock is_container in tests
-        self.static_affordances = (
-            ('Cannot install Livepatch on a container', util.is_container,
-             False),)
+    # Use a lamda so we can mock util.is_container in tests
+    static_affordances = (
+        ('Cannot install Livepatch on a container',
+         lambda: util.is_container(),
+         False),)
 
     def enable(self):
         """Enable specific entitlement.
