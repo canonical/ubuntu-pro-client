@@ -59,12 +59,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
             util.subp(['apt-get', 'install', 'ca-certificates'],
                       capture=True)
-        print('Installing {title} packages (this may take a while)'.format(
-            title=self.title)
-        )
+        print('Installing {title} packages ...'.format(title=self.title))
         try:
             util.subp(['apt-get', 'update'], capture=True)
-            util.subp(['apt-get', 'install'] + self.packages)
+            util.subp(['apt-get', 'install'] + self.packages, capture=True)
         except util.ProcessExecutionError:
             self.disable(silent=True, force=True)
             logging.error(
