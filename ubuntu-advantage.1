@@ -1,157 +1,130 @@
-.TH UBUNTU-ADVANTAGE 1  "16 January 2019" "" ""
+.TH "UBUNTU-ADVANTAGE" "1" "29 March 2019" "Canonical Ltd." "Ubuntu Advantage"
+
+
 .SH NAME
-ubuntu-advantage \- Enable or disable Ubuntu Advantage entitlements from
-Canonical.
+ubuntu-advantage \- Manage Ubuntu Advantage services from Canonical
+
+
 .SH SYNOPSIS
-.B ubuntu-advantage
-<subcommand> [parameters]
-.TP
-.B ua
-<subcommand> [parameters]
+.BR "ua" " <command> [<args>]"
+.br
+.BR "ubuntu-advantage" " <command> [<args>]"
+
 
 .SH DESCRIPTION
-This tool is used to enable or disable Ubuntu Advantage service entitlements
-from Canonical. The available modules and their commands are described below.
+Ubuntu Advantage is a collection of services offered by Canonical to
+Ubuntu users. The Ubuntu Advantage command line tool is used to attach
+a system to an Ubuntu Advantage contract to then enable and disable
+services from Canonical. The available commands and services are
+described in more detail below.
 
-Most subcommands require root privileges.
+
+.SH COMMANDS
 .TP
-.B
-status
-Show whether this machine is 'attached' to an Ubuntu Advantage support contract. When attached, report the specific support contract details including contract name, expiry dates, and the status of each entitlement on this system.
-
-Each entitlement status line has 3 columns:
-
-.B service_name:
-the name of the entitlement service.
-Possible values are esm, livepatch, fips or fips-updates
-
-.B entitlement_level:
-whether the contract entitles use of this service.
-Possible values are none or entitled
-
-.B service_status:
-whether the entitled service is activated on this machine.
-Possible values are active, inactive or n/a
-
-.TP
-.B
-attach [\fItoken\fR]
+.BR "attach" " [token]"
 Connect an Ubuntu Advantage support contract to this machine.
 
-The optional \fItoken\fR parameter can be obtained from https://ubuntu.com/advantage.
-When no \fItoken\fR is provided, the user is prompted for their Ubuntu SSO login
-credentials to https://login.ubuntu.com which will obtain an OAuth token on
-to allow interaction with Ubuntu Advantage contract service.
+The optional \fItoken\fR parameter can be obtained from
+https://auth.contracts.canonical.com/. When no \fItoken\fR is provided,
+users are prompted for their Ubuntu SSO login credentials to
+https://login.ubuntu.com, which will enable an individual contract on
+the system.
 
 .TP
-.B
-detach
-Remove this machine from Ubuntu Advantage support, disabling all enabled
-entitlements.
+.BR "disable" " [cc|cis-audit|esm|fips|fips-updates|livepatch]"
+Disable this machine's access to an Ubuntu Advantage support services.
 
 .TP
-.B
-enable [\fIentitlement\fR]
-Configure and activate this machine to use a named Ubuntu Advantage support
-entitlement: esm, fips, fips-updates or livepatch.
+.BR "enable" " [cc|cis-audit|esm|fips|fips-updates|livepatch]"
+Activate and configure this machine's access to an Ubuntu Advantage
+services.
 
 .TP
-.B
-disable [\fIentitlement\fR]
-Disable this machine's access to a named Ubuntu Advantage support entitlement:
-esm, fips, fips-updates or livepatch.
+.BR "status" " [--format=table|json]"
+Report current status of Ubuntu Advantage services on system.
+
+This shows whether this machine is attached to an Ubuntu Advantage
+support contract. When attached, the report includes the specific
+support contract details including contract name, expiry dates, and the
+status of each services on this system.
+
+Each service status line has three columns:
+
+.BR "name" ":"
+name of the service
+
+.BR "availability" ":"
+whether the contract entitles use of this service. Possible values are:
+none or entitled
+
+.BR "status" ":"
+whether the service is activated on this machine.
+Possible values are: active, inactive, or n/a
 
 .TP
-.B
-version
-Show version.
+.B version
+Show version of the Ubuntu Advantage package.
 
-.SH ESM (Extended Security Maintenance)
-Ubuntu Extended Security Maintenance archive. See https://ubuntu.com/esm for
-more information.
 .TP
-Enabling the ESM repository provides access to ongoing security fixes for
-end-of-life Ubuntu LTS releases.
+.B detach
+Remove the Ubuntu Advantage support contract from this machine. This
+also disables all enabled services that can be.
 
-.SH FIPS (Canonical FIPS 140-2 certified modules)
+
+.SH SERVICES
+.TP
+.B "Common Criteria EAL2 Provisioning (cc)"
+Enables and install the common criteria artifacts.
+
+The artifacts include a configure script, a tarball with additional
+packages, and post install scripts. The artifacts will be installed in
+/usr/lib/common-criteria directory. The evaluated configuration guide
+and README instructions on how to set up a system to be Common Criteria
+compliant are available in /usr/share/doc/ubuntu-commoncriteria
+directory.
+
+.TP
+.B "CIS Audit (cis-audit)"
+Enables and installs the CIS Audit artifacts.
+
+.TP
+.B "Extended Security Maintenance (esm)"
+Extended Security Maintenance ensures the ongoing security and
+integrity of Ubuntu Long-term support (LTS) systems through Ubuntu
+Advantage for Infrastructure.
+
+See https://ubuntu.com/esm for more information.
+
+.TP
+.B "FIPS 140-2 certified modules (fips)"
 Install, configure, and enable FIPS 140-2 certified modules.
-.TP
-Enabling the FIPS PPA repository, installs the FIPS modules, configures
-the bootloader and enables fips on the system. After executing
-"ubuntu-advantage enable fips", the system MUST be rebooted to
-complete the enablement process. Failing to reboot will result in the system
-not being fips enabled.
 
-The following FIPS certified modules will be installed and put in fips mode;
-openssh-server, openssh-client, strongswan, openssl, and the kernel
-cryptoapi.
+After successfully enabling FIPS, the system MUST be rebooted. Failing
+to reboot will result in the system not running the updated FIPS
+kernel.
 
 Disabling FIPS is not currently supported.
 
-.SH FIPS (Canonical FIPS 140-2 certified modules with updates)
-Install, configure, and enable FIPS 140-2 certified modules with updates
 .TP
-.B
-Enabling the FIPS-updates entitlement with "ua enable fips-updates" will take
-the system out of FIPS compliance as the updated modules are not FIPS
-certified. The option enables the FIPS-UPDATES PPA repository and installs the
-updated FIPS modules. If the system is installing FIPS modules for the first
-time, it configures FIPS on the system. After successfully executing the
-ubuntu-advantage to update FIPS modules, the system MUST be rebooted if FIPS
-kernel was upgraded in the upgrade process. Failing to reboot will result
-in the system not running the updated FIPS kernel.
+.B "FIPS 140-2 certified modules with updates (fips-updates)"
+Install, configure, and enable FIPS 140-2 certified modules with
+updates. Enabling FIPS with updates will take the system out of FIPS
+compliance as the updated modules are not FIPS certified.
 
-The following FIPS modules will be updated and put in FIPS mode -
-openssh-server, openssh-client, strongswan, openssl, and the kernel
-cryptoapi.
+After successfully enabling FIPS with updates, the system MUST be
+rebooted. Failing to reboot will result in the system not running the
+updated FIPS kernel.
 
-.SH Livepatch (Canonical Livepatch Service)
-Managed live kernel patching. For more information, visit
-https://www.ubuntu.com/server/livepatch
-.TP
-Enable the Livepatch service on this machine to allow critical kernel patches
-without requiring a reboot.
+Disabling FIPS with updates is not currently supported.
 
-.SH EXIT STATUS
+
 .TP
-.B
-0
-Command succeded
-.TP
-.B
-1
-Invalid command or option
-.TP
-.B
-2
-Current user is not root
-.TP
-.B
-3
-Invalid or missing token when enabling a service
-.TP
-.B
-4
-The requested service is not supported on the current Ubuntu release
-.TP
-.B
-5
-Current kernel is too old to support Snaps (required for the Livepatch service)
-.TP
-.B
-6
-The requested service is already enabled
-.TP
-.B
-7
-The requested service is not supported on the current architecture
-.TP
-.B
-8
-The requested service is already disabled
-.TP
-.B
-9
-The running kernel does not support Livepatch
-.TP
-If apt commands run by the tool fail, the exit status from apt is returned.
+.B "Livepatch Service (livepatch)"
+Automatically apply critical kernel patches without rebooting. Reduces
+downtime, keeping your Ubuntu LTS systems secure and compliant.
+
+See https://www.ubuntu.com/server/livepatch for more information.
+
+
+.SH COPYRIGHT
+Copyright (C) 2019 Canonical Ltd.
