@@ -1,7 +1,7 @@
 
 
 build:
-	@echo Nothing to be done for build
+	$(MAKE) -C apt-hook build
 
 deps:
 	./dev/read-dependencies -v 3 --system-pkg-names --test-distro
