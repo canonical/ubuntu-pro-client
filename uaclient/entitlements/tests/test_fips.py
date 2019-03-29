@@ -69,7 +69,7 @@ class TestFIPSEntitlementCanEnable(BaseEnabledFIPSConfig):
         """On containers, can_enable is false and operational status n/a."""
         op_status, op_status_details = self.entitlement.operational_status()
         assert status.INAPPLICABLE == op_status
-        msg_cant_install = 'Cannot install FIPS on a container' 
+        msg_cant_install = 'Cannot install FIPS on a container'
         assert msg_cant_install == op_status_details
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert False is self.entitlement.can_enable()
