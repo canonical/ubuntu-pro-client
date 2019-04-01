@@ -5,7 +5,11 @@ import unittest
 from nose2.tools.params import params
 
 from io import StringIO
-from typing import Any, Dict, Optional
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
@@ -14,17 +18,17 @@ from uaclient.config import UAConfig
 M_PATH = 'uaclient.cli.'
 
 
-class TestConfig(UAConfig):
+class FakeConfig(UAConfig):
 
-    def __init__(self, cache_contents: Dict[str, str] = None) -> None:
+    def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
         self._cache_contents = (
             cache_contents if cache_contents is not None else {})
         super().__init__({})
 
-    def read_cache(self, key: str, quiet: bool = False) -> Optional[str]:
+    def read_cache(self, key: str, quiet: bool = False) -> 'Optional[str]':
         return self._cache_contents.get(key)
 
-    def write_cache(self, key: str, content: Any) -> None:
+    def write_cache(self, key: str, content: 'Any') -> None:
         self._cache_contents[key] = content
 
     @classmethod
@@ -48,7 +52,7 @@ def test_non_root_users_are_rejected(stdout, getuid):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
-    cfg = TestConfig()
+    cfg = FakeConfig()
     ret = action_attach(mock.MagicMock(), cfg)
 
     assert 1 == ret
@@ -64,7 +68,7 @@ class TestActionAttach(unittest.TestCase):
     def test_already_attached(self, stdout):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = 'test_account'
-        cfg = TestConfig.for_attached_machine(account_name=account_name)
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
         ret = action_attach(mock.MagicMock(), cfg)
 
@@ -84,7 +88,7 @@ class TestActionAttach(unittest.TestCase):
         bound_macaroon = b'bound_bytes_macaroon'
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
@@ -105,7 +109,7 @@ class TestActionAttach(unittest.TestCase):
         # post-conditions
         token = 'contract-token'
         args = mock.MagicMock(token=token)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
@@ -124,7 +128,7 @@ class TestActionAttach(unittest.TestCase):
         """If we can't discharge the root macaroon, fail gracefully."""
         discharge_root_macaroon.return_value = None
         args = mock.MagicMock(token=None)
-        cfg = TestConfig.with_account()
+        cfg = FakeConfig.with_account()
 
         ret = action_attach(args, cfg)
 
