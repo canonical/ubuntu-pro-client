@@ -77,10 +77,10 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
             print(status.MESSAGE_UNATTACHED)
             return False
         if self.is_access_expired():
-            machine_secret = self.cfg.machine_token['machineSecret']
+            token = self.cfg.machine_token['machineToken']
             contract_client = contract.UAContractClient(self.cfg)
             contract_client.request_resource_machine_access(
-                machine_secret, self.name)
+                token, self.name)
         if not self.contract_status() == status.ENTITLED:
             print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False

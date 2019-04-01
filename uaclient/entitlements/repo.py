@@ -38,7 +38,7 @@ class RepoEntitlement(base.UAEntitlement):
             logging.debug(
                 'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
-            token = self.cfg.machine_token['machineSecret']
+            token = self.cfg.machine_token['machineToken']
         ppa_fingerprint = directives.get('aptKey')
         if ppa_fingerprint:
             keyring_file = None

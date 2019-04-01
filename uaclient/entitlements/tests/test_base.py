@@ -83,7 +83,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -107,7 +107,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -131,7 +131,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -175,7 +175,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -198,7 +198,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -220,7 +220,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -239,7 +239,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
@@ -255,7 +255,7 @@ class TestUaEntitlement(TestCase):
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         machineToken = {
-            'machineSecret': 'blah',
+            'machineToken': 'blah',
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
