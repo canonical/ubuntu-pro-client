@@ -1,2 +1,4 @@
 flake8==2.5.4
 pep8==1.7.0
+pytest==2.8.7
+pytest-cov==2.2.1
