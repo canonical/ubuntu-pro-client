@@ -8,7 +8,7 @@ FLAKE8 := $(shell flake8 --version 2> /dev/null)
 	dh $@ --sourcedirectory=apt-hook --buildsystem=makefile
 
 override_dh_auto_test:
-	python3 -m nose2
+	python3 -m pytest
 ifdef FLAKE8
 	# required for Trusty
 	flake8 --ignore=E901 uaclient
