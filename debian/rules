@@ -10,8 +10,9 @@ FLAKE8 := $(shell flake8 --version 2> /dev/null)
 override_dh_auto_test:
 	python3 -m pytest
 ifdef FLAKE8
-	# required for Trusty
-	flake8 --ignore=E901 uaclient
+	# required for Trusty: flake8 does not install a __main__  for -m
+	# invocation
+	python3 $(shell which flake8) uaclient
 else
 	python3 -m flake8 uaclient
 endif
