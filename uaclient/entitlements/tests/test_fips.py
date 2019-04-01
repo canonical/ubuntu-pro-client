@@ -77,7 +77,7 @@ class TestFIPSEntitlementEnable(TestCase):
                       'http://FIPS', 'TOKEN', None, 'APTKEY')]
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
-                      'http://FIPS', 1001)]
+                      'http://FIPS', 'UbuntuFIPS', 1001)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list

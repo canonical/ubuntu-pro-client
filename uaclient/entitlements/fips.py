@@ -51,7 +51,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
             apt.add_ppa_pinning(
-                repo_pref_file, repo_url, self.repo_pin_priority)
+                repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
         return True
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
@@ -110,6 +110,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
     name = 'fips'
     title = 'FIPS'
+    origin = 'UbuntuFIPS'
     description = 'Canonical FIPS 140-2 Certified Modules'
     repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
@@ -121,6 +122,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     name = 'fips-updates'
     title = 'FIPS Updates'
+    origin = 'UbuntuFIPSUpdates'
     description = 'Canonical FIPS 140-2 Certified Modules with Updates'
     repo_url = (
         'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates')
