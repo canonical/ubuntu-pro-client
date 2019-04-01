@@ -6,7 +6,6 @@ from io import StringIO
 from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
-from uaclient.testing.helpers import TestCase
 
 
 CC_MACHINE_TOKEN = {
@@ -36,16 +35,15 @@ CC_RESOURCE_ENTITLED = {
 }
 
 
-class TestCommonCriteriaEntitlementCanEnable(TestCase):
+class TestCommonCriteriaEntitlementCanEnable:
 
     @mock.patch('uaclient.util.get_platform_info')
     @mock.patch('os.getuid', return_value=0)
     def test_can_enable_true_on_entitlement_inactive(
-            self, m_getuid, m_platform_info):
+            self, m_getuid, m_platform_info, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = 'xenial'
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
@@ -58,17 +56,16 @@ class TestCommonCriteriaEntitlementCanEnable(TestCase):
         assert '' == m_stdout.getvalue()
 
 
-class TestCommonCriteriaEntitlementEnable(TestCase):
+class TestCommonCriteriaEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
     @mock.patch('os.getuid', return_value=0)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, m_subp):
+            self, m_getuid, m_platform_info, m_subp, tmpdir):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_platform_info.return_value = 'xenial'
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
