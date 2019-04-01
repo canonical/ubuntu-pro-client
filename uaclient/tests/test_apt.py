@@ -2,13 +2,11 @@
 
 import mock
 
-from uaclient.testing.helpers import TestCase
-
 from uaclient.apt import add_auth_apt_repo, valid_apt_credentials
 from uaclient import util
 
 
-class TestValidAptCredentials(TestCase):
+class TestValidAptCredentials:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('os.path.exists', return_value=False)
@@ -22,18 +20,18 @@ class TestValidAptCredentials(TestCase):
         assert 0 == m_subp.call_count
 
 
-class TestAddAuthAptRepo(TestCase):
+class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_adds_apt_fingerprint(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp):
+            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
+            tmpdir):
         """Call apt-key to add the specified fingerprint."""
-        tmp_dir = self.tmp_dir()
-        repo_file = self.tmp_path('repo.conf', tmp_dir)
-        auth_file = self.tmp_path('auth.conf', tmp_dir)
+        repo_file = tmpdir.join('repo.conf')
+        auth_file = tmpdir.join('auth.conf')
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(repo_filename=repo_file, repo_url='http://fakerepo',
@@ -49,11 +47,11 @@ class TestAddAuthAptRepo(TestCase):
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_sources_file(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp):
+            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
+            tmpdir):
         """Write a properly configured sources file to repo_filename."""
-        tmp_dir = self.tmp_dir()
-        repo_file = self.tmp_path('repo.conf', tmp_dir)
-        auth_file = self.tmp_path('auth.conf', tmp_dir)
+        repo_file = tmpdir.join('repo.conf')
+        auth_file = tmpdir.join('auth.conf')
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(repo_filename=repo_file, repo_url='http://fakerepo',
@@ -69,11 +67,11 @@ class TestAddAuthAptRepo(TestCase):
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp):
+            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
+            tmpdir):
         """Write apt authentication file when credentials are user:pwd."""
-        tmp_dir = self.tmp_dir()
-        repo_file = self.tmp_path('repo.conf', tmp_dir)
-        auth_file = self.tmp_path('auth.conf', tmp_dir)
+        repo_file = tmpdir.join('repo.conf')
+        auth_file = tmpdir.join('auth.conf')
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
@@ -91,11 +89,11 @@ class TestAddAuthAptRepo(TestCase):
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp):
+            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
+            tmpdir):
         """Write apt authentication file when credentials are bearer token."""
-        tmp_dir = self.tmp_dir()
-        repo_file = self.tmp_path('repo.conf', tmp_dir)
-        auth_file = self.tmp_path('auth.conf', tmp_dir)
+        repo_file = tmpdir.join('repo.conf')
+        auth_file = tmpdir.join('auth.conf')
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
