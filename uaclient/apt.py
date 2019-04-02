@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import shutil
@@ -6,6 +7,7 @@ from uaclient import util
 
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
+APT_CONFIG_LISTS_DIR = 'Dir::State::lists/'
 APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
 KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
@@ -137,3 +139,24 @@ def get_apt_auth_file_from_apt_config():
         out, _err = util.subp(
             ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_FILE])
         return out.split("'")[1].rstrip('/')
+
+
+def find_apt_list_files(repo_url, series):
+    """List any apt files in APT_CONFIG_LISTS_DIR given repo_url and series."""
+    _protocol, repo_path = repo_url.split('://')
+    lists_dir = '/var/lib/apt/lists'
+    out, _err = util.subp(
+        ['apt-config', 'shell', 'key', APT_CONFIG_LISTS_DIR])
+    if out:  # then lists dir is present in config
+        lists_dir = out.split("'")[1]
+
+    aptlist_filename = repo_path.rstrip('/').replace('/', '_')
+    return glob.glob(
+        os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series))
+
+
+def remove_apt_list_files(repo_url, series):
+    """Remove any apt list files present for this repo_url and series."""
+    for path in find_apt_list_files(repo_url, series):
+        if os.path.exists(path):
+            os.unlink(path)
