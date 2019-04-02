@@ -160,8 +160,6 @@ def action_disable(args, cfg):
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     if entitlement.disable():
-        if hasattr(entitlement, 'repo_url'):
-            util.subp(['apt-get', 'update'], capture=True)
         return 0
     else:
         return 1

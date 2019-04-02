@@ -72,7 +72,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         )
         try:
             util.subp(['apt-get', 'update'], capture=True)
-            util.subp(['apt-get', 'install'] + self.packages)
+            util.subp(['apt-get', 'install'] + self.packages, capture=True)
         except util.ProcessExecutionError:
             self.disable(silent=True, force=True)
             logging.error(
@@ -91,8 +91,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             repo_filename = self.repo_list_file_tmpl.format(
                 name=self.name, series=series)
             keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-            access_directives = self.cfg.read_cache(
-                'machine-access-%s' % self.name).get('directives', {})
+            entitlement = self.cfg.read_cache(
+                'machine-access-%s' % self.name).get('entitlement', {})
+            access_directives = entitlement.get('directives', {})
             repo_url = access_directives.get('aptURL', self.repo_url)
             if not repo_url:
                 repo_url = self.repo_url
@@ -102,9 +103,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     name=self.name, series=series)
                 if os.path.exists(repo_pref_file):
                     os.unlink(repo_pref_file)
+            apt.remove_apt_list_files(repo_url, series)
             try:
                 util.subp(['apt-get', 'remove', '--frontend=noninteractive',
-                           '--assume-yes'] + self.packages)
+                           '--assume-yes'] + self.packages, capture=True)
             except util.ProcessExecutionError:
                 pass
         if not silent:
