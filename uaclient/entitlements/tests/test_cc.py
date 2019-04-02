@@ -54,7 +54,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         entitlement = CommonCriteriaEntitlement(cfg)
         op_status, op_status_details = entitlement.operational_status()
         assert status.INACTIVE == op_status
-        details = '%s service is not configured' % entitlement.title
+        details = '%s is not configured' % entitlement.title
         assert details == op_status_details
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert True is entitlement.can_enable()
@@ -73,7 +73,7 @@ class TestCommonCriteriaEntitlementEnable:
             self, m_getuid, m_platform_info, m_subp, tmpdir,
             apt_transport_https, ca_certificates):
         """When entitled, configure apt repo auth token, pinning and url."""
-
+        m_subp.return_value = ('fakeout', '')
         original_exists = os.path.exists
 
         def exists(path):
@@ -104,7 +104,7 @@ class TestCommonCriteriaEntitlementEnable:
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-xenial.list',
                       'http://CC', 'TOKEN', None, 'APTKEY')]
 
-        subp_apt_cmds = []
+        subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 
         if apt_transport_https:
             subp_apt_cmds.append(
@@ -125,6 +125,7 @@ class TestCommonCriteriaEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout = (
+            'Updating package lists ...\n'
             'Installing Canonical Common Criteria EAL2 Provisioning'
             ' packages ...\nCanonical Common Criteria EAL2 Provisioning'
             ' enabled.\nPlease follow instructions in'

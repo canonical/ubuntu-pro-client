@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 import shutil
@@ -6,6 +7,7 @@ from uaclient import util
 
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
+APT_CONFIG_LISTS_DIR = 'Dir::State::lists/'
 APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
 KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
@@ -18,7 +20,7 @@ APT_AUTH_HEADER = """
 
 
 class InvalidAPTCredentialsError(RuntimeError):
-    """Raised when invalid token is provided for APT PPA access"""
+    """Raised when invalid token is provided for APT access"""
     pass
 
 
@@ -57,10 +59,12 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         the repo PPA.
     """
     series = util.get_platform_info('series')
+    if repo_url.endswith('/'):
+        repo_url = repo_url[:-1]
     if not valid_apt_credentials(repo_url, series, credentials):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
-    logging.info('Enabling authenticated endpoint: %s', repo_url)
+    logging.info('Enabling authenticated repo: %s', repo_url)
     content = (
         'deb {url}/ubuntu {series} main\n'
         '# deb-src {url}/ubuntu {series} main\n'.format(
@@ -77,6 +81,8 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     else:
         auth_content = APT_AUTH_HEADER
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     auth_content += (
         'machine {repo_path}/ubuntu/ login {login} password'
         ' {password}\n'.format(
@@ -86,7 +92,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
     elif fingerprint:
-        logging.debug('Importing endpoint key %s', fingerprint)
+        logging.debug('Importing APT key %s', fingerprint)
         util.subp(
             ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
              '--recv-keys', fingerprint], capture=True)
@@ -95,13 +101,15 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
                          fingerprint=None):
     """Remove an authenticated apt repo and credentials to the system"""
-    logging.info('Removing authenticated endpoint: %s', repo_url)
+    logging.info('Removing authenticated apt repo: %s', repo_url)
     util.del_file(repo_filename)
     if keyring_file:
         util.del_file(keyring_file)
     elif fingerprint:
         util.subp(['apt-key', 'del', fingerprint], capture=True)
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         apt_auth = util.load_file(apt_auth_file)
@@ -119,6 +127,8 @@ def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
     series = util.get_platform_info('series')
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     content = (
         'Package: *\n'
         'Pin: release o={origin}, n={series}\n'
@@ -137,3 +147,26 @@ def get_apt_auth_file_from_apt_config():
         out, _err = util.subp(
             ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_FILE])
         return out.split("'")[1].rstrip('/')
+
+
+def find_apt_list_files(repo_url, series):
+    """List any apt files in APT_CONFIG_LISTS_DIR given repo_url and series."""
+    _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
+    lists_dir = '/var/lib/apt/lists'
+    out, _err = util.subp(
+        ['apt-config', 'shell', 'key', APT_CONFIG_LISTS_DIR])
+    if out:  # then lists dir is present in config
+        lists_dir = out.split("'")[1]
+
+    aptlist_filename = repo_path.replace('/', '_')
+    return glob.glob(
+        os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series))
+
+
+def remove_apt_list_files(repo_url, series):
+    """Remove any apt list files present for this repo_url and series."""
+    for path in find_apt_list_files(repo_url, series):
+        if os.path.exists(path):
+            os.unlink(path)
