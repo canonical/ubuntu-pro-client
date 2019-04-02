@@ -1,9 +1,28 @@
 """Tests related to uaclient.apt module."""
 
 import mock
+from textwrap import dedent
 
-from uaclient.apt import add_auth_apt_repo, valid_apt_credentials
+from uaclient.apt import (
+    add_auth_apt_repo, add_ppa_pinning, valid_apt_credentials)
 from uaclient import util
+
+
+class TestAddPPAPinning:
+
+    @mock.patch('uaclient.util.get_platform_info')
+    def test_write_apt_pin_file_to_apt_preferences(self, m_platform, tmpdir):
+        """Write proper apt pin file to specified apt_preference_file."""
+        m_platform.return_value = 'xenial'
+        pref_file = tmpdir.join('preffile').strpath
+        assert None is add_ppa_pinning(
+            pref_file, repo_url='http://fakerepo', origin='MYORIG',
+            priority=1003)
+        expected_pref = dedent('''\
+            Package: *
+            Pin: release o=MYORIG, n=xenial
+            Pin-Priority: 1003\n''')
+        assert expected_pref == util.load_file(pref_file)
 
 
 class TestValidAptCredentials:
@@ -30,8 +49,8 @@ class TestAddAuthAptRepo:
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
         """Call apt-key to add the specified fingerprint."""
-        repo_file = tmpdir.join('repo.conf')
-        auth_file = tmpdir.join('auth.conf')
+        repo_file = tmpdir.join('repo.conf').strpath
+        auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(repo_filename=repo_file, repo_url='http://fakerepo',
@@ -50,8 +69,8 @@ class TestAddAuthAptRepo:
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
         """Write a properly configured sources file to repo_filename."""
-        repo_file = tmpdir.join('repo.conf')
-        auth_file = tmpdir.join('auth.conf')
+        repo_file = tmpdir.join('repo.conf').strpath
+        auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(repo_filename=repo_file, repo_url='http://fakerepo',
@@ -70,8 +89,8 @@ class TestAddAuthAptRepo:
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
         """Write apt authentication file when credentials are user:pwd."""
-        repo_file = tmpdir.join('repo.conf')
-        auth_file = tmpdir.join('auth.conf')
+        repo_file = tmpdir.join('repo.conf').strpath
+        auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
@@ -92,8 +111,8 @@ class TestAddAuthAptRepo:
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
         """Write apt authentication file when credentials are bearer token."""
-        repo_file = tmpdir.join('repo.conf')
-        auth_file = tmpdir.join('auth.conf')
+        repo_file = tmpdir.join('repo.conf').strpath
+        auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
