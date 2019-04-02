@@ -147,7 +147,9 @@ def process_directives(cfg):
     if not cfg:
         return
     directives = cfg.get('entitlement', {}).get('directives', {})
-    remote_server = directives.get('remoteServer')
+    remote_server = directives.get('remoteServer', '')
+    if remote_server.endswith('/'):
+        remote_server = remote_server[:-1]
     if remote_server:
         util.subp(['/snap/bin/canonical-livepatch', 'config',
                    'remote-server=%s' % remote_server], capture=True)
