@@ -37,7 +37,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             logging.debug(
                 'No legacy entitlement token present. Using machine token'
                 ' as %s credentials', self.title)
-            token = self.cfg.machine_token['machineSecret']
+            token = self.cfg.machine_token['machineToken']
         repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url

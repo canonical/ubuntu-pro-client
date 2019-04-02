@@ -14,7 +14,7 @@ from uaclient.entitlements.cc import CommonCriteriaEntitlement
 
 
 CC_MACHINE_TOKEN = {
-    'machineSecret': 'blah',
+    'machineToken': 'blah',
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
