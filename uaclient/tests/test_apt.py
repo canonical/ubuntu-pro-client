@@ -1,10 +1,12 @@
 """Tests related to uaclient.apt module."""
 
+import glob
 import mock
 from textwrap import dedent
 
 from uaclient.apt import (
-    add_auth_apt_repo, add_ppa_pinning, valid_apt_credentials)
+    add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
+    remove_apt_list_files, valid_apt_credentials)
 from uaclient import util
 
 
@@ -23,6 +25,50 @@ class TestAddPPAPinning:
             Pin: release o=MYORIG, n=xenial
             Pin-Priority: 1003\n''')
         assert expected_pref == util.load_file(pref_file)
+
+
+class TestFindAptListFilesFromRepoSeries:
+
+    @mock.patch('uaclient.util.subp')
+    def test_find_all_apt_list_files_from_apt_config_key(self, m_subp, tmpdir):
+        """Find all matching apt list files from apt-config dir."""
+        m_subp.return_value = ("key='%s'" % tmpdir.strpath, '')
+        repo_url = 'http://c.com/fips-updates/'
+        _protocol, repo_path = repo_url.split('://')
+        prefix = repo_path.rstrip('/').replace('/', '_')
+        paths = [
+            tmpdir.join(prefix + '_dists_nomatch').strpath,
+            tmpdir.join(prefix + '_dists_xenial_InRelease').strpath,
+            tmpdir.join(
+                prefix + '_dists_xenial_main_binary-amd64_Packages').strpath]
+        for path in paths:
+            util.write_file(path, '')
+
+        assert paths[1:] == find_apt_list_files(
+            repo_url, 'xenial')
+
+
+class TestRemoveAptListFiles:
+
+    @mock.patch('uaclient.util.subp')
+    def test_remove_all_apt_list_files_from_apt_config_key(
+            self, m_subp, tmpdir):
+        """Remove all matching apt list files from apt-config dir."""
+        m_subp.return_value = ("key='%s'" % tmpdir.strpath, '')
+        repo_url = 'http://c.com/fips-updates/'
+        _protocol, repo_path = repo_url.split('://')
+        prefix = repo_path.rstrip('/').replace('/', '_')
+        nomatch_file = tmpdir.join(prefix + '_dists_nomatch').strpath
+        paths = [
+            nomatch_file,
+            tmpdir.join(prefix + '_dists_xenial_InRelease').strpath,
+            tmpdir.join(
+                prefix + '_dists_xenial_main_binary-amd64_Packages').strpath]
+        for path in paths:
+            util.write_file(path, '')
+
+        assert None is remove_apt_list_files(repo_url, 'xenial')
+        assert [nomatch_file] == glob.glob('%s/*' % tmpdir.strpath)
 
 
 class TestValidAptCredentials:

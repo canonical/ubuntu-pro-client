@@ -1,11 +1,13 @@
-import glob
 import logging
 import os
+import re
 
 from uaclient import apt
 from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
+
+APT_DISABLED_PIN = '-32768'
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -73,6 +75,7 @@ class RepoEntitlement(base.UAEntitlement):
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
             util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
         try:
+            print('Updating package lists ...')
             util.subp(['apt-get', 'update'], capture=True)
             if self.packages:
                 print(
@@ -95,13 +98,14 @@ class RepoEntitlement(base.UAEntitlement):
             return status.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return status.INACTIVE, '%s PPA is not configured' % self.title
+            return status.INACTIVE, '%s is not configured' % self.title
         directives = entitlement_cfg['entitlement'].get('directives', {})
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')
-        apt_repo_file = repo_url.split('://')[1].replace('/', '_')
-        if glob.glob('/var/lib/apt/lists/%s*' % apt_repo_file):
-            return status.ACTIVE, '%s PPA is active' % self.title
-        return status.INACTIVE, '%s PPA is not configured' % self.title
+        out, _err = util.subp(['apt-cache', 'policy'])
+        match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
+        if match and match.group('pin') != APT_DISABLED_PIN:
+            return status.ACTIVE, '%s is active' % self.title
+        return status.INACTIVE, '%s is not configured' % self.title

@@ -1,7 +1,11 @@
 """Tests related to uaclient.entitlement.base module."""
 
-import mock
 from io import StringIO
+import itertools
+import mock
+import os
+
+import pytest
 
 from uaclient import config
 from uaclient.entitlements.fips import FIPSEntitlement
@@ -115,3 +119,73 @@ class TestFIPSEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
+
+
+class TestFIPSEntitlementDisable:
+
+    # Paramterize True/False for silent and force
+    @pytest.mark.parametrize(
+        'silent,force', itertools.product([False, True], repeat=2))
+    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch(M_PATH + 'can_disable', return_value=False)
+    def test_disable_returns_false_on_can_disable_false_and_does_nothing(
+            self, m_can_disable, m_platform_info, silent, force):
+        """When can_disable is false disable returns false and noops."""
+        entitlement = FIPSEntitlement({})
+
+        with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
+            assert False is entitlement.disable(silent, force)
+        assert [mock.call(silent, force)] == m_can_disable.call_args_list
+        assert 0 == m_remove_apt.call_count
+
+    @mock.patch('uaclient.apt.remove_apt_list_files')
+    @mock.patch('uaclient.apt.remove_auth_apt_repo')
+    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch(M_PATH + 'can_disable', return_value=True)
+    def test_disable_returns_false_and_removes_apt_config_on_force(
+            self, m_can_disable, m_platform_info, m_rm_auth, m_rm_list,
+            tmpdir, caplog_text):
+        """When can_disable, disable removes apt configuration when force."""
+        m_platform_info.return_value = 'xenial'
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', FIPS_MACHINE_TOKEN)
+        cfg.write_cache('machine-access-fips', FIPS_RESOURCE_ENTITLED)
+        entitlement = FIPSEntitlement(cfg)
+
+        original_exists = os.path.exists
+
+        def fake_exists(path):
+            if path == '/etc/apt/preferences.d/ubuntu-fips-xenial':
+                return True
+            return original_exists(path)
+
+        with mock.patch('os.path.exists', side_effect=fake_exists):
+            with mock.patch('uaclient.apt.os.unlink') as m_unlink:
+                with mock.patch('uaclient.util.subp') as m_subp:
+                    assert False is entitlement.disable(True, True)
+        assert [mock.call(True, True)] == m_can_disable.call_args_list
+        calls = [mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial')]
+        assert calls == m_unlink.call_args_list
+        auth_call = mock.call(
+            '/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
+            'http://FIPS', '/etc/apt/trusted.gpg.d/ubuntu-fips-keyring.gpg')
+        assert [auth_call] == m_rm_auth.call_args_list
+        assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
+        apt_cmd = mock.call(
+            ['apt-get', 'remove', '--frontend=noninteractive',
+             '--assume-yes'] + entitlement.packages)
+        assert [apt_cmd] == m_subp.call_args_list
+
+    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch(M_PATH + 'can_disable', return_value=True)
+    def test_disable_returns_false_does_nothing_by_default(
+            self, m_can_disable, m_platform_info, caplog_text):
+        """When can_disable, disable does nothing without force param."""
+        entitlement = FIPSEntitlement({})
+
+        with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                assert False is entitlement.disable()
+        assert [mock.call(False, False)] == m_can_disable.call_args_list
+        assert 0 == m_remove_apt.call_count
+        assert 'Warning: no option to disable FIPS\n' == m_stdout.getvalue()
