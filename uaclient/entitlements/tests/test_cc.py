@@ -54,7 +54,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         entitlement = CommonCriteriaEntitlement(cfg)
         op_status, op_status_details = entitlement.operational_status()
         assert status.INACTIVE == op_status
-        details = '%s PPA is not configured' % entitlement.title
+        details = '%s service is not configured' % entitlement.title
         assert details == op_status_details
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert True is entitlement.can_enable()

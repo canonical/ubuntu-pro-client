@@ -95,7 +95,7 @@ class RepoEntitlement(base.UAEntitlement):
             return status.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return status.INACTIVE, '%s PPA is not configured' % self.title
+            return status.INACTIVE, '%s service is not configured' % self.title
         directives = entitlement_cfg['entitlement'].get('directives', {})
         repo_url = directives.get('aptURL')
         if not repo_url:
@@ -103,5 +103,5 @@ class RepoEntitlement(base.UAEntitlement):
         protocol, repo_path = repo_url.split('://')
         apt_repo_file = repo_url.split('://')[1].replace('/', '_')
         if glob.glob('/var/lib/apt/lists/%s*' % apt_repo_file):
-            return status.ACTIVE, '%s PPA is active' % self.title
-        return status.INACTIVE, '%s PPA is not configured' % self.title
+            return status.ACTIVE, '%s service is active' % self.title
+        return status.INACTIVE, '%s service is not configured' % self.title
