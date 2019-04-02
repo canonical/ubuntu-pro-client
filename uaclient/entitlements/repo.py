@@ -12,6 +12,7 @@ class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = '/etc/apt/sources.list.d/ubuntu-{name}-{series}.list'
     repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
+    origin = None   # The repo Origin value for setting pinning
 
     repo_url = 'UNSET'
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
@@ -54,10 +55,18 @@ class RepoEntitlement(base.UAEntitlement):
             logging.error(str(e))
             return False
         if self.repo_pin_priority:
+            if not self.origin:
+                logging.error(
+                    "Cannot setup apt pin. Empty apt repo origin value '%s'." %
+                    self.origin)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
             apt.add_ppa_pinning(
-                repo_pref_file, repo_url, self.repo_pin_priority)
+                repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
             util.subp(['apt-get', 'install', 'apt-transport-https'],
                       capture=True)

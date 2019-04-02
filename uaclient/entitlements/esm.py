@@ -10,12 +10,12 @@ class ESMEntitlement(repo.RepoEntitlement):
 
     name = 'esm'
     title = 'Extended Security Maintenance'
+    origin = 'UbuntuESM'
     description = (
         'Ubuntu Extended Security Maintenance archive'
         ' (https://ubuntu.com/esm)')
     repo_url = 'https://esm.ubuntu.com'
     repo_key_file = 'ubuntu-esm-keyring.gpg'
-    repo_pin_priority = -32768   # Allow seeing esm pkg counts but not install
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement
