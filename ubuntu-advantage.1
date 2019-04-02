@@ -31,6 +31,11 @@ https://login.ubuntu.com, which will enable an individual contract on
 the system.
 
 .TP
+.B detach
+Remove the Ubuntu Advantage support contract from this machine. This
+also disables all enabled services that can be.
+
+.TP
 .BR "disable" " [cc|cis-audit|esm|fips|fips-updates|livepatch]"
 Disable this machine's access to an Ubuntu Advantage support services.
 
@@ -65,23 +70,16 @@ Possible values are: active, inactive, or n/a
 .B version
 Show version of the Ubuntu Advantage package.
 
-.TP
-.B detach
-Remove the Ubuntu Advantage support contract from this machine. This
-also disables all enabled services that can be.
-
 
 .SH SERVICES
 .TP
 .B "Common Criteria EAL2 Provisioning (cc)"
-Enables and install the common criteria artifacts.
+Enables and install the Common Criteria artifacts.
 
 The artifacts include a configure script, a tarball with additional
 packages, and post install scripts. The artifacts will be installed in
-/usr/lib/common-criteria directory. The evaluated configuration guide
-and README instructions on how to set up a system to be Common Criteria
-compliant are available in /usr/share/doc/ubuntu-commoncriteria
-directory.
+/usr/lib/common-criteria directory and the README and configuration
+guide are available in /usr/share/doc/ubuntu-commoncriteria directory.
 
 .TP
 .B "CIS Audit (cis-audit)"
@@ -116,7 +114,6 @@ rebooted. Failing to reboot will result in the system not running the
 updated FIPS kernel.
 
 Disabling FIPS with updates is not currently supported.
-
 
 .TP
 .B "Livepatch Service (livepatch)"
