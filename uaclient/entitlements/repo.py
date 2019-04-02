@@ -73,6 +73,7 @@ class RepoEntitlement(base.UAEntitlement):
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
             util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
         try:
+            print('Updating package lists ...')
             util.subp(['apt-get', 'update'], capture=True)
             if self.packages:
                 print(

@@ -59,6 +59,8 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         the repo PPA.
     """
     series = util.get_platform_info('series')
+    if repo_url.endswith('/'):
+        repo_url = repo_url[:-1]
     if not valid_apt_credentials(repo_url, series, credentials):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
@@ -79,6 +81,8 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     else:
         auth_content = APT_AUTH_HEADER
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     auth_content += (
         'machine {repo_path}/ubuntu/ login {login} password'
         ' {password}\n'.format(
@@ -104,6 +108,8 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
     elif fingerprint:
         util.subp(['apt-key', 'del', fingerprint], capture=True)
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         apt_auth = util.load_file(apt_auth_file)
@@ -121,6 +127,8 @@ def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
     series = util.get_platform_info('series')
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     content = (
         'Package: *\n'
         'Pin: release o={origin}, n={series}\n'
@@ -144,13 +152,15 @@ def get_apt_auth_file_from_apt_config():
 def find_apt_list_files(repo_url, series):
     """List any apt files in APT_CONFIG_LISTS_DIR given repo_url and series."""
     _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
     lists_dir = '/var/lib/apt/lists'
     out, _err = util.subp(
         ['apt-config', 'shell', 'key', APT_CONFIG_LISTS_DIR])
     if out:  # then lists dir is present in config
         lists_dir = out.split("'")[1]
 
-    aptlist_filename = repo_path.rstrip('/').replace('/', '_')
+    aptlist_filename = repo_path.replace('/', '_')
     return glob.glob(
         os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series))
 
