@@ -61,6 +61,7 @@ class TestCISEntitlementEnable(TestCase):
             self, m_getuid, m_platform_info, m_subp):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_platform_info.return_value = 'xenial'
+        m_subp.return_value = ('fakeout', '')
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
         cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
@@ -79,6 +80,7 @@ class TestCISEntitlementEnable(TestCase):
                       'http://CIS', 'TOKEN', None, 'APTKEY')]
 
         subp_apt_cmds = [
+            mock.call(['apt-cache', 'policy']),
             mock.call(['apt-get', 'update'], capture=True),
             mock.call(['apt-get', 'install', 'ubuntu-cisbenchmark-16.04'],
                       capture=True)]

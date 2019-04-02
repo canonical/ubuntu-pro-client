@@ -173,8 +173,7 @@ class TestFIPSEntitlementDisable:
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
             ['apt-get', 'remove', '--frontend=noninteractive',
-             '--assume-yes'] + entitlement.packages,
-            capture=True)
+             '--assume-yes'] + entitlement.packages)
         assert [apt_cmd] == m_subp.call_args_list
 
     @mock.patch('uaclient.util.get_platform_info')

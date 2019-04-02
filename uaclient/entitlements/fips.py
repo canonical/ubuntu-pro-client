@@ -106,7 +106,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             apt.remove_apt_list_files(repo_url, series)
             try:
                 util.subp(['apt-get', 'remove', '--frontend=noninteractive',
-                           '--assume-yes'] + self.packages, capture=True)
+                           '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
         if not silent:

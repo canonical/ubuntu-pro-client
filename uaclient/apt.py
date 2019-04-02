@@ -20,7 +20,7 @@ APT_AUTH_HEADER = """
 
 
 class InvalidAPTCredentialsError(RuntimeError):
-    """Raised when invalid token is provided for APT PPA access"""
+    """Raised when invalid token is provided for APT access"""
     pass
 
 
@@ -64,7 +64,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     if not valid_apt_credentials(repo_url, series, credentials):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
-    logging.info('Enabling authenticated apt PPA: %s', repo_url)
+    logging.info('Enabling authenticated repo: %s', repo_url)
     content = (
         'deb {url}/ubuntu {series} main\n'
         '# deb-src {url}/ubuntu {series} main\n'.format(
@@ -92,7 +92,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
     elif fingerprint:
-        logging.debug('Importing APT PPA key %s', fingerprint)
+        logging.debug('Importing APT key %s', fingerprint)
         util.subp(
             ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
              '--recv-keys', fingerprint], capture=True)
@@ -101,7 +101,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
                          fingerprint=None):
     """Remove an authenticated apt repo and credentials to the system"""
-    logging.info('Removing authenticated apt PPA: %s', repo_url)
+    logging.info('Removing authenticated apt repo: %s', repo_url)
     util.del_file(repo_filename)
     if keyring_file:
         util.del_file(keyring_file)
