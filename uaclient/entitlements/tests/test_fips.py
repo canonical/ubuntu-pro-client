@@ -9,7 +9,7 @@ from uaclient.testing.helpers import TestCase
 
 
 FIPS_MACHINE_TOKEN = {
-    'machineSecret': 'blah',
+    'machineToken': 'blah',
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [

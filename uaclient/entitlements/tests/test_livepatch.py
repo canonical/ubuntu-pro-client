@@ -14,7 +14,7 @@ from uaclient import status
 
 
 LIVEPATCH_MACHINE_TOKEN = MappingProxyType({
-    'machineSecret': 'blah',
+    'machineToken': 'blah',
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
