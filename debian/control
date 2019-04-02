@@ -11,7 +11,6 @@ Build-Depends: debhelper (>=9),
                python3-pymacaroons,
                python3-mock,
                python3-pytest,
-               python3-pytest-cov,
                python3-setuptools,
                python3-yaml
 Standards-Version: 3.9.6
