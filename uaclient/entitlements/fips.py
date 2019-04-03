@@ -9,7 +9,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
     packages = ['openssh-client-hmac', 'openssh-server-hmac',
-                'libssl1.0.0-hmac', 'linux-fips strongswan-hmac',
+                'libssl1.0.0-hmac', 'linux-fips', 'strongswan-hmac',
                 'openssh-client', 'openssh-server', 'openssl', 'libssl1.0.0',
                 'fips-initramfs', 'strongswan']
 
