@@ -90,10 +90,12 @@ class TestFIPSEntitlementEnable:
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
                       'http://FIPS', 'UbuntuFIPS', 1001)]
+        install_cmd = mock.call(
+            ['apt-get', 'install', '--assume-yes'] + fips_entitlement.packages,
+            capture=True)
+
         subp_calls = [
-            mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install'] + fips_entitlement.packages,
-                      capture=True)]
+            mock.call(['apt-get', 'update'], capture=True), install_cmd]
 
         assert [mock.call()] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list

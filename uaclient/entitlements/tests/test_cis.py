@@ -82,8 +82,9 @@ class TestCISEntitlementEnable(TestCase):
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),
             mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install', 'ubuntu-cisbenchmark-16.04'],
-                      capture=True)]
+            mock.call(
+                ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
+                capture=True)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis-audit

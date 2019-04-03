@@ -106,26 +106,28 @@ class TestCommonCriteriaEntitlementEnable:
 
         subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 
-        prerequisite_packages = []
+        prerequisite_pkgs = []
         if apt_transport_https:
-            prerequisite_packages.append('apt-transport-https')
+            prerequisite_pkgs.append('apt-transport-https')
         if ca_certificates:
-            prerequisite_packages.append('ca-certificates')
+            prerequisite_pkgs.append('ca-certificates')
 
-        if prerequisite_packages:
+        if prerequisite_pkgs:
             expected_stdout = (
                 'Installing prerequisites: %s\n' % ', '.join(
-                    prerequisite_packages))
+                    prerequisite_pkgs))
             subp_apt_cmds.append(
-                mock.call(['apt-get', 'install'] + prerequisite_packages,
-                          capture=True))
+                mock.call(
+                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
+                    capture=True))
         else:
             expected_stdout = ''
 
         subp_apt_cmds.extend([
             mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install', 'ubuntu-commoncriteria'],
-                      capture=True)])
+            mock.call(
+                ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
+                capture=True)])
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cc

@@ -64,18 +64,19 @@ class RepoEntitlement(base.UAEntitlement):
             apt.add_ppa_pinning(
                 repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
 
-        prerequisite_packages = []
+        prerequisite_pkgs = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            prerequisite_packages.append('apt-transport-https')
+            prerequisite_pkgs.append('apt-transport-https')
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            prerequisite_packages.append('ca-certificates')
+            prerequisite_pkgs.append('ca-certificates')
 
-        if prerequisite_packages:
+        if prerequisite_pkgs:
             print('Installing prerequisites: {}'.format(
-                ', '.join(prerequisite_packages)))
+                ', '.join(prerequisite_pkgs)))
             try:
-                util.subp(['apt-get', 'install'] + prerequisite_packages,
-                          capture=True)
+                util.subp(
+                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
+                    capture=True)
             except util.ProcessExecutionError as e:
                 logging.error(str(e))
                 return False
@@ -91,7 +92,9 @@ class RepoEntitlement(base.UAEntitlement):
                 util.subp(['apt-get', 'update'], capture=True)
                 print(
                     'Installing {title} packages ...'.format(title=self.title))
-                util.subp(['apt-get', 'install'] + self.packages, capture=True)
+                util.subp(
+                    ['apt-get', 'install', '--assume-yes'] + self.packages,
+                    capture=True)
             except util.ProcessExecutionError:
                 self.disable(silent=True, force=True)
                 logging.error(
