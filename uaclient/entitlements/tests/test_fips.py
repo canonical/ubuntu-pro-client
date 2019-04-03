@@ -39,6 +39,7 @@ FIPS_RESOURCE_ENTITLED = {
 }
 
 M_PATH = 'uaclient.entitlements.fips.FIPSEntitlement.'
+M_REPOPATH = 'uaclient.entitlements.repo.'
 
 
 class TestFIPSEntitlementCanEnable(TestCase):
@@ -60,12 +61,12 @@ class TestFIPSEntitlementCanEnable(TestCase):
 
 class TestFIPSEntitlementEnable:
 
-    @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
+    @mock.patch(
+        'uaclient.util.get_platform_info', mock.Mock(return_value='xenial'))
+    @mock.patch(M_PATH + 'can_enable', return_value=True)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, tmpdir):
+            self, m_can_enable, tmpdir):
         """When entitled, configure apt repo auth token, pinning and url."""
-        m_platform_info.return_value = 'xenial'
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', FIPS_MACHINE_TOKEN)
         cfg.write_cache('machine-access-fips', FIPS_RESOURCE_ENTITLED)
@@ -75,7 +76,9 @@ class TestFIPSEntitlementEnable:
 
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
-                assert True is entitlement.enable()
+                with mock.patch('uaclient.util.subp') as m_subp:
+                    with mock.patch(M_REPOPATH + 'os.path.exists'):
+                        assert True is entitlement.enable()
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
@@ -83,26 +86,32 @@ class TestFIPSEntitlementEnable:
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
                       'http://FIPS', 'UbuntuFIPS', 1001)]
+        subp_calls = [
+            mock.call(['apt-get', 'update'], capture=True),
+            mock.call(['apt-get', 'install'] + entitlement.packages,
+                      capture=True)]
 
+        assert [mock.call()] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
+        assert subp_calls == m_subp.call_args_list
 
-    @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch(M_PATH + 'can_enable', return_value=False)
-    def test_enable_returns_false_on_can_enable_false(
-            self, m_can_enable, m_platform_info):
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch(M_PATH + 'can_enable', mock.Mock(return_value=False))
+    def test_enable_returns_false_on_can_enable_false(self, m_platform_info):
         """When can_enable is false enable returns false and noops."""
         entitlement = FIPSEntitlement({})
 
         assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
-    @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch(M_PATH + 'can_enable', return_value=True)
+    @mock.patch(
+        'uaclient.util.get_platform_info', mock.Mock(return_value='xenial'))
+    @mock.patch(M_PATH + 'can_enable', mock.Mock(return_value=True))
     def test_enable_errors_on_repo_pin_but_invalid_origin(
-            self, m_can_enable, m_platform_info, caplog_text, tmpdir):
+            self, caplog_text, tmpdir):
         """When can_enable is false enable returns false and noops."""
-        m_platform_info.return_value = 'xenial'
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', FIPS_MACHINE_TOKEN)
         cfg.write_cache('machine-access-fips', FIPS_RESOURCE_ENTITLED)
@@ -111,12 +120,10 @@ class TestFIPSEntitlementEnable:
 
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
-                assert False is entitlement.enable()
+                with mock.patch(M_REPOPATH + 'os.path.exists'):
+                    assert False is entitlement.enable()
 
-        add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-                      'http://FIPS', 'TOKEN', None, 'APTKEY')]
-        assert add_apt_calls == m_add_apt.call_args_list
+        assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
 
