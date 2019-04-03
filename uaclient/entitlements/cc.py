@@ -4,6 +4,8 @@ from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient import util
 
+CC_README = '/usr/share/doc/ubuntu-commoncriteria/README'
+
 
 class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
@@ -18,8 +20,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     packages = ['ubuntu-commoncriteria']
     messaging = {
         'post_enable': [
-            'Please follow instructions in /usr/lib/common-criteria/README'
-            ' to configure EAL2']}
+            'Please follow instructions in %s to configure EAL2' % CC_README]}
 
     def disable(self, silent=False, force=False):
         """Disable specific entitlement

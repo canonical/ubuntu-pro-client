@@ -10,7 +10,7 @@ import pytest
 from uaclient import apt
 from uaclient import config
 from uaclient import status
-from uaclient.entitlements.cc import CommonCriteriaEntitlement
+from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 
 
 CC_MACHINE_TOKEN = {
@@ -128,6 +128,6 @@ class TestCommonCriteriaEntitlementEnable:
             'Updating package lists ...\n'
             'Installing Canonical Common Criteria EAL2 Provisioning'
             ' packages ...\nCanonical Common Criteria EAL2 Provisioning'
-            ' enabled.\nPlease follow instructions in'
-            ' /usr/lib/common-criteria/README to configure EAL2\n')
+            ' enabled.\nPlease follow instructions in %s to configure EAL2\n'
+            % CC_README)
         assert expected_stdout == m_stdout.getvalue()
