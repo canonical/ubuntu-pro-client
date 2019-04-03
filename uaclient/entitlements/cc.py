@@ -43,8 +43,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
         apt.remove_apt_list_files(repo_url, series)
         print('Removing packages: %s' % ', '.join(self.packages))
         try:
-            util.subp(['apt-get', 'remove', '--frontend=noninteractive',
-                       '--assume-yes'] + self.packages)
+            util.subp(['apt-get', 'remove', '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
         return True
