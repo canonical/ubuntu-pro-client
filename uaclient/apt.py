@@ -161,8 +161,8 @@ def find_apt_list_files(repo_url, series):
         lists_dir = out.split("'")[1]
 
     aptlist_filename = repo_path.replace('/', '_')
-    return glob.glob(
-        os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series))
+    return sorted(glob.glob(
+        os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series)))
 
 
 def remove_apt_list_files(repo_url, series):

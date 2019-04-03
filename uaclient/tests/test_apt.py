@@ -36,11 +36,11 @@ class TestFindAptListFilesFromRepoSeries:
         repo_url = 'http://c.com/fips-updates/'
         _protocol, repo_path = repo_url.split('://')
         prefix = repo_path.rstrip('/').replace('/', '_')
-        paths = [
+        paths = sorted([
             tmpdir.join(prefix + '_dists_nomatch').strpath,
             tmpdir.join(prefix + '_dists_xenial_InRelease').strpath,
             tmpdir.join(
-                prefix + '_dists_xenial_main_binary-amd64_Packages').strpath]
+                prefix + '_dists_xenial_main_binary-amd64_Packages').strpath])
         for path in paths:
             util.write_file(path, '')
 

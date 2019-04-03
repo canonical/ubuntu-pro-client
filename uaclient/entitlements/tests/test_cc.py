@@ -106,25 +106,34 @@ class TestCommonCriteriaEntitlementEnable:
 
         subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 
+        prerequisite_pkgs = []
         if apt_transport_https:
-            subp_apt_cmds.append(
-                mock.call(['apt-get', 'install', 'apt-transport-https'],
-                          capture=True))
+            prerequisite_pkgs.append('apt-transport-https')
         if ca_certificates:
+            prerequisite_pkgs.append('ca-certificates')
+
+        if prerequisite_pkgs:
+            expected_stdout = (
+                'Installing prerequisites: %s\n' % ', '.join(
+                    prerequisite_pkgs))
             subp_apt_cmds.append(
-                mock.call(['apt-get', 'install', 'ca-certificates'],
-                          capture=True))
+                mock.call(
+                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
+                    capture=True))
+        else:
+            expected_stdout = ''
 
         subp_apt_cmds.extend([
             mock.call(['apt-get', 'update'], capture=True),
-            mock.call(['apt-get', 'install', 'ubuntu-commoncriteria'],
-                      capture=True)])
+            mock.call(
+                ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
+                capture=True)])
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cc
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
-        expected_stdout = (
+        expected_stdout += (
             'Updating package lists ...\n'
             'Installing Canonical Common Criteria EAL2 Provisioning'
             ' packages ...\nCanonical Common Criteria EAL2 Provisioning'
