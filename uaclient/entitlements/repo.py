@@ -50,12 +50,6 @@ class RepoEntitlement(base.UAEntitlement):
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
-        try:
-            apt.add_auth_apt_repo(
-                repo_filename, repo_url, token, keyring_file, ppa_fingerprint)
-        except apt.InvalidAPTCredentialsError as e:
-            logging.error(str(e))
-            return False
         if self.repo_pin_priority:
             if not self.origin:
                 logging.error(
@@ -69,23 +63,41 @@ class RepoEntitlement(base.UAEntitlement):
                 name=self.name, series=series)
             apt.add_ppa_pinning(
                 repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
+
+        prerequisite_packages = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            util.subp(['apt-get', 'install', 'apt-transport-https'],
-                      capture=True)
+            prerequisite_packages.append('apt-transport-https')
         if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            util.subp(['apt-get', 'install', 'ca-certificates'], capture=True)
+            prerequisite_packages.append('ca-certificates')
+
+        if prerequisite_packages:
+            print('Installing prerequisites: {}'.format(
+                ', '.join(prerequisite_packages)))
+            try:
+                util.subp(['apt-get', 'install'] + prerequisite_packages,
+                          capture=True)
+            except util.ProcessExecutionError as e:
+                logging.error(str(e))
+                return False
         try:
-            print('Updating package lists ...')
-            util.subp(['apt-get', 'update'], capture=True)
-            if self.packages:
+            apt.add_auth_apt_repo(
+                repo_filename, repo_url, token, keyring_file, ppa_fingerprint)
+        except apt.InvalidAPTCredentialsError as e:
+            logging.error(str(e))
+            return False
+        if self.packages:
+            try:
+                print('Updating package lists ...')
+                util.subp(['apt-get', 'update'], capture=True)
                 print(
                     'Installing {title} packages ...'.format(title=self.title))
                 util.subp(['apt-get', 'install'] + self.packages, capture=True)
-        except util.ProcessExecutionError:
-            self.disable(silent=True, force=True)
-            logging.error(
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title))
-            return False
+            except util.ProcessExecutionError:
+                self.disable(silent=True, force=True)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
