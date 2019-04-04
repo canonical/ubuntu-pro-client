@@ -22,7 +22,8 @@ Package: ubuntu-advantage-tools
 Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
-         ${shlibs:Depends}
+         ${shlibs:Depends},
+         python3-pkg-resources
 XB-Python-Version: ${python:Versions}
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
