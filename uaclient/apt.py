@@ -191,7 +191,6 @@ def reconfigure_apt_sources(platform_info=None):
 
     cfg = config.UAConfig()
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        import pdb; pdb.set_trace()
         if not hasattr(ent_cls, 'repo_url'):
             continue
         repo_filename = ent_cls.repo_list_file_tmpl.format(

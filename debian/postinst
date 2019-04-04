@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+install_default_apt_sources() {
+    python3 -c '
+from uaclient.apt import reconfigure_apt_sources
+
+reconfigure_apt_sources()
+'
+}
+
+install_default_apt_sources()
+
+#DEBHELPER#
+
