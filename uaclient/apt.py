@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import re
 import shutil
 
 from uaclient import util
@@ -170,3 +171,53 @@ def remove_apt_list_files(repo_url, series):
     for path in find_apt_list_files(repo_url, series):
         if os.path.exists(path):
             os.unlink(path)
+
+
+def reconfigure_apt_sources(platform_info=None):
+    """Reconfigure apt sources for the given series.
+
+    Automatically setup an unauthenticated apt source for esm
+    production if not already present.
+    For each configured and enabled entitlement, update the sources files to
+    the new series.
+
+    @param platform_info: dict of platform information for testing
+    """
+    from uaclient import config
+    from uaclient import entitlements
+
+    if not platform_info:  # for testing
+        platform_info = util.get_platform_info()
+
+    cfg = config.UAConfig()
+    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
+        import pdb; pdb.set_trace()
+        if not hasattr(ent_cls, 'repo_url'):
+            continue
+        repo_filename = ent_cls.repo_list_file_tmpl.format(
+            name=ent_cls.name, series=platform_info['series'])
+        repo_list_glob = ent_cls.repo_list_file_tmpl.format(
+            name=ent_cls.name, series='*')
+        resource_cfg = cfg.entitlements.get(ent_cls.name, {})
+        directives = resource_cfg.get('entitlement', {}).get('directives', {})
+        repo_url = directives.get('aptURL')
+        if not repo_url:
+            repo_url = ent_cls.repo_url
+        out, _err = util.subp(['apt-cache', 'policy'])
+        enabled = bool(re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out))
+        if not os.path.exists(repo_filename):
+            if ent_cls.name == 'esm':
+                if platform_info['release'] == '14.04':
+                    logging.info(
+                        'Providing unauthenticated ESM apt source file: %s',
+                        repo_filename)
+                    add_auth_apt_repo(repo_filename, repo_url)
+            elif enabled:  # And not esm
+                logging.info('Upgrading existing "%s" apt source files: %s',
+                             ent_cls.title, repo_filename)
+
+                add_auth_apt_repo(repo_filename, repo_url)
+        for path in glob.glob(repo_list_glob):
+            if platform_info['series'] not in path:
+                logging.info('Removing old apt source file: %s', path)
+                os.unlink(path)
