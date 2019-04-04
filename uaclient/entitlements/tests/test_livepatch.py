@@ -34,10 +34,17 @@ LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({
             'remoteServer': 'https://alt.livepatch.com'
         },
         'affordances': {
+            'architectures': ['x86_64'],
             'kernelFlavors': ['generic', 'lowlatency'],
             'tier': 'stable'
         }
     }
+})
+
+PLATFORM_INFO_SUPPORTED = MappingProxyType({
+    'arch': 'x86_64',
+    'kernel': '4.4.0-140-generic',
+    'series': 'xenial'
 })
 
 M_PATH = 'uaclient.entitlements.livepatch.'  # mock path
@@ -87,7 +94,7 @@ class TestLivepatchOperationalStatus:
             'machine-access-livepatch', livepatch_bionic)
 
         with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
-            m_platform_info.return_value = 'xenial'
+            m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             op_status, details = entitlement.operational_status()
         assert op_status == status.INAPPLICABLE
         assert 'Livepatch is not available for Ubuntu xenial.' == details
@@ -154,18 +161,11 @@ class TestLivepatchEntitlementCanEnable:
                         dict(LIVEPATCH_RESOURCE_ENTITLED))
         entitlement = LivepatchEntitlement(cfg)
 
-        def fake_platform(key=None):
-            if key == 'series':
-                return 'xenial'
-            elif key == 'kernel':
-                return '4.4.0-140-generic'
-            raise AssertionError('Unexpected get_platform_info(%s) call' % key)
-
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stderr', new_callable=StringIO) as m_stdout:
                 with mock.patch('uaclient.util.is_container') as m_container:
                     with mock.patch(M_GETUID, return_value=0):
-                        m_platform.side_effect = fake_platform
+                        m_platform.return_value = PLATFORM_INFO_SUPPORTED
                         m_container.return_value = False
                         assert entitlement.can_enable()
         assert '' == m_stdout.getvalue()
@@ -179,22 +179,38 @@ class TestLivepatchEntitlementCanEnable:
                         dict(LIVEPATCH_RESOURCE_ENTITLED))
         entitlement = LivepatchEntitlement(cfg)
 
-        def fake_platform(key=None):
-            if key == 'series':
-                return 'xenial'
-            elif key == 'kernel':
-                return '4.4.0-140-notgeneric'
-            raise AssertionError('Unexpected get_platform_info(%s) call' % key)
-
+        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_kernel['kernel'] = '4.4.0-140-notgeneric'
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
                 with mock.patch(M_GETUID, return_value=0):
-                    m_platform.side_effect = fake_platform
+                    m_platform.return_value = unsupported_kernel
                     entitlement = LivepatchEntitlement(
                         entitlement.cfg)
                     assert not entitlement.can_enable()
         msg = ('Livepatch is not available for kernel 4.4.0-140-notgeneric.\n'
                'Supported flavors are: generic, lowlatency\n\n')
+        assert msg == m_stdout.getvalue()
+
+    def test_can_enable_false_on_unsupported_architecture(self, tmpdir):
+        """"When on an unsupported architecture, can_enable returns False."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
+        cfg.write_cache('machine-access-livepatch',
+                        dict(LIVEPATCH_RESOURCE_ENTITLED))
+        entitlement = LivepatchEntitlement(cfg)
+
+        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_kernel['arch'] = 'ppc64le'
+        with mock.patch('uaclient.util.get_platform_info') as m_platform:
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                with mock.patch(M_GETUID, return_value=0):
+                    m_platform.return_value = unsupported_kernel
+                    entitlement = LivepatchEntitlement(
+                        entitlement.cfg)
+                    assert not entitlement.can_enable()
+        msg = ('Livepatch is not available for platform ppc64le.\n'
+               'Supported platforms are: x86_64\n\n')
         assert msg == m_stdout.getvalue()
 
     def test_can_enable_false_on_containers(self, tmpdir):
@@ -205,18 +221,11 @@ class TestLivepatchEntitlementCanEnable:
                         dict(LIVEPATCH_RESOURCE_ENTITLED))
         entitlement = LivepatchEntitlement(cfg)
 
-        def fake_platform(key=None):
-            if key == 'series':
-                return 'xenial'
-            elif key == 'kernel':
-                return '4.4.0-140-generic'
-            raise AssertionError('Unexpected get_platform_info(%s) call' % key)
-
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             with mock.patch('uaclient.util.get_platform_info') as m_platform:
                 with mock.patch('uaclient.util.is_container') as m_container:
                     with mock.patch(M_GETUID, return_value=0):
-                        m_platform.side_effect = fake_platform
+                        m_platform.return_value = PLATFORM_INFO_SUPPORTED
                         m_container.return_value = True
                         entitlement = LivepatchEntitlement(
                             entitlement.cfg)
