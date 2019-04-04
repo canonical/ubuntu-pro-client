@@ -1,11 +1,16 @@
 import abc
 from datetime import datetime
+import logging
 import os
+import re
 
 from uaclient import config
 from uaclient import contract
 from uaclient import status
 from uaclient import util
+
+RE_KERNEL_UNAME = (
+    r'(?P<ABI>[\d]+[.-][\d]+[.-][\d]+\-[\d]+)-(?P<flavor>[A-Za-z0-9_-]+)')
 
 
 class UAEntitlement(object, metaclass=abc.ABCMeta):
@@ -114,6 +119,23 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
                 return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
                     title=self.title, series=series
                 )
+            affordance_kernels = affordances.get('kernelFlavors', [])
+            if affordance_kernels:
+                kernel = util.get_platform_info('kernel')
+                match = re.match(RE_KERNEL_UNAME, kernel)
+                if not match:
+                    logging.warning('Could not parse kernel uname: %s', kernel)
+                    return (
+                        False,
+                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
+                            title=self.title, kernel=kernel,
+                            supported_kernels=', '.join(affordance_kernels)))
+                if match.group('flavor') not in affordance_kernels:
+                    return (
+                        False,
+                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
+                            title=self.title, kernel=kernel,
+                            supported_kernels=', '.join(affordance_kernels)))
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
                 return False, error_message
