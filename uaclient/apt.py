@@ -52,8 +52,8 @@ def valid_apt_credentials(repo_url, series, credentials):
     return False
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
-                      fingerprint=None):
+def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
+                      keyring_file=None, fingerprint=None):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -62,15 +62,18 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     series = util.get_platform_info('series')
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
-    if not valid_apt_credentials(repo_url, series, credentials):
-        raise InvalidAPTCredentialsError(
-            'Invalid APT credentials provided for %s' % repo_url)
+    if credentials:
+        if not valid_apt_credentials(repo_url, series, credentials):
+            raise InvalidAPTCredentialsError(
+                'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
     content = (
         'deb {url}/ubuntu {series} main\n'
         '# deb-src {url}/ubuntu {series} main\n'.format(
             url=repo_url, series=series))
     util.write_file(repo_filename, content)
+    if not credentials:
+        return
     try:
         login, password = credentials.split(':')
     except ValueError:  # Then we have a bearer token
@@ -173,7 +176,7 @@ def remove_apt_list_files(repo_url, series):
             os.unlink(path)
 
 
-def reconfigure_apt_sources(platform_info=None):
+def reconfigure_apt_sources(cfg=None, platform_info=None):
     """Reconfigure apt sources for the given series.
 
     Automatically setup an unauthenticated apt source for esm
@@ -188,8 +191,10 @@ def reconfigure_apt_sources(platform_info=None):
 
     if not platform_info:  # for testing
         platform_info = util.get_platform_info()
+    if not cfg:  # for testing
+        cfg = config.UAConfig()
 
-    cfg = config.UAConfig()
+    policy, _err = util.subp(['apt-cache', 'policy'])
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         if not hasattr(ent_cls, 'repo_url'):
             continue
@@ -197,16 +202,16 @@ def reconfigure_apt_sources(platform_info=None):
             name=ent_cls.name, series=platform_info['series'])
         repo_list_glob = ent_cls.repo_list_file_tmpl.format(
             name=ent_cls.name, series='*')
-        resource_cfg = cfg.entitlements.get(ent_cls.name, {})
-        directives = resource_cfg.get('entitlement', {}).get('directives', {})
-        repo_url = directives.get('aptURL')
-        if not repo_url:
-            repo_url = ent_cls.repo_url
-        out, _err = util.subp(['apt-cache', 'policy'])
-        enabled = bool(re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out))
+        repo_url = ent_cls.repo_url
+        if cfg.is_attached:
+            resource_cfg = cfg.entitlements.get(ent_cls.name, {})
+            directives = resource_cfg.get(
+                'entitlement', {}).get('directives', {})
+            repo_url = directives.get('aptURL')
+        enabled = bool(re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, policy))
         if not os.path.exists(repo_filename):
             if ent_cls.name == 'esm':
-                if platform_info['release'] == '14.04':
+                if platform_info['series'] == 'trusty':
                     logging.info(
                         'Providing unauthenticated ESM apt source file: %s',
                         repo_filename)

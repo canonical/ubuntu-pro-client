@@ -6,7 +6,8 @@ from textwrap import dedent
 
 from uaclient.apt import (
     add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
-    remove_apt_list_files, valid_apt_credentials)
+    reconfigure_apt_sources, remove_apt_list_files, valid_apt_credentials)
+from uaclient import config
 from uaclient import util
 
 
@@ -170,3 +171,35 @@ class TestAddAuthAptRepo:
             ' updated\n# by subsequent calls to ua attach|detach [entitlement]'
             '\nmachine fakerepo/ubuntu/ login bearer password SOMELONGTOKEN\n')
         assert expected_content == util.load_file(auth_file)
+
+
+class TestReconfigureAptSources:
+
+    @mock.patch('uaclient.apt.os.path.exists')
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    @mock.patch('uaclient.util.subp')
+    def test_no_apt_config_when_not_enabled_and_non_trusty(
+            self, m_subp, m_add_apt, m_exists, tmpdir):
+        """No apt config when no entitlements enabled and non trusty."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        m_exists.return_value = False
+        m_subp.return_value = '500 http://us.archive.ubuntu.com/ubuntu ...', ''
+        reconfigure_apt_sources(cfg, {'series': 'xenial', 'release': '16.04'})
+        assert [] == m_add_apt.call_args_list
+        assert [mock.call(['apt-cache', 'policy'])] == m_subp.call_args_list
+
+    @mock.patch('uaclient.apt.os.path.exists')
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    @mock.patch('uaclient.util.subp')
+    def test_esm_apt_config_when_not_enabled_and_trusty(
+            self, m_subp, m_add_apt, m_exists, tmpdir):
+        """ESM apt config when no entitlements enabled and on trusty."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        m_exists.return_value = False
+        m_subp.return_value = '500 http://us.archive.ubuntu.com/ubuntu ...', ''
+        reconfigure_apt_sources(cfg, {'series': 'trusty', 'release': '14.04'})
+        add_apt_call = mock.call(
+            '/etc/apt/sources.list.d/ubuntu-esm-trusty.list',
+            'https://esm.ubuntu.com')
+        assert [mock.call(['apt-cache', 'policy'])] == m_subp.call_args_list
+        assert [add_apt_call] == m_add_apt.call_args_list
