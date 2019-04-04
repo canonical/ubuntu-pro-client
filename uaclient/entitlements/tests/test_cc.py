@@ -4,6 +4,7 @@ import itertools
 import mock
 import os.path
 from io import StringIO
+from types import MappingProxyType
 
 import pytest
 
@@ -34,10 +35,16 @@ CC_RESOURCE_ENTITLED = {
             'aptKey': 'APTKEY'
         },
         'affordances': {
+            'architectures': ['x86_64', 'ppc64le', 's390x'],
             'series': ['xenial']
         }
     }
 }
+
+PLATFORM_INFO_SUPPORTED = MappingProxyType({
+    'arch': 's390x',
+    'series': 'xenial'
+})
 
 
 class TestCommonCriteriaEntitlementCanEnable:
@@ -47,7 +54,7 @@ class TestCommonCriteriaEntitlementCanEnable:
     def test_can_enable_true_on_entitlement_inactive(
             self, m_getuid, m_platform_info, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
-        m_platform_info.return_value = 'xenial'
+        m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
@@ -76,6 +83,11 @@ class TestCommonCriteriaEntitlementEnable:
         m_subp.return_value = ('fakeout', '')
         original_exists = os.path.exists
 
+        def fake_platform(key=None):
+            if key == 'series':
+                return PLATFORM_INFO_SUPPORTED[key]
+            return PLATFORM_INFO_SUPPORTED
+
         def exists(path):
             if path == apt.APT_METHOD_HTTPS_FILE:
                 return not apt_transport_https
@@ -86,7 +98,7 @@ class TestCommonCriteriaEntitlementEnable:
                     'os.path.exists call outside of tmpdir: {}'.format(path))
             return original_exists(path)
 
-        m_platform_info.return_value = 'xenial'
+        m_platform_info.side_effect = fake_platform
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)

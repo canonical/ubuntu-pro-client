@@ -40,6 +40,10 @@ MESSAGE_ALREADY_DISABLED_TMPL = '\
 MESSAGE_ENABLED_FAILED_TMPL = 'Could not enable {title}.'
 MESSAGE_ENABLED_TMPL = '{title} enabled.'
 MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
+MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
+{title} is not available for platform {arch}.
+Supported platforms are: {supported_arches}
+"""
 MESSAGE_INAPPLICABLE_SERIES_TMPL = '\
 {title} is not available for Ubuntu {series}.'
 MESSAGE_INAPPLICABLE_KERNEL_TMPL = """\

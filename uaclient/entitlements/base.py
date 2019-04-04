@@ -114,15 +114,19 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         if not entitlement_cfg:
             return True, 'no entitlement affordances checked'
         affordances = entitlement_cfg['entitlement'].get('affordances', {})
-        series = util.get_platform_info('series')
-        affordance_series = affordances.get('series')
-        if affordance_series and series not in affordance_series:
+        platform = util.get_platform_info()
+        affordance_arches = affordances.get('architectures', [])
+        if affordance_arches and platform['arch'] not in affordance_arches:
+            return False, status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
+                title=self.title, arch=platform['arch'],
+                supported_arches=', '.join(affordance_arches))
+        affordance_series = affordances.get('series', [])
+        if affordance_series and platform['series'] not in affordance_series:
             return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
-                title=self.title, series=series
-            )
+                title=self.title, series=platform['series'])
         affordance_kernels = affordances.get('kernelFlavors', [])
         if affordance_kernels:
-            kernel = util.get_platform_info('kernel')
+            kernel = platform['kernel']
             match = re.match(RE_KERNEL_UNAME, kernel)
             if not match:
                 logging.warning('Could not parse kernel uname: %s', kernel)
