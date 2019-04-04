@@ -42,6 +42,10 @@ MESSAGE_ENABLED_TMPL = '{title} enabled.'
 MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
 MESSAGE_INAPPLICABLE_SERIES_TMPL = '\
 {title} is not available for Ubuntu {series}.'
+MESSAGE_INAPPLICABLE_KERNEL_TMPL = """\
+{title} is not available for kernel {kernel}.
+Supported flavors are: {supported_kernels}
+"""
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 See `ua status` or https://ubuntu.com/advantage
