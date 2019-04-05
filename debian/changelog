@@ -1,20 +1,8 @@
-ubuntu-advantage-tools (19.1-0ubuntu1) bionic; urgency=medium
+ubuntu-advantage-tools (19.1-0ubuntu1) disco; urgency=medium
 
-  * Fix setup deps
+  * Ubuntu Advantage Tools rewrite in Python.
 
- -- Chad Smith <chad.smith@canonical.com>  Mon, 18 Feb 2019 13:25:43 -0700
-
-ubuntu-advantage-tools (19.1) bionic; urgency=medium
-
-  * Bump revision to 19.1
-
- -- Chad Smith <chad.smith@canonical.com>  Mon, 18 Feb 2019 10:16:53 -0700
-
-ubuntu-advantage-tools (18.1-ga9917552-0ubuntu1~18.04.1) bionic; urgency=medium
-
-  * Initial Python implementation of ubuntu advantage client
-
- -- Chad Smith <chad.smith@canonical.com>  Thu, 10 Jan 2019 11:08:46 -0700
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 05 Apr 2019 17:47:21 -0300
 
 ubuntu-advantage-tools (18) bionic; urgency=medium
 
