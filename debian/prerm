@@ -3,7 +3,7 @@
 
 remove_apt_files() {
     python3 -c '
-    from uaclient.apt import migrate_apt_sources
+from uaclient.apt import migrate_apt_sources
 
 migrate_apt_sources(clean=True)
 '
@@ -12,10 +12,8 @@ migrate_apt_sources(clean=True)
 
 case "$1" in
     purge|remove)
-        remove_apt_files()
-    ;;
+        remove_apt_files
+        ;;
 esac
 exit 0
-
-#DEBHELPER#
 
