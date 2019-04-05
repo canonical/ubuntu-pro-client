@@ -8,7 +8,7 @@ deps:
 
 clean:
 	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.gz
-	rm -rf *.egg-info/ .tox/
+	rm -rf *.egg-info/ .tox/ .cache/
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '*__pycache__' -delete
 

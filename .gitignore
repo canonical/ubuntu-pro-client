@@ -8,6 +8,7 @@ __pycache__
 .tox
 .pybuild
 .coverage
+.cache
 *.egg-info/
 .mypy_cache/
 
