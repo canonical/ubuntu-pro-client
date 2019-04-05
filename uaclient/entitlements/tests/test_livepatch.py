@@ -70,11 +70,8 @@ class TestLivepatchContractStatus:
         livepatch_unentitled['entitlement']['entitled'] = False
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
-        cfg.write_cache('machine-access-livepatch',
-                        dict(LIVEPATCH_RESOURCE_ENTITLED))
+        cfg.write_cache('machine-access-livepatch', livepatch_unentitled)
         entitlement = LivepatchEntitlement(cfg)
-        entitlement.cfg.write_cache(
-            'machine-access-livepatch', livepatch_unentitled)
         assert status.NONE == entitlement.contract_status()
 
 

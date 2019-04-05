@@ -1,14 +1,19 @@
 """Tests related to uaclient.apt module."""
 
+import copy
 import glob
 import mock
+import os
 from textwrap import dedent
 
 from uaclient.apt import (
-    add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
-    reconfigure_apt_sources, remove_apt_list_files, valid_apt_credentials)
+    add_auth_apt_repo, add_ppa_pinning, configure_default_apt_sources,
+    find_apt_list_files, migrate_apt_sources, remove_apt_list_files,
+    valid_apt_credentials)
 from uaclient import config
 from uaclient import util
+from uaclient.entitlements.tests.test_cc import (
+    CC_MACHINE_TOKEN, CC_RESOURCE_ENTITLED)
 
 
 class TestAddPPAPinning:
@@ -173,33 +178,116 @@ class TestAddAuthAptRepo:
         assert expected_content == util.load_file(auth_file)
 
 
-class TestReconfigureAptSources:
+class TestConfigureAptSources:
 
     @mock.patch('uaclient.apt.os.path.exists')
     @mock.patch('uaclient.apt.add_auth_apt_repo')
-    @mock.patch('uaclient.util.subp')
     def test_no_apt_config_when_not_enabled_and_non_trusty(
-            self, m_subp, m_add_apt, m_exists, tmpdir):
+            self, m_add_apt, m_exists, tmpdir):
         """No apt config when no entitlements enabled and non trusty."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         m_exists.return_value = False
-        m_subp.return_value = '500 http://us.archive.ubuntu.com/ubuntu ...', ''
-        reconfigure_apt_sources(cfg, {'series': 'xenial', 'release': '16.04'})
+        configure_default_apt_sources({'series': 'xenial', 'release': '16.04'})
         assert [] == m_add_apt.call_args_list
-        assert [mock.call(['apt-cache', 'policy'])] == m_subp.call_args_list
 
     @mock.patch('uaclient.apt.os.path.exists')
     @mock.patch('uaclient.apt.add_auth_apt_repo')
-    @mock.patch('uaclient.util.subp')
     def test_esm_apt_config_when_not_enabled_and_trusty(
-            self, m_subp, m_add_apt, m_exists, tmpdir):
+            self, m_add_apt, m_exists, tmpdir):
         """ESM apt config when no entitlements enabled and on trusty."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         m_exists.return_value = False
-        m_subp.return_value = '500 http://us.archive.ubuntu.com/ubuntu ...', ''
-        reconfigure_apt_sources(cfg, {'series': 'trusty', 'release': '14.04'})
+        configure_default_apt_sources({'series': 'trusty', 'release': '14.04'})
         add_apt_call = mock.call(
             '/etc/apt/sources.list.d/ubuntu-esm-trusty.list',
             'https://esm.ubuntu.com')
-        assert [mock.call(['apt-cache', 'policy'])] == m_subp.call_args_list
         assert [add_apt_call] == m_add_apt.call_args_list
+
+
+class TestMigrateAptSources:
+
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    def test_no_apt_config_removed_when_upgraded_from_trusty_to_xenial(
+            self, m_add_apt, m_unlink, tmpdir):
+        """No apt config when connected but no entitlements enabled."""
+
+        # Make CC resource access report not entitled
+        cc_unentitled = copy.deepcopy(dict(CC_RESOURCE_ENTITLED))
+        cc_unentitled['entitlement']['entitled'] = False
+
+        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
+        cfg.write_cache('machine-access-cc', cc_unentitled)
+
+        orig_exists = os.path.exists
+
+        apt_files = ['/etc/apt/sources.list.d/ubuntu-cc-trusty.list']
+
+        def fake_apt_list_exists(path):
+            if path in apt_files:
+                return True
+            return orig_exists(path)
+
+        with mock.patch('uaclient.apt.os.path.exists') as m_exists:
+            m_exists.side_effect = fake_apt_list_exists
+            migrate_apt_sources(cfg, {'series': 'xenial', 'release': '16.04'})
+        assert [] == m_add_apt.call_args_list
+        # Only exists checks for for cfg.is_attached and can_enable
+        exists_calls = [
+            mock.call(tmpdir.join('machine-token.json').strpath),
+            mock.call(tmpdir.join('machine-access-cc.json').strpath)]
+        assert [] == m_unlink.call_args_list  # remove nothing
+        assert exists_calls == m_exists.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    def test_apt_config_migrated_when_enabled_upgraded_from_trusty_to_xenial(
+            self, m_add_apt, m_unlink, m_platform_info, m_subp, tmpdir):
+        """Apt config is migrated when connected and entitlement is enabled."""
+
+        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
+        cfg.write_cache('machine-access-cc', dict(CC_RESOURCE_ENTITLED))
+
+        orig_exists = os.path.exists
+
+        glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-trusty.list',
+                      '/etc/apt/sources.list.d/ubuntu-cc-xenial.list']
+
+        def fake_apt_list_exists(path):
+            if path in glob_files:
+                return True
+            return orig_exists(path)
+
+        repo_url = CC_RESOURCE_ENTITLED['entitlement']['directives']['aptURL']
+        m_subp.return_value = '500 %s' % repo_url, ''
+        with mock.patch('uaclient.apt.glob.glob') as m_glob:
+            with mock.patch('uaclient.apt.os.path.exists') as m_exists:
+                m_glob.return_value = glob_files
+                m_exists.side_effect = fake_apt_list_exists
+                migrate_apt_sources(
+                    cfg, {'series': 'xenial', 'release': '16.04'})
+        assert [] == m_add_apt.call_args_list
+        # Only exists checks for for cfg.is_attached and can_enable
+        exists_calls = [
+            mock.call(tmpdir.join('machine-token.json').strpath),
+            mock.call(tmpdir.join('machine-access-cc.json').strpath)]
+        unlink_calls = [
+            mock.call('/etc/apt/sources.list.d/ubuntu-cc-trusty.list')]
+        assert unlink_calls == m_unlink.call_args_list  # remove nothing
+        assert exists_calls == m_exists.call_args_list
+
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    def test_noop_apt_config_when_not_attached(
+            self, m_add_apt, m_unlink, tmpdir):
+        """Perform not apt config changes when not attached."""
+        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
+        assert False is cfg.is_attached
+        with mock.patch('uaclient.apt.os.path.exists') as m_exists:
+            m_exists.return_value = False
+            assert None is migrate_apt_sources(
+                cfg, {'series': 'trusty', 'release': '14.04'})
+        assert [] == m_add_apt.call_args_list
+        assert [] == m_unlink.call_args_list
