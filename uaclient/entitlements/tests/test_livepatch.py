@@ -235,8 +235,10 @@ class TestLivepatchEntitlementEnable:
 
     with_logs = True
 
-    mocks_install = [mock.call(
-        ['snap', 'install', 'canonical-livepatch'], capture=True)]
+    mocks_install = [
+        mock.call(
+            ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True),
+        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True)]
     mocks_config = [
         mock.call(
             ['/snap/bin/canonical-livepatch', 'config',
@@ -277,10 +279,12 @@ class TestLivepatchEntitlementEnable:
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
-        msg = ('Installing canonical-livepatch snap...\n'
+        msg = ('Installing snapd...\n'
+               'Installing canonical-livepatch snap...\n'
                'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
-        expected_calls = [mock.call('/snap/bin/canonical-livepatch')]
+        expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
+                          mock.call('snap')]
         assert expected_calls == m_which.call_args_list
 
     @mock.patch('uaclient.util.subp')
