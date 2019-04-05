@@ -1,4 +1,4 @@
-rm_conffile /etc/update-motd.d/90-esm 19.1~ ubuntu-advantage-tools
+rm_conffile /etc/update-motd.d/99-esm 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/update-motd.d/80-esm 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/update-motd.d/80-livepatch 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/cron.daily/ubuntu-advantage-tools 19.1~ ubuntu-advantage-tools
