@@ -7,9 +7,8 @@ import os
 from textwrap import dedent
 
 from uaclient.apt import (
-    add_auth_apt_repo, add_ppa_pinning, configure_default_apt_sources,
-    find_apt_list_files, migrate_apt_sources, remove_apt_list_files,
-    valid_apt_credentials)
+    add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
+    migrate_apt_sources, remove_apt_list_files, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -178,30 +177,6 @@ class TestAddAuthAptRepo:
         assert expected_content == util.load_file(auth_file)
 
 
-class TestConfigureAptSources:
-
-    @mock.patch('uaclient.apt.os.path.exists')
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
-    def test_no_apt_config_when_not_enabled_and_non_trusty(
-            self, m_add_apt, m_exists, tmpdir):
-        """No apt config when no entitlements enabled and non trusty."""
-        m_exists.return_value = False
-        configure_default_apt_sources({'series': 'xenial', 'release': '16.04'})
-        assert [] == m_add_apt.call_args_list
-
-    @mock.patch('uaclient.apt.os.path.exists')
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
-    def test_esm_apt_config_when_not_enabled_and_trusty(
-            self, m_add_apt, m_exists, tmpdir):
-        """ESM apt config when no entitlements enabled and on trusty."""
-        m_exists.return_value = False
-        configure_default_apt_sources({'series': 'trusty', 'release': '14.04'})
-        add_apt_call = mock.call(
-            '/etc/apt/sources.list.d/ubuntu-esm-trusty.list',
-            'https://esm.ubuntu.com')
-        assert [add_apt_call] == m_add_apt.call_args_list
-
-
 class TestMigrateAptSources:
 
     @mock.patch('uaclient.apt.os.unlink')
@@ -241,7 +216,7 @@ class TestMigrateAptSources:
         assert exists_calls == m_exists.call_args_list
 
     @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info')
     @mock.patch('uaclient.apt.os.unlink')
     @mock.patch('uaclient.apt.add_auth_apt_repo')
     def test_apt_config_migrated_when_enabled_upgraded_from_trusty_to_xenial(
@@ -257,6 +232,13 @@ class TestMigrateAptSources:
         glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-trusty.list',
                       '/etc/apt/sources.list.d/ubuntu-cc-xenial.list']
 
+        def fake_platform_info(key=None):
+            platform_data = {
+                'arch': 'x86_64', 'series': 'xenial', 'release': '16.04'}
+            if key:
+                return platform_data[key]
+            return platform_data
+
         def fake_apt_list_exists(path):
             if path in glob_files:
                 return True
@@ -268,15 +250,13 @@ class TestMigrateAptSources:
             return []
 
         repo_url = CC_RESOURCE_ENTITLED['entitlement']['directives']['aptURL']
+        m_platform_info.side_effect = fake_platform_info
         m_subp.return_value = '500 %s' % repo_url, ''
         with mock.patch('uaclient.apt.glob.glob') as m_glob:
             with mock.patch('uaclient.apt.os.path.exists') as m_exists:
                 m_glob.side_effect = fake_glob
                 m_exists.side_effect = fake_apt_list_exists
-                assert None is migrate_apt_sources(
-                    cfg=cfg,
-                    platform_info={'arch': 'x86_64', 'series': 'xenial',
-                                   'release': '16.04'})
+                assert None is migrate_apt_sources(cfg=cfg)
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
         exists_calls = [

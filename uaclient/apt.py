@@ -52,7 +52,7 @@ def valid_apt_credentials(repo_url, series, credentials):
 
 
 def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
-                      keyring_file=None, fingerprint=None):
+                      keyring_file=None, fingerprint=None, pockets=('main',)):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -66,10 +66,11 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
             raise InvalidAPTCredentialsError(
                 'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
-    content = (
-        'deb {url}/ubuntu {series} main\n'
-        '# deb-src {url}/ubuntu {series} main\n'.format(
-            url=repo_url, series=series))
+    content = ''
+    for pocket in pockets:
+        content += ('deb {url}/ubuntu {series} {pocket}\n'
+                    '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
+                        url=repo_url, series=series, pocket=pocket))
     util.write_file(repo_filename, content)
     if not credentials:
         return
@@ -220,25 +221,3 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
                 'Disabled %s after package upgrade/downgrade. %s',
                 entitlement.title, details)
         entitlement.enable()  # Re-enable on current series
-
-
-def configure_default_apt_sources(platform_info=None):
-    """Configure any default apt sources for uaclient entitlenents.
-
-    Currently only setup unauthenticated esm on trusty.
-
-    @param platform_info: dict of platform information for testing
-    """
-    from uaclient import entitlements
-
-    if not platform_info:  # for testing
-        platform_info = util.get_platform_info()
-
-    esm_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME['esm']
-    repo_filename = esm_cls.repo_list_file_tmpl.format(
-        name=esm_cls.name, series=platform_info['series'])
-    if platform_info['series'] == 'trusty':
-        if not os.path.exists(repo_filename):
-            logging.info('Providing unauthenticated ESM apt source file: %s',
-                         repo_filename)
-            add_auth_apt_repo(repo_filename, esm_cls.repo_url)

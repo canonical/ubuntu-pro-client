@@ -97,7 +97,8 @@ class TestFIPSEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-                      'http://FIPS', 'TOKEN', None, 'APTKEY')]
+                      'http://FIPS', 'TOKEN', None, 'APTKEY',
+                      pockets=('main',))]
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
                       'http://FIPS', 'UbuntuFIPS', 1001)]

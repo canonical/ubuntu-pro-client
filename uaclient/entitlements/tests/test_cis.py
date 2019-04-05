@@ -77,7 +77,8 @@ class TestCISEntitlementEnable(TestCase):
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                      'http://CIS', 'TOKEN', None, 'APTKEY')]
+                      'http://CIS', 'TOKEN', None, 'APTKEY', pockets=('main',))
+        ]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),

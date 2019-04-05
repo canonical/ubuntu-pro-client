@@ -114,7 +114,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-xenial.list',
-                      'http://CC', 'TOKEN', None, 'APTKEY')]
+                      'http://CC', 'TOKEN', None, 'APTKEY', pockets=('main',))]
 
         subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 
