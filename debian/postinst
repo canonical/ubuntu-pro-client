@@ -1,0 +1,26 @@
+#!/bin/sh -e
+
+ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
+
+configure_esm_source() {
+    if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
+        cat > $ESM_APT_SOURCE_FILE <<EOF
+# Written by ubuntu-advantage-tools during package postinst
+deb https://esm.ubuntu.com/ubuntu trusty security
+deb https://esm.ubuntu.com/ubuntu trusty updates
+# deb-src https://esm.staging.ubuntu.com/ubuntu security
+# deb-src https://esm.staging.ubuntu.com/ubuntu updates
+EOF
+    fi
+}
+
+case "$1" in
+    configure)
+      grep -iq trusty /etc/os-release && configure_esm_source
+      ;;
+esac
+
+#DEBHELPER#
+exit 0
+
+

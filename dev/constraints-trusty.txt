@@ -1,6 +1,10 @@
 flake8==2.1.0
 pep8==1.4.6
-pytest==2.5.1
+
+# The official version in Trusty is actually 2.5.1, however this
+# version does not work with tox runs on Bionic and later. 2.6.2 is the
+# earliest version to properly function.
+pytest==2.6.2
 
 # pytest-cov isn't available in trusty; the package build tests don't require
 # it, but including it here allows us to keep a consistent test command in

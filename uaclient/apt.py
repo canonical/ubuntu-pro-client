@@ -52,7 +52,7 @@ def valid_apt_credentials(repo_url, series, credentials):
 
 
 def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
-                      fingerprint=None):
+                      fingerprint=None, pockets=('main',)):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -65,10 +65,11 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
-    content = (
-        'deb {url}/ubuntu {series} main\n'
-        '# deb-src {url}/ubuntu {series} main\n'.format(
-            url=repo_url, series=series))
+    content = ''
+    for pocket in pockets:
+        content += ('deb {url}/ubuntu {series} {pocket}\n'
+                    '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
+                        url=repo_url, series=series, pocket=pocket))
     util.write_file(repo_filename, content)
     try:
         login, password = credentials.split(':')
@@ -170,3 +171,50 @@ def remove_apt_list_files(repo_url, series):
     for path in find_apt_list_files(repo_url, series):
         if os.path.exists(path):
             os.unlink(path)
+
+
+def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
+    """Migrate apt sources list files across upgrade/downgrade boundary.
+
+    Only migrate apt sources if we are attached and an entitlement is
+    active. (Meaning they have existing apt policy reference).
+
+    @param clean: Boolean set True to clean up any apt config files written by
+        Ubuntu Advantage Client.
+    @param cfg: UAClient configuration instance for testing
+    @param platform_info: platform information dict for testing
+    """
+
+    from uaclient import config
+    from uaclient import entitlements
+    from uaclient import status
+
+    if not platform_info:  # for testing
+        platform_info = util.get_platform_info()
+    if not cfg:  # for testing
+        cfg = config.UAConfig()
+    if not any([cfg.is_attached, clean]):
+        return
+    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
+        if not hasattr(ent_cls, 'repo_url'):
+            continue
+        repo_list_glob = ent_cls.repo_list_file_tmpl.format(
+            name=ent_cls.name, series='*')
+
+        # Remove invalid series list files
+        for path in glob.glob(repo_list_glob):
+            if platform_info['series'] not in path:
+                logging.info('Removing old apt source file: %s', path)
+                os.unlink(path)
+        if clean:
+            continue  # Skip any re-enable operations
+        entitlement = ent_cls(cfg)
+        op_status, _details = entitlement.operational_status()
+        if op_status != status.ACTIVE:
+            continue
+        pass_affordances, details = entitlement.check_affordances()
+        if not pass_affordances:
+            logging.info(
+                'Disabled %s after package upgrade/downgrade. %s',
+                entitlement.title, details)
+        entitlement.enable()  # Re-enable on current series
