@@ -51,8 +51,8 @@ def valid_apt_credentials(repo_url, series, credentials):
     return False
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
-                      keyring_file=None, fingerprint=None, pockets=('main',)):
+def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
+                      fingerprint=None, pockets=('main',)):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -61,10 +61,9 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
     series = util.get_platform_info('series')
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
-    if credentials:
-        if not valid_apt_credentials(repo_url, series, credentials):
-            raise InvalidAPTCredentialsError(
-                'Invalid APT credentials provided for %s' % repo_url)
+    if not valid_apt_credentials(repo_url, series, credentials):
+        raise InvalidAPTCredentialsError(
+            'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
     content = ''
     for pocket in pockets:
@@ -72,8 +71,6 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials=None,
                     '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
                         url=repo_url, series=series, pocket=pocket))
     util.write_file(repo_filename, content)
-    if not credentials:
-        return
     try:
         login, password = credentials.split(':')
     except ValueError:  # Then we have a bearer token
