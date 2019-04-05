@@ -175,14 +175,16 @@ def remove_apt_list_files(repo_url, series):
             os.unlink(path)
 
 
-def migrate_apt_sources(cfg=None, platform_info=None):
+def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
     """Migrate apt sources list files across upgrade/downgrade boundary.
 
     Only migrate apt sources if we are attached and an entitlement is
     active. (Meaning they have existing apt policy reference).
 
+    @param clean: Boolean set True to clean up any apt config files written by
+        Ubuntu Advantage Client.
     @param cfg: UAClient configuration instance for testing
-    @param cfg: platform information dict for testing
+    @param platform_info: platform information dict for testing
     """
 
     from uaclient import config
@@ -193,22 +195,25 @@ def migrate_apt_sources(cfg=None, platform_info=None):
         platform_info = util.get_platform_info()
     if not cfg:  # for testing
         cfg = config.UAConfig()
-    if not cfg.is_attached:
+    if not any([cfg.is_attached, clean]):
         return
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         if not hasattr(ent_cls, 'repo_url'):
             continue
-        entitlement = ent_cls(cfg)
-        op_status, _details = entitlement.operational_status()
-        if op_status != status.ACTIVE:
-            continue
-        repo_list_glob = entitlement.repo_list_file_tmpl.format(
-            name=entitlement.name, series='*')
+        repo_list_glob = ent_cls.repo_list_file_tmpl.format(
+            name=ent_cls.name, series='*')
+
         # Remove invalid series list files
         for path in glob.glob(repo_list_glob):
             if platform_info['series'] not in path:
                 logging.info('Removing old apt source file: %s', path)
                 os.unlink(path)
+        if clean:
+            continue  # Skip any re-enable operations
+        entitlement = ent_cls(cfg)
+        op_status, _details = entitlement.operational_status()
+        if op_status != status.ACTIVE:
+            continue
         pass_affordances, details = entitlement.check_affordances()
         if not pass_affordances:
             logging.info(

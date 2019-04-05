@@ -1,10 +1,21 @@
 #!/bin/sh -e
 
-CACHE_FILE=/var/cache/ubuntu-advantage-tools/ubuntu-advantage-status.cache
 
-if [ "$1" = purge -a -f "$CACHE_FILE" ]; then
-    rm "$CACHE_FILE"
-fi
+remove_apt_files() {
+    python3 -c '
+    from uaclient.apt import migrate_apt_sources
+
+migrate_apt_sources(clean=True)
+'
+
+}
+
+case "$1" in
+    purge|remove)
+        remove_apt_files()
+    ;;
+esac
+exit 0
 
 #DEBHELPER#
 

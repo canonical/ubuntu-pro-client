@@ -229,7 +229,9 @@ class TestMigrateAptSources:
 
         with mock.patch('uaclient.apt.os.path.exists') as m_exists:
             m_exists.side_effect = fake_apt_list_exists
-            migrate_apt_sources(cfg, {'series': 'xenial', 'release': '16.04'})
+            migrate_apt_sources(
+                cfg=cfg,
+                platform_info={'series': 'xenial', 'release': '16.04'})
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
         exists_calls = [
@@ -260,14 +262,21 @@ class TestMigrateAptSources:
                 return True
             return orig_exists(path)
 
+        def fake_glob(regex):
+            if regex == '/etc/apt/sources.list.d/ubuntu-cc-*.list':
+                return glob_files
+            return []
+
         repo_url = CC_RESOURCE_ENTITLED['entitlement']['directives']['aptURL']
         m_subp.return_value = '500 %s' % repo_url, ''
         with mock.patch('uaclient.apt.glob.glob') as m_glob:
             with mock.patch('uaclient.apt.os.path.exists') as m_exists:
-                m_glob.return_value = glob_files
+                m_glob.side_effect = fake_glob
                 m_exists.side_effect = fake_apt_list_exists
-                migrate_apt_sources(
-                    cfg, {'series': 'xenial', 'release': '16.04'})
+                assert None is migrate_apt_sources(
+                    cfg=cfg,
+                    platform_info={'arch': 'x86_64', 'series': 'xenial',
+                                   'release': '16.04'})
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
         exists_calls = [
@@ -288,6 +297,7 @@ class TestMigrateAptSources:
         with mock.patch('uaclient.apt.os.path.exists') as m_exists:
             m_exists.return_value = False
             assert None is migrate_apt_sources(
-                cfg, {'series': 'trusty', 'release': '14.04'})
+                cfg=cfg,
+                platform_info={'series': 'trusty', 'release': '14.04'})
         assert [] == m_add_apt.call_args_list
         assert [] == m_unlink.call_args_list

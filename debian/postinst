@@ -9,7 +9,12 @@ migrate_apt_sources()
 '
 }
 
-configure_apt_sources()
+case "$1" in
+    configure)
+      configure_apt_sources()
+    ;;
+esac
+exit 0
 
 #DEBHELPER#
 
