@@ -16,10 +16,7 @@ EOF
 
 case "$1" in
     configure)
-      grep -iq trusty /etc/os-release
-      if [ $? ]; then
-          configure_esm_source
-      fi
+      grep -iq trusty /etc/os-release && configure_esm_source
       ;;
 esac
 
