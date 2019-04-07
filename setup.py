@@ -28,7 +28,7 @@ setuptools.setup(
     ),
     data_files=[
         ('/etc/ubuntu-advantage', ['uaclient.conf']),
-        ('/usr/share/keyrings', glob.glob('keyrings/*')),
+        ('/usr/share/keyrings', glob.glob('debian/keyrings/*')),
         (defaults.CONFIG_DEFAULTS['data_dir'], [])
     ],
     install_requires=INSTALL_REQUIRES,

@@ -2,9 +2,14 @@
 
 set -e
 
+ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
 ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 
-configure_esm_source() {
+configure_esm() {
+    if [ ! -f "$ESM_APT_GPG_KEY" ]; then
+        cp /usr/share/ubuntu-esm-keyring.gpg "$ESM_APT_GPG_KEY"
+    fi
+
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
         cat > $ESM_APT_SOURCE_FILE <<EOF
 # Written by ubuntu-advantage-tools
@@ -19,7 +24,7 @@ EOF
 
 case "$1" in
     configure)
-      grep -iq trusty /etc/os-release && configure_esm_source
+      grep -iq trusty /etc/os-release && configure_esm
       ;;
 esac
 

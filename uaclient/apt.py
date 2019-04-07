@@ -2,7 +2,6 @@ import glob
 import logging
 import os
 import re
-import shutil
 
 from uaclient import util
 
@@ -10,8 +9,6 @@ APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
 APT_CONFIG_LISTS_DIR = 'Dir::State::lists/'
-APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
-KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
@@ -49,7 +46,7 @@ def valid_apt_credentials(repo_url, username, password):
 
 
 def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
-                      keyring_file=None, fingerprint=None):
+                      fingerprint=None):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -86,14 +83,10 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
                         url=repo_url, suite=suite))
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
-    if keyring_file:
-        logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
-        shutil.copy(keyring_file, APT_KEYS_DIR)
-    elif fingerprint:
-        logging.debug('Importing APT key %s', fingerprint)
-        util.subp(
-            ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-             '--recv-keys', fingerprint], capture=True)
+    logging.debug('Importing APT key %s', fingerprint)
+    util.subp(
+        ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
+            '--recv-keys', fingerprint], capture=True)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
@@ -131,15 +124,11 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     util.write_file(apt_auth_file, '\n'.join(new_lines), mode=0o600)
 
 
-def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
-                         fingerprint=None):
+def remove_auth_apt_repo(repo_filename, repo_url, fingerprint):
     """Remove an authenticated apt repo and credentials to the system"""
     logging.info('Removing authenticated apt repo: %s', repo_url)
     util.del_file(repo_filename)
-    if keyring_file:
-        util.del_file(keyring_file)
-    elif fingerprint:
-        util.subp(['apt-key', 'del', fingerprint], capture=True)
+    util.subp(['apt-key', 'del', fingerprint], capture=True)
     _protocol, repo_path = repo_url.split('://')
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]

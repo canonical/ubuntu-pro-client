@@ -17,7 +17,6 @@ class RepoEntitlement(base.UAEntitlement):
     origin = None   # The repo Origin value for setting pinning
 
     repo_url = 'UNSET'
-    repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None      # Optional repo pin priority in subclass
 
     # Any custom messages to emit pre or post enable or disable operations
@@ -42,11 +41,10 @@ class RepoEntitlement(base.UAEntitlement):
                 'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineToken']
-        ppa_fingerprint = directives.get('aptKey')
-        if ppa_fingerprint:
-            keyring_file = None
-        else:
-            keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
+        ppa_fingerprint = directives.get('aptKey', {})
+        if not ppa_fingerprint:
+            logging.error("Cannot find APT key.")
+            return False
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
@@ -88,8 +86,7 @@ class RepoEntitlement(base.UAEntitlement):
                 return False
         try:
             apt.add_auth_apt_repo(
-                repo_filename, repo_url, token, repo_suites,
-                keyring_file, ppa_fingerprint)
+                repo_filename, repo_url, token, repo_suites, ppa_fingerprint)
         except apt.InvalidAPTCredentialsError as e:
             logging.error(str(e))
             return False

@@ -99,7 +99,7 @@ class TestFIPSEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-                      'http://FIPS', 'TOKEN', ['xenial'], None, 'APTKEY')]
+                      'http://FIPS', 'TOKEN', ['xenial'], 'APTKEY')]
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
                       'http://FIPS', 'UbuntuFIPS', 1001)]
@@ -204,7 +204,7 @@ class TestFIPSEntitlementDisable:
         assert calls == m_unlink.call_args_list
         auth_call = mock.call(
             '/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-            'http://FIPS', '/etc/apt/trusted.gpg.d/ubuntu-fips-keyring.gpg')
+            'http://FIPS')
         assert [auth_call] == m_rm_auth.call_args_list
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
