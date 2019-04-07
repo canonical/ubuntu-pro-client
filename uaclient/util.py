@@ -88,7 +88,7 @@ def load_file(filename):
     logging.debug('Reading file: %s', filename)
     with open(filename, 'rb') as stream:
         content = stream.read()
-    return content
+    return content.decode('utf-8')
 
 
 def maybe_parse_json(content):
