@@ -52,8 +52,8 @@ the following:
 ```shell
 make demo
 make deb
-./dev/run-uaclient --series disco
-./dev/run-uaclient --series xenial -b multipass
+./demo/run-uaclient --series disco
+./demo/run-uaclient --series xenial -b multipass
 ```
 
 After creating LXD or Multipass VMs, a user can connect to those

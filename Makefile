@@ -4,7 +4,7 @@ build:
 	$(MAKE) -C apt-hook build
 
 deps:
-	./dev/read-dependencies -v 3 --system-pkg-names --test-distro
+	./tools/read-dependencies -v 3 --system-pkg-names --test-distro
 
 clean:
 	rm -f *.build *.buildinfo *.changes .coverage *.deb *.dsc *.tar.gz *.tar.xz
@@ -17,7 +17,7 @@ deb:
 	@which dpkg-buildpackage || \
                { echo -e "Missing build dependencies. Install with:" \
                  "\n make deps"; exit 1; }
-	./dev/bddeb
+	./tools/bddeb
 
 test:
 	@tox
