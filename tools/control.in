@@ -11,7 +11,9 @@ Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
 Package: ubuntu-advantage-tools
 Architecture: all
 Depends: ${misc:Depends},
-         ${python3:Depends}
+         ${python3:Depends},
+         ${shlibs:Depends},
+         python3-pkg-resources
 XB-Python-Version: ${python:Versions}
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
@@ -20,4 +22,3 @@ Description: management tools for Ubuntu Advantage
  .
  Subscribers to Ubuntu Advantage will find helpful tools for accessing
  services in this package.
-
