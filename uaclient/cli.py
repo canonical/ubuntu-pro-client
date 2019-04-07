@@ -367,8 +367,7 @@ def main(sys_argv=None):
         int(log_level)
     except TypeError:
         log_level = getattr(logging, '%s' % cfg.log_file.upper())
-    log_file = logging.DEBUG if args.debug else cfg.log_file
-    setup_logging(log_level, log_file)
+    setup_logging(log_level, cfg.log_file)
     return args.action(args, cfg)
 
 
