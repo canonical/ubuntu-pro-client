@@ -2,7 +2,8 @@ Source: ubuntu-advantage-tools
 Section: misc
 Priority: important
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>=9),
+Build-Depends: bash-completion,
+               debhelper (>=9),
                dh-python,
                git,
                libapt-pkg-dev,

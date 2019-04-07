@@ -4,7 +4,7 @@ DEB_VERSION := $(shell dpkg-parsechangelog --show-field=Version)
 FLAKE8 := $(shell flake8 --version 2> /dev/null)
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@ --with python3 --buildsystem=pybuild --with bash-completion
 	dh $@ --sourcedirectory=apt-hook --buildsystem=makefile
 
 override_dh_auto_test:
