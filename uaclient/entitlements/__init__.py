@@ -5,7 +5,7 @@ from uaclient.entitlements import fips
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 
 ENTITLEMENT_CLASSES = [
-    CISEntitlement, CommonCriteriaEntitlement, ESMEntitlement,
+    CommonCriteriaEntitlement, CISEntitlement, ESMEntitlement,
     fips.FIPSEntitlement, fips.FIPSUpdatesEntitlement, LivepatchEntitlement]
 
 ENTITLEMENT_CLASS_BY_NAME = dict(
