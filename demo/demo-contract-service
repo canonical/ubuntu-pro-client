@@ -16,12 +16,12 @@ fi
 LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
    git clone git@github.com:$upstream/ua-contracts.git
-   patch -p1 -i dev/contracts-schema.patch
-   patch -p1 -i dev/contracts-go.patch
+   patch -p1 -i demo/contracts-schema.patch
+   patch -p1 -i demo/contracts-go.patch
 fi
 
 
-CREDS_FILE="./dev/entitlement-creds.json"
+CREDS_FILE="./demo/entitlement-creds.json"
 echo -n "Enter your LaunchpadID: "
 read LP_ID
 USERCREDS_FILE="$CREDS_FILE.$LP_ID"
@@ -71,7 +71,7 @@ if [ $? -eq 1 ]; then
   lxc launch ubuntu-daily:bionic $LXC_NAME
   lxc exec $LXC_NAME -- cloud-init status --wait;
   lxc file push -r ua-contracts $LXC_NAME/root/
-  lxc file push $UACLIENT_DEB dev/install-contracts-server dev/contracts*patch dev/runserver.sh $LXC_NAME/root/
+  lxc file push $UACLIENT_DEB demo/install-contracts-server demo/contracts*patch demo/runserver.sh $LXC_NAME/root/
   # Rename LP creds to /root/entitlement-creds.json
   lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
   lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB

@@ -46,15 +46,12 @@ which will build the client and place it in the [ua-client-daily PPA](https://co
 
 ## Demo
 
-Users can demo the client with a fake backend. This can be done with
+Users can demo the client with a local backend. This can be done with
 the following:
 
 ```shell
-make demo
-make deb
+# Set up ua-contracts in a docker container and two clients
+./demo/demo-contract-service CanonicalLtd go
 ./demo/run-uaclient --series disco
 ./demo/run-uaclient --series xenial -b multipass
 ```
-
-After creating LXD or Multipass VMs, a user can connect to those
-systems and proceed to use the UA client.
