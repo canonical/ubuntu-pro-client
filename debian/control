@@ -13,7 +13,7 @@ Build-Depends: debhelper (>=9),
                python3-pytest,
                python3-setuptools,
                python3-yaml
-Standards-Version: 3.9.6
+Standards-Version: 4.3.0
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
 Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
@@ -24,7 +24,6 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
          python3-pkg-resources
-XB-Python-Version: ${python:Versions}
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world

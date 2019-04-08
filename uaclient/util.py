@@ -12,7 +12,7 @@ CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
                    ['running-in-container'],
                    ['lxc-is-container'])
 
-SENSITIVE_KEYS = ['password']
+SENSITIVE_KEYS = ['caveat_id', 'password']
 
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
