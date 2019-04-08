@@ -7,8 +7,9 @@ import os
 from textwrap import dedent
 
 from uaclient.apt import (
-    add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
-    migrate_apt_sources, remove_apt_list_files, valid_apt_credentials)
+    APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
+    add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
+    remove_apt_list_files, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -84,10 +85,56 @@ class TestValidAptCredentials:
             self, m_exists, m_subp):
         """When apt-helper tool is absent return True without validation."""
         assert True is valid_apt_credentials(
-            repo_url='http://fakerepo', series='xenial', credentials='mycreds')
+            repo_url='http://fakerepo', username='username', password='pass')
         expected_calls = [mock.call('/usr/lib/apt/apt-helper')]
         assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
+
+    @mock.patch('uaclient.apt.os.unlink', return_value=True)
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.apt.os.path.exists', return_value=True)
+    def test_valid_apt_credentials_returns_true_on_valid_creds(
+            self, m_exists, m_subp, m_unlink):
+        """Return true when apt-helper succeeds in authentication to repo."""
+
+        # Success apt-helper response
+        m_subp.return_value = 'Get:1 https://fakerepo\nFetched 285 B in 1s', ''
+
+        assert True is valid_apt_credentials(
+            repo_url='http://fakerepo', username='user', password='pwd')
+        exists_calls = [mock.call('/usr/lib/apt/apt-helper'),
+                        mock.call('/tmp/uaclient-apt-test')]
+        assert exists_calls == m_exists.call_args_list
+        apt_helper_call = mock.call(
+            ['/usr/lib/apt/apt-helper', 'download-file',
+             'http://user:pwd@fakerepo/ubuntu/pool/',
+             '/tmp/uaclient-apt-test'], capture=False)
+        assert [apt_helper_call] == m_subp.call_args_list
+        assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
+
+    @mock.patch('uaclient.apt.os.unlink', return_value=True)
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.apt.os.path.exists', return_value=True)
+    def test_valid_apt_credentials_returns_false_on_invalid_creds(
+            self, m_exists, m_subp, m_unlink):
+        """Return false when apt-helper fails in authentication to repo."""
+
+        # Failure apt-helper response
+        m_subp.side_effect = util.ProcessExecutionError(
+            cmd='apt-helper died', exit_code=100, stdout='Err:1...',
+            stderr='E: Failed to fetch .... 401 Unauthorized')
+
+        assert False is valid_apt_credentials(
+            repo_url='http://fakerepo', username='user', password='pwd')
+        exists_calls = [mock.call('/usr/lib/apt/apt-helper'),
+                        mock.call('/tmp/uaclient-apt-test')]
+        assert exists_calls == m_exists.call_args_list
+        apt_helper_call = mock.call(
+            ['/usr/lib/apt/apt-helper', 'download-file',
+             'http://user:pwd@fakerepo/ubuntu/pool/',
+             '/tmp/uaclient-apt-test'], capture=False)
+        assert [apt_helper_call] == m_subp.call_args_list
+        assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
 
 
 class TestAddAuthAptRepo:
@@ -149,9 +196,8 @@ class TestAddAuthAptRepo:
             credentials='user:password', fingerprint='APTKEY')
 
         expected_content = (
-            '\n# This file is created by ubuntu-advantage-tools and will be'
-            ' updated\n# by subsequent calls to ua attach|detach [entitlement]'
-            '\nmachine fakerepo/ubuntu/ login user password password\n')
+            'machine fakerepo/ login user password password%s' %
+            APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
     @mock.patch('uaclient.util.subp')
@@ -167,13 +213,63 @@ class TestAddAuthAptRepo:
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
-            repo_filename=repo_file, repo_url='http://fakerepo',
+            repo_filename=repo_file, repo_url='http://fakerepo/',
             credentials='SOMELONGTOKEN', fingerprint='APTKEY')
 
         expected_content = (
-            '\n# This file is created by ubuntu-advantage-tools and will be'
-            ' updated\n# by subsequent calls to ua attach|detach [entitlement]'
-            '\nmachine fakerepo/ubuntu/ login bearer password SOMELONGTOKEN\n')
+            'machine fakerepo/ login bearer password SOMELONGTOKEN%s'
+            % APT_AUTH_COMMENT)
+        assert expected_content == util.load_file(auth_file)
+
+
+class TestAddAptAuthConfEntry:
+
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_replaces_old_credentials_with_new(
+            self, m_get_apt_auth_file, tmpdir):
+        """Replace old credentials for this repo_url on the same line."""
+        auth_file = tmpdir.join('auth.conf').strpath
+        util.write_file(auth_file, dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass
+        """))
+
+        m_get_apt_auth_file.return_value = auth_file
+
+        add_apt_auth_conf_entry(
+            login='newlogin', password='newpass', repo_url='http://fakerepo/')
+
+        expected_content = dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login newlogin password newpass%s
+            machine fakerepo2/ login other password otherpass\
+""" % APT_AUTH_COMMENT)
+        assert expected_content == util.load_file(auth_file)
+
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_insert_repo_subroutes_before_existing_repo_basepath(
+            self, m_get_apt_auth_file, tmpdir):
+        """Insert new repo_url before first matching url base path."""
+        auth_file = tmpdir.join('auth.conf').strpath
+        util.write_file(auth_file, dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass
+        """))
+
+        m_get_apt_auth_file.return_value = auth_file
+
+        add_apt_auth_conf_entry(
+            login='new', password='newpass',
+            repo_url='http://fakerepo/subroute')
+
+        expected_content = dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/subroute/ login new password newpass%s
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass\
+""" % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
 

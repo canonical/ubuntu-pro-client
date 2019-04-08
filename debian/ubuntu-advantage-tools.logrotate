@@ -1,0 +1,8 @@
+/var/log/ubuntu-advantage.log {
+    rotate 6
+    monthly
+    compress
+    delaycompress
+    missingok
+    notifempty
+}

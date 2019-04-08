@@ -1,10 +1,12 @@
 import glob
 import logging
 import os
+import re
 import shutil
 
 from uaclient import util
 
+APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
 APT_CONFIG_LISTS_DIR = 'Dir::State::lists/'
@@ -13,23 +15,18 @@ KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
-APT_AUTH_HEADER = """
-# This file is created by ubuntu-advantage-tools and will be updated
-# by subsequent calls to ua attach|detach [entitlement]
-"""
-
 
 class InvalidAPTCredentialsError(RuntimeError):
     """Raised when invalid token is provided for APT access"""
     pass
 
 
-def valid_apt_credentials(repo_url, series, credentials):
+def valid_apt_credentials(repo_url, username, password):
     """Validate apt credentials for a PPA.
 
     @param repo_url: private-ppa url path
-    @param credentials: PPA credentials string username:password.
-    @param series: xenial, bionic ...
+    @param username: PPA login username.
+    @param password: PPA login password or resource token.
 
     @return: True if valid or unable to validate
     """
@@ -38,16 +35,16 @@ def valid_apt_credentials(repo_url, series, credentials):
         return True   # Do not validate
     try:
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
-                   '%s://%s@%s/ubuntu/dists/%s/Release' % (
-                       protocol, credentials, repo_path, series),
+                   '%s://%s:%s@%s/ubuntu/pool/' % (
+                       protocol, username, password, repo_path),
                    '/tmp/uaclient-apt-test'],
                   capture=False)  # Hide credentials from logs
-        os.unlink('/tmp/uaclient-apt-test')
         return True
     except util.ProcessExecutionError:
         pass
-    if os.path.exists('/tmp/uaclient-apt-test'):
-        os.unlink('/tmp/uaclient-apt-test')
+    finally:
+        if os.path.exists('/tmp/uaclient-apt-test'):
+            os.unlink('/tmp/uaclient-apt-test')
     return False
 
 
@@ -58,10 +55,15 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     @raises: InvalidAPTCredentialsError when the token provided can't access
         the repo PPA.
     """
+    try:
+        username, password = credentials.split(':')
+    except ValueError:  # Then we have a bearer token
+        username = 'bearer'
+        password = credentials
     series = util.get_platform_info('series')
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
-    if not valid_apt_credentials(repo_url, series, credentials):
+    if not valid_apt_credentials(repo_url, username, password):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
@@ -71,24 +73,7 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
                     '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
                         url=repo_url, series=series, pocket=pocket))
     util.write_file(repo_filename, content)
-    try:
-        login, password = credentials.split(':')
-    except ValueError:  # Then we have a bearer token
-        login = 'bearer'
-        password = credentials
-    apt_auth_file = get_apt_auth_file_from_apt_config()
-    if os.path.exists(apt_auth_file):
-        auth_content = util.load_file(apt_auth_file)
-    else:
-        auth_content = APT_AUTH_HEADER
-    _protocol, repo_path = repo_url.split('://')
-    if repo_path.endswith('/'):  # strip trailing slash
-        repo_path = repo_path[:-1]
-    auth_content += (
-        'machine {repo_path}/ubuntu/ login {login} password'
-        ' {password}\n'.format(
-            repo_path=repo_path, login=login, password=password))
-    util.write_file(apt_auth_file, auth_content, mode=0o600)
+    add_apt_auth_conf_entry(repo_url, username, password)
     if keyring_file:
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
@@ -97,6 +82,41 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
         util.subp(
             ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
              '--recv-keys', fingerprint], capture=True)
+
+
+def add_apt_auth_conf_entry(repo_url, login, password):
+    """Add or replace an apt auth line in apt's auth.conf file or conf.d."""
+    apt_auth_file = get_apt_auth_file_from_apt_config()
+    _protocol, repo_path = repo_url.split('://')
+    if repo_path.endswith('/'):  # strip trailing slash
+        repo_path = repo_path[:-1]
+    if os.path.exists(apt_auth_file):
+        orig_content = util.load_file(apt_auth_file)
+    else:
+        orig_content = ''
+    repo_auth_line = (
+        'machine {repo_path}/ login {login} password {password}{cmt}'.format(
+            repo_path=repo_path, login=login, password=password,
+            cmt=APT_AUTH_COMMENT))
+    added_new_auth = False
+    new_lines = []
+    for line in orig_content.splitlines():
+        machine_match = re.match(r'machine\s+(?P<repo_url>[.\-\w]+)/?.*', line)
+        if machine_match:
+            matched_repo = machine_match.group('repo_url')
+            if matched_repo == repo_path:
+                # Replace old auth with new auth at same line
+                new_lines.append(repo_auth_line)
+                added_new_auth = True
+                continue
+            if matched_repo in repo_path:
+                # Insert our repo before. We are a more specific apt repo match
+                new_lines.append(repo_auth_line)
+                added_new_auth = True
+        new_lines.append(line)
+    if not added_new_auth:
+        new_lines.append(repo_auth_line)
+    util.write_file(apt_auth_file, '\n'.join(new_lines), mode=0o600)
 
 
 def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
@@ -114,11 +134,11 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         apt_auth = util.load_file(apt_auth_file)
-        auth_prefix = 'machine {repo_path}/ubuntu/ login'.format(
+        auth_prefix = 'machine {repo_path}/ login'.format(
             repo_path=repo_path)
         content = '\n'.join([
-            line for line in apt_auth.split('\n') if auth_prefix not in line])
-        if not content or content == APT_AUTH_HEADER:
+            line for line in apt_auth.splitlines() if auth_prefix not in line])
+        if not content:
             os.unlink(apt_auth_file)
         else:
             util.write_file(apt_auth_file, content, mode=0o600)
