@@ -1,6 +1,9 @@
-ubuntu-advantage-tools (19.1-0ubuntu1) disco; urgency=medium
+ubuntu-advantage-tools (19.2) disco; urgency=medium
 
   * Ubuntu Advantage Tools rewrite in Python.
+    - Allow attaching a system to a contract or account
+    - More complete status output, dropping MOTD updates
+    - Easily enable and disable services offered
 
  -- Andreas Hasenack <andreas@canonical.com>  Fri, 05 Apr 2019 17:47:21 -0300
 
