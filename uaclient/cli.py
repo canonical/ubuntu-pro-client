@@ -320,7 +320,7 @@ def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
-def setup_logging(level=logging.ERROR, log_file=None):
+def setup_logging(level=logging.INFO, log_file=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
         log_file = config.CONFIG_DEFAULTS['log_file']
@@ -328,7 +328,7 @@ def setup_logging(level=logging.ERROR, log_file=None):
     console_formatter = logging.Formatter(fmt)
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    root.setLevel(level)
     # Setup console logging
     stderr_found = False
     for handler in root.handlers:
@@ -346,7 +346,7 @@ def setup_logging(level=logging.ERROR, log_file=None):
     if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
         filehandler = logging.FileHandler(log_file)
-        filehandler.setLevel(logging.DEBUG)
+        filehandler.setLevel(level)
         filehandler.setFormatter(log_formatter)
         root.addHandler(filehandler)
 
