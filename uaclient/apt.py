@@ -24,12 +24,12 @@ class InvalidAPTCredentialsError(RuntimeError):
     pass
 
 
-def valid_apt_credentials(repo_url, series, credentials):
+def valid_apt_credentials(repo_url, username, password):
     """Validate apt credentials for a PPA.
 
     @param repo_url: private-ppa url path
-    @param credentials: PPA credentials string username:password.
-    @param series: xenial, bionic ...
+    @param username: PPA login username.
+    @param password: PPA login password or resource token.
 
     @return: True if valid or unable to validate
     """
@@ -38,16 +38,16 @@ def valid_apt_credentials(repo_url, series, credentials):
         return True   # Do not validate
     try:
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
-                   '%s://%s@%s/ubuntu/dists/%s/Release' % (
-                       protocol, credentials, repo_path, series),
+                   '%s://%s:%s@%s/ubuntu/pool/' % (
+                       protocol, username, password, repo_path),
                    '/tmp/uaclient-apt-test'],
                   capture=False)  # Hide credentials from logs
-        os.unlink('/tmp/uaclient-apt-test')
         return True
     except util.ProcessExecutionError:
         pass
-    if os.path.exists('/tmp/uaclient-apt-test'):
-        os.unlink('/tmp/uaclient-apt-test')
+    finally:
+        if os.path.exists('/tmp/uaclient-apt-test'):
+            os.unlink('/tmp/uaclient-apt-test')
     return False
 
 
@@ -58,10 +58,15 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     @raises: InvalidAPTCredentialsError when the token provided can't access
         the repo PPA.
     """
+    try:
+        username, password = credentials.split(':')
+    except ValueError:  # Then we have a bearer token
+        username = 'bearer'
+        password = credentials
     series = util.get_platform_info('series')
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
-    if not valid_apt_credentials(repo_url, series, credentials):
+    if not valid_apt_credentials(repo_url, username, password):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
     logging.info('Enabling authenticated repo: %s', repo_url)
@@ -71,11 +76,6 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
                     '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
                         url=repo_url, series=series, pocket=pocket))
     util.write_file(repo_filename, content)
-    try:
-        login, password = credentials.split(':')
-    except ValueError:  # Then we have a bearer token
-        login = 'bearer'
-        password = credentials
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         auth_content = util.load_file(apt_auth_file)
@@ -85,9 +85,9 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]
     auth_content += (
-        'machine {repo_path}/ubuntu/ login {login} password'
+        'machine {repo_path}/ubuntu/ login {username} password'
         ' {password}\n'.format(
-            repo_path=repo_path, login=login, password=password))
+            repo_path=repo_path, username=username, password=password))
     util.write_file(apt_auth_file, auth_content, mode=0o600)
     if keyring_file:
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
