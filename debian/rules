@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 export DH_VERBOSE=1
-DEB_VERSION := $(shell dpkg-parsechangelog --show-field=Version)
+
+include /usr/share/dpkg/pkg-info.mk
 FLAKE8 := $(shell flake8 --version 2> /dev/null)
 
 %:
