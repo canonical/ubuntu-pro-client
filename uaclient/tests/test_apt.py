@@ -7,8 +7,9 @@ import os
 from textwrap import dedent
 
 from uaclient.apt import (
-    add_auth_apt_repo, add_ppa_pinning, find_apt_list_files,
-    migrate_apt_sources, remove_apt_list_files, valid_apt_credentials)
+    APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
+    add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
+    remove_apt_list_files, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -84,7 +85,7 @@ class TestValidAptCredentials:
             self, m_exists, m_subp):
         """When apt-helper tool is absent return True without validation."""
         assert True is valid_apt_credentials(
-            repo_url='http://fakerepo', username='user', password='pwd')
+            repo_url='http://fakerepo', username='username', password='pass')
         expected_calls = [mock.call('/usr/lib/apt/apt-helper')]
         assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
@@ -195,9 +196,8 @@ class TestAddAuthAptRepo:
             credentials='user:password', fingerprint='APTKEY')
 
         expected_content = (
-            '\n# This file is created by ubuntu-advantage-tools and will be'
-            ' updated\n# by subsequent calls to ua attach|detach [entitlement]'
-            '\nmachine fakerepo/ubuntu/ login user password password\n')
+            'machine fakerepo/ login user password password%s' %
+            APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
     @mock.patch('uaclient.util.subp')
@@ -213,13 +213,63 @@ class TestAddAuthAptRepo:
         m_get_apt_auth_file.return_value = auth_file
 
         add_auth_apt_repo(
-            repo_filename=repo_file, repo_url='http://fakerepo',
+            repo_filename=repo_file, repo_url='http://fakerepo/',
             credentials='SOMELONGTOKEN', fingerprint='APTKEY')
 
         expected_content = (
-            '\n# This file is created by ubuntu-advantage-tools and will be'
-            ' updated\n# by subsequent calls to ua attach|detach [entitlement]'
-            '\nmachine fakerepo/ubuntu/ login bearer password SOMELONGTOKEN\n')
+            'machine fakerepo/ login bearer password SOMELONGTOKEN%s'
+            % APT_AUTH_COMMENT)
+        assert expected_content == util.load_file(auth_file)
+
+
+class TestAddAptAuthConfEntry:
+
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_replaces_old_credentials_with_new(
+            self, m_get_apt_auth_file, tmpdir):
+        """Replace old credentials for this repo_url on the same line."""
+        auth_file = tmpdir.join('auth.conf').strpath
+        util.write_file(auth_file, dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass
+        """))
+
+        m_get_apt_auth_file.return_value = auth_file
+
+        add_apt_auth_conf_entry(
+            login='newlogin', password='newpass', repo_url='http://fakerepo/')
+
+        expected_content = dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login newlogin password newpass%s
+            machine fakerepo2/ login other password otherpass\
+""" % APT_AUTH_COMMENT)
+        assert expected_content == util.load_file(auth_file)
+
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_insert_repo_subroutes_before_existing_repo_basepath(
+            self, m_get_apt_auth_file, tmpdir):
+        """Insert new repo_url before first matching url base path."""
+        auth_file = tmpdir.join('auth.conf').strpath
+        util.write_file(auth_file, dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass
+        """))
+
+        m_get_apt_auth_file.return_value = auth_file
+
+        add_apt_auth_conf_entry(
+            login='new', password='newpass',
+            repo_url='http://fakerepo/subroute')
+
+        expected_content = dedent("""\
+            machine fakerepo1/ login me password password1
+            machine fakerepo/subroute/ login new password newpass%s
+            machine fakerepo/ login old password oldpassword
+            machine fakerepo2/ login other password otherpass\
+""" % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
 
