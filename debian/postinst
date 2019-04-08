@@ -10,8 +10,8 @@ configure_esm_source() {
 # Written by ubuntu-advantage-tools during package postinst
 deb https://esm.ubuntu.com/ubuntu trusty security
 deb https://esm.ubuntu.com/ubuntu trusty updates
-# deb-src https://esm.staging.ubuntu.com/ubuntu security
-# deb-src https://esm.staging.ubuntu.com/ubuntu updates
+# deb-src https://esm.ubuntu.com/ubuntu security
+# deb-src https://esm.ubuntu.com/ubuntu updates
 EOF
     fi
 }

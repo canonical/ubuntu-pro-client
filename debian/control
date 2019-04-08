@@ -2,7 +2,8 @@ Source: ubuntu-advantage-tools
 Section: misc
 Priority: important
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>=9),
+Build-Depends: bash-completion,
+               debhelper (>=9),
                dh-python,
                git,
                libapt-pkg-dev,
@@ -24,7 +25,6 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
          python3-pkg-resources
-XB-Python-Version: ${python:Versions}
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world
