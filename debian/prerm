@@ -17,5 +17,8 @@ case "$1" in
         remove_apt_files
         ;;
 esac
+
+#DEBHELPER#
+
 exit 0
 
