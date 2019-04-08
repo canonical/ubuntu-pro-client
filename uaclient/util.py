@@ -109,7 +109,7 @@ def readurl(url, data=None, headers=None, method=None):
     if method:
         req.get_method = lambda: method
     if data:
-        redacted_data = maybe_parse_json(data)
+        redacted_data = maybe_parse_json(data.decode('utf-8'))
         for key in SENSITIVE_KEYS:
             if key in redacted_data:
                 redacted_data[key] = '<REDACTED>'
@@ -120,7 +120,7 @@ def readurl(url, data=None, headers=None, method=None):
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, redacted_data)
     resp = request.urlopen(req)
-    content = resp.read()
+    content = resp.read().decode('utf-8')
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
     logging.debug(
