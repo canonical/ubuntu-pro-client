@@ -78,7 +78,14 @@ class LivepatchEntitlement(base.UAEntitlement):
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
                           capture=True)
             print('Installing canonical-livepatch snap...')
-            util.subp(['snap', 'install', 'canonical-livepatch'], capture=True)
+            try:
+                util.subp(['snap', 'install', 'canonical-livepatch'],
+                          capture=True)
+            except util.ProcessExecutionError as e:
+                msg = 'Unable to install Livepatch client: ' + str(e)
+                print(msg)
+                logging.error(msg)
+                return False
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         try:
             process_directives(entitlement_cfg)
