@@ -11,7 +11,7 @@ remove_cache_dir(){
 
 case "$1" in
     purge)
-        remove_cache_dir()
+        remove_cache_dir
         ;;
 esac
 
