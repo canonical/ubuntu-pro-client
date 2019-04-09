@@ -16,7 +16,6 @@ class RepoEntitlement(base.UAEntitlement):
     repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
     origin = None   # The repo Origin value for setting pinning
 
-    repo_pockets = ('main', )  # Overriden in ESMEntitlement
     repo_url = 'UNSET'
     repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None      # Optional repo pin priority in subclass
@@ -51,6 +50,12 @@ class RepoEntitlement(base.UAEntitlement):
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
+        repo_suites = directives.get('suites')
+        if not repo_suites:
+            logging.error(
+                'Empty %s apt suites directive from %s',
+                self.name, self.cfg.contract_url)
+            return False
         if self.repo_pin_priority:
             if not self.origin:
                 logging.error(
@@ -83,8 +88,8 @@ class RepoEntitlement(base.UAEntitlement):
                 return False
         try:
             apt.add_auth_apt_repo(
-                repo_filename, repo_url, token, keyring_file, ppa_fingerprint,
-                pockets=self.repo_pockets)
+                repo_filename, repo_url, token, repo_suites,
+                keyring_file, ppa_fingerprint)
         except apt.InvalidAPTCredentialsError as e:
             logging.error(str(e))
             return False

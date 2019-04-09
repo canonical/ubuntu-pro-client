@@ -48,8 +48,8 @@ def valid_apt_credentials(repo_url, username, password):
     return False
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
-                      fingerprint=None, pockets=('main',)):
+def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
+                      keyring_file=None, fingerprint=None):
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -66,12 +66,22 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, keyring_file=None,
     if not valid_apt_credentials(repo_url, username, password):
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
+
+    updates_enabled = True   # TODO determine from apt-cache policy
+
     logging.info('Enabling authenticated repo: %s', repo_url)
     content = ''
-    for pocket in pockets:
-        content += ('deb {url}/ubuntu {series} {pocket}\n'
-                    '# deb-src {url}/ubuntu {series} {pocket}\n'.format(
-                        url=repo_url, series=series, pocket=pocket))
+    for suite in suites:
+        if series not in suite:
+            continue   # Only enable suites matching this current series
+        if '-updates' in suite and not updates_enabled:
+            logging.debug(
+                'Not enabling apt suite "%s" because "%s-updates" is not'
+                ' enabled', suite, series)
+            continue
+        content += ('deb {url}/ubuntu {suite} main\n'
+                    '# deb-src {url}/ubuntu {suite} main\n'.format(
+                        url=repo_url, suite=suite))
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
     if keyring_file:
