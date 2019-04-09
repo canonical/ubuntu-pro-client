@@ -14,7 +14,6 @@ class ESMEntitlement(repo.RepoEntitlement):
     description = (
         'Ubuntu Extended Security Maintenance archive'
         ' (https://ubuntu.com/esm)')
-    repo_pockets = ('security', 'updates')
     repo_url = 'https://esm.ubuntu.com'
     repo_key_file = 'ubuntu-esm-keyring.gpg'
 

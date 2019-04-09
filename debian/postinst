@@ -7,11 +7,12 @@ ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 configure_esm_source() {
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
         cat > $ESM_APT_SOURCE_FILE <<EOF
-# Written by ubuntu-advantage-tools during package postinst
-deb https://esm.ubuntu.com/ubuntu trusty security
-deb https://esm.ubuntu.com/ubuntu trusty updates
-# deb-src https://esm.ubuntu.com/ubuntu security
-# deb-src https://esm.ubuntu.com/ubuntu updates
+# Written by ubuntu-advantage-tools
+deb https://esm.ubuntu.com/ubuntu trusty-security main
+# deb-src https://esm.ubuntu.com/ubuntu trusty-security main
+
+deb https://esm.ubuntu.com/ubuntu trusty-updates main
+# deb-src https://esm.ubuntu.com/ubuntu trusty-updates main
 EOF
     fi
 }
