@@ -9,6 +9,8 @@ from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 LOG = logging.getLogger(__name__)
 
+PRIVATE_SUBDIR = 'private'
+
 
 class ConfigAbsentError(RuntimeError):
     """Raised when no valid config is discovered."""
@@ -30,6 +32,7 @@ class UAConfig(object):
         'machine-access-fips': 'machine-access-fips.json',
         'machine-access-fips-updates': 'machine-access-fips-updates.json',
         'machine-access-livepatch': 'machine-access-livepatch.json',
+        'machine-access-support': 'machine-access-support.json',
         'machine-detach': 'machine-detach.json',
         'machine-token': 'machine-token.json',
         'macaroon': 'sso-macaroon.json',
@@ -76,7 +79,7 @@ class UAConfig(object):
 
     @property
     def contract_url(self):
-        return self.cfg['contract_url']
+        return self.cfg.get('contract_url', 'https://contracts.canonical.com')
 
     @property
     def data_dir(self):
@@ -145,13 +148,17 @@ class UAConfig(object):
             self._machine_token = self.read_cache('machine-token')
         return self._machine_token
 
-    def data_path(self, key=None):
+    def data_path(self, key=None, private=True):
         """Return the file path in the data directory represented by the key"""
+        if private:
+            data_dir = os.path.join(self.cfg['data_dir'], 'private')
+        else:
+            data_dir = self.cfg['data_dir']
         if not key:
-            return self.cfg['data_dir']
+            return data_dir
         if key in self.data_paths:
-            return os.path.join(self.cfg['data_dir'], self.data_paths[key])
-        return os.path.join(self.cfg['data_dir'], key)
+            return os.path.join(data_dir, self.data_paths[key])
+        return os.path.join(data_dir, key)
 
     def delete_cache(self):
         """Remove all configuration cached response files class attributes."""
@@ -159,27 +166,37 @@ class UAConfig(object):
         self._entitlements = None
         self._machine_token = None
         for key in self.data_paths.keys():
-            cache_path = self.data_path(key)
-            if os.path.exists(cache_path):
-                os.unlink(cache_path)
+            for private in (True, False):
+                cache_path = self.data_path(key, private)
+                if os.path.exists(cache_path):
+                    os.unlink(cache_path)
 
     def read_cache(self, key, quiet=False):
         cache_path = self.data_path(key)
-        if not os.path.exists(cache_path):
-            if not quiet:
-                logging.debug('File does not exist: %s', cache_path)
-            return None
-        content = util.load_file(cache_path)
+        try:
+            content = util.load_file(cache_path)
+        except Exception:
+            public_cache_path = cache_path.replace('%s/' % PRIVATE_SUBDIR, '')
+            try:
+                content = util.load_file(public_cache_path)
+            except Exception:
+                if not os.path.exists(cache_path) and not quiet:
+                    logging.debug('File does not exist: %s', cache_path)
+                return None
         json_content = util.maybe_parse_json(content)
         return json_content if json_content else content
 
-    def write_cache(self, key, content):
-        if not os.path.exists(self.data_dir):
-            os.makedirs(self.data_dir)
-        filepath = self.data_path(key)
+    def write_cache(self, key, content, private=True):
+        filepath = self.data_path(key, private)
+        data_dir = os.path.dirname(filepath)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
         if not isinstance(content, str):
             content = json.dumps(content)
-        util.write_file(filepath, content)
+        if private:
+            util.write_file(filepath, content, mode=0o600)
+        else:
+            util.write_file(filepath, content)
 
 
 def parse_config(config_path=None):
