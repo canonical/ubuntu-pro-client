@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -e
+
+
+remove_apt_auth(){
+    apt_auth="/etc/apt/auth.conf.d/90ubuntu-advantage"
+    if [ -f "$apt_auth" ]; then
+        rm "$apt_auth"
+    fi
+}
+
+remove_apt_hook(){
+    apt_hook="/etc/apt/apt.conf.d/20apt-esm-hook.conf"
+    if [ -f "$apt_hook" ]; then
+        rm "$apt_hook"
+    fi
+}
+
+remove_cache_dir(){
+    cache_dir="/var/lib/ubuntu-advantage"
+    if [ -d "$cache_dir" ]; then
+        rm -rf "$cache_dir"
+    fi
+}
+
+
+case "$1" in
+    purge)
+        remove_apt_auth
+        remove_apt_hook
+        remove_cache_dir
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
