@@ -26,7 +26,8 @@ CIS_RESOURCE_ENTITLED = {
         'entitled': True,
         'directives': {
             'aptURL': 'http://CIS',
-            'aptKey': 'APTKEY'
+            'aptKey': 'APTKEY',
+            'suites': ['xenial']
         },
         'affordances': {
             'series': []   # Will match all series
@@ -77,8 +78,7 @@ class TestCISEntitlementEnable(TestCase):
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                      'http://CIS', 'TOKEN', None, 'APTKEY', pockets=('main',))
-        ]
+                      'http://CIS', 'TOKEN', ['xenial'], None, 'APTKEY')]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),
