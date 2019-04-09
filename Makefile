@@ -11,6 +11,7 @@ clean:
 	rm -rf *.egg-info/ .tox/ .cache/
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '*__pycache__' -delete
+	$(MAKE) -C apt-hook clean
 
 deb:
 	@echo Building unsigned debian package
