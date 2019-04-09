@@ -30,6 +30,7 @@ class UAConfig(object):
         'machine-access-fips': 'machine-access-fips.json',
         'machine-access-fips-updates': 'machine-access-fips-updates.json',
         'machine-access-livepatch': 'machine-access-livepatch.json',
+        'machine-access-support': 'machine-access-support.json',
         'machine-detach': 'machine-detach.json',
         'machine-token': 'machine-token.json',
         'macaroon': 'sso-macaroon.json',
@@ -76,7 +77,7 @@ class UAConfig(object):
 
     @property
     def contract_url(self):
-        return self.cfg['contract_url']
+        return self.cfg.get('contract_url', 'https://contracts.canonical.com')
 
     @property
     def data_dir(self):

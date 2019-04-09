@@ -1,5 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import copy
 from io import StringIO
 import itertools
 import mock
@@ -29,7 +30,8 @@ FIPS_RESOURCE_ENTITLED = {
         'entitled': True,
         'directives': {
             'aptURL': 'http://FIPS',
-            'aptKey': 'APTKEY'
+            'aptKey': 'APTKEY',
+            'suites': ['xenial']
         },
         'affordances': {
             'series': []   # Will match all series
@@ -60,12 +62,12 @@ class TestFIPSEntitlementCanEnable:
 
     def test_can_enable_true_on_entitlement_inactive(self, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
-        # Unset static affordance container check
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(FIPS_MACHINE_TOKEN))
         cfg.write_cache('machine-access-fips',
                         dict(FIPS_RESOURCE_ENTITLED))
         entitlement = FIPSEntitlement(cfg)
+        # Unset static affordance container check
         entitlement.static_affordances = ()
         with mock.patch('uaclient.entitlements.base.os.getuid') as m_getuid:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
@@ -78,12 +80,12 @@ class TestFIPSEntitlementEnable:
 
     def test_enable_configures_apt_sources_and_auth_files(self, tmpdir):
         """When entitled, configure apt repo auth token, pinning and url."""
-        # Unset static affordance container check
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(FIPS_MACHINE_TOKEN))
         cfg.write_cache('machine-access-fips',
                         dict(FIPS_RESOURCE_ENTITLED))
         entitlement = FIPSEntitlement(cfg)
+        # Unset static affordance container check
         entitlement.static_affordances = ()
 
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
@@ -97,8 +99,7 @@ class TestFIPSEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-                      'http://FIPS', 'TOKEN', None, 'APTKEY',
-                      pockets=('main',))]
+                      'http://FIPS', 'TOKEN', ['xenial'], None, 'APTKEY')]
         apt_pinning_calls = [
             mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
                       'http://FIPS', 'UbuntuFIPS', 1001)]
@@ -124,6 +125,24 @@ class TestFIPSEntitlementEnable:
 
         assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
+
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch(M_PATH + 'can_enable', return_value=True)
+    def test_enable_returns_false_on_missing_suites_directive(
+            self, m_can_enable, m_platform_info, tmpdir):
+        """When directives do not contain suites returns false."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(FIPS_MACHINE_TOKEN))
+        # Unset suites directive
+        fips_entitled_no_suites = copy.deepcopy(dict(FIPS_RESOURCE_ENTITLED))
+        fips_entitled_no_suites['entitlement']['directives']['suites'] = []
+        cfg.write_cache('machine-access-fips', fips_entitled_no_suites)
+        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
+            entitlement = FIPSEntitlement(cfg)
+
+        assert False is entitlement.enable()
+        assert 0 == m_add_apt.call_count
 
     def test_enable_errors_on_repo_pin_but_invalid_origin(
             self, tmpdir, caplog_text, entitlement):
