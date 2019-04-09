@@ -76,7 +76,7 @@ class UAConfig(object):
 
     @property
     def contract_url(self):
-        return self.cfg['contract_url']
+        return self.cfg.get('contract_url', 'https://contracts.canonical.com')
 
     @property
     def data_dir(self):
