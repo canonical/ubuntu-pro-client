@@ -24,9 +24,9 @@ endif
 endif
 
 override_dh_auto_install:
-	dh_auto_install --sourcedirectory=apt-hook --buildsystem=makefile
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
 	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
+	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install
 
 override_dh_auto_clean:
 	dh_auto_clean
