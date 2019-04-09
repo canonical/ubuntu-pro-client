@@ -305,11 +305,8 @@ class TestMigrateAptSources:
                 platform_info={'series': 'xenial', 'release': '16.04'})
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
-        exists_calls = [
-            mock.call(tmpdir.join('machine-token.json').strpath),
-            mock.call(tmpdir.join('machine-access-cc.json').strpath)]
         assert [] == m_unlink.call_args_list  # remove nothing
-        assert exists_calls == m_exists.call_args_list
+        assert [] == m_exists.call_args_list
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
@@ -355,13 +352,10 @@ class TestMigrateAptSources:
                 assert None is migrate_apt_sources(cfg=cfg)
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
-        exists_calls = [
-            mock.call(tmpdir.join('machine-token.json').strpath),
-            mock.call(tmpdir.join('machine-access-cc.json').strpath)]
         unlink_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-trusty.list')]
         assert unlink_calls == m_unlink.call_args_list  # remove nothing
-        assert exists_calls == m_exists.call_args_list
+        assert [] == m_exists.call_args_list
 
     @mock.patch('uaclient.apt.os.unlink')
     @mock.patch('uaclient.apt.add_auth_apt_repo')
