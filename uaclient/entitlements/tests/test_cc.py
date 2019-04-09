@@ -32,7 +32,8 @@ CC_RESOURCE_ENTITLED = {
         'entitled': True,
         'directives': {
             'aptURL': 'http://CC',
-            'aptKey': 'APTKEY'
+            'aptKey': 'APTKEY',
+            'suites': ['xenial']
         },
         'affordances': {
             'architectures': ['x86_64', 'ppc64le', 's390x'],
@@ -114,7 +115,7 @@ class TestCommonCriteriaEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-xenial.list',
-                      'http://CC', 'TOKEN', None, 'APTKEY', pockets=('main',))]
+                      'http://CC', 'TOKEN', ['xenial'], None, 'APTKEY')]
 
         subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 
