@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from uaclient.config import UAConfig
+from uaclient.config import PRIVATE_SUBDIR, UAConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
@@ -47,7 +47,7 @@ class TestAccounts:
         assert [] == cfg.accounts
         expected_warning = (
             "WARNING  Unexpected type <class 'str'> in cache %s" % (
-                tmpdir.join('accounts.json')))
+                tmpdir.join(PRIVATE_SUBDIR, 'accounts.json')))
         assert expected_warning in caplog_text()
 
     def test_accounts_logs_warning_when_missing_accounts_key_in_cache(
@@ -59,7 +59,7 @@ class TestAccounts:
         assert [] == cfg.accounts
         expected_warning = (
             "WARNING  Missing 'accounts' key in cache %s" %
-            tmpdir.join('accounts.json'))
+            tmpdir.join(PRIVATE_SUBDIR, 'accounts.json'))
         assert expected_warning in caplog_text()
 
     def test_accounts_logs_warning_when_non_list_accounts_cache_content(
@@ -71,7 +71,7 @@ class TestAccounts:
         assert [] == cfg.accounts
         expected_warning = (
             "WARNING  Unexpected 'accounts' type <class 'str'> in cache %s" % (
-                tmpdir.join('accounts.json')))
+                tmpdir.join(PRIVATE_SUBDIR, 'accounts.json')))
         assert expected_warning in caplog_text()
 
 
@@ -80,22 +80,31 @@ class TestDataPath:
     def test_data_path_returns_data_dir_path_without_key(self):
         """The data_path method returns the data_dir when key is absent."""
         cfg = UAConfig({'data_dir': '/my/dir'})
-        assert '/my/dir' == cfg.data_path()
+        assert '/my/dir/%s' % PRIVATE_SUBDIR == cfg.data_path()
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_data_path_returns_file_path_with_defined_data_paths(
             self, key, path_basename):
         """When key is defined in Config.data_paths return data_path value."""
         cfg = UAConfig({'data_dir': '/my/dir'})
-        assert '/my/dir/%s' % path_basename == cfg.data_path(key=key)
+        private_path = '/my/dir/%s/%s' % (PRIVATE_SUBDIR, path_basename)
+        assert private_path == cfg.data_path(key=key)
 
     @pytest.mark.parametrize('key,path_basename', (
         ('notHere', 'notHere'), ('anything', 'anything')))
     def test_data_path_returns_file_path_with_undefined_data_paths(
             self, key, path_basename):
         """When key is not in Config.data_paths the key is used to data_dir"""
-        cfg = UAConfig({'data_dir': '/my/dir'})
-        assert '/my/dir/%s' % key == cfg.data_path(key=key)
+        cfg = UAConfig({'data_dir': '/my/d'})
+        assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
+
+    @pytest.mark.parametrize('key,path_basename', (
+        ('notHere', 'notHere'), ('anything', 'anything')))
+    def test_data_path_returns_file_path_with_public_data_paths(
+            self, key, path_basename):
+        """When private is False Config.data_paths return a public path."""
+        cfg = UAConfig({'data_dir': '/my/d'})
+        assert '/my/d/%s' % key == cfg.data_path(key=key, private=False)
 
 
 class TestWriteCache:
@@ -106,7 +115,7 @@ class TestWriteCache:
             self, tmpdir, key, content):
         """When key is not in data_paths, write content to data_dir/key."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
-        expected_path = tmpdir.join(key)
+        expected_path = tmpdir.join(PRIVATE_SUBDIR, key)
 
         assert not expected_path.check(), (
             'Found unexpected file %s' % expected_path)
@@ -137,9 +146,19 @@ class TestWriteCache:
 
         expected_json_content = json.dumps(value)
         assert None is cfg.write_cache(key, value)
-        with open(tmpdir.join(key).strpath, 'r') as stream:
+        with open(tmpdir.join(PRIVATE_SUBDIR, key).strpath, 'r') as stream:
             assert expected_json_content == stream.read()
         assert value == cfg.read_cache(key)
+
+    def test_write_cache_writes_non_private_dir_when_private_is_false(
+            self, tmpdir):
+        """When content is not a string, write a json string."""
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+
+        assert None is cfg.write_cache('key', 'value', private=False)
+        with open(tmpdir.join('key').strpath, 'r') as stream:
+            assert 'value' == stream.read()
+        assert 'value' == cfg.read_cache('key')
 
 
 class TestReadCache:
@@ -156,7 +175,8 @@ class TestReadCache:
     def test_read_cache_returns_content_when_data_path_present(
             self, tmpdir, key, path_basename):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
-        data_path = tmpdir.join(path_basename)
+        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
+        data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
         with open(data_path.strpath, 'w') as f:
             f.write('content%s' % key)
 
@@ -166,7 +186,8 @@ class TestReadCache:
     def test_read_cache_returns_stuctured_content_when_json_data_path_present(
             self, tmpdir, key, path_basename):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
-        data_path = tmpdir.join(path_basename)
+        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
+        data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
         expected = {key: 'content%s' % key}
         with open(data_path.strpath, 'w') as f:
             f.write(json.dumps(expected))
@@ -192,6 +213,7 @@ class TestDeleteCache:
         cfg = UAConfig({'data_dir': tmpdir.strpath})
 
         data_path = cfg.data_path(data_path_name)
+        os.makedirs(os.path.dirname(data_path))
         with open(data_path, 'w') as f:
             f.write(property_value)
 
@@ -225,18 +247,22 @@ class TestDeleteCache:
         for odd_key in odd_keys:
             cfg.write_cache(odd_key, odd_key)
 
-        assert len(odd_keys) == len(os.listdir(tmpdir.strpath))
+        private_cachedir = tmpdir.join(PRIVATE_SUBDIR).strpath
+        assert len(odd_keys) == len(os.listdir(private_cachedir))
         cfg.delete_cache()
-        dirty_files = os.listdir(tmpdir.strpath)
+        dirty_files = os.listdir(private_cachedir)
         assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
             self, tmpdir):
         """Any files in data_dir undefined in cfg.data_paths will remain."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
-        t_file = tmpdir.join('otherfile')
+        t_file = tmpdir.join(PRIVATE_SUBDIR, 'otherfile')
+        os.makedirs(os.path.dirname(t_file.strpath))
         with open(t_file.strpath, 'w') as f:
             f.write('content')
-        assert [os.path.basename(t_file.strpath)] == os.listdir(tmpdir.strpath)
+        assert [os.path.basename(t_file.strpath)] == os.listdir(
+            tmpdir.join(PRIVATE_SUBDIR).strpath)
         cfg.delete_cache()
-        assert [os.path.basename(t_file.strpath)] == os.listdir(tmpdir.strpath)
+        assert [os.path.basename(t_file.strpath)] == os.listdir(
+            tmpdir.join(PRIVATE_SUBDIR).strpath)
