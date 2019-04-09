@@ -223,7 +223,7 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
 
         # Remove invalid series list files
         for path in glob.glob(repo_list_glob):
-            if platform_info['series'] not in path:
+            if platform_info['series'] not in path or clean:
                 logging.info('Removing old apt source file: %s', path)
                 os.unlink(path)
         if clean:

@@ -9,22 +9,9 @@ remove_cache_dir(){
     fi
 }
 
-remove_esm_sources(){
-    # On Trusty clean up the ESM sources.list
-    if grep -iq trusty /etc/os-release; then
-        if [ -f "/etc/apt/sources.list.d/ubuntu-esm-trusty.list" ]; then
-            rm /etc/apt/sources.list.d/ubuntu-esm-trusty.list
-        fi
-    fi
-}
-
 case "$1" in
     purge)
-        remove_esm_sources()
         remove_cache_dir()
-        ;;
-    remove)
-        remove_esm_sources()
         ;;
 esac
 
