@@ -150,12 +150,14 @@ class TestAddAuthAptRepo:
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
+        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
 
         apt_cmds = [
+            mock.call(['apt-cache', 'policy']),
             mock.call(['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
                        '--recv-keys', 'APTKEY'], capture=True)]
         assert apt_cmds == m_subp.call_args_list
@@ -171,6 +173,7 @@ class TestAddAuthAptRepo:
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
+        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
@@ -192,18 +195,46 @@ class TestAddAuthAptRepo:
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
+        # apt policy with xenial-updates enabled
+        m_subp.return_value = '500 esm.com xenial-updates/main', ''
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-two', 'trusty-gone'),
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
             fingerprint='APTKEY')
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
             # deb-src http://fakerepo/ubuntu xenial-one main
-            deb http://fakerepo/ubuntu xenial-two main
-            # deb-src http://fakerepo/ubuntu xenial-two main
+            deb http://fakerepo/ubuntu xenial-updates main
+            # deb-src http://fakerepo/ubuntu xenial-updates main
+        """)
+        assert expected_content == util.load_file(repo_file)
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    def test_add_auth_apt_repo_ignores_updates_suites_on_non_update_machine(
+            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
+            tmpdir):
+        """Skip any apt suites that don't match the current series."""
+        repo_file = tmpdir.join('repo.conf').strpath
+        auth_file = tmpdir.join('auth.conf').strpath
+        m_get_apt_auth_file.return_value = auth_file
+        # apt policy without xenial-updates enabled
+        m_subp.return_value = '500 esm.canonical.com xenial/main', ''
+
+        add_auth_apt_repo(
+            repo_filename=repo_file, repo_url='http://fakerepo',
+            credentials='mycreds',
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
+            fingerprint='APTKEY')
+
+        expected_content = dedent("""\
+            deb http://fakerepo/ubuntu xenial-one main
+            # deb-src http://fakerepo/ubuntu xenial-one main
         """)
         assert expected_content == util.load_file(repo_file)
 
@@ -218,6 +249,7 @@ class TestAddAuthAptRepo:
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
+        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
@@ -240,6 +272,7 @@ class TestAddAuthAptRepo:
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
+        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo/',

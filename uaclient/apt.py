@@ -67,7 +67,9 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
         raise InvalidAPTCredentialsError(
             'Invalid APT credentials provided for %s' % repo_url)
 
-    updates_enabled = True   # TODO determine from apt-cache policy
+    # Does this system have updates suite enabled?
+    policy, _err = util.subp(['apt-cache', 'policy'])
+    updates_enabled = bool(' %s-updates/' % series in policy)
 
     logging.info('Enabling authenticated repo: %s', repo_url)
     content = ''
