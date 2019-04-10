@@ -204,7 +204,7 @@ class TestFIPSEntitlementDisable:
         assert calls == m_unlink.call_args_list
         auth_call = mock.call(
             '/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-            'http://FIPS')
+            'http://FIPS', 'APTKEY')
         assert [auth_call] == m_rm_auth.call_args_list
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
