@@ -35,7 +35,8 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
         repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
-        apt.remove_auth_apt_repo(repo_filename, repo_url)
+        fingerprint = access_directives.get('aptKey')
+        apt.remove_auth_apt_repo(repo_filename, repo_url, fingerprint)
         apt.remove_apt_list_files(repo_url, series)
         print('Removing packages: %s' % ', '.join(self.packages))
         try:
