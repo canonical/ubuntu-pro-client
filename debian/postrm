@@ -24,12 +24,25 @@ remove_cache_dir(){
     fi
 }
 
+remove_esm(){
+    esm_apt_gpg_key="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
+    if [ -f "$esm_apt_gpg_key" ]; then
+        rm "$esm_apt_gpg_key"
+    fi
+
+    esm_apt_source_file="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
+    if [ -f "$esm_apt_source_file" ]; then
+        rm "$esm_apt_source_file"
+    fi
+
+}
 
 case "$1" in
     purge)
         remove_apt_auth
         remove_apt_hook
         remove_cache_dir
+        remove_esm
         ;;
 esac
 
