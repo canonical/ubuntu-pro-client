@@ -76,11 +76,13 @@ class TestActionAttach(unittest.TestCase):
             account_name)
         assert mock.call(expected_msg) in stdout.write.call_args_list
 
+    @mock.patch(M_PATH + 'contract.request_contract_updates')
     @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
     @mock.patch(M_PATH + 'contract.UAContractClient')
     @mock.patch(M_PATH + 'action_status')
-    def test_happy_path_without_token_arg(self, action_status, contract_client,
-                                          discharge_root_macaroon):
+    def test_happy_path_without_token_arg(
+            self, action_status, contract_client, discharge_root_macaroon,
+            request_contract_updates):
         """A mock-heavy test for the happy path without an argument"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -88,7 +90,15 @@ class TestActionAttach(unittest.TestCase):
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
         cfg = FakeConfig.with_account()
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                                  'resourceEntitlements': []}}}
 
+        def fake_contract_updates(cfg, contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return True
+
+        request_contract_updates.side_effect = fake_contract_updates
         ret = action_attach(args, cfg)
 
         assert 0 == ret
@@ -109,6 +119,15 @@ class TestActionAttach(unittest.TestCase):
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                                  'resourceEntitlements': []}}}
+
+        def fake_contract_attach(contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return machine_token
+
+        contract_machine_attach.side_effect = fake_contract_attach
 
         ret = action_attach(args, cfg)
 

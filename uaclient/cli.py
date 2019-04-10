@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import sys
-import textwrap
 
 from uaclient import config
 from uaclient import contract
@@ -178,6 +177,9 @@ def action_enable(args, cfg):
 
     @return: 0 on success, 1 otherwise
     """
+    if cfg.is_attached and os.getuid() == 0:
+        # Refresh contracts prior to enable
+        contract.request_contract_updates(cfg, contract_token=None)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
@@ -189,10 +191,7 @@ def action_detach(args, cfg):
     @return: 0 on success, 1 otherwise
     """
     if not cfg.is_attached:
-        print(textwrap.dedent("""\
-            This machine is not attached to a UA Subscription, sign up here:
-                  https://ubuntu.com/advantage
-        """))
+        print(ua_status.MESSAGE_UNATTACHED)
         return 1
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
@@ -224,9 +223,10 @@ def action_attach(args, cfg):
         bound_macaroon = bound_macaroon_bytes.decode('utf-8')
         cfg.write_cache('bound-macaroon', bound_macaroon)
         try:
-            contract_client.request_accounts(bound_macaroon)
+            contract_client.request_accounts(macaroon_token=bound_macaroon)
             contract_token = contract.get_contract_token_for_account(
-                contract_client, bound_macaroon, cfg.accounts[0]['id'])
+                contract_client, cfg.accounts[0]['id'],
+                macaroon_token=bound_macaroon)
         except (sso.SSOAuthError, util.UrlError) as e:
             logging.error(str(e))
             print('Could not attach machine. Unable to obtain authenticated'
@@ -235,17 +235,13 @@ def action_attach(args, cfg):
     else:
         contract_token = args.token
 
-    machine_token_response = contract_client.request_contract_machine_attach(
-        contract_token=contract_token)
-    contractInfo = machine_token_response['machineTokenInfo']['contractInfo']
-    for entitlement in contractInfo['resourceEntitlements']:
-        if entitlement.get('entitled'):
-            # Obtain each entitlement's accessContext for this machine
-            entitlement_name = entitlement['type']
-            contract_client.request_resource_machine_access(
-                cfg.machine_token['machineToken'], entitlement_name)
+    if not contract.request_contract_updates(cfg, contract_token):
+        print(
+            "Could not attach machine. Error contacting server %s" %
+            cfg.contract_url)
+        return 1
     print("This machine is now attached to '%s'.\n" %
-          machine_token_response['machineTokenInfo']['contractInfo']['name'])
+          cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
     action_status(args=None, cfg=cfg)
     return 0
 
@@ -286,6 +282,10 @@ def get_parser():
         help='disable a specific support entitlement on this machine')
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
+    parser_refresh = subparsers.add_parser(
+        'refresh', help=(
+            'Refresh ubuntu-advantage entitlements from contracts server.'))
+    parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
     parser_version.set_defaults(action=print_version)
@@ -306,6 +306,17 @@ def action_status(args, cfg):
 
 def print_version(_args=None, _cfg=None):
     print(version.get_version())
+
+
+def action_refresh(args, cfg):
+    if not cfg.is_attached:
+        print(ua_status.MESSAGE_UNATTACHED)
+        return 1
+    if contract.request_contract_updates(cfg, contract_token=None):
+        print('Refreshed Ubuntu Advantage contracts.')
+        logging.debug('Refreshed Ubuntu Advantage contracts.')
+        return 0
+    return 1
 
 
 def setup_logging(level=logging.INFO, log_file=None):
