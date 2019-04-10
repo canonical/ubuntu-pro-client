@@ -50,6 +50,10 @@ MESSAGE_INAPPLICABLE_KERNEL_TMPL = """\
 {title} is not available for kernel {kernel}.
 Supported flavors are: {supported_kernels}
 """
+MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL = """\
+{title} is not available for kernel {kernel}.
+Minimum kernel version required: {min_kernel}
+"""
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 See `ua status` or https://ubuntu.com/advantage

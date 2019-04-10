@@ -61,7 +61,15 @@ class TestCISEntitlementEnable(TestCase):
     def test_enable_configures_apt_sources_and_auth_files(
             self, m_getuid, m_platform_info, m_subp):
         """When entitled, configure apt repo auth token, pinning and url."""
-        m_platform_info.return_value = 'xenial'
+
+        def fake_platform(key=None):
+            info = {
+                'series': 'xenial', 'kernel': '4.15.0-00-generic'}
+            if key:
+                return info[key]
+            return info
+
+        m_platform_info.side_effect = fake_platform
         m_subp.return_value = ('fakeout', '')
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
