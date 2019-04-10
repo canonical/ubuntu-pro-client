@@ -257,3 +257,16 @@ def get_machine_id(data_dir):
     machine_id = uuid.uuid4()
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
+
+
+def redact_sensitive(content):
+    """Redact security-sensitive content from content dict."""
+    redacted = {}
+    for key, value in content.items():
+        if key in SENSITIVE_KEYS:
+            redacted[key] = '<REDACTED>'
+        elif isinstance(value, dict):
+            redacted[key] = redact_sensitive(value)
+        else:
+            redacted[key] = value
+    return redacted
