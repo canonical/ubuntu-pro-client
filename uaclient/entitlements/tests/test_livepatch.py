@@ -35,6 +35,7 @@ LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({
         },
         'affordances': {
             'architectures': ['x86_64'],
+            'minKernelVersion': '4.3',
             'kernelFlavors': ['generic', 'lowlatency'],
             'tier': 'stable'
         }
@@ -43,7 +44,7 @@ LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 'x86_64',
-    'kernel': '4.4.0-140-generic',
+    'kernel': '4.4.0-00-generic',
     'series': 'xenial'
 })
 
@@ -167,6 +168,27 @@ class TestLivepatchEntitlementCanEnable:
                         assert entitlement.can_enable()
         assert '' == m_stdout.getvalue()
         assert [mock.call()] == m_container.call_args_list
+
+    def test_can_enable_false_on_unsupported_kernel_min_version(self, tmpdir):
+        """"False when on a kernel less or equal to minKernelVersion."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
+        cfg.write_cache('machine-access-livepatch',
+                        dict(LIVEPATCH_RESOURCE_ENTITLED))
+        entitlement = LivepatchEntitlement(cfg)
+
+        unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_min_kernel['kernel'] = '4.2.9-00-generic'
+        with mock.patch('uaclient.util.get_platform_info') as m_platform:
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                with mock.patch(M_GETUID, return_value=0):
+                    m_platform.return_value = unsupported_min_kernel
+                    entitlement = LivepatchEntitlement(
+                        entitlement.cfg)
+                    assert not entitlement.can_enable()
+        msg = ('Livepatch is not available for kernel 4.2.9-00-generic.\n'
+               'Minimum kernel version required: 4.3\n\n')
+        assert msg == m_stdout.getvalue()
 
     def test_can_enable_false_on_unsupported_kernel_flavor(self, tmpdir):
         """"When on an unsupported kernel, can_enable returns False."""

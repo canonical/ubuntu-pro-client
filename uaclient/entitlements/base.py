@@ -10,7 +10,8 @@ from uaclient import status
 from uaclient import util
 
 RE_KERNEL_UNAME = (
-    r'(?P<ABI>[\d]+[.-][\d]+[.-][\d]+\-[\d]+)-(?P<flavor>[A-Za-z0-9_-]+)')
+    r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
+    r'-(?P<flavor>[A-Za-z0-9_-]+)')
 
 
 class UAEntitlement(object, metaclass=abc.ABCMeta):
@@ -124,21 +125,35 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         if affordance_series and platform['series'] not in affordance_series:
             return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
                 title=self.title, series=platform['series'])
+        kernel = platform['kernel']
         affordance_kernels = affordances.get('kernelFlavors', [])
+        affordance_min_kernel = affordances.get('minKernelVersion')
+        match = re.match(RE_KERNEL_UNAME, kernel)
         if affordance_kernels:
-            kernel = platform['kernel']
-            match = re.match(RE_KERNEL_UNAME, kernel)
+            if not match or match.group('flavor') not in affordance_kernels:
+                return (False,
+                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
+                            title=self.title, kernel=kernel,
+                            supported_kernels=', '.join(affordance_kernels)))
+        if affordance_min_kernel:
+            invalid_msg = status.MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL.format(
+                title=self.title, kernel=kernel,
+                min_kernel=affordance_min_kernel)
+            try:
+                kernel_major, kernel_minor = affordance_min_kernel.split('.')
+                min_kern_major = int(kernel_major)
+                min_kern_minor = int(kernel_minor)
+            except ValueError:
+                logging.warning(
+                    'Could not parse minKernelVersion: %s',
+                    affordance_min_kernel)
+                return (False, invalid_msg)
+
             if not match:
-                logging.warning('Could not parse kernel uname: %s', kernel)
-                return (False,
-                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
-                            title=self.title, kernel=kernel,
-                            supported_kernels=', '.join(affordance_kernels)))
-            if match.group('flavor') not in affordance_kernels:
-                return (False,
-                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
-                            title=self.title, kernel=kernel,
-                            supported_kernels=', '.join(affordance_kernels)))
+                return (False, invalid_msg)
+            if any([int(match.group('major')) < min_kern_major,
+                    int(match.group('minor')) < min_kern_minor]):
+                return (False, invalid_msg)
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
                 return False, error_message
