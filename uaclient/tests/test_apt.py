@@ -390,7 +390,8 @@ class TestMigrateAptSources:
 
         def fake_platform_info(key=None):
             platform_data = {
-                'arch': 'x86_64', 'series': 'xenial', 'release': '16.04'}
+                'arch': 'x86_64', 'series': 'xenial', 'release': '16.04',
+                'kernel': '4.15.0-40-generic'}
             if key:
                 return platform_data[key]
             return platform_data

@@ -44,7 +44,8 @@ CC_RESOURCE_ENTITLED = {
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 's390x',
-    'series': 'xenial'
+    'series': 'xenial',
+    'kernel': '4.15.0-00-generic'
 })
 
 
