@@ -260,6 +260,7 @@ class TestLivepatchEntitlementEnable:
     mocks_snapd_install = [
         mock.call(
             ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True),
+        mock.call(['snap', 'wait', 'system', 'seed.loaded'], capture=True),
     ]
     mocks_livepatch_install = [
         mock.call(['snap', 'install', 'canonical-livepatch'], capture=True),
