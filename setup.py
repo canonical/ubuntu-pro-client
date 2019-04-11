@@ -27,6 +27,7 @@ setuptools.setup(
         exclude=['*.testing', 'tests.*', '*.tests', 'tests']
     ),
     data_files=[
+        ('/etc/apt/apt.conf.d', ['apt.conf.d/51ubuntu-advantage-esm']),
         ('/etc/ubuntu-advantage', ['uaclient.conf']),
         ('/usr/share/keyrings', glob.glob('keyrings/*')),
         (defaults.CONFIG_DEFAULTS['data_dir'], [])

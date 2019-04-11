@@ -35,6 +35,10 @@ remove_esm(){
         rm "$esm_apt_source_file"
     fi
 
+    esm_unattended_upgrades_file="/etc/apt/apt.conf.d/51ubuntu-advantage-esm"
+    if [ -f "$esm_unattended_upgrades_file" ]; then
+        rm "$esm_unattended_upgrades_file"
+    fi
 }
 
 case "$1" in
