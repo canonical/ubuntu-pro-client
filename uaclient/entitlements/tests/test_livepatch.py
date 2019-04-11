@@ -257,10 +257,14 @@ class TestLivepatchEntitlementEnable:
 
     with_logs = True
 
-    mocks_install = [
+    mocks_snapd_install = [
         mock.call(
             ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True),
-        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True)]
+    ]
+    mocks_livepatch_install = [
+        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True),
+    ]
+    mocks_install = mocks_snapd_install + mocks_livepatch_install
     mocks_config = [
         mock.call(
             ['/snap/bin/canonical-livepatch', 'config',
@@ -290,9 +294,9 @@ class TestLivepatchEntitlementEnable:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value=False)
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
-    def test_enable_installs_livepatch_snap_when_absent(
+    def test_enable_installs_snapd_and_livepatch_snap_when_absent(
             self, m_can_enable, m_which, m_subp, tmpdir):
-        """Install canonical-livepatch snap when not present on the system."""
+        """Install snapd and canonical-livepatch snap when not on system."""
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
         cfg.write_cache('machine-access-livepatch',
@@ -303,6 +307,28 @@ class TestLivepatchEntitlementEnable:
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
         msg = ('Installing snapd...\n'
                'Installing canonical-livepatch snap...\n'
+               'Canonical livepatch enabled.\n')
+        assert msg == m_stdout.getvalue()
+        expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
+                          mock.call('snap')]
+        assert expected_calls == m_which.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.which', side_effect=lambda cmd: cmd == 'snap')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
+            self, m_can_enable, m_which, m_subp, tmpdir):
+        """Install canonical-livepatch snap when not present on the system."""
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
+        cfg.write_cache('machine-access-livepatch',
+                        dict(LIVEPATCH_RESOURCE_ENTITLED))
+        entitlement = LivepatchEntitlement(cfg)
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            assert entitlement.enable()
+        assert (self.mocks_livepatch_install + self.mocks_config
+                in m_subp.call_args_list)
+        msg = ('Installing canonical-livepatch snap...\n'
                'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
