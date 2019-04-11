@@ -178,8 +178,9 @@ def action_enable(args, cfg):
     @return: 0 on success, 1 otherwise
     """
     if cfg.is_attached and os.getuid() == 0:
-        # Refresh contracts prior to enable
-        contract.request_updated_contracts(cfg)
+        logging.debug('Refreshing contracts prior to enable')
+        if not contract.request_updated_contract(cfg):
+            logging.debugt(ua_status.MESSAGE_REFRESH_FAILURE)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
@@ -234,7 +235,9 @@ def action_attach(args, cfg):
             return 1
     else:
         contract_token = args.token
-
+    if not contract_token:
+        print('No valid contract token available')
+        return 1
     if not contract.request_updated_contract(cfg, contract_token):
         print(
             "Could not attach machine. Error contacting server %s" %
@@ -319,8 +322,7 @@ def action_refresh(args, cfg):
         print(ua_status.MESSAGE_REFRESH_SUCCESS)
         logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
         return 0
-    print(ua_status.MESSAGE_REFRESH_FAILURE)
-    logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
+    logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
     return 1
 
 
