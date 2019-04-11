@@ -13,7 +13,7 @@ migrate_apt_sources(clean=True)
 }
 
 case "$1" in
-    remove)
+    purge|remove)
         remove_apt_files
         ;;
 esac
