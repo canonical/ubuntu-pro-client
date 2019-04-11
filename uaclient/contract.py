@@ -1,4 +1,5 @@
 import logging
+import os
 
 from uaclient import serviceclient
 from uaclient import util
@@ -13,14 +14,14 @@ API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
 API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
+API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
+    '/v1/contracts/{contract}/context/machines/{machine}')
 API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     '/v1/resources/{resource}/context/machines/{machine}')
 
 # API Errors for Contract service
 API_ERROR_INVALID_DATA = 'BAD REQUEST'
-
-# TODO(Add bearer token route handshake once contract service defines it)
 
 
 class ContractAPIError(util.UrlError):
@@ -214,6 +215,32 @@ class UAContractClient(serviceclient.UAServiceClient):
             'machine-access-%s' % resource, redacted_content, private=False)
         return resource_access
 
+    def request_machine_token_refresh(
+            self, machine_token, contract_id, machine_id=None):
+        """Request machine token refresh from contract server.
+
+        @param machine_token: The machine token needed to talk to
+            this contract service endpoint.
+        @param contract_id: Unique contract id provided by contract service.
+        @param machine_id: Optional unique system machine id. When absent,
+            contents of /etc/machine-id will be used.
+
+        @return: Dict of the JSON response containing refreshed machine-token
+        """
+        if not machine_id:
+            machine_id = util.get_machine_id(self.cfg.data_dir)
+        headers = self.headers()
+        headers.update({'Authorization': 'Bearer %s' % machine_token})
+        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
+            contract=contract_id, machine=machine_id)
+        response, headers = self.request_url(url, headers=headers)
+        if headers.get('expires'):
+            response['expires'] = headers['expires']
+        self.cfg.write_cache('machine-token', response)
+        redacted_content = redact_sensitive(response)
+        self.cfg.write_cache('machine-token', redacted_content, private=False)
+        return response
+
 
 def get_contract_token_for_account(
         contract_client, account_id, macaroon_token=None, machine_token=None):
@@ -246,37 +273,55 @@ def redact_sensitive(contract_response):
     return redacted
 
 
-def request_contract_updates(cfg, contract_token):
-    """Request contract updates from ua-contracts service.
+def request_updated_contract(cfg, contract_token=None):
+    """Request contract refresh from ua-contracts service.
+
+    Compare original token to new token and react to entitlement deltas.
 
     @param cfg: Instance of UAConfig for this machine.
-    @param contract_token: Token of the contract we are updating.
 
     @return: True on success False otherwise.
     """
     contract_client = UAContractClient(cfg)
-    if not contract_token:  # Crawl the accounts contract routes to get details
-        machine_token = cfg.machine_token['machineToken']
+    orig_token = cfg.machine_token
+    if orig_token and contract_token:
+        raise RuntimeError(
+            'Got unexpected contract_token on an already attached machine')
+    if contract_token:  # We are a mid ua-attach and need to get machinetoken
+        refresh_operation = False
         try:
-            contract_client.request_accounts(machine_token=machine_token)
-            contract_token = get_contract_token_for_account(
-                contract_client, cfg.accounts[0]['id'],
-                machine_token=machine_token)
+            new_token = contract_client.request_contract_machine_attach(
+                contract_token=contract_token)
         except util.UrlError as e:
-            logging.error(str(e))
-            print('Could not update contract info from %s' %
-                  cfg.contract_url)
+            logging.error(
+                'Could not obtain machine token. %s', str(e))
+            return False
+    else:
+        refresh_operation = True
+        machine_token = orig_token['machineToken']
+        contract_id = orig_token['machineTokenInfo']['contractInfo']['id']
+        try:
+            new_token = contract_client.request_machine_token_refresh(
+                machine_token=machine_token, contract_id=contract_id)
+        except util.UrlError as e:
+            logging.error(
+                'Could not refresh machine token. %s', str(e))
             return False
     try:
-        token_response = contract_client.request_contract_machine_attach(
-            contract_token=contract_token)
-        contractInfo = token_response['machineTokenInfo']['contractInfo']
+        contractInfo = new_token['machineTokenInfo']['contractInfo']
         for entitlement in contractInfo['resourceEntitlements']:
             if entitlement.get('entitled'):
                 # Obtain each entitlement's accessContext for this machine
                 entitlement_name = entitlement['type']
                 contract_client.request_resource_machine_access(
-                    cfg.machine_token['machineToken'], entitlement_name)
+                    new_token['machineToken'], entitlement_name)
+            elif refresh_operation:
+                data_key = 'machine-access-%s' % entitlement['type']
+                if os.path.exists(cfg.data_path(data_key)):
+                    logging.debug(
+                        'Contract refreshed. Entitlement %s now unentitled.',
+                        entitlement['type'])
+                    cfg.delete_cache(data_key)
     except util.UrlError as e:
         logging.error(
             'Could not obtain updated contract information. %s', str(e))

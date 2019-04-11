@@ -36,6 +36,7 @@ class UAConfig(object):
         'machine-access-support': 'machine-access-support.json',
         'machine-detach': 'machine-detach.json',
         'machine-token': 'machine-token.json',
+        'machine-token-refresh': 'machine-token-refresh.json',
         'macaroon': 'sso-macaroon.json',
         'root-macaroon': 'root-macaroon.json',
         'oauth': 'sso-oauth.json'
@@ -161,14 +162,18 @@ class UAConfig(object):
             return os.path.join(data_dir, self.data_paths[key])
         return os.path.join(data_dir, key)
 
-    def delete_cache(self):
-        """Remove all configuration cached response files class attributes."""
+    def delete_cache(self, key=None):
+        """Remove configuration cached response files class attributes."""
         self._contracts = None
         self._entitlements = None
         self._machine_token = None
-        for key in self.data_paths.keys():
+        if key:
+            data_path_keys = [key]
+        else:
+            data_path_keys = self.data_paths.keys()
+        for path_key in data_path_keys:
             for private in (True, False):
-                cache_path = self.data_path(key, private)
+                cache_path = self.data_path(path_key, private)
                 if os.path.exists(cache_path):
                     os.unlink(cache_path)
 

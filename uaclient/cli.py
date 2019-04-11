@@ -179,10 +179,7 @@ def action_enable(args, cfg):
     """
     if cfg.is_attached and os.getuid() == 0:
         # Refresh contracts prior to enable
-        contract_token = cfg.read_cache('contract-token')
-        if contract_token:
-            contract_token = contract_token['contractToken']
-        contract.request_contract_updates(cfg, contract_token=contract_token)
+        contract.request_updated_contracts(cfg)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
@@ -238,7 +235,7 @@ def action_attach(args, cfg):
     else:
         contract_token = args.token
 
-    if not contract.request_contract_updates(cfg, contract_token):
+    if not contract.request_updated_contract(cfg, contract_token):
         print(
             "Could not attach machine. Error contacting server %s" %
             cfg.contract_url)
@@ -318,7 +315,7 @@ def action_refresh(args, cfg):
     if os.getuid() != 0:
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
-    if contract.request_contract_updates(cfg):
+    if contract.request_updated_contract(cfg):
         print('Refreshed Ubuntu Advantage contracts.')
         logging.debug('Refreshed Ubuntu Advantage contracts.')
         return 0
