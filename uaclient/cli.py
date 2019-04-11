@@ -316,9 +316,11 @@ def action_refresh(args, cfg):
         print(ua_status.MESSAGE_NONROOT_USER)
         return 1
     if contract.request_updated_contract(cfg):
-        print('Refreshed Ubuntu Advantage contracts.')
-        logging.debug('Refreshed Ubuntu Advantage contracts.')
+        print(ua_status.MESSAGE_REFRESH_SUCCESS)
+        logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
         return 0
+    print(ua_status.MESSAGE_REFRESH_FAILURE)
+    logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
     return 1
 
 

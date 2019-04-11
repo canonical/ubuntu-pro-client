@@ -1,6 +1,8 @@
 import mock
 import unittest
 
+from uaclient.testing.fakes import FakeConfig
+
 from io import StringIO
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -15,34 +17,6 @@ from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
 from uaclient.config import UAConfig
 
 M_PATH = 'uaclient.cli.'
-
-
-class FakeConfig(UAConfig):
-
-    def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
-        self._cache_contents = (
-            cache_contents if cache_contents is not None else {})
-        super().__init__({})
-
-    def read_cache(self, key: str, quiet: bool = False) -> 'Optional[str]':
-        return self._cache_contents.get(key)
-
-    def write_cache(self, key: str, content: 'Any') -> None:
-        self._cache_contents[key] = content
-
-    @classmethod
-    def with_account(cls, account_name: str = 'test_account'):
-        return cls({
-            'accounts': {
-                'accounts': [{'name': account_name, 'id': account_name}]},
-        })
-
-    @classmethod
-    def for_attached_machine(cls, account_name: str = 'test_account'):
-        return cls({
-            'accounts': {'accounts': [{'name': account_name}]},
-            'machine-token': 'not-null',
-        })
 
 
 @mock.patch(M_PATH + 'os.getuid')
