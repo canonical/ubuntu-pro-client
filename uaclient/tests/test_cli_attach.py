@@ -4,17 +4,11 @@ import unittest
 from uaclient.testing.fakes import FakeConfig
 
 from io import StringIO
-try:
-    from typing import Any, Dict, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
 
 import pytest
 
 from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
-from uaclient.config import UAConfig
 
 M_PATH = 'uaclient.cli.'
 
