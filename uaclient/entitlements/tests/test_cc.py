@@ -1,5 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import copy
 import itertools
 import mock
 import os.path
@@ -47,6 +48,33 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'series': 'xenial',
     'kernel': '4.15.0-00-generic'
 })
+
+
+class TestCommonCriteriaEntitlementOperationalStatus:
+
+    @pytest.mark.parametrize(
+        'arch,series,details',
+        (('arm64', 'xenial', 'Canonical Common Criteria EAL2 Provisioning is'
+          ' not available for platform arm64.\nSupported platforms are:'
+          ' x86_64, ppc64le, s390x\n'),
+         ('s390x', 'trusty', 'Canonical Common Criteria EAL2 Provisioning'
+          ' is not available for Ubuntu trusty.')))
+    @mock.patch('uaclient.entitlements.repo.os.getuid', return_value=0)
+    @mock.patch('uaclient.util.get_platform_info')
+    def test_inapplicable_on_invalid_affordances(
+            self, m_platform_info, m_getuid, arch, series, details, tmpdir):
+        """Test invalid affordances result in inapplicable status."""
+        unsupported_info = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_info['arch'] = arch
+        unsupported_info['series'] = series
+        m_platform_info.return_value = unsupported_info
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
+        cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
+        entitlement = CommonCriteriaEntitlement(cfg)
+        op_status, op_status_details = entitlement.operational_status()
+        assert status.INAPPLICABLE == op_status
+        assert details == op_status_details
 
 
 class TestCommonCriteriaEntitlementCanEnable:
