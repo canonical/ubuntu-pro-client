@@ -1,10 +1,17 @@
-ubuntu-advantage-tools (19.4) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
 
   * Ship unattended-upgrades configuration for ESM
   * Wait for snapd to initialise before using it
   * Test fixes
 
  -- Andreas Hasenack <andreas@canonical.com>  Fri, 12 Apr 2019 09:28:00 -0300
+
+ubuntu-advantage-tools (19.4) disco; urgency=medium
+
+  * Drop the self-test assert in the apt-hook, it's making the subiquity
+    server install fail (LP: #1824523)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Fri, 12 Apr 2019 17:59:16 -0300
 
 ubuntu-advantage-tools (19.3) disco; urgency=medium
 
