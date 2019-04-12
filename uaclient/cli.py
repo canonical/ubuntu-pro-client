@@ -191,10 +191,9 @@ def action_enable(args, cfg):
 
     @return: 0 on success, 1 otherwise
     """
-    if cfg.is_attached and os.getuid() == 0:
-        logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
-        if not contract.request_updated_contract(cfg):
-            logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
+    logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
+    if not contract.request_updated_contract(cfg):
+        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
