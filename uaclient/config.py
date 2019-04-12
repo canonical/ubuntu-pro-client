@@ -162,16 +162,27 @@ class UAConfig(object):
             return os.path.join(data_dir, self.data_paths[key])
         return os.path.join(data_dir, key)
 
-    def delete_cache(self, key=None):
+    def delete_cache_key(self, key):
+        """Remove specific cache file."""
+        if not key:
+            return
+        if key.startswith('machine-access'):
+            self._entitlements = None
+        elif key == 'account-contracts':
+            self._contracts = None
+        elif key == 'machine-token':
+            self._machine_token = None
+        for private in (True, False):
+            cache_path = self.data_path(key, private)
+            if os.path.exists(cache_path):
+                os.unlink(cache_path)
+
+    def delete_cache(self):
         """Remove configuration cached response files class attributes."""
         self._contracts = None
         self._entitlements = None
         self._machine_token = None
-        if key:
-            data_path_keys = [key]
-        else:
-            data_path_keys = self.data_paths.keys()
-        for path_key in data_path_keys:
+        for path_key in self.data_paths.keys():
             for private in (True, False):
                 cache_path = self.data_path(path_key, private)
                 if os.path.exists(cache_path):

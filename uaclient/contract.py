@@ -307,7 +307,7 @@ def request_updated_contract(cfg, contract_token=None):
                     logging.debug(
                         'Contract refreshed. Entitlement %s now unentitled.',
                         entitlement['type'])
-                    cfg.delete_cache(data_key)
+                    cfg.delete_cache_key(data_key)
     except util.UrlError as e:
         logging.error(
             'Could not obtain updated contract information. %s', str(e))

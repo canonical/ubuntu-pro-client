@@ -179,11 +179,10 @@ class TestLivepatchEntitlementCanEnable:
         unsupported_min_kernel['kernel'] = '4.2.9-00-generic'
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                with mock.patch(M_GETUID, return_value=0):
-                    m_platform.return_value = unsupported_min_kernel
-                    entitlement = LivepatchEntitlement(
-                        entitlement.cfg)
-                    assert not entitlement.can_enable()
+                m_platform.return_value = unsupported_min_kernel
+                entitlement = LivepatchEntitlement(
+                    entitlement.cfg)
+                assert not entitlement.can_enable()
         msg = ('Livepatch is not available for kernel 4.2.9-00-generic.\n'
                'Minimum kernel version required: 4.3\n\n')
         assert msg == m_stdout.getvalue()
