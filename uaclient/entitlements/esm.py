@@ -25,16 +25,16 @@ class ESMEntitlement(repo.RepoEntitlement):
         if not self.can_disable(silent, force):
             return False
         series = util.get_platform_info('series')
-        repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series)
-        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
         entitlement_cfg = self.cfg.read_cache(
             'machine-access-%s' % self.name)['entitlement']
         access_directives = entitlement_cfg.get('directives', {})
         repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
-        apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+        # We only remove the repo from the apt auth file, because ESM is a
+        # special-case: we want to be able to report on the available ESM
+        # updates even when it's disabled
+        apt.remove_repo_from_apt_auth_file(repo_url)
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
