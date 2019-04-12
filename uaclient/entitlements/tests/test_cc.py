@@ -52,9 +52,8 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType({
 class TestCommonCriteriaEntitlementCanEnable:
 
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_can_enable_true_on_entitlement_inactive(
-            self, m_getuid, m_platform_info, tmpdir):
+            self, m_platform_info, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
@@ -77,9 +76,8 @@ class TestCommonCriteriaEntitlementEnable:
                              itertools.product([False, True], repeat=2))
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, m_subp, tmpdir,
+            self, m_platform_info, m_subp, tmpdir,
             apt_transport_https, ca_certificates):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_subp.return_value = ('fakeout', '')

@@ -49,7 +49,6 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType({
 })
 
 M_PATH = 'uaclient.entitlements.livepatch.'  # mock path
-M_GETUID = 'os.getuid'
 
 
 class TestLivepatchContractStatus:
@@ -162,10 +161,9 @@ class TestLivepatchEntitlementCanEnable:
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stderr', new_callable=StringIO) as m_stdout:
                 with mock.patch('uaclient.util.is_container') as m_container:
-                    with mock.patch(M_GETUID, return_value=0):
-                        m_platform.return_value = PLATFORM_INFO_SUPPORTED
-                        m_container.return_value = False
-                        assert entitlement.can_enable()
+                    m_platform.return_value = PLATFORM_INFO_SUPPORTED
+                    m_container.return_value = False
+                    assert entitlement.can_enable()
         assert '' == m_stdout.getvalue()
         assert [mock.call()] == m_container.call_args_list
 
@@ -202,11 +200,10 @@ class TestLivepatchEntitlementCanEnable:
         unsupported_kernel['kernel'] = '4.4.0-140-notgeneric'
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                with mock.patch(M_GETUID, return_value=0):
-                    m_platform.return_value = unsupported_kernel
-                    entitlement = LivepatchEntitlement(
-                        entitlement.cfg)
-                    assert not entitlement.can_enable()
+                m_platform.return_value = unsupported_kernel
+                entitlement = LivepatchEntitlement(
+                    entitlement.cfg)
+                assert not entitlement.can_enable()
         msg = ('Livepatch is not available for kernel 4.4.0-140-notgeneric.\n'
                'Supported flavors are: generic, lowlatency\n\n')
         assert msg == m_stdout.getvalue()
@@ -223,11 +220,10 @@ class TestLivepatchEntitlementCanEnable:
         unsupported_kernel['arch'] = 'ppc64le'
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                with mock.patch(M_GETUID, return_value=0):
-                    m_platform.return_value = unsupported_kernel
-                    entitlement = LivepatchEntitlement(
-                        entitlement.cfg)
-                    assert not entitlement.can_enable()
+                m_platform.return_value = unsupported_kernel
+                entitlement = LivepatchEntitlement(
+                    entitlement.cfg)
+                assert not entitlement.can_enable()
         msg = ('Livepatch is not available for platform ppc64le.\n'
                'Supported platforms are: x86_64\n\n')
         assert msg == m_stdout.getvalue()
@@ -243,12 +239,11 @@ class TestLivepatchEntitlementCanEnable:
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             with mock.patch('uaclient.util.get_platform_info') as m_platform:
                 with mock.patch('uaclient.util.is_container') as m_container:
-                    with mock.patch(M_GETUID, return_value=0):
-                        m_platform.return_value = PLATFORM_INFO_SUPPORTED
-                        m_container.return_value = True
-                        entitlement = LivepatchEntitlement(
-                            entitlement.cfg)
-                        assert not entitlement.can_enable()
+                    m_platform.return_value = PLATFORM_INFO_SUPPORTED
+                    m_container.return_value = True
+                    entitlement = LivepatchEntitlement(
+                        entitlement.cfg)
+                    assert not entitlement.can_enable()
         msg = 'Cannot install Livepatch on a container\n'
         assert msg == m_stdout.getvalue()
 

@@ -38,8 +38,7 @@ CIS_RESOURCE_ENTITLED = {
 
 class TestCISEntitlementCanEnable(TestCase):
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_true_on_entitlement_inactive(self, m_getuid):
+    def test_can_enable_true_on_entitlement_inactive(self):
         """When operational status is INACTIVE, can_enable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -57,9 +56,8 @@ class TestCISEntitlementEnable(TestCase):
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, m_subp):
+            self, m_platform_info, m_subp):
         """When entitled, configure apt repo auth token, pinning and url."""
 
         def fake_platform(key=None):

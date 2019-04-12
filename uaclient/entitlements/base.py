@@ -1,7 +1,6 @@
 import abc
 from datetime import datetime
 import logging
-import os
 import re
 
 from uaclient import config
@@ -54,13 +53,7 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        if os.getuid() != 0:   # Ignore 'force' here. We always need sudo check
-            message = status.MESSAGE_NONROOT_USER
-            retval = False
-        elif not any([self.cfg.is_attached, force]):
-            message = status.MESSAGE_UNATTACHED
-            retval = False
-        elif not any([self.contract_status() == status.ENTITLED, force]):
+        if not any([self.contract_status() == status.ENTITLED, force]):
             message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
             retval = False
         elif not force:
@@ -76,12 +69,6 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
 
     def can_enable(self):
         """Report whether or not enabling is possible for the entitlement."""
-        if os.getuid() != 0:
-            print(status.MESSAGE_NONROOT_USER)
-            return False
-        if not self.cfg.is_attached:
-            print(status.MESSAGE_UNATTACHED)
-            return False
         if self.is_access_expired():
             token = self.cfg.machine_token['machineToken']
             contract_client = contract.UAContractClient(self.cfg)

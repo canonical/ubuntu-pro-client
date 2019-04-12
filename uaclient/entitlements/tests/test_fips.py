@@ -69,10 +69,8 @@ class TestFIPSEntitlementCanEnable:
         entitlement = FIPSEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
-        with mock.patch('uaclient.entitlements.base.os.getuid') as m_getuid:
-            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                m_getuid.return_value = 0
-                assert True is entitlement.can_enable()
+        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+            assert True is entitlement.can_enable()
         assert '' == m_stdout.getvalue()
 
 
