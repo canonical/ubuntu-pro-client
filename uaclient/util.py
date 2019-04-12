@@ -63,10 +63,15 @@ def encode_text(text, encoding='utf-8'):
 
 def is_container(run_path='/run'):
     """Checks to see if this code running in a container of some sort"""
+    try:
+        subp(['systemd-detect-virt', '--quiet', '--container'])
+        return True
+    except (IOError, OSError):
+        pass
     for filename in ('container_type', 'systemd/container'):
         path = os.path.join(run_path, filename)
         if os.path.exists(path):
-            return bool(load_file(path).strip())
+            return True
     return False
 
 
