@@ -70,11 +70,11 @@ class TestESMEntitlementDisable:
         assert [mock.call(silent, force)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
-    @mock.patch('uaclient.apt.remove_auth_apt_repo')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     @mock.patch(M_PATH + 'can_disable', return_value=True)
     def test_disable_removes_apt_config(
-            self, m_can_disable, m_platform_info, m_rm_auth,
+            self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
             entitlement, tmpdir, caplog_text):
         """When can_disable, disable removes apt configuration when force."""
 
@@ -86,11 +86,11 @@ class TestESMEntitlementDisable:
             return original_exists(path)
 
         with mock.patch('os.path.exists', side_effect=fake_exists):
-            with mock.patch('uaclient.apt.os.unlink'):
+            with mock.patch('uaclient.apt.os.unlink') as m_unlink:
                 with mock.patch('uaclient.util.subp'):
                     assert entitlement.disable(True, True)
+
+        assert 0 == m_unlink.call_count
         assert [mock.call(True, True)] == m_can_disable.call_args_list
-        auth_call = mock.call(
-            '/etc/apt/sources.list.d/ubuntu-esm-xenial.list',
-            'http://ESM', '/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg')
-        assert [auth_call] == m_rm_auth.call_args_list
+        auth_call = mock.call('http://ESM')
+        assert [auth_call] == m_rm_repo_from_auth.call_args_list
