@@ -131,15 +131,8 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     util.write_file(apt_auth_file, '\n'.join(new_lines), mode=0o600)
 
 
-def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
-                         fingerprint=None):
-    """Remove an authenticated apt repo and credentials to the system"""
-    logging.info('Removing authenticated apt repo: %s', repo_url)
-    util.del_file(repo_filename)
-    if keyring_file:
-        util.del_file(keyring_file)
-    elif fingerprint:
-        util.subp(['apt-key', 'del', fingerprint], capture=True)
+def remove_repo_from_apt_auth_file(repo_url):
+    """Remove a repo from the shared apt auth file"""
     _protocol, repo_path = repo_url.split('://')
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]
@@ -154,6 +147,18 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
             os.unlink(apt_auth_file)
         else:
             util.write_file(apt_auth_file, content, mode=0o600)
+
+
+def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
+                         fingerprint=None):
+    """Remove an authenticated apt repo and credentials to the system"""
+    logging.info('Removing authenticated apt repo: %s', repo_url)
+    util.del_file(repo_filename)
+    if keyring_file:
+        util.del_file(keyring_file)
+    elif fingerprint:
+        util.subp(['apt-key', 'del', fingerprint], capture=True)
+    remove_repo_from_apt_auth_file(repo_url)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
