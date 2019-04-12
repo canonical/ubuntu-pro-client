@@ -235,8 +235,7 @@ def action_attach(args, cfg):
         try:
             contract_client.request_accounts(macaroon_token=bound_macaroon)
             contract_token = contract.get_contract_token_for_account(
-                contract_client, cfg.accounts[0]['id'],
-                macaroon_token=bound_macaroon)
+                contract_client, bound_macaroon, cfg.accounts[0]['id'])
         except (sso.SSOAuthError, util.UrlError) as e:
             logging.error(str(e))
             print('Could not attach machine. Unable to obtain authenticated'

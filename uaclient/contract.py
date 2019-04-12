@@ -71,41 +71,30 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache('root-macaroon', root_macaroon)
         return root_macaroon
 
-    def request_accounts(self, macaroon_token=None, machine_token=None):
+    def request_accounts(self, macaroon_token):
         """Request list of accounts this user has access to."""
         headers = self.headers()
-        if macaroon_token:
-            headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        else:
-            headers.update({'Authorization': 'Bearer %s' % machine_token})
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         accounts, _headers = self.request_url(
             API_V1_ACCOUNTS, headers=headers)
         self.cfg.write_cache('accounts', accounts)
         return accounts
 
-    def request_account_contracts(
-            self, account_id, macaroon_token=None, machine_token=None):
+    def request_account_contracts(self, macaroon_token, account_id):
         """Request a list of contracts authorized for account_id."""
         url = API_V1_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
         headers = self.headers()
-        if macaroon_token:
-            headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        else:
-            headers.update({'Authorization': 'Bearer %s' % machine_token})
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         account_contracts, _headers = self.request_url(url, headers=headers)
         self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
 
-    def request_add_contract_token(
-            self, contract_id, macaroon_token=None, machine_token=None):
+    def request_add_contract_token(self, macaroon_token, contract_id):
         """Create a contract token for use when adding a machine to a contract
 
         """
         headers = self.headers()
-        if macaroon_token:
-            headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        else:
-            headers.update({'Authorization': 'Bearer %s' % machine_token})
+        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         url = API_V1_TMPL_ADD_CONTRACT_TOKEN.format(contract=contract_id)
         contract_token, _headers = self.request_url(
             url, headers=headers,
@@ -242,21 +231,18 @@ class UAContractClient(serviceclient.UAServiceClient):
         return response
 
 
-def get_contract_token_for_account(
-        contract_client, account_id, macaroon_token=None, machine_token=None):
+def get_contract_token_for_account(contract_client, macaroon, account_id):
     """Obtain a contract token for the account_id using the contract_client.
 
     @raises: SSOAuthError on auth failure or util.UrlError on connection
              failure.
     """
-    contract_client.request_accounts(
-        macaroon_token=macaroon_token, machine_token=machine_token)
+    contract_client.request_accounts(macaroon)
     contracts = contract_client.request_account_contracts(
-        account_id, macaroon_token=macaroon_token, machine_token=machine_token)
+        macaroon, account_id)
     contract_id = contracts['contracts'][0]['contractInfo']['id']
     contract_token_response = contract_client.request_add_contract_token(
-        contract_id, macaroon_token=macaroon_token,
-        machine_token=machine_token)
+        macaroon, contract_id)
     return contract_token_response['contractToken']
 
 
