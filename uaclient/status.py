@@ -70,6 +70,15 @@ Valid until: {expires}
 Technical support level: {techSupportLevel}
 """
 STATUS_TMPL = '{name: <14}{entitled: <26}{status}'
+
+MESSAGE_ATTACH_FAILURE_TMPL = """\
+Could not attach machine. Error contacting server {url}"""
+MESSAGE_ATTACH_SUCCESS_TMPL = """\
+This machine is now attached to '{contract_name}'.
+"""
+MESSAGE_DETACH_SUCCESS = 'This machine is now detached'
+
+MESSAGE_REFRESH_ENABLE = 'Refreshing contracts prior to enable'
 MESSAGE_REFRESH_SUCCESS = 'Refreshed Ubuntu Advantage contracts.'
 MESSAGE_REFRESH_FAILURE = 'Failure to refresh Ubuntu Advantage contracts.'
 

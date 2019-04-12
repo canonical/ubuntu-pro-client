@@ -45,8 +45,20 @@ UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
 
-
 STATUS_FORMATS = ['tabular', 'json']
+
+
+def assert_attached_root(func):
+    """Decorator asserting root user and attached config."""
+    def wrapper(args, cfg):
+        if not cfg.is_attached:
+            print(ua_status.MESSAGE_UNATTACHED)
+            return 1
+        if os.getuid() != 0:
+            print(ua_status.MESSAGE_NONROOT_USER)
+            return 1
+        return func(args, cfg)
+    return wrapper
 
 
 def attach_parser(parser=None):
@@ -159,6 +171,7 @@ def status_parser(parser=None):
     return parser
 
 
+@assert_attached_root
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -172,37 +185,33 @@ def action_disable(args, cfg):
         return 1
 
 
+@assert_attached_root
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
     if cfg.is_attached and os.getuid() == 0:
-        logging.debug('Refreshing contracts prior to enable')
+        logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
         if not contract.request_updated_contract(cfg):
-            logging.debugt(ua_status.MESSAGE_REFRESH_FAILURE)
+            logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
 
 
+@assert_attached_root
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
     """
-    if not cfg.is_attached:
-        print(ua_status.MESSAGE_UNATTACHED)
-        return 1
-    if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
     cfg.delete_cache()
-    print('This machine is now detached')
+    print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
 
@@ -240,11 +249,13 @@ def action_attach(args, cfg):
         return 1
     if not contract.request_updated_contract(cfg, contract_token):
         print(
-            "Could not attach machine. Error contacting server %s" %
-            cfg.contract_url)
+            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
         return 1
-    print("This machine is now attached to '%s'.\n" %
-          cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
+    contract_name = (
+        cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name))
     action_status(args=None, cfg=cfg)
     return 0
 
@@ -311,13 +322,8 @@ def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
+@assert_attached_root
 def action_refresh(args, cfg):
-    if not cfg.is_attached:
-        print(ua_status.MESSAGE_UNATTACHED)
-        return 1
-    if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
     if contract.request_updated_contract(cfg):
         print(ua_status.MESSAGE_REFRESH_SUCCESS)
         logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
