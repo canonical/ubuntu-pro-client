@@ -42,7 +42,7 @@ class UAServiceClient(object):
         except error.URLError as e:
             code = e.errno
             if hasattr(e, 'read'):
-                error_details = util.maybe_parse_json(e.read())
+                error_details = util.maybe_parse_json(e.read().decode('utf-8'))
                 if error_details:
                     raise self.api_error_cls(e, error_details)
             raise util.UrlError(e, code=code, headers=headers, url=url)
