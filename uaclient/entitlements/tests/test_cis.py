@@ -79,10 +79,13 @@ class TestCISEntitlementEnable(TestCase):
         # Unset static affordance container check
         entitlement.static_affordances = ()
 
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-                with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
-                    self.assertTrue(entitlement.enable())
+        with mock.patch('uaclient.entitlements.repo.os.path.exists',
+                        mock.Mock(return_value=True)):
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
+                    with mock.patch(
+                            'uaclient.apt.add_ppa_pinning') as m_add_pin:
+                        self.assertTrue(entitlement.enable())
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
