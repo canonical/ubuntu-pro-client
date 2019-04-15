@@ -4,7 +4,7 @@ ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
   * Wait for snapd to initialise before using it
   * Test fixes
 
- -- Andreas Hasenack <andreas@canonical.com>  Fri, 12 Apr 2019 09:28:00 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 15 Apr 2019 10:38:35 -0300
 
 ubuntu-advantage-tools (19.4) disco; urgency=medium
 
