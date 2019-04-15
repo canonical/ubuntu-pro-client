@@ -50,13 +50,6 @@ class ProcessExecutionError(IOError):
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
 
 
-def decode_binary(blob, encoding='utf-8'):
-    """Convert a binary type into a text type using given encoding."""
-    if isinstance(blob, str):
-        return blob
-    return blob.decode(encoding)
-
-
 def del_file(path):
     try:
         os.unlink(path)
@@ -90,14 +83,12 @@ def is_exe(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def load_file(filename, decode=True):
-    """Read filename and decode content."""
+def load_file(filename):
+    """Read filename and return content."""
     logging.debug('Reading file: %s', filename)
     with open(filename, 'rb') as stream:
         content = stream.read()
-    if decode:
-        return decode_binary(content)
-    return content
+    return content.decode('utf-8')
 
 
 def maybe_parse_json(content):
@@ -106,7 +97,7 @@ def maybe_parse_json(content):
     @return: Structured content on success and None on failure.
     """
     try:
-        return json.loads(decode_binary(content))
+        return json.loads(content)
     except ValueError:
         return None
 
@@ -118,7 +109,7 @@ def readurl(url, data=None, headers=None, method=None):
     if method:
         req.get_method = lambda: method
     if data:
-        redacted_data = maybe_parse_json(data)
+        redacted_data = maybe_parse_json(data.decode('utf-8'))
         for key in SENSITIVE_KEYS:
             if key in redacted_data:
                 redacted_data[key] = '<REDACTED>'
@@ -129,7 +120,7 @@ def readurl(url, data=None, headers=None, method=None):
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, redacted_data)
     resp = request.urlopen(req)
-    content = decode_binary(resp.read())
+    content = resp.read().decode('utf-8')
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
     logging.debug(
@@ -175,7 +166,7 @@ def subp(args, rcs=None, capture=False):
     if capture:
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)
-    return (decode_binary(out), decode_binary(err))
+    return out.decode('utf-8'), err.decode('utf-8')
 
 
 def which(program):
@@ -205,8 +196,6 @@ def write_file(filename, content, mode=0o644, omode='wb'):
     logging.debug('Writing file: %s', filename)
     if 'b' in omode.lower():
         content = encode_text(content)
-    else:
-        content = decode_binary(content)
     with open(filename, omode) as fh:
         fh.write(content)
         fh.flush()

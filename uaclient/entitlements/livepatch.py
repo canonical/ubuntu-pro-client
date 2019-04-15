@@ -77,6 +77,8 @@ class LivepatchEntitlement(base.UAEntitlement):
                 print('Installing snapd...')
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
                           capture=True)
+                util.subp(['snap', 'wait', 'system', 'seed.loaded'],
+                          capture=True)
             print('Installing canonical-livepatch snap...')
             try:
                 util.subp(['snap', 'install', 'canonical-livepatch'],

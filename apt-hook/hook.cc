@@ -60,9 +60,6 @@ static std::string getppid_of(std::string pid)
       return line;
    }
 
-   if (stream.fail())
-      _error->Error("Could not parse proc status of %s", pid.c_str());
-
    return "";
 }
 
@@ -181,9 +178,12 @@ int main(int argc, char *argv[])
    setlocale(LC_ALL, "");
    textdomain("ubuntu-advantage-tools");
    // Self testing
-   std::string ppid;
-   strprintf(ppid, "%d", getppid());
-   assert(ppid == getppid_of("self"));
+   // Dropped: see #1824523
+   // if (access("/proc/self/status", R_OK) == 0) {
+   //    std::string ppid;
+   //    strprintf(ppid, "%d", getppid());
+   //    assert(ppid == getppid_of("self"));
+   // }
    assert(cmdline_eligible(make_cmdline("apt\0update\0")));
    assert(cmdline_eligible(make_cmdline("apt-get\0update\0")));
    assert(!cmdline_eligible(make_cmdline("apt-get\0install\0")));
