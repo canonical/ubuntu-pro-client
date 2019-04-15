@@ -165,7 +165,8 @@ class UAConfig(object):
     def delete_cache_key(self, key):
         """Remove specific cache file."""
         if not key:
-            return
+            raise RuntimeError(
+                'Invalid or empty key provided to delete_cache_key')
         if key.startswith('machine-access'):
             self._entitlements = None
         elif key == 'account-contracts':
@@ -183,10 +184,7 @@ class UAConfig(object):
         self._entitlements = None
         self._machine_token = None
         for path_key in self.data_paths.keys():
-            for private in (True, False):
-                cache_path = self.data_path(path_key, private)
-                if os.path.exists(cache_path):
-                    os.unlink(cache_path)
+            self.delete_cache_key(path_key)
 
     def read_cache(self, key, quiet=False):
         cache_path = self.data_path(key)
