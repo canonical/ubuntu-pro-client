@@ -3,7 +3,6 @@
 import argparse
 import csv
 import glob
-import json
 import os
 import shutil
 import sys
@@ -23,6 +22,7 @@ def find_root():
     raise OSError(
         "Unable to determine where your ubuntu-advantage-scripts topdir is."
         " set UACLIENT_TOP_D?")
+
 
 if "avoid-pep8-E402-import-not-top-of-file":
     # Use the util functions from uaclient
@@ -54,7 +54,7 @@ def get_release_suffix(release):
 def run_helper(helper, args=None, strip=True):
     if args is None:
         args = []
-    cmd = [os.path.join(find_root(), 'dev', helper)] + args
+    cmd = [os.path.join(find_root(), 'tools', helper)] + args
     (stdout, _stderr) = util.subp(cmd)
     if strip:
         stdout = stdout.strip()
@@ -67,7 +67,8 @@ def write_debian_folder(root, templ_data):
 
     # Write out the control file template
     reqs_output = run_helper(
-        'read-dependencies', args=['--python-version', '3', '--system-pkg-names'])
+        'read-dependencies', args=[
+            '--python-version', '3', '--system-pkg-names'])
     reqs = reqs_output.splitlines()
     test_reqs = run_helper(
         'read-dependencies',
@@ -81,7 +82,7 @@ def write_debian_folder(root, templ_data):
     templ_data['%BUILD_DEPS%'] = ','.join(requires)
 
     # Iterate over any .in template files and rendir into deb_dir
-    template_files  = glob.glob(os.path.join(root, 'dev') + '/*.in')
+    template_files = glob.glob(os.path.join(root, 'tools') + '/*.in')
     deb_dir = os.path.join(root, 'debian')
     subcmds = ['s/%s/%s/' % (k, v) for k, v in templ_data.items()]
     for tmpl_file in template_files:
@@ -112,7 +113,7 @@ def get_parser():
 
     parser.add_argument("--series", dest="series",
                         help=("build with changelog referencing SERIES name"),
-                        choices=['trusty', 'xenial', 'bionic', 'cosmic', 'disco'],
+                        choices=['trusty', 'xenial', 'bionic', 'disco'],
                         default=UNRELEASED)
 
     for ent in DEBUILD_ARGS:
@@ -179,14 +180,12 @@ def main():
 
     write_debian_folder(xdir, templ_data)
 
-    print("Running 'debuild %s' in %r" % (' '.join(args.debuild_args),
-                                          xdir))
-
     cwd = os.getcwd()
     os.chdir(xdir)
     cmd = ['debuild', '--preserve-envvar', 'INIT_SYSTEM']
     if args.debuild_args:
         cmd.extend(args.debuild_args)
+    print("Running '%s' in %r" % (' '.join(cmd), xdir))
     util.subp(cmd, capture=capture)
     os.chdir(cwd)
 
