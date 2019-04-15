@@ -1,3 +1,4 @@
 ubuntu-advantage usr/bin/
 keyrings/*.gpg usr/share/keyrings/
 update-motd.d etc/
+apt.conf.d etc/apt/
