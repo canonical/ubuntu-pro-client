@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 {
    (void) argc;   // unused
    setlocale(LC_ALL, "");
-   textdomain("ubuntu-advantage-tools");
+   textdomain("ubuntu-advantage");
    // Self testing
    // Dropped: see #1824523
    // if (access("/proc/self/status", R_OK) == 0) {
