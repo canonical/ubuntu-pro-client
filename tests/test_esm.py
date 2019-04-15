@@ -105,14 +105,15 @@ class ESMTest(UbuntuAdvantageTest):
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
-    def test_enable_esm_only_supported_on_precise(self):
-        """The enable-esm option fails if not on Precise."""
-        self.SERIES = 'xenial'
-        process = self.script('enable-esm', 'user:pass')
-        self.assertEqual(4, process.returncode)
-        self.assertIn(
-            'Extended Security Maintenance is not supported on xenial',
-            process.stderr)
+    def test_enable_esm_fails_on_x_b_c_d(self):
+        """The enable-esm option fails on X, B, C, D."""
+        for series in ['xenial', 'bionic', 'cosmic', 'disco']:
+            self.SERIES = series
+            process = self.script('enable-esm', 'user:pass')
+            self.assertEqual(4, process.returncode)
+            self.assertIn(
+                'Extended Security Maintenance is not supported on '
+                '{}'.format(series), process.stderr)
 
     def test_disable_esm(self):
         """The disable-esm option disables the ESM repository."""
