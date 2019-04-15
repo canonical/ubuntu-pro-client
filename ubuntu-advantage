@@ -3,7 +3,7 @@
 
 SCRIPTNAME=$(basename "$0")
 
-ESM_SUPPORTED_SERIES="precise"
+ESM_SUPPORTED_SERIES="precise trusty"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 FIPS_SUPPORTED_SERIES="xenial"
 
@@ -135,10 +135,20 @@ disable_livepatch() {
 }
 
 write_esm_list_file() {
-    cat > "$REPO_LIST" <<EOF
+    if [ "${SERIES}" = "precise" ]; then
+        cat > "$REPO_LIST" <<EOF
 deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 EOF
+    else
+        cat > "$REPO_LIST" <<EOF
+deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
+# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
+
+deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
+# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
+EOF
+    fi
 }
 
 enable_esm() {
