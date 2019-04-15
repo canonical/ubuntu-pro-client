@@ -35,33 +35,28 @@ STATUS_COLOR = {
 
 MESSAGE_DISABLED_TMPL = '{title} disabled.'
 MESSAGE_NONROOT_USER = 'This command must be run as root (try using sudo)'
-MESSAGE_ALREADY_DISABLED_TMPL = '\
-{title} is not currently enabled.\nSee `ua status`'
+MESSAGE_ALREADY_DISABLED_TMPL = """\
+{title} is not currently enabled.\nSee `ua status`"""
 MESSAGE_ENABLED_FAILED_TMPL = 'Could not enable {title}.'
 MESSAGE_ENABLED_TMPL = '{title} enabled.'
 MESSAGE_ALREADY_ENABLED_TMPL = '{title} is already enabled.\nSee `ua status`'
 MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
 {title} is not available for platform {arch}.
-Supported platforms are: {supported_arches}
-"""
-MESSAGE_INAPPLICABLE_SERIES_TMPL = '\
-{title} is not available for Ubuntu {series}.'
+Supported platforms are: {supported_arches}"""
+MESSAGE_INAPPLICABLE_SERIES_TMPL = """\
+{title} is not available for Ubuntu {series}."""
 MESSAGE_INAPPLICABLE_KERNEL_TMPL = """\
 {title} is not available for kernel {kernel}.
-Supported flavors are: {supported_kernels}
-"""
+Supported flavors are: {supported_kernels}"""
 MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL = """\
 {title} is not available for kernel {kernel}.
-Minimum kernel version required: {min_kernel}
-"""
+Minimum kernel version required: {min_kernel}"""
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
-See `ua status` or https://ubuntu.com/advantage
-"""
+See `ua status` or https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
-See `ua attach` or https://ubuntu.com/advantage
-"""
+See `ua attach` or https://ubuntu.com/advantage"""
 
 STATUS_HEADER_TMPL = """\
 Account: {account}

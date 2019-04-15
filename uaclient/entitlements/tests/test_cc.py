@@ -56,7 +56,7 @@ class TestCommonCriteriaEntitlementOperationalStatus:
         'arch,series,details',
         (('arm64', 'xenial', 'Canonical Common Criteria EAL2 Provisioning is'
           ' not available for platform arm64.\nSupported platforms are:'
-          ' x86_64, ppc64le, s390x\n'),
+          ' x86_64, ppc64le, s390x'),
          ('s390x', 'trusty', 'Canonical Common Criteria EAL2 Provisioning'
           ' is not available for Ubuntu trusty.')))
     @mock.patch('uaclient.entitlements.repo.os.getuid', return_value=0)

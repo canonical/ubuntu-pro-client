@@ -73,7 +73,7 @@ class TestUaEntitlement(TestCase):
             self.assertFalse(entitlement.can_disable())
         self.assertEqual(
             'This subscription is not entitled to Test Concrete Entitlement.\n'
-            'See `ua status` or https://ubuntu.com/advantage\n\n',
+            'See `ua status` or https://ubuntu.com/advantage\n',
             m_stdout.getvalue())
 
     def test_can_disable_false_on_entitlement_inactive(self):
@@ -137,7 +137,7 @@ class TestUaEntitlement(TestCase):
             self.assertFalse(entitlement.can_enable())
         self.assertEqual(
             'This subscription is not entitled to Test Concrete Entitlement.\n'
-            'See `ua status` or https://ubuntu.com/advantage\n\n',
+            'See `ua status` or https://ubuntu.com/advantage\n',
             m_stdout.getvalue())
 
     def test_can_enable_false_on_entitlement_active(self):
