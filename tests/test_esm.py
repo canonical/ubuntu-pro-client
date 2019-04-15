@@ -15,17 +15,22 @@ class ESMTest(UbuntuAdvantageTest):
             'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
             '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
         expected_repo_list['trusty'] = (
-            'deb https://user:pass@esm.ubuntu.com/ubuntu trusty-security main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu trusty-security main\n'
+            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-security main\n'
+            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-security main\n'
             '\n'
-            'deb https://user:pass@esm.ubuntu.com/ubuntu trusty-updates main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu trusty-updates main\n')
+            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-updates main\n'
+            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-updates main\n')
         for series in ['precise', 'trusty']:
             self.SERIES = series
             process = self.script('enable-esm', 'user:pass')
             self.assertEqual(0, process.returncode)
             self.assertIn('Ubuntu ESM repository enabled', process.stdout)
-            self.assertEqual(expected_repo_list[series], self.repo_list.read_text())
+            self.assertEqual(expected_repo_list[series],
+                             self.repo_list.read_text())
             keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
             self.assertEqual('GPG key', keyring_file.read_text())
             # the apt-transport-https dependency is already installed
