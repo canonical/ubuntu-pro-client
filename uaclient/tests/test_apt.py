@@ -2,14 +2,17 @@
 
 import copy
 import glob
+import itertools
 import mock
 import os
 from textwrap import dedent
 
+import pytest
+
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
     add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
-    remove_apt_list_files, valid_apt_credentials)
+    remove_apt_list_files, remove_auth_apt_repo, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -435,3 +438,87 @@ class TestMigrateAptSources:
                 platform_info={'series': 'trusty', 'release': '14.04'})
         assert [] == m_add_apt.call_args_list
         assert [] == m_unlink.call_args_list
+
+
+@pytest.fixture(
+    params=itertools.product((mock.sentinel.default, None, 'some_string'),
+                             repeat=2))
+def remove_auth_apt_repo_kwargs(request):
+    """
+    Parameterized fixture to generate all permutations of kwargs we need
+
+    Note that this tests three states for each of keyring_file and fingerprint:
+    using the default, explicitly passing None and explicitly passing a string.
+    """
+    keyring_file, fingerprint = request.param
+    kwargs = {}
+    if keyring_file != mock.sentinel.default:
+        kwargs['keyring_file'] = keyring_file
+    if fingerprint != mock.sentinel.default:
+        kwargs['fingerprint'] = fingerprint
+    return kwargs
+
+
+class TestRemoveAuthAptRepo:
+
+    @mock.patch('uaclient.apt.util.subp', mock.Mock())
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
+    @mock.patch('uaclient.apt.util.del_file')
+    def test_repo_file_deleted(self, m_del_file, remove_auth_apt_repo_kwargs):
+        """Ensure that repo_filename is deleted, regardless of other params."""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        assert mock.call(repo_filename) in m_del_file.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp', mock.Mock())
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
+    @mock.patch('uaclient.apt.util.del_file', mock.Mock())
+    def test_remove_from_auth_file_called(
+            self, m_remove_repo, remove_auth_apt_repo_kwargs):
+        """Ensure that remove_repo_from_apt_auth_file is called."""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        assert mock.call(repo_url) in m_remove_repo.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp', mock.Mock())
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
+    @mock.patch('uaclient.apt.util.del_file')
+    def test_keyring_file_deleted_if_given(
+            self, m_del_file, remove_auth_apt_repo_kwargs):
+        """We should always delete the keyring file if it is given"""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        keyring_file = remove_auth_apt_repo_kwargs.get('keyring_file')
+        if keyring_file:
+            assert mock.call(keyring_file) in m_del_file.call_args_list
+        else:
+            assert mock.call(keyring_file) not in m_del_file.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
+    @mock.patch('uaclient.apt.util.del_file', mock.Mock())
+    def test_fingerprint_deleted_if_given_alone(
+            self, m_subp, remove_auth_apt_repo_kwargs):
+        """We should delete the fingerprint iff it is given without keyring"""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        fingerprint = remove_auth_apt_repo_kwargs.get('fingerprint')
+        keyring_file = remove_auth_apt_repo_kwargs.get('keyring_file')
+        if fingerprint and not keyring_file:
+            expected_call = mock.call(['apt-key', 'del', fingerprint],
+                                      capture=True)
+            assert [expected_call] == m_subp.call_args_list
+        else:
+            assert 0 == m_subp.call_count
