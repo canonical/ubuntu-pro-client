@@ -39,11 +39,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     ['apt-get', 'remove', '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
-            public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
-            public_cache['localEnabled'] = False
-            redacted_cache = util.redact_sensitive(public_cache)
-            self.cfg.write_cache(
-                'machine-access-%s' % self.name, redacted_cache, private=False)
+            self._set_local_enabled(False)
         if not silent:
             print('Warning: no option to disable {title}'.format(
                 title=self.title)

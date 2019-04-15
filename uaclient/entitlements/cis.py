@@ -40,9 +40,5 @@ class CISEntitlement(repo.RepoEntitlement):
             util.subp(['apt-get', 'remove', '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
-        public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
-        public_cache['localEnabled'] = False
-        redacted_cache = util.redact_sensitive(public_cache)
-        self.cfg.write_cache(
-            'machine-access-%s' % self.name, redacted_cache, private=False)
+        self._set_local_enabled(False)
         return True

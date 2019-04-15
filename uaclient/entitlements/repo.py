@@ -108,11 +108,7 @@ class RepoEntitlement(base.UAEntitlement):
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
                 return False
-        public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
-        public_cache['localEnabled'] = True
-        redacted_cache = util.redact_sensitive(public_cache)
-        self.cfg.write_cache(
-            'machine-access-%s' % self.name, redacted_cache, private=False)
+        self._set_local_enabled(True)
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -140,3 +136,11 @@ class RepoEntitlement(base.UAEntitlement):
             # policy will show APT_DISABLED_PIN for authenticated sources
             return status.ACTIVE, '%s is active' % self.title
         return status.INACTIVE, '%s is not configured' % self.title
+
+    def _set_local_enabled(self, value):
+        """Set local enabled flag true or false."""
+        public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
+        public_cache['localEnabled'] = value
+        redacted_cache = util.redact_sensitive(public_cache)
+        self.cfg.write_cache(
+            'machine-access-%s' % self.name, redacted_cache, private=False)
