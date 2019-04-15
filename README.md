@@ -1,6 +1,6 @@
 # ubuntu-advantage tool
 
-[![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script.svg?branch=master)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-script)
+[![Build Status](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-client.svg?branch=ua-trusty-esm-old-client)](https://travis-ci.org/CanonicalLtd/ubuntu-advantage-client)
 
 This tool is used to enable or disable specific Ubuntu Advantage offerings from Canonical.
 
