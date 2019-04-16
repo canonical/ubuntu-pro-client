@@ -63,25 +63,13 @@ This machine is not attached to a UA subscription.
 See `ua attach` or https://ubuntu.com/advantage
 """
 
-STATUS_TMPL = '{name: <14}{entitlement_level: <26}{service_status}'
-
-
-def format_entitlement_status(entitlement, as_dict=False):
-    """Format entitlement status for print or as a dictionary."""
-    contract_status = entitlement.contract_status()
-    operational_status, _details = entitlement.operational_status()
-    fmt_args = {
-        'name': entitlement.name,
-        'entitlement_level': STATUS_COLOR.get(
-            contract_status, contract_status),
-        'service_status': STATUS_COLOR.get(
-            operational_status, operational_status)}
-    if as_dict:
-        # Don't colorize json
-        fmt_args['entitlement_level'] = contract_status
-        fmt_args['service_status'] = operational_status
-        return fmt_args
-    return STATUS_TMPL.format(**fmt_args)
+STATUS_HEADER_TMPL = """\
+Account: {account}
+Subscription: {subscription}
+Valid until: {expires}
+Technical support level: {techSupportLevel}
+"""
+STATUS_TMPL = '{name: <14}{entitled: <26}{status}'
 
 
 def get_upgradeable_esm_package_count():
@@ -103,3 +91,25 @@ def get_upgradeable_esm_package_count():
                     upgrade_count += 1
                     break
     return upgrade_count
+
+
+def format_tabular(status):
+    """Format status dict for tabular output."""
+    if not status['attached']:
+        return MESSAGE_UNATTACHED
+    content = [STATUS_HEADER_TMPL.format(
+        account=status['account'],
+        subscription=status['subscription'],
+        expires=status['expires'],
+        techSupportLevel=status['techSupportLevel'])]
+
+    for service_status in status['services']:
+        entitled = service_status['entitled']
+        fmt_args = {
+            'name': service_status['name'],
+            'entitled': STATUS_COLOR.get(entitled, entitled),
+            'status': STATUS_COLOR.get(
+                service_status['status'], service_status['status'])}
+        content.append(STATUS_TMPL.format(**fmt_args))
+    content.append('\nEnable entitlements with `ua enable <service>`')
+    return '\n'.join(content)
