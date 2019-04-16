@@ -83,9 +83,8 @@ def is_exe(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def load_file(filename):
-    """Read filename and return content."""
-    logging.debug('Reading file: %s', filename)
+def load_file(filename, decode=True):
+    """Read filename and decode content."""
     with open(filename, 'rb') as stream:
         content = stream.read()
     return content.decode('utf-8')

@@ -53,32 +53,7 @@ class TestUaEntitlement(TestCase):
         entitlement = ConcreteTestEntitlement(cfg)
         self.assertEqual('/some/path', entitlement.cfg.data_dir)
 
-    @mock.patch('os.getuid', return_value=100)
-    def test_can_disable_requires_root(self, m_getuid):
-        """Non-root users receive False from UAEntitlement.can_disable."""
-        cfg = config.UAConfig(cfg={})
-        entitlement = ConcreteTestEntitlement(cfg)
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertFalse(entitlement.can_disable())
-        self.assertEqual(
-            'This command must be run as root (try using sudo)\n',
-            m_stdout.getvalue())
-
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_disable_false_on_unattached_machine(self, m_getuid):
-        """An unattached machine will return False from can_disable."""
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        entitlement = ConcreteTestEntitlement(cfg)
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertFalse(entitlement.can_disable())
-        self.assertEqual(
-            'This machine is not attached to a UA subscription.\n'
-            'See `ua attach` or https://ubuntu.com/advantage\n\n',
-            m_stdout.getvalue())
-
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_disable_false_on_unentitled(self, m_getuid):
+    def test_can_disable_false_on_unentitled(self):
         """When entitlement contract is not enabled, can_disable is False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -101,8 +76,7 @@ class TestUaEntitlement(TestCase):
             'See `ua status` or https://ubuntu.com/advantage\n\n',
             m_stdout.getvalue())
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_disable_false_on_entitlement_inactive(self, m_getuid):
+    def test_can_disable_false_on_entitlement_inactive(self):
         """When operational status is INACTIVE, can_disable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -125,8 +99,7 @@ class TestUaEntitlement(TestCase):
             'See `ua status`\n',
             m_stdout.getvalue())
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_disable_true_on_entitlement_active(self, m_getuid):
+    def test_can_disable_true_on_entitlement_active(self):
         """When operational status is ACTIVE, can_disable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -145,32 +118,7 @@ class TestUaEntitlement(TestCase):
             self.assertTrue(entitlement.can_disable())
         self.assertEqual('', m_stdout.getvalue())
 
-    @mock.patch('os.getuid', return_value=100)
-    def test_can_enable_requires_root(self, m_getuid):
-        """Non-root users receive False from UAEntitlement.can_enable."""
-        cfg = config.UAConfig(cfg={})
-        entitlement = ConcreteTestEntitlement(cfg)
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertFalse(entitlement.can_enable())
-        self.assertEqual(
-            'This command must be run as root (try using sudo)\n',
-            m_stdout.getvalue())
-
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_false_on_unattached_machine(self, m_getuid):
-        """An unattached machine will return False from can_enable."""
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
-        entitlement = ConcreteTestEntitlement(cfg)
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertFalse(entitlement.can_enable())
-        self.assertEqual(
-            'This machine is not attached to a UA subscription.\n'
-            'See `ua attach` or https://ubuntu.com/advantage\n\n',
-            m_stdout.getvalue())
-
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_false_on_unentitled(self, m_getuid):
+    def test_can_enable_false_on_unentitled(self):
         """When entitlement contract is not enabled, can_enable is False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -192,8 +140,7 @@ class TestUaEntitlement(TestCase):
             'See `ua status` or https://ubuntu.com/advantage\n\n',
             m_stdout.getvalue())
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_false_on_entitlement_active(self, m_getuid):
+    def test_can_enable_false_on_entitlement_active(self):
         """When operational status is ACTIVE, can_enable returns False."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
@@ -214,8 +161,7 @@ class TestUaEntitlement(TestCase):
             'Test Concrete Entitlement is already enabled.\nSee `ua status`\n',
             m_stdout.getvalue())
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_true_on_entitlement_inactive(self, m_getuid):
+    def test_can_enable_true_on_entitlement_inactive(self):
         """When operational status is INACTIVE, can_enable returns True."""
         tmp_dir = self.tmp_dir()
         cfg = config.UAConfig(cfg={'data_dir': tmp_dir})

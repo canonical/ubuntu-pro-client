@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import sys
-import textwrap
 
 from uaclient import config
 from uaclient import contract
@@ -46,8 +45,20 @@ UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
 
-
 STATUS_FORMATS = ['tabular', 'json']
+
+
+def assert_attached_root(func):
+    """Decorator asserting root user and attached config."""
+    def wrapper(args, cfg):
+        if not cfg.is_attached:
+            print(ua_status.MESSAGE_UNATTACHED)
+            return 1
+        if os.getuid() != 0:
+            print(ua_status.MESSAGE_NONROOT_USER)
+            return 1
+        return func(args, cfg)
+    return wrapper
 
 
 def attach_parser(parser=None):
@@ -160,6 +171,7 @@ def status_parser(parser=None):
     return parser
 
 
+@assert_attached_root
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -173,36 +185,32 @@ def action_disable(args, cfg):
         return 1
 
 
+@assert_attached_root
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
+    logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
+    if not contract.request_updated_contract(cfg):
+        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     return 0 if entitlement.enable() else 1
 
 
+@assert_attached_root
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
     """
-    if not cfg.is_attached:
-        print(textwrap.dedent("""\
-            This machine is not attached to a UA Subscription, sign up here:
-                  https://ubuntu.com/advantage
-        """))
-        return 1
-    if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
     cfg.delete_cache()
-    print('This machine is now detached')
+    print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
 
@@ -224,7 +232,7 @@ def action_attach(args, cfg):
         bound_macaroon = bound_macaroon_bytes.decode('utf-8')
         cfg.write_cache('bound-macaroon', bound_macaroon)
         try:
-            contract_client.request_accounts(bound_macaroon)
+            contract_client.request_accounts(macaroon_token=bound_macaroon)
             contract_token = contract.get_contract_token_for_account(
                 contract_client, bound_macaroon, cfg.accounts[0]['id'])
         except (sso.SSOAuthError, util.UrlError) as e:
@@ -234,18 +242,18 @@ def action_attach(args, cfg):
             return 1
     else:
         contract_token = args.token
-
-    machine_token_response = contract_client.request_contract_machine_attach(
-        contract_token=contract_token)
-    contractInfo = machine_token_response['machineTokenInfo']['contractInfo']
-    for entitlement in contractInfo['resourceEntitlements']:
-        if entitlement.get('entitled'):
-            # Obtain each entitlement's accessContext for this machine
-            entitlement_name = entitlement['type']
-            contract_client.request_resource_machine_access(
-                cfg.machine_token['machineToken'], entitlement_name)
-    print("This machine is now attached to '%s'.\n" %
-          machine_token_response['machineTokenInfo']['contractInfo']['name'])
+    if not contract_token:
+        print('No valid contract token available')
+        return 1
+    if not contract.request_updated_contract(cfg, contract_token):
+        print(
+            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
+        return 1
+    contract_name = (
+        cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name))
     action_status(args=None, cfg=cfg)
     return 0
 
@@ -286,6 +294,10 @@ def get_parser():
         help='disable a specific support entitlement on this machine')
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
+    parser_refresh = subparsers.add_parser(
+        'refresh', help=(
+            'Refresh ubuntu-advantage entitlements from contracts server.'))
+    parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
     parser_version.set_defaults(action=print_version)
@@ -306,6 +318,16 @@ def action_status(args, cfg):
 
 def print_version(_args=None, _cfg=None):
     print(version.get_version())
+
+
+@assert_attached_root
+def action_refresh(args, cfg):
+    if contract.request_updated_contract(cfg):
+        print(ua_status.MESSAGE_REFRESH_SUCCESS)
+        logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
+        return 0
+    logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
+    return 1
 
 
 def setup_logging(level=logging.INFO, log_file=None):

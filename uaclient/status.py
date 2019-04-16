@@ -71,6 +71,27 @@ Technical support level: {techSupportLevel}
 """
 STATUS_TMPL = '{name: <14}{entitled: <26}{status}'
 
+MESSAGE_ATTACH_FAILURE_TMPL = """\
+Could not attach machine. Error contacting server {url}"""
+MESSAGE_ATTACH_SUCCESS_TMPL = """\
+This machine is now attached to '{contract_name}'.
+"""
+MESSAGE_DETACH_SUCCESS = 'This machine is now detached'
+
+MESSAGE_REFRESH_ENABLE = 'Refreshing contracts prior to enable'
+MESSAGE_REFRESH_SUCCESS = 'Refreshed Ubuntu Advantage contracts.'
+MESSAGE_REFRESH_FAILURE = 'Failure to refresh Ubuntu Advantage contracts.'
+
+
+def format_entitlement_status(entitlement):
+    contract_status = entitlement.contract_status()
+    operational_status, _details = entitlement.operational_status()
+    fmt_args = {
+        'name': entitlement.name,
+        'contract_state': STATUS_COLOR.get(contract_status, contract_status),
+        'status': STATUS_COLOR.get(operational_status, operational_status)}
+    return STATUS_TMPL.format(**fmt_args)
+
 
 def get_upgradeable_esm_package_count():
     import apt_pkg
