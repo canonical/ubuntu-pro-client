@@ -295,7 +295,7 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    if args.format == 'json':
+    if args and args.format == 'json':
         status = cfg.status()
         if status['expires'] != ua_status.INAPPLICABLE:
             status['expires'] = str(status['expires'])
