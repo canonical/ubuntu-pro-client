@@ -6,7 +6,7 @@ from fakes import APT_GET_LOG_WRAPPER
 
 class ESMTest(UbuntuAdvantageTest):
 
-    SERIES = 'precise'
+    SERIES = 'trusty'
 
     def test_enable_esm_precise(self):
         """The enable-esm option enables the ESM repository on p."""
