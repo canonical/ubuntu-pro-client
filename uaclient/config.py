@@ -180,9 +180,6 @@ class UAConfig(object):
 
     def delete_cache(self):
         """Remove configuration cached response files class attributes."""
-        self._contracts = None
-        self._entitlements = None
-        self._machine_token = None
         for path_key in self.data_paths.keys():
             self.delete_cache_key(path_key)
 
