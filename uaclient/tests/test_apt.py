@@ -5,6 +5,7 @@ import glob
 import itertools
 import mock
 import os
+import stat
 from textwrap import dedent
 
 import pytest
@@ -12,7 +13,8 @@ import pytest
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
     add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
-    remove_apt_list_files, remove_auth_apt_repo, valid_apt_credentials)
+    remove_apt_list_files, remove_auth_apt_repo,
+    remove_repo_from_apt_auth_file, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -522,3 +524,71 @@ class TestRemoveAuthAptRepo:
             assert [expected_call] == m_subp.call_args_list
         else:
             assert 0 == m_subp.call_count
+
+
+class TestRemoveRepoFromAptAuthFile:
+
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.util.write_file')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_auth_file_doesnt_exist_means_we_dont_remove_or_write_it(
+            self, m_get_apt_auth_file, m_write_file, m_unlink, tmpdir):
+        """If the auth file doesn't exist, we shouldn't do anything to it"""
+        m_get_apt_auth_file.return_value = tmpdir.join('nonexistent').strpath
+
+        remove_repo_from_apt_auth_file('http://url')
+
+        assert 0 == m_write_file.call_count
+        assert 0 == m_unlink.call_count
+
+    @pytest.mark.parametrize('trailing_slash', (True, False))
+    @pytest.mark.parametrize('repo_url,auth_file_content', (
+        ('http://url1', b''),
+        ('http://url2', b'machine url2/ login trailing content'),
+        ('http://url3', b'machine url3/ login'),
+        ('http://url4', b'leading content machine url4/ login'),
+        ('http://url4',
+         b'leading content machine url4/ login trailing content'),
+    ))
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.util.write_file')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_file_removal(self, m_get_apt_auth_file, m_write_file, m_unlink,
+                          tmpdir, trailing_slash, repo_url, auth_file_content):
+        """Check that auth file is rm'd if empty or contains just our line"""
+        auth_file = tmpdir.join('auth_file')
+        auth_file.write_binary(auth_file_content)
+        m_get_apt_auth_file.return_value = auth_file.strpath
+
+        remove_repo_from_apt_auth_file(
+            repo_url + ('' if not trailing_slash else '/'))
+
+        assert 0 == m_write_file.call_count
+        assert [mock.call(auth_file.strpath)] == m_unlink.call_args_list
+
+    @pytest.mark.parametrize('trailing_slash', (True, False))
+    @pytest.mark.parametrize('repo_url,before_content,after_content', (
+        ('http://url1', b'should not be changed', b'should not be changed'),
+        ('http://url1', b'line before\nmachine url1/ login', b'line before'),
+        ('http://url1', b'machine url1/ login\nline after', b'line after'),
+        ('http://url1', b'line before\nmachine url1/ login\nline after',
+         b'line before\nline after'),
+        ('http://url1', b'unicode \xe2\x98\x83\nmachine url1/ login',
+         b'unicode \xe2\x98\x83'),
+    ))
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_file_rewrite(self, m_get_apt_auth_file, m_unlink, tmpdir,
+                          repo_url, before_content, after_content,
+                          trailing_slash):
+        """Check that auth file is rewritten to only exclude our line"""
+        auth_file = tmpdir.join('auth_file')
+        auth_file.write_binary(before_content)
+        m_get_apt_auth_file.return_value = auth_file.strpath
+
+        remove_repo_from_apt_auth_file(
+            repo_url + ('' if not trailing_slash else '/'))
+
+        assert 0 == m_unlink.call_count
+        assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
+        assert after_content == auth_file.read_binary()
