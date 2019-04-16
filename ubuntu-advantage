@@ -14,7 +14,7 @@ ARCH=${ARCH:-$(uname -m)}
 FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
-ESM_REPO_URL="esm.ubuntu.com"
+ESM_REPO_HOST="esm.ubuntu.com"
 ESM_REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-esm-v2-keyring.gpg"
 ESM_REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
@@ -156,25 +156,28 @@ _apt_remove_auth() {
 write_esm_list_file() {
     if [ "${SERIES}" = "precise" ]; then
         cat > "$ESM_REPO_LIST" <<EOF
-deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
+deb https://${ESM_REPO_HOST}/ubuntu ${SERIES} main
+# deb-src https://${ESM_REPO_HOST}/ubuntu ${SERIES} main
 EOF
     else
         cat > "$ESM_REPO_LIST" <<EOF
-deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-security main
-# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-security main
+deb https://${ESM_REPO_HOST}/ubuntu ${SERIES}-security main
+# deb-src https://${ESM_REPO_HOST}/ubuntu ${SERIES}-security main
 
-deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-updates main
-# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-updates main
+deb https://${ESM_REPO_HOST}/ubuntu ${SERIES}-updates main
+# deb-src https://${ESM_REPO_HOST}/ubuntu ${SERIES}-updates main
 EOF
     fi
 }
 
 enable_esm() {
+    local token="$1"
+
     for f in ${ESM_REPO_KEY_FILES}; do
         cp "${KEYRINGS_DIR}/${f}" "$APT_KEYS_DIR"
     done
-    write_esm_list_file "$1"
+    write_esm_list_file "${token}"
+    _apt_add_auth "${ESM_REPO_HOST}" "${token}"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
     echo -n 'Running apt-get update... '
@@ -188,6 +191,7 @@ disable_esm() {
         for f in ${ESM_REPO_KEY_FILES}; do
             rm -f "$APT_KEYS_DIR/$f"
         done
+        _apt_remove_auth "${ESM_REPO_HOST}"
         echo -n 'Running apt-get update... '
         check_result apt_get update
         echo 'Ubuntu ESM repository disabled.'
@@ -299,7 +303,7 @@ is_fips_enabled() {
 }
 
 is_esm_enabled() {
-    apt-cache policy | grep -Fq "$ESM_REPO_URL"
+    apt-cache policy | grep -Fq "$ESM_REPO_HOST"
 }
 
 is_livepatch_enabled() {
