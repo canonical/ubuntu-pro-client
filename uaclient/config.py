@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 import json
 import logging
 import os
@@ -197,6 +198,33 @@ class UAConfig(object):
             util.write_file(filepath, content, mode=0o600)
         else:
             util.write_file(filepath, content)
+
+    def status(self):
+        """Return configuration status as a dictionary."""
+        from uaclient.entitlements import ENTITLEMENT_CLASSES
+        from uaclient import status
+        response = {
+            'attached': self.is_attached,
+            'expires': status.INAPPLICABLE,
+            'services': [],
+            'techSupportLevel': status.INAPPLICABLE}
+        if not self.is_attached:
+            return response
+        response['account'] = self.accounts[0]['name']
+        contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
+        response['subscription'] = contractInfo['name']
+        if contractInfo.get('effectiveTo'):
+            response['expires'] = datetime.strptime(
+                contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
+        for ent_cls in ENTITLEMENT_CLASSES:
+            ent = ent_cls(self)
+            contract_status = ent.contract_status()
+            op_status, op_details = ent.operational_status()
+            service_status = {
+                'name': ent.name, 'entitled': contract_status,
+                'status': op_status, 'statusDetails': op_details}
+            response['services'].append(service_status)
+        return response
 
 
 def parse_config(config_path=None):

@@ -14,7 +14,7 @@ Available entitlements:
 """
 
 import argparse
-from datetime import datetime
+import json
 import logging
 import os
 import sys
@@ -45,6 +45,9 @@ UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
+
+
+STATUS_FORMATS = ['tabular', 'json']
 
 
 def attach_parser(parser=None):
@@ -148,6 +151,11 @@ def status_parser(parser=None):
     else:
         parser.usage = usage
         parser.prog = 'status'
+    parser.add_argument(
+        '--format', action='store', choices=STATUS_FORMATS,
+        default=STATUS_FORMATS[0],
+        help=('Output status in the request format. Default: %s' %
+              STATUS_FORMATS[0]))
     parser._optionals.title = 'Flags'
     return parser
 
@@ -287,33 +295,13 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    if not cfg.is_attached:
-        print(ua_status.MESSAGE_UNATTACHED)
-        return
-    contractInfo = cfg.machine_token['machineTokenInfo']['contractInfo']
-    expiry = datetime.strptime(
-        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
-
-    status_content = []
-    support_entitlement = cfg.entitlements.get('support')
-    tech_support = ua_status.COMMUNITY
-    if support_entitlement:
-        tech_support = support_entitlement.get(
-            'affordances', {}).get('supportLevel', ua_status.COMMUNITY)
-    tech_support_txt = ua_status.STATUS_COLOR.get(
-        tech_support) or ua_status.STATUS_COLOR[ua_status.COMMUNITY]
-    account = cfg.accounts[0]
-    status_content.append(STATUS_HEADER_TMPL.format(
-        account=account['name'],
-        subscription=contractInfo['name'],
-        contract_expiry=expiry.date(),
-        tech_support_level=tech_support_txt))
-
-    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls(cfg)
-        status_content.append(ua_status.format_entitlement_status(ent))
-    status_content.append('\nEnable entitlements with `ua enable <service>`\n')
-    print('\n'.join(status_content))
+    if args and args.format == 'json':
+        status = cfg.status()
+        if status['expires'] != ua_status.INAPPLICABLE:
+            status['expires'] = str(status['expires'])
+        print(json.dumps(status))
+    else:
+        print(ua_status.format_tabular(cfg.status()))
 
 
 def print_version(_args=None, _cfg=None):
