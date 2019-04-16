@@ -23,7 +23,7 @@ class ESMTest(UbuntuAdvantageTest):
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
-             process.stdout)
+            process.stdout)
 
     def test_enable_esm_trusty(self):
         """The enable-esm option enables the ESM repository on t."""
@@ -47,7 +47,7 @@ class ESMTest(UbuntuAdvantageTest):
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
-             process.stdout)
+            process.stdout)
 
     def test_enable_esm_install_apt_transport_https(self):
         """enable-esm installs apt-transport-https if needed."""
