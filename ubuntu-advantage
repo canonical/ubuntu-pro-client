@@ -14,9 +14,9 @@ ARCH=${ARCH:-$(uname -m)}
 FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
-REPO_URL="esm.ubuntu.com"
-REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-esm-v2-keyring.gpg"
-REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+ESM_REPO_URL="esm.ubuntu.com"
+ESM_REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-esm-v2-keyring.gpg"
+ESM_REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
 APT_METHOD_HTTPS=${APT_METHOD_HTTPS:-"/usr/lib/apt/methods/https"}
@@ -155,23 +155,23 @@ _apt_remove_auth() {
 
 write_esm_list_file() {
     if [ "${SERIES}" = "precise" ]; then
-        cat > "$REPO_LIST" <<EOF
-deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
-# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
+        cat > "$ESM_REPO_LIST" <<EOF
+deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
+# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES} main
 EOF
     else
-        cat > "$REPO_LIST" <<EOF
-deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
-# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
+        cat > "$ESM_REPO_LIST" <<EOF
+deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-security main
+# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-security main
 
-deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
-# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
+deb https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-updates main
+# deb-src https://${1}@${ESM_REPO_URL}/ubuntu ${SERIES}-updates main
 EOF
     fi
 }
 
 enable_esm() {
-    for f in ${REPO_KEY_FILES}; do
+    for f in ${ESM_REPO_KEY_FILES}; do
         cp "${KEYRINGS_DIR}/${f}" "$APT_KEYS_DIR"
     done
     write_esm_list_file "$1"
@@ -183,9 +183,9 @@ enable_esm() {
 }
 
 disable_esm() {
-    if [ -f "$REPO_LIST" ]; then
-        mv "$REPO_LIST" "${REPO_LIST}.save"
-        for f in ${REPO_KEY_FILES}; do
+    if [ -f "$ESM_REPO_LIST" ]; then
+        mv "$ESM_REPO_LIST" "${ESM_REPO_LIST}.save"
+        for f in ${ESM_REPO_KEY_FILES}; do
             rm -f "$APT_KEYS_DIR/$f"
         done
         echo -n 'Running apt-get update... '
@@ -299,7 +299,7 @@ is_fips_enabled() {
 }
 
 is_esm_enabled() {
-    apt-cache policy | grep -Fq "$REPO_URL"
+    apt-cache policy | grep -Fq "$ESM_REPO_URL"
 }
 
 is_livepatch_enabled() {
