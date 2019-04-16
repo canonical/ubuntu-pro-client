@@ -6,19 +6,44 @@ from fakes import APT_GET_LOG_WRAPPER
 
 class ESMTest(UbuntuAdvantageTest):
 
-    SERIES = 'precise'
+    SERIES = 'trusty'
 
-    def test_enable_esm(self):
-        """The enable-esm option enables the ESM repository."""
+    def test_enable_esm_precise(self):
+        """The enable-esm option enables the ESM repository on p."""
+        self.SERIES = 'precise'
+        expected_repo_list = (
+            'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
+            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
-        expected = (
-            'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
-        self.assertEqual(expected, self.repo_list.read_text())
+        self.assertEqual(expected_repo_list, self.repo_list.read_text())
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
+        # the apt-transport-https dependency is already installed
+        self.assertNotIn(
+            'Installing missing dependency apt-transport-https',
+            process.stdout)
+
+    def test_enable_esm_trusty(self):
+        """The enable-esm option enables the ESM repository on t."""
+        self.SERIES = 'trusty'
+        expected_repo_list = (
+            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-security main\n'
+            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-security main\n'
+            '\n'
+            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-updates main\n'
+            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            'trusty-updates main\n')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn('Ubuntu ESM repository enabled', process.stdout)
+        self.assertEqual(expected_repo_list, self.repo_list.read_text())
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-trusty-esm-keyring.gpg'
+        self.assertEqual('GPG key trusty', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
             'Installing missing dependency apt-transport-https',
@@ -105,14 +130,15 @@ class ESMTest(UbuntuAdvantageTest):
             'Invalid token, it must be in the form "user:password"',
             process.stderr)
 
-    def test_enable_esm_only_supported_on_precise(self):
-        """The enable-esm option fails if not on Precise."""
-        self.SERIES = 'xenial'
-        process = self.script('enable-esm', 'user:pass')
-        self.assertEqual(4, process.returncode)
-        self.assertIn(
-            'Extended Security Maintenance is not supported on xenial',
-            process.stderr)
+    def test_enable_esm_fails_on_x_b_c_d(self):
+        """The enable-esm option fails on X, B, C, D."""
+        for series in ['xenial', 'bionic', 'cosmic', 'disco']:
+            self.SERIES = series
+            process = self.script('enable-esm', 'user:pass')
+            self.assertEqual(4, process.returncode)
+            self.assertIn(
+                'Extended Security Maintenance is not supported on '
+                '{}'.format(series), process.stderr)
 
     def test_disable_esm(self):
         """The disable-esm option disables the ESM repository."""
@@ -121,9 +147,12 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository disabled', process.stdout)
         self.assertFalse(self.repo_list.exists())
-        # the keyring file is removed
-        keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
-        self.assertFalse(keyring_file.exists())
+        # the keyring files are removed
+        keyring_file_precise = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
+        keyring_file_trusty = (
+            self.trusted_gpg_dir / 'ubuntu-trusty-esm-keyring.gpg')
+        self.assertFalse(keyring_file_precise.exists())
+        self.assertFalse(keyring_file_trusty.exists())
 
     def test_disable_esm_disabled(self):
         """If the ESM repo is not enabled, disable-esm is a no-op."""
@@ -131,14 +160,15 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository was not enabled', process.stdout)
 
-    def test_disable_esm_only_supported_on_precise(self):
-        """The disable-esm option fails if not on Precise."""
-        self.SERIES = 'xenial'
-        process = self.script('disable-esm')
-        self.assertEqual(4, process.returncode)
-        self.assertIn(
-            'Extended Security Maintenance is not supported on xenial',
-            process.stderr)
+    def test_disable_esm_fails_on_x_b_c_d(self):
+        """The disable-esm option fails on X, B, C, D."""
+        for series in ['xenial', 'bionic', 'cosmic', 'disco']:
+            self.SERIES = series
+            process = self.script('disable-esm')
+            self.assertEqual(4, process.returncode)
+            self.assertIn(
+                'Extended Security Maintenance is not supported on '
+                '{}'.format(series), process.stderr)
 
     def test_is_esm_enabled_true(self):
         """is-esm-enabled returns 0 if the repository is enabled."""

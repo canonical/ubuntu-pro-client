@@ -3,7 +3,7 @@
 
 SCRIPTNAME=$(basename "$0")
 
-ESM_SUPPORTED_SERIES="precise"
+ESM_SUPPORTED_SERIES="precise trusty"
 LIVEPATCH_SUPPORTED_SERIES="trusty xenial"
 FIPS_SUPPORTED_SERIES="xenial"
 
@@ -15,7 +15,7 @@ FIPS_REPO_URL="private-ppa.launchpad.net/ubuntu-advantage/fips"
 FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
 REPO_URL="esm.ubuntu.com"
-REPO_KEY_FILE="ubuntu-esm-keyring.gpg"
+REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-trusty-esm-keyring.gpg"
 REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
@@ -135,14 +135,26 @@ disable_livepatch() {
 }
 
 write_esm_list_file() {
-    cat > "$REPO_LIST" <<EOF
+    if [ "${SERIES}" = "precise" ]; then
+        cat > "$REPO_LIST" <<EOF
 deb https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 # deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES} main
 EOF
+    else
+        cat > "$REPO_LIST" <<EOF
+deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
+# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-security main
+
+deb https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
+# deb-src https://${1}@${REPO_URL}/ubuntu ${SERIES}-updates main
+EOF
+    fi
 }
 
 enable_esm() {
-    cp "${KEYRINGS_DIR}/${REPO_KEY_FILE}" "$APT_KEYS_DIR"
+    for f in ${REPO_KEY_FILES}; do
+        cp "${KEYRINGS_DIR}/${f}" "$APT_KEYS_DIR"
+    done
     write_esm_list_file "$1"
     install_package_if_missing_file "$APT_METHOD_HTTPS" apt-transport-https
     install_package_if_missing_file "$CA_CERTIFICATES" ca-certificates
@@ -154,7 +166,9 @@ enable_esm() {
 disable_esm() {
     if [ -f "$REPO_LIST" ]; then
         mv "$REPO_LIST" "${REPO_LIST}.save"
-        rm -f "$APT_KEYS_DIR/$REPO_KEY_FILE"
+        for f in ${REPO_KEY_FILES}; do
+            rm -f "$APT_KEYS_DIR/$f"
+        done
         echo -n 'Running apt-get update... '
         check_result apt_get update
         echo 'Ubuntu ESM repository disabled.'
