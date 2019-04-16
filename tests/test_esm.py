@@ -160,14 +160,15 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository was not enabled', process.stdout)
 
-    def test_disable_esm_only_supported_on_precise(self):
-        """The disable-esm option fails if not on Precise."""
-        self.SERIES = 'xenial'
-        process = self.script('disable-esm')
-        self.assertEqual(4, process.returncode)
-        self.assertIn(
-            'Extended Security Maintenance is not supported on xenial',
-            process.stderr)
+    def test_disable_esm_fails_on_x_b_c_d(self):
+        """The disable-esm option fails on X, B, C, D."""
+        for series in ['xenial', 'bionic', 'cosmic', 'disco']:
+            self.SERIES = series
+            process = self.script('disable-esm')
+            self.assertEqual(4, process.returncode)
+            self.assertIn(
+                'Extended Security Maintenance is not supported on '
+                '{}'.format(series), process.stderr)
 
     def test_is_esm_enabled_true(self):
         """is-esm-enabled returns 0 if the repository is enabled."""
