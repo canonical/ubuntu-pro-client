@@ -12,8 +12,8 @@ class ESMTest(UbuntuAdvantageTest):
         """The enable-esm option enables the ESM repository on p."""
         self.SERIES = 'precise'
         expected_repo_list = (
-            'deb https://user:pass@esm.ubuntu.com/ubuntu precise main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu precise main\n')
+            'deb https://esm.ubuntu.com/ubuntu precise main\n'
+            '# deb-src https://esm.ubuntu.com/ubuntu precise main\n')
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
@@ -29,14 +29,14 @@ class ESMTest(UbuntuAdvantageTest):
         """The enable-esm option enables the ESM repository on t."""
         self.SERIES = 'trusty'
         expected_repo_list = (
-            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'deb https://esm.ubuntu.com/ubuntu '
             'trusty-security main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            '# deb-src https://esm.ubuntu.com/ubuntu '
             'trusty-security main\n'
             '\n'
-            'deb https://user:pass@esm.ubuntu.com/ubuntu '
+            'deb https://esm.ubuntu.com/ubuntu '
             'trusty-updates main\n'
-            '# deb-src https://user:pass@esm.ubuntu.com/ubuntu '
+            '# deb-src https://esm.ubuntu.com/ubuntu '
             'trusty-updates main\n')
         process = self.script('enable-esm', 'user:pass')
         self.assertEqual(0, process.returncode)
