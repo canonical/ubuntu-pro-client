@@ -42,7 +42,7 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
         self.assertEqual(expected_repo_list, self.repo_list.read_text())
-        keyring_file = self.trusted_gpg_dir / 'ubuntu-trusty-esm-keyring.gpg'
+        keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-v2-keyring.gpg'
         self.assertEqual('GPG key trusty', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
@@ -150,7 +150,7 @@ class ESMTest(UbuntuAdvantageTest):
         # the keyring files are removed
         keyring_file_precise = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         keyring_file_trusty = (
-            self.trusted_gpg_dir / 'ubuntu-trusty-esm-keyring.gpg')
+            self.trusted_gpg_dir / 'ubuntu-esm-v2-keyring.gpg')
         self.assertFalse(keyring_file_precise.exists())
         self.assertFalse(keyring_file_trusty.exists())
 

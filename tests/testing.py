@@ -63,7 +63,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.fstab.write_text('')
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
-        (self.keyrings_dir / 'ubuntu-trusty-esm-keyring.gpg').write_text(
+        (self.keyrings_dir / 'ubuntu-esm-v2-keyring.gpg').write_text(
             'GPG key trusty')
         (self.keyrings_dir / 'ubuntu-fips-keyring.gpg').write_text('GPG key')
         self.make_fake_binary('apt-get')
