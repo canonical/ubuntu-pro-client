@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (10ubuntu0.14.04.3) trusty; urgency=medium
+
+  * Enabled support for Trusty ESM (LP: #1825239)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 17 Apr 2019 20:18:12 +0000
+
 ubuntu-advantage-tools (10ubuntu0.14.04.2) trusty; urgency=medium
 
   * Skipping tests during package builds.
