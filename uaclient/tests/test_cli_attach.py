@@ -124,6 +124,81 @@ class TestActionAttach(unittest.TestCase):
         assert mock.call(expected_msg) in stdout.write.call_args_list
 
 
+class TestActionAttachEnableByDefault:
+
+    @pytest.mark.parametrize('entitlement', (
+        None,
+        {'type': 'test'},
+        {'type': 'test', 'obligations': {}},
+        {'type': 'test', 'obligations': {'otherObligation': 'exists'}},
+        {'type': 'test', 'obligations': {'enableByDefault': False}},
+    ))
+    @mock.patch(M_PATH + '_perform_enable')
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(
+        M_PATH + 'contract.UAContractClient.request_contract_machine_attach')
+    @mock.patch(M_PATH + 'action_status')
+    @mock.patch(M_PATH + 'os.getuid', return_value=0)
+    def test_dont_enable_cases(self, m_getuid, m_action_status,
+                               m_contract_machine_attach,
+                               m_discharge_root_macaroon, m_perform_enable,
+                               entitlement):
+        """We should not enable if enableByDefault is missing or False"""
+        token = 'contract-token'
+        args = mock.MagicMock(token=token)
+        cfg = FakeConfig.with_account()
+
+        entitlements = [entitlement] if entitlement else []
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {
+                'name': 'mycontract', 'resourceEntitlements': entitlements}}}
+
+        def fake_contract_attach(contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return machine_token
+
+        m_contract_machine_attach.side_effect = fake_contract_attach
+
+        ret = action_attach(args, cfg)
+
+        assert 0 == ret
+        assert 1 == m_action_status.call_count
+        assert 0 == m_perform_enable.call_count
+
+    @mock.patch(M_PATH + '_perform_enable')
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(
+        M_PATH + 'contract.UAContractClient.request_contract_machine_attach')
+    @mock.patch(M_PATH + 'action_status')
+    @mock.patch(M_PATH + 'os.getuid', return_value=0)
+    def test_enable_case(self, m_getuid, m_action_status,
+                         m_contract_machine_attach, m_discharge_root_macaroon,
+                         m_perform_enable):
+        """We should enable if enableByDefault is True"""
+        entitlement = {
+            'type': 'test', 'obligations': {'enableByDefault': True}}
+        token = 'contract-token'
+        args = mock.MagicMock(token=token)
+        cfg = FakeConfig.with_account()
+
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {
+                'name': 'mycontract', 'resourceEntitlements': [entitlement]}}}
+
+        def fake_contract_attach(contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return machine_token
+
+        m_contract_machine_attach.side_effect = fake_contract_attach
+
+        ret = action_attach(args, cfg)
+
+        assert 0 == ret
+        assert 1 == m_action_status.call_count
+        expected_calls = [mock.call(entitlement['type'], cfg)]
+        assert expected_calls == m_perform_enable.call_args_list
+
+
 class TestParser:
 
     def test_attach_parser_creates_a_parser_when_not_provided(self):

@@ -265,6 +265,14 @@ def action_attach(args, cfg):
     print(
         ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
             contract_name=contract_name))
+
+    for entitlement_name, ent_value in cfg.entitlements.items():
+        obligations = ent_value['entitlement'].get('obligations')
+        if not obligations:
+            continue
+        if obligations.get('enableByDefault'):
+            _perform_enable(entitlement_name, cfg)
+
     action_status(args=None, cfg=cfg)
     return 0
 
