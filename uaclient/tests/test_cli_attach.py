@@ -142,11 +142,13 @@ class TestActionAttachEnableByDefault:
     def test_dont_enable_cases(self, m_getuid, m_action_status,
                                m_contract_machine_attach,
                                m_discharge_root_macaroon, m_perform_enable,
-                               entitlement):
+                               entitlement, capsys):
         """We should not enable if enableByDefault is missing or False"""
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
+
+        m_perform_enable.side_effect = lambda *args: print('perform_enable')
 
         entitlements = [entitlement] if entitlement else []
         machine_token = {
@@ -164,6 +166,9 @@ class TestActionAttachEnableByDefault:
         assert 0 == ret
         assert 1 == m_action_status.call_count
         assert 0 == m_perform_enable.call_count
+        for stream in capsys.readouterr():
+            assert 'Enabling default entitlements...' not in stream
+            assert 'perform_enable' not in stream
 
     @mock.patch(M_PATH + '_perform_enable')
     @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
@@ -173,13 +178,18 @@ class TestActionAttachEnableByDefault:
     @mock.patch(M_PATH + 'os.getuid', return_value=0)
     def test_enable_case(self, m_getuid, m_action_status,
                          m_contract_machine_attach, m_discharge_root_macaroon,
-                         m_perform_enable):
+                         m_perform_enable, capsys):
         """We should enable if enableByDefault is True"""
         entitlement = {
             'type': 'test', 'obligations': {'enableByDefault': True}}
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
+
+        # Make our mocks output something, so we can test the output layout
+        m_perform_enable.side_effect = lambda *args: print('perform_enable')
+        m_action_status.side_effect = (
+            lambda *args, **kwargs: print('action_status'))
 
         machine_token = {
             'machineTokenInfo': {'contractInfo': {
@@ -197,6 +207,15 @@ class TestActionAttachEnableByDefault:
         assert 1 == m_action_status.call_count
         expected_calls = [mock.call(entitlement['type'], cfg)]
         assert expected_calls == m_perform_enable.call_args_list
+        stdout, _ = capsys.readouterr()
+        expected_output = (
+            "This machine is now attached to 'mycontract'.\n"
+            "\n"
+            "Enabling default entitlements...\n"
+            "perform_enable\n"
+            "\n"
+            "action_status\n")
+        assert expected_output in stdout
 
 
 class TestParser:
