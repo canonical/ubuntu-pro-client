@@ -53,7 +53,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.etc_dir = Path(self.tempdir.join('etc'))
         self.keyrings_dir = Path(self.tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(self.tempdir.join('trusted.gpg.d'))
-        self.apt_auth_file = Path(self.tempdir.join('auth.conf'))
+        self.apt_auth_dir = Path(self.tempdir.join('auth.conf.d'))
+        self.apt_auth_file = self.apt_auth_dir / 'auth.conf'
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
@@ -100,6 +101,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'KEYRINGS_DIR': str(self.keyrings_dir),
+            'APT_AUTH_DIR': str(self.apt_auth_dir),
             'APT_AUTH_FILE': str(self.apt_auth_file),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
             'APT_METHOD_HTTPS': str(self.apt_method_https),
