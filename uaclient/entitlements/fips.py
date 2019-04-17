@@ -39,6 +39,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     ['apt-get', 'remove', '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
+            self._set_local_enabled(False)
         if not silent:
             print('Warning: no option to disable {title}'.format(
                 title=self.title)

@@ -8,10 +8,6 @@ from urllib import request
 import uuid
 
 
-CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
-                   ['running-in-container'],
-                   ['lxc-is-container'])
-
 SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
 
 ETC_MACHINE_ID = '/etc/machine-id'
@@ -65,16 +61,17 @@ def encode_text(text, encoding='utf-8'):
     return text.encode(encoding)
 
 
-def is_container():
+def is_container(run_path='/run'):
     """Checks to see if this code running in a container of some sort"""
-    for helper in CONTAINER_TESTS:
-        try:
-            # try to run a helper program. if it returns true/zero
-            # then we're inside a container. otherwise, no
-            subp(helper)
+    try:
+        subp(['systemd-detect-virt', '--quiet', '--container'])
+        return True
+    except (IOError, OSError):
+        pass
+    for filename in ('container_type', 'systemd/container'):
+        path = os.path.join(run_path, filename)
+        if os.path.exists(path):
             return True
-        except (IOError, OSError):
-            pass
     return False
 
 
@@ -257,3 +254,16 @@ def get_machine_id(data_dir):
     machine_id = uuid.uuid4()
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
+
+
+def redact_sensitive(content):
+    """Redact security-sensitive content from content dict."""
+    redacted = {}
+    for key, value in content.items():
+        if key in SENSITIVE_KEYS:
+            redacted[key] = '<REDACTED>'
+        elif isinstance(value, dict):
+            redacted[key] = redact_sensitive(value)
+        else:
+            redacted[key] = value
+    return redacted

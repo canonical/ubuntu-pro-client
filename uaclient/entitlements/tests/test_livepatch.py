@@ -184,7 +184,7 @@ class TestLivepatchEntitlementCanEnable:
                     entitlement.cfg)
                 assert not entitlement.can_enable()
         msg = ('Livepatch is not available for kernel 4.2.9-00-generic.\n'
-               'Minimum kernel version required: 4.3\n\n')
+               'Minimum kernel version required: 4.3\n')
         assert msg == m_stdout.getvalue()
 
     def test_can_enable_false_on_unsupported_kernel_flavor(self, tmpdir):
@@ -204,7 +204,7 @@ class TestLivepatchEntitlementCanEnable:
                     entitlement.cfg)
                 assert not entitlement.can_enable()
         msg = ('Livepatch is not available for kernel 4.4.0-140-notgeneric.\n'
-               'Supported flavors are: generic, lowlatency\n\n')
+               'Supported flavors are: generic, lowlatency\n')
         assert msg == m_stdout.getvalue()
 
     def test_can_enable_false_on_unsupported_architecture(self, tmpdir):
@@ -224,7 +224,7 @@ class TestLivepatchEntitlementCanEnable:
                     entitlement.cfg)
                 assert not entitlement.can_enable()
         msg = ('Livepatch is not available for platform ppc64le.\n'
-               'Supported platforms are: x86_64\n\n')
+               'Supported platforms are: x86_64\n')
         assert msg == m_stdout.getvalue()
 
     def test_can_enable_false_on_containers(self, tmpdir):
