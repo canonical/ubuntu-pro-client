@@ -18,6 +18,10 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertEqual(0, process.returncode)
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
         self.assertEqual(expected_repo_list, self.repo_list.read_text())
+        self.assertEqual(
+            self.apt_auth_file.read_text(),
+            'machine esm.ubuntu.com/ login user password pass\n')
+        self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-keyring.gpg'
         self.assertEqual('GPG key', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
@@ -43,6 +47,10 @@ class ESMTest(UbuntuAdvantageTest):
         self.assertIn('Ubuntu ESM repository enabled', process.stdout)
         self.assertEqual(expected_repo_list, self.repo_list.read_text())
         keyring_file = self.trusted_gpg_dir / 'ubuntu-esm-v2-keyring.gpg'
+        self.assertEqual(
+            self.apt_auth_file.read_text(),
+            'machine esm.ubuntu.com/ login user password pass\n')
+        self.assertEqual(self.apt_auth_file.stat().st_mode, 0o100600)
         self.assertEqual('GPG key trusty', keyring_file.read_text())
         # the apt-transport-https dependency is already installed
         self.assertNotIn(
