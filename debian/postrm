@@ -27,6 +27,13 @@ case "$1" in
         # remove ESM keyring files created by enable-esm
         rm -f /etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg
         rm -f /etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg
+        # ESM sources.list.d snippet
+        series=$(grep ^DISTRIB_CODENAME= /etc/lsb-release | cut -d = -f 2)
+        if [ -n "${series}" ]; then
+            rm -f /etc/apt/sources.list.d/ubuntu-esm-${series}.list
+        fi
+        # ubuntu-advantage auth.conf.d snippet
+        rm -f /etc/apt/auth.conf.d/90ubuntu-advantage
     ;;    
 
     *)

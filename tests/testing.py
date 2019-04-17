@@ -53,6 +53,8 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.etc_dir = Path(self.tempdir.join('etc'))
         self.keyrings_dir = Path(self.tempdir.join('keyrings'))
         self.trusted_gpg_dir = Path(self.tempdir.join('trusted.gpg.d'))
+        self.apt_auth_dir = Path(self.tempdir.join('auth.conf.d'))
+        self.apt_auth_file = self.apt_auth_dir / 'auth.conf'
         self.apt_method_https = self.bin_dir / 'apt-method-https'
         self.ca_certificates = self.bin_dir / 'update-ca-certificates'
         self.snapd = self.bin_dir / 'snapd'
@@ -61,6 +63,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.keyrings_dir.mkdir()
         self.etc_dir.mkdir()
         self.fstab.write_text('')
+        self.apt_auth_dir.mkdir()
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-esm-v2-keyring.gpg').write_text(
@@ -93,12 +96,14 @@ class UbuntuAdvantageTest(TestWithFixtures):
         env = {
             'PATH': path,
             'FSTAB': str(self.fstab),
-            'REPO_LIST': str(self.repo_list),
+            'ESM_REPO_LIST': str(self.repo_list),
             'FIPS_REPO_LIST': str(self.repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),
             'FIPS_ENABLED_FILE': str(self.fips_enabled_file),
             'KEYRINGS_DIR': str(self.keyrings_dir),
+            'APT_AUTH_DIR': str(self.apt_auth_dir),
+            'APT_AUTH_FILE': str(self.apt_auth_file),
             'APT_KEYS_DIR': str(self.trusted_gpg_dir),
             'APT_METHOD_HTTPS': str(self.apt_method_https),
             'CA_CERTIFICATES': str(self.ca_certificates),
