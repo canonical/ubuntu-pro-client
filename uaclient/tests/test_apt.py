@@ -463,10 +463,11 @@ def remove_auth_apt_repo_kwargs(request):
 
 class TestRemoveAuthAptRepo:
 
-    @mock.patch('uaclient.apt.util.subp', mock.Mock())
-    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
     @mock.patch('uaclient.apt.util.del_file')
-    def test_repo_file_deleted(self, m_del_file, remove_auth_apt_repo_kwargs):
+    def test_repo_file_deleted(
+            self, m_del_file, _mock, __mock, remove_auth_apt_repo_kwargs):
         """Ensure that repo_filename is deleted, regardless of other params."""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
 
@@ -475,11 +476,11 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_filename) in m_del_file.call_args_list
 
-    @mock.patch('uaclient.apt.util.subp', mock.Mock())
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.util.del_file')
     @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
-    @mock.patch('uaclient.apt.util.del_file', mock.Mock())
     def test_remove_from_auth_file_called(
-            self, m_remove_repo, remove_auth_apt_repo_kwargs):
+            self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs):
         """Ensure that remove_repo_from_apt_auth_file is called."""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
 
@@ -488,11 +489,11 @@ class TestRemoveAuthAptRepo:
 
         assert mock.call(repo_url) in m_remove_repo.call_args_list
 
-    @mock.patch('uaclient.apt.util.subp', mock.Mock())
-    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
     @mock.patch('uaclient.apt.util.del_file')
     def test_keyring_file_deleted_if_given(
-            self, m_del_file, remove_auth_apt_repo_kwargs):
+            self, m_del_file, _mock, __mock, remove_auth_apt_repo_kwargs):
         """We should always delete the keyring file if it is given"""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
 
@@ -505,11 +506,11 @@ class TestRemoveAuthAptRepo:
         else:
             assert mock.call(keyring_file) not in m_del_file.call_args_list
 
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
+    @mock.patch('uaclient.apt.util.del_file')
     @mock.patch('uaclient.apt.util.subp')
-    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file', mock.Mock())
-    @mock.patch('uaclient.apt.util.del_file', mock.Mock())
     def test_fingerprint_deleted_if_given_alone(
-            self, m_subp, remove_auth_apt_repo_kwargs):
+            self, m_subp, _mock, __mock, remove_auth_apt_repo_kwargs):
         """We should delete the fingerprint iff it is given without keyring"""
         repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
 
