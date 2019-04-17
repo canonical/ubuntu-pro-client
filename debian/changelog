@@ -1,6 +1,9 @@
 ubuntu-advantage-tools (10ubuntu0.14.04.3) trusty; urgency=medium
 
   * Enabled support for Trusty ESM (LP: #1825239)
+  * Re-enabled tests at package build time:
+    - d/rules: run tests
+    - d/control: add test dependencies
 
  -- Andreas Hasenack <andreas@canonical.com>  Wed, 17 Apr 2019 20:18:12 +0000
 
