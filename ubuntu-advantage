@@ -144,14 +144,14 @@ _apt_add_auth() {
     password=$(echo "$credentials" | cut -d: -f2)
     [ -f "$APT_AUTH_FILE" ] || touch "$APT_AUTH_FILE"
     chmod 600 "$APT_AUTH_FILE"
-    echo "machine ${repo_host}/ubuntu/ login ${login} password ${password}" \
+    echo "machine ${repo_host}/ login ${login} password ${password}" \
          >>"$APT_AUTH_FILE"
 }
 
 _apt_remove_auth() {
     local repo_host="$1"
 
-    sed -i "/^machine ${repo_host}\/ubuntu\/ login/d" "$APT_AUTH_FILE"
+    sed -i "/^machine ${repo_host}\/ login/d" "$APT_AUTH_FILE"
 }
 
 write_esm_list_file() {
