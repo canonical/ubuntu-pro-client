@@ -100,6 +100,21 @@ class TestIsContainer:
         calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
         assert calls == m_subp.call_args_list
 
+    @mock.patch('uaclient.util.subp')
+    def test_false_on_non_sytemd_detect_virt_and_no_runfiles(
+            self, m_subp, tmpdir):
+        """Return False when sytemd-detect-virt erros and no /run/* files."""
+        m_subp.side_effect = OSError('No systemd-detect-virt utility')
+
+        with mock.patch('uaclient.util.os.path.exists') as m_exists:
+            m_exists.return_value = False
+            assert False is util.is_container(run_path=tmpdir.strpath)
+        calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
+        assert calls == m_subp.call_args_list
+        exists_calls = [mock.call(tmpdir.join('container_type').strpath),
+                        mock.call(tmpdir.join('systemd/container').strpath)]
+        assert exists_calls == m_exists.call_args_list
+
 
 class TestParseOSRelease(TestCase):
 
