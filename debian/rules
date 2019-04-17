@@ -3,4 +3,5 @@
 	dh $@
 
 override_dh_auto_test:
-	@echo "Skipping tests during package builds."
+	python3 -m unittest discover tests
+	flake8 tests

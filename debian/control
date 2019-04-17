@@ -2,7 +2,8 @@ Source: ubuntu-advantage-tools
 Section: misc
 Priority: important
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>=9), lsb-release
+Build-Depends: debhelper (>=9), flake8 | python3-flake8, python3 (>= 3.4),
+ fakeroot, python3-fixtures, lsb-release
 Standards-Version: 3.9.6
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
