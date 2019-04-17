@@ -96,7 +96,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         env = {
             'PATH': path,
             'FSTAB': str(self.fstab),
-            'REPO_LIST': str(self.repo_list),
+            'ESM_REPO_LIST': str(self.repo_list),
             'FIPS_REPO_LIST': str(self.repo_list),
             'FIPS_BOOT_CFG': str(self.boot_cfg),
             'FIPS_BOOT_CFG_DIR': str(self.etc_dir),

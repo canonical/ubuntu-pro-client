@@ -16,7 +16,7 @@ FIPS_REPO_KEY_FILE="ubuntu-fips-keyring.gpg"
 FIPS_REPO_LIST=${FIPS_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-fips-${SERIES}.list"}
 ESM_REPO_HOST="esm.ubuntu.com"
 ESM_REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-esm-v2-keyring.gpg"
-ESM_REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
+ESM_REPO_LIST=${ESM_REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
 # XXX precise doesn't support auth.conf.d:
 # apt-config shell key Dir::Etc::netrcparts/
