@@ -18,6 +18,10 @@ ESM_REPO_HOST="esm.ubuntu.com"
 ESM_REPO_KEY_FILES="ubuntu-esm-keyring.gpg ubuntu-esm-v2-keyring.gpg"
 ESM_REPO_LIST=${REPO_LIST:-"/etc/apt/sources.list.d/ubuntu-esm-${SERIES}.list"}
 KEYRINGS_DIR=${KEYRINGS_DIR:-"/usr/share/keyrings"}
+# XXX precise doesn't support auth.conf.d:
+# apt-config shell key Dir::Etc::netrcparts/
+# just auth.conf:
+# apt-config shell key Dir::Etc::netrc/
 APT_AUTH_DIR=${APT_AUTH_DIR:-"/etc/apt/auth.conf.d"}
 APT_AUTH_FILE=${APT_AUTH_FILE:-"/etc/apt/auth.conf.d/90ubuntu-advantage"}
 APT_KEYS_DIR=${APT_KEYS_DIR:-"/etc/apt/trusted.gpg.d"}
