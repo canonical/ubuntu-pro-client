@@ -68,6 +68,39 @@ BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
 """
 
 
+class TestIsContainer:
+
+    @mock.patch('uaclient.util.subp')
+    def test_true_systemd_detect_virt_success(self, m_subp):
+        """Return True when systemd-detect virt exits success."""
+        m_subp.return_value = '', ''
+        assert True is util.is_container()
+        calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
+        assert calls == m_subp.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    def test_true_on_run_container_type(self, m_subp, tmpdir):
+        """Return True when /run/container_type exists."""
+        m_subp.side_effect = OSError('No systemd-detect-virt utility')
+        util.write_file(tmpdir.join('container_type').strpath, '')  # touch
+
+        assert True is util.is_container(run_path=tmpdir)
+        calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
+        assert calls == m_subp.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    def test_true_on_run_systemd_container(self, m_subp, tmpdir):
+        """Return True when /run/systemd/container exists."""
+        m_subp.side_effect = OSError('No systemd-detect-virt utility')
+        path = tmpdir.join('systemd/container').strpath
+        os.makedirs(os.path.dirname(path))
+        util.write_file(tmpdir.join('systemd/container').strpath, '')  # touch
+
+        assert True is util.is_container(run_path=tmpdir)
+        calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
+        assert calls == m_subp.call_args_list
+
+
 class TestParseOSRelease(TestCase):
 
     def test_parse_os_release(self):
