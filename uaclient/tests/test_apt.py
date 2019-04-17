@@ -558,7 +558,7 @@ class TestRemoveRepoFromAptAuthFile:
                           tmpdir, trailing_slash, repo_url, auth_file_content):
         """Check that auth file is rm'd if empty or contains just our line"""
         auth_file = tmpdir.join('auth_file')
-        auth_file.write_binary(auth_file_content)
+        auth_file.write(auth_file_content, 'wb')
         m_get_apt_auth_file.return_value = auth_file.strpath
 
         remove_repo_from_apt_auth_file(
@@ -584,7 +584,7 @@ class TestRemoveRepoFromAptAuthFile:
                           trailing_slash):
         """Check that auth file is rewritten to only exclude our line"""
         auth_file = tmpdir.join('auth_file')
-        auth_file.write_binary(before_content)
+        auth_file.write(before_content, 'wb')
         m_get_apt_auth_file.return_value = auth_file.strpath
 
         remove_repo_from_apt_auth_file(
@@ -592,4 +592,4 @@ class TestRemoveRepoFromAptAuthFile:
 
         assert 0 == m_unlink.call_count
         assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
-        assert after_content == auth_file.read_binary()
+        assert after_content == auth_file.read('rb')
