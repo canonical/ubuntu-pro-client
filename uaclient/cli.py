@@ -185,6 +185,19 @@ def action_disable(args, cfg):
         return 1
 
 
+def _perform_enable(entitlement_name: str, cfg: config.UAConfig) -> bool:
+    """Perform the enable action on a named entitlement.
+
+    (This helper excludes any messaging, so that different enablement code
+    paths can message themselves.)
+
+    @return: True on success, False otherwise
+    """
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    entitlement = ent_cls(cfg)
+    return entitlement.enable()
+
+
 @assert_attached_root
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
@@ -194,9 +207,7 @@ def action_enable(args, cfg):
     logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
     if not contract.request_updated_contract(cfg):
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement = ent_cls(cfg)
-    return 0 if entitlement.enable() else 1
+    return 0 if _perform_enable(args.name, cfg) else 1
 
 
 @assert_attached_root
