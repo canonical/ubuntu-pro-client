@@ -82,9 +82,9 @@ class TestIsContainer:
     def test_true_on_run_container_type(self, m_subp, tmpdir):
         """Return True when /run/container_type exists."""
         m_subp.side_effect = OSError('No systemd-detect-virt utility')
-        util.write_file(tmpdir.join('container_type').strpath, '')  # touch
+        tmpdir.join('container_type').write('')
 
-        assert True is util.is_container(run_path=tmpdir)
+        assert True is util.is_container(run_path=tmpdir.strpath)
         calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
         assert calls == m_subp.call_args_list
 
@@ -92,11 +92,9 @@ class TestIsContainer:
     def test_true_on_run_systemd_container(self, m_subp, tmpdir):
         """Return True when /run/systemd/container exists."""
         m_subp.side_effect = OSError('No systemd-detect-virt utility')
-        path = tmpdir.join('systemd/container').strpath
-        os.makedirs(os.path.dirname(path))
-        util.write_file(tmpdir.join('systemd/container').strpath, '')  # touch
+        tmpdir.join('systemd/container').write('', ensure=True)
 
-        assert True is util.is_container(run_path=tmpdir)
+        assert True is util.is_container(run_path=tmpdir.strpath)
         calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
         assert calls == m_subp.call_args_list
 
