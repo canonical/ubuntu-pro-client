@@ -57,6 +57,14 @@ class ESMTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_esm_auth_with_other_entries(self):
+        """Existing auth.conf entries are preserved."""
+        auth = 'machine example.com login user password pass\n'
+        self.apt_auth_file.write_text(auth)
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(0, process.returncode)
+        self.assertIn(auth, self.apt_auth_file.read_text())
+
     def test_enable_esm_install_apt_transport_https(self):
         """enable-esm installs apt-transport-https if needed."""
         self.apt_method_https.unlink()

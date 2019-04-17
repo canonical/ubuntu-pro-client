@@ -63,6 +63,7 @@ class UbuntuAdvantageTest(TestWithFixtures):
         self.keyrings_dir.mkdir()
         self.etc_dir.mkdir()
         self.fstab.write_text('')
+        self.apt_auth_dir.mkdir()
         self.trusted_gpg_dir.mkdir()
         (self.keyrings_dir / 'ubuntu-esm-keyring.gpg').write_text('GPG key')
         (self.keyrings_dir / 'ubuntu-esm-v2-keyring.gpg').write_text(
