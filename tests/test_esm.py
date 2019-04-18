@@ -57,6 +57,13 @@ class ESMTest(UbuntuAdvantageTest):
             'Installing missing dependency apt-transport-https',
             process.stdout)
 
+    def test_enable_esm_already_enabled(self):
+        """The enable-esm option fails if ESM is already enabled."""
+        self.make_fake_binary('apt-cache', command='echo esm.ubuntu.com')
+        process = self.script('enable-esm', 'user:pass')
+        self.assertEqual(1, process.returncode)
+        self.assertIn('Ubuntu ESM is already enabled.', process.stderr)
+
     def test_enable_esm_auth_with_other_entries(self):
         """Existing auth.conf entries are preserved."""
         auth = 'machine example.com login user password pass\n'
