@@ -191,6 +191,9 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig) -> bool:
     (This helper excludes any messaging, so that different enablement code
     paths can message themselves.)
 
+    :param entitlement_name: the name of the entitlement to enable
+    :param cfg: the UAConfig to pass to the entitlement
+
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
