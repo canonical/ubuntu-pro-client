@@ -86,8 +86,10 @@ class TestCISEntitlementEnable(TestCase):
                         self.assertTrue(entitlement.enable())
 
         add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                      'http://CIS', 'TOKEN', ['xenial'], None, 'APTKEY')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
+                'http://CIS', 'TOKEN', ['xenial'],
+                '/usr/share/keyrings/ubuntu-securitybenchmarks-keyring.gpg')]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),
