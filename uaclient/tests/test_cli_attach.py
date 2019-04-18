@@ -227,8 +227,11 @@ class TestActionAttachEnableByDefault:
                         m_contract_machine_attach, m_discharge_root_macaroon,
                         m_perform_enable, capsys):
         """Test a mixture of enableByDefault and not"""
+        # Note that enable1 is after the others, but we assert that it's
+        # before; as dicts don't have a stable ordering in all of our target
+        # releases, this ensures that the order in which things happens will be
+        # consistent
         entitlements = [
-            {'type': 'enable1', 'obligations': {'enableByDefault': True}},
             {'type': 'dont1', 'obligations': {'enableByDefault': False}},
             {'type': 'enable2', 'obligations': {'enableByDefault': True}},
             {'type': 'dont2', 'obligations': {'otherValue': True}},
@@ -236,6 +239,7 @@ class TestActionAttachEnableByDefault:
             {'type': 'dont2', 'obligations': {}},
             {'type': 'enable4', 'obligations': {'enableByDefault': True}},
             {'type': 'dont3'},
+            {'type': 'enable1', 'obligations': {'enableByDefault': True}},
         ]
         token = 'contract-token'
         args = mock.MagicMock(token=token)

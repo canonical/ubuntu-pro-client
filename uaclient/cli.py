@@ -266,9 +266,11 @@ def action_attach(args, cfg):
         ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
             contract_name=contract_name))
 
-    enable_by_default_entitlements = [
+    # sort the list, so that we get consistent attach behaviour regardless of
+    # dict ordering
+    enable_by_default_entitlements = sorted([
         name for name, value in cfg.entitlements.items()
-        if value['entitlement'].get('obligations', {}).get('enableByDefault')]
+        if value['entitlement'].get('obligations', {}).get('enableByDefault')])
     if enable_by_default_entitlements:
         print(ua_status.MESSAGE_ATTACH_ENABLING_DEFAULTS)
         for entitlement_name in enable_by_default_entitlements:
