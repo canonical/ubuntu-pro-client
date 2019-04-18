@@ -6,7 +6,7 @@ from uaclient import util
 from uaclient import version
 
 
-class UAServiceClient(object):
+class UAServiceClient:
 
     # Set in subclasses to the config key referenced by this client
     service_url_cfg_key = None

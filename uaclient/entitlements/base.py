@@ -13,7 +13,7 @@ RE_KERNEL_UNAME = (
     r'-(?P<flavor>[A-Za-z0-9_-]+)')
 
 
-class UAEntitlement(object, metaclass=abc.ABCMeta):
+class UAEntitlement(metaclass=abc.ABCMeta):
 
     # The lowercase name of this entitlement
     name = None
