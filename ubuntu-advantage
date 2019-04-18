@@ -467,7 +467,7 @@ case "$1" in
         check_user
         check_esm_support
         if is_esm_enabled; then
-            echo 'ESM is already enabled.' >&2
+            echo 'Ubuntu ESM is already enabled.' >&2
             exit 1
         fi
         token="$2"
