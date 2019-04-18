@@ -466,6 +466,10 @@ case "$1" in
     enable-esm)
         check_user
         check_esm_support
+        if is_esm_enabled; then
+            echo 'ESM is already enabled.' >&2
+            exit 1
+        fi
         token="$2"
         if ! validate_user_pass_token "$token"; then
             echo 'Invalid token, it must be in the form "user:password"' >&2
