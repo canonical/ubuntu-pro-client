@@ -1,6 +1,8 @@
 ubuntu-advantage-tools (10ubuntu0.14.04.3) trusty; urgency=medium
 
   * Enable support for Trusty ESM (LP: #1825239)
+  * Install an unattended-upgrades configuration that allows for the
+    UbuntuESM trusty-security origin.
   * Re-enable tests at package build time, just not flake8 as python3-flake8
     is in universe:
     - d/rules: run tests
