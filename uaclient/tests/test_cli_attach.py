@@ -217,6 +217,67 @@ class TestActionAttachEnableByDefault:
             "action_status\n")
         assert expected_output in stdout
 
+    @mock.patch(M_PATH + '_perform_enable')
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(
+        M_PATH + 'contract.UAContractClient.request_contract_machine_attach')
+    @mock.patch(M_PATH + 'action_status')
+    @mock.patch(M_PATH + 'os.getuid', return_value=0)
+    def test_mixed_case(self, m_getuid, m_action_status,
+                        m_contract_machine_attach, m_discharge_root_macaroon,
+                        m_perform_enable, capsys):
+        """Test a mixture of enableByDefault and not"""
+        entitlements = [
+            {'type': 'enable1', 'obligations': {'enableByDefault': True}},
+            {'type': 'dont1', 'obligations': {'enableByDefault': False}},
+            {'type': 'enable2', 'obligations': {'enableByDefault': True}},
+            {'type': 'dont2', 'obligations': {'otherValue': True}},
+            {'type': 'enable3', 'obligations': {'enableByDefault': True}},
+            {'type': 'dont2', 'obligations': {}},
+            {'type': 'enable4', 'obligations': {'enableByDefault': True}},
+            {'type': 'dont3'},
+        ]
+        token = 'contract-token'
+        args = mock.MagicMock(token=token)
+        cfg = FakeConfig.with_account()
+
+        # Make our mocks output something, so we can test the output layout
+        m_perform_enable.side_effect = (
+            lambda name, _: print('perform_enable: {}'.format(name)))
+        m_action_status.side_effect = (
+            lambda *args, **kwargs: print('action_status'))
+
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {
+                'name': 'mycontract', 'resourceEntitlements': entitlements}}}
+
+        def fake_contract_attach(contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return machine_token
+
+        m_contract_machine_attach.side_effect = fake_contract_attach
+
+        ret = action_attach(args, cfg)
+
+        assert 0 == ret
+        assert 1 == m_action_status.call_count
+        expected_calls = [
+            mock.call(ent_name, cfg)
+            for ent_name in ['enable1', 'enable2', 'enable3', 'enable4']]
+        assert expected_calls == m_perform_enable.call_args_list
+        stdout, _ = capsys.readouterr()
+        expected_output = (
+            "This machine is now attached to 'mycontract'.\n"
+            "\n"
+            "Enabling default entitlements...\n"
+            "perform_enable: enable1\n"
+            "perform_enable: enable2\n"
+            "perform_enable: enable3\n"
+            "perform_enable: enable4\n"
+            "\n"
+            "action_status\n")
+        assert expected_output in stdout
+
 
 class TestParser:
 
