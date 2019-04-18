@@ -1,11 +1,12 @@
 ubuntu-advantage-tools (10ubuntu0.14.04.3) trusty; urgency=medium
 
-  * Enabled support for Trusty ESM (LP: #1825239)
-  * Re-enabled tests at package build time:
+  * Enable support for Trusty ESM (LP: #1825239)
+  * Re-enable tests at package build time, just not flake8 as python3-flake8
+    is in universe:
     - d/rules: run tests
     - d/control: add test dependencies
 
- -- Andreas Hasenack <andreas@canonical.com>  Wed, 17 Apr 2019 20:18:12 +0000
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 18 Apr 2019 15:20:23 +0000
 
 ubuntu-advantage-tools (10ubuntu0.14.04.2) trusty; urgency=medium
 
