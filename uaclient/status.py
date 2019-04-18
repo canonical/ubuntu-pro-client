@@ -71,6 +71,7 @@ Could not attach machine. Error contacting server {url}"""
 MESSAGE_ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'.
 """
+MESSAGE_ATTACH_ENABLING_DEFAULTS = 'Enabling default entitlements...'
 MESSAGE_DETACH_SUCCESS = 'This machine is now detached'
 
 MESSAGE_REFRESH_ENABLE = 'Refreshing contracts prior to enable'
