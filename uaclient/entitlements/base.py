@@ -67,22 +67,30 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             print(message)
         return retval
 
-    def can_enable(self):
-        """Report whether or not enabling is possible for the entitlement."""
+    def can_enable(self, silent: bool = False) -> bool:
+        """
+        Report whether or not enabling is possible for the entitlement.
+
+        :param silent: if True, suppress output
+        """
         if self.is_access_expired():
             token = self.cfg.machine_token['machineToken']
             contract_client = contract.UAContractClient(self.cfg)
             contract_client.request_resource_machine_access(
                 token, self.name)
         if not self.contract_status() == status.ENTITLED:
-            print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
+            if not silent:
+                print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         op_status, op_status_details = self.operational_status()
         if op_status == status.ACTIVE:
-            print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(title=self.title))
+            if not silent:
+                print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+                    title=self.title))
             return False
         if op_status == status.INAPPLICABLE:
-            print(op_status_details)
+            if not silent:
+                print(op_status_details)
             return False
         return True
 
