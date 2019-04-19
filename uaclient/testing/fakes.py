@@ -33,7 +33,7 @@ class FakeConfig(UAConfig):
             cache_contents if cache_contents is not None else {})
         super().__init__({})
 
-    def read_cache(self, key: str, quiet: bool = False) -> 'Optional[str]':
+    def read_cache(self, key: str, silent: bool = False) -> 'Optional[str]':
         return self._cache_contents.get(key)
 
     def write_cache(

@@ -131,7 +131,7 @@ class UAConfig:
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():
             entitlement_cfg = self.read_cache(
-                'machine-access-%s' % entitlement_name, quiet=True)
+                'machine-access-%s' % entitlement_name, silent=True)
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}
@@ -183,7 +183,7 @@ class UAConfig:
         for path_key in self.data_paths.keys():
             self.delete_cache_key(path_key)
 
-    def read_cache(self, key, quiet=False):
+    def read_cache(self, key, silent=False):
         cache_path = self.data_path(key)
         try:
             content = util.load_file(cache_path)
@@ -192,7 +192,7 @@ class UAConfig:
             try:
                 content = util.load_file(public_cache_path)
             except Exception:
-                if not os.path.exists(cache_path) and not quiet:
+                if not os.path.exists(cache_path) and not silent:
                     logging.debug('File does not exist: %s', cache_path)
                 return None
         json_content = util.maybe_parse_json(content)
