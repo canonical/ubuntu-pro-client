@@ -6,6 +6,11 @@ from uaclient import config
 from uaclient.entitlements import base
 from uaclient import status
 
+try:
+    from typing import Tuple  # noqa
+except ImportError:
+    pass
+
 
 class ConcreteTestEntitlement(base.UAEntitlement):
 
@@ -27,6 +32,26 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def operational_status(self):
         return self._operational_status
+
+
+@pytest.fixture
+def concrete_entitlement_factory(tmpdir):
+    def factory(
+            *, entitled: bool, operational_status: 'Tuple[str, str]' = None
+    ) -> ConcreteTestEntitlement:
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        machineToken = {
+            'machineToken': 'blah',
+            'machineTokenInfo': {
+                'contractInfo': {
+                    'resourceEntitlements': [
+                        {'type': 'testconcreteentitlement'}]}}}
+        cfg.write_cache('machine-token', machineToken)
+        cfg.write_cache('machine-access-testconcreteentitlement',
+                        {'entitlement': {'entitled': entitled}})
+        return ConcreteTestEntitlement(
+            cfg, operational_status=operational_status)
+    return factory
 
 
 class TestUaEntitlement:
@@ -51,21 +76,11 @@ class TestUaEntitlement:
         entitlement = ConcreteTestEntitlement(cfg)
         assert '/some/path' == entitlement.cfg.data_dir
 
-    def test_can_disable_false_on_unentitled(self, tmpdir, capsys):
+    def test_can_disable_false_on_unentitled(
+            self, capsys, concrete_entitlement_factory):
         """When entitlement contract is not enabled, can_disable is False."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache(
-            'machine-access-testconcreteentitlement',
-            {'entitlement': {'entitled': False}})
-        entitlement = ConcreteTestEntitlement(
-            cfg, operational_status=(status.INACTIVE, ''))
+        entitlement = concrete_entitlement_factory(
+            entitled=False, operational_status=(status.INACTIVE, ''))
 
         assert not entitlement.can_disable()
 
@@ -75,21 +90,11 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
-    def test_can_disable_false_on_entitlement_inactive(self, tmpdir, capsys):
+    def test_can_disable_false_on_entitlement_inactive(
+            self, capsys, concrete_entitlement_factory):
         """When operational status is INACTIVE, can_disable returns False."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': True}})
-        entitlement = ConcreteTestEntitlement(
-            cfg,
-            operational_status=(status.INACTIVE, ''))
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INACTIVE, ''))
 
         assert not entitlement.can_disable()
 
@@ -99,40 +104,23 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
-    def test_can_disable_true_on_entitlement_active(self, tmpdir, capsys):
+    def test_can_disable_true_on_entitlement_active(
+            self, capsys, concrete_entitlement_factory):
         """When operational status is ACTIVE, can_disable returns True."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': True}})
-        entitlement = ConcreteTestEntitlement(
-            cfg, operational_status=(status.ACTIVE, ''))
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.ACTIVE, ''))
 
         assert entitlement.can_disable()
 
         stdout, _ = capsys.readouterr()
         assert '' == stdout
 
-    def test_can_enable_false_on_unentitled(self, capsys, tmpdir):
+    def test_can_enable_false_on_unentitled(
+            self, capsys, concrete_entitlement_factory):
         """When entitlement contract is not enabled, can_enable is False."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': False}})
-        entitlement = ConcreteTestEntitlement(
-            cfg, operational_status=(status.INACTIVE, ''))
+
+        entitlement = concrete_entitlement_factory(
+            entitled=False, operational_status=(status.INACTIVE, ''))
 
         assert not entitlement.can_enable()
 
@@ -142,20 +130,11 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
-    def test_can_enable_false_on_entitlement_active(self, capsys, tmpdir):
+    def test_can_enable_false_on_entitlement_active(
+            self, capsys, concrete_entitlement_factory):
         """When operational status is ACTIVE, can_enable returns False."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': True}})
-        entitlement = ConcreteTestEntitlement(
-            cfg, operational_status=(status.ACTIVE, ''))
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.ACTIVE, ''))
 
         assert not entitlement.can_enable()
 
@@ -164,52 +143,23 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
-    def test_can_enable_true_on_entitlement_inactive(self, capsys, tmpdir):
+    def test_can_enable_true_on_entitlement_inactive(
+            self, capsys, concrete_entitlement_factory):
         """When operational status is INACTIVE, can_enable returns True."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': True}})
-        entitlement = ConcreteTestEntitlement(
-            cfg, operational_status=(status.INACTIVE, ''))
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INACTIVE, ''))
 
         assert entitlement.can_enable()
 
         stdout, _ = capsys.readouterr()
         assert '' == stdout
 
-    def test_contract_status_entitled(self, tmpdir):
+    def test_contract_status_entitled(self, concrete_entitlement_factory):
         """The contract_status returns ENTITLED when entitlement enabled."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': True}})
-        entitlement = ConcreteTestEntitlement(cfg)
+        entitlement = concrete_entitlement_factory(entitled=True)
         assert status.ENTITLED == entitlement.contract_status()
 
-    def test_contract_status_unentitled(self, tmpdir):
+    def test_contract_status_unentitled(self, concrete_entitlement_factory):
         """The contract_status returns NONE when entitlement is unentitled."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        machineToken = {
-            'machineToken': 'blah',
-            'machineTokenInfo': {
-                'contractInfo': {
-                    'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
-        cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': False}})
-        entitlement = ConcreteTestEntitlement(cfg)
+        entitlement = concrete_entitlement_factory(entitled=False)
         assert status.NONE == entitlement.contract_status()
