@@ -65,12 +65,16 @@ class LivepatchEntitlement(base.UAEntitlement):
          lambda: util.is_container(),
          False),)
 
-    def enable(self):
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
+
+        :param silent_if_inapplicable:
+            Don't emit any messages until after it has been determined that
+            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
-        if not self.can_enable():
+        if not self.can_enable(silent=silent_if_inapplicable):
             return False
         if not util.which('/snap/bin/canonical-livepatch'):
             if not util.which('snap'):

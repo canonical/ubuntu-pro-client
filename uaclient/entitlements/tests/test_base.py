@@ -27,7 +27,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     def disable(self):
         return self._disable
 
-    def enable(self):
+    def enable(self, silent_if_inapplicable: bool = False):
         return self._enable
 
     def operational_status(self):
@@ -115,53 +115,75 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert '' == stdout
 
+    @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_unentitled(
-            self, capsys, concrete_entitlement_factory):
+            self, capsys, concrete_entitlement_factory, silent):
         """When entitlement contract is not enabled, can_enable is False."""
 
         entitlement = concrete_entitlement_factory(
             entitled=False, operational_status=(status.INACTIVE, ''))
 
-        assert not entitlement.can_enable()
+        kwargs = {}
+        if silent is not None:
+            kwargs['silent'] = silent
+        assert not entitlement.can_enable(**kwargs)
 
         expected_stdout = (
             'This subscription is not entitled to Test Concrete Entitlement.\n'
             'See `ua status` or https://ubuntu.com/advantage\n')
+        if silent:
+            expected_stdout = ''
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
+    @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_entitlement_active(
-            self, capsys, concrete_entitlement_factory):
+            self, capsys, concrete_entitlement_factory, silent):
         """When operational status is ACTIVE, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True, operational_status=(status.ACTIVE, ''))
 
-        assert not entitlement.can_enable()
+        kwargs = {}
+        if silent is not None:
+            kwargs['silent'] = silent
+        assert not entitlement.can_enable(**kwargs)
 
         expected_stdout = (
             'Test Concrete Entitlement is already enabled.\nSee `ua status`\n')
+        if silent:
+            expected_stdout = ''
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
+    @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_entitlement_inapplicable(
-            self, capsys, concrete_entitlement_factory):
+            self, capsys, concrete_entitlement_factory, silent):
         """When operational status INAPPLICABLE, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True, operational_status=(status.INAPPLICABLE, 'msg'))
 
-        assert not entitlement.can_enable()
+        kwargs = {}
+        if silent is not None:
+            kwargs['silent'] = silent
+        assert not entitlement.can_enable(**kwargs)
 
         expected_stdout = 'msg\n'
+        if silent:
+            expected_stdout = ''
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
+    @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_true_on_entitlement_inactive(
-            self, capsys, concrete_entitlement_factory):
+            self, capsys, concrete_entitlement_factory, silent):
         """When operational status is INACTIVE, can_enable returns True."""
         entitlement = concrete_entitlement_factory(
             entitled=True, operational_status=(status.INACTIVE, ''))
 
-        assert entitlement.can_enable()
+        kwargs = {}
+        if silent is not None:
+            kwargs['silent'] = silent
+        assert entitlement.can_enable(**kwargs)
 
         stdout, _ = capsys.readouterr()
         assert '' == stdout

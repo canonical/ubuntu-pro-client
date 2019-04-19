@@ -108,7 +108,7 @@ class TestFIPSEntitlementEnable:
         subp_calls = [
             mock.call(['apt-get', 'update'], capture=True), install_cmd]
 
-        assert [mock.call()] == m_can_enable.call_args_list
+        assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
