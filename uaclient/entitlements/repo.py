@@ -24,12 +24,16 @@ class RepoEntitlement(base.UAEntitlement):
     messaging = {}  # Currently post_enable is used in CommonCriteria
     packages = []  # Debs to install on enablement
 
-    def enable(self):
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
+
+        :param silent_if_inapplicable:
+            Don't emit any messages until after it has been determined that
+            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
-        if not self.can_enable():
+        if not self.can_enable(silent=silent_if_inapplicable):
             return False
         series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(

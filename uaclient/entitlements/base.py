@@ -37,8 +37,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         self.cfg = cfg
 
     @abc.abstractmethod
-    def enable(self):
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
+
+        :param silent_if_inapplicable:
+            Don't emit any messages until after it has been determined that
+            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
