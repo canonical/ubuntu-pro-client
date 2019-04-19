@@ -356,7 +356,7 @@ def action_refresh(args, cfg):
     return 1
 
 
-def setup_logging(level=logging.INFO, log_file=None):
+def setup_logging(console_level, log_level, log_file=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
         log_file = config.CONFIG_DEFAULTS['log_file']
@@ -364,25 +364,25 @@ def setup_logging(level=logging.INFO, log_file=None):
     console_formatter = logging.Formatter(fmt)
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
-    root.setLevel(level)
+    root.setLevel(log_level)
     # Setup console logging
     stderr_found = False
     for handler in root.handlers:
         if hasattr(handler, 'stream') and hasattr(handler.stream, 'name'):
             if handler.stream.name == '<stderr>':
-                handler.setLevel(level)
+                handler.setLevel(console_level)
                 handler.setFormatter(console_formatter)
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
         console.setFormatter(console_formatter)
-        console.setLevel(level)
+        console.setLevel(console_level)
         root.addHandler(console)
     if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
         filehandler = logging.FileHandler(log_file)
-        filehandler.setLevel(level)
+        filehandler.setLevel(log_level)
         filehandler.setFormatter(log_formatter)
         root.addHandler(filehandler)
 
@@ -398,12 +398,12 @@ def main(sys_argv=None):
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
-    log_level = logging.DEBUG if args.debug else cfg.log_level
     try:
-        int(log_level)
+        log_level = int(cfg.log_level)
     except TypeError:
         log_level = getattr(logging, '%s' % cfg.log_file.upper())
-    setup_logging(log_level, cfg.log_file)
+    console_level = logging.DEBUG if args.debug else logging.INFO
+    setup_logging(console_level, log_level, cfg.log_file)
     return args.action(args, cfg)
 
 
