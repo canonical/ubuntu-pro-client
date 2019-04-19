@@ -143,6 +143,18 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
+    def test_can_enable_false_on_entitlement_inapplicable(
+            self, capsys, concrete_entitlement_factory):
+        """When operational status INAPPLICABLE, can_enable returns False."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INAPPLICABLE, 'msg'))
+
+        assert not entitlement.can_enable()
+
+        expected_stdout = 'msg\n'
+        stdout, _ = capsys.readouterr()
+        assert expected_stdout == stdout
+
     def test_can_enable_true_on_entitlement_inactive(
             self, capsys, concrete_entitlement_factory):
         """When operational status is INACTIVE, can_enable returns True."""
