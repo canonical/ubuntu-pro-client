@@ -2,6 +2,13 @@ import logging
 import os
 import re
 
+try:
+    from typing import Any, Dict  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
+
 from uaclient import apt
 from uaclient.entitlements import base
 from uaclient import status
@@ -143,6 +150,43 @@ class RepoEntitlement(base.UAEntitlement):
             # policy will show APT_DISABLED_PIN for authenticated sources
             return status.ACTIVE, '%s is active' % self.title
         return status.INACTIVE, '%s is not configured' % self.title
+
+    def process_contract_deltas(
+            self, orig_access: 'Dict[str, Any]',
+            deltas: 'Dict[str, Any]') -> None:
+        """Process any contract access deltas for this entitlement.
+
+        :param orig_access: Dictionary containing the original
+            resourceEntitlement access details.
+        :param deltas: Dictionary which contains only the changed access keys
+        and values.
+        """
+        if not deltas:
+            return
+        super().process_contract_deltas(orig_access, deltas)
+        new_token = deltas.get('resourceToken')
+        entitlement_delta = deltas.get('entitlement', {})
+        new_url = entitlement_delta.get('directives', {}).get('aptURL')
+        new_suites = entitlement_delta.get('directives', {}).get('suites')
+        if not any([new_token, new_url, new_suites]):
+            return
+        logging.info(
+            "Updating '%s' apt sources list on changed directives.", self.name)
+        series = util.get_platform_info('series')
+        repo_filename = self.repo_list_file_tmpl.format(
+            name=self.name, series=series)
+        if not new_token:
+            new_token = orig_access['resourceToken']
+        creds = 'bearer:%s' % new_token
+        if new_url:
+            # Remove original aptURL and auth and rewrite
+            apt.remove_auth_apt_repo(
+                repo_filename, orig_access.get('directives', {}).get('aptURL'))
+        else:
+            new_url = orig_access.get('directives', {}).get('aptURL')
+        if not new_suites:
+            new_suites = orig_access.get('directives', {}).get('suites', [])
+        apt.add_auth_apt_repo(repo_filename, new_url, creds, suites=new_suites)
 
     def _set_local_enabled(self, value):
         """Set local enabled flag true or false."""

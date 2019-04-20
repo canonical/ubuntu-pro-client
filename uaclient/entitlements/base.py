@@ -3,6 +3,12 @@ from datetime import datetime
 import logging
 import re
 
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 from uaclient import config
 from uaclient import contract
 from uaclient import status
@@ -193,6 +199,28 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if expiry >= datetime.utcnow():
             return False
         return True
+
+    def process_contract_deltas(
+            self, orig_access: 'Dict[str, Any]',
+            deltas: 'Dict[str, Any]') -> None:
+        """Process any contract access deltas for this entitlement.
+
+        :param orig_access: Dictionary containing the original
+            resourceEntitlement access details.
+        :param deltas: Dictionary which contains only the changed access keys
+        and values.
+        """
+        entitled_delta = deltas.get('entitlement', {}).get('entitled')
+        if orig_access and entitled_delta is False:
+            if self.can_disable(silent=True):
+                logging.debug(
+                    "Due to contract refresh, '%s' is now disabled.",
+                    self.name)
+                self.disable()
+            # Clean up former entitled machine-access-<name> response cache
+            # file because uaclient doesn't access machine-access-* routes or
+            # responses on unentitled services.
+            self.cfg.delete_cache_key('machine-access-%s' % self.name)
 
     @abc.abstractmethod
     def operational_status(self):

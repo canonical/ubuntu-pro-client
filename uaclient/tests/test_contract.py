@@ -2,7 +2,8 @@ import mock
 import pytest
 
 from uaclient.contract import (
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH, request_updated_contract)
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
+    API_V1_TMPL_RESOURCE_MACHINE_ACCESS, request_updated_contract)
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
 
@@ -32,10 +33,12 @@ class TestRequestUpdatedContract:
     @mock.patch(M_PATH + 'UAContractClient')
     def test_attached_config_refresh_machine_token_and_services(
             self, client, get_machine_id):
-        """When attached, refresh machine token and all entitlements."""
+        """When attached, refresh machine token and all enabled services."""
 
         refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
             contract='cid', machine='mid')
+        access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
+            resource='ent1', machine='mid')
 
         machine_token = {
             'machineToken': 'mToken',
@@ -46,7 +49,11 @@ class TestRequestUpdatedContract:
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
-            client._responses = {refresh_route: machine_token}
+            # Note ent2 access route is not called
+            client._responses = {
+                refresh_route: machine_token,
+                access_route_ent1: {
+                    'entitlement': {'entitled': True, 'type': 'ent1'}}}
             return client
 
         client.side_effect = fake_contract_client
