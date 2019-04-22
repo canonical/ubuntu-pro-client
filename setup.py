@@ -3,8 +3,9 @@
 
 import glob
 import setuptools
+import sys
 
-from uaclient import defaults, version
+from uaclient import defaults, util, version
 
 NAME = 'ubuntu-advantage-tools'
 
@@ -13,10 +14,13 @@ TEST_REQUIRES = open('test-requirements.txt').read().rstrip('\n').split('\n')
 
 
 def _get_version():
-    parts = version.get_version().split('-')
-    if len(parts) == 1:
-        return parts[0]
-    major_minor, _subrev, _commitish = parts
+    major_minor = version.get_version().split('-')[0]
+    changelog = util.load_file('./debian/changelog').split('\n')[0].split(' ')[1]
+    changelog_version = changelog.replace('(', '').replace(')', '')
+    if major_minor != changelog_version:
+        print('Version mismatch\n\td/changelog: %s\n\tversion.py: %s' %
+              (changelog_version, major_minor))
+        sys.exit(1)
     return major_minor
 
 
