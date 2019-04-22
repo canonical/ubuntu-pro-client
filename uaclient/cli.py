@@ -7,7 +7,7 @@ Available entitlements:
  - Extended Security Maintenance (https://ubuntu.com/esm)
  - FIPS 140-2
  - FIPS 140-2 with updates
- - Canonical Livepatch (https://ubuntu.com/server/livepatch)
+ - Canonical Livepatch (https://ubuntu.com/livepatch)
  - Canonical CIS Benchmark Audit Tool
  - Canonical Common Criteria EAL2 Provisioning
 
