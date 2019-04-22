@@ -15,6 +15,6 @@ CONFIG_DEFAULTS = {
     'sso_auth_url': BASE_AUTH_URL,
     'service_url': BASE_SERVICE_URL,
     'data_dir': '/var/lib/ubuntu-advantage',
-    'log_level': logging.INFO,
+    'log_level': 'INFO',
     'log_file': '/var/log/ubuntu-advantage.log'
 }
