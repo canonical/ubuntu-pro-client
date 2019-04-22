@@ -4,8 +4,6 @@ Project-wide default settings
 These are in their own file so they can be imported by setup.py before we have
 any of our dependencies installed.
 """
-import logging
-
 
 DEFAULT_CONFIG_FILE = '/etc/ubuntu-advantage/uaclient.conf'
 BASE_AUTH_URL = 'https://login.ubuntu.com'
