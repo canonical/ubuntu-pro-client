@@ -96,10 +96,14 @@ class RepoEntitlement(base.UAEntitlement):
         except apt.InvalidAPTCredentialsError as e:
             logging.error(str(e))
             return False
+        # Run apt-update on any repo-entitlement enable because the machine
+        # probably wants access to the repo that was just enabled.
+        # Side-effect is that apt policy will new report the repo as accessible
+        # which allows ua status to report correct info
+        print('Updating package lists ...')
+        util.subp(['apt-get', 'update'], capture=True)
         if self.packages:
             try:
-                print('Updating package lists ...')
-                util.subp(['apt-get', 'update'], capture=True)
                 print(
                     'Installing {title} packages ...'.format(title=self.title))
                 util.subp(
