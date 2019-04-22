@@ -128,6 +128,7 @@ def add_apt_auth_conf_entry(repo_url, login, password):
         new_lines.append(line)
     if not added_new_auth:
         new_lines.append(repo_auth_line)
+    new_lines.append('')
     util.write_file(apt_auth_file, '\n'.join(new_lines), mode=0o600)
 
 

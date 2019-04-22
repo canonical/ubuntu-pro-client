@@ -262,7 +262,7 @@ class TestAddAuthAptRepo:
             suites=('xenial',), fingerprint='APTKEY')
 
         expected_content = (
-            'machine fakerepo/ login user password password%s' %
+            'machine fakerepo/ login user password password%s\n' %
             APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
@@ -285,7 +285,7 @@ class TestAddAuthAptRepo:
             fingerprint='APTKEY')
 
         expected_content = (
-            'machine fakerepo/ login bearer password SOMELONGTOKEN%s'
+            'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'
             % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
@@ -311,8 +311,8 @@ class TestAddAptAuthConfEntry:
         expected_content = dedent("""\
             machine fakerepo1/ login me password password1
             machine fakerepo/ login newlogin password newpass%s
-            machine fakerepo2/ login other password otherpass\
-""" % APT_AUTH_COMMENT)
+            machine fakerepo2/ login other password otherpass
+        """ % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
@@ -336,8 +336,8 @@ class TestAddAptAuthConfEntry:
             machine fakerepo1/ login me password password1
             machine fakerepo/subroute/ login new password newpass%s
             machine fakerepo/ login old password oldpassword
-            machine fakerepo2/ login other password otherpass\
-""" % APT_AUTH_COMMENT)
+            machine fakerepo2/ login other password otherpass
+        """ % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
 
