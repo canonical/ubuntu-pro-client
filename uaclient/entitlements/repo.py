@@ -46,11 +46,10 @@ class RepoEntitlement(base.UAEntitlement):
                 'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineToken']
-        ppa_fingerprint = directives.get('aptKey')
-        if ppa_fingerprint:
-            keyring_file = None
-        else:
-            keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
+        if directives.get('aptKey'):
+            logging.debug(
+                "Ignoring aptKey directive '%s'", directives.get('aptKey'))
+        keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
@@ -93,7 +92,7 @@ class RepoEntitlement(base.UAEntitlement):
         try:
             apt.add_auth_apt_repo(
                 repo_filename, repo_url, token, repo_suites,
-                keyring_file, ppa_fingerprint)
+                keyring_file)
         except apt.InvalidAPTCredentialsError as e:
             logging.error(str(e))
             return False
