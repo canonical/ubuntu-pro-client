@@ -37,7 +37,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 @pytest.fixture
 def concrete_entitlement_factory(tmpdir):
     def factory(
-            *, entitled: bool, operational_status: 'Tuple[str, str]' = None
+        *, entitled: bool, operational_status: 'Tuple[str, str]' = None
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         machineToken = {
