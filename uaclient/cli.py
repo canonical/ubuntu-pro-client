@@ -185,7 +185,8 @@ def action_disable(args, cfg):
         return 1
 
 
-def _perform_enable(entitlement_name: str, cfg: config.UAConfig) -> bool:
+def _perform_enable(entitlement_name: str, cfg: config.UAConfig,
+                    silent_if_inapplicable: bool = False) -> bool:
     """Perform the enable action on a named entitlement.
 
     (This helper excludes any messaging, so that different enablement code
@@ -193,12 +194,15 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig) -> bool:
 
     :param entitlement_name: the name of the entitlement to enable
     :param cfg: the UAConfig to pass to the entitlement
+    :param silent_if_inapplicable:
+        don't output messages when determining if an entitlement can be
+        enabled on this system
 
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
     entitlement = ent_cls(cfg)
-    return entitlement.enable()
+    return entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
 
 
 @assert_attached_root
