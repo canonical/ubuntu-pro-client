@@ -115,16 +115,21 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert '' == stdout
 
-    def test_can_disable_true_on_entitlement_inapplicable(
+    def test_can_disable_false_on_entitlement_inapplicable(
             self, capsys, concrete_entitlement_factory):
-        """When operational status INAPPLICABLE, can_disable returns True."""
-        entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.INAPPLICABLE, ''))
+        """
+        When operational status INAPPLICABLE, can_disable returns False.
 
-        assert entitlement.can_disable()
+        It should also output the message from operational_status.
+        """
+        msg = 'not available, sorry'
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INAPPLICABLE, msg))
+
+        assert not entitlement.can_disable()
 
         stdout, _ = capsys.readouterr()
-        assert '' == stdout
+        assert '{}\n'.format(msg) == stdout
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_unentitled(
