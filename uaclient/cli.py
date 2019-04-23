@@ -185,7 +185,7 @@ def action_disable(args, cfg):
         return 1
 
 
-def _perform_enable(entitlement_name: str, cfg: config.UAConfig,
+def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
                     silent_if_inapplicable: bool = False) -> bool:
     """Perform the enable action on a named entitlement.
 
@@ -281,7 +281,7 @@ def action_attach(args, cfg):
     if enable_by_default_entitlements:
         print(ua_status.MESSAGE_ATTACH_ENABLING_DEFAULTS)
         for entitlement_name in enable_by_default_entitlements:
-            _perform_enable(entitlement_name, cfg)
+            _perform_enable(entitlement_name, cfg, silent_if_inapplicable=True)
         print()  # Add a line before status output
 
     action_status(args=None, cfg=cfg)
