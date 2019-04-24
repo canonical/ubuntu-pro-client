@@ -37,7 +37,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 @pytest.fixture
 def concrete_entitlement_factory(tmpdir):
     def factory(
-            *, entitled: bool, operational_status: 'Tuple[str, str]' = None
+        *, entitled: bool, operational_status: 'Tuple[str, str]' = None
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         machineToken = {
@@ -114,6 +114,22 @@ class TestUaEntitlement:
 
         stdout, _ = capsys.readouterr()
         assert '' == stdout
+
+    def test_can_disable_false_on_entitlement_inapplicable(
+            self, capsys, concrete_entitlement_factory):
+        """
+        When operational status INAPPLICABLE, can_disable returns False.
+
+        It should also output the message from operational_status.
+        """
+        msg = 'not available, sorry'
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INAPPLICABLE, msg))
+
+        assert not entitlement.can_disable()
+
+        stdout, _ = capsys.readouterr()
+        assert '{}\n'.format(msg) == stdout
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_unentitled(
