@@ -187,7 +187,8 @@ class TestActionAttachEnableByDefault:
         cfg = FakeConfig.with_account()
 
         # Make our mocks output something, so we can test the output layout
-        m_perform_enable.side_effect = lambda *args: print('perform_enable')
+        m_perform_enable.side_effect = (
+            lambda *args, **kwargs: print('perform_enable'))
         m_action_status.side_effect = (
             lambda *args, **kwargs: print('action_status'))
 
@@ -205,7 +206,8 @@ class TestActionAttachEnableByDefault:
 
         assert 0 == ret
         assert 1 == m_action_status.call_count
-        expected_calls = [mock.call(entitlement['type'], cfg)]
+        expected_calls = [
+            mock.call(entitlement['type'], cfg, silent_if_inapplicable=True)]
         assert expected_calls == m_perform_enable.call_args_list
         stdout, _ = capsys.readouterr()
         expected_output = (
@@ -247,7 +249,7 @@ class TestActionAttachEnableByDefault:
 
         # Make our mocks output something, so we can test the output layout
         m_perform_enable.side_effect = (
-            lambda name, _: print('perform_enable: {}'.format(name)))
+            lambda name, _, **kwargs: print('perform_enable: {}'.format(name)))
         m_action_status.side_effect = (
             lambda *args, **kwargs: print('action_status'))
 
@@ -266,7 +268,7 @@ class TestActionAttachEnableByDefault:
         assert 0 == ret
         assert 1 == m_action_status.call_count
         expected_calls = [
-            mock.call(ent_name, cfg)
+            mock.call(ent_name, cfg, silent_if_inapplicable=True)
             for ent_name in ['enable1', 'enable2', 'enable3', 'enable4']]
         assert expected_calls == m_perform_enable.call_args_list
         stdout, _ = capsys.readouterr()
