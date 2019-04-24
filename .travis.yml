@@ -21,3 +21,8 @@ matrix:
       env: TOXENV=py3-bionic,flake8-bionic
     - python: 3.7
       env: TOXENV=py3,flake8
+    - python: 3.8-dev
+      env: TOXENV=py3,flake8
+  allow_failures:
+    - python: 3.8-dev
+      env: TOXENV=py3,flake8
