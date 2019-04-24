@@ -398,10 +398,7 @@ def main(sys_argv=None):
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
-    try:
-        log_level = cfg.log_level
-    except TypeError:
-        log_level = getattr(logging, '%s' % cfg.log_file.upper())
+    log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)
     return args.action(args, cfg)
