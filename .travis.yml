@@ -18,5 +18,5 @@ matrix:
       env: TOXENV=py3-xenial,flake8-xenial
     - python: 3.6
       env: TOXENV=py3-bionic,flake8-bionic
-    - python: 3.7-dev
+    - python: 3.7
       env: TOXENV=py3,flake8
