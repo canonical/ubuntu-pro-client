@@ -180,8 +180,9 @@ class RepoEntitlement(base.UAEntitlement):
         creds = 'bearer:%s' % new_token
         if new_url:
             # Remove original aptURL and auth and rewrite
-            apt.remove_auth_apt_repo(
-                repo_filename, orig_access.get('directives', {}).get('aptURL'))
+            old_url = orig_access.get('directives', {}).get('aptURL')
+            if old_url:
+                apt.remove_auth_apt_repo(repo_filename, old_url)
         else:
             new_url = orig_access.get('directives', {}).get('aptURL')
         if not new_suites:
