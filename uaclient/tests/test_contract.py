@@ -1,14 +1,43 @@
+import copy
 import mock
 import pytest
 
 from uaclient.contract import (
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
-    API_V1_TMPL_RESOURCE_MACHINE_ACCESS, request_updated_contract)
+    API_V1_TMPL_RESOURCE_MACHINE_ACCESS, process_entitlement_delta,
+    request_updated_contract)
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
 
 
 M_PATH = 'uaclient.contract.'
+M_REPO_PATH = 'uaclient.entitlements.repo.RepoEntitlement.'
+
+
+class TestProcessEntitlementDeltas:
+
+    def test_no_delta_on_empty_orig_dict(self):
+        """Process and report no deltas when original access dict is empty."""
+        # Limit delta processing logic to handle attached state-A to state-B
+        # Fresh installs will have empty/unset
+        assert {} == process_entitlement_delta({}, {'something': 'non-empty'})
+
+    def test_no_delta_on_equal_dicts(self):
+        """No deltas are reported or processed when dicts are equal."""
+        assert {} == process_entitlement_delta({'no': 'diff'}, {'no': 'diff'})
+
+    @mock.patch(M_REPO_PATH + 'process_contract_deltas')
+    def test_deltas_handled_by_entitlement_process_contract_deltas(
+            self, m_process_contract_deltas):
+        """Call entitlement.process_contract_deltas to handle any deltas."""
+        original_access = {'entitlement': {'type': 'esm'}}
+        new_access = copy.deepcopy(original_access)
+        new_access['entitlement']['newkey'] = 'newvalue'
+        expected = {'entitlement': {'newkey': 'newvalue'}}
+        assert expected == process_entitlement_delta(
+            original_access, new_access)
+        expected_calls = [mock.call(original_access, expected)]
+        assert expected_calls == m_process_contract_deltas.call_args_list
 
 
 class TestRequestUpdatedContract:

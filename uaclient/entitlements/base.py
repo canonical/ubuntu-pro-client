@@ -210,8 +210,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         :param deltas: Dictionary which contains only the changed access keys
         and values.
         """
+        if not deltas:
+            return
         entitled_delta = deltas.get('entitlement', {}).get('entitled')
-        if orig_access and entitled_delta is False:
+        if orig_access and entitled_delta in (util.DROPPED_DICT_KEY, False):
             if self.can_disable(silent=True):
                 logging.debug(
                     "Due to contract refresh, '%s' is now disabled.",

@@ -1,8 +1,8 @@
 """Tests related to uaclient.util module."""
 
-
 import mock
 import os
+import pytest
 
 from uaclient.testing.helpers import TestCase
 from uaclient import util
@@ -66,6 +66,40 @@ HOME_URL="http://www.ubuntu.com/"
 SUPPORT_URL="http://help.ubuntu.com/"
 BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
 """
+
+
+class TestGetDictDeltas:
+
+    @pytest.mark.parametrize('value1,value2',
+                             (('val1', 'val2'), ([1], [2]), ((1, 2), (3, 4))))
+    def test_non_dict_diffs_return_new_value(self, value1, value2):
+        """When two values differ and are not a dict return the new value."""
+        expected = {'key': value2}
+        assert expected == util.get_dict_deltas(
+            {'key': value1}, {'key': value2})
+
+    def test_diffs_return_new_keys_and_values(self):
+        """New keys previously absent will be returned in the delta."""
+        expected = {'newkey': 'val'}
+        assert expected == util.get_dict_deltas(
+            {'k': 'v'}, {'newkey': 'val', 'k': 'v'})
+
+    def test_diffs_return_dropped_keys_set_dropped(self):
+        """Old keys which are now dropped are returned as DROPPED."""
+        expected = {'oldkey': util.DROPPED_DICT_KEY}
+        assert expected == util.get_dict_deltas(
+            {'oldkey': 'v', 'k': 'v'}, {'k': 'v'})
+
+    def test_return_only_keys_which_represent_deltas(self):
+        """Only return specific keys which have deltas."""
+        orig_dict = {
+            '1': '1', '2': 'orig2', '3': {'3.1': '3.1', '3.2': 'orig3.2'},
+            '4': {'4.1': '4.1'}}
+        new_dict = {
+            '1': '1', '2': 'new2', '3': {'3.1': '3.1', '3.2': 'new3.2'},
+            '4': {'4.1': '4.1'}}
+        expected = {'2': 'new2', '3': {'3.2': 'new3.2'}}
+        assert expected == util.get_dict_deltas(orig_dict, new_dict)
 
 
 class TestIsContainer:

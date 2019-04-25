@@ -254,6 +254,7 @@ def process_entitlement_delta(orig_access, new_access):
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
+    # TODO: handle initial install deltas where orig_access is empty
     if not orig_access or orig_access == new_access:
         return {}
     deltas = util.get_dict_deltas(orig_access, new_access)

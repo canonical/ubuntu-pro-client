@@ -5,6 +5,7 @@ import pytest
 from uaclient import config
 from uaclient.entitlements import base
 from uaclient import status
+from uaclient import util
 
 try:
     from typing import Tuple  # noqa
@@ -20,18 +21,25 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     def __init__(self, cfg=None, disable=None, enable=None,
                  operational_status=None):
         super().__init__(cfg)
+        self._calls = []
         self._disable = disable
         self._enable = enable
         self._operational_status = operational_status
 
     def disable(self):
+        self._calls.append(('disable', ))
         return self._disable
 
     def enable(self, silent_if_inapplicable: bool = False):
+        self._calls.append(('enable', silent_if_inapplicable))
         return self._enable
 
     def operational_status(self):
+        self._calls.append(('operational_status', ))
         return self._operational_status
+
+    def calls(self):  # Validate methods called
+        return self._calls
 
 
 @pytest.fixture
@@ -213,3 +221,79 @@ class TestUaEntitlement:
         """The contract_status returns NONE when entitlement is unentitled."""
         entitlement = concrete_entitlement_factory(entitled=False)
         assert status.NONE == entitlement.contract_status()
+
+    @pytest.mark.parametrize('orig_access,delta', (
+        ({}, {}), ({}, {'entitlement': {'entitled': False}})))
+    def test_process_contract_deltas_does_nothing_on_empty_orig_access(
+            self, concrete_entitlement_factory, orig_access, delta):
+        """When orig_acccess dict is empty perform no work."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INACTIVE, ''))
+        expected = {'entitlement': {'entitled': True}}
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        entitlement.process_contract_deltas(orig_access, delta)
+        # Cache was not cleaned
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+
+    @pytest.mark.parametrize(
+        'orig_access,delta',
+        (({'entitlement': {'entitled': True}}, {}),  # no deltas
+         ({'entitlement': {'entitled': False}},
+          {'entitlement': {'entitled': True}})  # transition to entitled
+         ))
+    def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
+            self, concrete_entitlement_factory, orig_access, delta):
+        """If deltas do not represent transition to unentitled, do nothing."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INACTIVE, ''))
+        expected = {'entitlement': {'entitled': True}}
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        entitlement.process_contract_deltas(orig_access, delta)
+        # Cache was not cleaned
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+
+    @pytest.mark.parametrize(
+        'orig_access,delta',
+        (({'entitlement': {'entitled': True}},  # Full entitlement dropped
+          {'entitlement': {'entitled': util.DROPPED_DICT_KEY}}),
+         ({'entitlement': {'entitled': True}},
+          {'entitlement': {'entitled': False}})  # transition to unentitled
+         ))
+    def test_process_contract_deltas_clean_cache_on_inactive_unentitled(
+            self, concrete_entitlement_factory, orig_access, delta):
+        """Only clear cache when deltas transition inactive to unentitled."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.INACTIVE, ''))
+        expected = {'entitlement': {'entitled': True}}
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        entitlement.process_contract_deltas(orig_access, delta)
+        # Cache was cleaned
+        assert None is entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        assert [('operational_status', )] == entitlement.calls()
+
+    @pytest.mark.parametrize(
+        'orig_access,delta',
+        (({'entitlement': {'entitled': True}},  # Full entitlement dropped
+          {'entitlement': {'entitled': util.DROPPED_DICT_KEY}}),
+         ({'entitlement': {'entitled': True}},
+          {'entitlement': {'entitled': False}})  # transition to unentitled
+         ))
+    def test_process_contract_deltas_disable_clean_cache_on_active_unentitled(
+            self, concrete_entitlement_factory, orig_access, delta):
+        """Disable and clear cache when transition active to unentitled."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True, operational_status=(status.ACTIVE, ''))
+        expected = {'entitlement': {'entitled': True}}
+        assert expected == entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        entitlement.process_contract_deltas(orig_access, delta)
+        # Cache was cleaned
+        assert None is entitlement.cfg.read_cache(
+            'machine-access-testconcreteentitlement')
+        assert [('operational_status', ), ('disable', )] == entitlement.calls()

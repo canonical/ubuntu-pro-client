@@ -12,6 +12,7 @@ SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
 
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
+DROPPED_DICT_KEY = 'DROPPED'
 
 
 class UrlError(IOError):
@@ -65,6 +66,7 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}
     for key, value in orig_dict.items():
+        new_value = new_dict.get(key, DROPPED_DICT_KEY)
         if isinstance(value, dict):
             if path:
                 sub_path = path + '.' + key
@@ -74,12 +76,11 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
                 value, new_dict.get(key, {}), path=sub_path)
             if sub_delta:
                 deltas[key] = sub_delta
-        elif value != new_dict.get(key):
+        elif value != new_value:
             key_path = key if not path else path + '.' + key
             logging.debug(
-                "Contract value for '%s' changed to '%s'",
-                key_path, new_dict.get(key))
-            deltas[key] = new_dict.get(key)
+                "Contract value for '%s' changed to '%s'", key_path, new_value)
+            deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:
             deltas[key] = value
