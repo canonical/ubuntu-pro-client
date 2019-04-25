@@ -244,31 +244,6 @@ def get_contract_token_for_account(contract_client, macaroon, account_id):
     return contract_token_response['contractToken']
 
 
-def get_dict_deltas(orig_dict, new_dict, path=''):
-    """Return a dictionary of delta between orig_dict and new_dict."""
-    deltas = {}
-    for key, value in orig_dict.items():
-        if isinstance(value, dict):
-            if path:
-                sub_path = path + '.' + key
-            else:
-                sub_path = key
-            sub_delta = get_dict_deltas(
-                value, new_dict.get(key, {}), path=sub_path)
-            if sub_delta:
-                deltas[key] = sub_delta
-        elif value != new_dict.get(key):
-            key_path = key if not path else path + '.' + key
-            logging.debug(
-                "Contract value for '%s' changed to '%s'",
-                key_path, new_dict.get(key))
-            deltas[key] = new_dict.get(key)
-    for key, value in new_dict.items():
-        if key not in orig_dict:
-            deltas[key] = value
-    return deltas
-
-
 def process_entitlement_delta(orig_access, new_access):
     """Process a entitlement access dictionary deltas if they exist.
 
@@ -281,7 +256,7 @@ def process_entitlement_delta(orig_access, new_access):
 
     if not orig_access or orig_access == new_access:
         return {}
-    deltas = get_dict_deltas(orig_access, new_access)
+    deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:
         name = orig_access['entitlement']['type']
         ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]

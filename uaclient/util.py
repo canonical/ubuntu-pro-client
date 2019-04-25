@@ -61,6 +61,31 @@ def encode_text(text, encoding='utf-8'):
     return text.encode(encoding)
 
 
+def get_dict_deltas(orig_dict, new_dict, path=''):
+    """Return a dictionary of delta between orig_dict and new_dict."""
+    deltas = {}
+    for key, value in orig_dict.items():
+        if isinstance(value, dict):
+            if path:
+                sub_path = path + '.' + key
+            else:
+                sub_path = key
+            sub_delta = get_dict_deltas(
+                value, new_dict.get(key, {}), path=sub_path)
+            if sub_delta:
+                deltas[key] = sub_delta
+        elif value != new_dict.get(key):
+            key_path = key if not path else path + '.' + key
+            logging.debug(
+                "Contract value for '%s' changed to '%s'",
+                key_path, new_dict.get(key))
+            deltas[key] = new_dict.get(key)
+    for key, value in new_dict.items():
+        if key not in orig_dict:
+            deltas[key] = value
+    return deltas
+
+
 def is_container(run_path='/run'):
     """Checks to see if this code running in a container of some sort"""
     try:
