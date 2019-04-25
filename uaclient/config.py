@@ -185,7 +185,6 @@ class UAConfig:
         """Remove configuration cached response files class attributes."""
         for path_key in self.data_paths.keys():
             self.delete_cache_key(path_key)
-        self.flush_cache()
 
     def read_cache(self, key, silent=False):
         cache_path = self.data_path(key)

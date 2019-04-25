@@ -277,14 +277,14 @@ def process_entitlement_delta(orig_access, new_access):
     :param orig_access: Dict with updated entitlement access details after
         contract refresh
     """
-    from uaclient import entitlements
+    from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
     if not orig_access or orig_access == new_access:
         return {}
     deltas = get_dict_deltas(orig_access, new_access)
     if deltas:
         name = orig_access['entitlement']['type']
-        ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[name]
+        ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]
         entitlement = ent_cls()
         entitlement.process_contract_deltas(orig_access, deltas)
     return deltas
