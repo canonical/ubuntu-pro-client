@@ -160,34 +160,26 @@ class RepoEntitlement(base.UAEntitlement):
             resourceEntitlement access details.
         :param deltas: Dictionary which contains only the changed access keys
         and values.
+
+        :return: True when delta operations are processed; False when noop.
         """
-        if not deltas:
-            return
-        super().process_contract_deltas(orig_access, deltas)
-        new_token = deltas.get('resourceToken')
-        entitlement_delta = deltas.get('entitlement', {})
-        new_url = entitlement_delta.get('directives', {}).get('aptURL')
-        new_suites = entitlement_delta.get('directives', {}).get('suites')
-        if not any([new_token, new_url, new_suites]):
-            return
+        if super().process_contract_deltas(orig_access, deltas):
+            return True  # Already processed parent class deltas
+        op_status, _details = self.operational_status()
+
+        if op_status != status.ACTIVE:
+            return True  # Do not process resourceToken delta for inactive
         logging.info(
             "Updating '%s' apt sources list on changed directives.", self.name)
-        series = util.get_platform_info('series')
-        repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series)
-        if not new_token:
-            new_token = orig_access['resourceToken']
-        creds = 'bearer:%s' % new_token
-        if new_url:
+        old_url = orig_access.get('directives', {}).get('aptURL')
+        if old_url:
             # Remove original aptURL and auth and rewrite
-            old_url = orig_access.get('directives', {}).get('aptURL')
-            if old_url:
-                apt.remove_auth_apt_repo(repo_filename, old_url)
-        else:
-            new_url = orig_access.get('directives', {}).get('aptURL')
-        if not new_suites:
-            new_suites = orig_access.get('directives', {}).get('suites', [])
-        apt.add_auth_apt_repo(repo_filename, new_url, creds, suites=new_suites)
+            series = util.get_platform_info('series')
+            repo_filename = self.repo_list_file_tmpl.format(
+                name=self.name, series=series)
+            apt.remove_auth_apt_repo(repo_filename, old_url)
+        self.enable()
+        return True
 
     def _set_local_enabled(self, value):
         """Set local enabled flag true or false."""

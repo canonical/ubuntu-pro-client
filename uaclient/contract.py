@@ -254,13 +254,22 @@ def process_entitlement_delta(orig_access, new_access):
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
-    # TODO: handle initial install deltas where orig_access is empty
-    if not orig_access or orig_access == new_access:
-        return {}
     deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:
-        name = orig_access['entitlement']['type']
-        ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]
+        name = orig_access.get('entitlement', {}).get('type')
+        if not name:
+            name = deltas.get('entitlement', {}).get('type')
+        if not name:
+            raise RuntimeError(
+                'Could not determine contract delta service type %s %s' % (
+                    orig_access, new_access))
+        try:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]
+        except KeyError:
+            logging.debug(
+                'Skipping entitlement deltas for "%s". No such class',
+                name)
+            return deltas
         entitlement = ent_cls()
         entitlement.process_contract_deltas(orig_access, deltas)
     return deltas

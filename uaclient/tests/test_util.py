@@ -85,8 +85,8 @@ class TestGetDictDeltas:
             {'k': 'v'}, {'newkey': 'val', 'k': 'v'})
 
     def test_diffs_return_dropped_keys_set_dropped(self):
-        """Old keys which are now dropped are returned as DROPPED."""
-        expected = {'oldkey': util.DROPPED_DICT_KEY}
+        """Old keys which are now dropped are returned as DROPPED_KEY."""
+        expected = {'oldkey': util.DROPPED_KEY}
         assert expected == util.get_dict_deltas(
             {'oldkey': 'v', 'k': 'v'}, {'k': 'v'})
 

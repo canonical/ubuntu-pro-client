@@ -16,11 +16,12 @@ M_REPO_PATH = 'uaclient.entitlements.repo.RepoEntitlement.'
 
 class TestProcessEntitlementDeltas:
 
-    def test_no_delta_on_empty_orig_dict(self):
-        """Process and report no deltas when original access dict is empty."""
-        # Limit delta processing logic to handle attached state-A to state-B
-        # Fresh installs will have empty/unset
-        assert {} == process_entitlement_delta({}, {'something': 'non-empty'})
+    def test_error_on_missing_entitlement_type(self):
+        """Raise an error when neither dict contains entitlement type."""
+        error_msg = ('Could not determine contract delta service type %s %s' %
+                     ({}, {'something': 'non-empty'}))
+        with pytest.raises(RuntimeError, match=error_msg):
+            process_entitlement_delta({}, {'something': 'non-empty'})
 
     def test_no_delta_on_equal_dicts(self):
         """No deltas are reported or processed when dicts are equal."""
@@ -37,6 +38,16 @@ class TestProcessEntitlementDeltas:
         assert expected == process_entitlement_delta(
             original_access, new_access)
         expected_calls = [mock.call(original_access, expected)]
+        assert expected_calls == m_process_contract_deltas.call_args_list
+
+    @mock.patch(M_REPO_PATH + 'process_contract_deltas')
+    def test_full_delta_on_empty_orig_dict(self, m_process_contract_deltas):
+        """Process and report full deltas on empty original access dict."""
+        # Limit delta processing logic to handle attached state-A to state-B
+        # Fresh installs will have empty/unset
+        new_access = {'entitlement': {'type': 'esm', 'other': 'val2'}}
+        assert new_access == process_entitlement_delta({}, new_access)
+        expected_calls = [mock.call({}, new_access)]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
 

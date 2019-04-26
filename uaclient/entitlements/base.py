@@ -209,11 +209,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             resourceEntitlement access details.
         :param deltas: Dictionary which contains only the changed access keys
         and values.
+
+        :return: True when delta operations are processed; False when noop.
         """
         if not deltas:
-            return
-        entitled_delta = deltas.get('entitlement', {}).get('entitled')
-        if orig_access and entitled_delta in (util.DROPPED_DICT_KEY, False):
+            return True  # We processed all deltas that needed processing
+        transition_to_unentitled = False
+        if orig_access and 'entitled' in deltas.get('entitlement', {}):
+            transition_to_unentitled = (
+                deltas['entitlement']['entitled'] in (False, util.DROPPED_KEY))
+        if transition_to_unentitled:
             if self.can_disable(silent=True):
                 logging.debug(
                     "Due to contract refresh, '%s' is now disabled.",
@@ -223,6 +228,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
             self.cfg.delete_cache_key('machine-access-%s' % self.name)
+            return True
+        return False
 
     @abc.abstractmethod
     def operational_status(self):

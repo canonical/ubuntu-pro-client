@@ -259,7 +259,7 @@ class TestUaEntitlement:
     @pytest.mark.parametrize(
         'orig_access,delta',
         (({'entitlement': {'entitled': True}},  # Full entitlement dropped
-          {'entitlement': {'entitled': util.DROPPED_DICT_KEY}}),
+          {'entitlement': {'entitled': util.DROPPED_KEY}}),
          ({'entitlement': {'entitled': True}},
           {'entitlement': {'entitled': False}})  # transition to unentitled
          ))
@@ -280,7 +280,7 @@ class TestUaEntitlement:
     @pytest.mark.parametrize(
         'orig_access,delta',
         (({'entitlement': {'entitled': True}},  # Full entitlement dropped
-          {'entitlement': {'entitled': util.DROPPED_DICT_KEY}}),
+          {'entitlement': {'entitled': util.DROPPED_KEY}}),
          ({'entitlement': {'entitled': True}},
           {'entitlement': {'entitled': False}})  # transition to unentitled
          ))

@@ -12,7 +12,7 @@ SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
 
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
-DROPPED_DICT_KEY = 'DROPPED'
+DROPPED_KEY = object()
 
 
 class UrlError(IOError):
@@ -66,7 +66,7 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}
     for key, value in orig_dict.items():
-        new_value = new_dict.get(key, DROPPED_DICT_KEY)
+        new_value = new_dict.get(key, DROPPED_KEY)
         if isinstance(value, dict):
             if path:
                 sub_path = path + '.' + key
