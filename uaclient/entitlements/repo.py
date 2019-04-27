@@ -24,12 +24,18 @@ class RepoEntitlement(base.UAEntitlement):
     origin = None   # The repo Origin value for setting pinning
 
     repo_url = 'UNSET'
-    repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
-    repo_pin_priority = None      # Optional repo pin priority in subclass
+    repo_key_file = 'UNSET'   # keyfile delivered by ubuntu-cloudimage-keyring
+    repo_pin_priority = None  # Optional repo pin priority in subclass
+
+    # force_disable True if entitlement does not allow disable (fips*)
+    force_disable = False
+
+    # disable_apt_auth_only (ESM) to only remove apt auth files on disable
+    disable_apt_auth_only = False  # Set True on ESM to only remove apt auth
 
     # Any custom messages to emit pre or post enable or disable operations
     messaging = {}  # Currently post_enable is used in CommonCriteria
-    packages = []  # Debs to install on enablement
+    packages = []   # Debs to install on enablement
 
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
@@ -128,6 +134,27 @@ class RepoEntitlement(base.UAEntitlement):
             print(msg)
         return True
 
+    def disable(self, silent=False, force=False):
+        if not self.can_disable(silent, force):
+            return False
+        if any([not self.force_disable, force]):
+            self.remove_apt_config()
+            try:
+                util.subp(
+                    ['apt-get', 'remove', '--assume-yes'] + self.packages)
+            except util.ProcessExecutionError:
+                pass
+            self._set_local_enabled(False)
+        if self.force_disable:
+            if not silent:
+                print('Warning: no option to disable {title}'.format(
+                    title=self.title)
+                )
+            return False
+        if not silent:
+            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
+        return True
+
     def operational_status(self):
         """Return operational status of RepoEntitlement."""
         passed_affordances, details = self.check_affordances()
@@ -178,8 +205,35 @@ class RepoEntitlement(base.UAEntitlement):
             repo_filename = self.repo_list_file_tmpl.format(
                 name=self.name, series=series)
             apt.remove_auth_apt_repo(repo_filename, old_url)
+        self.remove_apt_config()
         self.enable()
         return True
+
+    def remove_apt_config(self):
+        """Remove any repository apt configuration files."""
+        series = util.get_platform_info('series')
+        repo_filename = self.repo_list_file_tmpl.format(
+            name=self.name, series=series)
+        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
+        entitlement = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('entitlement', {})
+        access_directives = entitlement.get('directives', {})
+        repo_url = access_directives.get('aptURL', self.repo_url)
+        if not repo_url:
+            repo_url = self.repo_url
+        if self.disable_apt_auth_only:
+            # We only remove the repo from the apt auth file, because ESM
+            # is a special-case: we want to be able to report on the
+            # available ESM updates even when it's disabled
+            apt.remove_repo_from_apt_auth_file(repo_url)
+        else:
+            apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+            apt.remove_apt_list_files(repo_url, series)
+        if self.repo_pin_priority:
+            repo_pref_file = self.repo_pref_file_tmpl.format(
+                name=self.name, series=series)
+            if os.path.exists(repo_pref_file):
+                os.unlink(repo_pref_file)
 
     def _set_local_enabled(self, value):
         """Set local enabled flag true or false."""
