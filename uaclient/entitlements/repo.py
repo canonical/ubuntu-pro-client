@@ -192,12 +192,25 @@ class RepoEntitlement(base.UAEntitlement):
         """
         if super().process_contract_deltas(orig_access, deltas):
             return True  # Already processed parent class deltas
-        op_status, _details = self.operational_status()
 
-        if op_status != status.ACTIVE:
-            return True  # Do not process resourceToken delta for inactive
-        logging.info(
-            "Updating '%s' apt sources list on changed directives.", self.name)
+        op_status, _details = self.operational_status()
+        resourceToken = orig_access.get('resourceToken')
+        if not resourceToken:
+            resourceToken = deltas.get('resourceToken')
+        delta_entitlement = deltas.get('entitlement', {})
+        delta_obligations = delta_entitlement.get('obligations', {})
+        enableByDefault = bool(
+            delta_obligations.get('enableByDefault') and resourceToken)
+        if not any([op_status == status.ACTIVE, enableByDefault]):
+            return True
+        if op_status == status.ACTIVE:
+            logging.info(
+                "Updating '%s' apt sources list on changed directives." %
+                self.name)
+        elif enableByDefault:
+            msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
+                name=self.name)
+            logging.info(msg)
         old_url = orig_access.get('directives', {}).get('aptURL')
         if old_url:
             # Remove original aptURL and auth and rewrite
