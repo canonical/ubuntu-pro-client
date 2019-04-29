@@ -170,12 +170,11 @@ class UAConfig:
         if not key:
             raise RuntimeError(
                 'Invalid or empty key provided to delete_cache_key')
-        if key.startswith('machine-access'):
+        if key.startswith('machine-access') or key == 'machine-token':
             self._entitlements = None
+            self._machine_token = None
         elif key == 'account-contracts':
             self._contracts = None
-        elif key == 'machine-token':
-            self._machine_token = None
         for private in (True, False):
             cache_path = self.data_path(key, private)
             if os.path.exists(cache_path):
@@ -206,6 +205,11 @@ class UAConfig:
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
+        if key.startswith('machine-access') or key == 'machine-token':
+            self._machine_token = None
+            self._entitlements = None
+        elif key == 'account-contracts':
+            self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
         if private:
