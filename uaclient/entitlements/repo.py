@@ -48,73 +48,8 @@ class RepoEntitlement(base.UAEntitlement):
         """
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
-        series = util.get_platform_info('series')
-        repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series)
-        resource_cfg = self.cfg.entitlements.get(self.name)
-        directives = resource_cfg['entitlement'].get('directives', {})
-        token = resource_cfg.get('resourceToken')
-        if not token:
-            logging.debug(
-                'No specific resourceToken present. Using machine token'
-                ' as %s credentials', self.title)
-            token = self.cfg.machine_token['machineToken']
-        if directives.get('aptKey'):
-            logging.debug(
-                "Ignoring aptKey directive '%s'", directives.get('aptKey'))
-        keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
-        repo_url = directives.get('aptURL')
-        if not repo_url:
-            repo_url = self.repo_url
-        repo_suites = directives.get('suites')
-        if not repo_suites:
-            logging.error(
-                'Empty %s apt suites directive from %s',
-                self.name, self.cfg.contract_url)
+        if not self.setup_apt_config():
             return False
-        if self.repo_pin_priority:
-            if not self.origin:
-                logging.error(
-                    "Cannot setup apt pin. Empty apt repo origin value '%s'." %
-                    self.origin)
-                logging.error(
-                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title))
-                return False
-            repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series)
-            apt.add_ppa_pinning(
-                repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
-
-        prerequisite_pkgs = []
-        if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
-            prerequisite_pkgs.append('apt-transport-https')
-        if not os.path.exists(apt.CA_CERTIFICATES_FILE):
-            prerequisite_pkgs.append('ca-certificates')
-
-        if prerequisite_pkgs:
-            print('Installing prerequisites: {}'.format(
-                ', '.join(prerequisite_pkgs)))
-            try:
-                util.subp(
-                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    capture=True)
-            except util.ProcessExecutionError as e:
-                logging.error(str(e))
-                return False
-        try:
-            apt.add_auth_apt_repo(
-                repo_filename, repo_url, token, repo_suites,
-                keyring_file)
-        except apt.InvalidAPTCredentialsError as e:
-            logging.error(str(e))
-            return False
-        # Run apt-update on any repo-entitlement enable because the machine
-        # probably wants access to the repo that was just enabled.
-        # Side-effect is that apt policy will new report the repo as accessible
-        # which allows ua status to report correct info
-        print('Updating package lists ...')
-        util.subp(['apt-get', 'update'], capture=True)
         if self.packages:
             try:
                 print(
@@ -219,7 +154,77 @@ class RepoEntitlement(base.UAEntitlement):
                 name=self.name, series=series)
             apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
-        self.enable()
+        self.setup_apt_config()
+        return True
+
+    def setup_apt_config(self):
+        series = util.get_platform_info('series')
+        repo_filename = self.repo_list_file_tmpl.format(
+            name=self.name, series=series)
+        resource_cfg = self.cfg.entitlements.get(self.name)
+        directives = resource_cfg['entitlement'].get('directives', {})
+        token = resource_cfg.get('resourceToken')
+        if not token:
+            logging.debug(
+                'No specific resourceToken present. Using machine token'
+                ' as %s credentials', self.title)
+            token = self.cfg.machine_token['machineToken']
+        if directives.get('aptKey'):
+            logging.debug(
+                "Ignoring aptKey directive '%s'", directives.get('aptKey'))
+        keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
+        repo_url = directives.get('aptURL')
+        if not repo_url:
+            repo_url = self.repo_url
+        repo_suites = directives.get('suites')
+        if not repo_suites:
+            logging.error(
+                'Empty %s apt suites directive from %s',
+                self.name, self.cfg.contract_url)
+            return False
+        if self.repo_pin_priority:
+            if not self.origin:
+                logging.error(
+                    "Cannot setup apt pin. Empty apt repo origin value '%s'." %
+                    self.origin)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
+            repo_pref_file = self.repo_pref_file_tmpl.format(
+                name=self.name, series=series)
+            apt.add_ppa_pinning(
+                repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
+
+        prerequisite_pkgs = []
+        if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
+            prerequisite_pkgs.append('apt-transport-https')
+        if not os.path.exists(apt.CA_CERTIFICATES_FILE):
+            prerequisite_pkgs.append('ca-certificates')
+
+        if prerequisite_pkgs:
+            print('Installing prerequisites: {}'.format(
+                ', '.join(prerequisite_pkgs)))
+            try:
+                util.subp(
+                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
+                    capture=True)
+            except util.ProcessExecutionError as e:
+                logging.error(str(e))
+                return False
+        try:
+            apt.add_auth_apt_repo(
+                repo_filename, repo_url, token, repo_suites,
+                keyring_file)
+        except apt.InvalidAPTCredentialsError as e:
+            logging.error(str(e))
+            return False
+        # Run apt-update on any repo-entitlement enable because the machine
+        # probably wants access to the repo that was just enabled.
+        # Side-effect is that apt policy will new report the repo as accessible
+        # which allows ua status to report correct info
+        print('Updating package lists ...')
+        util.subp(['apt-get', 'update'], capture=True)
         return True
 
     def remove_apt_config(self):
