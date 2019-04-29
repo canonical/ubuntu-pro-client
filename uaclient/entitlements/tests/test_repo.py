@@ -15,7 +15,7 @@ REPO_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'repotest'}]}}}
+                {'type': 'repotest', 'entitled': True}]}}}
 REPO_RESOURCE_ENTITLED = {
     'resourceToken': 'TOKEN',
     'entitlement': {

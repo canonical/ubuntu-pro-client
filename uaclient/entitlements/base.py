@@ -63,11 +63,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        if not any([self.contract_status() == status.ENTITLED, force]):
-            message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
-            retval = False
-        elif not force:
-            op_status, status_details = self.operational_status()
+        op_status, status_details = self.operational_status()
+
+        if not force:
             if op_status == status.INACTIVE:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                     title=self.title
@@ -229,7 +227,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 else:
                     logging.warning(
                         "Unable to disable '%s' as recommended during contract"
-                        " refresh. Service is still active. See `ua status`")
+                        " refresh. Service is still active. See `ua status`" %
+                        self.name)
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.

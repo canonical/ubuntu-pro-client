@@ -309,7 +309,7 @@ def request_updated_contract(cfg, contract_token=None):
                 'Could not refresh machine token. %s', str(e))
             return False
     try:
-        for name, entitlement in cfg.entitlements.items():
+        for name, entitlement in sorted(cfg.entitlements.items()):
             if entitlement['entitlement'].get('entitled'):
                 # Obtain each entitlement's accessContext for this machine
                 new_access = contract_client.request_resource_machine_access(

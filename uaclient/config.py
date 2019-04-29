@@ -127,8 +127,10 @@ class UAConfig:
         ent_by_name = dict(
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = self.read_cache(
-                'machine-access-%s' % entitlement_name, silent=True)
+            entitlement_cfg = {}
+            if ent_value.get('entitled'):
+                entitlement_cfg = self.read_cache(
+                    'machine-access-%s' % entitlement_name, silent=True)
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}

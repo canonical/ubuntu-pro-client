@@ -53,7 +53,8 @@ def concrete_entitlement_factory(tmpdir):
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement'}]}}}
+                        {'type': 'testconcreteentitlement',
+                         'entitled': True}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': entitled}})
@@ -86,17 +87,11 @@ class TestUaEntitlement:
 
     def test_can_disable_false_on_unentitled(
             self, capsys, concrete_entitlement_factory):
-        """When entitlement contract is not enabled, can_disable is False."""
+        """When entitlement is active yet unentitled, can_disable is True."""
         entitlement = concrete_entitlement_factory(
-            entitled=False, operational_status=(status.INACTIVE, ''))
+            entitled=False, operational_status=(status.ACTIVE, ''))
 
-        assert not entitlement.can_disable()
-
-        expected_stdout = (
-            'This subscription is not entitled to Test Concrete Entitlement.\n'
-            'See `ua status` or https://ubuntu.com/advantage\n')
-        stdout, _ = capsys.readouterr()
-        assert expected_stdout == stdout
+        assert entitlement.can_disable()
 
     def test_can_disable_false_on_entitlement_inactive(
             self, capsys, concrete_entitlement_factory):

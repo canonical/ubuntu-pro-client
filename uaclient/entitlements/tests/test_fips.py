@@ -17,7 +17,7 @@ FIPS_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'fips'}]}}}
+                {'type': 'fips', 'entitled': True}]}}}
 
 
 FIPS_RESOURCE_ENTITLED = {
