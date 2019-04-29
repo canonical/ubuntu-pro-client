@@ -67,17 +67,16 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
     deltas = {}
     for key, value in orig_dict.items():
         new_value = new_dict.get(key, DROPPED_KEY)
+        key_path = key if not path else path + '.' + key
         if isinstance(value, dict):
-            if path:
-                sub_path = path + '.' + key
+            if key in new_dict:
+                sub_delta = get_dict_deltas(
+                    value, new_dict[key], path=key_path)
+                if sub_delta:
+                    deltas[key] = sub_delta
             else:
-                sub_path = key
-            sub_delta = get_dict_deltas(
-                value, new_dict.get(key, {}), path=sub_path)
-            if sub_delta:
-                deltas[key] = sub_delta
+                deltas[key] = DROPPED_KEY
         elif value != new_value:
-            key_path = key if not path else path + '.' + key
             logging.debug(
                 "Contract value for '%s' changed to '%s'", key_path, new_value)
             deltas[key] = new_value
