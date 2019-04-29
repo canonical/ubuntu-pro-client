@@ -20,8 +20,9 @@ class TestProcessEntitlementDeltas:
         """Raise an error when neither dict contains entitlement type."""
         error_msg = ('Could not determine contract delta service type %s %s' %
                      ({}, {'something': 'non-empty'}))
-        with pytest.raises(RuntimeError, match=error_msg):
+        with pytest.raises(RuntimeError) as exc:
             process_entitlement_delta({}, {'something': 'non-empty'})
+        assert error_msg == str(exc.value)
 
     def test_no_delta_on_equal_dicts(self):
         """No deltas are reported or processed when dicts are equal."""

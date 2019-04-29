@@ -85,7 +85,7 @@ class TestUaEntitlement:
         entitlement = ConcreteTestEntitlement(cfg)
         assert '/some/path' == entitlement.cfg.data_dir
 
-    def test_can_disable_false_on_unentitled(
+    def test_can_disable_true_on_unentitled_operational_status_active(
             self, capsys, concrete_entitlement_factory):
         """When entitlement is active yet unentitled, can_disable is True."""
         entitlement = concrete_entitlement_factory(

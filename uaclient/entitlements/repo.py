@@ -146,9 +146,9 @@ class RepoEntitlement(base.UAEntitlement):
             msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
                 name=self.name)
             logging.info(msg)
-        old_url = orig_access.get('directives', {}).get('aptURL')
-        if old_url:
+        if delta_entitlement.get('directives', {}).get('aptURL'):
             # Remove original aptURL and auth and rewrite
+            old_url = orig_access.get('directives', {}).get('aptURL')
             series = util.get_platform_info('series')
             repo_filename = self.repo_list_file_tmpl.format(
                 name=self.name, series=series)

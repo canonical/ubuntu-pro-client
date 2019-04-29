@@ -6,6 +6,8 @@ import pytest
 from uaclient import apt
 from uaclient import config
 from uaclient.entitlements.repo import RepoEntitlement
+from uaclient import status
+from uaclient import util
 
 
 M_PATH = 'uaclient.entitlements.repo.'
@@ -41,9 +43,6 @@ class RepoTestEntitlement(RepoEntitlement):
     name = 'repotest'
     title = 'Repo Test Class'
 
-    def disable(self, *args, **kwargs):
-        pass
-
 
 @pytest.fixture
 def entitlement(tmpdir):
@@ -56,6 +55,77 @@ def entitlement(tmpdir):
     cfg.write_cache('machine-token', dict(REPO_MACHINE_TOKEN))
     cfg.write_cache('machine-access-repotest', dict(REPO_RESOURCE_ENTITLED))
     return RepoTestEntitlement(cfg)
+
+
+class TestProcessContractDeltas:
+
+    @pytest.mark.parametrize('orig_access', ({}, {'entitlement': {}}))
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_on_no_deltas(self, m_op_status, orig_access):
+        """Return True when no deltas are available to process."""
+        entitlement = RepoTestEntitlement()
+        assert entitlement.process_contract_deltas(orig_access, {})
+        assert [] == m_op_status.call_args_list
+
+    @pytest.mark.parametrize('entitled', (False, util.DROPPED_KEY))
+    @mock.patch.object(RepoTestEntitlement, 'disable')
+    @mock.patch.object(RepoTestEntitlement, 'can_disable', return_value=True)
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_disable_when_delta_to_unentitled(
+            self, m_op_status, m_can_disable, m_disable, entitlement,
+            entitled):
+        """Disable the service on contract transitions to unentitled."""
+        m_op_status.return_value = status.ACTIVE, 'fake active'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {'entitled': True}},
+            {'entitlement': {'entitled': entitled}})
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call()] == m_disable.call_args_list
+
+    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_no_changes_when_service_inactive_and_not_enable_by_default(
+            self, m_op_status, m_remove_apt_config, entitlement):
+        """Noop when service is inactive and not enableByDefault."""
+        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {'entitled': True}},
+            {'entitlement': {'obligations': {'enableByDefault': False}},
+             'resourceToken': 'TOKEN'})
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [] == m_remove_apt_config.call_args_list
+
+    @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_update_apt_config_when_enable_by_default_and_resource_token(
+            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
+            entitlement):
+        """Update_apt_config when service is inactive and enableByDefault."""
+        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {'entitled': True}},
+            {'entitlement': {'obligations': {'enableByDefault': True}},
+             'resourceToken': 'TOKEN'})
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call()] == m_setup_apt_config.call_args_list
+
+    @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_update_apt_config_when_active(
+            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
+            entitlement):
+        """Update_apt_config when service is active and not enableByDefault."""
+        m_op_status.return_value = status.ACTIVE, 'fake active'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {'entitled': True}},
+            {'entitlement': {'obligations': {'enableByDefault': False}},
+             'resourceToken': 'TOKEN'})
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call()] == m_setup_apt_config.call_args_list
 
 
 class TestRepoEnable:
