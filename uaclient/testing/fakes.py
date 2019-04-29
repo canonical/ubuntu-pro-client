@@ -58,7 +58,9 @@ class FakeConfig(UAConfig):
             'accounts': {'accounts': [{'name': account_name}]},
             'machine-token': {
                 'machineToken': 'not-null',
-                'machineTokenInfo': {'contractInfo': {'id': 'cid'}}}
+                'machineTokenInfo': {
+                    'contractInfo': {'id': 'cid',
+                                     'resourceEntitlements': []}}}
         }
         if machine_token:
             value['machine-token'] = machine_token

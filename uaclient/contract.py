@@ -285,6 +285,7 @@ def request_updated_contract(cfg, contract_token=None):
     @return: True on success False otherwise.
     """
     orig_token = cfg.machine_token
+    orig_entitlements = cfg.entitlements
     if orig_token and contract_token:
         raise RuntimeError(
             'Got unexpected contract_token on an already attached machine')
@@ -308,20 +309,17 @@ def request_updated_contract(cfg, contract_token=None):
                 'Could not refresh machine token. %s', str(e))
             return False
     try:
-        contractInfo = new_token['machineTokenInfo']['contractInfo']
-        for entitlement in contractInfo['resourceEntitlements']:
-            entitlement_name = entitlement['type']
-            if entitlement.get('entitled'):
+        for name, entitlement in cfg.entitlements.items():
+            if entitlement['entitlement'].get('entitled'):
                 # Obtain each entitlement's accessContext for this machine
                 new_access = contract_client.request_resource_machine_access(
-                    new_token['machineToken'], entitlement_name)
+                    new_token['machineToken'], name)
             else:
-                new_access = {'entitlement': entitlement}
+                new_access = entitlement
             process_entitlement_delta(
-                cfg.entitlements[entitlement_name], new_access)
+                orig_entitlements.get(name, {}), new_access)
     except util.UrlError as e:
         logging.error(
             'Could not obtain updated contract information. %s', str(e))
         return False
-    cfg.flush_cache()
     return True

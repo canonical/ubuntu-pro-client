@@ -159,12 +159,6 @@ class UAConfig:
             return os.path.join(data_dir, self.data_paths[key])
         return os.path.join(data_dir, key)
 
-    def flush_cache(self):
-        """Clear any cached locals so new cache values are read."""
-        self._contracts = None
-        self._entitlements = None
-        self._machine_token = None
-
     def delete_cache_key(self, key):
         """Remove specific cache file."""
         if not key:
