@@ -296,4 +296,6 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
-        assert [('operational_status', ), ('disable', )] == entitlement.calls()
+        expected_calls = [
+            ('operational_status', ), ('operational_status', ), ('disable', )]
+        assert expected_calls == entitlement.calls()
