@@ -39,7 +39,7 @@ FIPS_RESOURCE_ENTITLED = {
     }
 }
 
-M_PATH = 'uaclient.entitlements.fips.FIPSEntitlement.'
+M_PATH = 'uaclient.entitlements.fips.'
 M_REPOPATH = 'uaclient.entitlements.repo.'
 M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
@@ -89,7 +89,8 @@ class TestFIPSEntitlementEnable:
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
                 with mock.patch('uaclient.util.subp') as m_subp:
-                    with mock.patch(M_PATH + 'can_enable') as m_can_enable:
+                    with mock.patch.object(entitlement,
+                                           'can_enable') as m_can_enable:
                         with mock.patch(M_GETPLATFORM, return_value='xenial'):
                             with mock.patch(M_REPOPATH + 'os.path.exists'):
                                 m_can_enable.return_value = True
@@ -116,7 +117,7 @@ class TestFIPSEntitlementEnable:
 
     @mock.patch(
         'uaclient.util.get_platform_info', return_value='xenial')
-    @mock.patch(M_PATH + 'can_enable', return_value=False)
+    @mock.patch(M_PATH + 'FIPSEntitlement.can_enable', return_value=False)
     def test_enable_returns_false_on_can_enable_false(
             self, m_can_enable, m_platform_info):
         """When can_enable is false enable returns false and noops."""
@@ -127,7 +128,7 @@ class TestFIPSEntitlementEnable:
 
     @mock.patch(
         'uaclient.util.get_platform_info', return_value='xenial')
-    @mock.patch(M_PATH + 'can_enable', return_value=True)
+    @mock.patch(M_PATH + 'FIPSEntitlement.can_enable', return_value=True)
     def test_enable_returns_false_on_missing_suites_directive(
             self, m_can_enable, m_platform_info, tmpdir):
         """When directives do not contain suites returns false."""
@@ -151,7 +152,8 @@ class TestFIPSEntitlementEnable:
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
                 with mock.patch(M_REPOPATH + 'os.path.exists'):
-                    with mock.patch(M_PATH + 'can_enable', return_value=True):
+                    with mock.patch.object(entitlement, 'can_enable',
+                                           return_value=True):
                         with mock.patch(M_GETPLATFORM, return_value='xenial'):
                             assert False is entitlement.enable()
 
@@ -166,7 +168,7 @@ class TestFIPSEntitlementDisable:
     @pytest.mark.parametrize(
         'silent,force', itertools.product([False, True], repeat=2))
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch(M_PATH + 'can_disable', return_value=False)
+    @mock.patch(M_PATH + 'FIPSEntitlement.can_disable', return_value=False)
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
             self, m_can_disable, m_platform_info, silent, force):
         """When can_disable is false disable returns false and noops."""
@@ -181,7 +183,7 @@ class TestFIPSEntitlementDisable:
     @mock.patch('uaclient.apt.remove_auth_apt_repo')
     @mock.patch(
         'uaclient.util.get_platform_info', return_value='xenial')
-    @mock.patch(M_PATH + 'can_disable', return_value=True)
+    @mock.patch(M_PATH + 'FIPSEntitlement.can_disable', return_value=True)
     def test_disable_returns_false_and_removes_apt_config_on_force(
             self, m_can_disable, m_platform_info, m_rm_auth, m_rm_list,
             entitlement, tmpdir, caplog_text):
@@ -211,7 +213,7 @@ class TestFIPSEntitlementDisable:
         assert [apt_cmd] == m_subp.call_args_list
 
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch(M_PATH + 'can_disable', return_value=True)
+    @mock.patch(M_PATH + 'FIPSEntitlement.can_disable', return_value=True)
     def test_disable_returns_false_does_nothing_by_default(
             self, m_can_disable, m_platform_info, caplog_text):
         """When can_disable, disable does nothing without force param."""
