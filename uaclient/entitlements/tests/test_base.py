@@ -17,6 +17,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     name = 'testconcreteentitlement'
     title = 'Test Concrete Entitlement'
+    description = 'Entitlement for testing'
 
     def __init__(self, cfg=None, disable=None, enable=None,
                  operational_status=None):
@@ -71,7 +72,8 @@ class TestUaEntitlement:
             base.UAEntitlement()
         expected_msg = (
             "Can't instantiate abstract class UAEntitlement with abstract"
-            " methods disable, enable, operational_status")
+            " methods description, disable, enable, name, operational_status,"
+            " title")
         assert expected_msg == str(excinfo.value)
 
     def test_init_default_sets_up_uaconfig(self):

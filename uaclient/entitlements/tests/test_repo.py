@@ -42,6 +42,9 @@ class RepoTestEntitlement(RepoEntitlement):
     """Subclass so we can test shared repo functionality"""
     name = 'repotest'
     title = 'Repo Test Class'
+    description = 'Repo entitlement for testing'
+    repo_url = 'http://example.com/ubuntu'
+    repo_key_file = 'test.gpg'
 
 
 @pytest.fixture
@@ -183,6 +186,6 @@ class TestRepoEnable:
         assert [mock.call(
             '/etc/apt/sources.list.d/ubuntu-repotest-xenial.list',
             'http://REPOTEST', 'TOKEN', ['xenial'],
-            '/usr/share/keyrings/UNSET')] == m_apt_add.call_args_list
+            '/usr/share/keyrings/test.gpg')] == m_apt_add.call_args_list
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
