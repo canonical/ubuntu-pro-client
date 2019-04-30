@@ -2,6 +2,13 @@ import logging
 import os
 import re
 
+try:
+    from typing import Any, Dict  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
+
 from uaclient import apt
 from uaclient.entitlements import base
 from uaclient import status
@@ -17,12 +24,18 @@ class RepoEntitlement(base.UAEntitlement):
     origin = None   # The repo Origin value for setting pinning
 
     repo_url = 'UNSET'
-    repo_key_file = 'UNSET'  # keyfile delivered by ubuntu-cloudimage-keyring
-    repo_pin_priority = None      # Optional repo pin priority in subclass
+    repo_key_file = 'UNSET'   # keyfile delivered by ubuntu-cloudimage-keyring
+    repo_pin_priority = None  # Optional repo pin priority in subclass
+
+    # force_disable True if entitlement does not allow disable (fips*)
+    force_disable = False
+
+    # disable_apt_auth_only (ESM) to only remove apt auth files on disable
+    disable_apt_auth_only = False  # Set True on ESM to only remove apt auth
 
     # Any custom messages to emit pre or post enable or disable operations
     messaging = {}  # Currently post_enable is used in CommonCriteria
-    packages = []  # Debs to install on enablement
+    packages = []   # Debs to install on enablement
 
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
@@ -35,6 +48,118 @@ class RepoEntitlement(base.UAEntitlement):
         """
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
+        if not self.setup_apt_config():
+            return False
+        if self.packages:
+            try:
+                print(
+                    'Installing {title} packages ...'.format(title=self.title))
+                util.subp(
+                    ['apt-get', 'install', '--assume-yes'] + self.packages,
+                    capture=True)
+            except util.ProcessExecutionError:
+                self.disable(silent=True, force=True)
+                logging.error(
+                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                        title=self.title))
+                return False
+        self._set_local_enabled(True)
+        print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
+        for msg in self.messaging.get('post_enable', []):
+            print(msg)
+        return True
+
+    def disable(self, silent=False, force=False):
+        if not self.can_disable(silent, force):
+            return False
+        if any([not self.force_disable, force]):
+            self.remove_apt_config()
+            try:
+                util.subp(
+                    ['apt-get', 'remove', '--assume-yes'] + self.packages)
+            except util.ProcessExecutionError:
+                pass
+            self._set_local_enabled(False)
+        if self.force_disable:
+            if not silent:
+                print('Warning: no option to disable {title}'.format(
+                    title=self.title)
+                )
+            return False
+        if not silent:
+            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
+        return True
+
+    def operational_status(self):
+        """Return operational status of RepoEntitlement."""
+        passed_affordances, details = self.check_affordances()
+        if not passed_affordances:
+            return status.INAPPLICABLE, details
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        if not entitlement_cfg:
+            return status.INACTIVE, '%s is not configured' % self.title
+        directives = entitlement_cfg['entitlement'].get('directives', {})
+        repo_url = directives.get('aptURL')
+        if not repo_url:
+            repo_url = self.repo_url
+        protocol, repo_path = repo_url.split('://')
+        out, _err = util.subp(['apt-cache', 'policy'])
+        match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
+        if match and match.group('pin') != APT_DISABLED_PIN:
+            return status.ACTIVE, '%s is active' % self.title
+        if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
+            # Use our cached enabled key for non-root users because apt
+            # policy will show APT_DISABLED_PIN for authenticated sources
+            return status.ACTIVE, '%s is active' % self.title
+        return status.INACTIVE, '%s is not configured' % self.title
+
+    def process_contract_deltas(
+            self, orig_access: 'Dict[str, Any]',
+            deltas: 'Dict[str, Any]') -> None:
+        """Process any contract access deltas for this entitlement.
+
+        :param orig_access: Dictionary containing the original
+            resourceEntitlement access details.
+        :param deltas: Dictionary which contains only the changed access keys
+        and values.
+
+        :return: True when delta operations are processed; False when noop.
+        """
+        if super().process_contract_deltas(orig_access, deltas):
+            return True  # Already processed parent class deltas
+
+        op_status, _details = self.operational_status()
+        resourceToken = orig_access.get('resourceToken')
+        if not resourceToken:
+            resourceToken = deltas.get('resourceToken')
+        delta_entitlement = deltas.get('entitlement', {})
+        delta_obligations = delta_entitlement.get('obligations', {})
+        can_enable = self.can_enable(silent=True)
+        enableByDefault = bool(
+            delta_obligations.get('enableByDefault') and resourceToken)
+        if not any(
+                [op_status == status.ACTIVE, enableByDefault and can_enable]):
+            return True
+        if op_status == status.ACTIVE:
+            logging.info(
+                "Updating '%s' apt sources list on changed directives." %
+                self.name)
+        elif enableByDefault:
+            msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
+                name=self.name)
+            logging.info(msg)
+        if delta_entitlement.get('directives', {}).get('aptURL'):
+            # Remove original aptURL and auth and rewrite
+            old_url = orig_access.get('directives', {}).get('aptURL')
+            series = util.get_platform_info('series')
+            repo_filename = self.repo_list_file_tmpl.format(
+                name=self.name, series=series)
+            apt.remove_auth_apt_repo(repo_filename, old_url)
+        self.remove_apt_config()
+        self.setup_apt_config()
+        return True
+
+    def setup_apt_config(self):
         series = util.get_platform_info('series')
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
@@ -102,47 +227,33 @@ class RepoEntitlement(base.UAEntitlement):
         # which allows ua status to report correct info
         print('Updating package lists ...')
         util.subp(['apt-get', 'update'], capture=True)
-        if self.packages:
-            try:
-                print(
-                    'Installing {title} packages ...'.format(title=self.title))
-                util.subp(
-                    ['apt-get', 'install', '--assume-yes'] + self.packages,
-                    capture=True)
-            except util.ProcessExecutionError:
-                self.disable(silent=True, force=True)
-                logging.error(
-                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title))
-                return False
-        self._set_local_enabled(True)
-        print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
-        for msg in self.messaging.get('post_enable', []):
-            print(msg)
         return True
 
-    def operational_status(self):
-        """Return operational status of RepoEntitlement."""
-        passed_affordances, details = self.check_affordances()
-        if not passed_affordances:
-            return status.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
-        if not entitlement_cfg:
-            return status.INACTIVE, '%s is not configured' % self.title
-        directives = entitlement_cfg['entitlement'].get('directives', {})
-        repo_url = directives.get('aptURL')
+    def remove_apt_config(self):
+        """Remove any repository apt configuration files."""
+        series = util.get_platform_info('series')
+        repo_filename = self.repo_list_file_tmpl.format(
+            name=self.name, series=series)
+        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
+        entitlement = self.cfg.read_cache(
+            'machine-access-%s' % self.name).get('entitlement', {})
+        access_directives = entitlement.get('directives', {})
+        repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
             repo_url = self.repo_url
-        protocol, repo_path = repo_url.split('://')
-        out, _err = util.subp(['apt-cache', 'policy'])
-        match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
-        if match and match.group('pin') != APT_DISABLED_PIN:
-            return status.ACTIVE, '%s is active' % self.title
-        if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
-            # Use our cached enabled key for non-root users because apt
-            # policy will show APT_DISABLED_PIN for authenticated sources
-            return status.ACTIVE, '%s is active' % self.title
-        return status.INACTIVE, '%s is not configured' % self.title
+        if self.disable_apt_auth_only:
+            # We only remove the repo from the apt auth file, because ESM
+            # is a special-case: we want to be able to report on the
+            # available ESM updates even when it's disabled
+            apt.remove_repo_from_apt_auth_file(repo_url)
+        else:
+            apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+            apt.remove_apt_list_files(repo_url, series)
+        if self.repo_pin_priority:
+            repo_pref_file = self.repo_pref_file_tmpl.format(
+                name=self.name, series=series)
+            if os.path.exists(repo_pref_file):
+                os.unlink(repo_pref_file)
 
     def _set_local_enabled(self, value):
         """Set local enabled flag true or false."""

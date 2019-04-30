@@ -13,7 +13,7 @@ CIS_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'cis-audit'}]}}}
+                {'type': 'cis-audit', 'entitled': True}]}}}
 
 
 CIS_RESOURCE_ENTITLED = {

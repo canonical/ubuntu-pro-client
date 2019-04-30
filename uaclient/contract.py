@@ -1,5 +1,4 @@
 import logging
-import os
 
 from uaclient import serviceclient
 from uaclient import util
@@ -8,7 +7,6 @@ from uaclient import util
 API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
 API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
-API_PATH_TMPL_RESOURCE_MACHINE_ACCESS = '/resources/{resource}/context/machine'
 
 API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
@@ -246,6 +244,37 @@ def get_contract_token_for_account(contract_client, macaroon, account_id):
     return contract_token_response['contractToken']
 
 
+def process_entitlement_delta(orig_access, new_access):
+    """Process a entitlement access dictionary deltas if they exist.
+
+    :param orig_access: Dict with original entitlement access details before
+        contract refresh deltas
+    :param orig_access: Dict with updated entitlement access details after
+        contract refresh
+    """
+    from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+    deltas = util.get_dict_deltas(orig_access, new_access)
+    if deltas:
+        name = orig_access.get('entitlement', {}).get('type')
+        if not name:
+            name = deltas.get('entitlement', {}).get('type')
+        if not name:
+            raise RuntimeError(
+                'Could not determine contract delta service type %s %s' % (
+                    orig_access, new_access))
+        try:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]
+        except KeyError:
+            logging.debug(
+                'Skipping entitlement deltas for "%s". No such class',
+                name)
+            return deltas
+        entitlement = ent_cls()
+        entitlement.process_contract_deltas(orig_access, deltas)
+    return deltas
+
+
 def request_updated_contract(cfg, contract_token=None):
     """Request contract refresh from ua-contracts service.
 
@@ -255,13 +284,13 @@ def request_updated_contract(cfg, contract_token=None):
 
     @return: True on success False otherwise.
     """
-    contract_client = UAContractClient(cfg)
     orig_token = cfg.machine_token
+    orig_entitlements = cfg.entitlements
     if orig_token and contract_token:
         raise RuntimeError(
             'Got unexpected contract_token on an already attached machine')
+    contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
-        refresh_operation = False
         try:
             new_token = contract_client.request_contract_machine_attach(
                 contract_token=contract_token)
@@ -270,7 +299,6 @@ def request_updated_contract(cfg, contract_token=None):
                 'Could not obtain machine token. %s', str(e))
             return False
     else:
-        refresh_operation = True
         machine_token = orig_token['machineToken']
         contract_id = orig_token['machineTokenInfo']['contractInfo']['id']
         try:
@@ -281,20 +309,15 @@ def request_updated_contract(cfg, contract_token=None):
                 'Could not refresh machine token. %s', str(e))
             return False
     try:
-        contractInfo = new_token['machineTokenInfo']['contractInfo']
-        for entitlement in contractInfo['resourceEntitlements']:
-            if entitlement.get('entitled'):
+        for name, entitlement in sorted(cfg.entitlements.items()):
+            if entitlement['entitlement'].get('entitled'):
                 # Obtain each entitlement's accessContext for this machine
-                entitlement_name = entitlement['type']
-                contract_client.request_resource_machine_access(
-                    new_token['machineToken'], entitlement_name)
-            elif refresh_operation:
-                data_key = 'machine-access-%s' % entitlement['type']
-                if os.path.exists(cfg.data_path(data_key)):
-                    logging.debug(
-                        'Contract refreshed. Entitlement %s now unentitled.',
-                        entitlement['type'])
-                    cfg.delete_cache_key(data_key)
+                new_access = contract_client.request_resource_machine_access(
+                    new_token['machineToken'], name)
+            else:
+                new_access = entitlement
+            process_entitlement_delta(
+                orig_entitlements.get(name, {}), new_access)
     except util.UrlError as e:
         logging.error(
             'Could not obtain updated contract information. %s', str(e))

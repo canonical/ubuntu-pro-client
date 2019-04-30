@@ -18,7 +18,7 @@ LIVEPATCH_MACHINE_TOKEN = MappingProxyType({
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'livepatch'}]}}})
+                {'type': 'livepatch', 'entitled': True}]}}})
 
 
 LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({

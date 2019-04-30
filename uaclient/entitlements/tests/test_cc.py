@@ -20,7 +20,7 @@ CC_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'cc'}]}}}
+                {'type': 'cc', 'entitled': True}]}}}
 
 
 CC_RESOURCE_ENTITLED = {

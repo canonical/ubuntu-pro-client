@@ -238,9 +238,9 @@ class TestActionAttachEnableByDefault:
             {'type': 'enable2', 'obligations': {'enableByDefault': True}},
             {'type': 'dont2', 'obligations': {'otherValue': True}},
             {'type': 'enable3', 'obligations': {'enableByDefault': True}},
-            {'type': 'dont2', 'obligations': {}},
+            {'type': 'dont3', 'obligations': {}},
             {'type': 'enable4', 'obligations': {'enableByDefault': True}},
-            {'type': 'dont3'},
+            {'type': 'dont4'},
             {'type': 'enable1', 'obligations': {'enableByDefault': True}},
         ]
         token = 'contract-token'

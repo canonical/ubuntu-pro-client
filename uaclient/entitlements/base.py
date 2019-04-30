@@ -3,6 +3,12 @@ from datetime import datetime
 import logging
 import re
 
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 from uaclient import config
 from uaclient import contract
 from uaclient import status
@@ -57,11 +63,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        if not any([self.contract_status() == status.ENTITLED, force]):
-            message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
-            retval = False
-        elif not force:
-            op_status, status_details = self.operational_status()
+        op_status, status_details = self.operational_status()
+
+        if not force:
             if op_status == status.INACTIVE:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                     title=self.title
@@ -193,6 +197,44 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if expiry >= datetime.utcnow():
             return False
         return True
+
+    def process_contract_deltas(
+            self, orig_access: 'Dict[str, Any]',
+            deltas: 'Dict[str, Any]') -> None:
+        """Process any contract access deltas for this entitlement.
+
+        :param orig_access: Dictionary containing the original
+            resourceEntitlement access details.
+        :param deltas: Dictionary which contains only the changed access keys
+        and values.
+
+        :return: True when delta operations are processed; False when noop.
+        """
+        if not deltas:
+            return True  # We processed all deltas that needed processing
+        transition_to_unentitled = False
+        if orig_access and 'entitled' in deltas.get('entitlement', {}):
+            transition_to_unentitled = (
+                deltas['entitlement']['entitled'] in (False, util.DROPPED_KEY))
+        if transition_to_unentitled:
+            op_status, _details = self.operational_status()
+            if op_status == status.ACTIVE:
+                if self.can_disable(silent=True):
+                    logging.info(
+                        "Due to contract refresh, '%s' is now disabled.",
+                        self.name)
+                    self.disable()
+                else:
+                    logging.warning(
+                        "Unable to disable '%s' as recommended during contract"
+                        " refresh. Service is still active. See `ua status`" %
+                        self.name)
+            # Clean up former entitled machine-access-<name> response cache
+            # file because uaclient doesn't access machine-access-* routes or
+            # responses on unentitled services.
+            self.cfg.delete_cache_key('machine-access-%s' % self.name)
+            return True
+        return False
 
     @abc.abstractmethod
     def operational_status(self):
