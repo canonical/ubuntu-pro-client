@@ -8,9 +8,6 @@ from uaclient import version
 
 class UAServiceClient:
 
-    # Set in subclasses to the config key referenced by this client
-    service_url_cfg_key = None
-
     # Set in subclasses to the type of API error raised
     api_error_cls = None
 
