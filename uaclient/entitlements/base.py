@@ -200,7 +200,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def process_contract_deltas(
             self, orig_access: 'Dict[str, Any]',
-            deltas: 'Dict[str, Any]') -> None:
+            deltas: 'Dict[str, Any]') -> bool:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
