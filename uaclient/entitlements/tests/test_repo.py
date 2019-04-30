@@ -42,6 +42,7 @@ class RepoTestEntitlement(RepoEntitlement):
     """Subclass so we can test shared repo functionality"""
     name = 'repotest'
     title = 'Repo Test Class'
+    description = 'Repo entitlement for testing'
 
 
 @pytest.fixture

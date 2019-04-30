@@ -21,12 +21,23 @@ RE_KERNEL_UNAME = (
 
 class UAEntitlement(metaclass=abc.ABCMeta):
 
-    # The lowercase name of this entitlement
-    name = None
-    # The human readable title of this entitlement
-    title = None
-    # A sentence describing this entitlement
-    description = None
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """The lowercase name of this entitlement"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def title(self) -> str:
+        """The human readable title of this entitlement"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def description(self) -> str:
+        """A sentence describing this entitlement"""
+        pass
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with
