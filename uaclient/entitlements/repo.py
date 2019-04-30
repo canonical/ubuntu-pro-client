@@ -1,3 +1,4 @@
+import abc
 import logging
 import os
 import re
@@ -23,8 +24,6 @@ class RepoEntitlement(base.UAEntitlement):
     repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
     origin = None   # The repo Origin value for setting pinning
 
-    repo_url = 'UNSET'
-    repo_key_file = 'UNSET'   # keyfile delivered by ubuntu-cloudimage-keyring
     repo_pin_priority = None  # Optional repo pin priority in subclass
 
     # force_disable True if entitlement does not allow disable (fips*)
@@ -36,6 +35,16 @@ class RepoEntitlement(base.UAEntitlement):
     # Any custom messages to emit pre or post enable or disable operations
     messaging = {}  # Currently post_enable is used in CommonCriteria
     packages = []   # Debs to install on enablement
+
+    @property
+    @abc.abstractmethod
+    def repo_url(self) -> str:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def repo_key_file(self) -> str:
+        pass
 
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
