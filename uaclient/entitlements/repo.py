@@ -137,7 +137,8 @@ class RepoEntitlement(base.UAEntitlement):
         can_enable = self.can_enable(silent=True)
         enableByDefault = bool(
             delta_obligations.get('enableByDefault') and resourceToken)
-        if not any([op_status == status.ACTIVE, enableByDefault and can_enable]):
+        if not any(
+                [op_status == status.ACTIVE, enableByDefault and can_enable]):
             return True
         if op_status == status.ACTIVE:
             logging.info(
