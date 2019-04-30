@@ -92,7 +92,7 @@ class TestProcessContractDeltas:
             {'entitlement': {'entitled': True}},
             {'entitlement': {'obligations': {'enableByDefault': False}},
              'resourceToken': 'TOKEN'})
-        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [] == m_remove_apt_config.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
@@ -107,7 +107,7 @@ class TestProcessContractDeltas:
             {'entitlement': {'entitled': True}},
             {'entitlement': {'obligations': {'enableByDefault': True}},
              'resourceToken': 'TOKEN'})
-        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
 
@@ -123,7 +123,7 @@ class TestProcessContractDeltas:
             {'entitlement': {'entitled': True}},
             {'entitlement': {'obligations': {'enableByDefault': False}},
              'resourceToken': 'TOKEN'})
-        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
 
