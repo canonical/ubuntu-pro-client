@@ -1,3 +1,4 @@
+import abc
 import json
 from urllib import error
 
@@ -5,14 +6,26 @@ from uaclient import config
 from uaclient import util
 from uaclient import version
 
+try:
+    from typing import Type  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
-class UAServiceClient:
 
-    # Set in subclasses to the type of API error raised
-    api_error_cls = None
+class UAServiceClient(metaclass=abc.ABCMeta):
 
-    # String in subclasses to the UAConfig attribute accessed to get base url
-    cfg_url_base_attr = None
+    @property
+    @abc.abstractmethod
+    def api_error_cls(self) -> 'Type[Exception]':
+        """Set in subclasses to the type of API error raised"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def cfg_url_base_attr(self) -> str:
+        """String in subclasses, the UAConfig attribute containing base url"""
+        pass
 
     def __init__(self, cfg=None):
         if not cfg:
