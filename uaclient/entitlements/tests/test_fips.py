@@ -109,22 +109,20 @@ class TestFIPSEntitlementEnable:
             assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
+    @mock.patch('uaclient.apt.add_auth_apt_repo')
     @mock.patch(
         'uaclient.util.get_platform_info', return_value='xenial')
-    @mock.patch(M_PATH + 'FIPSEntitlement.can_enable', return_value=True)
     def test_enable_returns_false_on_missing_suites_directive(
-            self, m_can_enable, m_platform_info, tmpdir):
+            self, m_platform_info, m_add_apt, entitlement):
         """When directives do not contain suites returns false."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', dict(FIPS_MACHINE_TOKEN))
         # Unset suites directive
         fips_entitled_no_suites = copy.deepcopy(dict(FIPS_RESOURCE_ENTITLED))
         fips_entitled_no_suites['entitlement']['directives']['suites'] = []
-        cfg.write_cache('machine-access-fips', fips_entitled_no_suites)
-        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-            entitlement = FIPSEntitlement(cfg)
+        entitlement.cfg.write_cache('machine-access-fips',
+                                    fips_entitled_no_suites)
 
-        assert False is entitlement.enable()
+        with mock.patch.object(entitlement, 'can_enable', return_value=True):
+            assert False is entitlement.enable()
         assert 0 == m_add_apt.call_count
 
     def test_enable_errors_on_repo_pin_but_invalid_origin(
