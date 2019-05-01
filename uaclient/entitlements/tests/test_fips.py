@@ -53,17 +53,19 @@ M_REPOPATH = 'uaclient.entitlements.repo.'
 M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
 
-@pytest.fixture
-def entitlement(tmpdir):
+@pytest.fixture(params=[FIPSEntitlement])
+def entitlement(request, tmpdir):
     """
     A pytest fixture to create a FIPSEntitlement with some default config
 
     (Uses the tmpdir fixture for the underlying config cache.)
     """
+    cls = request.param
     cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', machine_token('fips'))
-    cfg.write_cache('machine-access-fips', machine_access('fips'))
-    return FIPSEntitlement(cfg)
+    cfg.write_cache('machine-token', machine_token(cls.name))
+    cfg.write_cache('machine-access-{}'.format(cls.name),
+                    machine_access(cls.name))
+    return cls(cfg)
 
 
 class TestFIPSEntitlementCanEnable:
