@@ -126,7 +126,7 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_apt.call_count
 
     def test_enable_errors_on_repo_pin_but_invalid_origin(
-            self, tmpdir, caplog_text, entitlement):
+            self, caplog_text, entitlement):
         """When can_enable is false enable returns false and noops."""
         entitlement.origin = None  # invalid value
 
@@ -165,7 +165,7 @@ class TestFIPSEntitlementDisable:
         'uaclient.util.get_platform_info', return_value='xenial')
     def test_disable_returns_false_and_removes_apt_config_on_force(
             self, m_platform_info, m_rm_auth, m_rm_list,
-            entitlement, tmpdir, caplog_text):
+            entitlement, caplog_text):
         """When can_disable, disable removes apt configuration when force."""
 
         original_exists = os.path.exists
