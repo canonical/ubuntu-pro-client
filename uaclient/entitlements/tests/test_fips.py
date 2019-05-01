@@ -9,7 +9,7 @@ import os
 import pytest
 
 from uaclient import config
-from uaclient.entitlements.fips import FIPSEntitlement
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 
 try:
     from typing import Any, Dict  # noqa
@@ -53,10 +53,10 @@ M_REPOPATH = 'uaclient.entitlements.repo.'
 M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
 
-@pytest.fixture(params=[FIPSEntitlement])
+@pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def entitlement(request, tmpdir):
     """
-    A pytest fixture to create a FIPSEntitlement with some default config
+    pytest fixture for a FIPS/FIPS Updates entitlement with some default config
 
     (Uses the tmpdir fixture for the underlying config cache.)
     """
@@ -92,12 +92,17 @@ class TestFIPSEntitlementEnable:
                                 assert True is entitlement.enable()
 
         add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-                      'http://FIPS', 'TOKEN', ['xenial'],
-                      '/usr/share/keyrings/ubuntu-fips-keyring.gpg')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
+                    entitlement.name),
+                'http://FIPS', 'TOKEN', ['xenial'],
+                '/usr/share/keyrings/ubuntu-{}-keyring.gpg'.format(
+                    entitlement.name))]
         apt_pinning_calls = [
-            mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial',
-                      'http://FIPS', 'UbuntuFIPS', 1001)]
+            mock.call(
+                '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
+                    entitlement.name),
+                'http://FIPS', entitlement.origin, 1001)]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
             capture=True)
@@ -126,10 +131,12 @@ class TestFIPSEntitlementEnable:
             self, m_platform_info, m_add_apt, entitlement):
         """When directives do not contain suites returns false."""
         # Unset suites directive
-        fips_entitled_no_suites = copy.deepcopy(machine_access('fips'))
+        fips_entitled_no_suites = copy.deepcopy(
+            machine_access(entitlement.name))
         fips_entitled_no_suites['entitlement']['directives']['suites'] = []
-        entitlement.cfg.write_cache('machine-access-fips',
-                                    fips_entitled_no_suites)
+        entitlement.cfg.write_cache(
+            'machine-access-{}'.format(entitlement.name),
+            fips_entitled_no_suites)
 
         with mock.patch.object(entitlement, 'can_enable', return_value=True):
             assert False is entitlement.enable()
@@ -179,9 +186,11 @@ class TestFIPSEntitlementDisable:
         """When can_disable, disable removes apt configuration when force."""
 
         original_exists = os.path.exists
+        preferences_path = '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
+            entitlement.name)
 
         def fake_exists(path):
-            if path == '/etc/apt/preferences.d/ubuntu-fips-xenial':
+            if path == preferences_path:
                 return True
             return original_exists(path)
 
@@ -192,11 +201,15 @@ class TestFIPSEntitlementDisable:
                     with mock.patch('uaclient.util.subp') as m_subp:
                         assert False is entitlement.disable(True, True)
         assert [mock.call(True, True)] == m_can_disable.call_args_list
-        calls = [mock.call('/etc/apt/preferences.d/ubuntu-fips-xenial')]
+        calls = [mock.call(preferences_path)]
         assert calls == m_unlink.call_args_list
         auth_call = mock.call(
-            '/etc/apt/sources.list.d/ubuntu-fips-xenial.list',
-            'http://FIPS', '/etc/apt/trusted.gpg.d/ubuntu-fips-keyring.gpg')
+            '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
+                entitlement.name),
+            'http://FIPS',
+            '/etc/apt/trusted.gpg.d/ubuntu-{}-keyring.gpg'.format(
+                entitlement.name)
+        )
         assert [auth_call] == m_rm_auth.call_args_list
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
@@ -216,4 +229,6 @@ class TestFIPSEntitlementDisable:
                     assert False is entitlement.disable()
         assert [mock.call(False, False)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
-        assert 'Warning: no option to disable FIPS\n' == m_stdout.getvalue()
+        expected_stdout = 'Warning: no option to disable {}\n'.format(
+            entitlement.title)
+        assert expected_stdout == m_stdout.getvalue()
