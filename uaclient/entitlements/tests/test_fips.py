@@ -11,33 +11,42 @@ import pytest
 from uaclient import config
 from uaclient.entitlements.fips import FIPSEntitlement
 
-
-FIPS_MACHINE_TOKEN = {
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [
-                {'type': 'fips', 'entitled': True}]}}}
+try:
+    from typing import Any, Dict  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 
-FIPS_RESOURCE_ENTITLED = {
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {
-            'enableByDefault': True
-        },
-        'type': 'fips',
-        'entitled': True,
-        'directives': {
-            'aptURL': 'http://FIPS',
-            'aptKey': 'APTKEY',
-            'suites': ['xenial']
-        },
-        'affordances': {
-            'series': []   # Will match all series
+def machine_token(fips_type: str) -> 'Dict[str, Any]':
+    return {
+        'machineToken': 'blah',
+        'machineTokenInfo': {
+            'contractInfo': {
+                'resourceEntitlements': [
+                    {'type': fips_type, 'entitled': True}]}}}
+
+
+def machine_access(fips_type: str) -> 'Dict[str, Any]':
+    return {
+        'resourceToken': 'TOKEN',
+        'entitlement': {
+            'obligations': {
+                'enableByDefault': True
+            },
+            'type': fips_type,
+            'entitled': True,
+            'directives': {
+                'aptURL': 'http://FIPS',
+                'aptKey': 'APTKEY',
+                'suites': ['xenial']
+            },
+            'affordances': {
+                'series': []   # Will match all series
+            }
         }
     }
-}
+
 
 M_PATH = 'uaclient.entitlements.fips.'
 M_REPOPATH = 'uaclient.entitlements.repo.'
@@ -52,9 +61,8 @@ def entitlement(tmpdir):
     (Uses the tmpdir fixture for the underlying config cache.)
     """
     cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', dict(FIPS_MACHINE_TOKEN))
-    cfg.write_cache('machine-access-fips',
-                    dict(FIPS_RESOURCE_ENTITLED))
+    cfg.write_cache('machine-token', machine_token('fips'))
+    cfg.write_cache('machine-access-fips', machine_access('fips'))
     return FIPSEntitlement(cfg)
 
 
@@ -116,7 +124,7 @@ class TestFIPSEntitlementEnable:
             self, m_platform_info, m_add_apt, entitlement):
         """When directives do not contain suites returns false."""
         # Unset suites directive
-        fips_entitled_no_suites = copy.deepcopy(dict(FIPS_RESOURCE_ENTITLED))
+        fips_entitled_no_suites = copy.deepcopy(machine_access('fips'))
         fips_entitled_no_suites['entitlement']['directives']['suites'] = []
         entitlement.cfg.write_cache('machine-access-fips',
                                     fips_entitled_no_suites)
