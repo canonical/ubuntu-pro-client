@@ -124,39 +124,29 @@ class RepoEntitlement(base.UAEntitlement):
 
     def process_contract_deltas(
             self, orig_access: 'Dict[str, Any]',
-            deltas: 'Dict[str, Any]') -> bool:
+            deltas: 'Dict[str, Any]', allow_enable: bool = False) -> bool:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
             resourceEntitlement access details.
         :param deltas: Dictionary which contains only the changed access keys
         and values.
+        :param allow_enable: Boolean set True if allowed to perform the enable
+            operation. When False, a message will be logged to inform the user
+            about the recommended enabled service.
 
         :return: True when delta operations are processed; False when noop.
         """
-        if super().process_contract_deltas(orig_access, deltas):
+        if super().process_contract_deltas(orig_access, deltas, allow_enable):
             return True  # Already processed parent class deltas
 
         op_status, _details = self.operational_status()
-        resourceToken = orig_access.get('resourceToken')
-        if not resourceToken:
-            resourceToken = deltas.get('resourceToken')
-        delta_entitlement = deltas.get('entitlement', {})
-        delta_obligations = delta_entitlement.get('obligations', {})
-        can_enable = self.can_enable(silent=True)
-        enableByDefault = bool(
-            delta_obligations.get('enableByDefault') and resourceToken)
-        if not any(
-                [op_status == status.ACTIVE, enableByDefault and can_enable]):
+        if op_status != status.ACTIVE:
             return True
-        if op_status == status.ACTIVE:
-            logging.info(
-                "Updating '%s' apt sources list on changed directives." %
-                self.name)
-        elif enableByDefault:
-            msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
-                name=self.name)
-            logging.info(msg)
+        logging.info(
+            "Updating '%s' apt sources list on changed directives." %
+            self.name)
+        delta_entitlement = deltas.get('entitlement', {})
         if delta_entitlement.get('directives', {}).get('aptURL'):
             orig_entitlement = orig_access.get('entitlement', {})
             old_url = orig_entitlement.get('directives', {}).get('aptURL')

@@ -38,7 +38,8 @@ class TestProcessEntitlementDeltas:
         expected = {'entitlement': {'newkey': 'newvalue'}}
         assert expected == process_entitlement_delta(
             original_access, new_access)
-        expected_calls = [mock.call(original_access, expected)]
+        expected_calls = [
+            mock.call(original_access, expected, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(M_REPO_PATH + 'process_contract_deltas')
@@ -48,7 +49,7 @@ class TestProcessEntitlementDeltas:
         # Fresh installs will have empty/unset
         new_access = {'entitlement': {'type': 'esm', 'other': 'val2'}}
         assert new_access == process_entitlement_delta({}, new_access)
-        expected_calls = [mock.call({}, new_access)]
+        expected_calls = [mock.call({}, new_access, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
 
@@ -120,7 +121,9 @@ class TestRequestUpdatedContract:
         process_calls = [
             mock.call({'entitlement': {'entitled': True, 'type': 'ent1'}},
                       {'entitlement': {'entitled': True, 'type': 'ent1',
-                                       'new': 'newval'}}),
+                                       'new': 'newval'}},
+                      allow_enable=False),
             mock.call({'entitlement': {'entitled': False, 'type': 'ent2'}},
-                      {'entitlement': {'entitled': False, 'type': 'ent2'}})]
+                      {'entitlement': {'entitled': False, 'type': 'ent2'}},
+                      allow_enable=False)]
         assert process_calls == process_entitlement_delta.call_args_list

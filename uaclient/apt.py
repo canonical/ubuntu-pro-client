@@ -256,3 +256,11 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
                 'Disabled %s after package upgrade/downgrade. %s',
                 entitlement.title, details)
         entitlement.enable()  # Re-enable on current series
+
+
+def is_pkg_installed(pkg_name: str) -> bool:
+    try:
+        util.subp(['dpkg', '-s', pkg_name])
+    except util.ProcessExecutionError:
+        return False
+    return True
