@@ -12,8 +12,8 @@ import pytest
 
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
-    add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
-    remove_apt_list_files, remove_auth_apt_repo,
+    add_ppa_pinning, find_apt_list_files, is_pkg_installed,
+    migrate_apt_sources, remove_apt_list_files, remove_auth_apt_repo,
     remove_repo_from_apt_auth_file, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
@@ -593,3 +593,33 @@ class TestRemoveRepoFromAptAuthFile:
         assert 0 == m_unlink.call_count
         assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
         assert after_content == auth_file.read('rb')
+
+
+class TestIsPkgInstalled:
+
+    @mock.patch('uaclient.apt.util.subp')
+    def test_package_installed(self, m_subp):
+        package_name = 'mypkg'
+
+        assert is_pkg_installed(package_name)
+
+        assert [
+            mock.call(['dpkg', '-s', package_name])] == m_subp.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp')
+    def test_package_not_installed(self, m_subp):
+        package_name = 'mypkg'
+        m_subp.side_effect = util.ProcessExecutionError('', exit_code=1)
+
+        assert not is_pkg_installed(package_name)
+
+        assert [
+            mock.call(['dpkg', '-s', package_name])] == m_subp.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp')
+    def test_unrelated_exceptions_bubble_up(self, m_subp):
+        package_name = 'mypkg'
+        m_subp.side_effect = Exception()
+
+        with pytest.raises(Exception):
+            is_pkg_installed(package_name)

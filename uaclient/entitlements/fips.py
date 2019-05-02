@@ -1,15 +1,34 @@
 from uaclient.entitlements import repo
-from uaclient import util
+from uaclient import apt, util
+
+try:
+    from typing import Dict, List, Set  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
-    packages = ['openssh-client-hmac', 'openssh-server-hmac',
-                'libssl1.0.0-hmac', 'linux-fips', 'strongswan-hmac',
-                'openssh-client', 'openssh-server', 'openssl', 'libssl1.0.0',
-                'fips-initramfs', 'strongswan']
+    fips_required_packages = frozenset({'fips-initramfs', 'linux-fips'})
+    fips_packages = {
+        'libssl1.0.0': {'libssl1.0.0-hmac'},
+        'openssh-client': {'openssh-client-hmac'},
+        'openssh-server': {'openssh-server-hmac'},
+        'openssl': set(),
+        'strongswan': {'strongswan-hmac'},
+    }  # type: Dict[str, Set[str]]
     force_disable = True
+
+    @property
+    def packages(self) -> 'List[str]':
+        packages = list(self.fips_required_packages)
+        for pkg_name, extra_pkgs in self.fips_packages.items():
+            if apt.is_pkg_installed(pkg_name):
+                packages.append(pkg_name)
+                packages.extend(extra_pkgs)
+        return packages
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):

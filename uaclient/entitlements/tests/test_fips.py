@@ -10,7 +10,8 @@ import os
 import pytest
 
 from uaclient import config, status
-from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
+from uaclient.entitlements.fips import (
+    FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
 
 try:
     from typing import Any, Dict  # noqa
@@ -84,6 +85,7 @@ class TestFIPSEntitlementEnable:
 
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
+        patched_packages = ['a', 'b']
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
                 mock.patch('uaclient.apt.add_auth_apt_repo'))
@@ -95,6 +97,11 @@ class TestFIPSEntitlementEnable:
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value='xenial'))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+            # Note that this patch uses a PropertyMock and happens on the
+            # entitlement's type because packages is a property
+            m_packages = mock.PropertyMock(return_value=patched_packages)
+            stack.enter_context(
+                mock.patch.object(type(entitlement), 'packages', m_packages))
 
             m_can_enable.return_value = True
 
@@ -113,7 +120,7 @@ class TestFIPSEntitlementEnable:
                     entitlement.name),
                 'http://FIPS', entitlement.origin, 1001)]
         install_cmd = mock.call(
-            ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
+            ['apt-get', 'install', '--assume-yes'] + patched_packages,
             capture=True)
 
         subp_calls = [
@@ -173,6 +180,67 @@ class TestFIPSEntitlementEnable:
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
 
 
+def _fips_pkg_combinations():
+    """Construct all combinations of fips_packages and expected installs"""
+    items = [  # These are the items that we will combine together
+        (pkg_name, [pkg_name] + list(extra_pkgs))
+        for pkg_name, extra_pkgs
+        in FIPSCommonEntitlement.fips_packages.items()]
+    # This produces combinations in all possible combination lengths
+    combinations = itertools.chain.from_iterable(
+        itertools.combinations(items, n) for n in range(1, len(items)))
+    ret = []
+    # This for loop flattens each combination together in to a single
+    # (installed_packages, expected_installs) item
+    for combination in combinations:
+        installed_packages, expected_installs = [], []
+        for pkg, installs in combination:
+            installed_packages.append(pkg)
+            expected_installs.extend(installs)
+        ret.append((installed_packages, expected_installs))
+    return ret
+
+
+class TestFipsEntitlementPackages:
+
+    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=False)
+    def test_packages_is_list(self, _mock, entitlement):
+        """RepoEntitlement.enable will fail if it isn't"""
+        assert isinstance(entitlement.packages, list)
+
+    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=False)
+    def test_fips_required_packages_included(self, _mock, entitlement):
+        """The fips_required_packages should always be in .packages"""
+        assert entitlement.fips_required_packages.issubset(
+            entitlement.packages)
+
+    @pytest.mark.parametrize('installed_packages,expected_installs',
+                             _fips_pkg_combinations())
+    @mock.patch(M_PATH + 'apt.is_pkg_installed')
+    def test_currently_installed_packages_are_included_in_packages(
+            self, m_is_pkg_installed, entitlement,
+            installed_packages, expected_installs):
+        """If FIPS packages are already installed, upgrade them"""
+        m_is_pkg_installed.side_effect = lambda pkg_name: (
+            pkg_name in installed_packages)
+        full_expected_installs = (
+            list(entitlement.fips_required_packages) + expected_installs)
+        assert full_expected_installs == entitlement.packages
+
+    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=True)
+    def test_multiple_packages_calls_dont_mutate_state(
+            self, m_is_pkg_installed, entitlement):
+        before = (copy.deepcopy(entitlement.fips_required_packages),
+                  copy.deepcopy(entitlement.fips_packages))
+
+        assert entitlement.packages
+
+        after = (copy.deepcopy(entitlement.fips_required_packages),
+                 copy.deepcopy(entitlement.fips_packages))
+
+        assert before == after
+
+
 class TestFIPSEntitlementDisable:
 
     # Paramterize True/False for silent and force
@@ -199,6 +267,7 @@ class TestFIPSEntitlementDisable:
         """When can_disable, disable removes apt configuration when force."""
 
         original_exists = os.path.exists
+        patched_packages = ['c', 'd']
         preferences_path = '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
             entitlement.name)
 
@@ -216,6 +285,11 @@ class TestFIPSEntitlementDisable:
             m_unlink = stack.enter_context(
                 mock.patch('uaclient.apt.os.unlink'))
             m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+            # Note that this patch uses a PropertyMock and happens on the
+            # entitlement's type because packages is a property
+            m_packages = mock.PropertyMock(return_value=patched_packages)
+            stack.enter_context(
+                mock.patch.object(type(entitlement), 'packages', m_packages))
 
             assert False is entitlement.disable(True, True)
         assert [mock.call(True, True)] == m_can_disable.call_args_list
@@ -231,7 +305,7 @@ class TestFIPSEntitlementDisable:
         assert [auth_call] == m_rm_auth.call_args_list
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
-            ['apt-get', 'remove', '--assume-yes'] + entitlement.packages)
+            ['apt-get', 'remove', '--assume-yes'] + patched_packages)
         assert [apt_cmd] == m_subp.call_args_list
 
     @mock.patch('uaclient.util.get_platform_info')
