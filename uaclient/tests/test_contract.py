@@ -70,23 +70,30 @@ class TestRequestUpdatedContract:
             'Got unexpected contract_token on an already attached machine')
         assert expected_msg == str(exc.value)
 
+    @mock.patch(M_PATH + 'process_entitlement_delta')
     @mock.patch('uaclient.util.get_machine_id', return_value='mid')
     @mock.patch(M_PATH + 'UAContractClient')
     def test_attached_config_refresh_machine_token_and_services(
-            self, client, get_machine_id):
-        """When attached, refresh machine token and all enabled services."""
+            self, client, get_machine_id, process_entitlement_delta):
+        """When attached, refresh machine token and entitled services.
+
+        Processing service deltas are processed in a sorted order based on
+        name to ensure operations occur the same regardless of dict ordering.
+        """
 
         refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
             contract='cid', machine='mid')
         access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
             resource='ent1', machine='mid')
 
+        # resourceEntitlements specifically ordered reverse alphabetically
+        # to ensure proper sorting for process_contract_delta calls below
         machine_token = {
             'machineToken': 'mToken',
             'machineTokenInfo': {'contractInfo': {
                 'id': 'cid', 'resourceEntitlements': [
-                    {'entitled': True, 'type': 'ent1'},
-                    {'entitled': False, 'type': 'ent2'}]}}}
+                    {'entitled': False, 'type': 'ent2'},
+                    {'entitled': True, 'type': 'ent1'}]}}}
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
@@ -94,7 +101,8 @@ class TestRequestUpdatedContract:
             client._responses = {
                 refresh_route: machine_token,
                 access_route_ent1: {
-                    'entitlement': {'entitled': True, 'type': 'ent1'}}}
+                    'entitlement': {
+                        'entitled': True, 'type': 'ent1', 'new': 'newval'}}}
             return client
 
         client.side_effect = fake_contract_client
@@ -105,3 +113,14 @@ class TestRequestUpdatedContract:
         assert (
             '<REDACTED>' == cfg.read_cache(
                 'public-machine-token')['machineToken'])
+
+        # Deltas are processed in a sorted fashion so that if enableByDefault
+        # is true, the order of enablement operations is the same regardless
+        # of dict key ordering.
+        process_calls = [
+            mock.call({'entitlement': {'entitled': True, 'type': 'ent1'}},
+                      {'entitlement': {'entitled': True, 'type': 'ent1',
+                                       'new': 'newval'}}),
+            mock.call({'entitlement': {'entitled': False, 'type': 'ent2'}},
+                      {'entitlement': {'entitled': False, 'type': 'ent2'}})]
+        assert process_calls == process_entitlement_delta.call_args_list
