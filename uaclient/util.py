@@ -15,6 +15,18 @@ DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
 DROPPED_KEY = object()
 
 
+class LogFormatter(logging.Formatter):
+
+    FORMATS = {
+        logging.ERROR: 'ERROR: %(message)s',
+        logging.DEBUG: 'DEBUG: %(message)s',
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno, '%(message)s')
+        return logging.Formatter(log_fmt).format(record)
+
+
 class UrlError(IOError):
 
     def __init__(self, cause, code=None, headers=None, url=None):
