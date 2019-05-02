@@ -24,8 +24,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     @property
     def packages(self) -> 'List[str]':
         packages = list(self.fips_required_packages)
+        installed_packages = apt.get_installed_packages()
         for pkg_name, extra_pkgs in self.fips_packages.items():
-            if apt.is_pkg_installed(pkg_name):
+            if pkg_name in installed_packages:
                 packages.append(pkg_name)
                 packages.extend(extra_pkgs)
         return packages
