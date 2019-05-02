@@ -3,7 +3,7 @@
 import mock
 from io import StringIO
 
-from uaclient import config
+from uaclient import config, status
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.testing.helpers import TestCase
 
@@ -47,8 +47,10 @@ class TestCISEntitlementCanEnable(TestCase):
         entitlement = CISEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertTrue(entitlement.can_enable())
+        with mock.patch.object(entitlement, 'operational_status',
+                               return_value=(status.INACTIVE, '')):
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                self.assertTrue(entitlement.can_enable())
         self.assertEqual('', m_stdout.getvalue())
 
 

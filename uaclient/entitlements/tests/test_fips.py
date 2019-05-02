@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from uaclient import config
+from uaclient import config, status
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 
 try:
@@ -72,8 +72,10 @@ class TestFIPSEntitlementCanEnable:
 
     def test_can_enable_true_on_entitlement_inactive(self, entitlement):
         """When operational status is INACTIVE, can_enable returns True."""
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            assert True is entitlement.can_enable()
+        with mock.patch.object(entitlement, 'operational_status',
+                               return_value=(status.INACTIVE, '')):
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                assert True is entitlement.can_enable()
         assert '' == m_stdout.getvalue()
 
 
