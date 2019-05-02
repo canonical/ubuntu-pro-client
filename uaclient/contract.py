@@ -244,13 +244,15 @@ def get_contract_token_for_account(contract_client, macaroon, account_id):
     return contract_token_response['contractToken']
 
 
-def process_entitlement_delta(orig_access, new_access):
+def process_entitlement_delta(orig_access, new_access, allow_enable=False):
     """Process a entitlement access dictionary deltas if they exist.
 
     :param orig_access: Dict with original entitlement access details before
         contract refresh deltas
     :param orig_access: Dict with updated entitlement access details after
         contract refresh
+    :param allow_enable: Boolean set True to perform enable operation on
+        enableByDefault delta. When False log message about ignored default.
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -271,16 +273,18 @@ def process_entitlement_delta(orig_access, new_access):
                 name)
             return deltas
         entitlement = ent_cls()
-        entitlement.process_contract_deltas(orig_access, deltas)
+        entitlement.process_contract_deltas(
+            orig_access, deltas, allow_enable=allow_enable)
     return deltas
 
 
-def request_updated_contract(cfg, contract_token=None):
+def request_updated_contract(cfg, contract_token=None, allow_enable=False):
     """Request contract refresh from ua-contracts service.
 
     Compare original token to new token and react to entitlement deltas.
 
-    @param cfg: Instance of UAConfig for this machine.
+    :param cfg: Instance of UAConfig for this machine.
+    :param contract_token: String contraining an optional contract token.
 
     @return: True on success False otherwise.
     """
@@ -317,7 +321,8 @@ def request_updated_contract(cfg, contract_token=None):
             else:
                 new_access = entitlement
             process_entitlement_delta(
-                orig_entitlements.get(name, {}), new_access)
+                orig_entitlements.get(name, {}), new_access,
+                allow_enable=allow_enable)
     except util.UrlError as e:
         logging.error(
             'Could not obtain updated contract information. %s', str(e))

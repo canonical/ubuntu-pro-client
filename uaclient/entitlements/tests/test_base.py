@@ -294,5 +294,6 @@ class TestUaEntitlement:
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
         expected_calls = [
-            ('operational_status', ), ('operational_status', ), ('disable', )]
+            ('operational_status', ), ('operational_status', ),
+            ('disable', )]
         assert expected_calls == entitlement.calls()
