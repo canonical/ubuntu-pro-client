@@ -106,7 +106,9 @@ class RepoEntitlement(base.UAEntitlement):
             return status.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return status.INACTIVE, '%s is not configured' % self.title
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
+        elif entitlement_cfg['entitlement'].get('entitled', False) is False:
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
         directives = entitlement_cfg['entitlement'].get('directives', {})
         repo_url = directives.get('aptURL')
         if not repo_url:

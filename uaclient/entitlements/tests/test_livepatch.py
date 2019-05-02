@@ -96,6 +96,23 @@ class TestLivepatchOperationalStatus:
         assert op_status == status.INAPPLICABLE
         assert 'Livepatch is not available for Ubuntu xenial.' == details
 
+    def test_operational_status_inapplicable_on_unentitled(
+            self, tmpdir):
+        """Status inapplicable on absent entitlement contract status."""
+        no_entitlements = copy.deepcopy(dict(LIVEPATCH_MACHINE_TOKEN))
+        # Delete livepatch entitlement info
+        no_entitlements[
+            'machineTokenInfo']['contractInfo']['resourceEntitlements'].pop()
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', no_entitlements)
+        entitlement = LivepatchEntitlement(cfg)
+
+        with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
+            m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
+            op_status, details = entitlement.operational_status()
+        assert op_status == status.INAPPLICABLE
+        assert 'Livepatch is not entitled' == details
+
     def test_contract_status_unentitled(self, tmpdir):
         """The contract_status returns NONE when entitled is False."""
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
