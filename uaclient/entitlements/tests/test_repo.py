@@ -114,12 +114,13 @@ class TestProcessContractDeltas:
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
 
+    @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'operational_status')
     def test_update_apt_config_when_active(
             self, m_op_status, m_remove_apt_config, m_setup_apt_config,
-            entitlement):
+            m_remove_auth_apt_repo, entitlement):
         """Update_apt_config when service is active and not enableByDefault."""
         m_op_status.return_value = status.ACTIVE, 'fake active'
         assert entitlement.process_contract_deltas(
@@ -129,6 +130,31 @@ class TestProcessContractDeltas:
         assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
+        assert [] == m_remove_auth_apt_repo.call_args_list
+
+    @mock.patch(M_PATH + 'util.get_platform_info', return_value='trusty')
+    @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
+    @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_remove_old_auth_apt_repo_when_active_and_apt_url_delta(
+            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
+            m_remove_auth_apt_repo, m_platform_info, entitlement):
+        """Remove old apt url when aptURL delta occurs on active service."""
+        m_op_status.return_value = status.ACTIVE, 'fake active'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {
+                'entitled': True, 'directives': {'aptURL': 'http://old'}}},
+            {'entitlement': {'obligations': {'enableByDefault': False},
+                             'directives': {'aptURL': 'http://new'}},
+             'resourceToken': 'TOKEN'})
+        assert [mock.call(), mock.call()] == m_op_status.call_args_list
+        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call()] == m_setup_apt_config.call_args_list
+        apt_auth_remove_calls = [
+            mock.call('/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
+                      'http://old')]
+        assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
 
 
 class TestRepoEnable:
