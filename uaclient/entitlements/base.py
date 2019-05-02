@@ -211,22 +211,28 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def process_contract_deltas(
             self, orig_access: 'Dict[str, Any]',
-            deltas: 'Dict[str, Any]') -> bool:
+            deltas: 'Dict[str, Any]', allow_enable: bool = False) -> bool:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
             resourceEntitlement access details.
         :param deltas: Dictionary which contains only the changed access keys
         and values.
+        :param allow_enable: Boolean set True if allowed to perform the enable
+            operation. When False, a message will be logged to inform the user
+            about the recommended enabled service.
 
         :return: True when delta operations are processed; False when noop.
         """
         if not deltas:
             return True  # We processed all deltas that needed processing
-        transition_to_unentitled = False
-        if orig_access and 'entitled' in deltas.get('entitlement', {}):
-            transition_to_unentitled = (
-                deltas['entitlement']['entitled'] in (False, util.DROPPED_KEY))
+
+        delta_entitlement = deltas.get('entitlement', {})
+        transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
+        if not transition_to_unentitled:
+            if orig_access and 'entitled' in delta_entitlement:
+                transition_to_unentitled = (
+                    delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
         if transition_to_unentitled:
             op_status, _details = self.operational_status()
             if op_status == status.ACTIVE:
@@ -245,6 +251,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             # responses on unentitled services.
             self.cfg.delete_cache_key('machine-access-%s' % self.name)
             return True
+
+        resourceToken = orig_access.get('resourceToken')
+        if not resourceToken:
+            resourceToken = deltas.get('resourceToken')
+        delta_obligations = delta_entitlement.get('obligations', {})
+        can_enable = self.can_enable(silent=True)
+        enableByDefault = bool(
+            delta_obligations.get('enableByDefault') and resourceToken)
+        if can_enable and enableByDefault:
+            if allow_enable:
+                msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
+                    name=self.name)
+                logging.info(msg)
+                self.enable()
+            else:
+                msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+                    name=self.name)
+                logging.info(msg)
+            return True
+
         return False
 
     @abc.abstractmethod

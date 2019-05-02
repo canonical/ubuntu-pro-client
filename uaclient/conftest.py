@@ -33,12 +33,14 @@ def caplog_text(request):
             # Older versions of pytest only have getfuncargvalue, which is now
             # deprecated in favour of getfixturevalue
             caplog = request.getfuncargvalue('caplog')
+        caplog.set_level(logging.INFO)
 
         def _func():
             return caplog.text
     except LookupError:
         # If the caplog fixture isn't available, shim something in ourselves
         root = logging.getLogger()
+        root.setLevel(logging.INFO)
         handler = logging.StreamHandler(io.StringIO())
         handler.setFormatter(
             logging.Formatter(

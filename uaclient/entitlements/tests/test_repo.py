@@ -98,21 +98,36 @@ class TestProcessContractDeltas:
         assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [] == m_remove_apt_config.call_args_list
 
-    @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
-    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
+    @mock.patch.object(RepoTestEntitlement, 'enable')
     @mock.patch.object(RepoTestEntitlement, 'operational_status')
-    def test_update_apt_config_when_enable_by_default_and_resource_token(
-            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
-            entitlement):
-        """Update_apt_config when service is inactive and enableByDefault."""
+    def test_allow_enable_when_inactive_enable_by_default_and_resource_token(
+            self, m_op_status, m_enable, entitlement):
+        """Update apt when inactive, enableByDefault and allow_enable."""
         m_op_status.return_value = status.INACTIVE, 'fake inactive'
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
             {'entitlement': {'obligations': {'enableByDefault': True}},
-             'resourceToken': 'TOKEN'})
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
-        assert [mock.call()] == m_remove_apt_config.call_args_list
-        assert [mock.call()] == m_setup_apt_config.call_args_list
+             'resourceToken': 'TOKEN'},
+            allow_enable=True)
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [mock.call()] == m_enable.call_args_list
+
+    @mock.patch.object(RepoTestEntitlement, 'enable')
+    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    def test_not_allow_enable_logs_message_when_inactive_enable_by_default(
+            self, m_op_status, m_enable, entitlement, caplog_text):
+        """Log a message when inactive, enableByDefault and allow_enable."""
+        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        assert entitlement.process_contract_deltas(
+            {'entitlement': {'entitled': True}},
+            {'entitlement': {'obligations': {'enableByDefault': True}},
+             'resourceToken': 'TOKEN'},
+            allow_enable=False)
+        assert [mock.call()] == m_op_status.call_args_list
+        assert [] == m_enable.call_args_list
+        expected_msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+            name='repotest')
+        assert expected_msg in caplog_text()
 
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
@@ -151,6 +166,10 @@ class TestProcessContractDeltas:
         assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
+        apt_auth_remove_calls = [
+            mock.call('/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
+                      'http://old')]
+        assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
         apt_auth_remove_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
                       'http://old')]

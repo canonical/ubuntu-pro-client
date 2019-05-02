@@ -263,7 +263,8 @@ def action_attach(args, cfg):
     if not contract_token:
         print('No valid contract token available')
         return 1
-    if not contract.request_updated_contract(cfg, contract_token):
+    if not contract.request_updated_contract(
+            cfg, contract_token, allow_enable=True):
         print(
             ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
         return 1
