@@ -1,5 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import contextlib
 import copy
 from io import StringIO
 import itertools
@@ -83,15 +84,21 @@ class TestFIPSEntitlementEnable:
 
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
-        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-            with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
-                with mock.patch('uaclient.util.subp') as m_subp:
-                    with mock.patch.object(entitlement,
-                                           'can_enable') as m_can_enable:
-                        with mock.patch(M_GETPLATFORM, return_value='xenial'):
-                            with mock.patch(M_REPOPATH + 'os.path.exists'):
-                                m_can_enable.return_value = True
-                                assert True is entitlement.enable()
+        with contextlib.ExitStack() as stack:
+            m_add_apt = stack.enter_context(
+                mock.patch('uaclient.apt.add_auth_apt_repo'))
+            m_add_pinning = stack.enter_context(
+                mock.patch('uaclient.apt.add_ppa_pinning'))
+            m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+            m_can_enable = stack.enter_context(
+                mock.patch.object(entitlement, 'can_enable'))
+            stack.enter_context(
+                mock.patch(M_GETPLATFORM, return_value='xenial'))
+            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+
+            m_can_enable.return_value = True
+
+            assert True is entitlement.enable()
 
         add_apt_calls = [
             mock.call(
@@ -149,13 +156,17 @@ class TestFIPSEntitlementEnable:
         """When can_enable is false enable returns false and noops."""
         entitlement.origin = None  # invalid value
 
-        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-            with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pinning:
-                with mock.patch(M_REPOPATH + 'os.path.exists'):
-                    with mock.patch.object(entitlement, 'can_enable',
-                                           return_value=True):
-                        with mock.patch(M_GETPLATFORM, return_value='xenial'):
-                            assert False is entitlement.enable()
+        with contextlib.ExitStack() as stack:
+            m_add_apt = stack.enter_context(
+                mock.patch('uaclient.apt.add_auth_apt_repo'))
+            m_add_pinning = stack.enter_context(
+                mock.patch('uaclient.apt.add_ppa_pinning'))
+            stack.enter_context(mock.patch.object(entitlement, 'can_enable'))
+            stack.enter_context(
+                mock.patch(M_GETPLATFORM, return_value='xenial'))
+            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+
+            assert False is entitlement.enable()
 
         assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
@@ -196,12 +207,17 @@ class TestFIPSEntitlementDisable:
                 return True
             return original_exists(path)
 
-        with mock.patch.object(entitlement, 'can_disable',
-                               return_value=True) as m_can_disable:
-            with mock.patch('os.path.exists', side_effect=fake_exists):
-                with mock.patch('uaclient.apt.os.unlink') as m_unlink:
-                    with mock.patch('uaclient.util.subp') as m_subp:
-                        assert False is entitlement.disable(True, True)
+        with contextlib.ExitStack() as stack:
+            m_can_disable = stack.enter_context(
+                mock.patch.object(
+                    entitlement, 'can_disable', return_value=True))
+            stack.enter_context(
+                mock.patch('os.path.exists', side_effect=fake_exists))
+            m_unlink = stack.enter_context(
+                mock.patch('uaclient.apt.os.unlink'))
+            m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+
+            assert False is entitlement.disable(True, True)
         assert [mock.call(True, True)] == m_can_disable.call_args_list
         calls = [mock.call(preferences_path)]
         assert calls == m_unlink.call_args_list
