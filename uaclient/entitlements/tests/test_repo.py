@@ -1,7 +1,9 @@
+import copy
 from textwrap import dedent
 
 import mock
 import pytest
+from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
@@ -37,6 +39,12 @@ REPO_RESOURCE_ENTITLED = {
     }
 }
 
+PLATFORM_INFO_SUPPORTED = MappingProxyType({
+    'arch': 'x86_64',
+    'kernel': '4.4.0-00-generic',
+    'series': 'xenial'
+})
+
 
 class RepoTestEntitlement(RepoEntitlement):
     """Subclass so we can test shared repo functionality"""
@@ -58,6 +66,39 @@ def entitlement(tmpdir):
     cfg.write_cache('machine-token', dict(REPO_MACHINE_TOKEN))
     cfg.write_cache('machine-access-repotest', dict(REPO_RESOURCE_ENTITLED))
     return RepoTestEntitlement(cfg)
+
+
+class TestOperationalStatus:
+
+    @mock.patch(M_PATH + 'util.get_platform_info')
+    def test_inapplicable_on_failed_check_affordances(
+            self, m_platform_info, entitlement):
+        """When check_affordances raises a failure, return INAPPLICABLE."""
+        platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        platform_unsupported['series'] = 'trusty'
+        m_platform_info.return_value = platform_unsupported
+        passed_affordances, details = entitlement.check_affordances()
+        assert False is passed_affordances
+        assert 'Repo Test Class is not available for Ubuntu trusty.' == details
+        op_status, op_details = entitlement.operational_status()
+        assert status.INAPPLICABLE == op_status
+
+    @mock.patch(M_PATH + 'util.get_platform_info')
+    def test_inapplicable_on_unentitled(
+            self, m_platform_info, entitlement):
+        """When unentitled raises a failure, return INAPPLICABLE."""
+        no_entitlements = copy.deepcopy(dict(REPO_MACHINE_TOKEN))
+        # delete all enttlements
+        no_entitlements[
+            'machineTokenInfo']['contractInfo']['resourceEntitlements'].pop()
+        entitlement.cfg.write_cache('machine-token', no_entitlements)
+        entitlement.cfg.delete_cache_key('machine-access-repotest')
+        m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
+        passed_affordances, _details = entitlement.check_affordances()
+        assert True is passed_affordances
+        op_status, op_details = entitlement.operational_status()
+        assert status.INAPPLICABLE == op_status
+        assert 'Repo Test Class is not entitled' == op_details
 
 
 class TestProcessContractDeltas:

@@ -146,6 +146,11 @@ class LivepatchEntitlement(base.UAEntitlement):
         passed_affordances, details = self.check_affordances()
         if not passed_affordances:
             return status.INAPPLICABLE, details
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        if not entitlement_cfg:
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
+        elif entitlement_cfg['entitlement'].get('entitled', False) is False:
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
         operational_status = (status.ACTIVE, '')
         try:
             util.subp(['/snap/bin/canonical-livepatch', 'status'])

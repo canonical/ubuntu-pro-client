@@ -127,8 +127,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             all defined affordances, False if it doesn't meet any of the
             provided constraints.
         """
-        entitlements = self.cfg.entitlements
-        entitlement_cfg = entitlements.get(self.name)
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
             return True, 'no entitlement affordances checked'
         affordances = entitlement_cfg['entitlement'].get('affordances', {})
