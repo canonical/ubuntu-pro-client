@@ -84,6 +84,7 @@ class TestFIPSEntitlementEnable:
 
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
+        patched_packages = ['a', 'b']
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
                 mock.patch('uaclient.apt.add_auth_apt_repo'))
@@ -95,6 +96,11 @@ class TestFIPSEntitlementEnable:
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value='xenial'))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+            # Note that this patch uses a PropertyMock and happens on the
+            # entitlement's type because packages is a property
+            m_packages = mock.PropertyMock(return_value=patched_packages)
+            stack.enter_context(
+                mock.patch.object(type(entitlement), 'packages', m_packages))
 
             m_can_enable.return_value = True
 
@@ -113,7 +119,7 @@ class TestFIPSEntitlementEnable:
                     entitlement.name),
                 'http://FIPS', entitlement.origin, 1001)]
         install_cmd = mock.call(
-            ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
+            ['apt-get', 'install', '--assume-yes'] + patched_packages,
             capture=True)
 
         subp_calls = [
@@ -199,6 +205,7 @@ class TestFIPSEntitlementDisable:
         """When can_disable, disable removes apt configuration when force."""
 
         original_exists = os.path.exists
+        patched_packages = ['c', 'd']
         preferences_path = '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
             entitlement.name)
 
@@ -216,6 +223,11 @@ class TestFIPSEntitlementDisable:
             m_unlink = stack.enter_context(
                 mock.patch('uaclient.apt.os.unlink'))
             m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+            # Note that this patch uses a PropertyMock and happens on the
+            # entitlement's type because packages is a property
+            m_packages = mock.PropertyMock(return_value=patched_packages)
+            stack.enter_context(
+                mock.patch.object(type(entitlement), 'packages', m_packages))
 
             assert False is entitlement.disable(True, True)
         assert [mock.call(True, True)] == m_can_disable.call_args_list
@@ -231,7 +243,7 @@ class TestFIPSEntitlementDisable:
         assert [auth_call] == m_rm_auth.call_args_list
         assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
         apt_cmd = mock.call(
-            ['apt-get', 'remove', '--assume-yes'] + entitlement.packages)
+            ['apt-get', 'remove', '--assume-yes'] + patched_packages)
         assert [apt_cmd] == m_subp.call_args_list
 
     @mock.patch('uaclient.util.get_platform_info')
