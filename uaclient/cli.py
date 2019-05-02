@@ -354,8 +354,7 @@ def setup_logging(console_level, log_level, log_file=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
         log_file = config.CONFIG_DEFAULTS['log_file']
-    fmt = '[%(levelname)s]: %(message)s'
-    console_formatter = logging.Formatter(fmt)
+    console_formatter = util.LogFormatter()
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
     root.setLevel(log_level)
