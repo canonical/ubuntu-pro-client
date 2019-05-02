@@ -12,9 +12,10 @@ import pytest
 
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
-    add_ppa_pinning, find_apt_list_files, is_pkg_installed,
-    migrate_apt_sources, remove_apt_list_files, remove_auth_apt_repo,
-    remove_repo_from_apt_auth_file, valid_apt_credentials)
+    add_ppa_pinning, find_apt_list_files, get_installed_packages,
+    is_pkg_installed, migrate_apt_sources, remove_apt_list_files,
+    remove_auth_apt_repo, remove_repo_from_apt_auth_file,
+    valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -623,3 +624,26 @@ class TestIsPkgInstalled:
 
         with pytest.raises(Exception):
             is_pkg_installed(package_name)
+
+
+class TestGetInstalledPackages:
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('', ''))
+    def test_correct_command_called(self, m_subp):
+        get_installed_packages()
+
+        expected_call = mock.call(
+            ['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+        assert [expected_call] == m_subp.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('', ''))
+    def test_empty_output_means_empty_list(self, m_subp):
+        assert [] == get_installed_packages()
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('a\nb\n', ''))
+    def test_lines_are_split(self, m_subp):
+        assert ['a', 'b'] == get_installed_packages()
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('a\nb', ''))
+    def test_assert_missing_eof_newline_works(self, m_subp):
+        assert ['a', 'b'] == get_installed_packages()
