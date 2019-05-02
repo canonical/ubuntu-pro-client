@@ -79,9 +79,10 @@ class TestCommonCriteriaEntitlementOperationalStatus:
 
 class TestCommonCriteriaEntitlementCanEnable:
 
+    @mock.patch('uaclient.util.subp', return_value=('', ''))
     @mock.patch('uaclient.util.get_platform_info')
     def test_can_enable_true_on_entitlement_inactive(
-            self, m_platform_info, tmpdir):
+            self, m_platform_info, _m_subp, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
