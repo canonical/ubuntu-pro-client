@@ -147,29 +147,6 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
-    def test_add_auth_apt_repo_adds_apt_fingerprint(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
-        """Call apt-key to add the specified fingerprint."""
-        repo_file = tmpdir.join('repo.conf').strpath
-        auth_file = tmpdir.join('auth.conf').strpath
-        m_get_apt_auth_file.return_value = auth_file
-        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
-
-        add_auth_apt_repo(
-            repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
-
-        apt_cmds = [
-            mock.call(['apt-cache', 'policy']),
-            mock.call(['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-                       '--recv-keys', 'APTKEY'], capture=True)]
-        assert apt_cmds == m_subp.call_args_list
-
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_sources_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -181,7 +158,7 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
+            credentials='mycreds', suites=('xenial',))
 
         expected_content = (
             'deb http://fakerepo/ubuntu xenial main\n'
@@ -205,8 +182,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -233,8 +209,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -258,7 +233,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='user:password',
-            suites=('xenial',), fingerprint='APTKEY')
+            suites=('xenial',))
 
         expected_content = (
             'machine fakerepo/ login user password password%s\n' %
@@ -280,8 +255,7 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo/',
-            credentials='SOMELONGTOKEN', suites=('xenia',),
-            fingerprint='APTKEY')
+            credentials='SOMELONGTOKEN', suites=('xenia',))
 
         expected_content = (
             'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'

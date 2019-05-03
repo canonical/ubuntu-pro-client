@@ -54,8 +54,8 @@ def valid_apt_credentials(repo_url, username, password):
     return False
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
-                      keyring_file=None, fingerprint=None):
+def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
+                      suites: 'List[str]', keyring_file: str = None) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -95,11 +95,6 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
     if keyring_file:
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
-    elif fingerprint:
-        logging.debug('Importing APT key %s', fingerprint)
-        util.subp(
-            ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-             '--recv-keys', fingerprint], capture=True)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
