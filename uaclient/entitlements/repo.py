@@ -266,7 +266,7 @@ class RepoEntitlement(base.UAEntitlement):
             if os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
 
-    def _set_local_enabled(self, value):
+    def _set_local_enabled(self, value: bool) -> None:
         """Set local enabled flag true or false."""
         public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
         public_cache['localEnabled'] = value
