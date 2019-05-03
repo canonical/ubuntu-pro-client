@@ -2,7 +2,6 @@
 
 import copy
 import glob
-import itertools
 import mock
 import os
 import stat
@@ -148,29 +147,6 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
-    def test_add_auth_apt_repo_adds_apt_fingerprint(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
-        """Call apt-key to add the specified fingerprint."""
-        repo_file = tmpdir.join('repo.conf').strpath
-        auth_file = tmpdir.join('auth.conf').strpath
-        m_get_apt_auth_file.return_value = auth_file
-        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
-
-        add_auth_apt_repo(
-            repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
-
-        apt_cmds = [
-            mock.call(['apt-cache', 'policy']),
-            mock.call(['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-                       '--recv-keys', 'APTKEY'], capture=True)]
-        assert apt_cmds == m_subp.call_args_list
-
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_sources_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -182,7 +158,7 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
+            credentials='mycreds', suites=('xenial',))
 
         expected_content = (
             'deb http://fakerepo/ubuntu xenial main\n'
@@ -206,8 +182,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -234,8 +209,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -259,7 +233,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='user:password',
-            suites=('xenial',), fingerprint='APTKEY')
+            suites=('xenial',))
 
         expected_content = (
             'machine fakerepo/ login user password password%s\n' %
@@ -281,8 +255,7 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo/',
-            credentials='SOMELONGTOKEN', suites=('xenia',),
-            fingerprint='APTKEY')
+            credentials='SOMELONGTOKEN', suites=('xenia',))
 
         expected_content = (
             'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'
@@ -442,22 +415,18 @@ class TestMigrateAptSources:
         assert [] == m_unlink.call_args_list
 
 
-@pytest.fixture(
-    params=itertools.product((mock.sentinel.default, None, 'some_string'),
-                             repeat=2))
+@pytest.fixture(params=(mock.sentinel.default, None, 'some_string'))
 def remove_auth_apt_repo_kwargs(request):
     """
     Parameterized fixture to generate all permutations of kwargs we need
 
-    Note that this tests three states for each of keyring_file and fingerprint:
-    using the default, explicitly passing None and explicitly passing a string.
+    Note that this tests three states for keyring_file: using the default,
+    explicitly passing None and explicitly passing a string.
     """
-    keyring_file, fingerprint = request.param
+    keyring_file = request.param
     kwargs = {}
     if keyring_file != mock.sentinel.default:
         kwargs['keyring_file'] = keyring_file
-    if fingerprint != mock.sentinel.default:
-        kwargs['fingerprint'] = fingerprint
     return kwargs
 
 
@@ -505,26 +474,6 @@ class TestRemoveAuthAptRepo:
             assert mock.call(keyring_file) in m_del_file.call_args_list
         else:
             assert mock.call(keyring_file) not in m_del_file.call_args_list
-
-    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
-    @mock.patch('uaclient.apt.util.del_file')
-    @mock.patch('uaclient.apt.util.subp')
-    def test_fingerprint_deleted_if_given_alone(
-            self, m_subp, _mock, __mock, remove_auth_apt_repo_kwargs):
-        """We should delete the fingerprint iff it is given without keyring"""
-        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
-
-        remove_auth_apt_repo(
-            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
-
-        fingerprint = remove_auth_apt_repo_kwargs.get('fingerprint')
-        keyring_file = remove_auth_apt_repo_kwargs.get('keyring_file')
-        if fingerprint and not keyring_file:
-            expected_call = mock.call(['apt-key', 'del', fingerprint],
-                                      capture=True)
-            assert [expected_call] == m_subp.call_args_list
-        else:
-            assert 0 == m_subp.call_count
 
 
 class TestRemoveRepoFromAptAuthFile:
