@@ -7,6 +7,12 @@ import subprocess
 from urllib import request
 import uuid
 
+try:
+    from typing import Any, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
 
@@ -117,14 +123,14 @@ def is_exe(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def load_file(filename, decode=True):
+def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
     with open(filename, 'rb') as stream:
         content = stream.read()
     return content.decode('utf-8')
 
 
-def maybe_parse_json(content):
+def maybe_parse_json(content: str) -> 'Optional[Any]':
     """Attempt to parse json content.
 
     @return: Structured content on success and None on failure.

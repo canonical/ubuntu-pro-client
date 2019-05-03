@@ -8,6 +8,12 @@ import yaml
 from uaclient import util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
+try:
+    from typing import Any, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 LOG = logging.getLogger(__name__)
 
 PRIVATE_SUBDIR = 'private'
@@ -181,7 +187,7 @@ class UAConfig:
         for path_key in self.data_paths.keys():
             self.delete_cache_key(path_key)
 
-    def read_cache(self, key, silent=False):
+    def read_cache(self, key: str, silent: bool = False) -> 'Optional[Any]':
         cache_path = self.data_path(key)
         try:
             content = util.load_file(cache_path)
@@ -196,7 +202,7 @@ class UAConfig:
         json_content = util.maybe_parse_json(content)
         return json_content if json_content else content
 
-    def write_cache(self, key, content, private=True):
+    def write_cache(self, key: str, content: 'Any', private: bool = True):
         filepath = self.data_path(key, private)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
