@@ -3,7 +3,6 @@
 import mock
 import pytest
 
-from uaclient.testing.helpers import TestCase
 from uaclient import util
 
 PRIVACY_POLICY_URL = (
@@ -205,55 +204,53 @@ class TestGetPlatformInfo:
                 assert expected == util.get_platform_info()
 
 
-class TestGetMachineId(TestCase):
+class TestGetMachineId:
 
-    def setUp(self):
-        super().setUp()
-        self.tdir = self.tmp_dir()
-
-    def test_get_machine_id_from_etc_machine_id(self):
+    def test_get_machine_id_from_etc_machine_id(self, tmpdir):
         """Presence of /etc/machine-id is returned if it exists."""
-        etc_machine_id = self.tmp_path('etc-machine-id', dir=self.tdir)
-        self.assertEqual('/etc/machine-id', util.ETC_MACHINE_ID)
-        util.write_file(etc_machine_id, 'etc-machine-id')
-        with mock.patch('uaclient.util.ETC_MACHINE_ID', etc_machine_id):
+        etc_machine_id = tmpdir.join('etc-machine-id')
+        assert '/etc/machine-id' == util.ETC_MACHINE_ID
+        etc_machine_id.write('etc-machine-id')
+        with mock.patch('uaclient.util.ETC_MACHINE_ID',
+                        etc_machine_id.strpath):
             value = util.get_machine_id(data_dir=None)
-        self.assertEqual('etc-machine-id', value)
+        assert 'etc-machine-id' == value
 
-    def test_get_machine_id_from_var_lib_dbus_machine_id(self):
+    def test_get_machine_id_from_var_lib_dbus_machine_id(self, tmpdir):
         """On trusty, machine id lives in of /var/lib/dbus/machine-id."""
-        etc_machine_id = self.tmp_path('etc-machine-id', dir=self.tdir)
-        dbus_machine_id = self.tmp_path('dbus-machine-id', dir=self.tdir)
-        self.assertEqual('/var/lib/dbus/machine-id', util.DBUS_MACHINE_ID)
-        util.write_file(dbus_machine_id, 'dbus-machine-id')
-        with mock.patch('uaclient.util.DBUS_MACHINE_ID', dbus_machine_id):
-            with mock.patch('uaclient.util.ETC_MACHINE_ID', etc_machine_id):
+        etc_machine_id = tmpdir.join('etc-machine-id')
+        dbus_machine_id = tmpdir.join('dbus-machine-id')
+        assert '/var/lib/dbus/machine-id' == util.DBUS_MACHINE_ID
+        dbus_machine_id.write('dbus-machine-id')
+        with mock.patch('uaclient.util.DBUS_MACHINE_ID',
+                        dbus_machine_id.strpath):
+            with mock.patch('uaclient.util.ETC_MACHINE_ID',
+                            etc_machine_id.strpath):
                 value = util.get_machine_id(data_dir=None)
-        self.assertEqual('dbus-machine-id', value)
+        assert 'dbus-machine-id' == value
 
-    def test_get_machine_id_uses_machine_id_from_data_dir(self):
+    def test_get_machine_id_uses_machine_id_from_data_dir(self, tmpdir):
         """When no machine-id is found, use machine-id from data_dir."""
 
-        data_machine_id = self.tmp_path('machine-id', dir=self.tdir)
-        util.write_file(data_machine_id, 'data-machine-id')
+        data_machine_id = tmpdir.join('machine-id')
+        data_machine_id.write('data-machine-id')
 
         def fake_exists(path):
-            return bool(path == data_machine_id)
+            return bool(path == data_machine_id.strpath)
 
         with mock.patch('uaclient.util.os.path.exists') as m_exists:
             m_exists.side_effect = fake_exists
-            value = util.get_machine_id(data_dir=self.tdir)
-        self.assertEqual('data-machine-id', value)
+            value = util.get_machine_id(data_dir=tmpdir.strpath)
+        assert 'data-machine-id' == value
 
-    def test_get_machine_id_create_machine_id_in_data_dir(self):
+    def test_get_machine_id_create_machine_id_in_data_dir(self, tmpdir):
         """When no machine-id is found, create one in data_dir using uuid4."""
-
-        data_machine_id = self.tmp_path('machine-id', dir=self.tdir)
+        data_machine_id = tmpdir.join('machine-id')
 
         with mock.patch('uaclient.util.os.path.exists') as m_exists:
             with mock.patch('uaclient.util.uuid.uuid4') as m_uuid4:
                 m_exists.return_value = False
                 m_uuid4.return_value = '1234...1234'
-                value = util.get_machine_id(data_dir=self.tdir)
-        self.assertEqual('1234...1234', value)
-        self.assertEqual('1234...1234', util.load_file(data_machine_id))
+                value = util.get_machine_id(data_dir=tmpdir.strpath)
+        assert '1234...1234' == value
+        assert '1234...1234' == data_machine_id.read()
