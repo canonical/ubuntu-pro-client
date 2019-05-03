@@ -1,5 +1,4 @@
 import mock
-import unittest
 
 from uaclient.testing.fakes import FakeConfig
 
@@ -29,7 +28,7 @@ def test_non_root_users_are_rejected(stdout, getuid):
 
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + 'os.getuid', mock.Mock(return_value=0))
-class TestActionAttach(unittest.TestCase):
+class TestActionAttach:
 
     @mock.patch(M_PATH + 'sys.stdout')
     def test_already_attached(self, stdout):
