@@ -6,6 +6,12 @@ import shutil
 
 from uaclient import util
 
+try:
+    from typing import List  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
@@ -258,9 +264,6 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
         entitlement.enable()  # Re-enable on current series
 
 
-def is_pkg_installed(pkg_name: str) -> bool:
-    try:
-        util.subp(['dpkg', '-s', pkg_name])
-    except util.ProcessExecutionError:
-        return False
-    return True
+def get_installed_packages() -> 'List[str]':
+    out, _ = util.subp(['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+    return out.splitlines()

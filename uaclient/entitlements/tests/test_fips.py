@@ -203,12 +203,12 @@ def _fips_pkg_combinations():
 
 class TestFipsEntitlementPackages:
 
-    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=False)
+    @mock.patch(M_PATH + 'apt.get_installed_packages', return_value=[])
     def test_packages_is_list(self, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
         assert isinstance(entitlement.packages, list)
 
-    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=False)
+    @mock.patch(M_PATH + 'apt.get_installed_packages', return_value=[])
     def test_fips_required_packages_included(self, _mock, entitlement):
         """The fips_required_packages should always be in .packages"""
         assert entitlement.fips_required_packages.issubset(
@@ -216,20 +216,22 @@ class TestFipsEntitlementPackages:
 
     @pytest.mark.parametrize('installed_packages,expected_installs',
                              _fips_pkg_combinations())
-    @mock.patch(M_PATH + 'apt.is_pkg_installed')
+    @mock.patch(M_PATH + 'apt.get_installed_packages')
     def test_currently_installed_packages_are_included_in_packages(
-            self, m_is_pkg_installed, entitlement,
+            self, m_get_installed_packages, entitlement,
             installed_packages, expected_installs):
         """If FIPS packages are already installed, upgrade them"""
-        m_is_pkg_installed.side_effect = lambda pkg_name: (
-            pkg_name in installed_packages)
+        m_get_installed_packages.return_value = list(installed_packages)
         full_expected_installs = (
             list(entitlement.fips_required_packages) + expected_installs)
         assert full_expected_installs == entitlement.packages
 
-    @mock.patch(M_PATH + 'apt.is_pkg_installed', return_value=True)
+    @mock.patch(M_PATH + 'apt.get_installed_packages')
     def test_multiple_packages_calls_dont_mutate_state(
-            self, m_is_pkg_installed, entitlement):
+            self, m_get_installed_packages, entitlement):
+        # Make it appear like all packages are installed
+        m_get_installed_packages.return_value.__contains__.return_value = True
+
         before = (copy.deepcopy(entitlement.fips_required_packages),
                   copy.deepcopy(entitlement.fips_packages))
 
