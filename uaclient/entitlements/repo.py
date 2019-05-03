@@ -4,7 +4,7 @@ import os
 import re
 
 try:
-    from typing import Any, Dict, List  # noqa: F401
+    from typing import Any, Dict, List, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -22,9 +22,12 @@ class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = '/etc/apt/sources.list.d/ubuntu-{name}-{series}.list'
     repo_pref_file_tmpl = '/etc/apt/preferences.d/ubuntu-{name}-{series}'
-    origin = None   # The repo Origin value for setting pinning
 
-    repo_pin_priority = None  # Optional repo pin priority in subclass
+    # The repo Origin value for setting pinning
+    origin = None  # type: Optional[str]
+
+    # Optional repo pin priority in subclass
+    repo_pin_priority = None  # type: Optional[int]
 
     # force_disable True if entitlement does not allow disable (fips*)
     force_disable = False
@@ -32,8 +35,9 @@ class RepoEntitlement(base.UAEntitlement):
     # disable_apt_auth_only (ESM) to only remove apt auth files on disable
     disable_apt_auth_only = False  # Set True on ESM to only remove apt auth
 
-    # Any custom messages to emit pre or post enable or disable operations
-    messaging = {}  # Currently post_enable is used in CommonCriteria
+    # Any custom messages to emit pre or post enable or disable operations;
+    # currently post_enable is used in CommonCriteria
+    messaging = {}  # type: Dict[str, List[str]]
 
     @property
     def packages(self) -> 'List[str]':
