@@ -148,13 +148,12 @@ class TestIsContainer:
         assert exists_calls == m_exists.call_args_list
 
 
-class TestParseOSRelease(TestCase):
+class TestParseOSRelease:
 
-    def test_parse_os_release(self):
+    def test_parse_os_release(self, tmpdir):
         """parse_os_release returns a dict of values from /etc/os-release."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_TRUSTY)
+        release_file = tmpdir.join('os-release')
+        release_file.write(OS_RELEASE_TRUSTY)
         expected = {'BUG_REPORT_URL': 'http://bugs.launchpad.net/ubuntu/',
                     'HOME_URL': 'http://www.ubuntu.com/',
                     'ID': 'ubuntu', 'ID_LIKE': 'debian',
@@ -162,7 +161,7 @@ class TestParseOSRelease(TestCase):
                     'SUPPORT_URL': 'http://help.ubuntu.com/',
                     'VERSION': '14.04.5 LTS, Trusty Tahr',
                     'VERSION_ID': '14.04'}
-        self.assertEqual(expected, util.parse_os_release(release_file))
+        assert expected == util.parse_os_release(release_file.strpath)
 
 
 class TestGetPlatformInfo(TestCase):
