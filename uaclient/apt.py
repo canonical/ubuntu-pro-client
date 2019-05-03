@@ -156,15 +156,13 @@ def remove_repo_from_apt_auth_file(repo_url):
             util.write_file(apt_auth_file, content, mode=0o600)
 
 
-def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
-                         fingerprint=None):
+def remove_auth_apt_repo(repo_filename: str, repo_url: str,
+                         keyring_file: str = None) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     logging.info('Removing authenticated apt repo: %s', repo_url)
     util.del_file(repo_filename)
     if keyring_file:
         util.del_file(keyring_file)
-    elif fingerprint:
-        util.subp(['apt-key', 'del', fingerprint], capture=True)
     remove_repo_from_apt_auth_file(repo_url)
 
 
