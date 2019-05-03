@@ -4,7 +4,8 @@ import logging
 import re
 
 try:
-    from typing import Any, Dict, Optional  # noqa: F401
+    from typing import Any, Callable, Dict, Optional, Tuple  # noqa: F401
+    StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -41,8 +42,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with
-    # <failure_message>.
-    static_affordances = ()   # Overridden in livepatch and fips
+    # <failure_message>. Overridden in livepatch and fips
+    static_affordances = ()  # type: Tuple[StaticAffordance, ...]
 
     def __init__(self, cfg=None):
         """Setup UAEntitlement instance
