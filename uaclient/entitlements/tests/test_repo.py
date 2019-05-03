@@ -253,7 +253,6 @@ class TestRepoEnable:
         Repo Test Class enabled.
         """)
         if packages is not None:
-            entitlement.packages = packages
             if len(packages) > 0:
                 expected_apt_calls.append(
                     mock.call(['apt-get', 'install', '--assume-yes',
@@ -263,7 +262,12 @@ class TestRepoEnable:
                     Installing Repo Test Class packages ...
                     Repo Test Class enabled.
                     """)
-        entitlement.enable()
+        else:
+            packages = entitlement.packages
+
+        # We patch the type of entitlement because packages is a property
+        with mock.patch.object(type(entitlement), 'packages', packages):
+            entitlement.enable()
 
         expected_calls = [mock.call(apt.APT_METHOD_HTTPS_FILE),
                           mock.call(apt.CA_CERTIFICATES_FILE)]

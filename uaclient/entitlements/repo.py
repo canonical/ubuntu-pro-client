@@ -4,7 +4,7 @@ import os
 import re
 
 try:
-    from typing import Any, Dict  # noqa: F401
+    from typing import Any, Dict, List  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -34,7 +34,11 @@ class RepoEntitlement(base.UAEntitlement):
 
     # Any custom messages to emit pre or post enable or disable operations
     messaging = {}  # Currently post_enable is used in CommonCriteria
-    packages = []   # Debs to install on enablement
+
+    @property
+    def packages(self) -> 'List[str]':
+        """debs to install on enablement"""
+        return []
 
     @property
     @abc.abstractmethod
