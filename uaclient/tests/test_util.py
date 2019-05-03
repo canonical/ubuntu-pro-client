@@ -1,7 +1,6 @@
 """Tests related to uaclient.util module."""
 
 import mock
-import os
 import pytest
 
 from uaclient.testing.helpers import TestCase
@@ -148,13 +147,12 @@ class TestIsContainer:
         assert exists_calls == m_exists.call_args_list
 
 
-class TestParseOSRelease(TestCase):
+class TestParseOSRelease:
 
-    def test_parse_os_release(self):
+    def test_parse_os_release(self, tmpdir):
         """parse_os_release returns a dict of values from /etc/os-release."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_TRUSTY)
+        release_file = tmpdir.join('os-release')
+        release_file.write(OS_RELEASE_TRUSTY)
         expected = {'BUG_REPORT_URL': 'http://bugs.launchpad.net/ubuntu/',
                     'HOME_URL': 'http://www.ubuntu.com/',
                     'ID': 'ubuntu', 'ID_LIKE': 'debian',
@@ -162,51 +160,32 @@ class TestParseOSRelease(TestCase):
                     'SUPPORT_URL': 'http://help.ubuntu.com/',
                     'VERSION': '14.04.5 LTS, Trusty Tahr',
                     'VERSION_ID': '14.04'}
-        self.assertEqual(expected, util.parse_os_release(release_file))
+        assert expected == util.parse_os_release(release_file.strpath)
 
 
-class TestGetPlatformInfo(TestCase):
+class TestGetPlatformInfo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.parse_os_release')
     def test_get_platform_info_error_no_version(self, m_parse, m_subp):
         """get_platform_info errors when it cannot parse os-release."""
         m_parse.return_value = {'VERSION': 'junk'}
-        with self.assertRaises(RuntimeError) as ctx_mgr:
+        with pytest.raises(RuntimeError) as excinfo:
             util.get_platform_info()
-        self.assertEqual(
-            'Could not parse /etc/os-release VERSION: junk',
-            str(ctx_mgr.exception))
+        expected_msg = 'Could not parse /etc/os-release VERSION: junk'
+        assert expected_msg == str(excinfo.value)
 
-    def test_get_platform_info_trusty(self):
-        """get_platform_info handles trusty /etc/os-release parsing."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_TRUSTY)
-        parse_dict = util.parse_os_release(release_file)
-
-        def fake_subp(cmd):
-            if cmd == ['uname', '-r']:
-                return 'kernel-ver', ''
-            if cmd == ['uname', '-i']:
-                return 'arm64', ''
-            assert False, 'Unexpected command: %s' % cmd
-
-        expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
-                    'kernel': 'kernel-ver', 'release': '14.04',
-                    'series': 'trusty', 'type': 'Linux'}
-        with mock.patch('uaclient.util.parse_os_release') as m_parse:
-            with mock.patch('uaclient.util.subp') as m_subp:
-                m_parse.return_value = parse_dict
-                m_subp.side_effect = fake_subp
-                self.assertEqual(expected, util.get_platform_info())
-
-    def test_get_platform_info_xenial(self):
-        """get_platform_info handles xenial /etc/os-release parsing."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_XENIAL)
-        parse_dict = util.parse_os_release(release_file)
+    @pytest.mark.parametrize('series,release,os_release_content', [
+        ('trusty', '14.04', OS_RELEASE_TRUSTY),
+        ('xenial', '16.04', OS_RELEASE_XENIAL),
+        ('bionic', '18.04', OS_RELEASE_BIONIC),
+        ('disco', '19.04', OS_RELEASE_DISCO),
+    ])
+    def test_get_platform_info_with_version(
+            self, series, release, os_release_content, tmpdir):
+        release_file = tmpdir.join('os-release')
+        release_file.write(os_release_content)
+        parse_dict = util.parse_os_release(release_file.strpath)
 
         def fake_subp(cmd):
             if cmd == ['uname', '-r']:
@@ -216,59 +195,14 @@ class TestGetPlatformInfo(TestCase):
             assert False, 'Unexpected command: %s' % cmd
 
         expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
-                    'kernel': 'kernel-ver', 'release': '16.04',
-                    'series': 'xenial', 'type': 'Linux'}
+                    'kernel': 'kernel-ver', 'release': release,
+                    'series': series, 'type': 'Linux'}
+
         with mock.patch('uaclient.util.parse_os_release') as m_parse:
             with mock.patch('uaclient.util.subp') as m_subp:
                 m_parse.return_value = parse_dict
                 m_subp.side_effect = fake_subp
-                self.assertEqual(expected, util.get_platform_info())
-
-    def test_get_platform_info_bionic(self):
-        """get_platform_info handles bionic /etc/os-release parsing."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_BIONIC)
-        parse_dict = util.parse_os_release(release_file)
-
-        def fake_subp(cmd):
-            if cmd == ['uname', '-r']:
-                return 'kernel-ver', ''
-            if cmd == ['uname', '-i']:
-                return 'arm64', ''
-            assert False, 'Unexpected command: %s' % cmd
-
-        expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
-                    'kernel': 'kernel-ver', 'release': '18.04',
-                    'series': 'bionic', 'type': 'Linux'}
-        with mock.patch('uaclient.util.parse_os_release') as m_parse:
-            with mock.patch('uaclient.util.subp') as m_subp:
-                m_parse.return_value = parse_dict
-                m_subp.side_effect = fake_subp
-                self.assertEqual(expected, util.get_platform_info())
-
-    def test_get_platform_info_disco(self):
-        """get_platform_info handles disco /etc/os-release parsing."""
-        tdir = self.tmp_dir()
-        release_file = os.path.join(tdir, 'os-release')
-        util.write_file(release_file, OS_RELEASE_DISCO)
-        parse_dict = util.parse_os_release(release_file)
-
-        def fake_subp(cmd):
-            if cmd == ['uname', '-r']:
-                return 'kernel-ver', ''
-            if cmd == ['uname', '-i']:
-                return 'arm64', ''
-            assert False, 'Unexpected command: %s' % cmd
-
-        expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
-                    'kernel': 'kernel-ver', 'release': '19.04',
-                    'series': 'disco', 'type': 'Linux'}
-        with mock.patch('uaclient.util.parse_os_release') as m_parse:
-            with mock.patch('uaclient.util.subp') as m_subp:
-                m_parse.return_value = parse_dict
-                m_subp.side_effect = fake_subp
-                self.assertEqual(expected, util.get_platform_info())
+                assert expected == util.get_platform_info()
 
 
 class TestGetMachineId(TestCase):
