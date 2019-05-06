@@ -126,6 +126,15 @@ class LivepatchEntitlement(base.UAEntitlement):
                     'No specific resourceToken present. Using machine token as'
                     ' %s credentials', self.title)
                 livepatch_token = self.cfg.machine_token['machineToken']
+            op_status, _details = self.operational_status()
+            if op_status == status.ACTIVE:
+                logging.info('Disabling %s prior to re-attach with new token',
+                             self.title)
+                try:
+                    util.subp(['/snap/bin/canonical-livepatch', 'disable'])
+                except util.ProcessExecutionError as e:
+                    logging.error(str(e))
+                    return False
             try:
                 util.subp(['/snap/bin/canonical-livepatch', 'enable',
                            livepatch_token],
@@ -209,10 +218,6 @@ class LivepatchEntitlement(base.UAEntitlement):
         if any([process_directives, process_token]):
             logging.info(
                 "Updating '%s' on changed directives." % self.name)
-            if process_token:
-                # Disable livepatch before re-enable
-                util.subp(['/snap/bin/canonical-livepatch', 'disable'],
-                          capture=True)
             return self.setup_livepatch_config(
                 process_directives=process_directives,
                 process_token=process_token)
@@ -221,6 +226,11 @@ class LivepatchEntitlement(base.UAEntitlement):
 
 def process_config_directives(cfg):
     """Process livepatch configuration directives.
+
+    We process caCerts before remoteServer because changing remote-server
+    in the canonical-livepatch CLI performs a PUT against the new server name.
+    If new caCerts were required for the new remoteServer, this
+    canonical-livepatch client PUT could fail on unmatched old caCerts.
 
     @raises: ProcessExecutionError if unable to configure livepatch.
     """
