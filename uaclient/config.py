@@ -24,6 +24,37 @@ class ConfigAbsentError(RuntimeError):
     pass
 
 
+class LocalEnabledManager:
+    """
+    A UAConfig adapter to manage the local-enabled cache for non-root users
+
+    TODO:
+        * cache the contents of local-access so we don't have to read it more
+        than once
+    """
+
+    _cfg_key = 'local-access'
+
+    def __init__(self, cfg: 'UAConfig') -> None:
+        self._cfg = cfg
+
+    def get(self, entitlement_name: str) -> bool:
+        local_access = self._cfg.read_cache(self._cfg_key)
+        if local_access is None:
+            # The only way we get here is if nothing has yet written the
+            # local-access file; that means we haven't enabled any entitlements
+            # so this must necessarily be False
+            return False
+        return local_access.get(entitlement_name, False)
+
+    def set(self, entitlement_name: str, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise RuntimeError('LocalEnabledManager.set passed non-bool value')
+        local_access = self._cfg.read_cache(self._cfg_key) or {}
+        local_access[entitlement_name] = value
+        self._cfg.write_cache(self._cfg_key, local_access, private=False)
+
+
 class UAConfig:
 
     data_paths = {
@@ -58,6 +89,7 @@ class UAConfig:
             self.cfg = cfg
         else:
             self.cfg = parse_config()
+        self.local_enabled_manager = LocalEnabledManager(self)
 
     @property
     def accounts(self):
