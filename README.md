@@ -39,6 +39,19 @@ To build the Ubuntu Advantage Client package users
 make deb
 ```
 
+## Testing ua-contracts
+To test a locally run ua-contracts service in a new container.
+```shell
+make demo
+```
+The demo target performs the following actions
+- checkout tip ua-contracts
+- spin up a contract-bionic-demo priveledged lxc container
+- install go and docker dependencies in that container
+- run ua-contracts/ make demo target to starts a local contracts api with [bootstrapped admin and contracts](https://github.com/CanonicalLtd/ua-contracts/#docker)
+- set uaclient-devel.conf to point to the contract-bionic-demo IP on port 3000
+
+
 ## Daily Builds
 
 On Launchpad, there is a [daily build recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily),
