@@ -57,42 +57,46 @@ if [ "$server_type" == "local" ]; then
   echo "Changing uaclient-devel.conf to point to your localhost:8080"
   sed -i "s/contract_url.*/contract_url: 'http:\/\/localhost:8080'/" uaclient-devel.conf
   cd ua-contracts; make docker; make docker-run;
+  CONTRACT_URL="http:\/\/localhost:8484"
+  echo "Changing uaclient-devel.conf to point to your lxc @ $CONTRACT_URL"
+  sed -i "s/contract_url.*/contract_url: '$CONTRACT_URL'/" uaclient-devel.conf
   exit;
-else
-  UACLIENT_DEB="ubuntu-advantage-tools_all.deb"
-  lxc list | grep -q $LXC_NAME
-  if [ $? -eq 1 ]; then
-    echo 'About to launch bionic lxc for contract sevice API...'
-    sleep 5
-    echo 'Deploying demo contract api service to a bionic container'
-    lxc launch ubuntu-daily:bionic $LXC_NAME -c security.nesting=true
-    lxc exec $LXC_NAME -- cloud-init status --wait;
-    lxc file push -r ua-contracts $LXC_NAME/root/
-    if [ ! -f "$NETRC" ]; then
-        echo -n "Enter path to .netrc file with github.com token credentials: "
-        read NETRC
-        if [ ! -f "$NETRC" ]; then
-          echo "Could not find $NETRC"
-          exit 1
-        fi
-    fi
-    lxc file push $UACLIENT_DEB demo/runserver.sh $NETRC $LXC_NAME/root/
-    # Rename LP creds to /root/entitlement-creds.json
-    lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
-    lxc exec $LXC_NAME -- apt-get update
-    lxc exec $LXC_NAME -- apt-get install docker-compose python3-pymacaroons make --assume-yes
-    lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB
-    lxc exec $LXC_NAME -- wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz
-    lxc exec $LXC_NAME -- tar -C /usr/local -xzf go1.12.4.linux-amd64.tar.gz
-    lxc exec $LXC_NAME -- sh -c 'echo export GOPATH=/root/go >> .bashrc'
-    lxc exec $LXC_NAME -- sh -c 'echo export PATH=\$GOPATH/bin:/usr/local/go/bin:\$PATH >> .bashrc'
-  fi
-  
-  VM_IP=`lxc list -c n4 $LXC_NAME | grep eth0 | awk '{print $3}'`
-  echo "Changing uaclient-devel.conf to point to your lxc @ $VM_IP:8080"
-  sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
-  # Rename devel config to $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
-  lxc file push uaclient-devel.conf $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
-  echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
-  lxc exec $LXC_NAME /root/runserver.sh
 fi
+
+UACLIENT_DEB="ubuntu-advantage-tools_all.deb"
+lxc list | grep -q $LXC_NAME
+if [ $? -eq 1 ]; then
+  echo 'About to launch bionic lxc for contract sevice API...'
+  sleep 5
+  echo 'Deploying demo contract api service to a bionic container'
+  lxc launch ubuntu-daily:bionic $LXC_NAME -c security.nesting=true
+  lxc exec $LXC_NAME -- cloud-init status --wait;
+  lxc file push -r ua-contracts $LXC_NAME/root/
+  if [ ! -f "$NETRC" ]; then
+      echo -n "Enter path to .netrc file with github.com token credentials: "
+      read NETRC
+      if [ ! -f "$NETRC" ]; then
+        echo "Could not find $NETRC"
+        exit 1
+      fi
+  fi
+  lxc file push $UACLIENT_DEB demo/runserver.sh $NETRC $LXC_NAME/root/
+  # Rename LP creds to /root/entitlement-creds.json
+  lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
+  lxc exec $LXC_NAME -- apt-get update
+  lxc exec $LXC_NAME -- apt-get install docker-compose python3-pymacaroons make --assume-yes
+  lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB
+  lxc exec $LXC_NAME -- wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz
+  lxc exec $LXC_NAME -- tar -C /usr/local -xzf go1.12.4.linux-amd64.tar.gz
+  lxc exec $LXC_NAME -- sh -c 'echo export GOPATH=/root/go >> .bashrc'
+  lxc exec $LXC_NAME -- sh -c 'echo export PATH=\$GOPATH/bin:/usr/local/go/bin:\$PATH >> .bashrc'
+fi
+VM_IP=`lxc list -c n4 $LXC_NAME | grep eth0 | awk '{print $3}'`
+CONTRACT_URL="http:\/\/$VM_IP:3000"
+  
+echo "Changing uaclient-devel.conf to point to your lxc @ $CONTRACT_URL"
+sed -i "s/contract_url.*/contract_url: '$CONTRACT_URL'/" uaclient-devel.conf
+# Rename devel config to $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
+lxc file push uaclient-devel.conf $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
+echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
+lxc exec $LXC_NAME /root/runserver.sh
