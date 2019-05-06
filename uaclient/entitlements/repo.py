@@ -80,7 +80,7 @@ class RepoEntitlement(base.UAEntitlement):
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
                 return False
-        self._set_local_enabled(True)
+        self.cfg.local_enabled_manager.set(self.name, True)
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -96,7 +96,7 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'remove', '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
-            self._set_local_enabled(False)
+            self.cfg.local_enabled_manager.set(self.name, False)
         if self.force_disable:
             if not silent:
                 print('Warning: no option to disable {title}'.format(
@@ -126,7 +126,7 @@ class RepoEntitlement(base.UAEntitlement):
         match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return status.ACTIVE, '%s is active' % self.title
-        if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
+        if os.getuid() != 0 and self.cfg.local_enabled_manager.get(self.name):
             # Use our cached enabled key for non-root users because apt
             # policy will show APT_DISABLED_PIN for authenticated sources
             return status.ACTIVE, '%s is active' % self.title
@@ -265,11 +265,3 @@ class RepoEntitlement(base.UAEntitlement):
                 name=self.name, series=series)
             if os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
-
-    def _set_local_enabled(self, value: bool) -> None:
-        """Set local enabled flag true or false."""
-        public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
-        public_cache['localEnabled'] = value
-        redacted_cache = util.redact_sensitive(public_cache)
-        self.cfg.write_cache(
-            'machine-access-%s' % self.name, redacted_cache, private=False)
