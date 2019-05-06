@@ -19,8 +19,8 @@ DEFAULT_REQUIREMENTS = 'requirements.txt'
 
 # List of base system packages required to enable ci automation
 CI_SYSTEM_BASE_PKGS = [
-    'debhelper', 'devscripts', 'make', 'python3-dev', 'sbuild', 'sudo', 'tar',
-    'tox']
+    'debhelper', 'devscripts', 'libapt-pkg-dev', 'make', 'python3-dev',
+    'sbuild', 'sudo', 'tar', 'tox']
 
 
 # JSON definition of distro-specific package dependencies
