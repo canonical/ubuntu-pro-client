@@ -13,6 +13,7 @@ if [ "$upstream" != "canonical-server" -a "$upstream" != "CanonicalLtd" ]; then
    echo "Invalid upstream value $upstream, expected canonical-server or CanonicalLtd"
    exit 1
 fi
+NETRC=~/.netrc
 LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
    git clone git@github.com:$upstream/ua-contracts.git
@@ -67,7 +68,15 @@ else
     lxc launch ubuntu-daily:bionic $LXC_NAME -c security.nesting=true
     lxc exec $LXC_NAME -- cloud-init status --wait;
     lxc file push -r ua-contracts $LXC_NAME/root/
-    lxc file push $UACLIENT_DEB demo/runserver.sh ~/.netrc $LXC_NAME/root/
+    if [ ! -f "$NETRC" ]; then
+        echo -n "Enter path to .netrc file with github.com token credentials: "
+        read NETRC
+        if [ ! -f "$NETRC" ]; then
+          echo "Could not find $NETRC"
+          exit 1
+        fi
+    fi
+    lxc file push $UACLIENT_DEB demo/runserver.sh $NETRC $LXC_NAME/root/
     # Rename LP creds to /root/entitlement-creds.json
     lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
     lxc exec $LXC_NAME -- apt-get update

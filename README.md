@@ -46,7 +46,7 @@ make demo
 ```
 The demo target performs the following actions
 - checkout tip ua-contracts
-- spin up a contract-bionic-demo priveledged lxc container
+- spin up a contract-bionic-demo lxc container which allows container nesting
 - install go and docker dependencies in that container
 - run ua-contracts/ make demo target to starts a local contracts api with [bootstrapped admin and contracts](https://github.com/CanonicalLtd/ua-contracts/#docker)
 - set uaclient-devel.conf to point to the contract-bionic-demo IP on port 3000
