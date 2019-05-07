@@ -63,6 +63,7 @@ class UAConfig:
         'account-contracts': 'account-contracts.json',
         'account-users': 'account-users.json',
         'contract-token': 'contract-token.json',
+        'local-access': 'local-access',
         'machine-contracts': 'machine-contracts.json',
         'machine-access-cc': 'machine-access-cc.json',
         'machine-access-cis-audit': 'machine-access-cis-audit.json',
