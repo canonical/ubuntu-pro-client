@@ -1,3 +1,5 @@
 #!/bin/bash
+export GOPATH=/root/go
+export PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 cd /root/ua-contracts
-python3 -m openapi_server
+make demo

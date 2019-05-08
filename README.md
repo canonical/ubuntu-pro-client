@@ -50,8 +50,9 @@ Users can demo the client with a local backend. This can be done with
 the following:
 
 ```shell
-# Set up ua-contracts in a docker container and two clients
-./demo/demo-contract-service CanonicalLtd go
+# Set up ua-contracts in a docker container in a bionic lxc on port 3000
+make demo
+# Set up two clients pointing at the local contract server
 ./demo/run-uaclient --series disco
 ./demo/run-uaclient --series xenial -b multipass
 ```

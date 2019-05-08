@@ -23,8 +23,12 @@ deb:
 test:
 	@tox
 
+demo:
+	@echo Creating contract-bionic-demo container with ua-contracts server
+	@./demo/demo-contract-service
+
 testdeps:
 	pip install tox
 
 
-.PHONY: build deps clean deb test testdeps
+.PHONY: build deps clean deb test testdeps demo
