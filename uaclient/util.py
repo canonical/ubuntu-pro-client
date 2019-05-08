@@ -7,15 +7,30 @@ import subprocess
 from urllib import request
 import uuid
 
+try:
+    from typing import Any, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
-CONTAINER_TESTS = (['systemd-detect-virt', '--quiet', '--container'],
-                   ['running-in-container'],
-                   ['lxc-is-container'])
 
 SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
 
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
+DROPPED_KEY = object()
+
+
+class LogFormatter(logging.Formatter):
+
+    FORMATS = {
+        logging.ERROR: 'ERROR: %(message)s',
+        logging.DEBUG: 'DEBUG: %(message)s',
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno, '%(message)s')
+        return logging.Formatter(log_fmt).format(record)
 
 
 class UrlError(IOError):
@@ -50,13 +65,6 @@ class ProcessExecutionError(IOError):
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
 
 
-def decode_binary(blob, encoding='utf-8'):
-    """Convert a binary type into a text type using given encoding."""
-    if isinstance(blob, str):
-        return blob
-    return blob.decode(encoding)
-
-
 def del_file(path):
     try:
         os.unlink(path)
@@ -72,16 +80,41 @@ def encode_text(text, encoding='utf-8'):
     return text.encode(encoding)
 
 
-def is_container():
+def get_dict_deltas(orig_dict, new_dict, path=''):
+    """Return a dictionary of delta between orig_dict and new_dict."""
+    deltas = {}
+    for key, value in orig_dict.items():
+        new_value = new_dict.get(key, DROPPED_KEY)
+        key_path = key if not path else path + '.' + key
+        if isinstance(value, dict):
+            if key in new_dict:
+                sub_delta = get_dict_deltas(
+                    value, new_dict[key], path=key_path)
+                if sub_delta:
+                    deltas[key] = sub_delta
+            else:
+                deltas[key] = DROPPED_KEY
+        elif value != new_value:
+            logging.debug(
+                "Contract value for '%s' changed to '%s'", key_path, new_value)
+            deltas[key] = new_value
+    for key, value in new_dict.items():
+        if key not in orig_dict:
+            deltas[key] = value
+    return deltas
+
+
+def is_container(run_path='/run'):
     """Checks to see if this code running in a container of some sort"""
-    for helper in CONTAINER_TESTS:
-        try:
-            # try to run a helper program. if it returns true/zero
-            # then we're inside a container. otherwise, no
-            subp(helper)
+    try:
+        subp(['systemd-detect-virt', '--quiet', '--container'])
+        return True
+    except (IOError, OSError):
+        pass
+    for filename in ('container_type', 'systemd/container'):
+        path = os.path.join(run_path, filename)
+        if os.path.exists(path):
             return True
-        except (IOError, OSError):
-            pass
     return False
 
 
@@ -90,23 +123,20 @@ def is_exe(path):
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
 
-def load_file(filename, decode=True):
+def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
-    logging.debug('Reading file: %s', filename)
     with open(filename, 'rb') as stream:
         content = stream.read()
-    if decode:
-        return decode_binary(content)
-    return content
+    return content.decode('utf-8')
 
 
-def maybe_parse_json(content):
+def maybe_parse_json(content: str) -> 'Optional[Any]':
     """Attempt to parse json content.
 
     @return: Structured content on success and None on failure.
     """
     try:
-        return json.loads(decode_binary(content))
+        return json.loads(content)
     except ValueError:
         return None
 
@@ -118,7 +148,7 @@ def readurl(url, data=None, headers=None, method=None):
     if method:
         req.get_method = lambda: method
     if data:
-        redacted_data = maybe_parse_json(data)
+        redacted_data = maybe_parse_json(data.decode('utf-8'))
         for key in SENSITIVE_KEYS:
             if key in redacted_data:
                 redacted_data[key] = '<REDACTED>'
@@ -129,7 +159,7 @@ def readurl(url, data=None, headers=None, method=None):
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, redacted_data)
     resp = request.urlopen(req)
-    content = decode_binary(resp.read())
+    content = resp.read().decode('utf-8')
     if 'application/json' in resp.headers.get('Content-type', ''):
         content = json.loads(content)
     logging.debug(
@@ -175,7 +205,7 @@ def subp(args, rcs=None, capture=False):
     if capture:
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)
-    return (decode_binary(out), decode_binary(err))
+    return out.decode('utf-8'), err.decode('utf-8')
 
 
 def which(program):
@@ -205,8 +235,6 @@ def write_file(filename, content, mode=0o644, omode='wb'):
     logging.debug('Writing file: %s', filename)
     if 'b' in omode.lower():
         content = encode_text(content)
-    else:
-        content = decode_binary(content)
     with open(filename, omode) as fh:
         fh.write(content)
         fh.flush()
@@ -269,3 +297,16 @@ def get_machine_id(data_dir):
     machine_id = uuid.uuid4()
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
+
+
+def redact_sensitive(content):
+    """Redact security-sensitive content from content dict."""
+    redacted = {}
+    for key, value in content.items():
+        if key in SENSITIVE_KEYS:
+            redacted[key] = '<REDACTED>'
+        elif isinstance(value, dict):
+            redacted[key] = redact_sensitive(value)
+        else:
+            redacted[key] = value
+    return redacted

@@ -8,20 +8,18 @@
 
 # 01/07/2019: ATM only an OpenAPI spec is available for the contract service.
 upstream=${1:-CanonicalLtd}
-server_type=${2:-contracts-implemented}
+server_type=${2:-docker}
 if [ "$upstream" != "canonical-server" -a "$upstream" != "CanonicalLtd" ]; then
    echo "Invalid upstream value $upstream, expected canonical-server or CanonicalLtd"
    exit 1
 fi
+NETRC=~/.netrc
 LXC_NAME=contract-demo-bionic
 if [ ! -d ua-contracts ]; then
    git clone git@github.com:$upstream/ua-contracts.git
-   patch -p1 -i dev/contracts-schema.patch
-   patch -p1 -i dev/contracts-go.patch
 fi
 
-
-CREDS_FILE="./dev/entitlement-creds.json"
+CREDS_FILE="./demo/entitlement-creds.json"
 echo -n "Enter your LaunchpadID: "
 read LP_ID
 USERCREDS_FILE="$CREDS_FILE.$LP_ID"
@@ -55,35 +53,60 @@ fi
 source ${CREDS_FILE/json/sh}
 sed -i "s/%LIVEPATCH_CRED%/${LIVEPATCH_TOKEN}/; s/%FIPS_CRED%/$FIPS_TOKEN/; s/%FIPS_UPDATES_CRED%/$FIPS_UPDATES_TOKEN/; s/%ESM_CRED%/$ESM_TOKEN/; s/%CIS_CRED%/$CIS_TOKEN/" ua-contracts/internal/v1/api.go
 
-if [ "$server_type" == "go" ]; then
-    echo "Changing uaclient-devel.conf to point to your lxc @ localhost:8080"
-    sed -i "s/contract_url.*/contract_url: 'http:\/\/localhost:8080'/" uaclient-devel.conf
-    cd ua-contracts; make docker; make docker-run;
-    exit
-else:
+if [ "$server_type" == "local" ]; then
+  echo "Changing uaclient-devel.conf to point to your localhost:8080"
+  sed -i "s/contract_url.*/contract_url: 'http:\/\/localhost:8080'/" uaclient-devel.conf
+  cd ua-contracts; make docker; make docker-run;
+  CONTRACT_URL="http:\/\/localhost:8484"
+  echo "Changing uaclient-devel.conf to point to your lxc @ $CONTRACT_URL"
+  sed -i "s/contract_url.*/contract_url: '$CONTRACT_URL'/" uaclient-devel.conf
+  exit;
+fi
 
-UACLIENT_DEB=`ls ubuntu-advantage-tools*bddeb_all.deb`
+UACLIENT_DEB="ubuntu-advantage-tools_all.deb"
 lxc list | grep -q $LXC_NAME
 if [ $? -eq 1 ]; then
   echo 'About to launch bionic lxc for contract sevice API...'
   sleep 5
-  echo "Deploying demo contract api service to a bionic container"
-  lxc launch ubuntu-daily:bionic $LXC_NAME
+  echo 'Deploying demo contract api service to a bionic container'
+  lxc launch ubuntu-daily:bionic $LXC_NAME -c security.nesting=true
   lxc exec $LXC_NAME -- cloud-init status --wait;
   lxc file push -r ua-contracts $LXC_NAME/root/
-  lxc file push $UACLIENT_DEB dev/install-contracts-server dev/contracts*patch dev/runserver.sh $LXC_NAME/root/
+  if [ ! -f "$NETRC" ]; then
+      echo -n "Enter path to .netrc file with github.com token credentials: "
+      read NETRC
+      if [ ! -f "$NETRC" ]; then
+        echo "Could not find $NETRC"
+        exit 1
+      fi
+  fi
+  lxc file push $UACLIENT_DEB demo/runserver.sh $NETRC $LXC_NAME/root/
   # Rename LP creds to /root/entitlement-creds.json
   lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
+  lxc exec $LXC_NAME -- apt-get update
+  lxc exec $LXC_NAME -- apt-get install docker-compose python3-pymacaroons make --assume-yes
   lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB
-  lxc exec $LXC_NAME /root/install-contracts-server $server_type
+  lxc exec $LXC_NAME -- wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz
+  lxc exec $LXC_NAME -- tar -C /usr/local -xzf go1.12.4.linux-amd64.tar.gz
+  lxc exec $LXC_NAME -- sh -c 'echo export GOPATH=/root/go >> .bashrc'
+  lxc exec $LXC_NAME -- sh -c 'echo export PATH=\$GOPATH/bin:/usr/local/go/bin:\$PATH >> .bashrc'
+  echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
+  lxc exec $LXC_NAME /root/runserver.sh
 fi
-lxc exec $LXC_NAME -- cloud-init status --wait;
+VM_IP=`lxc list -c n4 $LXC_NAME | grep eth0 | awk '{print $3}'`
+CONTRACT_URL="http:\/\/$VM_IP:3000"
 
-VM_IP=`lxc list -c n4 | grep $LXC_NAME | awk '{print $4}'`
-echo "Changing uaclient-devel.conf to point to your lxc @ $VM_IP:8080"
-sed -i "s/contract_url.*/contract_url: 'http:\/\/$VM_IP:8080'/" uaclient-devel.conf
+echo "Changing uaclient-devel.conf to point to your lxc @ $CONTRACT_URL"
+sed -i "s/contract_url.*/contract_url: '$CONTRACT_URL'/" uaclient-devel.conf
 # Rename devel config to $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
 lxc file push uaclient-devel.conf $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
-echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
-lxc exec $LXC_NAME /root/runserver.sh
-fi
+
+echo "To enable bootstrapped admin user to change contract details..."
+echo curl -X PUT -u \"admin:password1234\" ${CONTRACT_URL//\\/}/acl/product -H \"Content-Type: application/json\" -d \'{\"users\": [\"admin\"]}\'
+echo
+echo "To read free product:"
+echo curl -u \"admin:password1234\" ${CONTRACT_URL//\\/}/v1/products/free
+echo
+echo "To manipulate free contract, change values in free-contract.json and run the folowing:"
+echo curl -X POST -u \"admin:password1234\" ${CONTRACT_URL//\\/}/v1/products/free -H \"Content-Type: application/json\" -d @free-contract.json
+

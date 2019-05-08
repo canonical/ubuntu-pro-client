@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""List pip dependencies or system package dependencies for cloud-init."""
+"""List pip dependencies or system package dependencies for ua client."""
 
 try:
     from argparse import ArgumentParser
@@ -19,12 +19,12 @@ DEFAULT_REQUIREMENTS = 'requirements.txt'
 
 # List of base system packages required to enable ci automation
 CI_SYSTEM_BASE_PKGS = [
-    'debhelper', 'devscripts', 'make', 'python3-dev', 'sbuild', 'sudo', 'tar',
-    'tox']
+    'debhelper', 'devscripts', 'libapt-pkg-dev', 'make', 'python3-dev',
+    'sbuild', 'sudo', 'tar', 'tox']
 
 
 # JSON definition of distro-specific package dependencies
-DISTRO_PKG_DEPS_PATH = "dev/pkg-deps.json"
+DISTRO_PKG_DEPS_PATH = "tools/pkg-deps.json"
 
 
 def get_parser():
@@ -145,7 +145,7 @@ def main():
         args.req_files = [os.path.join(topd, DEFAULT_REQUIREMENTS)]
         if not os.path.isfile(args.req_files[0]):
             sys.stderr.write("Unable to locate '%s' file that should "
-                             "exist in cloud-init root directory." %
+                             "exist in root directory." %
                              args.req_files[0])
             sys.exit(1)
 
@@ -180,7 +180,7 @@ def pkg_install(pkg_list, test_distro=False, dry_run=False):
     if test_distro:
         pkg_list = list(pkg_list) + CI_SYSTEM_BASE_PKGS
     print('Installing deps: {0}{1}'.format(
-          '(dryrun)' if dry_run else '', ' '.join(pkg_list)))
+          '(dryrun)' if dry_run else '', ' '.join(sorted(pkg_list))))
     install_cmd = []
     if dry_run:
         install_cmd.append('echo')

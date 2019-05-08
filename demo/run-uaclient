@@ -9,7 +9,7 @@ import re
 import sys
 
 MACAROON_DEPS = {
- 'trusty': ['python-libnacl', 'libsodium18', 'python-pymacaroons'],
+ 'trusty': ['python3-libnacl', 'libsodium18', 'python3-pymacaroons'],
  'xenial': ['python3-libnacl', 'libsodium18', 'python3-pymacaroons'],
  'bionic': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons'],
  'disco': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons']}
@@ -108,7 +108,7 @@ def create_uaclient_vm(backend, series, name=None):
 
 
 def main():
-    """Tool to collect and tar all cloud-init related logs."""
+    """Tool to collect and tar all related logs."""
     parser = get_parser()
     args = parser.parse_args()
     create_uaclient_vm(args.backend, args.series, args.name)

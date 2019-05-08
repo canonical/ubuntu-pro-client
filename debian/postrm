@@ -4,41 +4,21 @@ set -e
 
 
 remove_apt_auth(){
-    apt_auth="/etc/apt/auth.conf.d/90ubuntu-advantage"
-    if [ -f "$apt_auth" ]; then
-        rm "$apt_auth"
-    fi
+    rm -f /etc/apt/auth.conf.d/90ubuntu-advantage
 }
 
 remove_apt_hook(){
-    apt_hook="/etc/apt/apt.conf.d/20apt-esm-hook.conf"
-    if [ -f "$apt_hook" ]; then
-        rm "$apt_hook"
-    fi
+    rm -f /etc/apt/apt.conf.d/20apt-esm-hook.conf
 }
 
 remove_cache_dir(){
-    cache_dir="/var/lib/ubuntu-advantage"
-    if [ -d "$cache_dir" ]; then
-        rm -rf "$cache_dir"
-    fi
+    rm -rf /var/lib/ubuntu-advantage
 }
 
 remove_esm(){
-    esm_apt_gpg_key="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
-    if [ -f "$esm_apt_gpg_key" ]; then
-        rm "$esm_apt_gpg_key"
-    fi
-
-    esm_apt_source_file="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
-    if [ -f "$esm_apt_source_file" ]; then
-        rm "$esm_apt_source_file"
-    fi
-
-    esm_unattended_upgrades_file="/etc/apt/apt.conf.d/51ubuntu-advantage-esm"
-    if [ -f "$esm_unattended_upgrades_file" ]; then
-        rm "$esm_unattended_upgrades_file"
-    fi
+    rm -f /etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg
+    rm -f /etc/apt/sources.list.d/ubuntu-esm-trusty.list
+    rm -f /etc/apt/apt.conf.d/51ubuntu-advantage-esm
 }
 
 case "$1" in

@@ -4,21 +4,20 @@
 Client to manage Ubuntu Advantage support entitlements on a machine.
 
 Available entitlements:
- - Extended Security Maintenance (https://ubuntu.com/esm)
- - FIPS 140-2
- - FIPS 140-2 with updates
- - Canonical Livepatch (https://ubuntu.com/server/livepatch)
- - Canonical CIS Benchmark Audit Tool
- - Canonical Common Criteria EAL2 Provisioning
+ - cc: Canonical Common Criteria EAL2 Provisioning (https://ubuntu.com/cc)
+ - cis-audit: Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
+ - esm: Extended Security Maintenance (https://ubuntu.com/esm)
+ - fips: FIPS 140-2 (https://ubuntu.com/fips)
+ - fips-updates: FIPS 140-2 with updates
+ - lvepatch: Canonical Livepatch (https://ubuntu.com/livepatch)
 
 """
 
 import argparse
-from datetime import datetime
+import json
 import logging
 import os
 import sys
-import textwrap
 
 from uaclient import config
 from uaclient import contract
@@ -45,6 +44,21 @@ UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
+
+STATUS_FORMATS = ['tabular', 'json']
+
+
+def assert_attached_root(func):
+    """Decorator asserting root user and attached config."""
+    def wrapper(args, cfg):
+        if not cfg.is_attached:
+            print(ua_status.MESSAGE_UNATTACHED)
+            return 1
+        if os.getuid() != 0:
+            print(ua_status.MESSAGE_NONROOT_USER)
+            return 1
+        return func(args, cfg)
+    return wrapper
 
 
 def attach_parser(parser=None):
@@ -148,10 +162,16 @@ def status_parser(parser=None):
     else:
         parser.usage = usage
         parser.prog = 'status'
+    parser.add_argument(
+        '--format', action='store', choices=STATUS_FORMATS,
+        default=STATUS_FORMATS[0],
+        help=('Output status in the request format. Default: %s' %
+              STATUS_FORMATS[0]))
     parser._optionals.title = 'Flags'
     return parser
 
 
+@assert_attached_root
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -165,36 +185,50 @@ def action_disable(args, cfg):
         return 1
 
 
+def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
+                    silent_if_inapplicable: bool = False) -> bool:
+    """Perform the enable action on a named entitlement.
+
+    (This helper excludes any messaging, so that different enablement code
+    paths can message themselves.)
+
+    :param entitlement_name: the name of the entitlement to enable
+    :param cfg: the UAConfig to pass to the entitlement
+    :param silent_if_inapplicable:
+        don't output messages when determining if an entitlement can be
+        enabled on this system
+
+    @return: True on success, False otherwise
+    """
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    entitlement = ent_cls(cfg)
+    return entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+
+
+@assert_attached_root
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement = ent_cls(cfg)
-    return 0 if entitlement.enable() else 1
+    logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
+    if not contract.request_updated_contract(cfg):
+        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
+    return 0 if _perform_enable(args.name, cfg) else 1
 
 
+@assert_attached_root
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
     """
-    if not cfg.is_attached:
-        print(textwrap.dedent("""\
-            This machine is not attached to a UA Subscription, sign up here:
-                  https://ubuntu.com/advantage
-        """))
-        return 1
-    if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
             ent.disable(silent=True)
     cfg.delete_cache()
-    print('This machine is now detached')
+    print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
 
@@ -216,7 +250,7 @@ def action_attach(args, cfg):
         bound_macaroon = bound_macaroon_bytes.decode('utf-8')
         cfg.write_cache('bound-macaroon', bound_macaroon)
         try:
-            contract_client.request_accounts(bound_macaroon)
+            contract_client.request_accounts(macaroon_token=bound_macaroon)
             contract_token = contract.get_contract_token_for_account(
                 contract_client, bound_macaroon, cfg.accounts[0]['id'])
         except (sso.SSOAuthError, util.UrlError) as e:
@@ -226,18 +260,20 @@ def action_attach(args, cfg):
             return 1
     else:
         contract_token = args.token
+    if not contract_token:
+        print('No valid contract token available')
+        return 1
+    if not contract.request_updated_contract(
+            cfg, contract_token, allow_enable=True):
+        print(
+            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
+        return 1
+    contract_name = (
+        cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name))
 
-    machine_token_response = contract_client.request_contract_machine_attach(
-        contract_token=contract_token)
-    contractInfo = machine_token_response['machineTokenInfo']['contractInfo']
-    for entitlement in contractInfo['resourceEntitlements']:
-        if entitlement.get('entitled'):
-            # Obtain each entitlement's accessContext for this machine
-            entitlement_name = entitlement['type']
-            contract_client.request_resource_machine_access(
-                cfg.machine_token['machineToken'], entitlement_name)
-    print("This machine is now attached to '%s'.\n" %
-          machine_token_response['machineTokenInfo']['contractInfo']['name'])
     action_status(args=None, cfg=cfg)
     return 0
 
@@ -278,6 +314,10 @@ def get_parser():
         help='disable a specific support entitlement on this machine')
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
+    parser_refresh = subparsers.add_parser(
+        'refresh', help=(
+            'Refresh ubuntu-advantage entitlements from contracts server.'))
+    parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')
     parser_version.set_defaults(action=print_version)
@@ -287,66 +327,55 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    if not cfg.is_attached:
-        print(ua_status.MESSAGE_UNATTACHED)
-        return
-    contractInfo = cfg.machine_token['machineTokenInfo']['contractInfo']
-    expiry = datetime.strptime(
-        contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
-
-    status_content = []
-    support_entitlement = cfg.entitlements.get('support')
-    tech_support = ua_status.COMMUNITY
-    if support_entitlement:
-        tech_support = support_entitlement.get(
-            'affordances', {}).get('supportLevel', ua_status.COMMUNITY)
-    tech_support_txt = ua_status.STATUS_COLOR.get(
-        tech_support) or ua_status.STATUS_COLOR[ua_status.COMMUNITY]
-    account = cfg.accounts[0]
-    status_content.append(STATUS_HEADER_TMPL.format(
-        account=account['name'],
-        subscription=contractInfo['name'],
-        contract_expiry=expiry.date(),
-        tech_support_level=tech_support_txt))
-
-    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls(cfg)
-        status_content.append(ua_status.format_entitlement_status(ent))
-    status_content.append('\nEnable entitlements with `ua enable <service>`\n')
-    print('\n'.join(status_content))
+    if args and args.format == 'json':
+        status = cfg.status()
+        if status['expires'] != ua_status.INAPPLICABLE:
+            status['expires'] = str(status['expires'])
+        print(json.dumps(status))
+    else:
+        print(ua_status.format_tabular(cfg.status()))
 
 
 def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
-def setup_logging(level=logging.INFO, log_file=None):
+@assert_attached_root
+def action_refresh(args, cfg):
+    if contract.request_updated_contract(cfg):
+        print(ua_status.MESSAGE_REFRESH_SUCCESS)
+        logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
+        return 0
+    logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
+    return 1
+
+
+def setup_logging(console_level, log_level, log_file=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
         log_file = config.CONFIG_DEFAULTS['log_file']
-    fmt = '[%(levelname)s]: %(message)s'
-    console_formatter = logging.Formatter(fmt)
+    console_formatter = util.LogFormatter()
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
-    root.setLevel(level)
+    root.setLevel(log_level)
     # Setup console logging
     stderr_found = False
     for handler in root.handlers:
         if hasattr(handler, 'stream') and hasattr(handler.stream, 'name'):
             if handler.stream.name == '<stderr>':
-                handler.setLevel(level)
+                handler.setLevel(console_level)
                 handler.setFormatter(console_formatter)
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
         console.setFormatter(console_formatter)
-        console.setLevel(level)
+        console.setLevel(console_level)
         root.addHandler(console)
     if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
         filehandler = logging.FileHandler(log_file)
-        filehandler.setLevel(level)
+        filehandler.setLevel(log_level)
         filehandler.setFormatter(log_formatter)
         root.addHandler(filehandler)
 
@@ -362,12 +391,9 @@ def main(sys_argv=None):
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
-    log_level = logging.DEBUG if args.debug else cfg.log_level
-    try:
-        int(log_level)
-    except TypeError:
-        log_level = getattr(logging, '%s' % cfg.log_file.upper())
-    setup_logging(log_level, cfg.log_file)
+    log_level = cfg.log_level
+    console_level = logging.DEBUG if args.debug else logging.INFO
+    setup_logging(console_level, log_level, cfg.log_file)
     return args.action(args, cfg)
 
 

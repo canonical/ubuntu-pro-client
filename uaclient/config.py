@@ -1,4 +1,5 @@
 import copy
+from datetime import datetime
 import json
 import logging
 import os
@@ -6,6 +7,12 @@ import yaml
 
 from uaclient import util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
+
+try:
+    from typing import Any, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 LOG = logging.getLogger(__name__)
 
@@ -17,7 +24,38 @@ class ConfigAbsentError(RuntimeError):
     pass
 
 
-class UAConfig(object):
+class LocalEnabledManager:
+    """
+    A UAConfig adapter to manage the local-enabled cache for non-root users
+
+    TODO:
+        * cache the contents of local-access so we don't have to read it more
+        than once
+    """
+
+    _cfg_key = 'local-access'
+
+    def __init__(self, cfg: 'UAConfig') -> None:
+        self._cfg = cfg
+
+    def get(self, entitlement_name: str) -> bool:
+        local_access = self._cfg.read_cache(self._cfg_key)
+        if local_access is None:
+            # The only way we get here is if nothing has yet written the
+            # local-access file; that means we haven't enabled any entitlements
+            # so this must necessarily be False
+            return False
+        return local_access.get(entitlement_name, False)
+
+    def set(self, entitlement_name: str, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise RuntimeError('LocalEnabledManager.set passed non-bool value')
+        local_access = self._cfg.read_cache(self._cfg_key) or {}
+        local_access[entitlement_name] = value
+        self._cfg.write_cache(self._cfg_key, local_access, private=False)
+
+
+class UAConfig:
 
     data_paths = {
         'bound-macaroon': 'bound-macaroon',
@@ -25,6 +63,7 @@ class UAConfig(object):
         'account-contracts': 'account-contracts.json',
         'account-users': 'account-users.json',
         'contract-token': 'contract-token.json',
+        'local-access': 'local-access',
         'machine-contracts': 'machine-contracts.json',
         'machine-access-cc': 'machine-access-cc.json',
         'machine-access-cis-audit': 'machine-access-cis-audit.json',
@@ -35,6 +74,7 @@ class UAConfig(object):
         'machine-access-support': 'machine-access-support.json',
         'machine-detach': 'machine-detach.json',
         'machine-token': 'machine-token.json',
+        'machine-token-refresh': 'machine-token-refresh.json',
         'macaroon': 'sso-macaroon.json',
         'root-macaroon': 'root-macaroon.json',
         'oauth': 'sso-oauth.json'
@@ -50,6 +90,7 @@ class UAConfig(object):
             self.cfg = cfg
         else:
             self.cfg = parse_config()
+        self.local_enabled_manager = LocalEnabledManager(self)
 
     @property
     def accounts(self):
@@ -88,13 +129,10 @@ class UAConfig(object):
     @property
     def log_level(self):
         log_level = self.cfg.get('log_level')
-        if log_level:
-            log_level = getattr(logging, log_level.upper())
         try:
-            int(log_level)
-        except TypeError:
-            return CONFIG_DEFAULTS['log_level']
-        return log_level
+            return getattr(logging, log_level.upper())
+        except AttributeError:
+            return getattr(logging, CONFIG_DEFAULTS['log_level'])
 
     @property
     def log_file(self):
@@ -128,8 +166,10 @@ class UAConfig(object):
         ent_by_name = dict(
             (e['type'], e) for e in contractInfo['resourceEntitlements'])
         for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = self.read_cache(
-                'machine-access-%s' % entitlement_name, quiet=True)
+            entitlement_cfg = {}
+            if ent_value.get('entitled'):
+                entitlement_cfg = self.read_cache(
+                    'machine-access-%s' % entitlement_name, silent=True)
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}
@@ -160,18 +200,27 @@ class UAConfig(object):
             return os.path.join(data_dir, self.data_paths[key])
         return os.path.join(data_dir, key)
 
-    def delete_cache(self):
-        """Remove all configuration cached response files class attributes."""
-        self._contracts = None
-        self._entitlements = None
-        self._machine_token = None
-        for key in self.data_paths.keys():
-            for private in (True, False):
-                cache_path = self.data_path(key, private)
-                if os.path.exists(cache_path):
-                    os.unlink(cache_path)
+    def delete_cache_key(self, key):
+        """Remove specific cache file."""
+        if not key:
+            raise RuntimeError(
+                'Invalid or empty key provided to delete_cache_key')
+        if key.startswith('machine-access') or key == 'machine-token':
+            self._entitlements = None
+            self._machine_token = None
+        elif key == 'account-contracts':
+            self._contracts = None
+        for private in (True, False):
+            cache_path = self.data_path(key, private)
+            if os.path.exists(cache_path):
+                os.unlink(cache_path)
 
-    def read_cache(self, key, quiet=False):
+    def delete_cache(self):
+        """Remove configuration cached response files class attributes."""
+        for path_key in self.data_paths.keys():
+            self.delete_cache_key(path_key)
+
+    def read_cache(self, key: str, silent: bool = False) -> 'Optional[Any]':
         cache_path = self.data_path(key)
         try:
             content = util.load_file(cache_path)
@@ -180,23 +229,55 @@ class UAConfig(object):
             try:
                 content = util.load_file(public_cache_path)
             except Exception:
-                if not os.path.exists(cache_path) and not quiet:
+                if not os.path.exists(cache_path) and not silent:
                     logging.debug('File does not exist: %s', cache_path)
                 return None
         json_content = util.maybe_parse_json(content)
         return json_content if json_content else content
 
-    def write_cache(self, key, content, private=True):
+    def write_cache(self, key: str, content: 'Any', private: bool = True):
         filepath = self.data_path(key, private)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
+        if key.startswith('machine-access') or key == 'machine-token':
+            self._machine_token = None
+            self._entitlements = None
+        elif key == 'account-contracts':
+            self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
         if private:
             util.write_file(filepath, content, mode=0o600)
         else:
             util.write_file(filepath, content)
+
+    def status(self):
+        """Return configuration status as a dictionary."""
+        from uaclient.entitlements import ENTITLEMENT_CLASSES
+        from uaclient import status
+        response = {
+            'attached': self.is_attached,
+            'expires': status.INAPPLICABLE,
+            'services': [],
+            'techSupportLevel': status.INAPPLICABLE}
+        if not self.is_attached:
+            return response
+        response['account'] = self.accounts[0]['name']
+        contractInfo = self.machine_token['machineTokenInfo']['contractInfo']
+        response['subscription'] = contractInfo['name']
+        if contractInfo.get('effectiveTo'):
+            response['expires'] = datetime.strptime(
+                contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
+        for ent_cls in ENTITLEMENT_CLASSES:
+            ent = ent_cls(self)
+            contract_status = ent.contract_status()
+            op_status, op_details = ent.operational_status()
+            service_status = {
+                'name': ent.name, 'entitled': contract_status,
+                'status': op_status, 'statusDetails': op_details}
+            response['services'].append(service_status)
+        return response
 
 
 def parse_config(config_path=None):

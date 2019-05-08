@@ -1,48 +1,15 @@
 import mock
-import unittest
+
+from uaclient.testing.fakes import FakeConfig
 
 from io import StringIO
-try:
-    from typing import Any, Dict, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
 
 import pytest
 
 from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
-from uaclient.config import UAConfig
 
 M_PATH = 'uaclient.cli.'
-
-
-class FakeConfig(UAConfig):
-
-    def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
-        self._cache_contents = (
-            cache_contents if cache_contents is not None else {})
-        super().__init__({})
-
-    def read_cache(self, key: str, quiet: bool = False) -> 'Optional[str]':
-        return self._cache_contents.get(key)
-
-    def write_cache(self, key: str, content: 'Any') -> None:
-        self._cache_contents[key] = content
-
-    @classmethod
-    def with_account(cls, account_name: str = 'test_account'):
-        return cls({
-            'accounts': {
-                'accounts': [{'name': account_name, 'id': account_name}]},
-        })
-
-    @classmethod
-    def for_attached_machine(cls, account_name: str = 'test_account'):
-        return cls({
-            'accounts': {'accounts': [{'name': account_name}]},
-            'machine-token': 'not-null',
-        })
 
 
 @mock.patch(M_PATH + 'os.getuid')
@@ -61,7 +28,7 @@ def test_non_root_users_are_rejected(stdout, getuid):
 
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + 'os.getuid', mock.Mock(return_value=0))
-class TestActionAttach(unittest.TestCase):
+class TestActionAttach:
 
     @mock.patch(M_PATH + 'sys.stdout')
     def test_already_attached(self, stdout):
@@ -76,11 +43,13 @@ class TestActionAttach(unittest.TestCase):
             account_name)
         assert mock.call(expected_msg) in stdout.write.call_args_list
 
+    @mock.patch(M_PATH + 'contract.request_updated_contract')
     @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
     @mock.patch(M_PATH + 'contract.UAContractClient')
     @mock.patch(M_PATH + 'action_status')
-    def test_happy_path_without_token_arg(self, action_status, contract_client,
-                                          discharge_root_macaroon):
+    def test_happy_path_without_token_arg(
+            self, action_status, contract_client, discharge_root_macaroon,
+            request_updated_contract):
         """A mock-heavy test for the happy path without an argument"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -88,7 +57,15 @@ class TestActionAttach(unittest.TestCase):
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
         cfg = FakeConfig.with_account()
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                                  'resourceEntitlements': []}}}
 
+        def fake_contract_updates(cfg, contract_token, allow_enable):
+            cfg.write_cache('machine-token', machine_token)
+            return True
+
+        request_updated_contract.side_effect = fake_contract_updates
         ret = action_attach(args, cfg)
 
         assert 0 == ret
@@ -109,6 +86,15 @@ class TestActionAttach(unittest.TestCase):
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
+        machine_token = {
+            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                                  'resourceEntitlements': []}}}
+
+        def fake_contract_attach(contract_token):
+            cfg.write_cache('machine-token', machine_token)
+            return machine_token
+
+        contract_machine_attach.side_effect = fake_contract_attach
 
         ret = action_attach(args, cfg)
 

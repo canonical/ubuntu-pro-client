@@ -6,6 +6,12 @@ import shutil
 
 from uaclient import util
 
+try:
+    from typing import List  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
@@ -48,8 +54,8 @@ def valid_apt_credentials(repo_url, username, password):
     return False
 
 
-def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
-                      keyring_file=None, fingerprint=None):
+def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
+                      suites: 'List[str]', keyring_file: str = None) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -89,11 +95,6 @@ def add_auth_apt_repo(repo_filename, repo_url, credentials, suites,
     if keyring_file:
         logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
         shutil.copy(keyring_file, APT_KEYS_DIR)
-    elif fingerprint:
-        logging.debug('Importing APT key %s', fingerprint)
-        util.subp(
-            ['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-             '--recv-keys', fingerprint], capture=True)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
@@ -128,18 +129,12 @@ def add_apt_auth_conf_entry(repo_url, login, password):
         new_lines.append(line)
     if not added_new_auth:
         new_lines.append(repo_auth_line)
+    new_lines.append('')
     util.write_file(apt_auth_file, '\n'.join(new_lines), mode=0o600)
 
 
-def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
-                         fingerprint=None):
-    """Remove an authenticated apt repo and credentials to the system"""
-    logging.info('Removing authenticated apt repo: %s', repo_url)
-    util.del_file(repo_filename)
-    if keyring_file:
-        util.del_file(keyring_file)
-    elif fingerprint:
-        util.subp(['apt-key', 'del', fingerprint], capture=True)
+def remove_repo_from_apt_auth_file(repo_url):
+    """Remove a repo from the shared apt auth file"""
     _protocol, repo_path = repo_url.split('://')
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]
@@ -154,6 +149,16 @@ def remove_auth_apt_repo(repo_filename, repo_url, keyring_file=None,
             os.unlink(apt_auth_file)
         else:
             util.write_file(apt_auth_file, content, mode=0o600)
+
+
+def remove_auth_apt_repo(repo_filename: str, repo_url: str,
+                         keyring_file: str = None) -> None:
+    """Remove an authenticated apt repo and credentials to the system"""
+    logging.info('Removing authenticated apt repo: %s', repo_url)
+    util.del_file(repo_filename)
+    if keyring_file:
+        util.del_file(keyring_file)
+    remove_repo_from_apt_auth_file(repo_url)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
@@ -250,3 +255,8 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
                 'Disabled %s after package upgrade/downgrade. %s',
                 entitlement.title, details)
         entitlement.enable()  # Re-enable on current series
+
+
+def get_installed_packages() -> 'List[str]':
+    out, _ = util.subp(['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+    return out.splitlines()

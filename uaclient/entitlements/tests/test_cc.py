@@ -1,5 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import copy
 import itertools
 import mock
 import os.path
@@ -19,7 +20,7 @@ CC_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'cc'}]}}}
+                {'type': 'cc', 'entitled': True}]}}}
 
 
 CC_RESOURCE_ENTITLED = {
@@ -49,12 +50,39 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType({
 })
 
 
+class TestCommonCriteriaEntitlementOperationalStatus:
+
+    @pytest.mark.parametrize(
+        'arch,series,details',
+        (('arm64', 'xenial', 'Canonical Common Criteria EAL2 Provisioning is'
+          ' not available for platform arm64.\nSupported platforms are:'
+          ' x86_64, ppc64le, s390x'),
+         ('s390x', 'trusty', 'Canonical Common Criteria EAL2 Provisioning'
+          ' is not available for Ubuntu trusty.')))
+    @mock.patch('uaclient.entitlements.repo.os.getuid', return_value=0)
+    @mock.patch('uaclient.util.get_platform_info')
+    def test_inapplicable_on_invalid_affordances(
+            self, m_platform_info, m_getuid, arch, series, details, tmpdir):
+        """Test invalid affordances result in inapplicable status."""
+        unsupported_info = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_info['arch'] = arch
+        unsupported_info['series'] = series
+        m_platform_info.return_value = unsupported_info
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
+        cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
+        cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
+        entitlement = CommonCriteriaEntitlement(cfg)
+        op_status, op_status_details = entitlement.operational_status()
+        assert status.INAPPLICABLE == op_status
+        assert details == op_status_details
+
+
 class TestCommonCriteriaEntitlementCanEnable:
 
+    @mock.patch('uaclient.util.subp', return_value=('', ''))
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_can_enable_true_on_entitlement_inactive(
-            self, m_getuid, m_platform_info, tmpdir):
+            self, m_platform_info, _m_subp, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
@@ -77,9 +105,8 @@ class TestCommonCriteriaEntitlementEnable:
                              itertools.product([False, True], repeat=2))
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, m_subp, tmpdir,
+            self, m_platform_info, m_subp, tmpdir,
             apt_transport_https, ca_certificates):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_subp.return_value = ('fakeout', '')
@@ -116,7 +143,8 @@ class TestCommonCriteriaEntitlementEnable:
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-xenial.list',
-                      'http://CC', 'TOKEN', ['xenial'], None, 'APTKEY')]
+                      'http://CC', 'TOKEN', ['xenial'],
+                      '/usr/share/keyrings/ubuntu-cc-keyring.gpg')]
 
         subp_apt_cmds = [mock.call(['apt-cache', 'policy'])]
 

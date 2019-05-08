@@ -2,12 +2,12 @@
 
 set -e
 
-ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
+ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
 ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 
 configure_esm() {
     if [ ! -f "$ESM_APT_GPG_KEY" ]; then
-        cp /usr/share/keyrings/ubuntu-esm-keyring.gpg "$ESM_APT_GPG_KEY"
+        cp /usr/share/keyrings/ubuntu-esm-v2-keyring.gpg "$ESM_APT_GPG_KEY"
     fi
 
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then

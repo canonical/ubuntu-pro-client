@@ -1,8 +1,14 @@
 import abc
 from datetime import datetime
 import logging
-import os
 import re
+
+try:
+    from typing import Any, Callable, Dict, Optional, Tuple  # noqa: F401
+    StaticAffordance = Tuple[str, Callable[[], Any], bool]
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 from uaclient import config
 from uaclient import contract
@@ -14,19 +20,30 @@ RE_KERNEL_UNAME = (
     r'-(?P<flavor>[A-Za-z0-9_-]+)')
 
 
-class UAEntitlement(object, metaclass=abc.ABCMeta):
+class UAEntitlement(metaclass=abc.ABCMeta):
 
-    # The lowercase name of this entitlement
-    name = None
-    # The human readable title of this entitlement
-    title = None
-    # A sentence describing this entitlement
-    description = None
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """The lowercase name of this entitlement"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def title(self) -> str:
+        """The human readable title of this entitlement"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def description(self) -> str:
+        """A sentence describing this entitlement"""
+        pass
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with
-    # <failure_message>.
-    static_affordances = ()   # Overridden in livepatch and fips
+    # <failure_message>. Overridden in livepatch and fips
+    static_affordances = ()  # type: Tuple[StaticAffordance, ...]
 
     def __init__(self, cfg=None):
         """Setup UAEntitlement instance
@@ -38,8 +55,12 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         self.cfg = cfg
 
     @abc.abstractmethod
-    def enable(self):
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
+
+        :param silent_if_inapplicable:
+            Don't emit any messages until after it has been determined that
+            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
@@ -54,48 +75,45 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        if os.getuid() != 0:   # Ignore 'force' here. We always need sudo check
-            message = status.MESSAGE_NONROOT_USER
-            retval = False
-        elif not any([self.cfg.is_attached, force]):
-            message = status.MESSAGE_UNATTACHED
-            retval = False
-        elif not any([self.contract_status() == status.ENTITLED, force]):
-            message = status.MESSAGE_UNENTITLED_TMPL.format(title=self.title)
-            retval = False
-        elif not force:
-            op_status, _status_details = self.operational_status()
+        op_status, status_details = self.operational_status()
+
+        if not force:
             if op_status == status.INACTIVE:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                     title=self.title
                 )
                 retval = False
+            elif op_status == status.INAPPLICABLE:
+                message = status_details
+                retval = False
         if message and not silent:
             print(message)
         return retval
 
-    def can_enable(self):
-        """Report whether or not enabling is possible for the entitlement."""
-        if os.getuid() != 0:
-            print(status.MESSAGE_NONROOT_USER)
-            return False
-        if not self.cfg.is_attached:
-            print(status.MESSAGE_UNATTACHED)
-            return False
+    def can_enable(self, silent: bool = False) -> bool:
+        """
+        Report whether or not enabling is possible for the entitlement.
+
+        :param silent: if True, suppress output
+        """
         if self.is_access_expired():
             token = self.cfg.machine_token['machineToken']
             contract_client = contract.UAContractClient(self.cfg)
             contract_client.request_resource_machine_access(
                 token, self.name)
         if not self.contract_status() == status.ENTITLED:
-            print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
+            if not silent:
+                print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         op_status, op_status_details = self.operational_status()
         if op_status == status.ACTIVE:
-            print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(title=self.title))
+            if not silent:
+                print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+                    title=self.title))
             return False
         if op_status == status.INAPPLICABLE:
-            print(op_status_details)
+            if not silent:
+                print(op_status_details)
             return False
         return True
 
@@ -110,8 +128,7 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
             all defined affordances, False if it doesn't meet any of the
             provided constraints.
         """
-        entitlements = self.cfg.entitlements
-        entitlement_cfg = entitlements.get(self.name)
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
             return True, 'no entitlement affordances checked'
         affordances = entitlement_cfg['entitlement'].get('affordances', {})
@@ -191,6 +208,70 @@ class UAEntitlement(object, metaclass=abc.ABCMeta):
         if expiry >= datetime.utcnow():
             return False
         return True
+
+    def process_contract_deltas(
+            self, orig_access: 'Dict[str, Any]',
+            deltas: 'Dict[str, Any]', allow_enable: bool = False) -> bool:
+        """Process any contract access deltas for this entitlement.
+
+        :param orig_access: Dictionary containing the original
+            resourceEntitlement access details.
+        :param deltas: Dictionary which contains only the changed access keys
+        and values.
+        :param allow_enable: Boolean set True if allowed to perform the enable
+            operation. When False, a message will be logged to inform the user
+            about the recommended enabled service.
+
+        :return: True when delta operations are processed; False when noop.
+        """
+        if not deltas:
+            return True  # We processed all deltas that needed processing
+
+        delta_entitlement = deltas.get('entitlement', {})
+        transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
+        if not transition_to_unentitled:
+            if orig_access and 'entitled' in delta_entitlement:
+                transition_to_unentitled = (
+                    delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
+        if transition_to_unentitled:
+            op_status, _details = self.operational_status()
+            if op_status == status.ACTIVE:
+                if self.can_disable(silent=True):
+                    logging.info(
+                        "Due to contract refresh, '%s' is now disabled.",
+                        self.name)
+                    self.disable()
+                else:
+                    logging.warning(
+                        "Unable to disable '%s' as recommended during contract"
+                        " refresh. Service is still active. See `ua status`" %
+                        self.name)
+            # Clean up former entitled machine-access-<name> response cache
+            # file because uaclient doesn't access machine-access-* routes or
+            # responses on unentitled services.
+            self.cfg.delete_cache_key('machine-access-%s' % self.name)
+            return True
+
+        resourceToken = orig_access.get('resourceToken')
+        if not resourceToken:
+            resourceToken = deltas.get('resourceToken')
+        delta_obligations = delta_entitlement.get('obligations', {})
+        can_enable = self.can_enable(silent=True)
+        enableByDefault = bool(
+            delta_obligations.get('enableByDefault') and resourceToken)
+        if can_enable and enableByDefault:
+            if allow_enable:
+                msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
+                    name=self.name)
+                logging.info(msg)
+                self.enable()
+            else:
+                msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+                    name=self.name)
+                logging.info(msg)
+            return True
+
+        return False
 
     @abc.abstractmethod
     def operational_status(self):

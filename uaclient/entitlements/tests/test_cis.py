@@ -3,9 +3,8 @@
 import mock
 from io import StringIO
 
-from uaclient import config
+from uaclient import config, status
 from uaclient.entitlements.cis import CISEntitlement
-from uaclient.testing.helpers import TestCase
 
 
 CIS_MACHINE_TOKEN = {
@@ -13,7 +12,7 @@ CIS_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'cis-audit'}]}}}
+                {'type': 'cis-audit', 'entitled': True}]}}}
 
 
 CIS_RESOURCE_ENTITLED = {
@@ -36,30 +35,29 @@ CIS_RESOURCE_ENTITLED = {
 }
 
 
-class TestCISEntitlementCanEnable(TestCase):
+class TestCISEntitlementCanEnable:
 
-    @mock.patch('os.getuid', return_value=0)
-    def test_can_enable_true_on_entitlement_inactive(self, m_getuid):
+    def test_can_enable_true_on_entitlement_inactive(self, tmpdir):
         """When operational status is INACTIVE, can_enable returns True."""
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cis-audit', CIS_RESOURCE_ENTITLED)
         entitlement = CISEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            self.assertTrue(entitlement.can_enable())
-        self.assertEqual('', m_stdout.getvalue())
+        with mock.patch.object(entitlement, 'operational_status',
+                               return_value=(status.INACTIVE, '')):
+            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
+                assert entitlement.can_enable()
+        assert '' == m_stdout.getvalue()
 
 
-class TestCISEntitlementEnable(TestCase):
+class TestCISEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('os.getuid', return_value=0)
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_getuid, m_platform_info, m_subp):
+            self, m_platform_info, m_subp, tmpdir):
         """When entitled, configure apt repo auth token, pinning and url."""
 
         def fake_platform(key=None):
@@ -71,8 +69,7 @@ class TestCISEntitlementEnable(TestCase):
 
         m_platform_info.side_effect = fake_platform
         m_subp.return_value = ('fakeout', '')
-        tmp_dir = self.tmp_dir()
-        cfg = config.UAConfig(cfg={'data_dir': tmp_dir})
+        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cis-audit', CIS_RESOURCE_ENTITLED)
         entitlement = CISEntitlement(cfg)
@@ -85,11 +82,13 @@ class TestCISEntitlementEnable(TestCase):
                 with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
                     with mock.patch(
                             'uaclient.apt.add_ppa_pinning') as m_add_pin:
-                        self.assertTrue(entitlement.enable())
+                        assert entitlement.enable()
 
         add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                      'http://CIS', 'TOKEN', ['xenial'], None, 'APTKEY')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
+                'http://CIS', 'TOKEN', ['xenial'],
+                '/usr/share/keyrings/ubuntu-securitybenchmarks-keyring.gpg')]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),

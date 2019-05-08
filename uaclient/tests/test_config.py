@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from uaclient.config import PRIVATE_SUBDIR, UAConfig
+from uaclient.config import LocalEnabledManager, PRIVATE_SUBDIR, UAConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
@@ -266,3 +266,55 @@ class TestDeleteCache:
         cfg.delete_cache()
         assert [os.path.basename(t_file.strpath)] == os.listdir(
             tmpdir.join(PRIVATE_SUBDIR).strpath)
+
+
+class TestLocalEnabledManager:
+
+    @pytest.fixture(params=['direct', 'via_cfg'])
+    def manager(self, request, tmpdir):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+
+        if request.param == 'direct':
+            return LocalEnabledManager(cfg)
+        elif request.param == 'via_cfg':
+            return cfg.local_enabled_manager
+        raise Exception('unknown param: {}'.format(request.param))
+
+    def test_no_local_access_returns_false(self, manager):
+        assert not manager.get('unknown')
+
+    def test_unknown_entitlement_returns_false(self, manager):
+        manager.set('test', True)
+
+        assert not manager.get('unknown')
+
+    @pytest.mark.parametrize('entitlements', [
+        {'a': True},
+        {'a': False},
+        {'a': True, 'b': True},
+        {'a': True, 'b': False, 'c': True},
+    ])
+    def test_round_trip(self, manager, entitlements):
+        for entitlement_name, value in entitlements.items():
+            manager.set(entitlement_name, value)
+
+        out = {entitlement_name: manager.get(entitlement_name)
+               for entitlement_name in entitlements}
+
+        assert entitlements == out
+
+    @pytest.mark.parametrize('non_bool_value', ('', 'a', None, {}, object()))
+    def test_set_non_bool(self, manager, non_bool_value):
+        with pytest.raises(Exception) as excinfo:
+            manager.set('test', non_bool_value)
+
+        expected_msg = 'LocalEnabledManager.set passed non-bool value'
+        assert expected_msg == str(excinfo.value)
+
+    def test_local_access_written_public(self, manager):
+        manager.set('test', True)
+
+        assert os.path.exists(
+            manager._cfg.data_path('local-access', private=False))
+        assert not os.path.exists(
+            manager._cfg.data_path('local-access', private=True))

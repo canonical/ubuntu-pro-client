@@ -1,49 +1,35 @@
-import os
-
-from uaclient import apt
 from uaclient.entitlements import repo
-from uaclient import util
+from uaclient import apt, util
+
+try:
+    from typing import Dict, List, Set  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
-    packages = ['openssh-client-hmac', 'openssh-server-hmac',
-                'libssl1.0.0-hmac', 'linux-fips', 'strongswan-hmac',
-                'openssh-client', 'openssh-server', 'openssl', 'libssl1.0.0',
-                'fips-initramfs', 'strongswan']
+    fips_required_packages = frozenset({'fips-initramfs', 'linux-fips'})
+    fips_packages = {
+        'libssl1.0.0': {'libssl1.0.0-hmac'},
+        'openssh-client': {'openssh-client-hmac'},
+        'openssh-server': {'openssh-server-hmac'},
+        'openssl': set(),
+        'strongswan': {'strongswan-hmac'},
+    }  # type: Dict[str, Set[str]]
+    force_disable = True
 
-    def disable(self, silent=False, force=False):
-        if not self.can_disable(silent, force):
-            return False
-        if force:  # Force config cleanup as broke during setup attempt.
-            series = util.get_platform_info('series')
-            repo_filename = self.repo_list_file_tmpl.format(
-                name=self.name, series=series)
-            keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-            entitlement = self.cfg.read_cache(
-                'machine-access-%s' % self.name).get('entitlement', {})
-            access_directives = entitlement.get('directives', {})
-            repo_url = access_directives.get('aptURL', self.repo_url)
-            if not repo_url:
-                repo_url = self.repo_url
-            apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
-            if self.repo_pin_priority:
-                repo_pref_file = self.repo_pref_file_tmpl.format(
-                    name=self.name, series=series)
-                if os.path.exists(repo_pref_file):
-                    os.unlink(repo_pref_file)
-            apt.remove_apt_list_files(repo_url, series)
-            try:
-                util.subp(
-                    ['apt-get', 'remove', '--assume-yes'] + self.packages)
-            except util.ProcessExecutionError:
-                pass
-        if not silent:
-            print('Warning: no option to disable {title}'.format(
-                title=self.title)
-            )
-        return False
+    @property
+    def packages(self) -> 'List[str]':
+        packages = list(self.fips_required_packages)
+        installed_packages = apt.get_installed_packages()
+        for pkg_name, extra_pkgs in self.fips_packages.items():
+            if pkg_name in installed_packages:
+                packages.append(pkg_name)
+                packages.extend(extra_pkgs)
+        return packages
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):

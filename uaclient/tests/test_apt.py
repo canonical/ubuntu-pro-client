@@ -4,12 +4,16 @@ import copy
 import glob
 import mock
 import os
+import stat
 from textwrap import dedent
+
+import pytest
 
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
-    add_ppa_pinning, find_apt_list_files, migrate_apt_sources,
-    remove_apt_list_files, valid_apt_credentials)
+    add_ppa_pinning, find_apt_list_files, get_installed_packages,
+    migrate_apt_sources, remove_apt_list_files, remove_auth_apt_repo,
+    remove_repo_from_apt_auth_file, valid_apt_credentials)
 from uaclient import config
 from uaclient import util
 from uaclient.entitlements.tests.test_cc import (
@@ -143,29 +147,6 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
-    def test_add_auth_apt_repo_adds_apt_fingerprint(
-            self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
-        """Call apt-key to add the specified fingerprint."""
-        repo_file = tmpdir.join('repo.conf').strpath
-        auth_file = tmpdir.join('auth.conf').strpath
-        m_get_apt_auth_file.return_value = auth_file
-        m_subp.return_value = '500 esm.canonical.com...', ''  # apt policy
-
-        add_auth_apt_repo(
-            repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
-
-        apt_cmds = [
-            mock.call(['apt-cache', 'policy']),
-            mock.call(['apt-key', 'adv', '--keyserver', 'keyserver.ubuntu.com',
-                       '--recv-keys', 'APTKEY'], capture=True)]
-        assert apt_cmds == m_subp.call_args_list
-
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
     def test_add_auth_apt_repo_writes_sources_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -177,7 +158,7 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',), fingerprint='APTKEY')
+            credentials='mycreds', suites=('xenial',))
 
         expected_content = (
             'deb http://fakerepo/ubuntu xenial main\n'
@@ -201,8 +182,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -229,8 +209,7 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-            fingerprint='APTKEY')
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -254,10 +233,10 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='user:password',
-            suites=('xenial',), fingerprint='APTKEY')
+            suites=('xenial',))
 
         expected_content = (
-            'machine fakerepo/ login user password password%s' %
+            'machine fakerepo/ login user password password%s\n' %
             APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
@@ -276,11 +255,10 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo/',
-            credentials='SOMELONGTOKEN', suites=('xenia',),
-            fingerprint='APTKEY')
+            credentials='SOMELONGTOKEN', suites=('xenia',))
 
         expected_content = (
-            'machine fakerepo/ login bearer password SOMELONGTOKEN%s'
+            'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'
             % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
@@ -306,8 +284,8 @@ class TestAddAptAuthConfEntry:
         expected_content = dedent("""\
             machine fakerepo1/ login me password password1
             machine fakerepo/ login newlogin password newpass%s
-            machine fakerepo2/ login other password otherpass\
-""" % APT_AUTH_COMMENT)
+            machine fakerepo2/ login other password otherpass
+        """ % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
@@ -331,8 +309,8 @@ class TestAddAptAuthConfEntry:
             machine fakerepo1/ login me password password1
             machine fakerepo/subroute/ login new password newpass%s
             machine fakerepo/ login old password oldpassword
-            machine fakerepo2/ login other password otherpass\
-""" % APT_AUTH_COMMENT)
+            machine fakerepo2/ login other password otherpass
+        """ % APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
 
@@ -435,3 +413,155 @@ class TestMigrateAptSources:
                 platform_info={'series': 'trusty', 'release': '14.04'})
         assert [] == m_add_apt.call_args_list
         assert [] == m_unlink.call_args_list
+
+
+@pytest.fixture(params=(mock.sentinel.default, None, 'some_string'))
+def remove_auth_apt_repo_kwargs(request):
+    """
+    Parameterized fixture to generate all permutations of kwargs we need
+
+    Note that this tests three states for keyring_file: using the default,
+    explicitly passing None and explicitly passing a string.
+    """
+    keyring_file = request.param
+    kwargs = {}
+    if keyring_file != mock.sentinel.default:
+        kwargs['keyring_file'] = keyring_file
+    return kwargs
+
+
+class TestRemoveAuthAptRepo:
+
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
+    @mock.patch('uaclient.apt.util.del_file')
+    def test_repo_file_deleted(
+            self, m_del_file, _mock, __mock, remove_auth_apt_repo_kwargs):
+        """Ensure that repo_filename is deleted, regardless of other params."""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        assert mock.call(repo_filename) in m_del_file.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.util.del_file')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
+    def test_remove_from_auth_file_called(
+            self, m_remove_repo, _mock, __mock, remove_auth_apt_repo_kwargs):
+        """Ensure that remove_repo_from_apt_auth_file is called."""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        assert mock.call(repo_url) in m_remove_repo.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp')
+    @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
+    @mock.patch('uaclient.apt.util.del_file')
+    def test_keyring_file_deleted_if_given(
+            self, m_del_file, _mock, __mock, remove_auth_apt_repo_kwargs):
+        """We should always delete the keyring file if it is given"""
+        repo_filename, repo_url = mock.sentinel.filename, mock.sentinel.url
+
+        remove_auth_apt_repo(
+            repo_filename, repo_url, **remove_auth_apt_repo_kwargs)
+
+        keyring_file = remove_auth_apt_repo_kwargs.get('keyring_file')
+        if keyring_file:
+            assert mock.call(keyring_file) in m_del_file.call_args_list
+        else:
+            assert mock.call(keyring_file) not in m_del_file.call_args_list
+
+
+class TestRemoveRepoFromAptAuthFile:
+
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.util.write_file')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_auth_file_doesnt_exist_means_we_dont_remove_or_write_it(
+            self, m_get_apt_auth_file, m_write_file, m_unlink, tmpdir):
+        """If the auth file doesn't exist, we shouldn't do anything to it"""
+        m_get_apt_auth_file.return_value = tmpdir.join('nonexistent').strpath
+
+        remove_repo_from_apt_auth_file('http://url')
+
+        assert 0 == m_write_file.call_count
+        assert 0 == m_unlink.call_count
+
+    @pytest.mark.parametrize('trailing_slash', (True, False))
+    @pytest.mark.parametrize('repo_url,auth_file_content', (
+        ('http://url1', b''),
+        ('http://url2', b'machine url2/ login trailing content'),
+        ('http://url3', b'machine url3/ login'),
+        ('http://url4', b'leading content machine url4/ login'),
+        ('http://url4',
+         b'leading content machine url4/ login trailing content'),
+    ))
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.util.write_file')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_file_removal(self, m_get_apt_auth_file, m_write_file, m_unlink,
+                          tmpdir, trailing_slash, repo_url, auth_file_content):
+        """Check that auth file is rm'd if empty or contains just our line"""
+        auth_file = tmpdir.join('auth_file')
+        auth_file.write(auth_file_content, 'wb')
+        m_get_apt_auth_file.return_value = auth_file.strpath
+
+        remove_repo_from_apt_auth_file(
+            repo_url + ('' if not trailing_slash else '/'))
+
+        assert 0 == m_write_file.call_count
+        assert [mock.call(auth_file.strpath)] == m_unlink.call_args_list
+
+    @pytest.mark.parametrize('trailing_slash', (True, False))
+    @pytest.mark.parametrize('repo_url,before_content,after_content', (
+        ('http://url1', b'should not be changed', b'should not be changed'),
+        ('http://url1', b'line before\nmachine url1/ login', b'line before'),
+        ('http://url1', b'machine url1/ login\nline after', b'line after'),
+        ('http://url1', b'line before\nmachine url1/ login\nline after',
+         b'line before\nline after'),
+        ('http://url1', b'unicode \xe2\x98\x83\nmachine url1/ login',
+         b'unicode \xe2\x98\x83'),
+    ))
+    @mock.patch('uaclient.apt.os.unlink')
+    @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
+    def test_file_rewrite(self, m_get_apt_auth_file, m_unlink, tmpdir,
+                          repo_url, before_content, after_content,
+                          trailing_slash):
+        """Check that auth file is rewritten to only exclude our line"""
+        auth_file = tmpdir.join('auth_file')
+        auth_file.write(before_content, 'wb')
+        m_get_apt_auth_file.return_value = auth_file.strpath
+
+        remove_repo_from_apt_auth_file(
+            repo_url + ('' if not trailing_slash else '/'))
+
+        assert 0 == m_unlink.call_count
+        assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
+        assert after_content == auth_file.read('rb')
+
+
+class TestGetInstalledPackages:
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('', ''))
+    def test_correct_command_called(self, m_subp):
+        get_installed_packages()
+
+        expected_call = mock.call(
+            ['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+        assert [expected_call] == m_subp.call_args_list
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('', ''))
+    def test_empty_output_means_empty_list(self, m_subp):
+        assert [] == get_installed_packages()
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('a\nb\n', ''))
+    def test_lines_are_split(self, m_subp):
+        assert ['a', 'b'] == get_installed_packages()
+
+    @mock.patch('uaclient.apt.util.subp', return_value=('a\nb', ''))
+    def test_assert_missing_eof_newline_works(self, m_subp):
+        assert ['a', 'b'] == get_installed_packages()
