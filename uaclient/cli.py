@@ -4,12 +4,12 @@
 Client to manage Ubuntu Advantage support entitlements on a machine.
 
 Available entitlements:
- - Extended Security Maintenance (https://ubuntu.com/esm)
- - FIPS 140-2 (https://ubuntu.com/fips)
- - FIPS 140-2 with updates
- - Canonical Livepatch (https://ubuntu.com/livepatch)
- - Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
- - Canonical Common Criteria EAL2 Provisioning (https://ubuntu.com/cc)
+ - cc: Canonical Common Criteria EAL2 Provisioning (https://ubuntu.com/cc)
+ - cis-audit: Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
+ - esm: Extended Security Maintenance (https://ubuntu.com/esm)
+ - fips: FIPS 140-2 (https://ubuntu.com/fips)
+ - fips-updates: FIPS 140-2 with updates
+ - lvepatch: Canonical Livepatch (https://ubuntu.com/livepatch)
 
 """
 
