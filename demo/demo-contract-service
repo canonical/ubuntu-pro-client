@@ -90,13 +90,23 @@ if [ $? -eq 1 ]; then
   lxc exec $LXC_NAME -- tar -C /usr/local -xzf go1.12.4.linux-amd64.tar.gz
   lxc exec $LXC_NAME -- sh -c 'echo export GOPATH=/root/go >> .bashrc'
   lxc exec $LXC_NAME -- sh -c 'echo export PATH=\$GOPATH/bin:/usr/local/go/bin:\$PATH >> .bashrc'
+  echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
+  lxc exec $LXC_NAME /root/runserver.sh
 fi
 VM_IP=`lxc list -c n4 $LXC_NAME | grep eth0 | awk '{print $3}'`
 CONTRACT_URL="http:\/\/$VM_IP:3000"
-  
+
 echo "Changing uaclient-devel.conf to point to your lxc @ $CONTRACT_URL"
 sed -i "s/contract_url.*/contract_url: '$CONTRACT_URL'/" uaclient-devel.conf
 # Rename devel config to $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
 lxc file push uaclient-devel.conf $LXC_NAME/etc/ubuntu-advantage/uaclient.conf
-echo -e "Running demo contract server API with:\nlxc exec $LXC_NAME /root/runserver.sh"
-lxc exec $LXC_NAME /root/runserver.sh
+
+echo "Enabling bootstrapped admin user to change contract details..."
+curl -X PUT -u "admin:password1234" ${CONTRACT_URL//\\/}/acl/product -H "Content-Type: application/json" -d '{"users": ["admin"]}'
+
+curl -u 'admin:password1234' ${CONTRACT_URL//\\/}/v1/products/free > free-contract.json
+echo "Current free contract is in free-contract.json"
+
+echo "To manipulate free contract, change values in free-contract.json and run the folowing:"
+echo curl -X POST -u \"admin:password1234\" ${CONTRACT_URL//\\/}/v1/products/free -H \"Content-Type: application/json\" -d @free-contract.json
+
