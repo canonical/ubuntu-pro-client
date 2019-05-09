@@ -292,9 +292,12 @@ def get_machine_id(data_dir):
     if os.path.exists(DBUS_MACHINE_ID):  # Trusty
         return load_file(DBUS_MACHINE_ID).rstrip('\n')
     fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
-    if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
+    # Generate, cache our own uuid if not present on the system
+    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
+    # per Issue: #489
+    if os.path.exists(fallback_machine_id_file):  # Use our generated uuid
         return load_file(fallback_machine_id_file).rstrip('\n')
-    machine_id = uuid.uuid4()
+    machine_id = str(uuid.uuid4())
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
 

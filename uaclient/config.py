@@ -73,6 +73,7 @@ class UAConfig:
         'machine-access-livepatch': 'machine-access-livepatch.json',
         'machine-access-support': 'machine-access-support.json',
         'machine-detach': 'machine-detach.json',
+        'machine-id': 'machine-id',
         'machine-token': 'machine-token.json',
         'machine-token-refresh': 'machine-token-refresh.json',
         'macaroon': 'sso-macaroon.json',

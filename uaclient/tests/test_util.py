@@ -1,4 +1,5 @@
 """Tests related to uaclient.util module."""
+import uuid
 
 import mock
 import pytest
@@ -250,7 +251,8 @@ class TestGetMachineId:
         with mock.patch('uaclient.util.os.path.exists') as m_exists:
             with mock.patch('uaclient.util.uuid.uuid4') as m_uuid4:
                 m_exists.return_value = False
-                m_uuid4.return_value = '1234...1234'
+                m_uuid4.return_value = uuid.UUID(
+                    '0123456789abcdef0123456789abcdef')
                 value = util.get_machine_id(data_dir=tmpdir.strpath)
-        assert '1234...1234' == value
-        assert '1234...1234' == data_machine_id.read()
+        assert '01234567-89ab-cdef-0123-456789abcdef' == value
+        assert '01234567-89ab-cdef-0123-456789abcdef' == data_machine_id.read()
