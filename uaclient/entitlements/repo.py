@@ -17,6 +17,8 @@ from uaclient import status
 from uaclient import util
 
 APT_DISABLED_PIN = '-32768'
+# charm-helpers uses 10 seconds between retries. Hope for an optimal first try
+APT_RETRIES = [1.0, 10.0, 10.0]
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -74,7 +76,7 @@ class RepoEntitlement(base.UAEntitlement):
                     'Installing {title} packages ...'.format(title=self.title))
                 util.subp(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
-                    capture=True)
+                    capture=True, retry_sleeps=APT_RETRIES)
             except util.ProcessExecutionError:
                 self.disable(silent=True, force=True)
                 logging.error(
@@ -220,7 +222,7 @@ class RepoEntitlement(base.UAEntitlement):
             try:
                 util.subp(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    capture=True)
+                    capture=True, retry_sleeps=APT_RETRIES)
             except util.ProcessExecutionError as e:
                 logging.error(str(e))
                 return False
@@ -236,7 +238,8 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will new report the repo as accessible
         # which allows ua status to report correct info
         print('Updating package lists ...')
-        util.subp(['apt-get', 'update'], capture=True)
+        util.subp(
+            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)
         return True
 
     def remove_apt_config(self):

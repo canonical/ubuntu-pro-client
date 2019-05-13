@@ -13,6 +13,7 @@ from uaclient import apt
 from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
+from uaclient.entitlements.repo import APT_RETRIES
 
 
 CC_MACHINE_TOKEN = {
@@ -161,15 +162,16 @@ class TestCommonCriteriaEntitlementEnable:
             subp_apt_cmds.append(
                 mock.call(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    capture=True))
+                    capture=True, retry_sleeps=APT_RETRIES))
         else:
             expected_stdout = ''
 
         subp_apt_cmds.extend([
-            mock.call(['apt-get', 'update'], capture=True),
+            mock.call(
+                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
             mock.call(
                 ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
-                capture=True)])
+                capture=True, retry_sleeps=APT_RETRIES)])
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cc

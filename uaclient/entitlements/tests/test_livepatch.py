@@ -10,6 +10,7 @@ import pytest
 from uaclient import config
 from uaclient.entitlements.livepatch import (
     LivepatchEntitlement, process_config_directives)
+from uaclient.entitlements.repo import APT_RETRIES
 from uaclient import status
 
 
@@ -290,7 +291,8 @@ class TestLivepatchEntitlementEnable:
 
     mocks_snapd_install = [
         mock.call(
-            ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True),
+            ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True,
+            retry_sleeps=APT_RETRIES),
         mock.call(['snap', 'wait', 'system', 'seed.loaded'], capture=True),
     ]
     mocks_livepatch_install = [

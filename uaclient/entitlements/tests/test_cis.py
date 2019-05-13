@@ -5,6 +5,7 @@ from io import StringIO
 
 from uaclient import config, status
 from uaclient.entitlements.cis import CISEntitlement
+from uaclient.entitlements.repo import APT_RETRIES
 
 
 CIS_MACHINE_TOKEN = {
@@ -92,10 +93,11 @@ class TestCISEntitlementEnable:
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy']),
-            mock.call(['apt-get', 'update'], capture=True),
+            mock.call(
+                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
             mock.call(
                 ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
-                capture=True)]
+                capture=True, retry_sleeps=APT_RETRIES)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis-audit
