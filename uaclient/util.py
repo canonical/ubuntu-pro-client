@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 from urllib import error, request
 import uuid
 from http.client import HTTPMessage  # noqa: F401
@@ -167,13 +168,18 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
 
 
 def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
-         capture: bool = False) -> 'Tuple[str, str]':
+         capture: bool = False,
+         retry_sleeps: 'Optional[List[int]]' = None) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
     @param rcs: A list of allowed return_codes. If returncode not in rcs
         raise a ProcessExecutionError.
     @param capture: Boolean set True to log the command and response.
+    @param retry_sleeps: Optional list of sleep lengths to apply between
+        retries. Specifying a list of [0.5, 1] instructs subp to retry twice
+        on failure; sleeping half a second before the first retry and 1 second
+        before the next retry.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -182,25 +188,39 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
                   for x in args]
     if rcs is None:
         rcs = [0]
-    try:
-        proc = subprocess.Popen(
-            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out, err) = proc.communicate()
-    except OSError:
+    while True:
         try:
-            if capture:
-                logging.error('Failed running cmd: %s, rc: %s stderr: %s',
-                              ' '.join(args), proc.returncode, err)
-        except UnboundLocalError:
-            pass
-        raise ProcessExecutionError(cmd=' '.join(args))
-    if proc.returncode not in rcs:
-        if capture:
-            logging.error('Failed running cmd: %s, rc: %s stderr: %s',
-                          ' '.join(args), proc.returncode, err)
-        raise ProcessExecutionError(
-            cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
-            stderr=err)
+            proc = subprocess.Popen(
+                bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (out, err) = proc.communicate()
+        except OSError:
+            try:
+                message = ('Failed running cmd: %s, rc: %s stderr: %s' %
+                           (' '.join(args), proc.returncode, err))
+            except UnboundLocalError:
+                message = 'Failed running cmd: %s' % ' '.join(args)
+            if not retry_sleeps:
+                if capture:
+                    logging.error(message)
+                raise ProcessExecutionError(cmd=' '.join(args))
+            suffix = '. Retrying %d more time(s)' % len(retry_sleeps)
+            logging.debug(message + suffix)
+            time.sleep(retry_sleeps.pop(0))
+            continue
+        if proc.returncode not in rcs:
+            message = ('Failed running cmd: %s, rc: %s stderr: %s' %
+                       (' '.join(args), proc.returncode, err))
+            if not retry_sleeps:
+                if capture:
+                    logging.error(message)
+                raise ProcessExecutionError(
+                    cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
+                    stderr=err)
+            suffix = '. Retrying %d more time(s)' % len(retry_sleeps)
+            logging.debug(message + suffix)
+            time.sleep(retry_sleeps.pop(0))
+            continue
+        break  # Success
     if capture:
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)

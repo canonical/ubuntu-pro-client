@@ -150,6 +150,39 @@ class TestIsContainer:
         assert exists_calls == m_exists.call_args_list
 
 
+class TestSubp:
+
+    @mock.patch('uaclient.util.time.sleep')
+    def test_default_do_not_retry_on_failure_return_code(self, m_sleep):
+        """When no retry_sleeps are specified, do not retry failures."""
+        with pytest.raises(util.ProcessExecutionError) as excinfo:
+            util.subp(['ls', '--bogus'])
+
+        expected_error = 'Failed running command \'ls --bogus\' [exit(2)]'
+        assert expected_error in str(excinfo.value)
+        assert 0 == m_sleep.call_count  # no retries
+
+    @mock.patch('uaclient.util.time.sleep')
+    def test_no_error_on_accepted_return_codes(self, m_sleep):
+        """When rcs list includes the exit code, do not raise an error."""
+        out, err = util.subp(['ls', '--bogus'], rcs=[2])
+
+        assert '' == out
+        assert 'ls: unrecognized option \'--bogus\'' in err
+        assert 0 == m_sleep.call_count  # no retries
+
+    @mock.patch('uaclient.util.time.sleep')
+    def test_retry_with_specified_sleeps_on_error(self, m_sleep):
+        """When retry_sleeps given, use defined sleeps between each retry."""
+        with pytest.raises(util.ProcessExecutionError) as excinfo:
+            util.subp(['ls', '--bogus'], retry_sleeps=[1, 3, 0.4])
+
+        expected_error = 'Failed running command \'ls --bogus\' [exit(2)]'
+        assert expected_error in str(excinfo.value)
+        expected_sleeps = [mock.call(1), mock.call(3), mock.call(0.4)]
+        assert expected_sleeps == m_sleep.call_args_list
+
+
 class TestParseOSRelease:
 
     def test_parse_os_release(self, tmpdir):
