@@ -4,6 +4,8 @@ from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
 
+SNAP_INSTALL_RETRIES = [0.5, 1, 5]
+
 try:
     from typing import Any, Dict  # noqa: F401
 except ImportError:
@@ -91,7 +93,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             print('Installing canonical-livepatch snap...')
             try:
                 util.subp(['snap', 'install', 'canonical-livepatch'],
-                          capture=True)
+                          capture=True, retry_sleeps=SNAP_INSTALL_RETRIES)
             except util.ProcessExecutionError as e:
                 msg = 'Unable to install Livepatch client: ' + str(e)
                 print(msg)
