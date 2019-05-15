@@ -195,30 +195,19 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
             (out, err) = proc.communicate()
         except OSError:
             try:
-                message = ('Failed running cmd: %s, rc: %s stderr: %s' %
-                           (' '.join(args), proc.returncode, err))
+                returncode = proc.returncode
+                stderr = err
+                stdout = out
             except UnboundLocalError:
-                message = 'Failed running cmd: %s' % ' '.join(args)
-            if not retry_sleeps:
-                if capture:
-                    logging.error(message)
-                raise ProcessExecutionError(cmd=' '.join(args))
-            suffix = '. Retrying %d more time(s)' % len(retry_sleeps)
-            logging.debug(message + suffix)
-            time.sleep(retry_sleeps.pop(0))
+                returncode = None
+                stderr = b''
+                stdout = b''
+            _raise_or_retry(
+                args, returncode, stdout, stderr, capture, retry_sleeps)
             continue
         if proc.returncode not in rcs:
-            message = ('Failed running cmd: %s, rc: %s stderr: %s' %
-                       (' '.join(args), proc.returncode, err))
-            if not retry_sleeps:
-                if capture:
-                    logging.error(message)
-                raise ProcessExecutionError(
-                    cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
-                    stderr=err)
-            suffix = '. Retrying %d more time(s)' % len(retry_sleeps)
-            logging.debug(message + suffix)
-            time.sleep(retry_sleeps.pop(0))
+            _raise_or_retry(
+                args, proc.returncode, out, err, capture, retry_sleeps)
             continue
         break  # Success
     if capture:
