@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import yaml
+from collections import namedtuple
 
 from uaclient import util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
@@ -24,31 +25,36 @@ class ConfigAbsentError(RuntimeError):
     pass
 
 
+# A data path is a filename
+DataPath = namedtuple('DataPath', ('filename',))
+
+
 class UAConfig:
 
     data_paths = {
-        'bound-macaroon': 'bound-macaroon',
-        'accounts': 'accounts.json',
-        'account-contracts': 'account-contracts.json',
-        'account-users': 'account-users.json',
-        'contract-token': 'contract-token.json',
-        'local-access': 'local-access',
-        'machine-contracts': 'machine-contracts.json',
-        'machine-access-cc-eal': 'machine-access-cc-eal.json',
-        'machine-access-cis-audit': 'machine-access-cis-audit.json',
-        'machine-access-esm': 'machine-access-esm.json',
-        'machine-access-fips': 'machine-access-fips.json',
-        'machine-access-fips-updates': 'machine-access-fips-updates.json',
-        'machine-access-livepatch': 'machine-access-livepatch.json',
-        'machine-access-support': 'machine-access-support.json',
-        'machine-detach': 'machine-detach.json',
-        'machine-id': 'machine-id',
-        'machine-token': 'machine-token.json',
-        'machine-token-refresh': 'machine-token-refresh.json',
-        'macaroon': 'sso-macaroon.json',
-        'root-macaroon': 'root-macaroon.json',
-        'oauth': 'sso-oauth.json'
-    }
+        'bound-macaroon': DataPath('bound-macaroon'),
+        'accounts': DataPath('accounts.json'),
+        'account-contracts': DataPath('account-contracts.json'),
+        'account-users': DataPath('account-users.json'),
+        'contract-token': DataPath('contract-token.json'),
+        'local-access': DataPath('local-access'),
+        'machine-contracts': DataPath('machine-contracts.json'),
+        'machine-access-cc-eal': DataPath('machine-access-cc-eal.json'),
+        'machine-access-cis-audit': DataPath('machine-access-cis-audit.json'),
+        'machine-access-esm': DataPath('machine-access-esm.json'),
+        'machine-access-fips': DataPath('machine-access-fips.json'),
+        'machine-access-fips-updates': DataPath(
+            'machine-access-fips-updates.json'),
+        'machine-access-livepatch': DataPath('machine-access-livepatch.json'),
+        'machine-access-support': DataPath('machine-access-support.json'),
+        'machine-detach': DataPath('machine-detach.json'),
+        'machine-id': DataPath('machine-id'),
+        'machine-token': DataPath('machine-token.json'),
+        'machine-token-refresh': DataPath('machine-token-refresh.json'),
+        'macaroon': DataPath('sso-macaroon.json'),
+        'root-macaroon': DataPath('root-macaroon.json'),
+        'oauth': DataPath('sso-oauth.json')
+    }  # type: Dict[str, DataPath]
 
     _contracts = None  # caching to avoid repetitive file reads
     _entitlements = None  # caching to avoid repetitive file reads
@@ -163,7 +169,7 @@ class UAConfig:
         if not key:
             return data_dir
         if key in self.data_paths:
-            return os.path.join(data_dir, self.data_paths[key])
+            return os.path.join(data_dir, self.data_paths[key].filename)
         return os.path.join(data_dir, key)
 
     def delete_cache_key(self, key: str) -> None:
