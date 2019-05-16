@@ -273,6 +273,3 @@ class RepoEntitlement(base.UAEntitlement):
             'Dict[str, Any]',
             self.cfg.read_cache('machine-access-%s' % self.name))
         public_cache['localEnabled'] = value
-        redacted_cache = util.redact_sensitive(public_cache)
-        self.cfg.write_cache(
-            'machine-access-%s' % self.name, redacted_cache, private=False)

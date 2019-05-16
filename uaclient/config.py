@@ -157,12 +157,9 @@ class UAConfig:
             self._machine_token = self.read_cache('machine-token')
         return self._machine_token
 
-    def data_path(self, key=None, private=True):
+    def data_path(self, key: 'Optional[str]' = None) -> str:
         """Return the file path in the data directory represented by the key"""
-        if private:
-            data_dir = os.path.join(self.cfg['data_dir'], 'private')
-        else:
-            data_dir = self.cfg['data_dir']
+        data_dir = os.path.join(self.cfg['data_dir'], PRIVATE_SUBDIR)
         if not key:
             return data_dir
         if key in self.data_paths:
@@ -179,10 +176,9 @@ class UAConfig:
             self._machine_token = None
         elif key == 'account-contracts':
             self._contracts = None
-        for private in (True, False):
-            cache_path = self.data_path(key, private)
-            if os.path.exists(cache_path):
-                os.unlink(cache_path)
+        cache_path = self.data_path(key)
+        if os.path.exists(cache_path):
+            os.unlink(cache_path)
 
     def delete_cache(self):
         """Remove configuration cached response files class attributes."""
@@ -194,18 +190,14 @@ class UAConfig:
         try:
             content = util.load_file(cache_path)
         except Exception:
-            public_cache_path = cache_path.replace('%s/' % PRIVATE_SUBDIR, '')
-            try:
-                content = util.load_file(public_cache_path)
-            except Exception:
-                if not os.path.exists(cache_path) and not silent:
-                    logging.debug('File does not exist: %s', cache_path)
-                return None
+            if not os.path.exists(cache_path) and not silent:
+                logging.debug('File does not exist: %s', cache_path)
+            return None
         json_content = util.maybe_parse_json(content)
         return json_content if json_content else content
 
-    def write_cache(self, key: str, content: 'Any', private: bool = True):
-        filepath = self.data_path(key, private)
+    def write_cache(self, key: str, content: 'Any') -> None:
+        filepath = self.data_path(key)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
@@ -216,10 +208,7 @@ class UAConfig:
             self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
-        if private:
-            util.write_file(filepath, content, mode=0o600)
-        else:
-            util.write_file(filepath, content)
+        util.write_file(filepath, content, mode=0o600)
 
     def status(self):
         """Return configuration status as a dictionary."""

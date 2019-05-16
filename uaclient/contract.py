@@ -161,8 +161,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers)
         self.cfg.write_cache('machine-token', machine_token)
-        redacted_content = util.redact_sensitive(machine_token)
-        self.cfg.write_cache('machine-token', redacted_content, private=False)
         return machine_token
 
     def request_contract_machine_detach(self, contract_id, user_token):
@@ -204,9 +202,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get('expires'):
             resource_access['expires'] = headers['expires']
         self.cfg.write_cache('machine-access-%s' % resource, resource_access)
-        redacted_content = util.redact_sensitive(resource_access)
-        self.cfg.write_cache(
-            'machine-access-%s' % resource, redacted_content, private=False)
         return resource_access
 
     def request_machine_token_refresh(
@@ -231,8 +226,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get('expires'):
             response['expires'] = headers['expires']
         self.cfg.write_cache('machine-token', response)
-        redacted_content = util.redact_sensitive(response)
-        self.cfg.write_cache('machine-token', redacted_content, private=False)
         return response
 
 

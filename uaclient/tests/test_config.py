@@ -98,14 +98,6 @@ class TestDataPath:
         cfg = UAConfig({'data_dir': '/my/d'})
         assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
 
-    @pytest.mark.parametrize('key,path_basename', (
-        ('notHere', 'notHere'), ('anything', 'anything')))
-    def test_data_path_returns_file_path_with_public_data_paths(
-            self, key, path_basename):
-        """When private is False Config.data_paths return a public path."""
-        cfg = UAConfig({'data_dir': '/my/d'})
-        assert '/my/d/%s' % key == cfg.data_path(key=key, private=False)
-
 
 class TestWriteCache:
 
@@ -149,16 +141,6 @@ class TestWriteCache:
         with open(tmpdir.join(PRIVATE_SUBDIR, key).strpath, 'r') as stream:
             assert expected_json_content == stream.read()
         assert value == cfg.read_cache(key)
-
-    def test_write_cache_writes_non_private_dir_when_private_is_false(
-            self, tmpdir):
-        """When content is not a string, write a json string."""
-        cfg = UAConfig({'data_dir': tmpdir.strpath})
-
-        assert None is cfg.write_cache('key', 'value', private=False)
-        with open(tmpdir.join('key').strpath, 'r') as stream:
-            assert 'value' == stream.read()
-        assert 'value' == cfg.read_cache('key')
 
 
 class TestReadCache:
