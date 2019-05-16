@@ -4,7 +4,8 @@
 Client to manage Ubuntu Advantage support services on a machine.
 
 Available services:
- - cc: Canonical Common Criteria EAL2 Provisioning (https://ubuntu.com/cc)
+ - cc-eal: Canonical Common Criteria EAL2 Provisioning
+   (https://ubuntu.com/cc-eal)
  - cis-audit: Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
  - esm: Extended Security Maintenance (https://ubuntu.com/esm)
  - fips: FIPS 140-2 (https://ubuntu.com/fips)
