@@ -222,7 +222,11 @@ class UAConfig:
             self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
-        util.write_file(filepath, content, mode=0o600)
+        mode = 0o600
+        if key in self.data_paths:
+            if not self.data_paths[key].private:
+                mode = 0o644
+        util.write_file(filepath, content, mode=mode)
 
     def status(self):
         """Return configuration status as a dictionary."""

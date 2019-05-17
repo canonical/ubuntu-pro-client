@@ -1,5 +1,6 @@
 import json
 import os
+import stat
 
 import pytest
 
@@ -146,6 +147,17 @@ class TestWriteCache:
         with open(tmpdir.join(PRIVATE_SUBDIR, key).strpath, 'r') as stream:
             assert expected_json_content == stream.read()
         assert value == cfg.read_cache(key)
+
+    @pytest.mark.parametrize('datapath,mode', (
+        (DataPath('path', False), 0o644),
+        (DataPath('path', True), 0o600),
+    ))
+    def test_permissions(self, tmpdir, datapath, mode):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        cfg.data_paths = {'path': datapath}
+        cfg.write_cache('path', '')
+        assert mode == stat.S_IMODE(
+            os.lstat(cfg.data_path('path')).st_mode)
 
 
 class TestReadCache:
