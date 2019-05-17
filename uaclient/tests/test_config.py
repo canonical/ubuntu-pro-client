@@ -307,10 +307,17 @@ class TestStatus:
         }
         assert expected == cfg.status()
 
-    @mock.patch('uaclient.config.os.getuid', return_value=1000)
-    def test_nonroot_without_cache(self, _m_getuid):
+    @mock.patch('uaclient.config.os.getuid')
+    def test_nonroot_without_cache_is_same_as_unattached_root(self, m_getuid):
+        m_getuid.return_value = 1000
         cfg = FakeConfig()
-        assert None is cfg.status()
+
+        nonroot_status = cfg.status()
+
+        m_getuid.return_value = 0
+        root_unattached_status = cfg.status()
+
+        assert root_unattached_status == nonroot_status
 
     @mock.patch('uaclient.config.os.getuid')
     def test_root_followed_by_nonroot(self, m_getuid, tmpdir):

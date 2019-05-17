@@ -6,7 +6,7 @@ import os
 import yaml
 from collections import namedtuple
 
-from uaclient import util
+from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 try:
@@ -15,6 +15,14 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     def cast(_, x):
         return x
+
+
+DEFAULT_STATUS = {
+    'attached': False,
+    'expires': status.INAPPLICABLE,
+    'services': [],
+    'techSupportLevel': status.INAPPLICABLE,
+}  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
 
@@ -233,12 +241,8 @@ class UAConfig:
     def _status(self) -> 'Dict[str, Any]':
         """Return configuration status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
-        from uaclient import status
-        response = {
-            'attached': self.is_attached,
-            'expires': status.INAPPLICABLE,
-            'services': [],
-            'techSupportLevel': status.INAPPLICABLE}
+        response = DEFAULT_STATUS
+        response['attached'] = self.is_attached
         if not self.is_attached:
             return response
         response['account'] = self.accounts[0]['name']
@@ -263,7 +267,10 @@ class UAConfig:
             status = self._status()
             self.write_cache('status-cache', status)
             return status
-        return cast('Dict[str, Any]', self.read_cache('status-cache'))
+        cached_status = cast('Dict[str, Any]', self.read_cache('status-cache'))
+        if not cached_status:
+            return DEFAULT_STATUS
+        return cached_status
 
 
 def parse_config(config_path=None):
