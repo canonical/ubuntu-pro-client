@@ -1,3 +1,4 @@
+import itertools
 import json
 import os
 import stat
@@ -249,10 +250,12 @@ class TestDeleteCache:
         for odd_key in odd_keys:
             cfg.write_cache(odd_key, odd_key)
 
-        private_cachedir = tmpdir.join(PRIVATE_SUBDIR).strpath
-        assert len(odd_keys) == len(os.listdir(private_cachedir))
+        present_files = list(itertools.chain(
+            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
+        assert len(odd_keys) == len(present_files)
         cfg.delete_cache()
-        dirty_files = os.listdir(private_cachedir)
+        dirty_files = list(itertools.chain(
+            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
         assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
