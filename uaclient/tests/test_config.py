@@ -1,3 +1,4 @@
+import copy
 import itertools
 import json
 import os
@@ -275,8 +276,10 @@ class TestDeleteCache:
 
 class TestStatus:
 
-    def test_unattached(self):
-        cfg = UAConfig({})
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_root_unattached(self, _m_getuid):
+        """Test we get the correct status dict when unattached"""
+        cfg = FakeConfig({})
         expected = {
             'attached': False,
             'expires': status.INAPPLICABLE,
@@ -285,7 +288,9 @@ class TestStatus:
         }
         assert expected == cfg.status()
 
-    def test_attached(self):
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_nonroot_attached(self, _m_getuid):
+        """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
         expected_services = [{'entitled': status.NONE,
                               'name': cls.name,
@@ -301,3 +306,39 @@ class TestStatus:
             'techSupportLevel': status.INAPPLICABLE,
         }
         assert expected == cfg.status()
+
+    @mock.patch('uaclient.config.os.getuid', return_value=1000)
+    def test_nonroot_without_cache(self, _m_getuid):
+        cfg = FakeConfig()
+        assert None is cfg.status()
+
+    @mock.patch('uaclient.config.os.getuid')
+    def test_root_followed_by_nonroot(self, m_getuid, tmpdir):
+        """Ensure that non-root run after root returns data"""
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+
+        # Run as root
+        m_getuid.return_value = 0
+        before = copy.deepcopy(cfg.status())
+
+        # Replicate an attach by modifying the underlying config and confirm
+        # that we see different status
+        other_cfg = FakeConfig.for_attached_machine()
+        cfg.write_cache('accounts', {'accounts': other_cfg.accounts})
+        cfg.write_cache('machine-token', other_cfg.machine_token)
+        assert cfg._status() != before
+
+        # Run as regular user and confirm that we see the result from
+        # last time we called .status()
+        m_getuid.return_value = 1000
+        after = cfg.status()
+
+        assert before == after
+
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_cache_file_is_written_world_readable(self, _m_getuid, tmpdir):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        cfg.status()
+
+        assert 0o644 == stat.S_IMODE(
+            os.lstat(cfg.data_path('status-cache')).st_mode)

@@ -10,10 +10,11 @@ from uaclient import util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 try:
-    from typing import Any, Dict, Optional  # noqa: F401
+    from typing import Any, cast, Dict, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    pass
+    def cast(_, x):
+        return x
 
 LOG = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class UAConfig:
         'machine-token-refresh': DataPath('machine-token-refresh.json', True),
         'macaroon': DataPath('sso-macaroon.json', True),
         'root-macaroon': DataPath('root-macaroon.json', True),
+        'status-cache': DataPath('status.json', False),
         'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
 
@@ -228,7 +230,7 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def status(self):
+    def _status(self) -> 'Dict[str, Any]':
         """Return configuration status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
         from uaclient import status
@@ -254,6 +256,14 @@ class UAConfig:
                 'status': op_status, 'statusDetails': op_details}
             response['services'].append(service_status)
         return response
+
+    def status(self) -> 'Dict[str, Any]':
+        """Return status as a dict, using a cache for non-root users"""
+        if os.getuid() == 0:
+            status = self._status()
+            self.write_cache('status-cache', status)
+            return status
+        return cast('Dict[str, Any]', self.read_cache('status-cache'))
 
 
 def parse_config(config_path=None):
