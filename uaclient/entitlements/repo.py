@@ -81,7 +81,6 @@ class RepoEntitlement(base.UAEntitlement):
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
                 return False
-        self._set_local_enabled(True)
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -97,7 +96,6 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'remove', '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
-            self._set_local_enabled(False)
         if self.force_disable:
             if not silent:
                 print('Warning: no option to disable {title}'.format(
@@ -266,10 +264,3 @@ class RepoEntitlement(base.UAEntitlement):
                 name=self.name, series=series)
             if os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
-
-    def _set_local_enabled(self, value: bool) -> None:
-        """Set local enabled flag true or false."""
-        public_cache = cast(
-            'Dict[str, Any]',
-            self.cfg.read_cache('machine-access-%s' % self.name))
-        public_cache['localEnabled'] = value
