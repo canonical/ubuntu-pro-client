@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from uaclient.config import PRIVATE_SUBDIR, UAConfig
+from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
@@ -97,6 +97,11 @@ class TestDataPath:
         """When key is not in Config.data_paths the key is used to data_dir"""
         cfg = UAConfig({'data_dir': '/my/d'})
         assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
+
+    def test_data_path_returns_public_path_for_public_datapath(self):
+        cfg = UAConfig({'data_dir': '/my/d'})
+        cfg.data_paths['test_path'] = DataPath('test_path', False)
+        assert '/my/d/test_path' == cfg.data_path('test_path')
 
 
 class TestWriteCache:

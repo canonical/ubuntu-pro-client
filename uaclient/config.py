@@ -25,35 +25,39 @@ class ConfigAbsentError(RuntimeError):
     pass
 
 
-# A data path is a filename
-DataPath = namedtuple('DataPath', ('filename',))
+# A data path is a filename, and an attribute ("private") indicating whether it
+# should only be readable by root
+DataPath = namedtuple('DataPath', ('filename', 'private'))
 
 
 class UAConfig:
 
     data_paths = {
-        'bound-macaroon': DataPath('bound-macaroon'),
-        'accounts': DataPath('accounts.json'),
-        'account-contracts': DataPath('account-contracts.json'),
-        'account-users': DataPath('account-users.json'),
-        'contract-token': DataPath('contract-token.json'),
-        'local-access': DataPath('local-access'),
-        'machine-contracts': DataPath('machine-contracts.json'),
-        'machine-access-cc-eal': DataPath('machine-access-cc-eal.json'),
-        'machine-access-cis-audit': DataPath('machine-access-cis-audit.json'),
-        'machine-access-esm': DataPath('machine-access-esm.json'),
-        'machine-access-fips': DataPath('machine-access-fips.json'),
+        'bound-macaroon': DataPath('bound-macaroon', True),
+        'accounts': DataPath('accounts.json', True),
+        'account-contracts': DataPath('account-contracts.json', True),
+        'account-users': DataPath('account-users.json', True),
+        'contract-token': DataPath('contract-token.json', True),
+        'local-access': DataPath('local-access', True),
+        'machine-contracts': DataPath('machine-contracts.json', True),
+        'machine-access-cc-eal': DataPath('machine-access-cc-eal.json', True),
+        'machine-access-cis-audit': DataPath(
+            'machine-access-cis-audit.json', True),
+        'machine-access-esm': DataPath('machine-access-esm.json', True),
+        'machine-access-fips': DataPath('machine-access-fips.json', True),
         'machine-access-fips-updates': DataPath(
-            'machine-access-fips-updates.json'),
-        'machine-access-livepatch': DataPath('machine-access-livepatch.json'),
-        'machine-access-support': DataPath('machine-access-support.json'),
-        'machine-detach': DataPath('machine-detach.json'),
-        'machine-id': DataPath('machine-id'),
-        'machine-token': DataPath('machine-token.json'),
-        'machine-token-refresh': DataPath('machine-token-refresh.json'),
-        'macaroon': DataPath('sso-macaroon.json'),
-        'root-macaroon': DataPath('root-macaroon.json'),
-        'oauth': DataPath('sso-oauth.json')
+            'machine-access-fips-updates.json', True),
+        'machine-access-livepatch': DataPath(
+            'machine-access-livepatch.json', True),
+        'machine-access-support': DataPath(
+            'machine-access-support.json', True),
+        'machine-detach': DataPath('machine-detach.json', True),
+        'machine-id': DataPath('machine-id', True),
+        'machine-token': DataPath('machine-token.json', True),
+        'machine-token-refresh': DataPath('machine-token-refresh.json', True),
+        'macaroon': DataPath('sso-macaroon.json', True),
+        'root-macaroon': DataPath('root-macaroon.json', True),
+        'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
 
     _contracts = None  # caching to avoid repetitive file reads
@@ -165,12 +169,16 @@ class UAConfig:
 
     def data_path(self, key: 'Optional[str]' = None) -> str:
         """Return the file path in the data directory represented by the key"""
-        data_dir = os.path.join(self.cfg['data_dir'], PRIVATE_SUBDIR)
+        data_dir = self.cfg['data_dir']
         if not key:
-            return data_dir
+            return os.path.join(data_dir, PRIVATE_SUBDIR)
         if key in self.data_paths:
-            return os.path.join(data_dir, self.data_paths[key].filename)
-        return os.path.join(data_dir, key)
+            data_path = self.data_paths[key]
+            if data_path.private:
+                return os.path.join(
+                    data_dir, PRIVATE_SUBDIR, data_path.filename)
+            return os.path.join(data_dir, data_path.filename)
+        return os.path.join(data_dir, PRIVATE_SUBDIR, key)
 
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
