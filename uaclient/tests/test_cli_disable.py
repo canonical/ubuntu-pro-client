@@ -30,3 +30,5 @@ class TestDisable:
         expected_disable_call = mock.call()
         assert [expected_disable_call] == m_entitlement.disable.call_args_list
         assert return_code == ret
+
+        assert 1 == m_cfg.status.call_count
