@@ -203,7 +203,9 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
     entitlement = ent_cls(cfg)
-    return entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    cfg.status()  # Update the status cache
+    return ret
 
 
 @assert_attached_root
