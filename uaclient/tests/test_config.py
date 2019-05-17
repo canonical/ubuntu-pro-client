@@ -2,9 +2,12 @@ import json
 import os
 import stat
 
+import mock
 import pytest
 
+from uaclient import entitlements, status
 from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig
+from uaclient.testing.fakes import FakeConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
@@ -265,3 +268,33 @@ class TestDeleteCache:
         cfg.delete_cache()
         assert [os.path.basename(t_file.strpath)] == os.listdir(
             tmpdir.join(PRIVATE_SUBDIR).strpath)
+
+
+class TestStatus:
+
+    def test_unattached(self):
+        cfg = UAConfig({})
+        expected = {
+            'attached': False,
+            'expires': status.INAPPLICABLE,
+            'services': [],
+            'techSupportLevel': status.INAPPLICABLE,
+        }
+        assert expected == cfg.status()
+
+    def test_attached(self):
+        cfg = FakeConfig.for_attached_machine()
+        expected_services = [{'entitled': status.NONE,
+                              'name': cls.name,
+                              'status': status.INAPPLICABLE,
+                              'statusDetails': mock.ANY}
+                             for cls in entitlements.ENTITLEMENT_CLASSES]
+        expected = {
+            'account': 'test_account',
+            'attached': True,
+            'expires': status.INAPPLICABLE,
+            'services': expected_services,
+            'subscription': 'test_contract',
+            'techSupportLevel': status.INAPPLICABLE,
+        }
+        assert expected == cfg.status()
