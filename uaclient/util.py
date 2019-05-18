@@ -280,11 +280,9 @@ def get_platform_info(  # noqa: F811
         platform_info.update({'release': match_dict['version'],
                               'series': match_dict['series'].lower()})
     if key in (None, 'kernel'):
-        kernel_ver_out, _err = subp(['uname', '-r'])
-        platform_info['kernel'] = kernel_ver_out.strip()
+        platform_info['kernel'] = os.uname().release
     if key in (None, 'arch'):
-        arch, _err = subp(['uname', '-i'])
-        platform_info['arch'] = arch.strip()
+        platform_info['arch'] = os.uname().machine
     return platform_info if not key else platform_info[key]
 
 
