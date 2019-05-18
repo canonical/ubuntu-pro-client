@@ -137,9 +137,7 @@ def maybe_parse_json(content: str) -> 'Optional[Any]':
 def readurl(url, data=None, headers={}, method=None):
     if data and not method:
         method = 'POST'
-    req = request.Request(url, data=data, headers=headers)
-    if method:
-        req.get_method = lambda: method
+    req = request.Request(url, data=data, headers=headers, method=method)
     if data:
         redacted_data = maybe_parse_json(data.decode('utf-8'))
         for key in SENSITIVE_KEYS:
