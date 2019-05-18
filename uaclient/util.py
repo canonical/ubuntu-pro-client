@@ -8,10 +8,11 @@ from urllib import request
 import uuid
 
 try:
-    from typing import Any, Optional  # noqa: F401
+    from typing import Any, Dict, Optional, overload, Union  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    pass
+    def overload(f):
+        return f
 
 
 SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
@@ -249,7 +250,18 @@ REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
     r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
 
 
-def get_platform_info(key=None):
+@overload
+def get_platform_info(key: None = None) -> 'Dict[str, str]':
+    pass
+
+
+@overload  # noqa: F811
+def get_platform_info(key: str) -> 'str':
+    pass
+
+
+def get_platform_info(  # noqa: F811
+        key: 'Optional[str]' = None) -> 'Union[Dict[str, str], str]':
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
