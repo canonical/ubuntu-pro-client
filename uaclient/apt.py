@@ -66,7 +66,7 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
     except ValueError:  # Then we have a bearer token
         username = 'bearer'
         password = credentials
-    series = util.get_platform_info('series')
+    series = util.get_platform_info()['series']
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
     if not valid_apt_credentials(repo_url, username, password):
@@ -163,7 +163,7 @@ def remove_auth_apt_repo(repo_filename: str, repo_url: str,
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
-    series = util.get_platform_info('series')
+    series = util.get_platform_info()['series']
     _protocol, repo_path = repo_url.split('://')
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]

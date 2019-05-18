@@ -8,11 +8,10 @@ from urllib import request
 import uuid
 
 try:
-    from typing import Any, Dict, Optional, overload, Union  # noqa: F401
+    from typing import Any, Dict, Optional, Union  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    def overload(f):
-        return f
+    pass
 
 
 SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
@@ -250,40 +249,29 @@ REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
     r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
 
 
-@overload
-def get_platform_info(key: None = None) -> 'Dict[str, str]':
-    pass
-
-
-@overload  # noqa: F811
-def get_platform_info(key: str) -> 'str':
-    pass
-
-
-def get_platform_info(  # noqa: F811
-        key: 'Optional[str]' = None) -> 'Union[Dict[str, str], str]':
+def get_platform_info() -> 'Dict[str, str]':
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
         'type': 'Linux'}
 
-    if key in (None, 'release', 'series'):
-        version = os_release['VERSION']
-        match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
-        if not match:
-            match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
-        if not match:
-            raise RuntimeError(
-                'Could not parse /etc/os-release VERSION: %s' %
-                os_release['VERSION'])
-        match_dict = match.groupdict()
-        platform_info.update({'release': match_dict['version'],
-                              'series': match_dict['series'].lower()})
-    if key in (None, 'kernel'):
-        platform_info['kernel'] = os.uname().release
-    if key in (None, 'arch'):
-        platform_info['arch'] = os.uname().machine
-    return platform_info if not key else platform_info[key]
+    version = os_release['VERSION']
+    match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
+    if not match:
+        match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+    if not match:
+        raise RuntimeError(
+            'Could not parse /etc/os-release VERSION: %s' %
+            os_release['VERSION'])
+    match_dict = match.groupdict()
+    platform_info.update({'release': match_dict['version'],
+                          'series': match_dict['series'].lower()})
+
+    uname = os.uname()
+    platform_info['kernel'] = uname.release
+    platform_info['arch'] = uname.machine
+
+    return platform_info
 
 
 def get_machine_id(data_dir):

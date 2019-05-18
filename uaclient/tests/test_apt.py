@@ -25,7 +25,7 @@ class TestAddPPAPinning:
     @mock.patch('uaclient.util.get_platform_info')
     def test_write_apt_pin_file_to_apt_preferences(self, m_platform, tmpdir):
         """Write proper apt pin file to specified apt_preference_file."""
-        m_platform.return_value = 'xenial'
+        m_platform.return_value = {'series': 'xenial'}
         pref_file = tmpdir.join('preffile').strpath
         assert None is add_ppa_pinning(
             pref_file, repo_url='http://fakerepo', origin='MYORIG',
@@ -146,7 +146,8 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_sources_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -168,7 +169,8 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -195,7 +197,8 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_ignores_updates_suites_on_non_update_machine(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -220,7 +223,8 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -243,7 +247,8 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
@@ -366,14 +371,6 @@ class TestMigrateAptSources:
         glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list',
                       '/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list']
 
-        def fake_platform_info(key=None):
-            platform_data = {
-                'arch': 'x86_64', 'series': 'xenial', 'release': '16.04',
-                'kernel': '4.15.0-40-generic'}
-            if key:
-                return platform_data[key]
-            return platform_data
-
         def fake_apt_list_exists(path):
             if path in glob_files:
                 return True
@@ -385,7 +382,10 @@ class TestMigrateAptSources:
             return []
 
         repo_url = CC_RESOURCE_ENTITLED['entitlement']['directives']['aptURL']
-        m_platform_info.side_effect = fake_platform_info
+        m_platform_info.return_value = {
+            'arch': 'x86_64', 'series': 'xenial', 'release': '16.04',
+            'kernel': '4.15.0-40-generic',
+        }
         m_subp.return_value = '500 %s' % repo_url, ''
         with mock.patch('uaclient.apt.glob.glob') as m_glob:
             with mock.patch('uaclient.apt.os.path.exists') as m_exists:

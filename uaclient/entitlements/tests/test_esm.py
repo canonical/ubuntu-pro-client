@@ -37,7 +37,6 @@ ESM_RESOURCE_ENTITLED = {
 
 M_PATH = 'uaclient.entitlements.esm.ESMEntitlement.'
 M_REPOPATH = 'uaclient.entitlements.repo.'
-M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
 
 @pytest.fixture
@@ -71,7 +70,8 @@ class TestESMEntitlementDisable:
         assert 0 == m_remove_apt.call_count
 
     @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
-    @mock.patch('uaclient.util.get_platform_info', return_value='xenial')
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
     @mock.patch(M_PATH + 'can_disable', return_value=True)
     def test_disable_removes_apt_config(
             self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
