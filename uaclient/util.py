@@ -4,11 +4,13 @@ import logging
 import os
 import re
 import subprocess
-from urllib import request
+from urllib import error, request
 import uuid
 
 try:
-    from typing import Any, Dict, Optional, Union  # noqa: F401
+    from typing import (  # noqa: F401
+        Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union,
+    )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -28,14 +30,16 @@ class LogFormatter(logging.Formatter):
         logging.DEBUG: 'DEBUG: %(message)s',
     }
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.FORMATS.get(record.levelno, '%(message)s')
         return logging.Formatter(log_fmt).format(record)
 
 
 class UrlError(IOError):
 
-    def __init__(self, cause, code=None, headers=None, url=None):
+    def __init__(self, cause: error.URLError, code: 'Optional[int]' = None,
+                 headers: 'Optional[Dict[str, str]]' = None,
+                 url: 'Optional[str]' = None):
         super().__init__(str(cause))
         self.cause = cause
         self.code = code
@@ -50,7 +54,8 @@ class ProcessExecutionError(IOError):
     ERR_TMPL = (
         "Failed running command '{cmd}' [exit({exit_code})]. Message {stderr}")
 
-    def __init__(self, cmd, exit_code=None, stdout='', stderr=''):
+    def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
+                 stdout: str = '', stderr: str = '') -> None:
         self.cmd = cmd
         self.exit_code = exit_code
         self.stdout = stdout
@@ -65,7 +70,7 @@ class ProcessExecutionError(IOError):
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
 
 
-def del_file(path):
+def del_file(path: str) -> None:
     try:
         os.unlink(path)
     except OSError as e:
@@ -73,9 +78,10 @@ def del_file(path):
             raise e
 
 
-def get_dict_deltas(orig_dict, new_dict, path=''):
+def get_dict_deltas(orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]',
+                    path: str = '') -> 'Dict[str, Any]':
     """Return a dictionary of delta between orig_dict and new_dict."""
-    deltas = {}
+    deltas = {}  # type: Dict[str, Any]
     for key, value in orig_dict.items():
         new_value = new_dict.get(key, DROPPED_KEY)
         key_path = key if not path else path + '.' + key
@@ -97,7 +103,7 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
     return deltas
 
 
-def is_container(run_path='/run'):
+def is_container(run_path: str = '/run') -> bool:
     """Checks to see if this code running in a container of some sort"""
     try:
         subp(['systemd-detect-virt', '--quiet', '--container'])
@@ -111,7 +117,7 @@ def is_container(run_path='/run'):
     return False
 
 
-def is_exe(path):
+def is_exe(path: str) -> bool:
     # return boolean indicating if path exists and is executable.
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
@@ -159,7 +165,8 @@ def readurl(url, data=None, headers={}, method=None):
     return content, resp.headers
 
 
-def subp(args, rcs=None, capture=False):
+def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
+         capture: bool = False) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
@@ -199,7 +206,7 @@ def subp(args, rcs=None, capture=False):
     return out.decode('utf-8'), err.decode('utf-8')
 
 
-def which(program):
+def which(program: str) -> 'Optional[str]':
     """Find whether the provided program is executable in our PATH"""
     if os.path.sep in program:
         # if program had a '/' in it, then do not search PATH
@@ -230,7 +237,7 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
-def parse_os_release(release_file=None):
+def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
     if not release_file:
         release_file = '/etc/os-release'
     data = {}
@@ -272,7 +279,7 @@ def get_platform_info() -> 'Dict[str, str]':
     return platform_info
 
 
-def get_machine_id(data_dir):
+def get_machine_id(data_dir: str) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     if os.path.exists(ETC_MACHINE_ID):
         return load_file(ETC_MACHINE_ID).rstrip('\n')
