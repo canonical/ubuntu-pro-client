@@ -73,13 +73,6 @@ def del_file(path):
             raise e
 
 
-def encode_text(text, encoding='utf-8'):
-    """Convert a text string into a binary type using given encoding."""
-    if isinstance(text, bytes):
-        return text
-    return text.encode(encoding)
-
-
 def get_dict_deltas(orig_dict, new_dict, path=''):
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}
@@ -224,7 +217,7 @@ def which(program):
     return None
 
 
-def write_file(filename, content, mode=0o644, omode='wb'):
+def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     """Write content to the provided filename encoding it if necessary.
 
     @param filename: The full path of the file to write.
@@ -233,10 +226,8 @@ def write_file(filename, content, mode=0o644, omode='wb'):
     @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
     logging.debug('Writing file: %s', filename)
-    if 'b' in omode.lower():
-        content = encode_text(content)
-    with open(filename, omode) as fh:
-        fh.write(content)
+    with open(filename, 'wb') as fh:
+        fh.write(content.encode('utf-8'))
         fh.flush()
     os.chmod(filename, mode)
 
