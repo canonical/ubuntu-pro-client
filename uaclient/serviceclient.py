@@ -44,7 +44,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         if not headers:
             headers = self.headers()
         if headers.get('content-type') == 'application/json' and data:
-            data = util.encode_text(json.dumps(data))
+            data = json.dumps(data).encode('utf-8')
         url = getattr(self.cfg, self.cfg_url_base_attr) + path
         try:
             response, headers = util.readurl(
