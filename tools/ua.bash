@@ -1,6 +1,6 @@
 # bash completion for ubuntu-advantage-tools
 
-SERVICES="cc cis-audit esm fips fips-updates livepatch"
+SERVICES="cc-eal cis-audit esm fips fips-updates livepatch"
 
 _ua_complete()
 {
