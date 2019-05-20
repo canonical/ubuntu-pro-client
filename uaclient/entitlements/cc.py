@@ -9,7 +9,7 @@ CC_README = '/usr/share/doc/ubuntu-commoncriteria/README'
 
 class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
-    name = 'cc'
+    name = 'cc-eal'
     title = 'Canonical Common Criteria EAL2 Provisioning'
     description = (
         'Common Criteria for Information Technology Security Evaluation - EAL2'

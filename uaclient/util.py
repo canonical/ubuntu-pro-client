@@ -134,7 +134,7 @@ def maybe_parse_json(content: str) -> 'Optional[Any]':
         return None
 
 
-def readurl(url, data=None, headers=None, method=None):
+def readurl(url, data=None, headers={}, method=None):
     if data and not method:
         method = 'POST'
     req = request.Request(url, data=data, headers=headers)

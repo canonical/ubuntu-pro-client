@@ -328,11 +328,11 @@ class TestMigrateAptSources:
 
         cfg = config.UAConfig({'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
-        cfg.write_cache('machine-access-cc', cc_unentitled)
+        cfg.write_cache('machine-access-cc-eal', cc_unentitled)
 
         orig_exists = os.path.exists
 
-        apt_files = ['/etc/apt/sources.list.d/ubuntu-cc-trusty.list']
+        apt_files = ['/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list']
 
         def fake_apt_list_exists(path):
             if path in apt_files:
@@ -359,12 +359,12 @@ class TestMigrateAptSources:
 
         cfg = config.UAConfig({'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
-        cfg.write_cache('machine-access-cc', dict(CC_RESOURCE_ENTITLED))
+        cfg.write_cache('machine-access-cc-eal', dict(CC_RESOURCE_ENTITLED))
 
         orig_exists = os.path.exists
 
-        glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-trusty.list',
-                      '/etc/apt/sources.list.d/ubuntu-cc-xenial.list']
+        glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list',
+                      '/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list']
 
         def fake_platform_info(key=None):
             platform_data = {
@@ -380,7 +380,7 @@ class TestMigrateAptSources:
             return orig_exists(path)
 
         def fake_glob(regex):
-            if regex == '/etc/apt/sources.list.d/ubuntu-cc-*.list':
+            if regex == '/etc/apt/sources.list.d/ubuntu-cc-eal-*.list':
                 return glob_files
             return []
 
@@ -395,7 +395,7 @@ class TestMigrateAptSources:
         assert [] == m_add_apt.call_args_list
         # Only exists checks for for cfg.is_attached and can_enable
         unlink_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cc-trusty.list')]
+            mock.call('/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list')]
         assert unlink_calls == m_unlink.call_args_list  # remove nothing
         assert [] == m_exists.call_args_list
 

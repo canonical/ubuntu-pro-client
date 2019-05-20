@@ -20,7 +20,7 @@ CC_MACHINE_TOKEN = {
     'machineTokenInfo': {
         'contractInfo': {
             'resourceEntitlements': [
-                {'type': 'cc', 'entitled': True}]}}}
+                {'type': 'cc-eal', 'entitled': True}]}}}
 
 
 CC_RESOURCE_ENTITLED = {
@@ -29,7 +29,7 @@ CC_RESOURCE_ENTITLED = {
         'obligations': {
             'enableByDefault': False
         },
-        'type': 'cc',
+        'type': 'cc-eal',
         'entitled': True,
         'directives': {
             'aptURL': 'http://CC',
@@ -70,7 +70,7 @@ class TestCommonCriteriaEntitlementOperationalStatus:
         m_platform_info.return_value = unsupported_info
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
+        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         op_status, op_status_details = entitlement.operational_status()
         assert status.INAPPLICABLE == op_status
@@ -87,7 +87,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
+        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         op_status, op_status_details = entitlement.operational_status()
         assert status.INACTIVE == op_status
@@ -130,7 +130,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_platform_info.side_effect = fake_platform
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc', CC_RESOURCE_ENTITLED)
+        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
 
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
@@ -142,7 +142,7 @@ class TestCommonCriteriaEntitlementEnable:
                         assert True is entitlement.enable()
 
         add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cc-xenial.list',
+            mock.call('/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list',
                       'http://CC', 'TOKEN', ['xenial'],
                       '/usr/share/keyrings/ubuntu-cc-keyring.gpg')]
 

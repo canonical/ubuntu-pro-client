@@ -65,7 +65,7 @@ class UAConfig:
         'contract-token': 'contract-token.json',
         'local-access': 'local-access',
         'machine-contracts': 'machine-contracts.json',
-        'machine-access-cc': 'machine-access-cc.json',
+        'machine-access-cc-eal': 'machine-access-cc-eal.json',
         'machine-access-cis-audit': 'machine-access-cis-audit.json',
         'machine-access-esm': 'machine-access-esm.json',
         'machine-access-fips': 'machine-access-fips.json',

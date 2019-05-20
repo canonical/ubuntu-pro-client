@@ -256,3 +256,11 @@ class TestGetMachineId:
                 value = util.get_machine_id(data_dir=tmpdir.strpath)
         assert '01234567-89ab-cdef-0123-456789abcdef' == value
         assert '01234567-89ab-cdef-0123-456789abcdef' == data_machine_id.read()
+
+
+class TestReadurl:
+
+    def test_simple_call_with_url_works(self):
+        with mock.patch('uaclient.util.request.urlopen') as m_urlopen:
+            util.readurl('http://some_url')
+        assert 1 == m_urlopen.call_count
