@@ -1,6 +1,9 @@
-all: hook
+all: build
 
-build: hook
+build: hook ubuntu-advantage.pot
+
+ubuntu-advantage.pot: hook.cc
+	xgettext hook.cc -o ubuntu-advantage.pot
 
 hook: hook.cc
 	$(CXX) -Wall -Wextra -pedantic $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -g -o hook hook.cc -lapt-pkg $(LDLIBS)
@@ -10,4 +13,4 @@ install: hook
 	install -D -m 755 hook $(DESTDIR)/usr/lib/ubuntu-advantage/apt-esm-hook
 
 clean:
-	rm -f hook
+	rm -f hook ubuntu-advantage.pot
