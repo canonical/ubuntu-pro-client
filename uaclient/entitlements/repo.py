@@ -4,10 +4,11 @@ import os
 import re
 
 try:
-    from typing import Any, Dict, List, Optional  # noqa: F401
+    from typing import Any, cast, Dict, List, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    pass
+    def cast(_, x):  # type: ignore
+        return x
 
 
 from uaclient import apt
@@ -268,7 +269,9 @@ class RepoEntitlement(base.UAEntitlement):
 
     def _set_local_enabled(self, value: bool) -> None:
         """Set local enabled flag true or false."""
-        public_cache = self.cfg.read_cache('machine-access-%s' % self.name)
+        public_cache = cast(
+            'Dict[str, Any]',
+            self.cfg.read_cache('machine-access-%s' % self.name))
         public_cache['localEnabled'] = value
         redacted_cache = util.redact_sensitive(public_cache)
         self.cfg.write_cache(
