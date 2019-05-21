@@ -59,7 +59,7 @@ class FakeConfig(UAConfig):
             'machine-token': {
                 'machineToken': 'not-null',
                 'machineTokenInfo': {
-                    'contractInfo': {'id': 'cid',
+                    'contractInfo': {'id': 'cid', 'name': 'test_contract',
                                      'resourceEntitlements': []}}}
         }
         if machine_token:

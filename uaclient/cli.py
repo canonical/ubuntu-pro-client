@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 """\
-Client to manage Ubuntu Advantage support entitlements on a machine.
+Client to manage Ubuntu Advantage support services on a machine.
 
-Available entitlements:
- - cc: Canonical Common Criteria EAL2 Provisioning (https://ubuntu.com/cc)
+Available services:
+ - cc-eal: Canonical Common Criteria EAL2 Provisioning
+   (https://ubuntu.com/cc-eal)
  - cis-audit: Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
  - esm: Extended Security Maintenance (https://ubuntu.com/esm)
  - fips: FIPS 140-2 (https://ubuntu.com/fips)
@@ -110,43 +111,43 @@ def detach_parser(parser=None):
 
 def enable_parser(parser=None):
     """Build or extend an arg parser for enable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='enable') + ' <entitlement>'
+    usage = USAGE_TMPL.format(name=NAME, command='enable') + ' <name>'
     if not parser:
         parser = argparse.ArgumentParser(
             prog='enable',
-            description='Enable a support entitlement on this machine',
+            description='Enable a support service on this machine',
             usage=usage)
     else:
         parser.usage = usage
         parser.prog = 'enable'
-    parser._positionals.title = 'Entitlements'
+    parser._positionals.title = 'Services'
     parser._optionals.title = 'Flags'
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
     parser.add_argument(
         'name', action='store', choices=entitlement_names,
-        help='The name of the support entitlement to enable')
+        help='The name of the support service to enable')
     return parser
 
 
 def disable_parser(parser=None):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='disable') + ' <entitlement>'
+    usage = USAGE_TMPL.format(name=NAME, command='disable') + ' <name>'
     if not parser:
         parser = argparse.ArgumentParser(
             prog='disable',
-            description='Disable a support entitlement on this machine',
+            description='Disable a support service on this machine',
             usage=usage)
     else:
         parser.usage = usage
         parser.prog = 'disable'
-    parser._positionals.title = 'Entitlements'
+    parser._positionals.title = 'Services'
     parser._optionals.title = 'Flags'
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES)
     parser.add_argument(
         'name', action='store', choices=entitlement_names,
-        help='The name of the support entitlement to disable')
+        help='The name of the support service to disable')
     return parser
 
 
@@ -179,10 +180,9 @@ def action_disable(args, cfg):
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
-    if entitlement.disable():
-        return 0
-    else:
-        return 1
+    ret = 0 if entitlement.disable() else 1
+    cfg.status()  # Update the status cache
+    return ret
 
 
 def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
@@ -202,7 +202,9 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
     entitlement = ent_cls(cfg)
-    return entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    cfg.status()  # Update the status cache
+    return ret
 
 
 @assert_attached_root
@@ -291,7 +293,7 @@ def get_parser():
         title='Available Commands', dest='command', metavar='')
     subparsers.required = True
     parser_status = subparsers.add_parser(
-        'status', help='current status of all ubuntu advantage entitlements')
+        'status', help='current status of all ubuntu advantage services')
     parser_status.set_defaults(action=action_status)
     status_parser(parser_status)
     parser_attach = subparsers.add_parser(
@@ -306,17 +308,17 @@ def get_parser():
     parser_detach.set_defaults(action=action_detach)
     parser_enable = subparsers.add_parser(
         'enable',
-        help='enable a specific support entitlement on this machine')
+        help='enable a specific support services on this machine')
     enable_parser(parser_enable)
     parser_enable.set_defaults(action=action_enable)
     parser_disable = subparsers.add_parser(
         'disable',
-        help='disable a specific support entitlement on this machine')
+        help='disable a specific support services on this machine')
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
     parser_refresh = subparsers.add_parser(
         'refresh', help=(
-            'Refresh ubuntu-advantage entitlements from contracts server.'))
+            'Refresh ubuntu-advantage services from contracts server.'))
     parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         'version', help='Show version of ua-client')

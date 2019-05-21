@@ -100,22 +100,6 @@ class TestOperationalStatus:
         assert status.INAPPLICABLE == op_status
         assert 'Repo Test Class is not entitled' == op_details
 
-    @pytest.mark.parametrize('value', (True, False))
-    @mock.patch(M_PATH + 're.search', return_value=None)
-    @mock.patch(M_PATH + 'os.getuid', return_value=1000)
-    def test_local_enabled_manager_used_if_not_root(
-            self, m_getuid, _m_re_match, entitlement, value):
-        entitlement.cfg.local_enabled_manager.set(entitlement.name, value)
-
-        with mock.patch.object(entitlement, 'check_affordances',
-                               return_value=(True, '')):
-            expected_op_status = (
-                status.ACTIVE if value else status.INACTIVE, mock.ANY)
-            assert expected_op_status == entitlement.operational_status()
-
-        # Use getuid as a proxy for the correct code path being taken
-        assert 1 == m_getuid.call_count
-
 
 class TestProcessContractDeltas:
 
@@ -204,7 +188,8 @@ class TestProcessContractDeltas:
         assert [mock.call()] == m_setup_apt_config.call_args_list
         assert [] == m_remove_auth_apt_repo.call_args_list
 
-    @mock.patch(M_PATH + 'util.get_platform_info', return_value='trusty')
+    @mock.patch(M_PATH + 'util.get_platform_info',
+                return_value={'series': 'trusty'})
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
@@ -261,7 +246,7 @@ class TestRepoEnable:
             self, m_can_enable, m_platform, m_exists, m_apt_add, m_subp,
             entitlement, capsys, caplog_text, tmpdir, packages):
         """On enable add authenticated apt repo and refresh package lists."""
-        m_platform.return_value = 'xenial'  # from 'series' param
+        m_platform.return_value = {'series': 'xenial'}
 
         expected_apt_calls = [mock.call(['apt-get', 'update'], capture=True)]
         expected_output = dedent("""\
@@ -295,33 +280,3 @@ class TestRepoEnable:
             '/usr/share/keyrings/test.gpg')] == m_apt_add.call_args_list
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
-
-    @mock.patch.object(RepoTestEntitlement, 'setup_apt_config',
-                       return_value=True)
-    @mock.patch.object(RepoTestEntitlement, 'can_enable', return_value=True)
-    def test_enable_sets_public_local_enabled(
-            self, _m_can_enable, _m_setup_apt_config, entitlement):
-        # We patch the type of entitlement because packages is a property; we
-        # want no packages to reduce the surface that this test covers
-        with mock.patch.object(type(entitlement), 'packages', []):
-            entitlement.enable()
-
-        assert entitlement.cfg.local_enabled_manager.get(entitlement.name)
-
-
-class TestRepoDisable:
-
-    @mock.patch(M_PATH + 'util.subp')
-    @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
-    @mock.patch.object(RepoTestEntitlement, 'can_disable', return_value=True)
-    def test_disable_sets_public_local_disabled(
-            self, _m_can_disable, _m_remove_apt_config, _m_subp, entitlement):
-        entitlement.cfg.local_enabled_manager.set(entitlement.name, True)
-        assert entitlement.cfg.local_enabled_manager.get(entitlement.name)
-
-        # We patch the type of entitlement because packages is a property; we
-        # want no packages to reduce the surface that this test covers
-        with mock.patch.object(type(entitlement), 'packages', []):
-            entitlement.disable()
-
-        assert not entitlement.cfg.local_enabled_manager.get(entitlement.name)

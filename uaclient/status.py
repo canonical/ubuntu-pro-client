@@ -64,6 +64,7 @@ Subscription: {subscription}
 Valid until: {expires}
 Technical support level: {techSupportLevel}
 """
+STATUS_SERVICE_HEADER = 'SERVICE'
 STATUS_TMPL = '{name: <14}{entitled: <26}{status}'
 
 MESSAGE_ATTACH_FAILURE_TMPL = """\
@@ -123,6 +124,7 @@ def format_tabular(status):
         expires=status['expires'],
         techSupportLevel=status['techSupportLevel'])]
 
+    content.append(STATUS_SERVICE_HEADER)
     for service_status in status['services']:
         entitled = service_status['entitled']
         fmt_args = {

@@ -4,11 +4,13 @@ import logging
 import os
 import re
 import subprocess
-from urllib import request
+from urllib import error, request
 import uuid
 
 try:
-    from typing import Any, Optional  # noqa: F401
+    from typing import (  # noqa: F401
+        Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union,
+    )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -28,14 +30,16 @@ class LogFormatter(logging.Formatter):
         logging.DEBUG: 'DEBUG: %(message)s',
     }
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         log_fmt = self.FORMATS.get(record.levelno, '%(message)s')
         return logging.Formatter(log_fmt).format(record)
 
 
 class UrlError(IOError):
 
-    def __init__(self, cause, code=None, headers=None, url=None):
+    def __init__(self, cause: error.URLError, code: 'Optional[int]' = None,
+                 headers: 'Optional[Dict[str, str]]' = None,
+                 url: 'Optional[str]' = None):
         super().__init__(str(cause))
         self.cause = cause
         self.code = code
@@ -50,7 +54,8 @@ class ProcessExecutionError(IOError):
     ERR_TMPL = (
         "Failed running command '{cmd}' [exit({exit_code})]. Message {stderr}")
 
-    def __init__(self, cmd, exit_code=None, stdout='', stderr=''):
+    def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
+                 stdout: str = '', stderr: str = '') -> None:
         self.cmd = cmd
         self.exit_code = exit_code
         self.stdout = stdout
@@ -65,7 +70,7 @@ class ProcessExecutionError(IOError):
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
 
 
-def del_file(path):
+def del_file(path: str) -> None:
     try:
         os.unlink(path)
     except OSError as e:
@@ -73,16 +78,10 @@ def del_file(path):
             raise e
 
 
-def encode_text(text, encoding='utf-8'):
-    """Convert a text string into a binary type using given encoding."""
-    if isinstance(text, bytes):
-        return text
-    return text.encode(encoding)
-
-
-def get_dict_deltas(orig_dict, new_dict, path=''):
+def get_dict_deltas(orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]',
+                    path: str = '') -> 'Dict[str, Any]':
     """Return a dictionary of delta between orig_dict and new_dict."""
-    deltas = {}
+    deltas = {}  # type: Dict[str, Any]
     for key, value in orig_dict.items():
         new_value = new_dict.get(key, DROPPED_KEY)
         key_path = key if not path else path + '.' + key
@@ -104,7 +103,7 @@ def get_dict_deltas(orig_dict, new_dict, path=''):
     return deltas
 
 
-def is_container(run_path='/run'):
+def is_container(run_path: str = '/run') -> bool:
     """Checks to see if this code running in a container of some sort"""
     try:
         subp(['systemd-detect-virt', '--quiet', '--container'])
@@ -118,7 +117,7 @@ def is_container(run_path='/run'):
     return False
 
 
-def is_exe(path):
+def is_exe(path: str) -> bool:
     # return boolean indicating if path exists and is executable.
     return os.path.isfile(path) and os.access(path, os.X_OK)
 
@@ -141,12 +140,10 @@ def maybe_parse_json(content: str) -> 'Optional[Any]':
         return None
 
 
-def readurl(url, data=None, headers=None, method=None):
+def readurl(url, data=None, headers={}, method=None):
     if data and not method:
         method = 'POST'
-    req = request.Request(url, data=data, headers=headers)
-    if method:
-        req.get_method = lambda: method
+    req = request.Request(url, data=data, headers=headers, method=method)
     if data:
         redacted_data = maybe_parse_json(data.decode('utf-8'))
         for key in SENSITIVE_KEYS:
@@ -168,7 +165,8 @@ def readurl(url, data=None, headers=None, method=None):
     return content, resp.headers
 
 
-def subp(args, rcs=None, capture=False):
+def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
+         capture: bool = False) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
@@ -208,7 +206,7 @@ def subp(args, rcs=None, capture=False):
     return out.decode('utf-8'), err.decode('utf-8')
 
 
-def which(program):
+def which(program: str) -> 'Optional[str]':
     """Find whether the provided program is executable in our PATH"""
     if os.path.sep in program:
         # if program had a '/' in it, then do not search PATH
@@ -224,7 +222,7 @@ def which(program):
     return None
 
 
-def write_file(filename, content, mode=0o644, omode='wb'):
+def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     """Write content to the provided filename encoding it if necessary.
 
     @param filename: The full path of the file to write.
@@ -233,15 +231,13 @@ def write_file(filename, content, mode=0o644, omode='wb'):
     @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
     logging.debug('Writing file: %s', filename)
-    if 'b' in omode.lower():
-        content = encode_text(content)
-    with open(filename, omode) as fh:
-        fh.write(content)
+    with open(filename, 'wb') as fh:
+        fh.write(content.encode('utf-8'))
         fh.flush()
     os.chmod(filename, mode)
 
 
-def parse_os_release(release_file=None):
+def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
     if not release_file:
         release_file = '/etc/os-release'
     data = {}
@@ -258,43 +254,44 @@ REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
     r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
 
 
-def get_platform_info(key=None):
+def get_platform_info() -> 'Dict[str, str]':
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
         'type': 'Linux'}
 
-    if key in (None, 'release', 'series'):
-        version = os_release['VERSION']
-        match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
-        if not match:
-            match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
-        if not match:
-            raise RuntimeError(
-                'Could not parse /etc/os-release VERSION: %s' %
-                os_release['VERSION'])
-        match_dict = match.groupdict()
-        platform_info.update({'release': match_dict['version'],
-                              'series': match_dict['series'].lower()})
-    if key in (None, 'kernel'):
-        kernel_ver_out, _err = subp(['uname', '-r'])
-        platform_info['kernel'] = kernel_ver_out.strip()
-    if key in (None, 'arch'):
-        arch, _err = subp(['uname', '-i'])
-        platform_info['arch'] = arch.strip()
-    return platform_info if not key else platform_info[key]
+    version = os_release['VERSION']
+    match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
+    if not match:
+        match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+    if not match:
+        raise RuntimeError(
+            'Could not parse /etc/os-release VERSION: %s' %
+            os_release['VERSION'])
+    match_dict = match.groupdict()
+    platform_info.update({'release': match_dict['version'],
+                          'series': match_dict['series'].lower()})
+
+    uname = os.uname()
+    platform_info['kernel'] = uname.release
+    platform_info['arch'] = uname.machine
+
+    return platform_info
 
 
-def get_machine_id(data_dir):
+def get_machine_id(data_dir: str) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     if os.path.exists(ETC_MACHINE_ID):
         return load_file(ETC_MACHINE_ID).rstrip('\n')
     if os.path.exists(DBUS_MACHINE_ID):  # Trusty
         return load_file(DBUS_MACHINE_ID).rstrip('\n')
     fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
-    if os.path.exists(fallback_machine_id_file):  # Gen our own if needed
+    # Generate, cache our own uuid if not present on the system
+    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
+    # per Issue: #489
+    if os.path.exists(fallback_machine_id_file):  # Use our generated uuid
         return load_file(fallback_machine_id_file).rstrip('\n')
-    machine_id = uuid.uuid4()
+    machine_id = str(uuid.uuid4())
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
 

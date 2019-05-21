@@ -1,4 +1,6 @@
 """Tests related to uaclient.util module."""
+import posix
+import uuid
 
 import mock
 import pytest
@@ -186,21 +188,16 @@ class TestGetPlatformInfo:
         release_file.write(os_release_content)
         parse_dict = util.parse_os_release(release_file.strpath)
 
-        def fake_subp(cmd):
-            if cmd == ['uname', '-r']:
-                return 'kernel-ver', ''
-            if cmd == ['uname', '-i']:
-                return 'arm64', ''
-            assert False, 'Unexpected command: %s' % cmd
-
         expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
                     'kernel': 'kernel-ver', 'release': release,
                     'series': series, 'type': 'Linux'}
 
         with mock.patch('uaclient.util.parse_os_release') as m_parse:
-            with mock.patch('uaclient.util.subp') as m_subp:
+            with mock.patch('uaclient.util.os.uname') as m_uname:
                 m_parse.return_value = parse_dict
-                m_subp.side_effect = fake_subp
+                # (sysname, nodename, release, version, machine)
+                m_uname.return_value = posix.uname_result(
+                    ('', '', 'kernel-ver', '', 'arm64'))
                 assert expected == util.get_platform_info()
 
 
@@ -250,7 +247,16 @@ class TestGetMachineId:
         with mock.patch('uaclient.util.os.path.exists') as m_exists:
             with mock.patch('uaclient.util.uuid.uuid4') as m_uuid4:
                 m_exists.return_value = False
-                m_uuid4.return_value = '1234...1234'
+                m_uuid4.return_value = uuid.UUID(
+                    '0123456789abcdef0123456789abcdef')
                 value = util.get_machine_id(data_dir=tmpdir.strpath)
-        assert '1234...1234' == value
-        assert '1234...1234' == data_machine_id.read()
+        assert '01234567-89ab-cdef-0123-456789abcdef' == value
+        assert '01234567-89ab-cdef-0123-456789abcdef' == data_machine_id.read()
+
+
+class TestReadurl:
+
+    def test_simple_call_with_url_works(self):
+        with mock.patch('uaclient.util.request.urlopen') as m_urlopen:
+            util.readurl('http://some_url')
+        assert 1 == m_urlopen.call_count

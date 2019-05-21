@@ -1,9 +1,15 @@
+import copy
+import itertools
 import json
 import os
+import stat
 
+import mock
 import pytest
 
-from uaclient.config import LocalEnabledManager, PRIVATE_SUBDIR, UAConfig
+from uaclient import entitlements, status
+from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig
+from uaclient.testing.fakes import FakeConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
@@ -98,13 +104,10 @@ class TestDataPath:
         cfg = UAConfig({'data_dir': '/my/d'})
         assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
 
-    @pytest.mark.parametrize('key,path_basename', (
-        ('notHere', 'notHere'), ('anything', 'anything')))
-    def test_data_path_returns_file_path_with_public_data_paths(
-            self, key, path_basename):
-        """When private is False Config.data_paths return a public path."""
+    def test_data_path_returns_public_path_for_public_datapath(self):
         cfg = UAConfig({'data_dir': '/my/d'})
-        assert '/my/d/%s' % key == cfg.data_path(key=key, private=False)
+        cfg.data_paths['test_path'] = DataPath('test_path', False)
+        assert '/my/d/test_path' == cfg.data_path('test_path')
 
 
 class TestWriteCache:
@@ -150,15 +153,16 @@ class TestWriteCache:
             assert expected_json_content == stream.read()
         assert value == cfg.read_cache(key)
 
-    def test_write_cache_writes_non_private_dir_when_private_is_false(
-            self, tmpdir):
-        """When content is not a string, write a json string."""
+    @pytest.mark.parametrize('datapath,mode', (
+        (DataPath('path', False), 0o644),
+        (DataPath('path', True), 0o600),
+    ))
+    def test_permissions(self, tmpdir, datapath, mode):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
-
-        assert None is cfg.write_cache('key', 'value', private=False)
-        with open(tmpdir.join('key').strpath, 'r') as stream:
-            assert 'value' == stream.read()
-        assert 'value' == cfg.read_cache('key')
+        cfg.data_paths = {'path': datapath}
+        cfg.write_cache('path', '')
+        assert mode == stat.S_IMODE(
+            os.lstat(cfg.data_path('path')).st_mode)
 
 
 class TestReadCache:
@@ -247,10 +251,12 @@ class TestDeleteCache:
         for odd_key in odd_keys:
             cfg.write_cache(odd_key, odd_key)
 
-        private_cachedir = tmpdir.join(PRIVATE_SUBDIR).strpath
-        assert len(odd_keys) == len(os.listdir(private_cachedir))
+        present_files = list(itertools.chain(
+            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
+        assert len(odd_keys) == len(present_files)
         cfg.delete_cache()
-        dirty_files = os.listdir(private_cachedir)
+        dirty_files = list(itertools.chain(
+            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
         assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
@@ -268,53 +274,78 @@ class TestDeleteCache:
             tmpdir.join(PRIVATE_SUBDIR).strpath)
 
 
-class TestLocalEnabledManager:
+class TestStatus:
 
-    @pytest.fixture(params=['direct', 'via_cfg'])
-    def manager(self, request, tmpdir):
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_root_unattached(self, _m_getuid):
+        """Test we get the correct status dict when unattached"""
+        cfg = FakeConfig({})
+        expected = {
+            'attached': False,
+            'expires': status.INAPPLICABLE,
+            'services': [],
+            'techSupportLevel': status.INAPPLICABLE,
+        }
+        assert expected == cfg.status()
+
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_nonroot_attached(self, _m_getuid):
+        """Test we get the correct status dict when attached with basic conf"""
+        cfg = FakeConfig.for_attached_machine()
+        expected_services = [{'entitled': status.NONE,
+                              'name': cls.name,
+                              'status': status.INAPPLICABLE,
+                              'statusDetails': mock.ANY}
+                             for cls in entitlements.ENTITLEMENT_CLASSES]
+        expected = {
+            'account': 'test_account',
+            'attached': True,
+            'expires': status.INAPPLICABLE,
+            'services': expected_services,
+            'subscription': 'test_contract',
+            'techSupportLevel': status.INAPPLICABLE,
+        }
+        assert expected == cfg.status()
+
+    @mock.patch('uaclient.config.os.getuid')
+    def test_nonroot_without_cache_is_same_as_unattached_root(self, m_getuid):
+        m_getuid.return_value = 1000
+        cfg = FakeConfig()
+
+        nonroot_status = cfg.status()
+
+        m_getuid.return_value = 0
+        root_unattached_status = cfg.status()
+
+        assert root_unattached_status == nonroot_status
+
+    @mock.patch('uaclient.config.os.getuid')
+    def test_root_followed_by_nonroot(self, m_getuid, tmpdir):
+        """Ensure that non-root run after root returns data"""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
 
-        if request.param == 'direct':
-            return LocalEnabledManager(cfg)
-        elif request.param == 'via_cfg':
-            return cfg.local_enabled_manager
-        raise Exception('unknown param: {}'.format(request.param))
+        # Run as root
+        m_getuid.return_value = 0
+        before = copy.deepcopy(cfg.status())
 
-    def test_no_local_access_returns_false(self, manager):
-        assert not manager.get('unknown')
+        # Replicate an attach by modifying the underlying config and confirm
+        # that we see different status
+        other_cfg = FakeConfig.for_attached_machine()
+        cfg.write_cache('accounts', {'accounts': other_cfg.accounts})
+        cfg.write_cache('machine-token', other_cfg.machine_token)
+        assert cfg._status() != before
 
-    def test_unknown_entitlement_returns_false(self, manager):
-        manager.set('test', True)
+        # Run as regular user and confirm that we see the result from
+        # last time we called .status()
+        m_getuid.return_value = 1000
+        after = cfg.status()
 
-        assert not manager.get('unknown')
+        assert before == after
 
-    @pytest.mark.parametrize('entitlements', [
-        {'a': True},
-        {'a': False},
-        {'a': True, 'b': True},
-        {'a': True, 'b': False, 'c': True},
-    ])
-    def test_round_trip(self, manager, entitlements):
-        for entitlement_name, value in entitlements.items():
-            manager.set(entitlement_name, value)
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    def test_cache_file_is_written_world_readable(self, _m_getuid, tmpdir):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        cfg.status()
 
-        out = {entitlement_name: manager.get(entitlement_name)
-               for entitlement_name in entitlements}
-
-        assert entitlements == out
-
-    @pytest.mark.parametrize('non_bool_value', ('', 'a', None, {}, object()))
-    def test_set_non_bool(self, manager, non_bool_value):
-        with pytest.raises(Exception) as excinfo:
-            manager.set('test', non_bool_value)
-
-        expected_msg = 'LocalEnabledManager.set passed non-bool value'
-        assert expected_msg == str(excinfo.value)
-
-    def test_local_access_written_public(self, manager):
-        manager.set('test', True)
-
-        assert os.path.exists(
-            manager._cfg.data_path('local-access', private=False))
-        assert not os.path.exists(
-            manager._cfg.data_path('local-access', private=True))
+        assert 0o644 == stat.S_IMODE(
+            os.lstat(cfg.data_path('status-cache')).st_mode)

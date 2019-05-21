@@ -3,6 +3,12 @@ import logging
 from uaclient import serviceclient
 from uaclient import util
 
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
@@ -155,8 +161,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers)
         self.cfg.write_cache('machine-token', machine_token)
-        redacted_content = util.redact_sensitive(machine_token)
-        self.cfg.write_cache('machine-token', redacted_content, private=False)
         return machine_token
 
     def request_contract_machine_detach(self, contract_id, user_token):
@@ -175,7 +179,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         return machine_token
 
     def request_resource_machine_access(
-            self, machine_token, resource, machine_id=None):
+            self, machine_token: str, resource: str,
+            machine_id: 'Optional[str]' = None) -> 'Dict[str, Any]':
         """Requests machine access context for a given resource
 
         @param machine_token: The authentication token needed to talk to
@@ -197,9 +202,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get('expires'):
             resource_access['expires'] = headers['expires']
         self.cfg.write_cache('machine-access-%s' % resource, resource_access)
-        redacted_content = util.redact_sensitive(resource_access)
-        self.cfg.write_cache(
-            'machine-access-%s' % resource, redacted_content, private=False)
         return resource_access
 
     def request_machine_token_refresh(
@@ -224,8 +226,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get('expires'):
             response['expires'] = headers['expires']
         self.cfg.write_cache('machine-token', response)
-        redacted_content = util.redact_sensitive(response)
-        self.cfg.write_cache('machine-token', redacted_content, private=False)
         return response
 
 

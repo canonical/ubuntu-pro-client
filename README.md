@@ -6,11 +6,12 @@ The Ubuntu Advantage client provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. The
 following entitlements are supported:
 
+- [Common Criteria EAL2 certification artifacts provisioning](https://ubuntu.com/cc-eal)
+- [Canonical CIS Benchmark Audit Tool](https://ubuntu.com/cis)
 - [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm)
+- [FIPS 140-2 Certified Modules](https://ubuntu.com/fips)
+- [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/fips-updates)
 - [Livepatch Service](https://www.ubuntu.com/livepatch)
-- FIPS 140-2 Certified Modules
-- FIPS 140-2 Non-Certified Module Updates
-- Common Criteria EAL2 certification artifacts provisioning
 
 ## Obtaining the Client
 
