@@ -110,10 +110,6 @@ class TestRequestUpdatedContract:
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         assert True is request_updated_contract(cfg)
         assert machine_token == cfg.read_cache('machine-token')
-        # Redact public content
-        assert (
-            '<REDACTED>' == cfg.read_cache(
-                'public-machine-token')['machineToken'])
 
         # Deltas are processed in a sorted fashion so that if enableByDefault
         # is true, the order of enablement operations is the same regardless

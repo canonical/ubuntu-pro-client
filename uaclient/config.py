@@ -4,15 +4,25 @@ import json
 import logging
 import os
 import yaml
+from collections import namedtuple
 
-from uaclient import util
+from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 try:
-    from typing import Any, Dict, Optional  # noqa: F401
+    from typing import Any, cast, Dict, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    pass
+    def cast(_, x):
+        return x
+
+
+DEFAULT_STATUS = {
+    'attached': False,
+    'expires': status.INAPPLICABLE,
+    'services': [],
+    'techSupportLevel': status.INAPPLICABLE,
+}  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
 
@@ -24,62 +34,41 @@ class ConfigAbsentError(RuntimeError):
     pass
 
 
-class LocalEnabledManager:
-    """
-    A UAConfig adapter to manage the local-enabled cache for non-root users
-
-    TODO:
-        * cache the contents of local-access so we don't have to read it more
-        than once
-    """
-
-    _cfg_key = 'local-access'
-
-    def __init__(self, cfg: 'UAConfig') -> None:
-        self._cfg = cfg
-
-    def get(self, entitlement_name: str) -> bool:
-        local_access = self._cfg.read_cache(self._cfg_key)
-        if local_access is None:
-            # The only way we get here is if nothing has yet written the
-            # local-access file; that means we haven't enabled any entitlements
-            # so this must necessarily be False
-            return False
-        return local_access.get(entitlement_name, False)
-
-    def set(self, entitlement_name: str, value: bool) -> None:
-        if not isinstance(value, bool):
-            raise RuntimeError('LocalEnabledManager.set passed non-bool value')
-        local_access = self._cfg.read_cache(self._cfg_key) or {}
-        local_access[entitlement_name] = value
-        self._cfg.write_cache(self._cfg_key, local_access, private=False)
+# A data path is a filename, and an attribute ("private") indicating whether it
+# should only be readable by root
+DataPath = namedtuple('DataPath', ('filename', 'private'))
 
 
 class UAConfig:
 
     data_paths = {
-        'bound-macaroon': 'bound-macaroon',
-        'accounts': 'accounts.json',
-        'account-contracts': 'account-contracts.json',
-        'account-users': 'account-users.json',
-        'contract-token': 'contract-token.json',
-        'local-access': 'local-access',
-        'machine-contracts': 'machine-contracts.json',
-        'machine-access-cc-eal': 'machine-access-cc-eal.json',
-        'machine-access-cis-audit': 'machine-access-cis-audit.json',
-        'machine-access-esm': 'machine-access-esm.json',
-        'machine-access-fips': 'machine-access-fips.json',
-        'machine-access-fips-updates': 'machine-access-fips-updates.json',
-        'machine-access-livepatch': 'machine-access-livepatch.json',
-        'machine-access-support': 'machine-access-support.json',
-        'machine-detach': 'machine-detach.json',
-        'machine-id': 'machine-id',
-        'machine-token': 'machine-token.json',
-        'machine-token-refresh': 'machine-token-refresh.json',
-        'macaroon': 'sso-macaroon.json',
-        'root-macaroon': 'root-macaroon.json',
-        'oauth': 'sso-oauth.json'
-    }
+        'bound-macaroon': DataPath('bound-macaroon', True),
+        'accounts': DataPath('accounts.json', True),
+        'account-contracts': DataPath('account-contracts.json', True),
+        'account-users': DataPath('account-users.json', True),
+        'contract-token': DataPath('contract-token.json', True),
+        'local-access': DataPath('local-access', True),
+        'machine-contracts': DataPath('machine-contracts.json', True),
+        'machine-access-cc-eal': DataPath('machine-access-cc-eal.json', True),
+        'machine-access-cis-audit': DataPath(
+            'machine-access-cis-audit.json', True),
+        'machine-access-esm': DataPath('machine-access-esm.json', True),
+        'machine-access-fips': DataPath('machine-access-fips.json', True),
+        'machine-access-fips-updates': DataPath(
+            'machine-access-fips-updates.json', True),
+        'machine-access-livepatch': DataPath(
+            'machine-access-livepatch.json', True),
+        'machine-access-support': DataPath(
+            'machine-access-support.json', True),
+        'machine-detach': DataPath('machine-detach.json', True),
+        'machine-id': DataPath('machine-id', True),
+        'machine-token': DataPath('machine-token.json', True),
+        'machine-token-refresh': DataPath('machine-token-refresh.json', True),
+        'macaroon': DataPath('sso-macaroon.json', True),
+        'root-macaroon': DataPath('root-macaroon.json', True),
+        'status-cache': DataPath('status.json', False),
+        'oauth': DataPath('sso-oauth.json', True)
+    }  # type: Dict[str, DataPath]
 
     _contracts = None  # caching to avoid repetitive file reads
     _entitlements = None  # caching to avoid repetitive file reads
@@ -91,7 +80,6 @@ class UAConfig:
             self.cfg = cfg
         else:
             self.cfg = parse_config()
-        self.local_enabled_manager = LocalEnabledManager(self)
 
     @property
     def accounts(self):
@@ -189,17 +177,18 @@ class UAConfig:
             self._machine_token = self.read_cache('machine-token')
         return self._machine_token
 
-    def data_path(self, key=None, private=True):
+    def data_path(self, key: 'Optional[str]' = None) -> str:
         """Return the file path in the data directory represented by the key"""
-        if private:
-            data_dir = os.path.join(self.cfg['data_dir'], 'private')
-        else:
-            data_dir = self.cfg['data_dir']
+        data_dir = self.cfg['data_dir']
         if not key:
-            return data_dir
+            return os.path.join(data_dir, PRIVATE_SUBDIR)
         if key in self.data_paths:
-            return os.path.join(data_dir, self.data_paths[key])
-        return os.path.join(data_dir, key)
+            data_path = self.data_paths[key]
+            if data_path.private:
+                return os.path.join(
+                    data_dir, PRIVATE_SUBDIR, data_path.filename)
+            return os.path.join(data_dir, data_path.filename)
+        return os.path.join(data_dir, PRIVATE_SUBDIR, key)
 
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
@@ -211,10 +200,9 @@ class UAConfig:
             self._machine_token = None
         elif key == 'account-contracts':
             self._contracts = None
-        for private in (True, False):
-            cache_path = self.data_path(key, private)
-            if os.path.exists(cache_path):
-                os.unlink(cache_path)
+        cache_path = self.data_path(key)
+        if os.path.exists(cache_path):
+            os.unlink(cache_path)
 
     def delete_cache(self):
         """Remove configuration cached response files class attributes."""
@@ -226,18 +214,14 @@ class UAConfig:
         try:
             content = util.load_file(cache_path)
         except Exception:
-            public_cache_path = cache_path.replace('%s/' % PRIVATE_SUBDIR, '')
-            try:
-                content = util.load_file(public_cache_path)
-            except Exception:
-                if not os.path.exists(cache_path) and not silent:
-                    logging.debug('File does not exist: %s', cache_path)
-                return None
+            if not os.path.exists(cache_path) and not silent:
+                logging.debug('File does not exist: %s', cache_path)
+            return None
         json_content = util.maybe_parse_json(content)
         return json_content if json_content else content
 
-    def write_cache(self, key: str, content: 'Any', private: bool = True):
-        filepath = self.data_path(key, private)
+    def write_cache(self, key: str, content: 'Any') -> None:
+        filepath = self.data_path(key)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
@@ -248,20 +232,17 @@ class UAConfig:
             self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
-        if private:
-            util.write_file(filepath, content, mode=0o600)
-        else:
-            util.write_file(filepath, content)
+        mode = 0o600
+        if key in self.data_paths:
+            if not self.data_paths[key].private:
+                mode = 0o644
+        util.write_file(filepath, content, mode=mode)
 
-    def status(self):
+    def _status(self) -> 'Dict[str, Any]':
         """Return configuration status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
-        from uaclient import status
-        response = {
-            'attached': self.is_attached,
-            'expires': status.INAPPLICABLE,
-            'services': [],
-            'techSupportLevel': status.INAPPLICABLE}
+        response = DEFAULT_STATUS
+        response['attached'] = self.is_attached
         if not self.is_attached:
             return response
         response['account'] = self.accounts[0]['name']
@@ -279,6 +260,17 @@ class UAConfig:
                 'status': op_status, 'statusDetails': op_details}
             response['services'].append(service_status)
         return response
+
+    def status(self) -> 'Dict[str, Any]':
+        """Return status as a dict, using a cache for non-root users"""
+        if os.getuid() == 0:
+            status = self._status()
+            self.write_cache('status-cache', status)
+            return status
+        cached_status = cast('Dict[str, Any]', self.read_cache('status-cache'))
+        if not cached_status:
+            return DEFAULT_STATUS
+        return cached_status
 
 
 def parse_config(config_path=None):

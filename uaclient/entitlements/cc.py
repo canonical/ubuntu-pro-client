@@ -46,5 +46,4 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
             util.subp(['apt-get', 'remove', '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
-        self._set_local_enabled(False)
         return True

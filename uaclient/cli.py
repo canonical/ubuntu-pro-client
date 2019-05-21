@@ -180,10 +180,9 @@ def action_disable(args, cfg):
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
-    if entitlement.disable():
-        return 0
-    else:
-        return 1
+    ret = 0 if entitlement.disable() else 1
+    cfg.status()  # Update the status cache
+    return ret
 
 
 def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
@@ -203,7 +202,9 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
     entitlement = ent_cls(cfg)
-    return entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
+    cfg.status()  # Update the status cache
+    return ret
 
 
 @assert_attached_root

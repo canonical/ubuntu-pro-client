@@ -43,3 +43,5 @@ class TestPerformEnable:
             expected_enable_call = mock.call(silent_if_inapplicable=False)
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert ret == m_entitlement.enable.return_value
+
+        assert 1 == m_cfg.status.call_count

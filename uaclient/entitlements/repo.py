@@ -4,10 +4,11 @@ import os
 import re
 
 try:
-    from typing import Any, Dict, List, Optional  # noqa: F401
+    from typing import Any, cast, Dict, List, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    pass
+    def cast(_, x):  # type: ignore
+        return x
 
 
 from uaclient import apt
@@ -80,7 +81,6 @@ class RepoEntitlement(base.UAEntitlement):
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
                 return False
-        self.cfg.local_enabled_manager.set(self.name, True)
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -96,7 +96,6 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'remove', '--assume-yes'] + self.packages)
             except util.ProcessExecutionError:
                 pass
-            self.cfg.local_enabled_manager.set(self.name, False)
         if self.force_disable:
             if not silent:
                 print('Warning: no option to disable {title}'.format(
@@ -126,7 +125,7 @@ class RepoEntitlement(base.UAEntitlement):
         match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return status.ACTIVE, '%s is active' % self.title
-        if os.getuid() != 0 and self.cfg.local_enabled_manager.get(self.name):
+        if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
             # Use our cached enabled key for non-root users because apt
             # policy will show APT_DISABLED_PIN for authenticated sources
             return status.ACTIVE, '%s is active' % self.title
