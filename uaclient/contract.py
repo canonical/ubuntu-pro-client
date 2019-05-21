@@ -3,6 +3,12 @@ import logging
 from uaclient import serviceclient
 from uaclient import util
 
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
@@ -175,7 +181,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         return machine_token
 
     def request_resource_machine_access(
-            self, machine_token, resource, machine_id=None):
+            self, machine_token: str, resource: str,
+            machine_id: 'Optional[str]' = None) -> 'Dict[str, Any]':
         """Requests machine access context for a given resource
 
         @param machine_token: The authentication token needed to talk to

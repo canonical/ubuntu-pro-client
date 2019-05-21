@@ -45,7 +45,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # <failure_message>. Overridden in livepatch and fips
     static_affordances = ()  # type: Tuple[StaticAffordance, ...]
 
-    def __init__(self, cfg=None):
+    def __init__(self, cfg: 'Optional[config.UAConfig]' = None) -> None:
         """Setup UAEntitlement instance
 
         @param config: Parsed configuration dictionary
@@ -66,7 +66,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def can_disable(self, silent=False, force=False):
+    def can_disable(self, silent: bool = False, force: bool = False) -> bool:
         """Report whether or not disabling is possible for the entitlement.
 
         @param silent: Boolean set True to silence printed messages/warnings.
@@ -117,7 +117,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def check_affordances(self):
+    def check_affordances(self) -> 'Tuple[bool, str]':
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
@@ -177,7 +177,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True, ''
 
     @abc.abstractmethod
-    def disable(self, silent=False, force=False):
+    def disable(self, silent: bool = False, force: bool = False) -> bool:
         """Disable specific entitlement
 
         @param silent: Boolean set True to silence print/log of messages
@@ -188,7 +188,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def contract_status(self):
+    def contract_status(self) -> str:
         """Return whether contract entitlement is ENTITLED or NONE."""
         if not self.cfg.is_attached:
             return status.NONE
@@ -197,7 +197,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return status.ENTITLED
         return status.NONE
 
-    def is_access_expired(self):
+    def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""
         entitlement_contract = self.cfg.entitlements.get(self.name, {})
         # TODO(No expiry per resource in MVP yet)
@@ -274,6 +274,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return False
 
     @abc.abstractmethod
-    def operational_status(self):
+    def operational_status(self) -> 'Tuple[str, str]':
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
         pass

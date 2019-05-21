@@ -9,7 +9,7 @@ from uaclient import util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 
 try:
-    from typing import Any, Optional  # noqa: F401
+    from typing import Any, Dict, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -85,7 +85,7 @@ class UAConfig:
     _entitlements = None  # caching to avoid repetitive file reads
     _machine_token = None  # caching to avoid repetitive file reading
 
-    def __init__(self, cfg=None):
+    def __init__(self, cfg: 'Dict[str, Any]' = None) -> None:
         """"""
         if cfg:
             self.cfg = cfg
@@ -201,7 +201,7 @@ class UAConfig:
             return os.path.join(data_dir, self.data_paths[key])
         return os.path.join(data_dir, key)
 
-    def delete_cache_key(self, key):
+    def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
         if not key:
             raise RuntimeError(
