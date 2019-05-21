@@ -6,6 +6,7 @@ import re
 import subprocess
 from urllib import error, request
 import uuid
+from http.client import HTTPMessage  # noqa: F401
 
 try:
     from typing import (  # noqa: F401
@@ -140,7 +141,9 @@ def maybe_parse_json(content: str) -> 'Optional[Any]':
         return None
 
 
-def readurl(url, data=None, headers={}, method=None):
+def readurl(url: str, data: 'Optional[bytes]' = None,
+            headers: 'Dict[str, str]' = {}, method: 'Optional[str]' = None
+            ) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
     if data and not method:
         method = 'POST'
     req = request.Request(url, data=data, headers=headers, method=method)
