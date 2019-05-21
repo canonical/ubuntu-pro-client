@@ -162,7 +162,7 @@ class RepoEntitlement(base.UAEntitlement):
             old_url = orig_entitlement.get('directives', {}).get('aptURL')
             if old_url:
                 # Remove original aptURL and auth and rewrite
-                series = util.get_platform_info('series')
+                series = util.get_platform_info()['series']
                 repo_filename = self.repo_list_file_tmpl.format(
                     name=self.name, series=series)
                 apt.remove_auth_apt_repo(repo_filename, old_url)
@@ -171,7 +171,7 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def setup_apt_config(self):
-        series = util.get_platform_info('series')
+        series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         resource_cfg = self.cfg.entitlements.get(self.name)
@@ -242,7 +242,7 @@ class RepoEntitlement(base.UAEntitlement):
 
     def remove_apt_config(self):
         """Remove any repository apt configuration files."""
-        series = util.get_platform_info('series')
+        series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)

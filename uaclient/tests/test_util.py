@@ -1,4 +1,5 @@
 """Tests related to uaclient.util module."""
+import posix
 import uuid
 
 import mock
@@ -187,21 +188,16 @@ class TestGetPlatformInfo:
         release_file.write(os_release_content)
         parse_dict = util.parse_os_release(release_file.strpath)
 
-        def fake_subp(cmd):
-            if cmd == ['uname', '-r']:
-                return 'kernel-ver', ''
-            if cmd == ['uname', '-i']:
-                return 'arm64', ''
-            assert False, 'Unexpected command: %s' % cmd
-
         expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
                     'kernel': 'kernel-ver', 'release': release,
                     'series': series, 'type': 'Linux'}
 
         with mock.patch('uaclient.util.parse_os_release') as m_parse:
-            with mock.patch('uaclient.util.subp') as m_subp:
+            with mock.patch('uaclient.util.os.uname') as m_uname:
                 m_parse.return_value = parse_dict
-                m_subp.side_effect = fake_subp
+                # (sysname, nodename, release, version, machine)
+                m_uname.return_value = posix.uname_result(
+                    ('', '', 'kernel-ver', '', 'arm64'))
                 assert expected == util.get_platform_info()
 
 

@@ -95,7 +95,7 @@ class TestFIPSEntitlementEnable:
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, 'can_enable'))
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value='xenial'))
+                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
@@ -132,7 +132,7 @@ class TestFIPSEntitlementEnable:
         assert subp_calls == m_subp.call_args_list
 
     @mock.patch(
-        'uaclient.util.get_platform_info', return_value='xenial')
+        'uaclient.util.get_platform_info', return_value={'series': 'xenial'})
     def test_enable_returns_false_on_can_enable_false(
             self, m_platform_info, entitlement):
         """When can_enable is false enable returns false and noops."""
@@ -142,7 +142,7 @@ class TestFIPSEntitlementEnable:
 
     @mock.patch('uaclient.apt.add_auth_apt_repo')
     @mock.patch(
-        'uaclient.util.get_platform_info', return_value='xenial')
+        'uaclient.util.get_platform_info', return_value={'series': 'xenial'})
     def test_enable_returns_false_on_missing_suites_directive(
             self, m_platform_info, m_add_apt, entitlement):
         """When directives do not contain suites returns false."""
@@ -170,7 +170,7 @@ class TestFIPSEntitlementEnable:
                 mock.patch('uaclient.apt.add_ppa_pinning'))
             stack.enter_context(mock.patch.object(entitlement, 'can_enable'))
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value='xenial'))
+                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
 
             assert False is entitlement.enable()
@@ -262,7 +262,7 @@ class TestFIPSEntitlementDisable:
     @mock.patch('uaclient.apt.remove_apt_list_files')
     @mock.patch('uaclient.apt.remove_auth_apt_repo')
     @mock.patch(
-        'uaclient.util.get_platform_info', return_value='xenial')
+        'uaclient.util.get_platform_info', return_value={'series': 'xenial'})
     def test_disable_returns_false_and_removes_apt_config_on_force(
             self, m_platform_info, m_rm_auth, m_rm_list,
             entitlement, caplog_text):

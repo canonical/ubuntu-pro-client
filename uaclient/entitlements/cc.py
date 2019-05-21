@@ -29,7 +29,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
         """
         if not self.can_disable(silent, force):
             return False
-        series = util.get_platform_info('series')
+        series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)

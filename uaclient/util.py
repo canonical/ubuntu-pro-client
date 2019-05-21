@@ -8,7 +8,7 @@ from urllib import request
 import uuid
 
 try:
-    from typing import Any, Optional  # noqa: F401
+    from typing import Any, Dict, Optional, Union  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -249,31 +249,29 @@ REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
     r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
 
 
-def get_platform_info(key=None):
+def get_platform_info() -> 'Dict[str, str]':
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
         'type': 'Linux'}
 
-    if key in (None, 'release', 'series'):
-        version = os_release['VERSION']
-        match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
-        if not match:
-            match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
-        if not match:
-            raise RuntimeError(
-                'Could not parse /etc/os-release VERSION: %s' %
-                os_release['VERSION'])
-        match_dict = match.groupdict()
-        platform_info.update({'release': match_dict['version'],
-                              'series': match_dict['series'].lower()})
-    if key in (None, 'kernel'):
-        kernel_ver_out, _err = subp(['uname', '-r'])
-        platform_info['kernel'] = kernel_ver_out.strip()
-    if key in (None, 'arch'):
-        arch, _err = subp(['uname', '-i'])
-        platform_info['arch'] = arch.strip()
-    return platform_info if not key else platform_info[key]
+    version = os_release['VERSION']
+    match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
+    if not match:
+        match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+    if not match:
+        raise RuntimeError(
+            'Could not parse /etc/os-release VERSION: %s' %
+            os_release['VERSION'])
+    match_dict = match.groupdict()
+    platform_info.update({'release': match_dict['version'],
+                          'series': match_dict['series'].lower()})
+
+    uname = os.uname()
+    platform_info['kernel'] = uname.release
+    platform_info['arch'] = uname.machine
+
+    return platform_info
 
 
 def get_machine_id(data_dir):
