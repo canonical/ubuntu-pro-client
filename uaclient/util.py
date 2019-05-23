@@ -6,6 +6,7 @@ import re
 import subprocess
 from urllib import error, request
 import uuid
+from http.client import HTTPMessage  # noqa: F401
 
 try:
     from typing import (  # noqa: F401
@@ -140,16 +141,16 @@ def maybe_parse_json(content: str) -> 'Optional[Any]':
         return None
 
 
-def readurl(url, data=None, headers={}, method=None):
+def readurl(url: str, data: 'Optional[bytes]' = None,
+            headers: 'Dict[str, str]' = {}, method: 'Optional[str]' = None
+            ) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
     if data and not method:
         method = 'POST'
     req = request.Request(url, data=data, headers=headers, method=method)
     if data:
         redacted_data = maybe_parse_json(data.decode('utf-8'))
-        for key in SENSITIVE_KEYS:
-            if key in redacted_data:
-                redacted_data[key] = '<REDACTED>'
-        redacted_data = json.dumps(redacted_data)
+        if redacted_data is not None:
+            redacted_data = redact_sensitive(redacted_data)
     else:
         redacted_data = data
     logging.debug(
@@ -157,7 +158,7 @@ def readurl(url, data=None, headers={}, method=None):
         method or 'GET', url, headers, redacted_data)
     resp = request.urlopen(req)
     content = resp.read().decode('utf-8')
-    if 'application/json' in resp.headers.get('Content-type', ''):
+    if 'application/json' in str(resp.headers.get('Content-type', '')):
         content = json.loads(content)
     logging.debug(
         'URL [%s] response: %s, headers: %s, data: %s',
