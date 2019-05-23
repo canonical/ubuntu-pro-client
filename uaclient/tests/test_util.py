@@ -263,13 +263,14 @@ class TestReadurl:
             util.readurl('http://some_url')
         assert 1 == m_urlopen.call_count
 
-    def test_data_passed_through_unchanged(self):
+    @pytest.mark.parametrize('data', [b'{}', b'not a dict', b'{"a": "dict"}'])
+    def test_data_passed_through_unchanged(self, data):
         with mock.patch('uaclient.util.request.urlopen') as m_urlopen:
-            util.readurl('http://some_url', data=b'{}')
+            util.readurl('http://some_url', data=data)
 
         assert 1 == m_urlopen.call_count
         req = m_urlopen.call_args[0][0]  # the first positional argument
-        assert b'{}' == req.data
+        assert data == req.data
 
     @pytest.mark.parametrize('caplog_text', [logging.DEBUG], indirect=True)
     def test_json_data_redacted_in_log(self, caplog_text):

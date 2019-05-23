@@ -149,10 +149,8 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
     req = request.Request(url, data=data, headers=headers, method=method)
     if data:
         redacted_data = maybe_parse_json(data.decode('utf-8'))
-        for key in SENSITIVE_KEYS:
-            if key in redacted_data:
-                redacted_data[key] = '<REDACTED>'
-        redacted_data = json.dumps(redacted_data)
+        if redacted_data is not None:
+            redacted_data = redact_sensitive(redacted_data)
     else:
         redacted_data = data
     logging.debug(
