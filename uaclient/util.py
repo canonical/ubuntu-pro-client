@@ -158,7 +158,7 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
         method or 'GET', url, headers, redacted_data)
     resp = request.urlopen(req)
     content = resp.read().decode('utf-8')
-    if 'application/json' in resp.headers.get('Content-type', ''):
+    if 'application/json' in str(resp.headers.get('Content-type', '')):
         content = json.loads(content)
     logging.debug(
         'URL [%s] response: %s, headers: %s, data: %s',
