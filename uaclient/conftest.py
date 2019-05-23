@@ -21,6 +21,7 @@ def caplog_text(request):
     (It returns a function so that the requester can decide when to examine the
     logs; if it returned caplog.text directly, that would always be empty.)
     """
+    log_level = getattr(request, 'param', logging.INFO)
     try:
         try:
             # TODO pyest 3.4 is funky and logs debug level by default
@@ -33,14 +34,14 @@ def caplog_text(request):
             # Older versions of pytest only have getfuncargvalue, which is now
             # deprecated in favour of getfixturevalue
             caplog = request.getfuncargvalue('caplog')
-        caplog.set_level(logging.INFO)
+        caplog.set_level(log_level)
 
         def _func():
             return caplog.text
     except LookupError:
         # If the caplog fixture isn't available, shim something in ourselves
         root = logging.getLogger()
-        root.setLevel(logging.INFO)
+        root.setLevel(log_level)
         handler = logging.StreamHandler(io.StringIO())
         handler.setFormatter(
             logging.Formatter(
