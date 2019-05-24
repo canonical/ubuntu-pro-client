@@ -4,7 +4,7 @@ from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
 
-SNAP_INSTALL_RETRIES = [0.5, 1, 5]
+SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 
 try:
     from typing import Any, Dict  # noqa: F401
