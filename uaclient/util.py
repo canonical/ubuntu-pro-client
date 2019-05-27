@@ -220,6 +220,7 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
     """
+    retry_sleeps = retry_sleeps.copy() if retry_sleeps is not None else None
     while True:
         try:
             out, err = _subp(args, rcs, capture)
