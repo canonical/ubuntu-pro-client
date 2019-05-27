@@ -1,8 +1,12 @@
 ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
 
+  [ Andreas Hasenack ]
   * Ship unattended-upgrades configuration for ESM
   * Wait for snapd to initialise before using it
   * Test fixes
+
+  [ Daniel Watkins ]
+  * d/postinst: handle migration to new status cache on upgrade
 
  -- Andreas Hasenack <andreas@canonical.com>  Mon, 15 Apr 2019 10:38:35 -0300
 
