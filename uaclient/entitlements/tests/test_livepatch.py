@@ -294,7 +294,8 @@ class TestLivepatchEntitlementEnable:
         mock.call(['snap', 'wait', 'system', 'seed.loaded'], capture=True),
     ]
     mocks_livepatch_install = [
-        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True),
+        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True,
+                  retry_sleeps=[0.5, 1, 5]),
     ]
     mocks_install = mocks_snapd_install + mocks_livepatch_install
     mocks_config = [

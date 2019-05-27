@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import time
 from urllib import error, request
 import uuid
 from http.client import HTTPMessage  # noqa: F401
@@ -166,14 +167,13 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
     return content, resp.headers
 
 
-def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
-         capture: bool = False) -> 'Tuple[str, str]':
+def _subp(args, rcs=None, capture=False):
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
     @param rcs: A list of allowed return_codes. If returncode not in rcs
         raise a ProcessExecutionError.
-    @param capture: Boolean set True to log the command and response.
+     @param capture: Boolean set True to log the command and response.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -188,16 +188,11 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
         (out, err) = proc.communicate()
     except OSError:
         try:
-            if capture:
-                logging.error('Failed running cmd: %s, rc: %s stderr: %s',
-                              ' '.join(args), proc.returncode, err)
+            raise ProcessExecutionError(
+                cmd=' '.join(args), exit_code=proc.returncode, stderr=err)
         except UnboundLocalError:
-            pass
-        raise ProcessExecutionError(cmd=' '.join(args))
+            raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
-        if capture:
-            logging.error('Failed running cmd: %s, rc: %s stderr: %s',
-                          ' '.join(args), proc.returncode, err)
         raise ProcessExecutionError(
             cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
             stderr=err)
@@ -205,6 +200,40 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)
     return out.decode('utf-8'), err.decode('utf-8')
+
+
+def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
+         capture: bool = False,
+         retry_sleeps: 'Optional[List[float]]' = None) -> 'Tuple[str, str]':
+    """Run a command and return a tuple of decoded stdout, stderr.
+
+     @param subp: A list of arguments to feed to subprocess.Popen
+     @param rcs: A list of allowed return_codes. If returncode not in rcs
+         raise a ProcessExecutionError.
+     @param capture: Boolean set True to log the command and response.
+     @param retry_sleeps: Optional list of sleep lengths to apply between
+        retries. Specifying a list of [0.5, 1] instructs subp to retry twice
+        on failure; sleeping half a second before the first retry and 1 second
+        before the next retry.
+
+    @return: Tuple of utf-8 decoded stdout, stderr
+    @raises ProcessExecutionError on invalid command or returncode not in rcs.
+    """
+    while True:
+        try:
+            out, err = _subp(args, rcs, capture)
+            break
+        except ProcessExecutionError as e:
+            message = str(e)
+            if retry_sleeps:
+                logging.debug(
+                    message + " Retrying %d more times.", len(retry_sleeps))
+                time.sleep(retry_sleeps.pop(0))
+            else:
+                if capture:
+                    logging.error(str(e))
+                raise
+    return out, err
 
 
 def which(program: str) -> 'Optional[str]':
