@@ -1,6 +1,7 @@
 import logging
 
 from uaclient.entitlements import base
+from uaclient.entitlements.repo import APT_RETRIES
 from uaclient import status
 from uaclient import util
 
@@ -87,7 +88,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             if not util.which('snap'):
                 print('Installing snapd...')
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
-                          capture=True)
+                          capture=True, retry_sleeps=APT_RETRIES)
                 util.subp(['snap', 'wait', 'system', 'seed.loaded'],
                           capture=True)
             print('Installing canonical-livepatch snap...')

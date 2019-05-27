@@ -12,6 +12,7 @@ import pytest
 from uaclient import config, status
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
+from uaclient.entitlements.repo import APT_RETRIES
 
 try:
     from typing import Any, Dict  # noqa
@@ -121,10 +122,12 @@ class TestFIPSEntitlementEnable:
                 'http://FIPS', entitlement.origin, 1001)]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
-            capture=True)
+            capture=True, retry_sleeps=APT_RETRIES)
 
         subp_calls = [
-            mock.call(['apt-get', 'update'], capture=True), install_cmd]
+            mock.call(
+                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
+            install_cmd]
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list

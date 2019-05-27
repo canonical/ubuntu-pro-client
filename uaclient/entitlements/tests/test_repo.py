@@ -7,7 +7,7 @@ from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
-from uaclient.entitlements.repo import RepoEntitlement
+from uaclient.entitlements.repo import APT_RETRIES, RepoEntitlement
 from uaclient import status
 from uaclient import util
 
@@ -248,7 +248,8 @@ class TestRepoEnable:
         """On enable add authenticated apt repo and refresh package lists."""
         m_platform.return_value = {'series': 'xenial'}
 
-        expected_apt_calls = [mock.call(['apt-get', 'update'], capture=True)]
+        expected_apt_calls = [mock.call(
+            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)]
         expected_output = dedent("""\
         Updating package lists ...
         Repo Test Class enabled.
@@ -256,8 +257,10 @@ class TestRepoEnable:
         if packages is not None:
             if len(packages) > 0:
                 expected_apt_calls.append(
-                    mock.call(['apt-get', 'install', '--assume-yes',
-                              ' '.join(packages)], capture=True))
+                    mock.call(
+                        ['apt-get', 'install', '--assume-yes',
+                         ' '.join(packages)],
+                        capture=True, retry_sleeps=APT_RETRIES))
                 expected_output = dedent("""\
                     Updating package lists ...
                     Installing Repo Test Class packages ...
