@@ -10,7 +10,6 @@ except ImportError:
     pass
 
 
-API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
 API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 
@@ -105,13 +104,6 @@ class UAContractClient(serviceclient.UAServiceClient):
             data={"TODO": "any other request body params?"})
         self.cfg.write_cache('contract-token', contract_token)
         return contract_token
-
-    def request_account_users(self, account_id):
-        """Request a list of users authorized for account_id."""
-        url = API_PATH_TMPL_ACCOUNT_USERS.format(account=account_id)
-        account_users, _headers = self.request_url(url)
-        self.cfg.write_cache('account-users', account_users)
-        return account_users
 
     def request_machine_contract_status(
             self, machine_token, contract_machine_id, machine_id=None,
