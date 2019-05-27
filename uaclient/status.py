@@ -83,27 +83,6 @@ MESSAGE_REFRESH_SUCCESS = 'Refreshed Ubuntu Advantage contracts.'
 MESSAGE_REFRESH_FAILURE = 'Failure to refresh Ubuntu Advantage contracts.'
 
 
-def get_upgradeable_esm_package_count():
-    import apt_pkg
-    apt_pkg.init()
-
-    cache = apt_pkg.Cache(None)
-    dependencyCache = apt_pkg.DepCache(cache)
-    upgrade_count = 0
-
-    for package in cache.packages:
-        if not package.current_ver:
-            continue
-        upgrades = [v for v in package.version_list if v > package.current_ver]
-
-        for upgrade in upgrades:
-            for package_file, _idx in upgrade.file_list:
-                if dependencyCache.policy.get_priority(package_file) == -32768:
-                    upgrade_count += 1
-                    break
-    return upgrade_count
-
-
 def format_tabular(status):
     """Format status dict for tabular output."""
     if not status['attached']:
