@@ -316,10 +316,7 @@ class TestLivepatchEntitlementEnable:
         """When can_enable returns False enable returns False."""
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert not entitlement.enable()
-        info_level_logs = [  # see uaclient/conftest.py
-            line for line in caplog_text().splitlines()
-            if 'DEBUG' not in line]
-        assert [] == info_level_logs
+        assert '' == caplog_text()
         assert '' == m_stdout.getvalue()  # No additional prints
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
 
