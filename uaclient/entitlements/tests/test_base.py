@@ -39,6 +39,9 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._calls.append(('operational_status', ))
         return self._operational_status
 
+    def application_status(self):
+        pass
+
     def calls(self):  # Validate methods called
         return self._calls
 
@@ -72,7 +75,7 @@ class TestUaEntitlement:
             base.UAEntitlement()
         expected_msg = (
             "Can't instantiate abstract class UAEntitlement with abstract"
-            " methods description, disable, enable, name, operational_status,"
+            " methods application_status, description, disable, enable, name,"
             " title")
         assert expected_msg == str(excinfo.value)
 

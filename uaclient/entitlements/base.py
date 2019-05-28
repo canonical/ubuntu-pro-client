@@ -273,7 +273,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    @abc.abstractmethod
     def operational_status(self) -> 'Tuple[str, str]':
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
+        passed_affordances, details = self.check_affordances()
+        if not passed_affordances:
+            return status.INAPPLICABLE, details
+        entitlement_cfg = self.cfg.entitlements.get(self.name)
+        if not entitlement_cfg:
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
+        elif entitlement_cfg['entitlement'].get('entitled', False) is False:
+            return status.INAPPLICABLE, '%s is not entitled' % self.title
+
+        application_status, explanation = self.application_status()
+        return application_status.to_operational_status(), explanation
+
+    @abc.abstractmethod
+    def application_status(self) -> 'Tuple[status.ApplicationStatus, str]':
+        """
+        The current status of application of this entitlement
+
+        :return:
+            A tuple of (ApplicationStatus, human-friendly reason)
+        """
         pass

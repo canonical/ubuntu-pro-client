@@ -1,8 +1,27 @@
+import enum
+
+
 class TxtColor:
     OKGREEN = '\033[92m'
     DISABLEGREY = '\033[37m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
+
+
+@enum.unique
+class ApplicationStatus(enum.Enum):
+    """
+    An enum to represent the current application status of an entitlement
+    """
+    ENABLED = object()
+    DISABLED = object()
+
+    def to_operational_status(self) -> str:
+        mapping = {
+            ApplicationStatus.ENABLED: ACTIVE,
+            ApplicationStatus.DISABLED: INACTIVE,
+        }
+        return mapping[self]
 
 
 ACTIVE = 'active'
