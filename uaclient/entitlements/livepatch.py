@@ -90,8 +90,8 @@ class LivepatchEntitlement(base.UAEntitlement):
                     'No specific resourceToken present. Using machine token as'
                     ' %s credentials', self.title)
                 livepatch_token = self.cfg.machine_token['machineToken']
-            op_status, _details = self.operational_status()
-            if op_status == status.ACTIVE:
+            application_status, _details = self.application_status()
+            if application_status == status.ApplicationStatus.ENABLED:
                 logging.info('Disabling %s prior to re-attach with new token',
                              self.title)
                 try:

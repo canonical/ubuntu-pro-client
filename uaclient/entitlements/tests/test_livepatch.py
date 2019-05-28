@@ -337,12 +337,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value=False)
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Install snapd and canonical-livepatch snap when not on system."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
@@ -356,12 +356,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', side_effect=lambda cmd: cmd == 'snap')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Install canonical-livepatch snap when not present on the system."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert (self.mocks_livepatch_install + self.mocks_config
@@ -375,12 +375,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Do not attempt to install livepatch snap when it is present."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_config == m_subp.call_args_list
@@ -388,13 +388,13 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_does_not_disable_inactive_livepatch_snap_when_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Do not attempt to disable livepatch snap when it is inactive."""
 
-        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        m_app_status.return_value = status.ApplicationStatus.DISABLED, 'nope'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         subp_no_livepatch_disable = [
