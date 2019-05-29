@@ -10,9 +10,7 @@ except ImportError:
     pass
 
 
-API_PATH_TMPL_ACCOUNT_USERS = '/accounts/{account}/users'
 API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
-API_PATH_TMPL_MACHINE_CONTRACT = '/machines/{machine}/contract'
 
 API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
@@ -105,40 +103,6 @@ class UAContractClient(serviceclient.UAServiceClient):
             data={"TODO": "any other request body params?"})
         self.cfg.write_cache('contract-token', contract_token)
         return contract_token
-
-    def request_account_users(self, account_id):
-        """Request a list of users authorized for account_id."""
-        url = API_PATH_TMPL_ACCOUNT_USERS.format(account=account_id)
-        account_users, _headers = self.request_url(url)
-        self.cfg.write_cache('account-users', account_users)
-        return account_users
-
-    def request_machine_contract_status(
-            self, machine_token, contract_machine_id, machine_id=None,
-            product_name=None):
-        """Request contract and entitlement status details for a given machine.
-
-        @param machine_token: The authentication token needed to talk to
-            the contract service endpoints.
-        @param contract_machine_id: The machine id obtained from the contract
-            service.
-        @param machine_id: Optional unique system machine id. When absent,
-            contents of /etc/machine-id will be used.
-        @param product_name: Optional specific product name to limit query to
-            a specific entitlement: livepatch, esm, fips, or fips-updates.
-
-        @return: Dict of JSON response from machine contracts endpoint
-        """
-        if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
-        data = {'machine': machine_id}
-        if product_name:
-            data['product'] = product_name
-        url = API_PATH_TMPL_MACHINE_CONTRACT.format(
-            machine=contract_machine_id)
-        contracts, _headers = self.request_url(url, data=data)
-        self.cfg.write_cache('machine-contracts', contracts)
-        return contracts
 
     def request_contract_machine_attach(self, contract_token, machine_id=None):
         """Requests machine attach to the provided contact_id.
