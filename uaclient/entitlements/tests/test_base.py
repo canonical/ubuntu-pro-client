@@ -6,6 +6,7 @@ from uaclient import config
 from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
+from uaclient.status import ContractStatus
 
 try:
     from typing import Tuple  # noqa
@@ -215,12 +216,12 @@ class TestUaEntitlement:
     def test_contract_status_entitled(self, concrete_entitlement_factory):
         """The contract_status returns ENTITLED when entitlement enabled."""
         entitlement = concrete_entitlement_factory(entitled=True)
-        assert status.ENTITLED == entitlement.contract_status()
+        assert ContractStatus.ENTITLED == entitlement.contract_status()
 
     def test_contract_status_unentitled(self, concrete_entitlement_factory):
         """The contract_status returns NONE when entitlement is unentitled."""
         entitlement = concrete_entitlement_factory(entitled=False)
-        assert status.NONE == entitlement.contract_status()
+        assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
     @pytest.mark.parametrize('orig_access,delta', (
         ({}, {}), ({}, {'entitlement': {'entitled': False}})))

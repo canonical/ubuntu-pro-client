@@ -12,6 +12,7 @@ from uaclient.entitlements.livepatch import (
     LivepatchEntitlement, process_config_directives)
 from uaclient.entitlements.repo import APT_RETRIES
 from uaclient import status
+from uaclient.status import ContractStatus
 
 
 LIVEPATCH_MACHINE_TOKEN = MappingProxyType({
@@ -71,13 +72,13 @@ class TestLivepatchContractStatus:
 
     def test_contract_status_entitled(self, entitlement):
         """The contract_status returns ENTITLED when entitled is True."""
-        assert status.ENTITLED == entitlement.contract_status()
+        assert ContractStatus.ENTITLED == entitlement.contract_status()
 
     def test_contract_status_unentitled(self, entitlement):
         """The contract_status returns NONE when entitled is False."""
         entitlement.cfg.write_cache(
             'machine-access-livepatch', {'entitlement': {'entitled': False}})
-        assert status.NONE == entitlement.contract_status()
+        assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
 class TestLivepatchOperationalStatus:

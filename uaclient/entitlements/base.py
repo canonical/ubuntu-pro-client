@@ -14,6 +14,7 @@ from uaclient import config
 from uaclient import contract
 from uaclient import status
 from uaclient import util
+from uaclient.status import ContractStatus
 
 RE_KERNEL_UNAME = (
     r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
@@ -101,7 +102,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             contract_client = contract.UAContractClient(self.cfg)
             contract_client.request_resource_machine_access(
                 token, self.name)
-        if not self.contract_status() == status.ENTITLED:
+        if not self.contract_status() == ContractStatus.ENTITLED:
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
@@ -188,14 +189,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def contract_status(self) -> str:
-        """Return whether contract entitlement is ENTITLED or NONE."""
+    def contract_status(self) -> ContractStatus:
+        """Return whether the user is entitled to the entitlement or not"""
         if not self.cfg.is_attached:
-            return status.NONE
+            return ContractStatus.UNENTITLED
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
         if entitlement_cfg and entitlement_cfg['entitlement'].get('entitled'):
-            return status.ENTITLED
-        return status.NONE
+            return ContractStatus.ENTITLED
+        return ContractStatus.UNENTITLED
 
     def is_access_expired(self) -> bool:
         """Return entitlement access info as stale and needing refresh."""

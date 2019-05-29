@@ -24,10 +24,21 @@ class ApplicationStatus(enum.Enum):
         return mapping[self]
 
 
+@enum.unique
+class ContractStatus(enum.Enum):
+    """
+    An enum to represent whether a user is entitled to an entitlement
+
+    (The value of each member is the string that will be used in status
+    output.)
+    """
+    ENTITLED = 'entitled'
+    UNENTITLED = 'none'
+
+
 ACTIVE = 'active'
 INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'
-ENTITLED = 'entitled'
 NONE = 'none'
 ESSENTIAL = 'essential'
 STANDARD = 'standard'
@@ -38,7 +49,8 @@ STATUS_COLOR = {
     ACTIVE: TxtColor.OKGREEN + ACTIVE + TxtColor.ENDC,
     INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
-    ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
+    ContractStatus.ENTITLED.value: (
+        TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC),
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
     ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
