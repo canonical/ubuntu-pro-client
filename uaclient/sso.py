@@ -9,23 +9,12 @@ from uaclient import util
 
 
 API_PATH_V2 = '/api/v2'
-API_PATH_USER_KEYS = API_PATH_V2 + '/keys/'
-API_PATH_OAUTH_TOKEN = API_PATH_V2 + '/tokens/oauth'
 API_PATH_TOKEN_DISCHARGE = API_PATH_V2 + '/tokens/discharge'
-API_PATH_TOKEN_REFRESH = API_PATH_V2 + '/tokens/refresh'
 
 
 # Some Ubuntu SSO API responses use UNDERSCORE_DELIMITED codes, others use
 # lowercase-hyphenated. We'll standardize on lowercase-hyphenated
 API_ERROR_2FA_REQUIRED = 'twofactor-required'
-API_ERROR_2FA_FAILURE = 'twofactor-failure'
-API_ERROR_ACCOUNT_DEACTIVATED = 'account-deactivated'
-API_ERROR_ACCOUNT_SUSPENDED = 'account-suspended'
-API_ERROR_EMAIL_INVALIDATED = 'email-invalidated'
-API_ERROR_INVALID_DATA = 'invalid-data'
-API_ERROR_INVALID_CREDENTIALS = 'invalid-credentials'
-API_ERROR_PASSWORD_POLICY_ERROR = 'password-policy-error'
-API_ERROR_TOO_MANY_REQUESTS = 'too-many-requests'
 
 
 class MacaroonFormatError(RuntimeError):
