@@ -22,9 +22,6 @@ API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     '/v1/resources/{resource}/context/machines/{machine}')
 
-# API Errors for Contract service
-API_ERROR_INVALID_DATA = 'BAD REQUEST'
-
 
 class ContractAPIError(util.UrlError):
 
