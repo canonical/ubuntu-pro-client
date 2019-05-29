@@ -24,11 +24,6 @@ def caplog_text(request):
     log_level = getattr(request, 'param', logging.INFO)
     try:
         try:
-            # TODO pyest 3.4 is funky and logs debug level by default
-            # https://docs.pytest.org/en/features/logging.html#\
-            #            incompatible-changes-in-pytest-3-4
-            # write_cache debug logs are seen on Bionic in test_livepatch:
-            # test_enable_false_when_can_enable_false
             caplog = request.getfixturevalue('caplog')
         except AttributeError:
             # Older versions of pytest only have getfuncargvalue, which is now
