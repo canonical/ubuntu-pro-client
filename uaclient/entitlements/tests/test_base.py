@@ -58,7 +58,7 @@ def concrete_entitlement_factory(tmpdir):
                 'contractInfo': {
                     'resourceEntitlements': [
                         {'type': 'testconcreteentitlement',
-                         'entitled': True}]}}}
+                         'entitled': entitled}]}}}
         cfg.write_cache('machine-token', machineToken)
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': entitled}})
