@@ -308,6 +308,8 @@ class TestStatus:
             'techSupportLevel': status.INAPPLICABLE,
         }
         assert expected == cfg.status()
+        # cfg.status() idempotent
+        assert expected == cfg.status()
 
     @mock.patch('uaclient.config.os.getuid')
     def test_nonroot_without_cache_is_same_as_unattached_root(self, m_getuid):
