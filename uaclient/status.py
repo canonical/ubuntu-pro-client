@@ -36,6 +36,15 @@ class ContractStatus(enum.Enum):
     UNENTITLED = 'none'
 
 
+@enum.unique
+class ApplicabilityStatus(enum.Enum):
+    """
+    An enum to represent whether an entitlement could apply to this machine
+    """
+    APPLICABLE = object()
+    INAPPLICABLE = object()
+
+
 ACTIVE = 'active'
 INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'

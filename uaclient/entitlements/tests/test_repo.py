@@ -77,8 +77,8 @@ class TestOperationalStatus:
         platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         platform_unsupported['series'] = 'trusty'
         m_platform_info.return_value = platform_unsupported
-        passed_affordances, details = entitlement.check_affordances()
-        assert False is passed_affordances
+        applicability, details = entitlement.check_affordances()
+        assert status.ApplicabilityStatus.INAPPLICABLE == applicability
         assert 'Repo Test Class is not available for Ubuntu trusty.' == details
         op_status, op_details = entitlement.operational_status()
         assert status.INAPPLICABLE == op_status
@@ -94,8 +94,8 @@ class TestOperationalStatus:
         entitlement.cfg.write_cache('machine-token', no_entitlements)
         entitlement.cfg.delete_cache_key('machine-access-repotest')
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
-        passed_affordances, _details = entitlement.check_affordances()
-        assert True is passed_affordances
+        applicability, _details = entitlement.check_affordances()
+        assert status.ApplicabilityStatus.APPLICABLE == applicability
         op_status, op_details = entitlement.operational_status()
         assert status.INAPPLICABLE == op_status
         assert 'Repo Test Class is not entitled' == op_details

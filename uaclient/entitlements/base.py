@@ -14,7 +14,7 @@ from uaclient import config
 from uaclient import contract
 from uaclient import status
 from uaclient import util
-from uaclient.status import ContractStatus
+from uaclient.status import ApplicabilityStatus, ContractStatus
 
 RE_KERNEL_UNAME = (
     r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
@@ -118,38 +118,41 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def check_affordances(self) -> 'Tuple[bool, str]':
+    def check_affordances(self) -> 'Tuple[ApplicabilityStatus, str]':
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
         Examples include a list of supported series, architectures for kernel
         revisions.
 
-        @return: Tuple (boolean, detailed_message). True if platform passes
-            all defined affordances, False if it doesn't meet any of the
-            provided constraints.
+        @return: Tuple (ApplicabilityStatus, detailed_message).  APPLICABLE if
+        platform passes all defined affordances, INAPPLICABLE if it doesn't
+        meet all of the provided constraints.
         """
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return True, 'no entitlement affordances checked'
+            return (ApplicabilityStatus.APPLICABLE,
+                    'no entitlement affordances checked')
         affordances = entitlement_cfg['entitlement'].get('affordances', {})
         platform = util.get_platform_info()
         affordance_arches = affordances.get('architectures', [])
         if affordance_arches and platform['arch'] not in affordance_arches:
-            return False, status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
-                title=self.title, arch=platform['arch'],
-                supported_arches=', '.join(affordance_arches))
+            return (ApplicabilityStatus.INAPPLICABLE,
+                    status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
+                        title=self.title, arch=platform['arch'],
+                        supported_arches=', '.join(affordance_arches)))
         affordance_series = affordances.get('series', [])
         if affordance_series and platform['series'] not in affordance_series:
-            return False, status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
-                title=self.title, series=platform['series'])
+            return (ApplicabilityStatus.INAPPLICABLE,
+                    status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
+                        title=self.title, series=platform['series']))
         kernel = platform['kernel']
         affordance_kernels = affordances.get('kernelFlavors', [])
         affordance_min_kernel = affordances.get('minKernelVersion')
         match = re.match(RE_KERNEL_UNAME, kernel)
         if affordance_kernels:
             if not match or match.group('flavor') not in affordance_kernels:
-                return (False,
+                return (ApplicabilityStatus.INAPPLICABLE,
                         status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
                             title=self.title, kernel=kernel,
                             supported_kernels=', '.join(affordance_kernels)))
@@ -165,17 +168,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 logging.warning(
                     'Could not parse minKernelVersion: %s',
                     affordance_min_kernel)
-                return (False, invalid_msg)
+                return (ApplicabilityStatus.INAPPLICABLE, invalid_msg)
 
             if not match:
-                return (False, invalid_msg)
+                return ApplicabilityStatus.INAPPLICABLE, invalid_msg
             if any([int(match.group('major')) < min_kern_major,
                     int(match.group('minor')) < min_kern_minor]):
-                return (False, invalid_msg)
+                return ApplicabilityStatus.INAPPLICABLE, invalid_msg
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
-                return False, error_message
-        return True, ''
+                return ApplicabilityStatus.INAPPLICABLE, error_message
+        return ApplicabilityStatus.APPLICABLE, ''
 
     @abc.abstractmethod
     def disable(self, silent: bool = False, force: bool = False) -> bool:
@@ -276,8 +279,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def operational_status(self) -> 'Tuple[str, str]':
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
-        passed_affordances, details = self.check_affordances()
-        if not passed_affordances:
+        applicability, details = self.check_affordances()
+        if applicability != ApplicabilityStatus.APPLICABLE:
             return status.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
