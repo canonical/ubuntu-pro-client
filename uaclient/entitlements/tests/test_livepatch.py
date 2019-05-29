@@ -83,9 +83,9 @@ class TestLivepatchContractStatus:
 
 class TestLivepatchOperationalStatus:
 
-    def test_operational_status_inapplicable_on_checked_affordances(
+    def test_operational_status_inapplicable_on_inapplicable_status(
             self, entitlement):
-        """The operational_status details failed check_affordances."""
+        """The operational_status details INAPPLICABLE applicability_status"""
         livepatch_bionic = copy.deepcopy(dict(LIVEPATCH_RESOURCE_ENTITLED))
         livepatch_bionic['entitlement']['affordances']['series'] = ['bionic']
         entitlement.cfg.write_cache(

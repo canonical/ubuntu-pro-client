@@ -118,16 +118,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def check_affordances(self) -> 'Tuple[ApplicabilityStatus, str]':
+    def applicability_status(self) -> 'Tuple[ApplicabilityStatus, str]':
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
         Examples include a list of supported series, architectures for kernel
         revisions.
 
-        @return: Tuple (ApplicabilityStatus, detailed_message).  APPLICABLE if
-        platform passes all defined affordances, INAPPLICABLE if it doesn't
-        meet all of the provided constraints.
+        :return:
+            tuple of (ApplicabilityStatus, detailed_message).  APPLICABLE if
+            platform passes all defined affordances, INAPPLICABLE if it doesn't
+            meet all of the provided constraints.
         """
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
@@ -279,7 +280,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def operational_status(self) -> 'Tuple[str, str]':
         """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
-        applicability, details = self.check_affordances()
+        applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
             return status.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)

@@ -71,13 +71,13 @@ def entitlement(tmpdir):
 class TestOperationalStatus:
 
     @mock.patch(M_PATH + 'util.get_platform_info')
-    def test_inapplicable_on_failed_check_affordances(
+    def test_inapplicable_on_inapplicable_applicability_status(
             self, m_platform_info, entitlement):
-        """When check_affordances raises a failure, return INAPPLICABLE."""
+        """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
         platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         platform_unsupported['series'] = 'trusty'
         m_platform_info.return_value = platform_unsupported
-        applicability, details = entitlement.check_affordances()
+        applicability, details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.INAPPLICABLE == applicability
         assert 'Repo Test Class is not available for Ubuntu trusty.' == details
         op_status, op_details = entitlement.operational_status()
@@ -94,7 +94,7 @@ class TestOperationalStatus:
         entitlement.cfg.write_cache('machine-token', no_entitlements)
         entitlement.cfg.delete_cache_key('machine-access-repotest')
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
-        applicability, _details = entitlement.check_affordances()
+        applicability, _details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.APPLICABLE == applicability
         op_status, op_details = entitlement.operational_status()
         assert status.INAPPLICABLE == op_status
