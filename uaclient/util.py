@@ -54,8 +54,6 @@ class ProcessExecutionError(IOError):
 
     def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
                  stdout: str = '', stderr: str = '') -> None:
-        self.cmd = cmd
-        self.exit_code = exit_code
         self.stdout = stdout
         self.stderr = stderr
         if not exit_code:
