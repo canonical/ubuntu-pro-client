@@ -206,7 +206,7 @@ class TestDeleteCache:
     @pytest.mark.parametrize(
         'property_name,data_path_name,expected_null_value', (
             ('machine_token', 'machine-token', None),
-            ('contracts', 'account-contracts', [])))
+        ))
     def test_delete_cache_properly_clears_all_caches_simple(
             self, tmpdir, property_name, data_path_name, expected_null_value):
         """

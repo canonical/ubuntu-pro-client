@@ -39,7 +39,6 @@ class UAConfig:
     data_paths = {
         'bound-macaroon': DataPath('bound-macaroon', True),
         'accounts': DataPath('accounts.json', True),
-        'account-contracts': DataPath('account-contracts.json', True),
         'account-users': DataPath('account-users.json', True),
         'contract-token': DataPath('contract-token.json', True),
         'local-access': DataPath('local-access', True),
@@ -65,7 +64,6 @@ class UAConfig:
         'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
 
-    _contracts = None  # caching to avoid repetitive file reads
     _entitlements = None  # caching to avoid repetitive file reads
     _machine_token = None  # caching to avoid repetitive file reading
 
@@ -127,13 +125,6 @@ class UAConfig:
         return self.cfg['sso_auth_url']
 
     @property
-    def contracts(self):
-        """Return the list of contracts that apply to this account."""
-        if not self._contracts:
-            self._contracts = self.read_cache('account-contracts')
-        return self._contracts or []
-
-    @property
     def entitlements(self):
         """Return a dictionary of entitlements keyed by entitlement name.
 
@@ -193,8 +184,6 @@ class UAConfig:
         if key.startswith('machine-access') or key == 'machine-token':
             self._entitlements = None
             self._machine_token = None
-        elif key == 'account-contracts':
-            self._contracts = None
         cache_path = self.data_path(key)
         if os.path.exists(cache_path):
             os.unlink(cache_path)
@@ -223,8 +212,6 @@ class UAConfig:
         if key.startswith('machine-access') or key == 'machine-token':
             self._machine_token = None
             self._entitlements = None
-        elif key == 'account-contracts':
-            self._contracts = None
         if not isinstance(content, str):
             content = json.dumps(content)
         mode = 0o600
