@@ -9,11 +9,13 @@ import pytest
 
 from uaclient import entitlements, status
 from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig
+from uaclient.entitlements import ENTITLEMENT_CLASSES
 from uaclient.testing.fakes import FakeConfig
 
 
 KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
                     ('accounts', 'accounts.json'))
+M_PATH = 'uaclient.entitlements.'
 
 
 class TestAccounts:
@@ -289,7 +291,7 @@ class TestStatus:
         assert expected == cfg.status()
 
     @mock.patch('uaclient.config.os.getuid', return_value=0)
-    def test_nonroot_attached(self, _m_getuid):
+    def test_root_attached(self, _m_getuid):
         """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
         expected_services = [{'entitled': status.NONE,
@@ -305,6 +307,8 @@ class TestStatus:
             'subscription': 'test_contract',
             'techSupportLevel': status.INAPPLICABLE,
         }
+        assert expected == cfg.status()
+        # cfg.status() idempotent
         assert expected == cfg.status()
 
     @mock.patch('uaclient.config.os.getuid')
@@ -349,3 +353,45 @@ class TestStatus:
 
         assert 0o644 == stat.S_IMODE(
             os.lstat(cfg.data_path('status-cache')).st_mode)
+
+    @pytest.mark.parametrize('entitlements', (
+        [],
+        [{'type': 'support', 'entitled': True,
+          'affordances': {'supportLevel': 'anything'}}]))
+    @mock.patch('uaclient.config.os.getuid', return_value=0)
+    @mock.patch(M_PATH + 'livepatch.LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'repo.RepoEntitlement.operational_status')
+    def test_attached_reports_contract_and_service_status(
+            self, m_repo_op_status, m_livepatch_op_status, _m_getuid, tmpdir,
+            entitlements):
+        """When attached, return contract and service operational status."""
+        m_repo_op_status.return_value = status.INAPPLICABLE, 'repo details'
+        m_livepatch_op_status.return_value = status.ACTIVE, 'livepatch details'
+        token = {
+            'machineTokenInfo': {
+                'accountInfo': {'id': '1', 'name': 'accountname'},
+                'contractInfo': {'name': 'contractname',
+                                 'resourceEntitlements': entitlements}}}
+        cfg = FakeConfig.for_attached_machine(
+            account_name='accountname', machine_token=token)
+        if not entitlements:
+            support_level = status.INAPPLICABLE
+        else:
+            support_level = entitlements[0]['affordances']['supportLevel']
+        expected = {
+            'attached': True, 'account': 'accountname',
+            'expires': status.INAPPLICABLE, 'subscription': 'contractname',
+            'techSupportLevel': support_level, 'services': []}
+        for cls in ENTITLEMENT_CLASSES:
+            if cls.name == 'livepatch':
+                op_status = status.ACTIVE
+                op_details = 'livepatch details'
+            else:
+                op_status = status.INAPPLICABLE
+                op_details = 'repo details'
+            expected['services'].append(
+                {'name': cls.name, 'entitled': status.NONE,
+                 'status': op_status, 'statusDetails': op_details})
+        assert expected == cfg.status()
+        assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_op_status.call_count
+        assert 1 == m_livepatch_op_status.call_count

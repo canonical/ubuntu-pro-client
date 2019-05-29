@@ -241,7 +241,7 @@ class UAConfig:
     def _status(self) -> 'Dict[str, Any]':
         """Return configuration status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
-        response = DEFAULT_STATUS
+        response = copy.deepcopy(DEFAULT_STATUS)
         response['attached'] = self.is_attached
         if not self.is_attached:
             return response
@@ -259,6 +259,12 @@ class UAConfig:
                 'name': ent.name, 'entitled': contract_status,
                 'status': op_status, 'statusDetails': op_details}
             response['services'].append(service_status)
+        support = self.entitlements.get('support', {}).get('entitlement')
+        if support:
+            supportLevel = support.get('affordances', {}).get('supportLevel')
+            if not supportLevel:
+                supportLevel = DEFAULT_STATUS['techSupportLevel']
+            response['techSupportLevel'] = supportLevel
         return response
 
     def status(self) -> 'Dict[str, Any]':
