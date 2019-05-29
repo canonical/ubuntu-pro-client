@@ -29,11 +29,6 @@ LOG = logging.getLogger(__name__)
 PRIVATE_SUBDIR = 'private'
 
 
-class ConfigAbsentError(RuntimeError):
-    """Raised when no valid config is discovered."""
-    pass
-
-
 # A data path is a filename, and an attribute ("private") indicating whether it
 # should only be readable by root
 DataPath = namedtuple('DataPath', ('filename', 'private'))
@@ -290,7 +285,6 @@ def parse_config(config_path=None):
     @param config_path: Fullpath to ua configfile. If unspecified, use
         DEFAULT_CONFIG_FILE.
 
-    @raises: ConfigAbsentError when no config file is discovered.
     @return: Dict of configuration values.
     """
     if not config_path:
