@@ -52,9 +52,6 @@ class UrlError(IOError):
 
 class ProcessExecutionError(IOError):
 
-    ERR_TMPL = (
-        "Failed running command '{cmd}' [exit({exit_code})]. Message {stderr}")
-
     def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
                  stdout: str = '', stderr: str = '') -> None:
         self.cmd = cmd
