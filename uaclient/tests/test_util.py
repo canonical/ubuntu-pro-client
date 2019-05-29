@@ -182,6 +182,16 @@ class TestSubp:
         expected_sleeps = [mock.call(1), mock.call(3), mock.call(0.4)]
         assert expected_sleeps == m_sleep.call_args_list
 
+    @mock.patch('uaclient.util.time.sleep')
+    def test_retry_doesnt_consume_retry_sleeps(self, m_sleep):
+        """When retry_sleeps given, use defined sleeps between each retry."""
+        sleeps = [1, 3, 0.4]
+        expected_sleeps = sleeps.copy()
+        with pytest.raises(util.ProcessExecutionError):
+            util.subp(['ls', '--bogus'], retry_sleeps=sleeps)
+
+        assert expected_sleeps == sleeps
+
 
 class TestParseOSRelease:
 

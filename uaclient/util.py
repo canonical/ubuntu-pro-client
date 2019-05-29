@@ -167,7 +167,8 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
     return content, resp.headers
 
 
-def _subp(args, rcs=None, capture=False):
+def _subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
+          capture: bool = False) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param subp: A list of arguments to feed to subprocess.Popen
@@ -219,6 +220,7 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
     """
+    retry_sleeps = retry_sleeps.copy() if retry_sleeps is not None else None
     while True:
         try:
             out, err = _subp(args, rcs, capture)
