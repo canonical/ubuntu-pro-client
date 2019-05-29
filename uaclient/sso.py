@@ -106,13 +106,9 @@ def binary_serialize_macaroons(macaroons):
     serialized_macaroons = []
     for macaroon in macaroons:
         serialized = macaroon.serialize()
-        if '_' or '-' in serialized:
-            encoded = serialized.encode('utf-8')
-            padded = encoded + b'=' * (-len(encoded) % 4)
-            serialized_macaroons.append(base64.urlsafe_b64decode(padded))
-        else:
-            padded = serialized + b'=' * (-len(serialized) % 4)
-            serialized_macaroons.append(base64.b64decode(padded))
+        encoded = serialized.encode('utf-8')
+        padded = encoded + b'=' * (-len(encoded) % 4)
+        serialized_macaroons.append(base64.urlsafe_b64decode(padded))
     return base64.urlsafe_b64encode(
         b''.join(serialized_macaroons)).rstrip(b'=')
 
