@@ -10,6 +10,7 @@ INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'
 ENTITLED = 'entitled'
 NONE = 'none'
+ESSENTIAL = 'essential'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
@@ -20,6 +21,7 @@ STATUS_COLOR = {
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
     ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
+    ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
 }
@@ -78,11 +80,13 @@ def format_tabular(status):
     """Format status dict for tabular output."""
     if not status['attached']:
         return MESSAGE_UNATTACHED
+    tech_support_level = status['techSupportLevel']
     content = [STATUS_HEADER_TMPL.format(
         account=status['account'],
         subscription=status['subscription'],
         expires=status['expires'],
-        techSupportLevel=status['techSupportLevel'])]
+        techSupportLevel=STATUS_COLOR.get(tech_support_level,
+                                          tech_support_level))]
 
     content.append(STATUS_SERVICE_HEADER)
     for service_status in status['services']:
