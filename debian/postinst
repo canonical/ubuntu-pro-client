@@ -24,7 +24,7 @@ EOF
 
 upgrade_to_status_cache() {
     # Remove all publicly-readable files
-    find /var/lib/ubuntu-advantage/ -maxdepth 1 -type f | xargs rm
+    find /var/lib/ubuntu-advantage/ -maxdepth 1 -type f -delete
     # Regenerate the status.json cache
     ua status 2>&1 > /dev/null
 }
