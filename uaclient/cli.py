@@ -348,8 +348,7 @@ def action_refresh(args, cfg):
         print(ua_status.MESSAGE_REFRESH_SUCCESS)
         logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
         return 0
-    logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
-    return 1
+    raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
 
 
 def setup_logging(console_level, log_level, log_file=None):

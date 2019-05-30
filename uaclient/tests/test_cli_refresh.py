@@ -1,5 +1,8 @@
 import mock
 
+import pytest
+
+from uaclient import exceptions
 from uaclient.testing.fakes import FakeConfig
 
 try:
@@ -48,12 +51,11 @@ class TestActionRefresh:
         request_updated_contract.return_value = False  # failure to refresh
 
         cfg = FakeConfig.for_attached_machine()
-        ret = action_refresh(mock.MagicMock(), cfg)
 
-        assert 1 == ret
-        assert (
-            mock.call(status.MESSAGE_REFRESH_FAILURE) in
-            logging_error.call_args_list)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            action_refresh(mock.MagicMock(), cfg)
+
+        assert status.MESSAGE_REFRESH_FAILURE == excinfo.value.msg
 
     @mock.patch(M_PATH + 'contract.request_updated_contract')
     def test_refresh_contract_happy_path(
