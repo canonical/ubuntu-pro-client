@@ -6,8 +6,8 @@ from io import StringIO
 
 import pytest
 
-from uaclient import status
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
+from uaclient.exceptions import NonRootUserError
 
 M_PATH = 'uaclient.cli.'
 
@@ -19,11 +19,8 @@ def test_non_root_users_are_rejected(stdout, getuid):
     getuid.return_value = 1
 
     cfg = FakeConfig()
-    ret = action_attach(mock.MagicMock(), cfg)
-
-    assert 1 == ret
-    assert (
-        mock.call(status.MESSAGE_NONROOT_USER) in stdout.write.call_args_list)
+    with pytest.raises(NonRootUserError):
+        action_attach(mock.MagicMock(), cfg)
 
 
 # For all of these tests we want to appear as root, so mock on the class

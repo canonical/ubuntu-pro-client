@@ -239,8 +239,7 @@ def action_attach(args, cfg):
               cfg.accounts[0]['name'])
         return 0
     if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
+        raise exceptions.NonRootUserError()
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
         bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
