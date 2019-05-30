@@ -26,12 +26,8 @@ class TestActionRefresh:
         getuid.return_value = 1
 
         cfg = FakeConfig.for_attached_machine()
-        ret = action_refresh(mock.MagicMock(), cfg)
-
-        assert 1 == ret
-        assert (
-            mock.call(status.MESSAGE_NONROOT_USER) in
-            stdout.write.call_args_list)
+        with pytest.raises(exceptions.NonRootUserError):
+            action_refresh(mock.MagicMock(), cfg)
 
     def test_not_attached_errors(self, getuid, stdout):
         """Check that an unattached machine emits message and exits 1"""

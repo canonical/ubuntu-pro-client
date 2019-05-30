@@ -1,3 +1,6 @@
+from uaclient import status
+
+
 class UserFacingError(Exception):
     """
     An exception to be raised when an execution-ending error is encountered.
@@ -9,3 +12,10 @@ class UserFacingError(Exception):
 
     def __init__(self, msg: str) -> None:
         self.msg = msg
+
+
+class NonRootUserError(UserFacingError):
+    """An exception to be raised when a user needs to be root."""
+
+    def __init__(self) -> None:
+        super().__init__(status.MESSAGE_NONROOT_USER)
