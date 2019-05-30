@@ -1,23 +1,15 @@
 class TxtColor:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
     DISABLEGREY = '\033[37m'
-    WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 ACTIVE = 'active'
 INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'
 ENTITLED = 'entitled'
-EXPIRED = 'expired'
 NONE = 'none'
-STANDARD = 'standard'
-ADVANCED = 'advanced'
 
 # Colorized status output for terminal
 STATUS_COLOR = {
@@ -25,10 +17,7 @@ STATUS_COLOR = {
     INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
     ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
-    EXPIRED: TxtColor.FAIL + EXPIRED + TxtColor.ENDC,
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
-    STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
-    ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
 }
 
 MESSAGE_DISABLED_TMPL = '{title} disabled.'

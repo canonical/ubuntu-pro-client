@@ -41,7 +41,6 @@ Valid until: {contract_expiry}
 Technical support level: {tech_support_level}
 """
 UA_DASHBOARD_URL = 'https://contracts.canonical.com'
-UA_STAGING_DASHBOARD_URL = 'https://contracts.staging.canonical.com'
 
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')

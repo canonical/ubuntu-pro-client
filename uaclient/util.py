@@ -43,7 +43,6 @@ class UrlError(IOError):
                  headers: 'Optional[Dict[str, str]]' = None,
                  url: 'Optional[str]' = None):
         super().__init__(str(cause))
-        self.cause = cause
         self.code = code
         self.headers = headers
         if self.headers is None:
@@ -53,13 +52,8 @@ class UrlError(IOError):
 
 class ProcessExecutionError(IOError):
 
-    ERR_TMPL = (
-        "Failed running command '{cmd}' [exit({exit_code})]. Message {stderr}")
-
     def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
                  stdout: str = '', stderr: str = '') -> None:
-        self.cmd = cmd
-        self.exit_code = exit_code
         self.stdout = stdout
         self.stderr = stderr
         if not exit_code:

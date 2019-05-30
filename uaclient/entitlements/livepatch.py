@@ -18,46 +18,6 @@ ERROR_MSG_MAP = {
     'unsupported kernel': 'Your running kernel is not supported by Livepatch.',
 }
 
-PATCH_STATE_UNKNOWN_TMPL = '''\
- * Livepatch is in an unknown patch status '{patch_state}'
-    - Please see /var/log/syslog for more information.'''
-
-PATCH_STATE_MSG_MAP = {
-    'unapplied': 'Patches are available and will be deployed shortly.',
-    'applied': 'All available patches applied.',
-    'applied-with-bug': (
-        'Live patching failed, please run `ubuntu-bug linux` to report a bug'
-    ),
-    'apply-failed': (
-        'Live patching failed, please run `ubuntu-bug linux` to report a bug'
-    ),
-    'nothing-to-apply': 'All available patches applied.',
-    'applying': 'Live patching currently in progress.'
-}
-
-CHECK_STATE_UNKNOWN_TMPL = '''\
- * Livepatch is in an unknown check state '{check_state}'
-    - Please see /var/log/syslog for more information.'''
-
-CHECK_STATE_MSG_MAP = {
-    'needs-check': 'Regular server check is pending.',
-    'check-failed': (
-        'Livepatch server check failed.\n'
-        '    Please see /var/log/syslog for more information.'
-    ),
-    'checked': PATCH_STATE_MSG_MAP
-}
-
-STATUS_LIVEPATCH_ENABLED = ' * Canonical Livepatch is enabled.'
-STATUS_LIVEPATCH_ENTITLED = '''\
- * Canonical Livepatch is available for installation.
-   - Reduce system reboots and improve kernel security. Enable with:
-     `ua enable livepatch`'''
-STATUS_LIVEPATCH_DISABLED_KERNEL_TMPL = '''\
- * Canonical Livepatch is installed but disabled.
-   - Custom kernel {kernel_ver} is not supported\
- (https://bit.ly/livepatch-faq)'''
-
 
 class LivepatchEntitlement(base.UAEntitlement):
 

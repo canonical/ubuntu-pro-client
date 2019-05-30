@@ -22,15 +22,11 @@ API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     '/v1/resources/{resource}/context/machines/{machine}')
 
-# API Errors for Contract service
-API_ERROR_INVALID_DATA = 'BAD REQUEST'
-
 
 class ContractAPIError(util.UrlError):
 
     def __init__(self, e, error_response):
         super().__init__(e, e.code, e.headers, e.url)
-        self.full_api_response = error_response
         if 'error_list' in error_response:
             self.api_errors = error_response['error_list']
         else:
