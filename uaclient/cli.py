@@ -244,7 +244,11 @@ def action_attach(args, cfg):
         return 1
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
+        try:
+            bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
+        except KeyboardInterrupt:
+            print('... Cancelled attach')
+            return 2
         if bound_macaroon_bytes is None:
             print('Could not attach machine. Unable to obtain authenticated'
                   ' user token')

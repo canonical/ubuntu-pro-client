@@ -104,6 +104,19 @@ class TestActionAttach:
         assert expected_calls == contract_machine_attach.call_args_list
         assert 0 == discharge_root_macaroon.call_count
 
+    @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
+    @mock.patch(M_PATH + 'action_status')
+    def test_cancelled_input(self, action_status, discharge_root_macaroon):
+        """User cancelled input does not result in tracebacks."""
+        discharge_root_macaroon.side_effect = KeyboardInterrupt()
+        args = mock.MagicMock(token=None)
+        with mock.patch(M_PATH + 'sys.stdout', new_callable=StringIO) as m_out:
+            ret = action_attach(args, FakeConfig())
+
+        assert 2 == ret
+        assert 0 == action_status.call_count
+        assert '... Cancelled attach\n' == m_out.getvalue()
+
     @mock.patch('uaclient.cli.sys.stdout')
     @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
     @mock.patch('uaclient.cli.contract.UAContractClient')

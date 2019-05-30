@@ -218,7 +218,6 @@ def discharge_root_macaroon(contract_client):
         return None
     except (MacaroonFormatError) as e:
         logging.error("Invalid root macaroon: %s", str(e))
-
     if not discharge_macaroon:
         return None
     return bind_discharge_macarooon_to_root_macaroon(
