@@ -3,9 +3,11 @@
 set -e
 
 ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
+ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
 ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 
 configure_esm() {
+    rm -f $ESM_APT_GPG_KEY_OLD  # Remove retired key from key list
     if [ ! -f "$ESM_APT_GPG_KEY" ]; then
         cp /usr/share/keyrings/ubuntu-esm-v2-keyring.gpg "$ESM_APT_GPG_KEY"
     fi
