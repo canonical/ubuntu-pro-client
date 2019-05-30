@@ -3,7 +3,7 @@ import mock
 import pytest
 
 from uaclient import status
-from uaclient.cli import assert_attached_root
+from uaclient.cli import assert_attached_root, main
 from uaclient.testing.fakes import FakeConfig
 
 
@@ -38,3 +38,21 @@ class TestAssertAttachedRoot:
 
         out, _err = capsys.readouterr()
         assert expected_message == out.strip()
+
+
+class TestMain:
+
+    @mock.patch('uaclient.cli.get_parser')
+    def test_keyboard_interrupt_handled_gracefully(self, m_get_parser, capsys):
+        m_args = m_get_parser.return_value.parse_args.return_value
+        m_args.action.side_effect = KeyboardInterrupt
+
+        with pytest.raises(SystemExit) as excinfo:
+            main(['some', 'args'])
+
+        exc = excinfo.value
+        assert 1 == exc.code
+
+        out, err = capsys.readouterr()
+        assert '' == out
+        assert 'Interrupt received; exiting.\n' == err
