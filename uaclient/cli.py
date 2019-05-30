@@ -23,6 +23,7 @@ import sys
 from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
+from uaclient import exceptions
 from uaclient import sso
 from uaclient import status as ua_status
 from uaclient import util
@@ -387,6 +388,9 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             print('Interrupt received; exiting.', file=sys.stderr)
+            sys.exit(1)
+        except exceptions.UserFacingError as exc:
+            print('ERROR: {}'.format(exc.msg), file=sys.stderr)
             sys.exit(1)
     return wrapper
 
