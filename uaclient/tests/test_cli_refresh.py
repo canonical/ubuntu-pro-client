@@ -33,11 +33,8 @@ class TestActionRefresh:
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
 
-        ret = action_refresh(mock.MagicMock(), cfg)
-
-        assert 1 == ret
-        expected_msg = status.MESSAGE_UNATTACHED
-        assert mock.call(expected_msg) in stdout.write.call_args_list
+        with pytest.raises(exceptions.UnattachedError):
+            action_refresh(mock.MagicMock(), cfg)
 
     @mock.patch(M_PATH + 'logging.error')
     @mock.patch(M_PATH + 'contract.request_updated_contract')

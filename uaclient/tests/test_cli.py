@@ -2,9 +2,9 @@ import mock
 
 import pytest
 
-from uaclient import status
 from uaclient.cli import assert_attached_root, main
-from uaclient.exceptions import NonRootUserError, UserFacingError
+from uaclient.exceptions import (
+    NonRootUserError, UserFacingError, UnattachedError)
 from uaclient.testing.fakes import FakeConfig
 
 
@@ -12,7 +12,6 @@ class TestAssertAttachedRoot:
 
     @pytest.mark.parametrize('attached,uid,expected_message', (
         (True, 0, None),
-        (False, 0, status.MESSAGE_UNATTACHED),
     ))
     def test_assert_attached_root(
             self, attached, uid, expected_message, capsys):
@@ -41,6 +40,7 @@ class TestAssertAttachedRoot:
     @pytest.mark.parametrize('attached,uid,expected_exception', [
         (True, 1000, NonRootUserError),
         (False, 1000, NonRootUserError),
+        (False, 0, UnattachedError),
     ])
     def test_assert_attached_root_exceptions(
             self, attached, uid, expected_exception):

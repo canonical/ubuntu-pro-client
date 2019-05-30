@@ -55,8 +55,7 @@ def assert_attached_root(func):
         if os.getuid() != 0:
             raise exceptions.NonRootUserError()
         if not cfg.is_attached:
-            print(ua_status.MESSAGE_UNATTACHED)
-            return 1
+            raise exceptions.UnattachedError()
         return func(args, cfg)
     return wrapper
 
