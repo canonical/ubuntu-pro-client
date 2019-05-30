@@ -382,6 +382,17 @@ def setup_logging(console_level, log_level, log_file=None):
         root.addHandler(filehandler)
 
 
+def main_error_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except KeyboardInterrupt:
+            print('Interrupt received; exiting.', file=sys.stderr)
+            sys.exit(1)
+    return wrapper
+
+
+@main_error_handler
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
