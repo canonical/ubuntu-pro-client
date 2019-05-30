@@ -12,7 +12,7 @@ class TestAssertAttachedRoot:
     @pytest.mark.parametrize('attached,uid,expected_message', (
         (True, 0, None),
         (True, 1000, status.MESSAGE_NONROOT_USER),
-        (False, 1000, status.MESSAGE_UNATTACHED),
+        (False, 1000, status.MESSAGE_NONROOT_USER),
         (False, 0, status.MESSAGE_UNATTACHED),
     ))
     def test_assert_attached_root(

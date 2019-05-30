@@ -52,11 +52,11 @@ STATUS_FORMATS = ['tabular', 'json']
 def assert_attached_root(func):
     """Decorator asserting root user and attached config."""
     def wrapper(args, cfg):
-        if not cfg.is_attached:
-            print(ua_status.MESSAGE_UNATTACHED)
-            return 1
         if os.getuid() != 0:
             print(ua_status.MESSAGE_NONROOT_USER)
+            return 1
+        if not cfg.is_attached:
+            print(ua_status.MESSAGE_UNATTACHED)
             return 1
         return func(args, cfg)
     return wrapper
