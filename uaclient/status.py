@@ -10,6 +10,8 @@ INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'
 ENTITLED = 'entitled'
 NONE = 'none'
+STANDARD = 'standard'
+ADVANCED = 'advanced'
 
 # Colorized status output for terminal
 STATUS_COLOR = {
@@ -18,6 +20,8 @@ STATUS_COLOR = {
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
     ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
+    STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
+    ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
 }
 
 MESSAGE_DISABLED_TMPL = '{title} disabled.'
