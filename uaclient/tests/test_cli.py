@@ -10,32 +10,21 @@ from uaclient.testing.fakes import FakeConfig
 
 class TestAssertAttachedRoot:
 
-    @pytest.mark.parametrize('attached,uid,expected_message', (
-        (True, 0, None),
-    ))
-    def test_assert_attached_root(
-            self, attached, uid, expected_message, capsys):
+    def test_assert_attached_root_happy_path(self, capsys):
 
         @assert_attached_root
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        if attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        cfg = FakeConfig.for_attached_machine()
 
-        with mock.patch('uaclient.cli.os.getuid', return_value=uid):
+        with mock.patch('uaclient.cli.os.getuid', return_value=0):
             ret = test_function(mock.Mock(), cfg)
 
-        if expected_message is None:
-            assert mock.sentinel.success == ret
-            expected_message = ''
-        else:
-            assert 1 == ret
+        assert mock.sentinel.success == ret
 
         out, _err = capsys.readouterr()
-        assert expected_message == out.strip()
+        assert '' == out.strip()
 
     @pytest.mark.parametrize('attached,uid,expected_exception', [
         (True, 1000, NonRootUserError),
