@@ -104,22 +104,27 @@ class TestOperationalStatus:
 class TestProcessContractDeltas:
 
     @pytest.mark.parametrize('orig_access', ({}, {'entitlement': {}}))
-    @mock.patch.object(RepoTestEntitlement, 'operational_status')
-    def test_on_no_deltas(self, m_op_status, orig_access):
+    def test_on_no_deltas(self, orig_access):
         """Return True when no deltas are available to process."""
         entitlement = RepoTestEntitlement()
-        assert entitlement.process_contract_deltas(orig_access, {})
-        assert [] == m_op_status.call_args_list
+        with mock.patch.object(entitlement,
+                               'remove_apt_config') as m_remove_apt_config:
+            with mock.patch.object(entitlement,
+                                   'setup_apt_config') as m_setup_apt_config:
+                assert entitlement.process_contract_deltas(orig_access, {})
+        assert [] == m_remove_apt_config.call_args_list
+        assert [] == m_setup_apt_config.call_args_list
 
     @pytest.mark.parametrize('entitled', (False, util.DROPPED_KEY))
     @mock.patch.object(RepoTestEntitlement, 'disable')
     @mock.patch.object(RepoTestEntitlement, 'can_disable', return_value=True)
-    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_disable_when_delta_to_unentitled(
-            self, m_op_status, m_can_disable, m_disable, entitlement,
+            self, m_application_status, m_can_disable, m_disable, entitlement,
             entitled):
         """Disable the service on contract transitions to unentitled."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
             {'entitlement': {'entitled': entitled}})
@@ -184,12 +189,13 @@ class TestProcessContractDeltas:
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
-    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_update_apt_config_when_active(
-            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
-            m_remove_auth_apt_repo, entitlement):
+            self, m_application_status, m_remove_apt_config,
+            m_setup_apt_config, m_remove_auth_apt_repo, entitlement):
         """Update_apt_config when service is active and not enableByDefault."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
             {'entitlement': {'obligations': {'enableByDefault': False}},
@@ -203,12 +209,14 @@ class TestProcessContractDeltas:
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
-    @mock.patch.object(RepoTestEntitlement, 'operational_status')
+    @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_remove_old_auth_apt_repo_when_active_and_apt_url_delta(
-            self, m_op_status, m_remove_apt_config, m_setup_apt_config,
-            m_remove_auth_apt_repo, m_platform_info, entitlement):
+            self, m_application_status, m_remove_apt_config,
+            m_setup_apt_config, m_remove_auth_apt_repo, m_platform_info,
+            entitlement):
         """Remove old apt url when aptURL delta occurs on active service."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         assert entitlement.process_contract_deltas(
             {'entitlement': {
                 'entitled': True, 'directives': {'aptURL': 'http://old'}}},

@@ -146,8 +146,8 @@ class RepoEntitlement(base.UAEntitlement):
         if super().process_contract_deltas(orig_access, deltas, allow_enable):
             return True  # Already processed parent class deltas
 
-        op_status, _details = self.operational_status()
-        if op_status != status.ACTIVE:
+        application_status, _ = self.application_status()
+        if application_status != status.ApplicationStatus.ENABLED:
             return True
         logging.info(
             "Updating '%s' apt sources list on changed directives." %
