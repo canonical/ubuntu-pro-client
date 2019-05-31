@@ -123,7 +123,6 @@ class TestProcessContractDeltas:
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
             {'entitlement': {'entitled': entitled}})
-        assert [mock.call()] == m_op_status.call_args_list
         assert [mock.call()] == m_disable.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')

@@ -268,7 +268,8 @@ class TestUaEntitlement:
             self, concrete_entitlement_factory, orig_access, delta):
         """Only clear cache when deltas transition inactive to unentitled."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.INACTIVE, ''))
+            entitled=True,
+            application_status=(status.ApplicationStatus.DISABLED, ''))
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
@@ -276,7 +277,6 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
-        assert [('operational_status', )] == entitlement.calls()
 
     @pytest.mark.parametrize(
         'orig_access,delta',
@@ -289,7 +289,7 @@ class TestUaEntitlement:
             self, concrete_entitlement_factory, orig_access, delta):
         """Disable and clear cache when transition active to unentitled."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.ACTIVE, ''),
+            entitled=True,
             application_status=(status.ApplicationStatus.ENABLED, ''))
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
@@ -298,7 +298,3 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
-        expected_calls = [
-            ('operational_status', ), ('application_status', ),
-            ('disable', )]
-        assert expected_calls == entitlement.calls()
