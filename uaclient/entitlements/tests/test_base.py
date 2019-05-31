@@ -21,11 +21,13 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     description = 'Entitlement for testing'
 
     def __init__(self, cfg=None, disable=None, enable=None,
-                 application_status=None, operational_status=None):
+                 applicability_status=None, application_status=None,
+                 operational_status=None):
         super().__init__(cfg)
         self._calls = []
         self._disable = disable
         self._enable = enable
+        self._applicability_status = applicability_status
         self._application_status = application_status
         self._operational_status = operational_status
 
@@ -41,6 +43,10 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._calls.append(('operational_status', ))
         return self._operational_status
 
+    def applicability_status(self):
+        self._calls.append(('applicability_status', ))
+        return self._applicability_status
+
     def application_status(self):
         self._calls.append(('application_status', ))
         return self._application_status
@@ -53,6 +59,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 def concrete_entitlement_factory(tmpdir):
     def factory(
         *, entitled: bool, operational_status: 'Tuple[str, str]' = None,
+        applicability_status: 'Tuple[status.ApplicabilityStatus, str]' = None,
         application_status: 'Tuple[status.ApplicationStatus, str]' = None
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
