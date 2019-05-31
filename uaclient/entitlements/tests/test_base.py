@@ -95,19 +95,12 @@ class TestUaEntitlement:
         entitlement = ConcreteTestEntitlement(cfg)
         assert '/some/path' == entitlement.cfg.data_dir
 
-    def test_can_disable_true_on_unentitled_operational_status_active(
-            self, capsys, concrete_entitlement_factory):
-        """When entitlement is active yet unentitled, can_disable is True."""
-        entitlement = concrete_entitlement_factory(
-            entitled=False, operational_status=(status.ACTIVE, ''))
-
-        assert entitlement.can_disable()
-
     def test_can_disable_false_on_entitlement_inactive(
             self, capsys, concrete_entitlement_factory):
-        """When operational status is INACTIVE, can_disable returns False."""
+        """When  status is INACTIVE, can_disable returns False."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.INACTIVE, ''))
+            entitled=True,
+            application_status=(status.ApplicationStatus.DISABLED, ''))
 
         assert not entitlement.can_disable()
 
@@ -119,30 +112,15 @@ class TestUaEntitlement:
 
     def test_can_disable_true_on_entitlement_active(
             self, capsys, concrete_entitlement_factory):
-        """When operational status is ACTIVE, can_disable returns True."""
+        """When entitlement is ENABLED, can_disable returns True."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.ACTIVE, ''))
+            entitled=True,
+            application_status=(status.ApplicationStatus.ENABLED, ''))
 
         assert entitlement.can_disable()
 
         stdout, _ = capsys.readouterr()
         assert '' == stdout
-
-    def test_can_disable_false_on_entitlement_inapplicable(
-            self, capsys, concrete_entitlement_factory):
-        """
-        When operational status INAPPLICABLE, can_disable returns False.
-
-        It should also output the message from operational_status.
-        """
-        msg = 'not available, sorry'
-        entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.INAPPLICABLE, msg))
-
-        assert not entitlement.can_disable()
-
-        stdout, _ = capsys.readouterr()
-        assert '{}\n'.format(msg) == stdout
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_unentitled(
@@ -293,7 +271,8 @@ class TestUaEntitlement:
             self, concrete_entitlement_factory, orig_access, delta):
         """Disable and clear cache when transition active to unentitled."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, operational_status=(status.ACTIVE, ''))
+            entitled=True, operational_status=(status.ACTIVE, ''),
+            application_status=(status.ApplicationStatus.ENABLED, ''))
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
@@ -302,6 +281,6 @@ class TestUaEntitlement:
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
         expected_calls = [
-            ('operational_status', ), ('operational_status', ),
+            ('operational_status', ), ('application_status', ),
             ('disable', )]
         assert expected_calls == entitlement.calls()

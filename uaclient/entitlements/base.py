@@ -76,16 +76,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        op_status, status_details = self.operational_status()
+        application_status, _ = self.application_status()
 
         if not force:
-            if op_status == status.INACTIVE:
+            if application_status == status.ApplicationStatus.DISABLED:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                     title=self.title
                 )
-                retval = False
-            elif op_status == status.INAPPLICABLE:
-                message = status_details
                 retval = False
         if message and not silent:
             print(message)
