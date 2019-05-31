@@ -21,23 +21,18 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     description = 'Entitlement for testing'
 
     def __init__(self, cfg=None, disable=None, enable=None,
-                 applicability_status=None, application_status=None,
-                 operational_status=None):
+                 applicability_status=None, application_status=None):
         super().__init__(cfg)
         self._disable = disable
         self._enable = enable
         self._applicability_status = applicability_status
         self._application_status = application_status
-        self._operational_status = operational_status
 
     def disable(self):
         return self._disable
 
     def enable(self, silent_if_inapplicable: bool = False):
         return self._enable
-
-    def operational_status(self):
-        return self._operational_status
 
     def applicability_status(self):
         return self._applicability_status
@@ -49,7 +44,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 @pytest.fixture
 def concrete_entitlement_factory(tmpdir):
     def factory(
-        *, entitled: bool, operational_status: 'Tuple[str, str]' = None,
+        *, entitled: bool,
         applicability_status: 'Tuple[status.ApplicabilityStatus, str]' = None,
         application_status: 'Tuple[status.ApplicationStatus, str]' = None
     ) -> ConcreteTestEntitlement:
@@ -67,8 +62,7 @@ def concrete_entitlement_factory(tmpdir):
         return ConcreteTestEntitlement(
             cfg,
             applicability_status=applicability_status,
-            application_status=application_status,
-            operational_status=operational_status)
+            application_status=application_status)
     return factory
 
 
