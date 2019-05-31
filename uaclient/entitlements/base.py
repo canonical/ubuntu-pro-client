@@ -103,15 +103,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
-        op_status, op_status_details = self.operational_status()
-        if op_status == status.ACTIVE:
+        application_status, _ = self.application_status()
+        if application_status == status.ApplicationStatus.ENABLED:
             if not silent:
                 print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
                     title=self.title))
             return False
-        if op_status == status.INAPPLICABLE:
+        applicability_status, details = self.applicability_status()
+        if applicability_status == status.ApplicabilityStatus.INAPPLICABLE:
             if not silent:
-                print(op_status_details)
+                print(details)
             return False
         return True
 

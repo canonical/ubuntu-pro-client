@@ -231,14 +231,18 @@ class TestLivepatchProcessContractDeltas:
         assert [] == m_setup_livepatch_config.call_args_list
 
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.applicability_status')
     def test_true_on_inactive_livepatch_service(
-            self, m_op_status, m_setup_livepatch_config, entitlement):
+            self, m_applicability_status, m_application_status,
+            m_setup_livepatch_config, entitlement):
         """When livepatch is INACTIVE return True and do no setup."""
-        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        m_applicability_status.return_value = (
+            status.ApplicabilityStatus.APPLICABLE, '')
+        m_application_status.return_value = (
+            status.ApplicationStatus.DISABLED, '')
         deltas = {'entitlement': {'directives': {'caCerts': 'new'}}}
         assert entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
@@ -255,7 +259,6 @@ class TestLivepatchProcessContractDeltas:
         m_op_status.return_value = status.ACTIVE, 'fake active'
         deltas = {'entitlement': {'directives': directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(process_directives=process_directives,
@@ -276,7 +279,6 @@ class TestLivepatchProcessContractDeltas:
         """Run livepatch calls setup when resourceToken changes."""
         m_op_status.return_value = status.ACTIVE, 'fake active'
         entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(process_directives=process_directives,
