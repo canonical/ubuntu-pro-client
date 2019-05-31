@@ -23,6 +23,7 @@ import sys
 from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
+from uaclient import exceptions
 from uaclient import sso
 from uaclient import status as ua_status
 from uaclient import util
@@ -52,11 +53,9 @@ def assert_attached_root(func):
     """Decorator asserting root user and attached config."""
     def wrapper(args, cfg):
         if os.getuid() != 0:
-            print(ua_status.MESSAGE_NONROOT_USER)
-            return 1
+            raise exceptions.NonRootUserError()
         if not cfg.is_attached:
-            print(ua_status.MESSAGE_UNATTACHED)
-            return 1
+            raise exceptions.UnattachedError()
         return func(args, cfg)
     return wrapper
 
@@ -239,8 +238,7 @@ def action_attach(args, cfg):
               cfg.accounts[0]['name'])
         return 0
     if os.getuid() != 0:
-        print(ua_status.MESSAGE_NONROOT_USER)
-        return 1
+        raise exceptions.NonRootUserError()
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
         bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
@@ -347,8 +345,7 @@ def action_refresh(args, cfg):
         print(ua_status.MESSAGE_REFRESH_SUCCESS)
         logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
         return 0
-    logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
-    return 1
+    raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
 
 
 def setup_logging(console_level, log_level, log_file=None):
@@ -387,6 +384,9 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             print('Interrupt received; exiting.', file=sys.stderr)
+            sys.exit(1)
+        except exceptions.UserFacingError as exc:
+            print('ERROR: {}'.format(exc.msg), file=sys.stderr)
             sys.exit(1)
     return wrapper
 

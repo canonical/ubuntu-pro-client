@@ -1,5 +1,8 @@
 import mock
 
+import pytest
+
+from uaclient import exceptions
 from uaclient.testing.fakes import FakeConfig
 
 try:
@@ -23,22 +26,15 @@ class TestActionRefresh:
         getuid.return_value = 1
 
         cfg = FakeConfig.for_attached_machine()
-        ret = action_refresh(mock.MagicMock(), cfg)
-
-        assert 1 == ret
-        assert (
-            mock.call(status.MESSAGE_NONROOT_USER) in
-            stdout.write.call_args_list)
+        with pytest.raises(exceptions.NonRootUserError):
+            action_refresh(mock.MagicMock(), cfg)
 
     def test_not_attached_errors(self, getuid, stdout):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
 
-        ret = action_refresh(mock.MagicMock(), cfg)
-
-        assert 1 == ret
-        expected_msg = status.MESSAGE_UNATTACHED
-        assert mock.call(expected_msg) in stdout.write.call_args_list
+        with pytest.raises(exceptions.UnattachedError):
+            action_refresh(mock.MagicMock(), cfg)
 
     @mock.patch(M_PATH + 'logging.error')
     @mock.patch(M_PATH + 'contract.request_updated_contract')
@@ -48,12 +44,11 @@ class TestActionRefresh:
         request_updated_contract.return_value = False  # failure to refresh
 
         cfg = FakeConfig.for_attached_machine()
-        ret = action_refresh(mock.MagicMock(), cfg)
 
-        assert 1 == ret
-        assert (
-            mock.call(status.MESSAGE_REFRESH_FAILURE) in
-            logging_error.call_args_list)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            action_refresh(mock.MagicMock(), cfg)
+
+        assert status.MESSAGE_REFRESH_FAILURE == excinfo.value.msg
 
     @mock.patch(M_PATH + 'contract.request_updated_contract')
     def test_refresh_contract_happy_path(
