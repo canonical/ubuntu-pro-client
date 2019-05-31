@@ -21,11 +21,12 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     description = 'Entitlement for testing'
 
     def __init__(self, cfg=None, disable=None, enable=None,
-                 operational_status=None):
+                 application_status=None, operational_status=None):
         super().__init__(cfg)
         self._calls = []
         self._disable = disable
         self._enable = enable
+        self._application_status = application_status
         self._operational_status = operational_status
 
     def disable(self):
@@ -41,7 +42,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         return self._operational_status
 
     def application_status(self):
-        pass
+        self._calls.append(('application_status', ))
+        return self._application_status
 
     def calls(self):  # Validate methods called
         return self._calls
@@ -50,7 +52,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 @pytest.fixture
 def concrete_entitlement_factory(tmpdir):
     def factory(
-        *, entitled: bool, operational_status: 'Tuple[str, str]' = None
+        *, entitled: bool, operational_status: 'Tuple[str, str]' = None,
+        application_status: 'Tuple[status.ApplicationStatus, str]' = None
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         machineToken = {
@@ -64,7 +67,8 @@ def concrete_entitlement_factory(tmpdir):
         cfg.write_cache('machine-access-testconcreteentitlement',
                         {'entitlement': {'entitled': entitled}})
         return ConcreteTestEntitlement(
-            cfg, operational_status=operational_status)
+            cfg, application_status=application_status,
+            operational_status=operational_status)
     return factory
 
 
