@@ -4,7 +4,8 @@ import os
 import re
 
 try:
-    from typing import Any, cast, Dict, List, Optional, Tuple  # noqa: F401
+    from typing import (  # noqa: F401
+        Any, cast, Dict, List, Optional, Tuple, Union)
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     def cast(_, x):  # type: ignore
@@ -31,7 +32,7 @@ class RepoEntitlement(base.UAEntitlement):
     origin = None  # type: Optional[str]
 
     # Optional repo pin priority in subclass
-    repo_pin_priority = None  # type: Optional[int]
+    repo_pin_priority = None  # type: Union[int, str, None]
 
     # force_disable True if entitlement does not allow disable (fips*)
     force_disable = False
@@ -201,8 +202,12 @@ class RepoEntitlement(base.UAEntitlement):
                 return False
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
-            apt.add_ppa_pinning(
-                repo_pref_file, repo_url, self.origin, self.repo_pin_priority)
+            if self.repo_pin_priority != 'never':
+                apt.add_ppa_pinning(
+                    repo_pref_file, repo_url, self.origin,
+                    self.repo_pin_priority)
+            elif os.path.exists(repo_pref_file):
+                os.unlink(repo_pref_file)  # Remove disabling apt pref file
 
         prerequisite_pkgs = []
         if not os.path.exists(apt.APT_METHOD_HTTPS_FILE):
@@ -259,5 +264,10 @@ class RepoEntitlement(base.UAEntitlement):
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
-            if os.path.exists(repo_pref_file):
+            if self.repo_pin_priority == 'never':
+                # Disable the repo with a pinning file
+                apt.add_ppa_pinning(
+                    repo_pref_file, repo_url, self.origin,
+                    self.repo_pin_priority)
+            elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
