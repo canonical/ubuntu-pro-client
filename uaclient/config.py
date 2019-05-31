@@ -248,7 +248,7 @@ class UAConfig:
                 contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
-            contract_status = ent.contract_status()
+            contract_status = ent.contract_status().value
             op_status, op_details = ent.operational_status()
             service_status = {
                 'name': ent.name, 'entitled': contract_status,

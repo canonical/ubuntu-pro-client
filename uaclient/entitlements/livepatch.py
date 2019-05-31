@@ -4,11 +4,12 @@ from uaclient.entitlements import base
 from uaclient.entitlements.repo import APT_RETRIES
 from uaclient import status
 from uaclient import util
+from uaclient.status import ApplicationStatus
 
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 
 try:
-    from typing import Any, Dict  # noqa: F401
+    from typing import Any, Dict, Tuple  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -133,24 +134,15 @@ class LivepatchEntitlement(base.UAEntitlement):
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
-    def operational_status(self):
-        """Return entitlement operational status as ACTIVE or INACTIVE."""
-        passed_affordances, details = self.check_affordances()
-        if not passed_affordances:
-            return status.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
-        if not entitlement_cfg:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
-        elif entitlement_cfg['entitlement'].get('entitled', False) is False:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
-        operational_status = (status.ACTIVE, '')
+    def application_status(self) -> 'Tuple[ApplicationStatus, str]':
+        status = (ApplicationStatus.ENABLED, '')
         try:
             util.subp(['/snap/bin/canonical-livepatch', 'status'])
         except util.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug('Livepatch not enabled. %s', str(e))
-            operational_status = (status.INACTIVE, str(e))
-        return operational_status
+            status = (ApplicationStatus.DISABLED, str(e))
+        return status
 
     def process_contract_deltas(
             self, orig_access: 'Dict[str, Any]',

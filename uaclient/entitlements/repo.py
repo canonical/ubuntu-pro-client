@@ -4,7 +4,7 @@ import os
 import re
 
 try:
-    from typing import Any, cast, Dict, List, Optional  # noqa: F401
+    from typing import Any, cast, Dict, List, Optional, Tuple  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     def cast(_, x):  # type: ignore
@@ -15,6 +15,7 @@ from uaclient import apt
 from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
+from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = '-32768'
 # charm-helpers uses 10 seconds between retries. Hope for an optimal first try
@@ -108,17 +109,10 @@ class RepoEntitlement(base.UAEntitlement):
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
-    def operational_status(self):
-        """Return operational status of RepoEntitlement."""
-        passed_affordances, details = self.check_affordances()
-        if not passed_affordances:
-            return status.INAPPLICABLE, details
-        entitlement_cfg = self.cfg.entitlements.get(self.name)
-        if not entitlement_cfg:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
-        elif entitlement_cfg['entitlement'].get('entitled', False) is False:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
-        directives = entitlement_cfg['entitlement'].get('directives', {})
+    def application_status(self) -> 'Tuple[ApplicationStatus, str]':
+        entitlement_cfg = self.cfg.entitlements.get(self.name, {})
+        directives = entitlement_cfg.get(
+            'entitlement', {}).get('directives', {})
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
@@ -126,12 +120,12 @@ class RepoEntitlement(base.UAEntitlement):
         out, _err = util.subp(['apt-cache', 'policy'])
         match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
         if match and match.group('pin') != APT_DISABLED_PIN:
-            return status.ACTIVE, '%s is active' % self.title
+            return ApplicationStatus.ENABLED, '%s is active' % self.title
         if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
             # Use our cached enabled key for non-root users because apt
             # policy will show APT_DISABLED_PIN for authenticated sources
-            return status.ACTIVE, '%s is active' % self.title
-        return status.INACTIVE, '%s is not configured' % self.title
+            return ApplicationStatus.ENABLED, '%s is active' % self.title
+        return ApplicationStatus.DISABLED, '%s is not configured' % self.title
 
     def process_contract_deltas(
             self, orig_access: 'Dict[str, Any]',

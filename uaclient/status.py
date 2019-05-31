@@ -1,3 +1,6 @@
+import enum
+
+
 class TxtColor:
     OKGREEN = '\033[92m'
     DISABLEGREY = '\033[37m'
@@ -5,10 +8,46 @@ class TxtColor:
     ENDC = '\033[0m'
 
 
+@enum.unique
+class ApplicationStatus(enum.Enum):
+    """
+    An enum to represent the current application status of an entitlement
+    """
+    ENABLED = object()
+    DISABLED = object()
+
+    def to_operational_status(self) -> str:
+        mapping = {
+            ApplicationStatus.ENABLED: ACTIVE,
+            ApplicationStatus.DISABLED: INACTIVE,
+        }
+        return mapping[self]
+
+
+@enum.unique
+class ContractStatus(enum.Enum):
+    """
+    An enum to represent whether a user is entitled to an entitlement
+
+    (The value of each member is the string that will be used in status
+    output.)
+    """
+    ENTITLED = 'entitled'
+    UNENTITLED = 'none'
+
+
+@enum.unique
+class ApplicabilityStatus(enum.Enum):
+    """
+    An enum to represent whether an entitlement could apply to this machine
+    """
+    APPLICABLE = object()
+    INAPPLICABLE = object()
+
+
 ACTIVE = 'active'
 INACTIVE = 'inactive'
 INAPPLICABLE = 'n/a'
-ENTITLED = 'entitled'
 NONE = 'none'
 ESSENTIAL = 'essential'
 STANDARD = 'standard'
@@ -19,7 +58,8 @@ STATUS_COLOR = {
     ACTIVE: TxtColor.OKGREEN + ACTIVE + TxtColor.ENDC,
     INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
     INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
-    ENTITLED: TxtColor.OKGREEN + ENTITLED + TxtColor.ENDC,
+    ContractStatus.ENTITLED.value: (
+        TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC),
     NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
     ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,

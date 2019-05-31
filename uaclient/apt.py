@@ -249,8 +249,8 @@ def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
         op_status, _details = entitlement.operational_status()
         if op_status != status.ACTIVE:
             continue
-        pass_affordances, details = entitlement.check_affordances()
-        if not pass_affordances:
+        applicability, details = entitlement.applicability_status()
+        if applicability != status.ApplicabilityStatus.APPLICABLE:
             logging.info(
                 'Disabled %s after package upgrade/downgrade. %s',
                 entitlement.title, details)
