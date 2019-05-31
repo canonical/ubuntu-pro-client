@@ -24,7 +24,6 @@ class ConcreteTestEntitlement(base.UAEntitlement):
                  applicability_status=None, application_status=None,
                  operational_status=None):
         super().__init__(cfg)
-        self._calls = []
         self._disable = disable
         self._enable = enable
         self._applicability_status = applicability_status
@@ -32,27 +31,19 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._operational_status = operational_status
 
     def disable(self):
-        self._calls.append(('disable', ))
         return self._disable
 
     def enable(self, silent_if_inapplicable: bool = False):
-        self._calls.append(('enable', silent_if_inapplicable))
         return self._enable
 
     def operational_status(self):
-        self._calls.append(('operational_status', ))
         return self._operational_status
 
     def applicability_status(self):
-        self._calls.append(('applicability_status', ))
         return self._applicability_status
 
     def application_status(self):
-        self._calls.append(('application_status', ))
         return self._application_status
-
-    def calls(self):  # Validate methods called
-        return self._calls
 
 
 @pytest.fixture
