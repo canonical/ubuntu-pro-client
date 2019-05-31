@@ -251,12 +251,13 @@ class TestLivepatchProcessContractDeltas:
             ({'remoteServer': 'new'}, True, False),
             ({'unhandledKey': 'new'}, False, False)))
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     def test_setup_performed_when_active_and_supported_deltas(
-            self, m_op_status, m_setup_livepatch_config, entitlement,
+            self, m_application_status, m_setup_livepatch_config, entitlement,
             directives, process_directives, process_token):
         """Run setup when livepatch ACTIVE and deltas are supported keys."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         deltas = {'entitlement': {'directives': directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
@@ -272,12 +273,13 @@ class TestLivepatchProcessContractDeltas:
             ({'entitlement': {'something': 1}}, False, False),
             ({'resourceToken': 'new'}, False, True)))
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     def test_livepatch_disable_and_setup_performed_when_resource_token_changes(
-            self, m_op_status, m_setup_livepatch_config, entitlement,
+            self, m_application_status, m_setup_livepatch_config, entitlement,
             deltas, process_directives, process_token):
         """Run livepatch calls setup when resourceToken changes."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
             setup_calls = [
