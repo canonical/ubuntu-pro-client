@@ -51,7 +51,7 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType({
 })
 
 
-class TestCommonCriteriaEntitlementOperationalStatus:
+class TestCommonCriteriaEntitlementUserFacingStatus:
 
     @pytest.mark.parametrize(
         'arch,series,details',
@@ -73,9 +73,9 @@ class TestCommonCriteriaEntitlementOperationalStatus:
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
-        op_status, op_status_details = entitlement.operational_status()
-        assert status.INAPPLICABLE == op_status
-        assert details == op_status_details
+        uf_status, uf_status_details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == uf_status
+        assert details == uf_status_details
 
 
 class TestCommonCriteriaEntitlementCanEnable:
@@ -84,16 +84,16 @@ class TestCommonCriteriaEntitlementCanEnable:
     @mock.patch('uaclient.util.get_platform_info')
     def test_can_enable_true_on_entitlement_inactive(
             self, m_platform_info, _m_subp, tmpdir):
-        """When operational status is INACTIVE, can_enable returns True."""
+        """When entitlement is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
-        op_status, op_status_details = entitlement.operational_status()
-        assert status.INACTIVE == op_status
+        uf_status, uf_status_details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INACTIVE == uf_status
         details = '%s is not configured' % entitlement.title
-        assert details == op_status_details
+        assert details == uf_status_details
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert True is entitlement.can_enable()
         assert '' == m_stdout.getvalue()

@@ -81,11 +81,11 @@ class TestLivepatchContractStatus:
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
-class TestLivepatchOperationalStatus:
+class TestLivepatchUserFacingStatus:
 
-    def test_operational_status_inapplicable_on_inapplicable_status(
+    def test_user_facing_status_inapplicable_on_inapplicable_status(
             self, entitlement):
-        """The operational_status details INAPPLICABLE applicability_status"""
+        """The user-facing details INAPPLICABLE applicability_status"""
         livepatch_bionic = copy.deepcopy(dict(LIVEPATCH_RESOURCE_ENTITLED))
         livepatch_bionic['entitlement']['affordances']['series'] = ['bionic']
         entitlement.cfg.write_cache(
@@ -93,11 +93,11 @@ class TestLivepatchOperationalStatus:
 
         with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
-            op_status, details = entitlement.operational_status()
-        assert op_status == status.INAPPLICABLE
+            uf_status, details = entitlement.user_facing_status()
+        assert uf_status == status.UserFacingStatus.INAPPLICABLE
         assert 'Livepatch is not available for Ubuntu xenial.' == details
 
-    def test_operational_status_inapplicable_on_unentitled(
+    def test_user_facing_status_inapplicable_on_unentitled(
             self, entitlement):
         """Status inapplicable on absent entitlement contract status."""
         no_entitlements = copy.deepcopy(dict(LIVEPATCH_MACHINE_TOKEN))
@@ -108,8 +108,8 @@ class TestLivepatchOperationalStatus:
 
         with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
-            op_status, details = entitlement.operational_status()
-        assert op_status == status.INAPPLICABLE
+            uf_status, details = entitlement.user_facing_status()
+        assert uf_status == status.UserFacingStatus.INAPPLICABLE
         assert 'Livepatch is not entitled' == details
 
 
@@ -156,7 +156,7 @@ class TestLivepatchProcessConfigDirectives:
 class TestLivepatchEntitlementCanEnable:
 
     def test_can_enable_true_on_entitlement_inactive(self, entitlement):
-        """When operational status is INACTIVE, can_enable returns True."""
+        """When entitlement is INACTIVE, can_enable returns True."""
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
                 with mock.patch('uaclient.util.is_container') as m_container:
@@ -231,14 +231,18 @@ class TestLivepatchProcessContractDeltas:
         assert [] == m_setup_livepatch_config.call_args_list
 
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.applicability_status')
     def test_true_on_inactive_livepatch_service(
-            self, m_op_status, m_setup_livepatch_config, entitlement):
+            self, m_applicability_status, m_application_status,
+            m_setup_livepatch_config, entitlement):
         """When livepatch is INACTIVE return True and do no setup."""
-        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        m_applicability_status.return_value = (
+            status.ApplicabilityStatus.APPLICABLE, '')
+        m_application_status.return_value = (
+            status.ApplicationStatus.DISABLED, '')
         deltas = {'entitlement': {'directives': {'caCerts': 'new'}}}
         assert entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
@@ -247,15 +251,15 @@ class TestLivepatchProcessContractDeltas:
             ({'remoteServer': 'new'}, True, False),
             ({'unhandledKey': 'new'}, False, False)))
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     def test_setup_performed_when_active_and_supported_deltas(
-            self, m_op_status, m_setup_livepatch_config, entitlement,
+            self, m_application_status, m_setup_livepatch_config, entitlement,
             directives, process_directives, process_token):
         """Run setup when livepatch ACTIVE and deltas are supported keys."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         deltas = {'entitlement': {'directives': directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(process_directives=process_directives,
@@ -269,14 +273,14 @@ class TestLivepatchProcessContractDeltas:
             ({'entitlement': {'something': 1}}, False, False),
             ({'resourceToken': 'new'}, False, True)))
     @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     def test_livepatch_disable_and_setup_performed_when_resource_token_changes(
-            self, m_op_status, m_setup_livepatch_config, entitlement,
+            self, m_application_status, m_setup_livepatch_config, entitlement,
             deltas, process_directives, process_token):
         """Run livepatch calls setup when resourceToken changes."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_application_status.return_value = (
+            status.ApplicationStatus.ENABLED, '')
         entitlement.process_contract_deltas({}, deltas, False)
-        assert [mock.call(), mock.call()] == m_op_status.call_args_list
         if any([process_directives, process_token]):
             setup_calls = [
                 mock.call(process_directives=process_directives,
@@ -337,12 +341,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value=False)
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Install snapd and canonical-livepatch snap when not on system."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
@@ -356,12 +360,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', side_effect=lambda cmd: cmd == 'snap')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Install canonical-livepatch snap when not present on the system."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert (self.mocks_livepatch_install + self.mocks_config
@@ -375,12 +379,12 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Do not attempt to install livepatch snap when it is present."""
-        m_op_status.return_value = status.ACTIVE, 'fake active'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_config == m_subp.call_args_list
@@ -388,13 +392,13 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.operational_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_does_not_disable_inactive_livepatch_snap_when_present(
-            self, m_can_enable, m_op_status, m_which, m_subp, entitlement):
+            self, m_can_enable, m_app_status, m_which, m_subp, entitlement):
         """Do not attempt to disable livepatch snap when it is inactive."""
 
-        m_op_status.return_value = status.INACTIVE, 'fake inactive'
+        m_app_status.return_value = status.ApplicationStatus.DISABLED, 'nope'
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         subp_no_livepatch_disable = [

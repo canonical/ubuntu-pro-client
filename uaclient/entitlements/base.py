@@ -14,7 +14,8 @@ from uaclient import config
 from uaclient import contract
 from uaclient import status
 from uaclient import util
-from uaclient.status import ApplicabilityStatus, ContractStatus
+from uaclient.status import (
+    ApplicabilityStatus, ContractStatus, UserFacingStatus)
 
 RE_KERNEL_UNAME = (
     r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
@@ -76,16 +77,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         message = ''
         retval = True
-        op_status, status_details = self.operational_status()
+        application_status, _ = self.application_status()
 
         if not force:
-            if op_status == status.INACTIVE:
+            if application_status == status.ApplicationStatus.DISABLED:
                 message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                     title=self.title
                 )
-                retval = False
-            elif op_status == status.INAPPLICABLE:
-                message = status_details
                 retval = False
         if message and not silent:
             print(message)
@@ -106,15 +104,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
-        op_status, op_status_details = self.operational_status()
-        if op_status == status.ACTIVE:
+        application_status, _ = self.application_status()
+        if application_status == status.ApplicationStatus.ENABLED:
             if not silent:
                 print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
                     title=self.title))
             return False
-        if op_status == status.INAPPLICABLE:
+        applicability_status, details = self.applicability_status()
+        if applicability_status == status.ApplicabilityStatus.INAPPLICABLE:
             if not silent:
-                print(op_status_details)
+                print(details)
             return False
         return True
 
@@ -239,18 +238,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 transition_to_unentitled = (
                     delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
         if transition_to_unentitled:
-            op_status, _details = self.operational_status()
-            if op_status == status.ACTIVE:
-                if self.can_disable(silent=True):
-                    logging.info(
-                        "Due to contract refresh, '%s' is now disabled.",
-                        self.name)
-                    self.disable()
-                else:
-                    logging.warning(
-                        "Unable to disable '%s' as recommended during contract"
-                        " refresh. Service is still active. See `ua status`" %
-                        self.name)
+            if self.can_disable(silent=True):
+                logging.info(
+                    "Due to contract refresh, '%s' is now disabled.",
+                    self.name)
+                self.disable()
+            else:
+                logging.warning(
+                    "Unable to disable '%s' as recommended during contract"
+                    " refresh. Service is still active. See `ua status`" %
+                    self.name)
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
@@ -278,19 +275,25 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def operational_status(self) -> 'Tuple[str, str]':
-        """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
+    def user_facing_status(self) -> 'Tuple[UserFacingStatus, str]':
+        """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
-            return status.INAPPLICABLE, details
+            return UserFacingStatus.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
+            return (UserFacingStatus.INAPPLICABLE,
+                    '%s is not entitled' % self.title)
         elif entitlement_cfg['entitlement'].get('entitled', False) is False:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
+            return (UserFacingStatus.INAPPLICABLE,
+                    '%s is not entitled' % self.title)
 
         application_status, explanation = self.application_status()
-        return application_status.to_operational_status(), explanation
+        user_facing_status = {
+            status.ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
+            status.ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
+        }[application_status]
+        return user_facing_status, explanation
 
     @abc.abstractmethod
     def application_status(self) -> 'Tuple[status.ApplicationStatus, str]':

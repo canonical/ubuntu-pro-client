@@ -16,13 +16,6 @@ class ApplicationStatus(enum.Enum):
     ENABLED = object()
     DISABLED = object()
 
-    def to_operational_status(self) -> str:
-        mapping = {
-            ApplicationStatus.ENABLED: ACTIVE,
-            ApplicationStatus.DISABLED: INACTIVE,
-        }
-        return mapping[self]
-
 
 @enum.unique
 class ContractStatus(enum.Enum):
@@ -45,22 +38,35 @@ class ApplicabilityStatus(enum.Enum):
     INAPPLICABLE = object()
 
 
-ACTIVE = 'active'
-INACTIVE = 'inactive'
-INAPPLICABLE = 'n/a'
-NONE = 'none'
+@enum.unique
+class UserFacingStatus(enum.Enum):
+    """
+    An enum representing the states we will display in status output.
+
+    This enum should only be used in display code, it should not be used in
+    business logic.
+    """
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    INAPPLICABLE = 'n/a'
+
+
 ESSENTIAL = 'essential'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
 # Colorized status output for terminal
 STATUS_COLOR = {
-    ACTIVE: TxtColor.OKGREEN + ACTIVE + TxtColor.ENDC,
-    INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
-    INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
+    UserFacingStatus.ACTIVE.value: (
+        TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC),
+    UserFacingStatus.INACTIVE.value: (
+        TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC),
+    UserFacingStatus.INAPPLICABLE.value: (
+        TxtColor.DISABLEGREY + UserFacingStatus.INAPPLICABLE.value + TxtColor.ENDC),  # noqa: E501
     ContractStatus.ENTITLED.value: (
         TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC),
-    NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
+    ContractStatus.UNENTITLED.value: (
+        TxtColor.DISABLEGREY + ContractStatus.UNENTITLED.value + TxtColor.ENDC),  # noqa: E501
     ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC

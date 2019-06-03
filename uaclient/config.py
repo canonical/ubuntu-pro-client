@@ -19,9 +19,9 @@ except ImportError:
 
 DEFAULT_STATUS = {
     'attached': False,
-    'expires': status.INAPPLICABLE,
+    'expires': status.UserFacingStatus.INAPPLICABLE.value,
     'services': [],
-    'techSupportLevel': status.INAPPLICABLE,
+    'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
@@ -236,10 +236,10 @@ class UAConfig:
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             contract_status = ent.contract_status().value
-            op_status, op_details = ent.operational_status()
+            status, details = ent.user_facing_status()
             service_status = {
                 'name': ent.name, 'entitled': contract_status,
-                'status': op_status, 'statusDetails': op_details}
+                'status': status.value, 'statusDetails': details}
             response['services'].append(service_status)
         support = self.entitlements.get('support', {}).get('entitlement')
         if support:
