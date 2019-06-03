@@ -14,7 +14,8 @@ from uaclient import config
 from uaclient import contract
 from uaclient import status
 from uaclient import util
-from uaclient.status import ApplicabilityStatus, ContractStatus
+from uaclient.status import (
+    ApplicabilityStatus, ContractStatus, UserFacingStatus)
 
 RE_KERNEL_UNAME = (
     r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
@@ -274,19 +275,25 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def operational_status(self) -> 'Tuple[str, str]':
-        """Return whether entitlement is ACTIVE, INACTIVE or UNAVAILABLE"""
+    def user_facing_status(self) -> 'Tuple[UserFacingStatus, str]':
+        """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
-            return status.INAPPLICABLE, details
+            return UserFacingStatus.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
+            return (UserFacingStatus.INAPPLICABLE,
+                    '%s is not entitled' % self.title)
         elif entitlement_cfg['entitlement'].get('entitled', False) is False:
-            return status.INAPPLICABLE, '%s is not entitled' % self.title
+            return (UserFacingStatus.INAPPLICABLE,
+                    '%s is not entitled' % self.title)
 
         application_status, explanation = self.application_status()
-        return application_status.to_operational_status(), explanation
+        user_facing_status = {
+            status.ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
+            status.ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
+        }[application_status]
+        return user_facing_status, explanation
 
     @abc.abstractmethod
     def application_status(self) -> 'Tuple[status.ApplicationStatus, str]':

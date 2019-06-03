@@ -16,13 +16,6 @@ class ApplicationStatus(enum.Enum):
     ENABLED = object()
     DISABLED = object()
 
-    def to_operational_status(self) -> str:
-        mapping = {
-            ApplicationStatus.ENABLED: ACTIVE,
-            ApplicationStatus.DISABLED: INACTIVE,
-        }
-        return mapping[self]
-
 
 @enum.unique
 class ContractStatus(enum.Enum):
@@ -43,6 +36,19 @@ class ApplicabilityStatus(enum.Enum):
     """
     APPLICABLE = object()
     INAPPLICABLE = object()
+
+
+@enum.unique
+class UserFacingStatus(enum.Enum):
+    """
+    An enum representing the states we will display in status output.
+
+    This enum should only be used in display code, it should not be used in
+    business logic.
+    """
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    INAPPLICABLE = 'n/a'
 
 
 ACTIVE = 'active'

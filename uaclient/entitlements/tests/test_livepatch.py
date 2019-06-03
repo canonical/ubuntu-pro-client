@@ -81,11 +81,11 @@ class TestLivepatchContractStatus:
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
-class TestLivepatchOperationalStatus:
+class TestLivepatchUserFacingStatus:
 
-    def test_operational_status_inapplicable_on_inapplicable_status(
+    def test_user_facing_status_inapplicable_on_inapplicable_status(
             self, entitlement):
-        """The operational_status details INAPPLICABLE applicability_status"""
+        """The user-facing details INAPPLICABLE applicability_status"""
         livepatch_bionic = copy.deepcopy(dict(LIVEPATCH_RESOURCE_ENTITLED))
         livepatch_bionic['entitlement']['affordances']['series'] = ['bionic']
         entitlement.cfg.write_cache(
@@ -93,11 +93,11 @@ class TestLivepatchOperationalStatus:
 
         with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
-            op_status, details = entitlement.operational_status()
-        assert op_status == status.INAPPLICABLE
+            uf_status, details = entitlement.user_facing_status()
+        assert uf_status == status.UserFacingStatus.INAPPLICABLE
         assert 'Livepatch is not available for Ubuntu xenial.' == details
 
-    def test_operational_status_inapplicable_on_unentitled(
+    def test_user_facing_status_inapplicable_on_unentitled(
             self, entitlement):
         """Status inapplicable on absent entitlement contract status."""
         no_entitlements = copy.deepcopy(dict(LIVEPATCH_MACHINE_TOKEN))
@@ -108,8 +108,8 @@ class TestLivepatchOperationalStatus:
 
         with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
-            op_status, details = entitlement.operational_status()
-        assert op_status == status.INAPPLICABLE
+            uf_status, details = entitlement.user_facing_status()
+        assert uf_status == status.UserFacingStatus.INAPPLICABLE
         assert 'Livepatch is not entitled' == details
 
 
@@ -156,7 +156,7 @@ class TestLivepatchProcessConfigDirectives:
 class TestLivepatchEntitlementCanEnable:
 
     def test_can_enable_true_on_entitlement_inactive(self, entitlement):
-        """When operational status is INACTIVE, can_enable returns True."""
+        """When entitlement is INACTIVE, can_enable returns True."""
         with mock.patch('uaclient.util.get_platform_info') as m_platform:
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
                 with mock.patch('uaclient.util.is_container') as m_container:

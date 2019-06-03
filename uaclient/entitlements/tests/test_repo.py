@@ -68,7 +68,7 @@ def entitlement(tmpdir):
     return RepoTestEntitlement(cfg)
 
 
-class TestOperationalStatus:
+class TestUserFacingStatus:
 
     @mock.patch(M_PATH + 'util.get_platform_info')
     def test_inapplicable_on_inapplicable_applicability_status(
@@ -80,8 +80,8 @@ class TestOperationalStatus:
         applicability, details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.INAPPLICABLE == applicability
         assert 'Repo Test Class is not available for Ubuntu trusty.' == details
-        op_status, op_details = entitlement.operational_status()
-        assert status.INAPPLICABLE == op_status
+        uf_status, _ = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == uf_status
 
     @mock.patch(M_PATH + 'util.get_platform_info')
     def test_inapplicable_on_unentitled(
@@ -96,9 +96,9 @@ class TestOperationalStatus:
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
         applicability, _details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.APPLICABLE == applicability
-        op_status, op_details = entitlement.operational_status()
-        assert status.INAPPLICABLE == op_status
-        assert 'Repo Test Class is not entitled' == op_details
+        uf_status, uf_details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == uf_status
+        assert 'Repo Test Class is not entitled' == uf_details
 
 
 class TestProcessContractDeltas:

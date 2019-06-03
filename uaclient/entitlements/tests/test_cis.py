@@ -39,15 +39,16 @@ CIS_RESOURCE_ENTITLED = {
 class TestCISEntitlementCanEnable:
 
     def test_can_enable_true_on_entitlement_inactive(self, tmpdir):
-        """When operational status is INACTIVE, can_enable returns True."""
+        """When entitlement is INACTIVE, can_enable returns True."""
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
         cfg.write_cache('machine-access-cis-audit', CIS_RESOURCE_ENTITLED)
         entitlement = CISEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
-        with mock.patch.object(entitlement, 'operational_status',
-                               return_value=(status.INACTIVE, '')):
+        with mock.patch.object(
+                entitlement, 'application_status',
+                return_value=(status.ApplicationStatus.DISABLED, '')):
             with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
                 assert entitlement.can_enable()
         assert '' == m_stdout.getvalue()

@@ -359,14 +359,16 @@ class TestStatus:
         [{'type': 'support', 'entitled': True,
           'affordances': {'supportLevel': 'anything'}}]))
     @mock.patch('uaclient.config.os.getuid', return_value=0)
-    @mock.patch(M_PATH + 'livepatch.LivepatchEntitlement.operational_status')
-    @mock.patch(M_PATH + 'repo.RepoEntitlement.operational_status')
+    @mock.patch(M_PATH + 'livepatch.LivepatchEntitlement.user_facing_status')
+    @mock.patch(M_PATH + 'repo.RepoEntitlement.user_facing_status')
     def test_attached_reports_contract_and_service_status(
-            self, m_repo_op_status, m_livepatch_op_status, _m_getuid, tmpdir,
+            self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid, tmpdir,
             entitlements):
-        """When attached, return contract and service operational status."""
-        m_repo_op_status.return_value = status.INAPPLICABLE, 'repo details'
-        m_livepatch_op_status.return_value = status.ACTIVE, 'livepatch details'
+        """When attached, return contract and service user-facing status."""
+        m_repo_uf_status.return_value = (
+            status.UserFacingStatus.INAPPLICABLE, 'repo details')
+        m_livepatch_uf_status.return_value = (
+            status.UserFacingStatus.ACTIVE, 'livepatch details')
         token = {
             'machineTokenInfo': {
                 'accountInfo': {'id': '1', 'name': 'accountname'},
@@ -384,14 +386,14 @@ class TestStatus:
             'techSupportLevel': support_level, 'services': []}
         for cls in ENTITLEMENT_CLASSES:
             if cls.name == 'livepatch':
-                op_status = status.ACTIVE
-                op_details = 'livepatch details'
+                expected_status = status.UserFacingStatus.ACTIVE.value
+                details = 'livepatch details'
             else:
-                op_status = status.INAPPLICABLE
-                op_details = 'repo details'
+                expected_status = status.UserFacingStatus.INAPPLICABLE.value
+                details = 'repo details'
             expected['services'].append(
                 {'name': cls.name, 'entitled': status.NONE,
-                 'status': op_status, 'statusDetails': op_details})
+                 'status': expected_status, 'statusDetails': details})
         assert expected == cfg.status()
-        assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_op_status.call_count
-        assert 1 == m_livepatch_op_status.call_count
+        assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
+        assert 1 == m_livepatch_uf_status.call_count
