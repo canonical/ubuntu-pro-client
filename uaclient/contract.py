@@ -84,7 +84,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
         account_contracts, _headers = self.request_url(url, headers=headers)
-        self.cfg.write_cache('account-contracts', account_contracts)
         return account_contracts
 
     def request_add_contract_token(self, macaroon_token, contract_id):
