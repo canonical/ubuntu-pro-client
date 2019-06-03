@@ -51,22 +51,22 @@ class UserFacingStatus(enum.Enum):
     INAPPLICABLE = 'n/a'
 
 
-ACTIVE = 'active'
-INACTIVE = 'inactive'
-INAPPLICABLE = 'n/a'
-NONE = 'none'
 ESSENTIAL = 'essential'
 STANDARD = 'standard'
 ADVANCED = 'advanced'
 
 # Colorized status output for terminal
 STATUS_COLOR = {
-    ACTIVE: TxtColor.OKGREEN + ACTIVE + TxtColor.ENDC,
-    INACTIVE: TxtColor.FAIL + INACTIVE + TxtColor.ENDC,
-    INAPPLICABLE: TxtColor.DISABLEGREY + INAPPLICABLE + TxtColor.ENDC,
+    UserFacingStatus.ACTIVE.value: (
+        TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC),
+    UserFacingStatus.INACTIVE.value: (
+        TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC),
+    UserFacingStatus.INAPPLICABLE.value: (
+        TxtColor.DISABLEGREY + UserFacingStatus.INAPPLICABLE.value + TxtColor.ENDC),  # noqa: E501
     ContractStatus.ENTITLED.value: (
         TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC),
-    NONE: TxtColor.DISABLEGREY + NONE + TxtColor.ENDC,
+    ContractStatus.UNENTITLED.value: (
+        TxtColor.DISABLEGREY + ContractStatus.UNENTITLED.value + TxtColor.ENDC),  # noqa: E501
     ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC

@@ -19,9 +19,9 @@ except ImportError:
 
 DEFAULT_STATUS = {
     'attached': False,
-    'expires': status.INAPPLICABLE,
+    'expires': status.UserFacingStatus.INAPPLICABLE.value,
     'services': [],
-    'techSupportLevel': status.INAPPLICABLE,
+    'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)

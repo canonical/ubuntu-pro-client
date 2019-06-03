@@ -284,9 +284,9 @@ class TestStatus:
         cfg = FakeConfig({})
         expected = {
             'attached': False,
-            'expires': status.INAPPLICABLE,
+            'expires': status.UserFacingStatus.INAPPLICABLE.value,
             'services': [],
-            'techSupportLevel': status.INAPPLICABLE,
+            'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
         }
         assert expected == cfg.status()
 
@@ -294,18 +294,19 @@ class TestStatus:
     def test_root_attached(self, _m_getuid):
         """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
-        expected_services = [{'entitled': status.NONE,
-                              'name': cls.name,
-                              'status': status.INAPPLICABLE,
-                              'statusDetails': mock.ANY}
-                             for cls in entitlements.ENTITLEMENT_CLASSES]
+        expected_services = [
+            {'entitled': status.ContractStatus.UNENTITLED.value,
+             'name': cls.name,
+             'status': status.UserFacingStatus.INAPPLICABLE.value,
+             'statusDetails': mock.ANY}
+            for cls in entitlements.ENTITLEMENT_CLASSES]
         expected = {
             'account': 'test_account',
             'attached': True,
-            'expires': status.INAPPLICABLE,
+            'expires': status.UserFacingStatus.INAPPLICABLE.value,
             'services': expected_services,
             'subscription': 'test_contract',
-            'techSupportLevel': status.INAPPLICABLE,
+            'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
         }
         assert expected == cfg.status()
         # cfg.status() idempotent
@@ -377,12 +378,13 @@ class TestStatus:
         cfg = FakeConfig.for_attached_machine(
             account_name='accountname', machine_token=token)
         if not entitlements:
-            support_level = status.INAPPLICABLE
+            support_level = status.UserFacingStatus.INAPPLICABLE.value
         else:
             support_level = entitlements[0]['affordances']['supportLevel']
         expected = {
             'attached': True, 'account': 'accountname',
-            'expires': status.INAPPLICABLE, 'subscription': 'contractname',
+            'expires': status.UserFacingStatus.INAPPLICABLE.value,
+            'subscription': 'contractname',
             'techSupportLevel': support_level, 'services': []}
         for cls in ENTITLEMENT_CLASSES:
             if cls.name == 'livepatch':
@@ -392,7 +394,8 @@ class TestStatus:
                 expected_status = status.UserFacingStatus.INAPPLICABLE.value
                 details = 'repo details'
             expected['services'].append(
-                {'name': cls.name, 'entitled': status.NONE,
+                {'name': cls.name,
+                 'entitled': status.ContractStatus.UNENTITLED.value,
                  'status': expected_status, 'statusDetails': details})
         assert expected == cfg.status()
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count

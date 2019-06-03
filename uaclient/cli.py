@@ -328,7 +328,7 @@ def action_status(args, cfg):
         cfg = config.UAConfig()
     if args and args.format == 'json':
         status = cfg.status()
-        if status['expires'] != ua_status.INAPPLICABLE:
+        if status['expires'] != ua_status.UserFacingStatus.INAPPLICABLE.value:
             status['expires'] = str(status['expires'])
         print(json.dumps(status))
     else:
