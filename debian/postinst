@@ -24,13 +24,16 @@ deb https://esm.ubuntu.com/ubuntu trusty-updates main
 EOF
     fi
     if [ ! -e "$ESM_APT_PREF_FILE" ]; then
-	cat > $ESM_APT_PREF_FILE <<EOF
+        ESM_POLICY=`apt-cache policy | grep https://esm.ubuntu.com | awk 'END{print $1}'`
+        if [ "500" != "$ESM_POLICY" ]; then  # we are inactive
+            cat > $ESM_APT_PREF_FILE <<EOF
 # Written by ubuntu-advantage-tools
 Package: *
 Pin: release o=UbuntuESM, n=trusty
 Pin-Priority: never
 EOF
-   fi
+        fi
+    fi
 }
 
 upgrade_to_status_cache() {
