@@ -210,51 +210,28 @@ def remove_apt_list_files(repo_url, series):
             os.unlink(path)
 
 
-def migrate_apt_sources(clean=False, cfg=None, platform_info=None):
-    """Migrate apt sources list files across upgrade/downgrade boundary.
-
-    Only migrate apt sources if we are attached and an entitlement is
-    active. (Meaning they have existing apt policy reference).
-
-    @param clean: Boolean set True to clean up any apt config files written by
-        Ubuntu Advantage Client.
-    @param cfg: UAClient configuration instance for testing
-    @param platform_info: platform information dict for testing
+def clean_apt_sources(*, _entitlements=None):
     """
+    Clean apt sources list files written by uaclient
 
-    from uaclient import config
-    from uaclient import entitlements
-    from uaclient import status
+    :param _entitlements:
+        The uaclient.entitlements module to use, defaults to
+        uaclient.entitlements.  (This is only present for testing, because the
+        import happens within the function to avoid circular imports.)
+    """
+    if _entitlements is None:
+        from uaclient import entitlements as _entitlements
 
-    if not platform_info:  # for testing
-        platform_info = util.get_platform_info()
-    if not cfg:  # for testing
-        cfg = config.UAConfig()
-    if not any([cfg.is_attached, clean]):
-        return
-    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
+    for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
         if not hasattr(ent_cls, 'repo_url'):
             continue
         repo_list_glob = ent_cls.repo_list_file_tmpl.format(
             name=ent_cls.name, series='*')
 
-        # Remove invalid series list files
+        # Remove list files
         for path in glob.glob(repo_list_glob):
-            if platform_info['series'] not in path or clean:
-                logging.info('Removing old apt source file: %s', path)
-                os.unlink(path)
-        if clean:
-            continue  # Skip any re-enable operations
-        entitlement = ent_cls(cfg)
-        op_status, _details = entitlement.operational_status()
-        if op_status != status.ACTIVE:
-            continue
-        applicability, details = entitlement.applicability_status()
-        if applicability != status.ApplicabilityStatus.APPLICABLE:
-            logging.info(
-                'Disabled %s after package upgrade/downgrade. %s',
-                entitlement.title, details)
-        entitlement.enable()  # Re-enable on current series
+            logging.info('Removing apt source file: %s', path)
+            os.unlink(path)
 
 
 def get_installed_packages() -> 'List[str]':

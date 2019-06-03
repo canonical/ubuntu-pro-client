@@ -1,6 +1,5 @@
 """Tests related to uaclient.apt module."""
 
-import copy
 import glob
 import mock
 import os
@@ -11,13 +10,11 @@ import pytest
 
 from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
-    add_ppa_pinning, find_apt_list_files, get_installed_packages,
-    migrate_apt_sources, remove_apt_list_files, remove_auth_apt_repo,
+    add_ppa_pinning, clean_apt_sources, find_apt_list_files,
+    get_installed_packages, remove_apt_list_files, remove_auth_apt_repo,
     remove_repo_from_apt_auth_file, valid_apt_credentials)
-from uaclient import config
 from uaclient import util
-from uaclient.entitlements.tests.test_cc import (
-    CC_MACHINE_TOKEN, CC_RESOURCE_ENTITLED)
+from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 
 
 class TestAddPPAPinning:
@@ -319,100 +316,51 @@ class TestAddAptAuthConfEntry:
         assert expected_content == util.load_file(auth_file)
 
 
-class TestMigrateAptSources:
+class TestCleanAptSources:
+
+    @pytest.fixture
+    def mock_apt_entitlement(self, tmpdir):
+        # Set up our tmpdir with some fake list files
+        entitlement_name = 'test_ent'
+        file_tmpl = tmpdir.join('{name}-{series}').strpath
+        for series in ['acidic', 'base']:
+            file_name = file_tmpl.format(name=entitlement_name, series=series)
+            with open(file_name, 'w') as f:
+                f.write('')
+
+        m_entitlement = mock.Mock(spec=ConcreteTestEntitlement)
+        m_entitlement.configure_mock(
+            name=entitlement_name, repo_url='some url',
+            repo_list_file_tmpl=file_tmpl)
+        return m_entitlement
 
     @mock.patch('uaclient.apt.os.unlink')
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
-    def test_no_apt_config_removed_when_upgraded_from_trusty_to_xenial(
-            self, m_add_apt, m_unlink, tmpdir):
-        """No apt config when connected but no entitlements enabled."""
+    def test_no_removals_for_no_repo_entitlements(self, m_os_unlink):
+        m_entitlements = mock.Mock()
+        m_entitlements.ENTITLEMENT_CLASSES = [ConcreteTestEntitlement]
 
-        # Make CC resource access report not entitled
-        cc_unentitled = copy.deepcopy(dict(CC_RESOURCE_ENTITLED))
-        cc_unentitled['entitlement']['entitled'] = False
+        clean_apt_sources(_entitlements=m_entitlements)
 
-        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
-        cfg.write_cache('machine-access-cc-eal', cc_unentitled)
+        assert 0 == m_os_unlink.call_count
 
-        orig_exists = os.path.exists
+    def test_files_for_all_series_removed(self, mock_apt_entitlement, tmpdir):
+        m_entitlements = mock.Mock()
+        m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
 
-        apt_files = ['/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list']
+        clean_apt_sources(_entitlements=m_entitlements)
 
-        def fake_apt_list_exists(path):
-            if path in apt_files:
-                return True
-            return orig_exists(path)
+        assert [] == tmpdir.listdir()
 
-        with mock.patch('uaclient.apt.os.path.exists') as m_exists:
-            m_exists.side_effect = fake_apt_list_exists
-            migrate_apt_sources(
-                cfg=cfg,
-                platform_info={'series': 'xenial', 'release': '16.04'})
-        assert [] == m_add_apt.call_args_list
-        # Only exists checks for for cfg.is_attached and can_enable
-        assert [] == m_unlink.call_args_list  # remove nothing
-        assert [] == m_exists.call_args_list
+    def test_other_files_not_removed(self, mock_apt_entitlement, tmpdir):
+        other_filename = 'other_file-acidic'
+        tmpdir.join(other_filename).ensure()
 
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.get_platform_info')
-    @mock.patch('uaclient.apt.os.unlink')
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
-    def test_apt_config_migrated_when_enabled_upgraded_from_trusty_to_xenial(
-            self, m_add_apt, m_unlink, m_platform_info, m_subp, tmpdir):
-        """Apt config is migrated when connected and entitlement is enabled."""
+        m_entitlements = mock.Mock()
+        m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
 
-        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', dict(CC_MACHINE_TOKEN))
-        cfg.write_cache('machine-access-cc-eal', dict(CC_RESOURCE_ENTITLED))
+        clean_apt_sources(_entitlements=m_entitlements)
 
-        orig_exists = os.path.exists
-
-        glob_files = ['/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list',
-                      '/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list']
-
-        def fake_apt_list_exists(path):
-            if path in glob_files:
-                return True
-            return orig_exists(path)
-
-        def fake_glob(regex):
-            if regex == '/etc/apt/sources.list.d/ubuntu-cc-eal-*.list':
-                return glob_files
-            return []
-
-        repo_url = CC_RESOURCE_ENTITLED['entitlement']['directives']['aptURL']
-        m_platform_info.return_value = {
-            'arch': 'x86_64', 'series': 'xenial', 'release': '16.04',
-            'kernel': '4.15.0-40-generic',
-        }
-        m_subp.return_value = '500 %s' % repo_url, ''
-        with mock.patch('uaclient.apt.glob.glob') as m_glob:
-            with mock.patch('uaclient.apt.os.path.exists') as m_exists:
-                m_glob.side_effect = fake_glob
-                m_exists.side_effect = fake_apt_list_exists
-                assert None is migrate_apt_sources(cfg=cfg)
-        assert [] == m_add_apt.call_args_list
-        # Only exists checks for for cfg.is_attached and can_enable
-        unlink_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cc-eal-trusty.list')]
-        assert unlink_calls == m_unlink.call_args_list  # remove nothing
-        assert [] == m_exists.call_args_list
-
-    @mock.patch('uaclient.apt.os.unlink')
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
-    def test_noop_apt_config_when_not_attached(
-            self, m_add_apt, m_unlink, tmpdir):
-        """Perform not apt config changes when not attached."""
-        cfg = config.UAConfig({'data_dir': tmpdir.strpath})
-        assert False is cfg.is_attached
-        with mock.patch('uaclient.apt.os.path.exists') as m_exists:
-            m_exists.return_value = False
-            assert None is migrate_apt_sources(
-                cfg=cfg,
-                platform_info={'series': 'trusty', 'release': '14.04'})
-        assert [] == m_add_apt.call_args_list
-        assert [] == m_unlink.call_args_list
+        assert [tmpdir.join(other_filename)] == tmpdir.listdir()
 
 
 @pytest.fixture(params=(mock.sentinel.default, None, 'some_string'))
