@@ -5,9 +5,9 @@ set -e
 
 remove_apt_files() {
     python3 -c '
-from uaclient.apt import migrate_apt_sources
+from uaclient.apt import clean_apt_sources
 
-migrate_apt_sources(clean=True)
+clean_apt_sources()
 '
 
 }
