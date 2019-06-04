@@ -7,6 +7,7 @@ import subprocess
 import time
 from urllib import error, request
 import uuid
+from contextlib import contextmanager
 from http.client import HTTPMessage  # noqa: F401
 
 try:
@@ -72,6 +73,38 @@ def del_file(path: str) -> None:
     except OSError as e:
         if e.errno != ENOENT:
             raise e
+
+
+@contextmanager
+def disable_log_to_console():
+    """
+    A context manager that disables logging to console in its body
+
+    This context manager will allow us to gradually move away from using the
+    logging framework for user-facing output, by applying it to parts of the
+    codebase piece-wise.  (Once the conversion is complete, we should have no
+    further use for it and it can be removed.)
+
+    (Note that the @contextmanager decorator also allows this function to be
+    used as a decorator.)
+    """
+    potential_handlers = [handler for handler in logging.getLogger().handlers
+                          if handler.name == 'console']
+    if not potential_handlers:
+        # We didn't find a handler, so execute the body as normal then end
+        # execution
+        logging.debug('disable_log_to_console: no console handler found')
+        yield
+        return
+
+    console_handler = potential_handlers[0]
+    old_level = console_handler.level
+    console_handler.setLevel(1000)
+
+    try:
+        yield
+    finally:
+        console_handler.setLevel(old_level)
 
 
 def get_dict_deltas(orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]',

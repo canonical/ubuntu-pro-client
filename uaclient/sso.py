@@ -2,6 +2,7 @@ import base64
 import getpass
 import json
 import logging
+
 import pymacaroons
 
 from uaclient import serviceclient

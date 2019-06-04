@@ -363,12 +363,14 @@ def setup_logging(console_level, log_level, log_file=None):
             if handler.stream.name == '<stderr>':
                 handler.setLevel(console_level)
                 handler.setFormatter(console_formatter)
+                handler.set_name('console')  # Used to disable console logging
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
         console.setFormatter(console_formatter)
         console.setLevel(console_level)
+        console.set_name('console')  # Used to disable console logging
         root.addHandler(console)
     if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
