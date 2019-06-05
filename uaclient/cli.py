@@ -241,7 +241,8 @@ def action_attach(args, cfg):
         raise exceptions.NonRootUserError()
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
+        with util.disable_log_to_console():
+            bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
         if bound_macaroon_bytes is None:
             print('Could not attach machine. Unable to obtain authenticated'
                   ' user token')
