@@ -54,7 +54,6 @@ class SSOAuthError(util.UrlError):
         return default
 
     def __str__(self):
-        prefix = super().__str__()
         details = []
         for err in self.api_errors:
             if not err.get('extra'):
@@ -65,7 +64,7 @@ class SSOAuthError(util.UrlError):
                         details.extend(extra)
                     else:
                         details.append(extra)
-        return prefix + ': ' + ', '.join(details)
+        return ', '.join(details)
 
 
 class UbuntuSSOClient(serviceclient.UAServiceClient):
