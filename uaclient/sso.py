@@ -203,7 +203,7 @@ def discharge_root_macaroon(contract_client):
         raise exceptions.UserFacingError(
             'Could not reach URL {} to authenticate'.format(e.url))
     except (MacaroonFormatError) as e:
-        logging.error("Invalid root macaroon: %s", str(e))
+        raise exceptions.UserFacingError('Invalid root macaroon: {}'.format(e))
 
     if not discharge_macaroon:
         return None
