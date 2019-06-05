@@ -131,7 +131,7 @@ def extract_macaroon_caveat_id(macaroon):
             (c.location, c.caveat_id)
             for c in root_macaroon.third_party_caveats())
     except Exception as e:
-        raise InvalidRootMacaroonError("Invalid root macaroon. %s" % e)
+        raise InvalidRootMacaroonError(str(e))
     if 'login.ubuntu.com' in caveat_id_by_location:
         return caveat_id_by_location['login.ubuntu.com']
     raise NoThirdPartySSOCaveatFoundError(
