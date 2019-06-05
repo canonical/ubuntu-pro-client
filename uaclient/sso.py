@@ -5,6 +5,7 @@ import logging
 
 import pymacaroons
 
+from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
 
@@ -199,8 +200,8 @@ def discharge_root_macaroon(contract_client):
         caveat_id = extract_macaroon_caveat_id(root_macaroon['macaroon'])
         discharge_macaroon = prompt_request_macaroon(cfg, caveat_id)
     except (util.UrlError) as e:
-        logging.error("Could not reach url '%s' to authenticate.", e.url)
-        return None
+        raise exceptions.UserFacingError(
+            'Could not reach URL {} to authenticate'.format(e.url))
     except (MacaroonFormatError) as e:
         logging.error("Invalid root macaroon: %s", str(e))
 
