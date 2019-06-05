@@ -76,10 +76,13 @@ class TestFIPSEntitlementCanEnable:
     def test_can_enable_true_on_entitlement_inactive(self, entitlement):
         """When entitlement is disabled, can_enable returns True."""
         with mock.patch.object(
-                entitlement, 'application_status',
-                return_value=(status.ApplicationStatus.DISABLED, '')):
-            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                assert True is entitlement.can_enable()
+                entitlement, 'applicability_status',
+                return_value=(status.ApplicabilityStatus.APPLICABLE, '')):
+            with mock.patch('sys.stderr', new_callable=StringIO) as m_stdout:
+                with mock.patch.object(
+                        entitlement, 'application_status',
+                        return_value=(status.ApplicationStatus.DISABLED, '')):
+                    assert True is entitlement.can_enable()
         assert '' == m_stdout.getvalue()
 
 
