@@ -388,6 +388,8 @@ def main_error_handler(func):
             print('Interrupt received; exiting.', file=sys.stderr)
             sys.exit(1)
         except exceptions.UserFacingError as exc:
+            with util.disable_log_to_console():
+                logging.exception(exc.msg)
             print('ERROR: {}'.format(exc.msg), file=sys.stderr)
             sys.exit(1)
     return wrapper

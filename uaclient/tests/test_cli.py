@@ -1,3 +1,4 @@
+import logging
 import mock
 
 import pytest
@@ -67,10 +68,12 @@ class TestMain:
         assert '' == out
         assert 'Interrupt received; exiting.\n' == err
 
+    @pytest.mark.parametrize('caplog_text', [logging.ERROR], indirect=True)
     @mock.patch('uaclient.cli.setup_logging')
     @mock.patch('uaclient.cli.get_parser')
     def test_user_facing_error_handled_gracefully(
-            self, m_get_parser, _m_setup_logging, capsys):
+            self, m_get_parser, _m_setup_logging, capsys, logging_sandbox,
+            caplog_text):
         msg = 'You need to know about this.'
 
         m_args = m_get_parser.return_value.parse_args.return_value
@@ -85,3 +88,6 @@ class TestMain:
         out, err = capsys.readouterr()
         assert '' == out
         assert 'ERROR: {}\n'.format(msg) == err
+        error_log = caplog_text()
+        assert msg in error_log
+        assert "Traceback (most recent call last):" in error_log
