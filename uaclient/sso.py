@@ -8,6 +8,7 @@ from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
 from uaclient.config import UAConfig
+from uaclient.contract import UAContractClient
 
 
 API_PATH_V2 = '/api/v2'
@@ -181,7 +182,7 @@ def prompt_request_macaroon(cfg: UAConfig, caveat_id: str) -> dict:
     return content
 
 
-def discharge_root_macaroon(contract_client):
+def discharge_root_macaroon(contract_client: UAContractClient) -> bytes:
     """Prompt for SSO authentication to create an discharge macaroon from SSO
 
     Extract contract client's root_macaroon caveat for login.ubuntu.com and
@@ -192,7 +193,7 @@ def discharge_root_macaroon(contract_client):
     @param contract_client: UAContractClient instance for talking to contract
         service routes.
 
-    @return: The serialized bound root macaroon or None upon error.
+    @return: The serialized bound root macaroon
     """
     cfg = contract_client.cfg
     try:
@@ -205,7 +206,5 @@ def discharge_root_macaroon(contract_client):
     except (MacaroonFormatError) as e:
         raise exceptions.UserFacingError('Invalid root macaroon: {}'.format(e))
 
-    if not discharge_macaroon:
-        return None
     return bind_discharge_macarooon_to_root_macaroon(
         discharge_macaroon['discharge_macaroon'], root_macaroon['macaroon'])
