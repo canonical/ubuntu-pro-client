@@ -7,6 +7,7 @@ import pymacaroons
 from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
+from uaclient.config import UAConfig
 
 
 API_PATH_V2 = '/api/v2'
@@ -156,7 +157,7 @@ def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
     return serialized_macaroons
 
 
-def prompt_request_macaroon(cfg, caveat_id):
+def prompt_request_macaroon(cfg: UAConfig, caveat_id: str) -> dict:
     discharge_macaroon = cfg.read_cache('macaroon')
     if discharge_macaroon:
         # TODO(invalidate cached macaroon on root-macaroon or discharge expiry)
@@ -173,9 +174,11 @@ def prompt_request_macaroon(cfg, caveat_id):
             if API_ERROR_2FA_REQUIRED not in e:
                 raise exceptions.UserFacingError(str(e))
             args['otp'] = input('Second-factor auth: ')
-        if content:
-            return content
-    return None
+            continue
+        break
+    if not content:
+        raise exceptions.UserFacingError('SSO server returned empty content')
+    return content
 
 
 def discharge_root_macaroon(contract_client):

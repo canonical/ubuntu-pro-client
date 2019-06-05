@@ -104,3 +104,18 @@ class TestPromptRequestMacaroon:
         sso.prompt_request_macaroon(config_mock, 'caveat_id')
 
         assert mock.call('Second-factor auth: ') in m_input.call_args_list
+
+    @mock.patch('uaclient.sso.getpass')
+    @mock.patch('builtins.input')
+    @mock.patch('uaclient.sso.UbuntuSSOClient')
+    def test_empty_content_raises_userfacingerror(
+            self, m_sso_client, m_input, _m_getpass):
+        m_sso_client.return_value.request_discharge_macaroon.return_value = {}
+
+        config_mock = mock.Mock()
+        config_mock.read_cache.return_value = None
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            sso.prompt_request_macaroon(config_mock, 'caveat_id')
+
+        assert 'SSO server returned empty content' == excinfo.value.msg
