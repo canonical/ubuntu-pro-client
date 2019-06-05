@@ -4,6 +4,19 @@ export DH_VERBOSE=1
 include /usr/share/dpkg/pkg-info.mk
 FLAKE8 := $(shell flake8 --version 2> /dev/null)
 
+include /etc/os-release
+ifeq (${VERSION_ID},"14.04")
+LIBAPT_PKG_DEP="libapt-pkg4.12 (>= 1.0.1ubuntu2.23)"
+else ifeq (${VERSION_ID},"16.04")
+LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.2.31)"
+else ifeq (${VERSION_ID},"18.04")
+LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.6.9)"
+else ifeq (${VERSION_ID},"18.10")
+LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.7.4)"
+else
+LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.8.1)"
+endif
+
 %:
 	dh $@ --with python3,bash-completion --buildsystem=pybuild
 
@@ -22,6 +35,10 @@ else
 	python3 -m flake8 uaclient
 endif
 endif
+
+override_dh_gencontrol:
+	echo extra:Depends=$(LIBAPT_PKG_DEP) >> debian/ubuntu-advantage-tools.substvars
+	dh_gencontrol
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools

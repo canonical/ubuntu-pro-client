@@ -25,7 +25,8 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
-         python3-pkg-resources
+         python3-pkg-resources,
+         ${extra:Depends},
 Description: management tools for Ubuntu Advantage
  Ubuntu Advantage is the professional package of tooling, technology
  and expertise from Canonical, helping organisations around the world
