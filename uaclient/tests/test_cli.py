@@ -1,9 +1,10 @@
 import logging
 import mock
+import sys
 
 import pytest
 
-from uaclient.cli import assert_attached_root, main
+from uaclient.cli import assert_attached_root, main, setup_logging
 from uaclient.exceptions import (
     NonRootUserError, UserFacingError, UnattachedError)
 from uaclient.testing.fakes import FakeConfig
@@ -94,3 +95,57 @@ class TestMain:
         error_log = caplog_text()
         assert msg in error_log
         assert "Traceback (most recent call last):" in error_log
+
+
+class TestSetupLogging:
+
+    @pytest.mark.parametrize('level', (logging.INFO, logging.ERROR))
+    def test_console_log_configured_if_not_present(
+            self, level, capsys, logging_sandbox):
+        setup_logging(level, logging.INFO)
+        logging.log(level, 'after setup')
+        logging.log(level - 1, 'not present')
+
+        _, err = capsys.readouterr()
+        assert 'after setup' in err
+        assert 'not present' not in err
+
+    def test_console_log_configured_if_already_present(
+            self, capsys, logging_sandbox):
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
+
+        logging.error('before setup')
+        setup_logging(logging.INFO, logging.INFO)
+        logging.error('after setup')
+
+        # 'before setup' will be in stderr, so check that setup_logging
+        # configures the format
+        _, err = capsys.readouterr()
+        assert 'ERROR: before setup' not in err
+        assert 'ERROR: after setup' in err
+
+    def test_file_log_not_configured_if_not_root(
+            self, tmpdir, logging_sandbox):
+        log_file = tmpdir.join('log_file')
+
+        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
+        logging.info('after setup')
+
+        assert not log_file.exists()
+
+    @pytest.mark.parametrize('log_filename', (None, 'file.log'))
+    @mock.patch('uaclient.cli.os.getuid', return_value=0)
+    @mock.patch('uaclient.cli.config')
+    def test_file_log_configured_if_root(
+            self, m_config, _m_getuid, log_filename, logging_sandbox, tmpdir):
+        if log_filename is None:
+            log_filename = 'default.log'
+            log_file = tmpdir.join(log_filename)
+            m_config.CONFIG_DEFAULTS = {'log_file': log_file.strpath}
+        else:
+            log_file = tmpdir.join(log_filename)
+
+        setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
+        logging.info('after setup')
+
+        assert 'after setup' in log_file.read()
