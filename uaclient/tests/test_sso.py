@@ -31,6 +31,18 @@ class TestDischargeRootMacaroon:
         expected_msg = "Invalid root macaroon: {}".format(exception_msg)
         assert expected_msg == excinfo.value.msg
 
+    @mock.patch('uaclient.sso.prompt_request_macaroon')
+    @mock.patch('uaclient.sso.extract_macaroon_caveat_id')
+    def test_userfacingerror_untouched(self, m_emci, m_prompt):
+        m_contract_client = mock.MagicMock()
+        exception_msg = 'our exception msg'
+        m_prompt.side_effect = exceptions.UserFacingError(exception_msg)
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            sso.discharge_root_macaroon(m_contract_client)
+
+        assert exception_msg == excinfo.value.msg
+
 
 class TestExtractMacaroonCaveatId:
 
