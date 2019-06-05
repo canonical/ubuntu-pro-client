@@ -1,5 +1,6 @@
 import io
 import logging
+import mock
 
 import pytest
 
@@ -48,3 +49,16 @@ def caplog_text(request):
 
         request.addfinalizer(lambda: root.removeHandler(handler))
     return _func
+
+
+@pytest.yield_fixture
+def logging_sandbox():
+    # Monkeypatch a replacement root logger, so that our changes to logging
+    # configuration don't persist outside of the test
+    root_logger = logging.RootLogger(logging.WARNING)
+
+    with mock.patch.object(logging, 'root', root_logger):
+        with mock.patch.object(logging.Logger, 'root', root_logger):
+            with mock.patch.object(logging.Logger, 'manager',
+                                   logging.Manager(root_logger)):
+                yield

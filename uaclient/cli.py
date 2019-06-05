@@ -241,7 +241,8 @@ def action_attach(args, cfg):
         raise exceptions.NonRootUserError()
     contract_client = contract.UAContractClient(cfg)
     if not args.token:
-        bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
+        with util.disable_log_to_console():
+            bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
         if bound_macaroon_bytes is None:
             print('Could not attach machine. Unable to obtain authenticated'
                   ' user token')
@@ -363,12 +364,14 @@ def setup_logging(console_level, log_level, log_file=None):
             if handler.stream.name == '<stderr>':
                 handler.setLevel(console_level)
                 handler.setFormatter(console_formatter)
+                handler.set_name('console')  # Used to disable console logging
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
         console.setFormatter(console_formatter)
         console.setLevel(console_level)
+        console.set_name('console')  # Used to disable console logging
         root.addHandler(console)
     if os.getuid() == 0:
         # Setup debug file logging for root user as non-root is read-only
@@ -386,6 +389,8 @@ def main_error_handler(func):
             print('Interrupt received; exiting.', file=sys.stderr)
             sys.exit(1)
         except exceptions.UserFacingError as exc:
+            with util.disable_log_to_console():
+                logging.exception(exc.msg)
             print('ERROR: {}'.format(exc.msg), file=sys.stderr)
             sys.exit(1)
     return wrapper

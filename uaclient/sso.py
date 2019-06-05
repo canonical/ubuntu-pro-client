@@ -2,8 +2,10 @@ import base64
 import getpass
 import json
 import logging
+
 import pymacaroons
 
+from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
 
@@ -129,7 +131,7 @@ def extract_macaroon_caveat_id(macaroon):
             (c.location, c.caveat_id)
             for c in root_macaroon.third_party_caveats())
     except Exception as e:
-        raise InvalidRootMacaroonError("Invalid root macaroon. %s" % e)
+        raise InvalidRootMacaroonError(str(e))
     if 'login.ubuntu.com' in caveat_id_by_location:
         return caveat_id_by_location['login.ubuntu.com']
     raise NoThirdPartySSOCaveatFoundError(
@@ -198,10 +200,10 @@ def discharge_root_macaroon(contract_client):
         caveat_id = extract_macaroon_caveat_id(root_macaroon['macaroon'])
         discharge_macaroon = prompt_request_macaroon(cfg, caveat_id)
     except (util.UrlError) as e:
-        logging.error("Could not reach url '%s' to authenticate.", e.url)
-        return None
+        raise exceptions.UserFacingError(
+            'Could not reach URL {} to authenticate'.format(e.url))
     except (MacaroonFormatError) as e:
-        logging.error("Invalid root macaroon: %s", str(e))
+        raise exceptions.UserFacingError('Invalid root macaroon: {}'.format(e))
 
     if not discharge_macaroon:
         return None

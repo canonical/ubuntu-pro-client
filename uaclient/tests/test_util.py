@@ -7,7 +7,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import util
+from uaclient import cli, util
 
 PRIVACY_POLICY_URL = (
     "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
@@ -326,3 +326,40 @@ class TestReadurl:
         assert 'caveat_id' in logs
         assert 'should not appear' not in logs
         assert '<REDACTED>' in logs
+
+
+class TestDisableLogToConsole:
+
+    @pytest.mark.parametrize('caplog_text', [logging.DEBUG], indirect=True)
+    def test_no_error_if_console_handler_not_found(self, caplog_text):
+        with mock.patch('uaclient.util.logging.getLogger') as m_getlogger:
+            m_getlogger.return_value.handlers = []
+            with util.disable_log_to_console():
+                pass
+
+        assert 'no console handler found' in caplog_text()
+
+    @pytest.mark.parametrize('disable_log', (True, False))
+    def test_disable_log_to_console(
+            self, logging_sandbox, capsys, disable_log):
+        # This test is parameterised so that we are sure that the context
+        # manager is suppressing the output, not some other config change
+
+        cli.setup_logging(logging.INFO, logging.INFO)
+
+        if disable_log:
+            context_manager = util.disable_log_to_console
+        else:
+            context_manager = mock.MagicMock
+
+        with context_manager():
+            logging.error('test error')
+            logging.info('test info')
+
+        out, err = capsys.readouterr()
+        combined_output = out + err
+        if disable_log:
+            assert not combined_output
+        else:
+            assert 'test error' in combined_output
+            assert 'test info' in combined_output
