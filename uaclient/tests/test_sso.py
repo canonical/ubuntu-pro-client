@@ -54,3 +54,53 @@ class TestExtractMacaroonCaveatId:
             sso.extract_macaroon_caveat_id('')
 
         assert exception_msg == str(excinfo.value)
+
+
+class SimpleSSOAuthError(sso.SSOAuthError):
+    # SSOAuthError does a lot of work based on the response from the
+    # server; we just need to be sure that the string representation is
+    # included in our UserFacingError, so simplify the implementation
+    def __init__(self, exception_string='', api_errors=None):
+        self.exception_string = exception_string
+        self.api_errors = api_errors if api_errors is not None else []
+
+    def __str__(self):
+        return self.exception_string
+
+
+class TestPromptRequestMacaroon:
+
+    @mock.patch('uaclient.sso.getpass')
+    @mock.patch('builtins.input')
+    @mock.patch('uaclient.sso.UbuntuSSOClient')
+    def test_ssoautherrors_raise_userfacingerrors(
+            self, m_sso_client, m_input, _m_getpass):
+        exception_string = 'simple sso fail'
+
+        m_sso_client.return_value.request_discharge_macaroon.side_effect = (
+            SimpleSSOAuthError(exception_string))
+
+        config_mock = mock.Mock()
+        config_mock.read_cache.return_value = None
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            sso.prompt_request_macaroon(config_mock, 'caveat_id')
+
+        assert exception_string == excinfo.value.msg
+        assert mock.call('Second-factor auth: ') not in m_input.call_args_list
+
+    @mock.patch('uaclient.sso.getpass')
+    @mock.patch('builtins.input')
+    @mock.patch('uaclient.sso.UbuntuSSOClient')
+    def test_2fa_errors_dont_raise_and_request_extra_input(
+            self, m_sso_client, m_input, _m_getpass):
+        exception = SimpleSSOAuthError(
+            api_errors=[{'code': sso.API_ERROR_2FA_REQUIRED}])
+        m_sso_client.return_value.request_discharge_macaroon.side_effect = [
+            exception, "some content"]
+
+        config_mock = mock.Mock()
+        config_mock.read_cache.return_value = None
+
+        sso.prompt_request_macaroon(config_mock, 'caveat_id')
+
+        assert mock.call('Second-factor auth: ') in m_input.call_args_list

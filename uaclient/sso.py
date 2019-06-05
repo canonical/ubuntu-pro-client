@@ -1,7 +1,6 @@
 import base64
 import getpass
 import json
-import logging
 
 import pymacaroons
 
@@ -173,8 +172,7 @@ def prompt_request_macaroon(cfg, caveat_id):
             content = sso_client.request_discharge_macaroon(**args)
         except SSOAuthError as e:
             if API_ERROR_2FA_REQUIRED not in e:
-                logging.error(str(e))
-                break
+                raise exceptions.UserFacingError(str(e))
             args['otp'] = input('Second-factor auth: ')
         if content:
             return content
