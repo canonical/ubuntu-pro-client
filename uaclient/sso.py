@@ -99,7 +99,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         return content
 
 
-def binary_serialize_macaroons(macaroons):
+def binary_serialize_macaroons(macaroons) -> bytes:
     """Encode all serialized macaroons and concatonate as a serialize bytes
 
     @param macaroons: Iterable of macaroons lead by root_macaroon as first
@@ -139,7 +139,8 @@ def extract_macaroon_caveat_id(macaroon):
         caveat_id_by_location.keys())
 
 
-def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
+def bind_discharge_macarooon_to_root_macaroon(
+        discharge_mac, root_mac) -> bytes:
     """Bind discharge macaroon to root macaroon.
 
      The resulting bound macaroons is uses for SSOAuth against UA Contract
