@@ -334,6 +334,7 @@ def action_status(args, cfg):
         print(json.dumps(status))
     else:
         print(ua_status.format_tabular(cfg.status()))
+    return 0
 
 
 def print_version(_args=None, _cfg=None):

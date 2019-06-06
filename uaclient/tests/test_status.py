@@ -7,7 +7,6 @@ from uaclient.status import format_tabular, TxtColor
 class TestFormatTabular:
 
     @pytest.mark.parametrize('support_level,expected_colour', [
-        ('n/a', TxtColor.DISABLEGREY),
         ('essential', TxtColor.OKGREEN),
         ('standard', TxtColor.OKGREEN),
         ('advanced', TxtColor.OKGREEN),
