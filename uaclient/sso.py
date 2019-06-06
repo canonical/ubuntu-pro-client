@@ -1,13 +1,14 @@
 import base64
 import getpass
 import json
-import logging
 
 import pymacaroons
 
 from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
+from uaclient.config import UAConfig
+from uaclient.contract import UAContractClient
 
 
 API_PATH_V2 = '/api/v2'
@@ -55,7 +56,6 @@ class SSOAuthError(util.UrlError):
         return default
 
     def __str__(self):
-        prefix = super().__str__()
         details = []
         for err in self.api_errors:
             if not err.get('extra'):
@@ -66,7 +66,7 @@ class SSOAuthError(util.UrlError):
                         details.extend(extra)
                     else:
                         details.append(extra)
-        return prefix + ': ' + ', '.join(details)
+        return ', '.join(details)
 
 
 class UbuntuSSOClient(serviceclient.UAServiceClient):
@@ -99,7 +99,7 @@ class UbuntuSSOClient(serviceclient.UAServiceClient):
         return content
 
 
-def binary_serialize_macaroons(macaroons):
+def binary_serialize_macaroons(macaroons) -> bytes:
     """Encode all serialized macaroons and concatonate as a serialize bytes
 
     @param macaroons: Iterable of macaroons lead by root_macaroon as first
@@ -139,7 +139,8 @@ def extract_macaroon_caveat_id(macaroon):
         caveat_id_by_location.keys())
 
 
-def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
+def bind_discharge_macarooon_to_root_macaroon(
+        discharge_mac, root_mac) -> bytes:
     """Bind discharge macaroon to root macaroon.
 
      The resulting bound macaroons is uses for SSOAuth against UA Contract
@@ -158,7 +159,7 @@ def bind_discharge_macarooon_to_root_macaroon(discharge_mac, root_mac):
     return serialized_macaroons
 
 
-def prompt_request_macaroon(cfg, caveat_id):
+def prompt_request_macaroon(cfg: UAConfig, caveat_id: str) -> dict:
     discharge_macaroon = cfg.read_cache('macaroon')
     if discharge_macaroon:
         # TODO(invalidate cached macaroon on root-macaroon or discharge expiry)
@@ -173,15 +174,16 @@ def prompt_request_macaroon(cfg, caveat_id):
             content = sso_client.request_discharge_macaroon(**args)
         except SSOAuthError as e:
             if API_ERROR_2FA_REQUIRED not in e:
-                logging.error(str(e))
-                break
+                raise exceptions.UserFacingError(str(e))
             args['otp'] = input('Second-factor auth: ')
-        if content:
-            return content
-    return None
+            continue
+        break
+    if not content:
+        raise exceptions.UserFacingError('SSO server returned empty content')
+    return content
 
 
-def discharge_root_macaroon(contract_client):
+def discharge_root_macaroon(contract_client: UAContractClient) -> bytes:
     """Prompt for SSO authentication to create an discharge macaroon from SSO
 
     Extract contract client's root_macaroon caveat for login.ubuntu.com and
@@ -192,7 +194,7 @@ def discharge_root_macaroon(contract_client):
     @param contract_client: UAContractClient instance for talking to contract
         service routes.
 
-    @return: The serialized bound root macaroon or None upon error.
+    @return: The serialized bound root macaroon
     """
     cfg = contract_client.cfg
     try:
@@ -205,7 +207,5 @@ def discharge_root_macaroon(contract_client):
     except (MacaroonFormatError) as e:
         raise exceptions.UserFacingError('Invalid root macaroon: {}'.format(e))
 
-    if not discharge_macaroon:
-        return None
     return bind_discharge_macarooon_to_root_macaroon(
         discharge_macaroon['discharge_macaroon'], root_macaroon['macaroon'])
