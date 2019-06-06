@@ -54,7 +54,8 @@ class TestMain:
     @mock.patch('uaclient.cli.setup_logging')
     @mock.patch('uaclient.cli.get_parser')
     def test_keyboard_interrupt_handled_gracefully(
-            self, m_get_parser, _m_setup_logging, capsys):
+            self, m_get_parser, _m_setup_logging, capsys, logging_sandbox,
+            caplog_text):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = KeyboardInterrupt
 
@@ -67,6 +68,8 @@ class TestMain:
         out, err = capsys.readouterr()
         assert '' == out
         assert 'Interrupt received; exiting.\n' == err
+        error_log = caplog_text()
+        assert "Traceback (most recent call last):" in error_log
 
     @pytest.mark.parametrize('caplog_text', [logging.ERROR], indirect=True)
     @mock.patch('uaclient.cli.setup_logging')
