@@ -80,6 +80,10 @@ def disable_log_to_console():
     """
     A context manager that disables logging to console in its body
 
+    N.B. This _will not_ disable console logging if it finds the console
+    handler is configured at DEBUG level; the assumption is that this means we
+    want as much output as possible, even if it risks duplication.
+
     This context manager will allow us to gradually move away from using the
     logging framework for user-facing output, by applying it to parts of the
     codebase piece-wise.  (Once the conversion is complete, we should have no
@@ -99,8 +103,11 @@ def disable_log_to_console():
 
     console_handler = potential_handlers[0]
     old_level = console_handler.level
-    console_handler.setLevel(1000)
+    if old_level == logging.DEBUG:
+        yield
+        return
 
+    console_handler.setLevel(1000)
     try:
         yield
     finally:

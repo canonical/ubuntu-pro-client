@@ -363,3 +363,16 @@ class TestDisableLogToConsole:
         else:
             assert 'test error' in combined_output
             assert 'test info' in combined_output
+
+    def test_disable_log_to_console_does_nothing_at_debug_level(
+            self, logging_sandbox, capsys):
+        cli.setup_logging(logging.DEBUG, logging.DEBUG)
+
+        with util.disable_log_to_console():
+            logging.error('test error')
+            logging.info('test info')
+
+        out, err = capsys.readouterr()
+        combined_output = out + err
+        assert 'test error' in combined_output
+        assert 'test info' in combined_output
