@@ -122,10 +122,6 @@ class RepoEntitlement(base.UAEntitlement):
         match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, '%s is active' % self.title
-        if os.getuid() != 0 and entitlement_cfg.get('localEnabled', False):
-            # Use our cached enabled key for non-root users because apt
-            # policy will show APT_DISABLED_PIN for authenticated sources
-            return ApplicationStatus.ENABLED, '%s is active' % self.title
         return ApplicationStatus.DISABLED, '%s is not configured' % self.title
 
     def process_contract_deltas(
