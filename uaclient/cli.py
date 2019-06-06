@@ -213,7 +213,8 @@ def action_enable(args, cfg):
     """
     logging.debug(ua_status.MESSAGE_REFRESH_ENABLE)
     if not contract.request_updated_contract(cfg):
-        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
+        logging.error(ua_status.MESSAGE_REFRESH_FAILURE)
+        return 1
     return 0 if _perform_enable(args.name, cfg) else 1
 
 
