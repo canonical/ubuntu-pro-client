@@ -299,6 +299,15 @@ class TestGetMachineId:
         assert '01234567-89ab-cdef-0123-456789abcdef' == data_machine_id.read()
 
 
+class TestIsServiceUrl:
+
+    @pytest.mark.parametrize('url,is_valid', (
+        ('http://asdf', True), ('http://asdf/', True), ('asdf', False)))
+    def test_is_valid_url(self, url, is_valid):
+        ret = util.is_service_url(url)
+        assert is_valid is ret
+
+
 class TestReadurl:
 
     def test_simple_call_with_url_works(self):

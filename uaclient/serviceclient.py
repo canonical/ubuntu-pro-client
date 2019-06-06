@@ -1,6 +1,7 @@
 import abc
 import json
 from urllib import error
+from posixpath import join as urljoin
 
 from uaclient import config
 from uaclient import util
@@ -39,13 +40,12 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 'content-type': 'application/json'}
 
     def request_url(self, path, data=None, headers=None, method=None):
-        if path[0] != '/':
-            path = '/' + path
+        path = path.lstrip('/')
         if not headers:
             headers = self.headers()
         if headers.get('content-type') == 'application/json' and data:
             data = json.dumps(data).encode('utf-8')
-        url = getattr(self.cfg, self.cfg_url_base_attr) + path
+        url = urljoin(getattr(self.cfg, self.cfg_url_base_attr), path)
         try:
             response, headers = util.readurl(
                 url=url, data=data, headers=headers, method=method)

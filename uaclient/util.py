@@ -6,6 +6,7 @@ import re
 import subprocess
 import time
 from urllib import error, request
+from urllib.parse import urlparse
 import uuid
 from contextlib import contextmanager
 from http.client import HTTPMessage  # noqa: F401
@@ -156,6 +157,16 @@ def is_container(run_path: str = '/run') -> bool:
 def is_exe(path: str) -> bool:
     # return boolean indicating if path exists and is executable.
     return os.path.isfile(path) and os.access(path, os.X_OK)
+
+
+def is_service_url(url: str) -> bool:
+    try:
+        parsed_url = urlparse(url)
+    except ValueError:
+        return False
+    if parsed_url.scheme not in ('https', 'http'):
+        return False
+    return True
 
 
 def load_file(filename: str, decode: bool = True) -> str:
