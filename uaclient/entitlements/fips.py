@@ -1,8 +1,8 @@
 from uaclient.entitlements import repo
-from uaclient import apt, util
+from uaclient import apt, status, util
 
 try:
-    from typing import Dict, List, Set  # noqa
+    from typing import Dict, List, Set, Tuple  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -31,13 +31,24 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 packages.extend(extra_pkgs)
         return packages
 
+    def application_status(self) -> 'Tuple[status.ApplicationStatus, str]':
+        super_status, super_msg = super().application_status()
+        if super_status != status.ApplicationStatus.ENABLED:
+            return super_status, super_msg
+        running_kernel = util.get_platform_info()['kernel']
+        if running_kernel.endswith('-fips'):
+            return super_status, super_msg
+        return (
+            status.ApplicationStatus.PENDING, 'Reboot to FIPS kernel required')
+
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 
     name = 'fips'
     title = 'FIPS'
     description = 'Canonical FIPS 140-2 Certified Modules'
-    messaging = {'post_enable': ['FIPS configured, please reboot to enable.']}
+    messaging = {'post_enable': [
+        'FIPS configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPS'
     repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
@@ -50,7 +61,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     name = 'fips-updates'
     title = 'FIPS Updates'
     messaging = {'post_enable': [
-        'FIPS Updates configured, please reboot to enable.']}
+        'FIPS Updates configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPSUpdates'
     description = 'Canonical FIPS 140-2 Certified Modules with Updates'
     repo_url = (
