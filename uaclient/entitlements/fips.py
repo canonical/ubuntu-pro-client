@@ -47,7 +47,8 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     name = 'fips'
     title = 'FIPS'
     description = 'Canonical FIPS 140-2 Certified Modules'
-    messaging = {'post_enable': ['FIPS configured, please reboot to enable.']}
+    messaging = {'post_enable': [
+        'FIPS configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPS'
     repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
@@ -60,7 +61,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     name = 'fips-updates'
     title = 'FIPS Updates'
     messaging = {'post_enable': [
-        'FIPS Updates configured, please reboot to enable.']}
+        'FIPS Updates configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPSUpdates'
     description = 'Canonical FIPS 140-2 Certified Modules with Updates'
     repo_url = (
