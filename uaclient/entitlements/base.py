@@ -105,7 +105,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
         application_status, _ = self.application_status()
-        if application_status == status.ApplicationStatus.ENABLED:
+        if application_status != status.ApplicationStatus.DISABLED:
             if not silent:
                 print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
                     title=self.title))
@@ -292,6 +292,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         user_facing_status = {
             status.ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
             status.ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
+            status.ApplicationStatus.PENDING: UserFacingStatus.PENDING,
         }[application_status]
         return user_facing_status, explanation
 

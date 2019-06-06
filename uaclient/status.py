@@ -15,6 +15,7 @@ class ApplicationStatus(enum.Enum):
     """
     ENABLED = object()
     DISABLED = object()
+    PENDING = object()
 
 
 @enum.unique
@@ -49,6 +50,7 @@ class UserFacingStatus(enum.Enum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
     INAPPLICABLE = 'n/a'
+    PENDING = 'pending'
 
 
 ESSENTIAL = 'essential'
@@ -59,6 +61,8 @@ ADVANCED = 'advanced'
 STATUS_COLOR = {
     UserFacingStatus.ACTIVE.value: (
         TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC),
+    UserFacingStatus.PENDING.value: (
+        TxtColor.DISABLEGREY + UserFacingStatus.PENDING.value + TxtColor.ENDC),
     UserFacingStatus.INACTIVE.value: (
         TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC),
     UserFacingStatus.INAPPLICABLE.value: (

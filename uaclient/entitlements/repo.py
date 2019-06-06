@@ -143,7 +143,7 @@ class RepoEntitlement(base.UAEntitlement):
             return True  # Already processed parent class deltas
 
         application_status, _ = self.application_status()
-        if application_status != status.ApplicationStatus.ENABLED:
+        if application_status == status.ApplicationStatus.DISABLED:
             return True
         logging.info(
             "Updating '%s' apt sources list on changed directives." %
