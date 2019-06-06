@@ -283,3 +283,61 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
+
+
+class TestUaEntitlementUserFacingStatus:
+
+    def test_inapplicable_when_not_applicable(
+            self, concrete_entitlement_factory):
+        msg = 'inapplicable for very good reasons'
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(status.ApplicabilityStatus.INAPPLICABLE,
+                                  msg))
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        assert msg == details
+
+    def test_inapplicable_when_applicable_but_not_entitled(
+            self, concrete_entitlement_factory):
+
+        entitlement = concrete_entitlement_factory(
+            entitled=False,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''))
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        expected_details = '{} is not entitled'.format(entitlement.title)
+        assert expected_details == details
+
+    def test_inapplicable_when_applicable_but_no_entitlement_cfg(
+            self, concrete_entitlement_factory):
+
+        entitlement = concrete_entitlement_factory(
+            entitled=False,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''))
+        entitlement.cfg._entitlements = {}
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        expected_details = '{} is not entitled'.format(entitlement.title)
+        assert expected_details == details
+
+    @pytest.mark.parametrize('application_status,expected_uf_status', (
+        (status.ApplicationStatus.ENABLED, status.UserFacingStatus.ACTIVE),
+        (status.ApplicationStatus.DISABLED, status.UserFacingStatus.INACTIVE),
+    ))
+    def test_application_status_used_if_not_inapplicable(
+            self, concrete_entitlement_factory, application_status,
+            expected_uf_status):
+        msg = 'application status details'
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
+            application_status=(application_status, msg),
+        )
+
+        user_facing_status, details = entitlement.user_facing_status()
+        assert expected_uf_status == user_facing_status
+        assert msg == details
