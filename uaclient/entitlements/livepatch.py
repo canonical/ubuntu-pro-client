@@ -91,7 +91,7 @@ class LivepatchEntitlement(base.UAEntitlement):
                     ' %s credentials', self.title)
                 livepatch_token = self.cfg.machine_token['machineToken']
             application_status, _details = self.application_status()
-            if application_status == status.ApplicationStatus.ENABLED:
+            if application_status != status.ApplicationStatus.DISABLED:
                 logging.info('Disabling %s prior to re-attach with new token',
                              self.title)
                 try:
@@ -162,7 +162,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         if super().process_contract_deltas(orig_access, deltas, allow_enable):
             return True  # Already processed parent class deltas
         application_status, _ = self.application_status()
-        if application_status != status.ApplicationStatus.ENABLED:
+        if application_status == status.ApplicationStatus.DISABLED:
             return True  # only operate on changed directives when ACTIVE
         delta_entitlement = deltas.get('entitlement', {})
         delta_directives = delta_entitlement.get('directives', {})

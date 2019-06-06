@@ -137,12 +137,14 @@ class TestUaEntitlement:
         assert expected_stdout == stdout
 
     @pytest.mark.parametrize('silent', (True, False, None))
+    @pytest.mark.parametrize('application_status', (
+        status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
     def test_can_enable_false_on_entitlement_active(
-            self, capsys, concrete_entitlement_factory, silent):
-        """When entitlement is ENABLED, can_enable returns False."""
+            self, capsys, concrete_entitlement_factory, silent,
+            application_status):
+        """When entitlement is ENABLED or PENDING, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
-            entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ''))
+            entitled=True, application_status=(application_status, ''))
 
         kwargs = {}
         if silent is not None:
@@ -327,6 +329,7 @@ class TestUaEntitlementUserFacingStatus:
     @pytest.mark.parametrize('application_status,expected_uf_status', (
         (status.ApplicationStatus.ENABLED, status.UserFacingStatus.ACTIVE),
         (status.ApplicationStatus.DISABLED, status.UserFacingStatus.INACTIVE),
+        (status.ApplicationStatus.PENDING, status.UserFacingStatus.PENDING),
     ))
     def test_application_status_used_if_not_inapplicable(
             self, concrete_entitlement_factory, application_status,
