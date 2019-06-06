@@ -333,3 +333,39 @@ class TestFIPSEntitlementDisable:
         expected_stdout = 'Warning: no option to disable {}\n'.format(
             entitlement.title)
         assert expected_stdout == m_stdout.getvalue()
+
+
+class TestFIPSEntitlementApplicationStatus:
+
+    @pytest.mark.parametrize('super_application_status', [
+        s for s in status.ApplicationStatus
+        if s is not status.ApplicationStatus.ENABLED])
+    def test_non_enabled_passed_through(
+            self, entitlement, super_application_status):
+        msg = 'sure is some status here'
+        with mock.patch(M_PATH + 'repo.RepoEntitlement.application_status',
+                        return_value=(super_application_status, msg)):
+            application_status = entitlement.application_status()
+
+        assert (super_application_status, msg) == application_status
+
+    @pytest.mark.parametrize('platform_info,expected_status,expected_msg', (
+        ({'kernel': '4.4.0-1002-fips'},
+         status.ApplicationStatus.ENABLED, None),
+        ({'kernel': '4.4.0-148-generic'},
+         status.ApplicationStatus.PENDING, 'Reboot to FIPS kernel required'),
+    ))
+    def test_kernels_are_used_to_switch_enabled_to_pending(
+            self, entitlement, platform_info, expected_status, expected_msg):
+        msg = 'sure is some status here'
+        with mock.patch(M_PATH + 'repo.RepoEntitlement.application_status',
+                        return_value=(status.ApplicationStatus.ENABLED, msg)):
+            with mock.patch(M_PATH + 'util.get_platform_info',
+                            return_value=platform_info):
+                application_status = entitlement.application_status()
+
+        if expected_msg is None:
+            # None indicates that we expect the super-class message to be
+            # passed through
+            expected_msg = msg
+        assert (expected_status, expected_msg) == application_status
