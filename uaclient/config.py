@@ -20,6 +20,7 @@ except ImportError:
 DEFAULT_STATUS = {
     'attached': False,
     'expires': status.UserFacingStatus.INAPPLICABLE.value,
+    'origin': None,
     'services': [],
     'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
@@ -233,6 +234,7 @@ class UAConfig:
         if contractInfo.get('effectiveTo'):
             response['expires'] = datetime.strptime(
                 contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
+        response['origin'] = contractInfo.get('origin')
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             contract_status = ent.contract_status().value

@@ -285,6 +285,7 @@ class TestStatus:
         expected = {
             'attached': False,
             'expires': status.UserFacingStatus.INAPPLICABLE.value,
+            'origin': None,
             'services': [],
             'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
         }
@@ -304,6 +305,7 @@ class TestStatus:
             'account': 'test_account',
             'attached': True,
             'expires': status.UserFacingStatus.INAPPLICABLE.value,
+            'origin': None,
             'services': expected_services,
             'subscription': 'test_contract',
             'techSupportLevel': status.UserFacingStatus.INAPPLICABLE.value,
@@ -384,6 +386,7 @@ class TestStatus:
         expected = {
             'attached': True, 'account': 'accountname',
             'expires': status.UserFacingStatus.INAPPLICABLE.value,
+            'origin': None,
             'subscription': 'contractname',
             'techSupportLevel': support_level, 'services': []}
         for cls in ENTITLEMENT_CLASSES:
