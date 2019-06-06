@@ -75,7 +75,16 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
 
     # Does this system have updates suite enabled?
     policy, _err = util.subp(['apt-cache', 'policy'])
-    updates_enabled = bool(' %s-updates/' % series in policy)
+    updates_enabled = False
+    for line in policy.splitlines():
+        # We only care about $suite-updates lines
+        if 'a={}-updates'.format(series) not in line:
+            continue
+        # We only care about $suite-updates from the Ubuntu archive
+        if 'o=Ubuntu,' not in line:
+            continue
+        updates_enabled = True
+        break
 
     logging.info('Enabling authenticated repo: %s', repo_url)
     content = ''

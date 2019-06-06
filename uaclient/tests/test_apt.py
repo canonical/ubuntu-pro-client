@@ -17,6 +17,13 @@ from uaclient import util
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 
 
+POST_INSTALL_APT_CACHE_NO_UPDATES = """
+-32768 https://esm.ubuntu.com/ubuntu/ {0}-updates/main amd64 Packages
+     release v=14.04,o={1},a={0}-updates,n={0},l=UbuntuESM,c=main
+     origin esm.ubuntu.com
+"""
+
+
 class TestAddPPAPinning:
 
     @mock.patch('uaclient.util.get_platform_info')
@@ -176,12 +183,18 @@ class TestAddAuthAptRepo:
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
         # apt policy with xenial-updates enabled
-        m_subp.return_value = '500 esm.com xenial-updates/main', ''
+        stdout = dedent("""\
+            500 http://archive.ubuntu.com/ubuntu/ xenial-updates/main amd64 \
+                        Packages
+                release v=16.04,o=Ubuntu,a=xenial-updates,n=xenial,l=Ubuntu\
+                        ,c=main""")
+        m_subp.return_value = stdout, ''
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
+        )
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -204,7 +217,9 @@ class TestAddAuthAptRepo:
         auth_file = tmpdir.join('auth.conf').strpath
         m_get_apt_auth_file.return_value = auth_file
         # apt policy without xenial-updates enabled
-        m_subp.return_value = '500 esm.canonical.com xenial/main', ''
+        origin = 'test-origin'
+        m_subp.return_value = (
+            POST_INSTALL_APT_CACHE_NO_UPDATES.format('xenial', origin), '')
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
