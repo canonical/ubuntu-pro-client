@@ -47,12 +47,12 @@ class LivepatchEntitlement(base.UAEntitlement):
             return False
         if not util.which('/snap/bin/canonical-livepatch'):
             if not util.which('snap'):
-                print('Installing snapd...')
+                print('Installing snapd')
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
                           capture=True, retry_sleeps=APT_RETRIES)
                 util.subp(['snap', 'wait', 'system', 'seed.loaded'],
                           capture=True)
-            print('Installing canonical-livepatch snap...')
+            print('Installing canonical-livepatch snap')
             try:
                 util.subp(['snap', 'install', 'canonical-livepatch'],
                           capture=True, retry_sleeps=SNAP_INSTALL_RETRIES)
@@ -126,9 +126,9 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which('/snap/bin/canonical-livepatch'):
             return True
         util.subp(['/snap/bin/canonical-livepatch', 'disable'], capture=True)
-        logging.debug('Removing canonical-livepatch snap...')
+        logging.debug('Removing canonical-livepatch snap')
         if not silent:
-            print('Removing canonical-livepatch snap...')
+            print('Removing canonical-livepatch snap')
         util.subp(['snap', 'remove', 'canonical-livepatch'], capture=True)
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))

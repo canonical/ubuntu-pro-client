@@ -178,9 +178,9 @@ class TestCommonCriteriaEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout += (
-            'Updating package lists ...\n'
+            'Updating package lists\n'
             'Installing Canonical Common Criteria EAL2 Provisioning'
-            ' packages ...\nCanonical Common Criteria EAL2 Provisioning'
+            ' packages\nCanonical Common Criteria EAL2 Provisioning'
             ' enabled.\nPlease follow instructions in %s to configure EAL2\n'
             % CC_README)
         assert expected_stdout == m_stdout.getvalue()

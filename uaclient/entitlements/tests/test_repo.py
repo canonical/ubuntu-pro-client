@@ -272,7 +272,7 @@ class TestRepoEnable:
         expected_apt_calls = [mock.call(
             ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)]
         expected_output = dedent("""\
-        Updating package lists ...
+        Updating package lists
         Repo Test Class enabled.
         """)
         if packages is not None:
@@ -283,8 +283,8 @@ class TestRepoEnable:
                          ' '.join(packages)],
                         capture=True, retry_sleeps=APT_RETRIES))
                 expected_output = dedent("""\
-                    Updating package lists ...
-                    Installing Repo Test Class packages ...
+                    Updating package lists
+                    Installing Repo Test Class packages
                     Repo Test Class enabled.
                     """)
         else:
