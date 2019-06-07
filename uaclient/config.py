@@ -290,8 +290,9 @@ def parse_config(config_path=None):
         cfg.update(yaml.safe_load(util.load_file(config_path)))
     env_keys = {}
     for key, value in os.environ.items():
-        if key.startswith('UA_'):
-            env_keys[key.lower()[3:]] = value   # Strip leading UA_
+        key = key.lower()
+        if key.startswith('ua_'):
+            env_keys[key[3:]] = value   # Strip leading UA_
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
