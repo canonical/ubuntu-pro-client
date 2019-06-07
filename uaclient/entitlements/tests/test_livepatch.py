@@ -355,8 +355,8 @@ class TestLivepatchEntitlementEnable:
         with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
             assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
-        msg = ('Installing snapd...\n'
-               'Installing canonical-livepatch snap...\n'
+        msg = ('Installing snapd\n'
+               'Installing canonical-livepatch snap\n'
                'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
@@ -378,7 +378,7 @@ class TestLivepatchEntitlementEnable:
             assert entitlement.enable()
         assert (self.mocks_livepatch_install + self.mocks_config
                 in m_subp.call_args_list)
-        msg = ('Installing canonical-livepatch snap...\n'
+        msg = ('Installing canonical-livepatch snap\n'
                'Canonical livepatch enabled.\n')
         assert msg == m_stdout.getvalue()
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),

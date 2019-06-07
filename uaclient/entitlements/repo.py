@@ -75,7 +75,7 @@ class RepoEntitlement(base.UAEntitlement):
         if self.packages:
             try:
                 print(
-                    'Installing {title} packages ...'.format(title=self.title))
+                    'Installing {title} packages'.format(title=self.title))
                 util.subp(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     capture=True, retry_sleeps=APT_RETRIES)
@@ -232,7 +232,7 @@ class RepoEntitlement(base.UAEntitlement):
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will new report the repo as accessible
         # which allows ua status to report correct info
-        print('Updating package lists ...')
+        print('Updating package lists')
         util.subp(
             ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)
         return True

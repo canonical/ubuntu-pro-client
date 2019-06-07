@@ -105,7 +105,7 @@ class TestCISEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout = (
-            'Updating package lists ...\n'
-            'Installing Canonical CIS Benchmark Audit Tool packages ...\n'
+            'Updating package lists\n'
+            'Installing Canonical CIS Benchmark Audit Tool packages\n'
             'Canonical CIS Benchmark Audit Tool enabled.\n')
         assert expected_stdout == m_stdout.getvalue()
