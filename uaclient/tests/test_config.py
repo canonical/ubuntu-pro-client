@@ -7,8 +7,8 @@ import stat
 import mock
 import pytest
 
-from uaclient import entitlements, status
-from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig
+from uaclient import entitlements, exceptions, status
+from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig, parse_config
 from uaclient.entitlements import ENTITLEMENT_CLASSES
 from uaclient.testing.fakes import FakeConfig
 
@@ -403,3 +403,56 @@ class TestStatus:
         assert expected == cfg.status()
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
+
+
+class TestParseConfig:
+
+    @mock.patch('uaclient.config.os.path.exists', return_value=False)
+    def test_parse_config_uses_defaults_when_no_config_present(
+            self, m_exists):
+        cwd = os.getcwd()
+        with mock.patch.dict('uaclient.config.os.environ', values={}):
+            config = parse_config()
+        expected_calls = [
+            mock.call('%s/uaclient.conf' % cwd),
+            mock.call('/etc/ubuntu-advantage/uaclient.conf')]
+        assert expected_calls == m_exists.call_args_list
+        expected_default_config = {
+            'contract_url': 'https://contracts.canonical.com',
+            'data_dir': '/var/lib/ubuntu-advantage',
+            'log_file': '/var/log/ubuntu-advantage.log',
+            'log_level': 'INFO',
+            'sso_auth_url': 'https://login.ubuntu.com'}
+        assert expected_default_config == config
+
+    @mock.patch('uaclient.config.os.path.exists', return_value=False)
+    def test_parse_config_scrubs_user_environ_values(
+            self, m_exists):
+        user_values = {
+            'UA_SSO_AUTH_URL': 'https://auth',
+            'UA_CONTRACT_URL': 'https://contract',
+            'UA_DATA_DIR': '~/somedir',
+            'UA_LOG_FILE': 'some.log',
+            'UA_LOG_LEVEL': 'debug'}
+        with mock.patch.dict('uaclient.config.os.environ', values=user_values):
+            config = parse_config()
+        expanded_dir = os.path.expanduser('~')
+        expected_default_config = {
+            'contract_url': 'https://contract',
+            'data_dir': '%s/somedir' % expanded_dir,
+            'log_file': 'some.log',
+            'log_level': 'DEBUG',
+            'sso_auth_url': 'https://auth'}
+        assert expected_default_config == config
+
+    @mock.patch('uaclient.config.os.path.exists', return_value=False)
+    def test_parse_raises_errors_on_invalid_urls(self, m_exists):
+        user_values = {
+            'UA_SSO_AUTH_URL': 'auth',  # no acceptable url scheme
+            'UA_CONTRACT_URL': 'htp://contract'}  # no acceptable url scheme
+        with mock.patch.dict('uaclient.config.os.environ', values=user_values):
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                parse_config()
+        expected_msg = ('Invalid url in config. contract_url: htp://contract\n'
+                        'Invalid url in config. sso_auth_url: auth')
+        assert expected_msg == excinfo.value.msg
