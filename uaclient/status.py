@@ -120,7 +120,7 @@ MESSAGE_DETACH_SUCCESS = 'This machine is now detached'
 
 MESSAGE_REFRESH_ENABLE = 'Refreshing contracts prior to enable'
 MESSAGE_REFRESH_SUCCESS = 'Refreshed Ubuntu Advantage contracts.'
-MESSAGE_REFRESH_FAILURE = 'Failure to refresh Ubuntu Advantage contracts.'
+MESSAGE_REFRESH_FAILURE = 'Unable to refresh Ubuntu Advantage contracts.'
 
 
 def format_tabular(status):
