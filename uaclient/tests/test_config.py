@@ -431,8 +431,8 @@ class TestParseConfig:
         user_values = {
             'UA_SSO_AUTH_URL': 'https://auth',
             'UA_CONTRACT_URL': 'https://contract',
-            'UA_DATA_DIR': '~/somedir',
-            'UA_LOG_FILE': 'some.log',
+            'ua_data_dir': '~/somedir',
+            'Ua_LoG_FiLe': 'some.log',
             'UA_LOG_LEVEL': 'debug'}
         with mock.patch.dict('uaclient.config.os.environ', values=user_values):
             config = parse_config()
