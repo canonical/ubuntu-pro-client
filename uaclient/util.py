@@ -20,8 +20,6 @@ except ImportError:
     pass
 
 
-SENSITIVE_KEYS = ['caveat_id', 'password', 'resourceToken', 'machineToken']
-
 ETC_MACHINE_ID = '/etc/machine-id'
 DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
 DROPPED_KEY = object()
@@ -194,14 +192,10 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
         method = 'POST'
     req = request.Request(url, data=data, headers=headers, method=method)
     if data:
-        redacted_data = maybe_parse_json(data.decode('utf-8'))
-        if redacted_data is not None:
-            redacted_data = redact_sensitive(redacted_data)
-    else:
-        redacted_data = data
+        data = maybe_parse_json(data.decode('utf-8'))
     logging.debug(
         'URL [%s]: %s, headers: %s, data: %s',
-        method or 'GET', url, headers, redacted_data)
+        method or 'GET', url, headers, data)
     resp = request.urlopen(req)
     content = resp.read().decode('utf-8')
     if 'application/json' in str(resp.headers.get('Content-type', '')):
@@ -371,16 +365,3 @@ def get_machine_id(data_dir: str) -> str:
     machine_id = str(uuid.uuid4())
     write_file(fallback_machine_id_file, machine_id)
     return machine_id
-
-
-def redact_sensitive(content):
-    """Redact security-sensitive content from content dict."""
-    redacted = {}
-    for key, value in content.items():
-        if key in SENSITIVE_KEYS:
-            redacted[key] = '<REDACTED>'
-        elif isinstance(value, dict):
-            redacted[key] = redact_sensitive(value)
-        else:
-            redacted[key] = value
-    return redacted
