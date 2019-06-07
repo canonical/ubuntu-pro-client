@@ -2,7 +2,6 @@
 
 import contextlib
 import copy
-from io import StringIO
 import itertools
 import mock
 import os
@@ -73,17 +72,17 @@ def entitlement(request, tmpdir):
 
 class TestFIPSEntitlementCanEnable:
 
-    def test_can_enable_true_on_entitlement_inactive(self, entitlement):
+    def test_can_enable_true_on_entitlement_inactive(
+            self, capsys, entitlement):
         """When entitlement is disabled, can_enable returns True."""
         with mock.patch.object(
                 entitlement, 'applicability_status',
                 return_value=(status.ApplicabilityStatus.APPLICABLE, '')):
-            with mock.patch('sys.stderr', new_callable=StringIO) as m_stdout:
-                with mock.patch.object(
-                        entitlement, 'application_status',
-                        return_value=(status.ApplicationStatus.DISABLED, '')):
-                    assert True is entitlement.can_enable()
-        assert '' == m_stdout.getvalue()
+            with mock.patch.object(
+                    entitlement, 'application_status',
+                    return_value=(status.ApplicationStatus.DISABLED, '')):
+                assert True is entitlement.can_enable()
+        assert ('', '') == capsys.readouterr()
 
 
 class TestFIPSEntitlementEnable:
@@ -319,20 +318,18 @@ class TestFIPSEntitlementDisable:
 
     @mock.patch('uaclient.util.get_platform_info')
     def test_disable_returns_false_does_nothing_by_default(
-            self, m_platform_info, caplog_text, entitlement):
+            self, m_platform_info, caplog_text, capsys, entitlement):
         """When can_disable, disable does nothing without force param."""
         with mock.patch.object(entitlement, 'can_disable',
                                return_value=True) as m_can_disable:
             with mock.patch('uaclient.apt.remove_auth_apt_repo'
                             ) as m_remove_apt:
-                with mock.patch('sys.stdout',
-                                new_callable=StringIO) as m_stdout:
-                    assert False is entitlement.disable()
+                assert False is entitlement.disable()
         assert [mock.call(False, False)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
         expected_stdout = 'Warning: no option to disable {}\n'.format(
             entitlement.title)
-        assert expected_stdout == m_stdout.getvalue()
+        assert (expected_stdout, '') == capsys.readouterr()
 
 
 class TestFIPSEntitlementApplicationStatus:
