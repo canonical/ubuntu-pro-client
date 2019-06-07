@@ -75,6 +75,48 @@ Possible values are: active, inactive, or n/a
 Show version of the Ubuntu Advantage package.
 
 
+.SH CONFIGURATION
+By default, ubuntu-advantage client configuration options are read from
+(/etc/ubuntu-advantage/uaclient.conf). If a (uaclient.conf) is present in
+the current working directory it will be used instead of the default conf file.
+
+The following configuration options are available:
+.TP
+.B
+\fBcontract_url\fP
+The ubuntu advantage contract server URL. (\fBhttps://contacts.canonical.com\fP)
+.TP
+.B
+\fBsso_auth_url\fP
+The SSO authentication service URL. (\fBhttps://login.ubuntu.com\fP)
+.TP
+.B
+\fBdata_dir\fP
+Where ubuntu-advantage stores its data files
+.TP
+.B
+\fBlog_file\fP
+The log file for ubuntu-advantage-tools (\fB/var/log/ubuntu-advantage.log\fP)
+.TP
+.B
+\fBlog_level\fP
+The logging level used when writing to log_file. (\fBdebug\fP)
+
+
+.P
+Additionally, any configuration option can be overridden in the environment
+by setting an environment variable prefaced by \fBUA_<uppercase_option_name>\fP.
+
+For example, the following overrides the contract_url found in uaclient.conf:
+.PP
+.nf
+.fam C
+  UA_CONTRACT_SERVER=https://mycontracts.canonical.com ua attach
+
+.fam T
+.fi
+
+
 .SH SERVICES
 .TP
 .B "Common Criteria EAL2 Provisioning (cc-eal)"
