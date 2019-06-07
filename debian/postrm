@@ -15,6 +15,10 @@ remove_cache_dir(){
     rm -rf /var/lib/ubuntu-advantage
 }
 
+remove_logs(){
+    rm -f /var/log/ubuntu-advantage.log*
+}
+
 remove_esm(){
     rm -f /etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg
     rm -f /etc/apt/sources.list.d/ubuntu-esm-trusty.list
@@ -26,6 +30,7 @@ case "$1" in
         remove_apt_auth
         remove_apt_hook
         remove_cache_dir
+        remove_logs
         remove_esm
         ;;
 esac
