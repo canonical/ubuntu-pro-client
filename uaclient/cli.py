@@ -387,6 +387,8 @@ def main_error_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyboardInterrupt:
+            with util.disable_log_to_console():
+                logging.exception('KeyboardInterrupt')
             print('Interrupt received; exiting.', file=sys.stderr)
             sys.exit(1)
         except exceptions.UserFacingError as exc:
