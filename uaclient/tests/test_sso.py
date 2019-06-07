@@ -2,7 +2,24 @@ import mock
 
 import pytest
 
-from uaclient import exceptions, sso, util
+from uaclient import config, exceptions, sso, util
+
+
+class TestSSOClient:
+
+    @mock.patch('uaclient.serviceclient.util.readurl', return_value=('', ''))
+    def test_configured_url_can_have_trailing_forwardslash(
+            self, m_readurl, tmpdir):
+        cfg = config.UAConfig(
+            cfg={'data_dir': tmpdir.strpath, 'sso_auth_url': 'http://auth/'})
+        client = sso.UbuntuSSOClient(cfg)
+        client.request_discharge_macaroon('email', 'passwd', 'caveat')
+        headers = client.headers()
+        expected_call = mock.call(
+            data=mock.ANY,
+            headers=headers, method=None,
+            url='http://auth/api/v2/tokens/discharge')
+        assert [expected_call] == m_readurl.call_args_list
 
 
 class TestDischargeRootMacaroon:
@@ -10,8 +27,8 @@ class TestDischargeRootMacaroon:
     def test_urlerror_converted_to_userfacing_error(self):
         m_contract_client = mock.Mock()
         url = 'https://some_url'
-        m_contract_client.request_root_macaroon.side_effect = util.UrlError(
-            mock.Mock(), url=url)
+        error = util.UrlError(mock.Mock(), url=url)
+        m_contract_client.request_root_macaroon.side_effect = error
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             sso.discharge_root_macaroon(m_contract_client)

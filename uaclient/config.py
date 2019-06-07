@@ -8,6 +8,7 @@ from collections import namedtuple
 
 from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
+from uaclient import exceptions
 
 try:
     from typing import Any, cast, Dict, Optional  # noqa: F401
@@ -294,4 +295,11 @@ def parse_config(config_path=None):
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
+    errors = []
+    for cfg_key in ('contract_url', 'sso_auth_url'):
+        if not util.is_service_url(cfg[cfg_key]):
+            errors.append(
+                'Invalid url in config. %s: %s' % (cfg_key, cfg[cfg_key]))
+    if errors:
+        raise exceptions.UserFacingError('\n'.join(errors))
     return cfg

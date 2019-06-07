@@ -10,8 +10,6 @@ except ImportError:
     pass
 
 
-API_PATH_TMPL_CONTRACT_MACHINES = '/contracts/{contract}/context/machines'
-
 API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
 API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
@@ -120,21 +118,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers)
         self.cfg.write_cache('machine-token', machine_token)
-        return machine_token
-
-    def request_contract_machine_detach(self, contract_id, user_token):
-        """Requests machine detach from the provided contact_id.
-
-        @param contract_id: Unique contract id provided by contract service.
-        @param user_token: Token string providing authentication to contract
-            service endpoints.
-
-        @return: Dict of the JSON response containing the machine-token.
-        """
-        machine_token, _headers = self.request_url(
-            API_PATH_TMPL_CONTRACT_MACHINES.format(contract=contract_id),
-            method='DELETE')
-        self.cfg.write_cache('machine-detach', machine_token)
         return machine_token
 
     def request_resource_machine_access(

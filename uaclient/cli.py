@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import os
+import pathlib
 import sys
 
 from uaclient import config
@@ -375,7 +376,11 @@ def setup_logging(console_level, log_level, log_file=None):
         console.set_name('console')  # Used to disable console logging
         root.addHandler(console)
     if os.getuid() == 0:
-        # Setup debug file logging for root user as non-root is read-only
+        # Setup readable-by-root-only debug file logging if running as root
+        log_file_path = pathlib.Path(log_file)
+        log_file_path.touch()
+        log_file_path.chmod(0o600)
+
         filehandler = logging.FileHandler(log_file)
         filehandler.setLevel(log_level)
         filehandler.setFormatter(log_formatter)
