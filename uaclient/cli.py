@@ -286,7 +286,8 @@ def get_parser():
         usage=USAGE_TMPL.format(name=NAME, command='[command]'),
         epilog=EPILOG_TMPL.format(name=NAME, command='[command]'))
     parser.add_argument(
-        '--debug', action='store_true', help='Show all debug messages')
+        '--debug', action='store_true',
+        help='Show all debug log messages to console')
     parser._optionals.title = 'Flags'
     subparsers = parser.add_subparsers(
         title='Available Commands', dest='command', metavar='')

@@ -75,6 +75,46 @@ Possible values are: active, inactive, or n/a
 Show version of the Ubuntu Advantage package.
 
 
+.SH CONFIGURATION
+By default, Ubuntu Advantage client configuration options are read from
+\fB/etc/ubuntu-advantage/uaclient.conf\fB.
+
+The following configuration options are available:
+.TP
+.B
+\fBsso_auth_url\fP
+The SSO authentication service URL
+.TP
+.B
+\fBcontract_url\fP
+The ubuntu advantage contract server URL
+.TP
+.B
+\fBdata_dir\fP
+Where Ubuntu Advantage client stores its data files
+.TP
+.B
+\fBlog_level\fP
+The logging level used when writing to \fBlog_file\fP
+.TP
+.B
+\fBlog_file\fP
+The log file for the Ubuntu Advantage client
+
+.P
+Additionally, any configuration option can be overridden in the environment
+by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
+uppercase and lowercase environment variables are allowed.
+
+For example, the following overrides the log_level found in uaclient.conf:
+.PP
+.nf
+.fam C
+  UA_LOG_LEVEL=info ua attach
+.fam T
+.fi
+
+
 .SH SERVICES
 .TP
 .B "Common Criteria EAL2 Provisioning (cc-eal)"
