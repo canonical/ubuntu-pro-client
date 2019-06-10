@@ -288,8 +288,6 @@ class TestLivepatchProcessContractDeltas:
 
 class TestLivepatchEntitlementEnable:
 
-    with_logs = True
-
     mocks_snapd_install = [
         mock.call(
             ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True,
