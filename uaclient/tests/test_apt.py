@@ -209,7 +209,7 @@ class TestAddAuthAptRepo:
     @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
-    def test_add_auth_apt_repo_ignores_updates_suites_on_non_update_machine(
+    def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
             tmpdir):
         """Skip any apt suites that don't match the current series."""
@@ -229,6 +229,8 @@ class TestAddAuthAptRepo:
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
             # deb-src http://fakerepo/ubuntu xenial-one main
+            # deb http://fakerepo/ubuntu xenial-updates main
+            # deb-src http://fakerepo/ubuntu xenial-updates main
         """)
         assert expected_content == util.load_file(repo_file)
 

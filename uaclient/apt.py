@@ -91,14 +91,16 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
     for suite in suites:
         if series not in suite:
             continue   # Only enable suites matching this current series
+        maybe_comment = ''
         if '-updates' in suite and not updates_enabled:
             logging.debug(
                 'Not enabling apt suite "%s" because "%s-updates" is not'
                 ' enabled', suite, series)
-            continue
-        content += ('deb {url}/ubuntu {suite} main\n'
+            maybe_comment = '# '
+        content += ('{maybe_comment}deb {url}/ubuntu {suite} main\n'
                     '# deb-src {url}/ubuntu {suite} main\n'.format(
-                        url=repo_url, suite=suite))
+                        maybe_comment=maybe_comment, url=repo_url, suite=suite)
+                    )
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
     if keyring_file:
