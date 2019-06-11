@@ -239,10 +239,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
         if transition_to_unentitled:
             if self.can_disable(silent=True):
+                self.disable()
                 logging.info(
                     "Due to contract refresh, '%s' is now disabled.",
                     self.name)
-                self.disable()
             else:
                 logging.warning(
                     "Unable to disable '%s' as recommended during contract"
