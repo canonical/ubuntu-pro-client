@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.base module."""
+import mock
 
 import pytest
 
@@ -29,6 +30,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._application_status = application_status
 
     def disable(self):
+        self._application_status = (
+            status.ApplicationStatus.DISABLED, 'disable() called')
         return self._disable
 
     def enable(self, silent_if_inapplicable: bool = False):
@@ -285,6 +288,8 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
+        assert (status.ApplicationStatus.DISABLED,
+                mock.ANY) == entitlement.application_status()
 
 
 class TestUaEntitlementUserFacingStatus:
