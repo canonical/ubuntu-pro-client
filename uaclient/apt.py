@@ -172,6 +172,13 @@ def remove_auth_apt_repo(repo_filename: str, repo_url: str,
     remove_repo_from_apt_auth_file(repo_url)
 
 
+def restore_commented_apt_list_file(filename: str) -> None:
+    """Uncomment commented deb lines in the given file."""
+    file_content = util.load_file(filename)
+    file_content = file_content.replace('# deb ', 'deb ')
+    util.write_file(filename, file_content)
+
+
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
     """Add an apt preferences file and pin for a PPA."""
     series = util.get_platform_info()['series']

@@ -13,7 +13,7 @@ from uaclient.apt import (
     add_ppa_pinning, clean_apt_sources, find_apt_list_files,
     get_installed_packages, remove_apt_list_files, remove_auth_apt_repo,
     remove_repo_from_apt_auth_file, valid_apt_credentials)
-from uaclient import util
+from uaclient import apt, util
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 
 
@@ -507,6 +507,32 @@ class TestRemoveRepoFromAptAuthFile:
         assert 0 == m_unlink.call_count
         assert 0o600 == stat.S_IMODE(os.lstat(auth_file.strpath).st_mode)
         assert after_content == auth_file.read('rb')
+
+
+class TestRestoreCommentAptListFile:
+
+    @pytest.mark.parametrize('before,expected', (
+        ('', ''),
+        ('some other content', 'some other content'),
+        ('deb uncommented', 'deb uncommented'),
+        ('# deb-src comment', '# deb-src comment'),
+        ('# deb comment', 'deb comment'),
+        ('deb uncommented\n# deb commented',
+         'deb uncommented\ndeb commented'),
+        ('# deb commented\n# deb-src commented',
+         'deb commented\n# deb-src commented'),
+        ('deb uncommented\n# deb-src commented\n'
+         '# deb commented\n# deb-src commented',
+         'deb uncommented\n# deb-src commented\n'
+         'deb commented\n# deb-src commented')
+    ))
+    def test_permutations(self, tmpdir, before, expected):
+        list_file = tmpdir.join('list_file')
+        list_file.write(before)
+
+        apt.restore_commented_apt_list_file(list_file.strpath)
+
+        assert expected == list_file.read()
 
 
 class TestGetInstalledPackages:

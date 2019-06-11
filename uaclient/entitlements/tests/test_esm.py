@@ -136,12 +136,14 @@ class TestESMEntitlementDisable:
         assert [mock.call(silent, force)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
+    @mock.patch('uaclient.apt.restore_commented_apt_list_file')
     @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'trusty'})
     @mock.patch(M_PATH + 'can_disable', return_value=True)
     def test_disable_removes_apt_config(
             self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
+            m_restore_commented_apt_list_file,
             entitlement, tmpdir, caplog_text):
         """When can_disable, disable removes apt configuration when forced."""
 
@@ -158,3 +160,5 @@ class TestESMEntitlementDisable:
         assert [mock.call(True, True)] == m_can_disable.call_args_list
         auth_call = mock.call('http://ESM')
         assert [auth_call] == m_rm_repo_from_auth.call_args_list
+        assert [mock.call('/etc/apt/sources.list.d/ubuntu-esm-trusty.list')
+                ] == m_restore_commented_apt_list_file.call_args_list
