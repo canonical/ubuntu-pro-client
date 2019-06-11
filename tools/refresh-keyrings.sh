@@ -25,6 +25,11 @@ generate_keyring() {
         --recv-keys $KEYS
 }
 
+if [ $(lsb_release -sc) != "trusty" ]; then
+    echo "ERROR: must run on trusty to ensure compatibility"
+    exit 1
+fi
+
 TARGET_DIR="$1"
 
 KEYRING_ESM="ubuntu-esm-v2-keyring.gpg"
