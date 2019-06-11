@@ -255,7 +255,8 @@ class TestUaEntitlement:
           {'entitlement': {'entitled': False}})  # transition to unentitled
          ))
     def test_process_contract_deltas_clean_cache_on_inactive_unentitled(
-            self, concrete_entitlement_factory, orig_access, delta):
+            self, concrete_entitlement_factory, orig_access, delta,
+            caplog_text):
         """Only clear cache when deltas transition inactive to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
@@ -267,6 +268,12 @@ class TestUaEntitlement:
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
             'machine-access-testconcreteentitlement')
+        # If an entitlement is disabled, we don't need to tell the user
+        # anything about it becoming unentitled
+        # (FIXME: Something on bionic means that DEBUG log lines are being
+        # picked up by caplog_text(), so work around that here)
+        assert [] == [line for line in caplog_text().splitlines()
+                      if 'DEBUG' not in line]
 
     @pytest.mark.parametrize(
         'orig_access,delta',
