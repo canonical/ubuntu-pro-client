@@ -51,6 +51,11 @@ case "$1" in
           upgrade_to_status_cache
       fi
       grep -iq trusty /etc/os-release && configure_esm
+      if [ ! -f /var/log/ubuntu-advantage.log ]; then
+          touch /var/log/ubuntu-advantage.log
+      fi
+      chmod 0600 /var/log/ubuntu-advantage.log
+      chown root:root /var/log/ubuntu-advantage.log
       ;;
 esac
 
