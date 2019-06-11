@@ -2,8 +2,6 @@ import mock
 
 from uaclient.testing.fakes import FakeConfig
 
-from io import StringIO
-
 import pytest
 
 from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
@@ -13,8 +11,7 @@ M_PATH = 'uaclient.cli.'
 
 
 @mock.patch(M_PATH + 'os.getuid')
-@mock.patch(M_PATH + 'sys.stdout')
-def test_non_root_users_are_rejected(stdout, getuid):
+def test_non_root_users_are_rejected(getuid):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
@@ -24,11 +21,10 @@ def test_non_root_users_are_rejected(stdout, getuid):
 
 
 # For all of these tests we want to appear as root, so mock on the class
-@mock.patch(M_PATH + 'os.getuid', mock.Mock(return_value=0))
+@mock.patch(M_PATH + 'os.getuid', return_value=0)
 class TestActionAttach:
 
-    @mock.patch(M_PATH + 'sys.stdout')
-    def test_already_attached(self, stdout):
+    def test_already_attached(self, _m_getuid, capsys):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = 'test_account'
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
@@ -38,7 +34,7 @@ class TestActionAttach:
         assert 0 == ret
         expected_msg = "This machine is already attached to '{}'.".format(
             account_name)
-        assert mock.call(expected_msg) in stdout.write.call_args_list
+        assert expected_msg in capsys.readouterr()[0]
 
     @mock.patch(M_PATH + 'contract.request_updated_contract')
     @mock.patch(M_PATH + 'sso.discharge_root_macaroon')
@@ -46,7 +42,7 @@ class TestActionAttach:
     @mock.patch(M_PATH + 'action_status')
     def test_happy_path_without_token_arg(
             self, action_status, contract_client, discharge_root_macaroon,
-            request_updated_contract):
+            request_updated_contract, _m_getuid):
         """A mock-heavy test for the happy path without an argument"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -76,7 +72,7 @@ class TestActionAttach:
     @mock.patch(M_PATH + 'action_status')
     def test_happy_path_with_token_arg(self, action_status,
                                        contract_machine_attach,
-                                       discharge_root_macaroon):
+                                       discharge_root_macaroon, _m_getuid):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -101,12 +97,12 @@ class TestActionAttach:
         assert expected_calls == contract_machine_attach.call_args_list
         assert 0 == discharge_root_macaroon.call_count
 
-    @mock.patch('uaclient.cli.sys.stdout')
     @mock.patch('uaclient.cli.sso.discharge_root_macaroon')
     @mock.patch('uaclient.cli.contract.UAContractClient')
     @mock.patch('uaclient.cli.action_status')
     def test_no_discharged_macaroon(self, action_status, contract_client,
-                                    discharge_root_macaroon, stdout):
+                                    discharge_root_macaroon, _m_getuid,
+                                    capsys):
         """If we can't discharge the root macaroon, fail gracefully."""
         discharge_root_macaroon.return_value = None
         args = mock.MagicMock(token=None)
@@ -117,7 +113,7 @@ class TestActionAttach:
         assert 1 == ret
         expected_msg = ('Could not attach machine. Unable to obtain'
                         ' authenticated user token')
-        assert mock.call(expected_msg) in stdout.write.call_args_list
+        assert expected_msg in capsys.readouterr()[0]
 
 
 class TestParser:
@@ -157,9 +153,9 @@ class TestParser:
             args = parser.parse_args()
         assert 'tokenval' == args.token
 
-    def test_attach_parser_help_points_to_ua_contract_dashboard_url(self):
+    def test_attach_parser_help_points_to_ua_contract_dashboard_url(
+            self, capsys):
         """Contracts' dashboard URL is referenced by ua attach --help."""
         parser = attach_parser()
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            parser.print_help()
-        assert UA_DASHBOARD_URL in m_stdout.getvalue()
+        parser.print_help()
+        assert UA_DASHBOARD_URL in capsys.readouterr()[0]

@@ -47,7 +47,10 @@ def caplog_text(request):
         def _func():
             return handler.stream.getvalue()
 
-        request.addfinalizer(lambda: root.removeHandler(handler))
+        def clear_handlers():
+            logging.root.handlers = []
+
+        request.addfinalizer(clear_handlers)
     return _func
 
 

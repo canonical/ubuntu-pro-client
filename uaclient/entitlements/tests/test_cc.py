@@ -4,7 +4,6 @@ import copy
 import itertools
 import mock
 import os.path
-from io import StringIO
 from types import MappingProxyType
 
 import pytest
@@ -83,7 +82,7 @@ class TestCommonCriteriaEntitlementCanEnable:
     @mock.patch('uaclient.util.subp', return_value=('', ''))
     @mock.patch('uaclient.util.get_platform_info')
     def test_can_enable_true_on_entitlement_inactive(
-            self, m_platform_info, _m_subp, tmpdir):
+            self, m_platform_info, _m_subp, capsys, tmpdir):
         """When entitlement is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
@@ -94,9 +93,8 @@ class TestCommonCriteriaEntitlementCanEnable:
         assert status.UserFacingStatus.INACTIVE == uf_status
         details = '%s is not configured' % entitlement.title
         assert details == uf_status_details
-        with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-            assert True is entitlement.can_enable()
-        assert '' == m_stdout.getvalue()
+        assert True is entitlement.can_enable()
+        assert ('', '') == capsys.readouterr()
 
 
 class TestCommonCriteriaEntitlementEnable:
@@ -107,7 +105,7 @@ class TestCommonCriteriaEntitlementEnable:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_platform_info, m_subp, tmpdir,
+            self, m_platform_info, m_subp, capsys, tmpdir,
             apt_transport_https, ca_certificates):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_subp.return_value = ('fakeout', '')
@@ -138,9 +136,7 @@ class TestCommonCriteriaEntitlementEnable:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
                 with mock.patch('uaclient.entitlements.repo.os.path.exists',
                                 side_effect=exists):
-                    with mock.patch('sys.stdout',
-                                    new_callable=StringIO) as m_stdout:
-                        assert True is entitlement.enable()
+                    assert True is entitlement.enable()
 
         add_apt_calls = [
             mock.call('/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list',
@@ -183,4 +179,4 @@ class TestCommonCriteriaEntitlementEnable:
             ' packages\nCanonical Common Criteria EAL2 Provisioning'
             ' enabled.\nPlease follow instructions in %s to configure EAL2\n'
             % CC_README)
-        assert expected_stdout == m_stdout.getvalue()
+        assert (expected_stdout, '') == capsys.readouterr()

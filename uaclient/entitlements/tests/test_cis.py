@@ -1,7 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import mock
-from io import StringIO
 
 from uaclient import config, status
 from uaclient.entitlements.cis import CISEntitlement
@@ -38,7 +37,7 @@ CIS_RESOURCE_ENTITLED = {
 
 class TestCISEntitlementCanEnable:
 
-    def test_can_enable_true_on_entitlement_inactive(self, tmpdir):
+    def test_can_enable_true_on_entitlement_inactive(self, capsys, tmpdir):
         """When entitlement is INACTIVE, can_enable returns True."""
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
@@ -49,9 +48,8 @@ class TestCISEntitlementCanEnable:
         with mock.patch.object(
                 entitlement, 'application_status',
                 return_value=(status.ApplicationStatus.DISABLED, '')):
-            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                assert entitlement.can_enable()
-        assert '' == m_stdout.getvalue()
+            assert entitlement.can_enable()
+        assert ('', '') == capsys.readouterr()
 
 
 class TestCISEntitlementEnable:
@@ -59,7 +57,7 @@ class TestCISEntitlementEnable:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_platform_info, m_subp, tmpdir):
+            self, m_platform_info, m_subp, capsys, tmpdir):
         """When entitled, configure apt repo auth token, pinning and url."""
 
         def fake_platform(key=None):
@@ -80,11 +78,9 @@ class TestCISEntitlementEnable:
 
         with mock.patch('uaclient.entitlements.repo.os.path.exists',
                         mock.Mock(return_value=True)):
-            with mock.patch('sys.stdout', new_callable=StringIO) as m_stdout:
-                with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-                    with mock.patch(
-                            'uaclient.apt.add_ppa_pinning') as m_add_pin:
-                        assert entitlement.enable()
+            with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
+                with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
+                    assert entitlement.enable()
 
         add_apt_calls = [
             mock.call(
@@ -108,4 +104,4 @@ class TestCISEntitlementEnable:
             'Updating package lists\n'
             'Installing Canonical CIS Benchmark Audit Tool packages\n'
             'Canonical CIS Benchmark Audit Tool enabled.\n')
-        assert expected_stdout == m_stdout.getvalue()
+        assert (expected_stdout, '') == capsys.readouterr()

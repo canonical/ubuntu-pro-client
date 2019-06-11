@@ -17,11 +17,10 @@ from uaclient.cli import action_refresh
 M_PATH = 'uaclient.cli.'
 
 
-@mock.patch(M_PATH + 'sys.stdout')
 @mock.patch(M_PATH + 'os.getuid', return_value=0)
 class TestActionRefresh:
 
-    def test_non_root_users_are_rejected(self, getuid, stdout):
+    def test_non_root_users_are_rejected(self, getuid):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
@@ -29,7 +28,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg)
 
-    def test_not_attached_errors(self, getuid, stdout):
+    def test_not_attached_errors(self, getuid):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
 
@@ -39,7 +38,7 @@ class TestActionRefresh:
     @mock.patch(M_PATH + 'logging.error')
     @mock.patch(M_PATH + 'contract.request_updated_contract')
     def test_refresh_contract_error_on_failure_to_update_contract(
-            self, request_updated_contract, logging_error, getuid, stdout):
+            self, request_updated_contract, logging_error, getuid):
         """On failure in request_updates_contract emit an error."""
         request_updated_contract.return_value = False  # failure to refresh
 
@@ -52,7 +51,7 @@ class TestActionRefresh:
 
     @mock.patch(M_PATH + 'contract.request_updated_contract')
     def test_refresh_contract_happy_path(
-            self, request_updated_contract, getuid, stdout):
+            self, request_updated_contract, getuid, capsys):
         """On success from request_updates_contract root user can refresh."""
         request_updated_contract.return_value = True
 
@@ -60,7 +59,5 @@ class TestActionRefresh:
         ret = action_refresh(mock.MagicMock(), cfg)
 
         assert 0 == ret
-        assert (
-            mock.call(status.MESSAGE_REFRESH_SUCCESS) in
-            stdout.write.call_args_list)
+        assert status.MESSAGE_REFRESH_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
