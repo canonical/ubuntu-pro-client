@@ -18,6 +18,8 @@ API_PATH_TOKEN_DISCHARGE = API_PATH_V2 + '/tokens/discharge'
 # Some Ubuntu SSO API responses use UNDERSCORE_DELIMITED codes, others use
 # lowercase-hyphenated. We'll standardize on lowercase-hyphenated
 API_ERROR_2FA_REQUIRED = 'twofactor-required'
+API_ERROR_INVALID_CREDENTIALS = 'invalid-credentials'
+TWOFACTOR_RETRIES = 1  # Number of times we allow retyping on failed 2FA
 
 
 class MacaroonFormatError(RuntimeError):
@@ -49,7 +51,7 @@ class SSOAuthError(util.UrlError):
     def __contains__(self, error_code):
         return error_code in [error['code'] for error in self.api_errors]
 
-    def __get__(self, error_code, default=None):
+    def __getitem__(self, error_code, default=None):
         for error in self.api_errors:
             if error['code'] == error_code:
                 return error['message']
@@ -169,14 +171,30 @@ def prompt_request_macaroon(cfg: UAConfig, caveat_id: str) -> dict:
     args = {'email': email, 'password': password, 'caveat_id': caveat_id}
     sso_client = UbuntuSSOClient(cfg)
     content = None
+    twofactor_retries = 0
     while True:
         try:
             content = sso_client.request_discharge_macaroon(**args)
         except SSOAuthError as e:
-            if API_ERROR_2FA_REQUIRED not in e:
-                raise exceptions.UserFacingError(str(e))
-            args['otp'] = input('Second-factor auth: ')
-            continue
+            if API_ERROR_2FA_REQUIRED in e:
+                args['otp'] = input('Second-factor auth: ')
+                continue
+            elif API_ERROR_INVALID_CREDENTIALS in e:
+                # This is arguably bug in canonical-identity-provider code
+                # that the error 'code' is 'invalid-credentials' when docs
+                # clearly designates a 'twofactor-error' code that should be
+                # emitted when the 2FA token is invalid. There are no plans for
+                # changes to the error codes or messages as it might break
+                # existing clients. As a result, we have to distinguish
+                # email/password invalid-credentials errors from 2-factor
+                # errors by searching the attached error 'message' field for
+                # 2-factor.
+                if '2-factor' in e[API_ERROR_INVALID_CREDENTIALS]:
+                    if twofactor_retries < TWOFACTOR_RETRIES:
+                        args['otp'] = input('Re-enter second-factor auth: ')
+                        twofactor_retries += 1
+                        continue
+            raise exceptions.UserFacingError(str(e))
         break
     if not content:
         raise exceptions.UserFacingError('SSO server returned empty content')
