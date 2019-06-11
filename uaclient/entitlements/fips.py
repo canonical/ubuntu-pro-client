@@ -19,7 +19,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         'openssl': set(),
         'strongswan': {'strongswan-hmac'},
     }  # type: Dict[str, Set[str]]
-    force_disable = True
 
     @property
     def packages(self) -> 'List[str]':
