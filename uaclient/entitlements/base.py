@@ -73,18 +73,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         @param silent: Boolean set True to silence printed messages/warnings.
         """
-        message = ''
-        retval = True
         application_status, _ = self.application_status()
 
         if application_status == status.ApplicationStatus.DISABLED:
-            message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
-                title=self.title
-            )
-            retval = False
-        if message and not silent:
-            print(message)
-        return retval
+            if not silent:
+                print(status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                    title=self.title))
+            return False
+        return True
 
     def can_enable(self, silent: bool = False) -> bool:
         """
