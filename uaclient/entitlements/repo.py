@@ -254,6 +254,7 @@ class RepoEntitlement(base.UAEntitlement):
             # is a special-case: we want to be able to report on the
             # available ESM updates even when it's disabled
             apt.remove_repo_from_apt_auth_file(repo_url)
+            apt.restore_commented_apt_list_file(repo_filename)
         else:
             apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
             apt.remove_apt_list_files(repo_url, series)
