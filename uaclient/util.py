@@ -320,7 +320,7 @@ def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
 
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
-REGEX_OS_RELEASE_VERSION = r'(?P<version>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
+REGEX_OS_RELEASE_VERSION = r'(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
 
 
 def get_platform_info() -> 'Dict[str, str]':
@@ -349,7 +349,7 @@ def get_platform_info() -> 'Dict[str, str]':
             'Could not parse /etc/os-release VERSION: %s (modified to %s)' %
             (os_release['VERSION'], version))
     match_dict = match.groupdict()
-    platform_info.update({'release': match_dict['version'],
+    platform_info.update({'release': match_dict['release'],
                           'series': match_dict['series'].lower()})
 
     uname = os.uname()
