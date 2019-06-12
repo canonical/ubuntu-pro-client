@@ -1,5 +1,4 @@
 import contextlib
-import itertools
 import mock
 import os.path
 
@@ -121,19 +120,17 @@ class TestESMEntitlementEnable:
 
 class TestESMEntitlementDisable:
 
-    # Paramterize True/False for silent and force
-    @pytest.mark.parametrize(
-        'silent,force', itertools.product([False, True], repeat=2))
+    @pytest.mark.parametrize('silent', [False, True])
     @mock.patch('uaclient.util.get_platform_info')
     @mock.patch(M_PATH + 'can_disable', return_value=False)
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
-            self, m_can_disable, m_platform_info, silent, force):
+            self, m_can_disable, m_platform_info, silent):
         """When can_disable is false disable returns false and noops."""
         entitlement = ESMEntitlement({})
 
         with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
-            assert False is entitlement.disable(silent, force)
-        assert [mock.call(silent, force)] == m_can_disable.call_args_list
+            assert False is entitlement.disable(silent)
+        assert [mock.call(silent)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
     @mock.patch('uaclient.apt.restore_commented_apt_list_file')
@@ -145,11 +142,11 @@ class TestESMEntitlementDisable:
             self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
             m_restore_commented_apt_list_file,
             entitlement, tmpdir, caplog_text):
-        """When can_disable, disable removes apt configuration when forced."""
+        """When can_disable, disable removes apt configuration"""
 
         with mock.patch('uaclient.util.subp'):
             with mock.patch('uaclient.util.write_file') as m_write:
-                assert entitlement.disable(True, True)
+                assert entitlement.disable(True)
 
         # Disable esm repo again
         write_calls = [mock.call(
@@ -157,7 +154,7 @@ class TestESMEntitlementDisable:
             'Package: *\nPin: release o=UbuntuESM, n=trusty\n'
             'Pin-Priority: never\n')]
         assert write_calls == m_write.call_args_list
-        assert [mock.call(True, True)] == m_can_disable.call_args_list
+        assert [mock.call(True)] == m_can_disable.call_args_list
         auth_call = mock.call('http://ESM')
         assert [auth_call] == m_rm_repo_from_auth.call_args_list
         assert [mock.call('/etc/apt/sources.list.d/ubuntu-esm-trusty.list')

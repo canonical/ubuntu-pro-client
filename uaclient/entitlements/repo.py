@@ -89,8 +89,8 @@ class RepoEntitlement(base.UAEntitlement):
             print(msg)
         return True
 
-    def disable(self, silent=False, force=False):
-        if not self.can_disable(silent, force):
+    def disable(self, silent=False):
+        if not self.can_disable(silent):
             return False
         self._cleanup()
         if not silent:

@@ -25,12 +25,12 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
         'post_enable': [
             'Please follow instructions in %s to configure EAL2' % CC_README]}
 
-    def disable(self, silent=False, force=False):
+    def disable(self, silent=False):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.
         """
-        if not self.can_disable(silent, force):
+        if not self.can_disable(silent):
             return False
         series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(

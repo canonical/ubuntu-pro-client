@@ -250,15 +250,13 @@ class TestFipsEntitlementPackages:
 
 class TestFIPSEntitlementDisable:
 
-    # Paramterize True/False for silent and force
-    @pytest.mark.parametrize(
-        'silent,force', itertools.product([False, True], repeat=2))
+    @pytest.mark.parametrize('silent', [False, True])
     @mock.patch('uaclient.util.get_platform_info')
     def test_disable_returns_false_and_does_nothing(
-            self, m_platform_info, entitlement, silent, force, capsys):
+            self, m_platform_info, entitlement, silent, capsys):
         """When can_disable is false disable returns false and noops."""
         with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
-            assert False is entitlement.disable(silent, force)
+            assert False is entitlement.disable(silent)
         assert 0 == m_remove_apt.call_count
 
         expected_stdout = ''

@@ -181,12 +181,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ApplicabilityStatus.APPLICABLE, ''
 
     @abc.abstractmethod
-    def disable(self, silent: bool = False, force: bool = False) -> bool:
+    def disable(self, silent: bool = False) -> bool:
         """Disable specific entitlement
 
         @param silent: Boolean set True to silence print/log of messages
-        @param force: Boolean set True to perform disable logic even if
-            entitlement doesn't appear fully configured.
 
         @return: True on success, False otherwise.
         """

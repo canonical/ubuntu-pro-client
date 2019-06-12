@@ -40,7 +40,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         return (
             status.ApplicationStatus.PENDING, 'Reboot to FIPS kernel required')
 
-    def disable(self, silent: bool = False, force: bool = False) -> bool:
+    def disable(self, silent: bool = False) -> bool:
         """FIPS cannot be disabled, so simply display a message to the user"""
         if not silent:
             print('Warning: no option to disable {}'.format(self.title))
