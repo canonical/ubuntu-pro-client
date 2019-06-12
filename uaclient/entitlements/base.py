@@ -68,23 +68,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def can_disable(self, silent: bool = False, force: bool = False) -> bool:
+    def can_disable(self, silent: bool = False) -> bool:
         """Report whether or not disabling is possible for the entitlement.
 
         @param silent: Boolean set True to silence printed messages/warnings.
-        @param force: Boolean set True to allow disable even if entitlement
-            doesn't appear 'enabled'.
         """
         message = ''
         retval = True
         application_status, _ = self.application_status()
 
-        if not force:
-            if application_status == status.ApplicationStatus.DISABLED:
-                message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
-                    title=self.title
-                )
-                retval = False
+        if application_status == status.ApplicationStatus.DISABLED:
+            message = status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                title=self.title
+            )
+            retval = False
         if message and not silent:
             print(message)
         return retval
