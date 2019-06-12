@@ -79,7 +79,7 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     capture=True, retry_sleeps=APT_RETRIES)
             except util.ProcessExecutionError:
-                self.disable(silent=True, force=True)
+                self._cleanup()
                 logging.error(
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))

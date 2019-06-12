@@ -334,13 +334,11 @@ class TestRepoEnable:
                                return_value=True):
             with mock.patch.object(entitlement, 'can_enable',
                                    return_value=True):
-                with mock.patch.object(entitlement, 'can_disable',
-                                       return_value=True):
-                    with mock.patch.object(type(entitlement), 'packages',
-                                           packages):
-                        with mock.patch.object(
-                                entitlement, 'remove_apt_config') as m_rac:
-                            entitlement.enable()
+                with mock.patch.object(type(entitlement), 'packages',
+                                       packages):
+                    with mock.patch.object(
+                            entitlement, 'remove_apt_config') as m_rac:
+                        entitlement.enable()
 
         expected_call = mock.call(
             ['apt-get', 'remove', '--assume-yes'] + packages)
