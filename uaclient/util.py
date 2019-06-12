@@ -335,6 +335,8 @@ def get_platform_info() -> 'Dict[str, str]':
     if ', ' in version:
         # Fix up trusty's version formatting
         version = '{} ({})'.format(*version.split(', '))
+    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
+    version = re.sub(r'\.\d LTS', ' LTS', version)
     platform_info['version'] = version
 
     match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
