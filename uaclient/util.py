@@ -324,6 +324,12 @@ REGEX_OS_RELEASE_VERSION = r'(?P<version>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
 
 
 def get_platform_info() -> 'Dict[str, str]':
+    """
+    Returns a dict of platform information.
+
+    N.B. This dict is sent to the contract server, which requires the
+    distribution, type and release keys.
+    """
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
