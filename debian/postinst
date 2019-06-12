@@ -50,6 +50,10 @@ case "$1" in
       if dpkg --compare-versions "$2" lt-nl "19.5~"; then
           upgrade_to_status_cache
       fi
+
+      # CACHE_DIR is no longer present or used since 19.1
+      rm -rf /var/cache/ubuntu-advantage-tools
+
       grep -iq trusty /etc/os-release && configure_esm
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
