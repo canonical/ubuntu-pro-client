@@ -92,15 +92,19 @@ class RepoEntitlement(base.UAEntitlement):
     def disable(self, silent=False, force=False):
         if not self.can_disable(silent, force):
             return False
+        self._cleanup()
+        if not silent:
+            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
+        return True
+
+    def _cleanup(self) -> None:
+        """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config()
         try:
             util.subp(
                 ['apt-get', 'remove', '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
-        if not silent:
-            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
-        return True
 
     def application_status(self) -> 'Tuple[ApplicationStatus, str]':
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
