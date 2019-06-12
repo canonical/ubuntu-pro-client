@@ -220,21 +220,21 @@ class TestGetPlatformInfo:
         expected_msg = 'Could not parse /etc/os-release VERSION: junk'
         assert expected_msg == str(excinfo.value)
 
-    @pytest.mark.parametrize('series,release,os_release_content', [
-        ('trusty', '14.04', OS_RELEASE_TRUSTY),
-        ('xenial', '16.04', OS_RELEASE_XENIAL),
-        ('bionic', '18.04', OS_RELEASE_BIONIC),
-        ('disco', '19.04', OS_RELEASE_DISCO),
+    @pytest.mark.parametrize('series,release,version,os_release_content', [
+        ('trusty', '14.04', '14.04.5 LTS, Trusty Tahr', OS_RELEASE_TRUSTY),
+        ('xenial', '16.04', '16.04.5 LTS (Xenial Xerus)', OS_RELEASE_XENIAL),
+        ('bionic', '18.04', '18.04.1 LTS (Bionic Beaver)', OS_RELEASE_BIONIC),
+        ('disco', '19.04', '19.04 (Disco Dingo)', OS_RELEASE_DISCO),
     ])
     def test_get_platform_info_with_version(
-            self, series, release, os_release_content, tmpdir):
+            self, series, release, version, os_release_content, tmpdir):
         release_file = tmpdir.join('os-release')
         release_file.write(os_release_content)
         parse_dict = util.parse_os_release(release_file.strpath)
 
         expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
                     'kernel': 'kernel-ver', 'release': release,
-                    'series': series, 'type': 'Linux'}
+                    'series': series, 'type': 'Linux', 'version': version}
 
         with mock.patch('uaclient.util.parse_os_release') as m_parse:
             with mock.patch('uaclient.util.os.uname') as m_uname:

@@ -332,6 +332,8 @@ def get_platform_info() -> 'Dict[str, str]':
         'type': 'Linux'}
 
     version = os_release['VERSION']
+    platform_info['version'] = version
+
     match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
     if not match:
         match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
