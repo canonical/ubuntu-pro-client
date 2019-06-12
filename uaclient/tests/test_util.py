@@ -221,7 +221,7 @@ class TestGetPlatformInfo:
         assert expected_msg == str(excinfo.value)
 
     @pytest.mark.parametrize('series,release,version,os_release_content', [
-        ('trusty', '14.04', '14.04.5 LTS, Trusty Tahr', OS_RELEASE_TRUSTY),
+        ('trusty', '14.04', '14.04.5 LTS (Trusty Tahr)', OS_RELEASE_TRUSTY),
         ('xenial', '16.04', '16.04.5 LTS (Xenial Xerus)', OS_RELEASE_XENIAL),
         ('bionic', '18.04', '18.04.1 LTS (Bionic Beaver)', OS_RELEASE_BIONIC),
         ('disco', '19.04', '19.04 (Disco Dingo)', OS_RELEASE_DISCO),
