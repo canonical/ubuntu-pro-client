@@ -321,7 +321,7 @@ def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
 
 REGEX_OS_RELEASE_VERSION_1 = (  # Precise, Trusty
     r'(?P<version>\d+\.\d+)(\.\d)? (LTS,?) ?(?P<series>\w+).*')
-REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
+REGEX_OS_RELEASE_VERSION_2 = (  # >= xenial
     r'(?P<version>\d+\.\d+)(\.\d)? (LTS )?\((?P<series>\w+).*')
 
 
