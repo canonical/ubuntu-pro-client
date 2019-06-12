@@ -76,6 +76,8 @@ class RepoEntitlement(base.UAEntitlement):
             try:
                 print(
                     'Installing {title} packages'.format(title=self.title))
+                for msg in self.messaging.get('pre_install', []):
+                    print(msg)
                 util.subp(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     capture=True, retry_sleeps=APT_RETRIES)
