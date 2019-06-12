@@ -319,10 +319,8 @@ def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
     return data
 
 
-REGEX_OS_RELEASE_VERSION_1 = (  # Precise, Trusty
-    r'(?P<version>\d+\.\d+)(\.\d)? (LTS,?) ?(?P<series>\w+).*')
-REGEX_OS_RELEASE_VERSION_2 = (  # >= xenial
-    r'(?P<version>\d+\.\d+)(\.\d)? (LTS )?\((?P<series>\w+).*')
+# N.B. this relies on the version normalisation we perform in get_platform_info
+REGEX_OS_RELEASE_VERSION = r'(?P<version>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
 
 
 def get_platform_info() -> 'Dict[str, str]':
@@ -339,13 +337,11 @@ def get_platform_info() -> 'Dict[str, str]':
     version = re.sub(r'\.\d LTS', ' LTS', version)
     platform_info['version'] = version
 
-    match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
-    if not match:
-        match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+    match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
-            'Could not parse /etc/os-release VERSION: %s' %
-            os_release['VERSION'])
+            'Could not parse /etc/os-release VERSION: %s (modified to %s)' %
+            (os_release['VERSION'], version))
     match_dict = match.groupdict()
     platform_info.update({'release': match_dict['version'],
                           'series': match_dict['series'].lower()})

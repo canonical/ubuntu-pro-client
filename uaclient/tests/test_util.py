@@ -217,7 +217,8 @@ class TestGetPlatformInfo:
         m_parse.return_value = {'VERSION': 'junk'}
         with pytest.raises(RuntimeError) as excinfo:
             util.get_platform_info()
-        expected_msg = 'Could not parse /etc/os-release VERSION: junk'
+        expected_msg = (
+            'Could not parse /etc/os-release VERSION: junk (modified to junk)')
         assert expected_msg == str(excinfo.value)
 
     @pytest.mark.parametrize('series,release,version,os_release_content', [
