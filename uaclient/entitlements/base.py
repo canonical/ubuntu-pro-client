@@ -238,16 +238,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 transition_to_unentitled = (
                     delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
         if transition_to_unentitled:
-            if self.can_disable(silent=True):
-                logging.info(
-                    "Due to contract refresh, '%s' is now disabled.",
-                    self.name)
-                self.disable()
-            else:
-                logging.warning(
-                    "Unable to disable '%s' as recommended during contract"
-                    " refresh. Service is still active. See `ua status`" %
-                    self.name)
+            application_status, _ = self.application_status()
+            if application_status != status.ApplicationStatus.DISABLED:
+                if self.can_disable(silent=True):
+                    self.disable()
+                    logging.info(
+                        "Due to contract refresh, '%s' is now disabled.",
+                        self.name)
+                else:
+                    logging.warning(
+                        "Unable to disable '%s' as recommended during contract"
+                        " refresh. Service is still active. See `ua status`" %
+                        self.name)
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
