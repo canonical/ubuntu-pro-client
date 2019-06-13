@@ -173,10 +173,12 @@ class TestCommonCriteriaEntitlementEnable:
         # No apt pinning for cc
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
-        expected_stdout += (
-            'Updating package lists\n'
-            'Installing Canonical Common Criteria EAL2 Provisioning'
-            ' packages\nCanonical Common Criteria EAL2 Provisioning'
-            ' enabled.\nPlease follow instructions in %s to configure EAL2\n'
-            % CC_README)
+        expected_stdout += '\n'.join([
+            'Updating package lists',
+            'Installing Canonical Common Criteria EAL2 Provisioning packages',
+            '(This will download more than 500MB of packages, so may take some'
+            ' time.)',
+            'Canonical Common Criteria EAL2 Provisioning enabled.',
+            'Please follow instructions in %s to configure EAL2\n' % CC_README,
+        ])
         assert (expected_stdout, '') == capsys.readouterr()

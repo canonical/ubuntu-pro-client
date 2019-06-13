@@ -257,6 +257,7 @@ class TestRepoEnable:
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
 
+    @pytest.mark.parametrize('with_pre_install_msg', (False, True))
     @pytest.mark.parametrize('packages', (['a'], [], None))
     @mock.patch(M_PATH + 'util.subp')
     @mock.patch(M_PATH + 'apt.add_auth_apt_repo')
@@ -265,9 +266,17 @@ class TestRepoEnable:
     @mock.patch.object(RepoTestEntitlement, 'can_enable', return_value=True)
     def test_enable_calls_adds_apt_repo_and_calls_apt_update(
             self, m_can_enable, m_platform, m_exists, m_apt_add, m_subp,
-            entitlement, capsys, caplog_text, tmpdir, packages):
+            entitlement, capsys, caplog_text, tmpdir, packages,
+            with_pre_install_msg):
         """On enable add authenticated apt repo and refresh package lists."""
         m_platform.return_value = {'series': 'xenial'}
+
+        pre_install_msgs = ['Some pre-install information', 'Some more info']
+        if with_pre_install_msg:
+            messaging_patch = mock.patch.object(
+                entitlement, 'messaging', {'pre_install': pre_install_msgs})
+        else:
+            messaging_patch = mock.MagicMock()
 
         expected_apt_calls = [mock.call(
             ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)]
@@ -282,17 +291,18 @@ class TestRepoEnable:
                         ['apt-get', 'install', '--assume-yes',
                          ' '.join(packages)],
                         capture=True, retry_sleeps=APT_RETRIES))
-                expected_output = dedent("""\
-                    Updating package lists
-                    Installing Repo Test Class packages
-                    Repo Test Class enabled.
-                    """)
+                expected_output = '\n'.join([
+                    'Updating package lists',
+                    'Installing Repo Test Class packages',
+                ] + (pre_install_msgs if with_pre_install_msg else []) + [
+                    'Repo Test Class enabled.']) + '\n'
         else:
             packages = entitlement.packages
 
         # We patch the type of entitlement because packages is a property
         with mock.patch.object(type(entitlement), 'packages', packages):
-            entitlement.enable()
+            with messaging_patch:
+                entitlement.enable()
 
         expected_calls = [mock.call(apt.APT_METHOD_HTTPS_FILE),
                           mock.call(apt.CA_CERTIFICATES_FILE)]
