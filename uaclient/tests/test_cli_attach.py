@@ -9,6 +9,10 @@ from uaclient.exceptions import NonRootUserError
 
 M_PATH = 'uaclient.cli.'
 
+BASIC_MACHINE_TOKEN = {
+    'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                          'resourceEntitlements': []}}}
+
 
 @mock.patch(M_PATH + 'os.getuid')
 def test_non_root_users_are_rejected(getuid):
@@ -50,12 +54,9 @@ class TestActionAttach:
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
         cfg = FakeConfig.with_account()
-        machine_token = {
-            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
-                                                  'resourceEntitlements': []}}}
 
         def fake_contract_updates(cfg, contract_token, allow_enable):
-            cfg.write_cache('machine-token', machine_token)
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
             return True
 
         request_updated_contract.side_effect = fake_contract_updates
@@ -79,13 +80,10 @@ class TestActionAttach:
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
-        machine_token = {
-            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
-                                                  'resourceEntitlements': []}}}
 
         def fake_contract_attach(contract_token):
-            cfg.write_cache('machine-token', machine_token)
-            return machine_token
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
+            return BASIC_MACHINE_TOKEN
 
         contract_machine_attach.side_effect = fake_contract_attach
 
