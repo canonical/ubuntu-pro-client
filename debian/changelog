@@ -1,12 +1,49 @@
 ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
 
-  [ Andreas Hasenack ]
-  * Ship unattended-upgrades configuration for ESM
-  * Wait for snapd to initialise before using it
-  * Test fixes
-
-  [ Daniel Watkins ]
-  * d/postinst: handle migration to new status cache on upgrade
+  * New upstream release (LP: #1832757):
+    - cc: add a warning about download size before install
+    - repo: un-comment ESM sources.list lines on repo disable
+    - attach: two-factor auth reprompt only two-factor auth on failed 2fa
+    - keyrings: regenerate keyrings on a trusty host
+    - refresh keyrings to match current production for
+      fips, fips-updates, cc-eal
+    - apt: write commented -updates lines instead of omitting them
+    - environ: allow lowercase ua_<config_option> overrides
+    - logs: no longer redact secrets as logfile is root read-only
+    - config: allow contract_url and sso_auth_url to have a trailing slash
+    - apt: enable -updates if -updates from the Ubuntu archive is enabled
+    - fips: display as pending when linux-fips is not the running kernel
+    - status: redact technical support and expiry for free contracts
+    - esm: on upgrade do not install preferences to pin never if esm enabled
+    - esm: use Pin-Priority never apt preference file to disable esm initially
+    - packaging: trusty should remove v1 esm key if present after upgrade
+    - cli: check for root before checking for attach in assert_attached_root
+    - apt: retry apt install and update commands 3 times simple backoff
+    - apt-hook: Add basic i18n (good enough for lang packs)
+    - status: emit a SERVICE header in status output
+    - cc: update cc to cc-eal in docs, parameters and commandline help
+    - docker: fix persisting generated uuid on images without machine-id files
+    - status: unentitled services will report n/a
+    - console log: remove level from messages
+    - fips: only install/upgrade optional packages that are already on the
+      system
+    - esm and livepatch auto enabled on attach
+    - don't attempt to disable inapplicable entitlements during detach
+    - attach: suppress messages from inapplicable default entitlements
+    - all repo entitlements now call apt-get update on enable
+    - esm: add esm-v2 gpg keyring, drop old keyring, ignore aptKey directive
+    - logs: separate console log devel from logfile level
+    - honour enableByDefault obligations from contract server
+    - d/postinst: Remove the old CACHE_DIR in postinst
+    - d/postinst: adjust logfile permissions
+    - d/control: depend on libapt-pkg<ABI_VERSION> to use pin-priority never
+    - d/postrm: remove the ESM pinning file on purge
+    - d/postrm: remove log files on package purge
+    - d/postinst: remove public files and generate status cache on upgrade
+    - esm: remove only the apt auth entry on disable, leaving sources.list
+    - refresh: add subcommand to refresh all contract details
+    - status: add --json cli formatting option
+    - updated manpage and help docs
 
  -- Andreas Hasenack <andreas@canonical.com>  Mon, 15 Apr 2019 10:38:35 -0300
 
