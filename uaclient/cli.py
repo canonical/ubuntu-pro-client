@@ -88,6 +88,9 @@ def attach_parser(parser=None):
         '--otp', action='store',
         help=('Optional one-time password for login to Ubuntu Advantage'
               ' Dashboard'))
+    parser.add_argument(
+        '--no-auto-enable', action='store_false', dest='auto_enable',
+        help='Do not enable any recommended services automatically')
     return parser
 
 
@@ -265,7 +268,7 @@ def action_attach(args, cfg):
         print('No valid contract token available')
         return 1
     if not contract.request_updated_contract(
-            cfg, contract_token, allow_enable=True):
+            cfg, contract_token, allow_enable=args.auto_enable):
         print(
             ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
         return 1

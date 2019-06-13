@@ -113,6 +113,22 @@ class TestActionAttach:
                         ' authenticated user token')
         assert expected_msg in capsys.readouterr()[0]
 
+    @pytest.mark.parametrize('auto_enable', (True, False))
+    def test_auto_enable_passed_through_to_request_updated_contract(
+            self, _m_getuid, auto_enable):
+        args = mock.MagicMock(auto_enable=auto_enable)
+
+        def fake_contract_updates(cfg, contract_token, allow_enable):
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
+            return True
+
+        with mock.patch(M_PATH + 'contract.request_updated_contract') as m_ruc:
+            m_ruc.side_effect = fake_contract_updates
+            action_attach(args, FakeConfig.with_account())
+
+        expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
+        assert [expected_call] == m_ruc.call_args_list
+
 
 class TestParser:
 
@@ -157,3 +173,15 @@ class TestParser:
         parser = attach_parser()
         parser.print_help()
         assert UA_DASHBOARD_URL in capsys.readouterr()[0]
+
+    def test_attach_parser_accepts_and_stores_no_auto_enable(self):
+        parser = attach_parser()
+        with mock.patch('sys.argv', ['attach', '--no-auto-enable']):
+            args = parser.parse_args()
+        assert not args.auto_enable
+
+    def test_attach_parser_defaults_to_auto_enable(self):
+        parser = attach_parser()
+        with mock.patch('sys.argv', ['attach']):
+            args = parser.parse_args()
+        assert args.auto_enable
