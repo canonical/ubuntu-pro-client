@@ -295,11 +295,12 @@ class TestLivepatchEntitlementEnable:
         mock.call(
             ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True,
             retry_sleeps=APT_RETRIES),
-        mock.call(['snap', 'wait', 'system', 'seed.loaded'], capture=True),
+        mock.call(['/usr/bin/snap', 'wait', 'system', 'seed.loaded'],
+                  capture=True),
     ]
     mocks_livepatch_install = [
-        mock.call(['snap', 'install', 'canonical-livepatch'], capture=True,
-                  retry_sleeps=[0.5, 1, 5]),
+        mock.call(['/usr/bin/snap', 'install', 'canonical-livepatch'],
+                  capture=True, retry_sleeps=[0.5, 1, 5]),
     ]
     mocks_install = mocks_snapd_install + mocks_livepatch_install
     mocks_config = [
@@ -353,13 +354,14 @@ class TestLivepatchEntitlementEnable:
                'Canonical livepatch enabled.\n')
         assert (msg, '') == capsys.readouterr()
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
-                          mock.call('snap')]
+                          mock.call('/usr/bin/snap')]
         assert expected_calls == m_which.call_args_list
 
     @pytest.mark.parametrize('application_status', (
         status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
     @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.which', side_effect=lambda cmd: cmd == 'snap')
+    @mock.patch('uaclient.util.which',
+                side_effect=lambda cmd: cmd == '/usr/bin/snap')
     @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
     @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
@@ -374,7 +376,7 @@ class TestLivepatchEntitlementEnable:
                'Canonical livepatch enabled.\n')
         assert (msg, '') == capsys.readouterr()
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
-                          mock.call('snap')]
+                          mock.call('/usr/bin/snap')]
         assert expected_calls == m_which.call_args_list
 
     @pytest.mark.parametrize('application_status', (
