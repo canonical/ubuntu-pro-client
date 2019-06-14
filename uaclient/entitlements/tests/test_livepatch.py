@@ -6,7 +6,7 @@ from types import MappingProxyType
 
 import pytest
 
-from uaclient import config
+from uaclient import config, exceptions
 from uaclient.entitlements.livepatch import (
     LivepatchEntitlement, process_config_directives)
 from uaclient.entitlements.repo import APT_RETRIES
@@ -359,7 +359,7 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize('application_status', (
         status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
-    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.subp', return_value=('snapd', ''))
     @mock.patch('uaclient.util.which',
                 side_effect=lambda cmd: cmd == '/usr/bin/snap')
     @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
@@ -378,6 +378,25 @@ class TestLivepatchEntitlementEnable:
         expected_calls = [mock.call('/snap/bin/canonical-livepatch'),
                           mock.call('/usr/bin/snap')]
         assert expected_calls == m_which.call_args_list
+
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.util.which',
+                side_effect=lambda cmd: cmd == '/usr/bin/snap')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
+    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    def test_enable_bails_if_snap_cmd_exists_but_snapd_pkg_not_installed(
+            self, m_can_enable, m_app_status, m_which, m_subp, capsys,
+            entitlement):
+        """Install canonical-livepatch snap when not present on the system."""
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
+        with mock.patch(M_PATH + 'apt.get_installed_packages',
+                        return_value=[]):
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
+
+        expected_msg = ('/usr/bin/snap is present but snapd is not installed;'
+                        ' cannot enable {}'.format(entitlement.title))
+        assert expected_msg == excinfo.value.msg
 
     @pytest.mark.parametrize('application_status', (
         status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))

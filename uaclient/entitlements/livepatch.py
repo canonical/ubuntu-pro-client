@@ -2,7 +2,7 @@ import logging
 
 from uaclient.entitlements import base
 from uaclient.entitlements.repo import APT_RETRIES
-from uaclient import status
+from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
@@ -53,6 +53,10 @@ class LivepatchEntitlement(base.UAEntitlement):
                           capture=True, retry_sleeps=APT_RETRIES)
                 util.subp([SNAP_CMD, 'wait', 'system', 'seed.loaded'],
                           capture=True)
+            elif 'snapd' not in apt.get_installed_packages():
+                raise exceptions.UserFacingError(
+                    '/usr/bin/snap is present but snapd is not installed;'
+                    ' cannot enable {}'.format(self.title))
             print('Installing canonical-livepatch snap')
             try:
                 util.subp([SNAP_CMD, 'install', 'canonical-livepatch'],
