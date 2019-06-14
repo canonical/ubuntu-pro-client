@@ -319,28 +319,37 @@ def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
     return data
 
 
-REGEX_OS_RELEASE_VERSION_1 = (  # Precise, Trusty
-    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS,?) ?(?P<series>\w+).*')
-REGEX_OS_RELEASE_VERSION_2 = (  # >= Disco
-    r'(?P<version>\d+\.\d+)(\.\d)? (?P<lts>LTS )?\((?P<series>\w+).*')
+# N.B. this relies on the version normalisation we perform in get_platform_info
+REGEX_OS_RELEASE_VERSION = r'(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
 
 
 def get_platform_info() -> 'Dict[str, str]':
+    """
+    Returns a dict of platform information.
+
+    N.B. This dict is sent to the contract server, which requires the
+    distribution, type and release keys.
+    """
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
         'type': 'Linux'}
 
     version = os_release['VERSION']
-    match = re.match(REGEX_OS_RELEASE_VERSION_1, version)
-    if not match:
-        match = re.match(REGEX_OS_RELEASE_VERSION_2, version)
+    if ', ' in version:
+        # Fix up trusty's version formatting
+        version = '{} ({})'.format(*version.split(', '))
+    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
+    version = re.sub(r'\.\d LTS', ' LTS', version)
+    platform_info['version'] = version
+
+    match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
-            'Could not parse /etc/os-release VERSION: %s' %
-            os_release['VERSION'])
+            'Could not parse /etc/os-release VERSION: %s (modified to %s)' %
+            (os_release['VERSION'], version))
     match_dict = match.groupdict()
-    platform_info.update({'release': match_dict['version'],
+    platform_info.update({'release': match_dict['release'],
                           'series': match_dict['series'].lower()})
 
     uname = os.uname()

@@ -46,27 +46,31 @@ CC_RESOURCE_ENTITLED = {
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 's390x',
     'series': 'xenial',
-    'kernel': '4.15.0-00-generic'
+    'kernel': '4.15.0-00-generic',
+    'version': '16.04 LTS (Xenial Xerus)',
 })
 
 
 class TestCommonCriteriaEntitlementUserFacingStatus:
 
     @pytest.mark.parametrize(
-        'arch,series,details',
-        (('arm64', 'xenial', 'Canonical Common Criteria EAL2 Provisioning is'
-          ' not available for platform arm64.\nSupported platforms are:'
-          ' x86_64, ppc64le, s390x'),
-         ('s390x', 'trusty', 'Canonical Common Criteria EAL2 Provisioning'
-          ' is not available for Ubuntu trusty.')))
+        'arch,series,version,details',
+        (('arm64', 'xenial', '16.04 LTS (Xenial Xerus)', 'Canonical Common'
+          ' Criteria EAL2 Provisioning is not available for platform arm64.\n'
+          'Supported platforms are: x86_64, ppc64le, s390x'),
+         ('s390x', 'trusty', '14.04 LTS (Trusty Tahr)', 'Canonical Common'
+          ' Criteria EAL2 Provisioning is not available for Ubuntu 14.04 LTS'
+          ' (Trusty Tahr).')))
     @mock.patch('uaclient.entitlements.repo.os.getuid', return_value=0)
     @mock.patch('uaclient.util.get_platform_info')
     def test_inapplicable_on_invalid_affordances(
-            self, m_platform_info, m_getuid, arch, series, details, tmpdir):
+            self, m_platform_info, m_getuid, arch, series, version, details,
+            tmpdir):
         """Test invalid affordances result in inapplicable status."""
         unsupported_info = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_info['arch'] = arch
         unsupported_info['series'] = series
+        unsupported_info['version'] = version
         m_platform_info.return_value = unsupported_info
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         cfg.write_cache('machine-token', CC_MACHINE_TOKEN)

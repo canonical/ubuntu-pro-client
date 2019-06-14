@@ -46,7 +46,8 @@ LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 'x86_64',
     'kernel': '4.4.0-00-generic',
-    'series': 'xenial'
+    'series': 'xenial',
+    'version': '16.04 LTS (Xenial Xerus)',
 })
 
 M_PATH = 'uaclient.entitlements.livepatch.'  # mock path
@@ -94,7 +95,9 @@ class TestLivepatchUserFacingStatus:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == status.UserFacingStatus.INAPPLICABLE
-        assert 'Livepatch is not available for Ubuntu xenial.' == details
+        expected_details = ('Livepatch is not available for Ubuntu 16.04 LTS'
+                            ' (Xenial Xerus).')
+        assert expected_details == details
 
     def test_user_facing_status_inapplicable_on_unentitled(
             self, entitlement):

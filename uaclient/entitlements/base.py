@@ -145,7 +145,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if affordance_series and platform['series'] not in affordance_series:
             return (ApplicabilityStatus.INAPPLICABLE,
                     status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
-                        title=self.title, series=platform['series']))
+                        title=self.title, series=platform['version']))
         kernel = platform['kernel']
         affordance_kernels = affordances.get('kernelFlavors', [])
         affordance_min_kernel = affordances.get('minKernelVersion')

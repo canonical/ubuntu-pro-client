@@ -42,7 +42,8 @@ REPO_RESOURCE_ENTITLED = {
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 'x86_64',
     'kernel': '4.4.0-00-generic',
-    'series': 'xenial'
+    'series': 'xenial',
+    'version': '16.04 LTS (Xenial Xerus)',
 })
 
 
@@ -76,10 +77,13 @@ class TestUserFacingStatus:
         """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
         platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         platform_unsupported['series'] = 'trusty'
+        platform_unsupported['version'] = '14.04 LTS (Trusty Tahr)'
         m_platform_info.return_value = platform_unsupported
         applicability, details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.INAPPLICABLE == applicability
-        assert 'Repo Test Class is not available for Ubuntu trusty.' == details
+        expected_details = ('Repo Test Class is not available for Ubuntu 14.04'
+                            ' LTS (Trusty Tahr).')
+        assert expected_details == details
         uf_status, _ = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
 
