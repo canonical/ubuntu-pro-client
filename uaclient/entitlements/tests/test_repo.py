@@ -318,3 +318,29 @@ class TestRepoEnable:
             '/usr/share/keyrings/test.gpg')] == m_apt_add.call_args_list
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
+
+    @mock.patch(M_PATH + 'util.subp')
+    def test_failed_install_removes_apt_config_and_packages(
+            self, m_subp, entitlement):
+
+        def fake_subp(args, *other_args, **kwargs):
+            if 'install' in args:
+                raise util.ProcessExecutionError(args)
+
+        m_subp.side_effect = fake_subp
+
+        packages = ['fake_pkg', 'and_another']
+        with mock.patch.object(entitlement, 'setup_apt_config',
+                               return_value=True):
+            with mock.patch.object(entitlement, 'can_enable',
+                                   return_value=True):
+                with mock.patch.object(type(entitlement), 'packages',
+                                       packages):
+                    with mock.patch.object(
+                            entitlement, 'remove_apt_config') as m_rac:
+                        entitlement.enable()
+
+        expected_call = mock.call(
+            ['apt-get', 'remove', '--assume-yes'] + packages)
+        assert expected_call in m_subp.call_args_list
+        assert 1 == m_rac.call_count

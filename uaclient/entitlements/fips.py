@@ -19,7 +19,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         'openssl': set(),
         'strongswan': {'strongswan-hmac'},
     }  # type: Dict[str, Set[str]]
-    force_disable = True
 
     @property
     def packages(self) -> 'List[str]':
@@ -40,6 +39,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             return super_status, super_msg
         return (
             status.ApplicationStatus.PENDING, 'Reboot to FIPS kernel required')
+
+    def disable(self, silent: bool = False) -> bool:
+        """FIPS cannot be disabled, so simply display a message to the user"""
+        if not silent:
+            print('Warning: no option to disable {}'.format(self.title))
+        return False
+
+    def _cleanup(self) -> None:
+        """FIPS can't be cleaned up automatically, so don't do anything"""
+        pass
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):

@@ -4,11 +4,10 @@ import contextlib
 import copy
 import itertools
 import mock
-import os
 
 import pytest
 
-from uaclient import config, status
+from uaclient import config, status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
 from uaclient.entitlements.repo import APT_RETRIES
@@ -185,6 +184,31 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
 
+    def test_failure_to_install_doesnt_remove_packages(self, entitlement):
+
+        def fake_subp(cmd, *args, **kwargs):
+            if 'install' in cmd:
+                raise util.ProcessExecutionError(cmd)
+            return ('', '')
+
+        with contextlib.ExitStack() as stack:
+            m_subp = stack.enter_context(
+                mock.patch('uaclient.util.subp', side_effect=fake_subp))
+            stack.enter_context(
+                mock.patch.object(entitlement, 'can_enable',
+                                  return_value=True))
+            stack.enter_context(
+                mock.patch.object(entitlement, 'setup_apt_config',
+                                  return_value=True))
+            stack.enter_context(
+                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
+            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+
+            assert False is entitlement.enable()
+
+        for call in m_subp.call_args_list:
+            assert 'remove' not in call[0][0]
+
 
 def _fips_pkg_combinations():
     """Construct all combinations of fips_packages and expected installs"""
@@ -251,84 +275,19 @@ class TestFipsEntitlementPackages:
 
 class TestFIPSEntitlementDisable:
 
-    # Paramterize True/False for silent and force
-    @pytest.mark.parametrize(
-        'silent,force', itertools.product([False, True], repeat=2))
+    @pytest.mark.parametrize('silent', [False, True])
     @mock.patch('uaclient.util.get_platform_info')
-    def test_disable_returns_false_on_can_disable_false_and_does_nothing(
-            self, m_platform_info, entitlement, silent, force):
+    def test_disable_returns_false_and_does_nothing(
+            self, m_platform_info, entitlement, silent, capsys):
         """When can_disable is false disable returns false and noops."""
         with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
-            with mock.patch.object(entitlement, 'can_disable',
-                                   return_value=False) as m_can_disable:
-                assert False is entitlement.disable(silent, force)
-        assert [mock.call(silent, force)] == m_can_disable.call_args_list
+            assert False is entitlement.disable(silent)
         assert 0 == m_remove_apt.call_count
 
-    @mock.patch('uaclient.apt.remove_apt_list_files')
-    @mock.patch('uaclient.apt.remove_auth_apt_repo')
-    @mock.patch(
-        'uaclient.util.get_platform_info', return_value={'series': 'xenial'})
-    def test_disable_returns_false_and_removes_apt_config_on_force(
-            self, m_platform_info, m_rm_auth, m_rm_list,
-            entitlement, caplog_text):
-        """When can_disable, disable removes apt configuration when force."""
-
-        original_exists = os.path.exists
-        patched_packages = ['c', 'd']
-        preferences_path = '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
-            entitlement.name)
-
-        def fake_exists(path):
-            if path == preferences_path:
-                return True
-            return original_exists(path)
-
-        with contextlib.ExitStack() as stack:
-            m_can_disable = stack.enter_context(
-                mock.patch.object(
-                    entitlement, 'can_disable', return_value=True))
-            stack.enter_context(
-                mock.patch('os.path.exists', side_effect=fake_exists))
-            m_unlink = stack.enter_context(
-                mock.patch('uaclient.apt.os.unlink'))
-            m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
-            # Note that this patch uses a PropertyMock and happens on the
-            # entitlement's type because packages is a property
-            m_packages = mock.PropertyMock(return_value=patched_packages)
-            stack.enter_context(
-                mock.patch.object(type(entitlement), 'packages', m_packages))
-
-            assert False is entitlement.disable(True, True)
-        assert [mock.call(True, True)] == m_can_disable.call_args_list
-        calls = [mock.call(preferences_path)]
-        assert calls == m_unlink.call_args_list
-        auth_call = mock.call(
-            '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
-                entitlement.name),
-            'http://FIPS',
-            '/etc/apt/trusted.gpg.d/ubuntu-{}-keyring.gpg'.format(
-                entitlement.name)
-        )
-        assert [auth_call] == m_rm_auth.call_args_list
-        assert [mock.call('http://FIPS', 'xenial')] == m_rm_list.call_args_list
-        apt_cmd = mock.call(
-            ['apt-get', 'remove', '--assume-yes'] + patched_packages)
-        assert [apt_cmd] == m_subp.call_args_list
-
-    @mock.patch('uaclient.util.get_platform_info')
-    def test_disable_returns_false_does_nothing_by_default(
-            self, m_platform_info, caplog_text, capsys, entitlement):
-        """When can_disable, disable does nothing without force param."""
-        with mock.patch.object(entitlement, 'can_disable',
-                               return_value=True) as m_can_disable:
-            with mock.patch('uaclient.apt.remove_auth_apt_repo'
-                            ) as m_remove_apt:
-                assert False is entitlement.disable()
-        assert [mock.call(False, False)] == m_can_disable.call_args_list
-        assert 0 == m_remove_apt.call_count
-        expected_stdout = 'Warning: no option to disable {}\n'.format(
-            entitlement.title)
+        expected_stdout = ''
+        if not silent:
+            expected_stdout = 'Warning: no option to disable {}\n'.format(
+                entitlement.title)
         assert (expected_stdout, '') == capsys.readouterr()
 
 

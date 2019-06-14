@@ -34,9 +34,6 @@ class RepoEntitlement(base.UAEntitlement):
     # Optional repo pin priority in subclass
     repo_pin_priority = None  # type: Union[int, str, None]
 
-    # force_disable True if entitlement does not allow disable (fips*)
-    force_disable = False
-
     # disable_apt_auth_only (ESM) to only remove apt auth files on disable
     disable_apt_auth_only = False  # Set True on ESM to only remove apt auth
 
@@ -82,7 +79,7 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     capture=True, retry_sleeps=APT_RETRIES)
             except util.ProcessExecutionError:
-                self.disable(silent=True, force=True)
+                self._cleanup()
                 logging.error(
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
@@ -92,25 +89,22 @@ class RepoEntitlement(base.UAEntitlement):
             print(msg)
         return True
 
-    def disable(self, silent=False, force=False):
-        if not self.can_disable(silent, force):
+    def disable(self, silent=False):
+        if not self.can_disable(silent):
             return False
-        if any([not self.force_disable, force]):
-            self.remove_apt_config()
-            try:
-                util.subp(
-                    ['apt-get', 'remove', '--assume-yes'] + self.packages)
-            except util.ProcessExecutionError:
-                pass
-        if self.force_disable:
-            if not silent:
-                print('Warning: no option to disable {title}'.format(
-                    title=self.title)
-                )
-            return False
+        self._cleanup()
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
+
+    def _cleanup(self) -> None:
+        """Clean up the entitlement without checks or messaging"""
+        self.remove_apt_config()
+        try:
+            util.subp(
+                ['apt-get', 'remove', '--assume-yes'] + self.packages)
+        except util.ProcessExecutionError:
+            pass
 
     def application_status(self) -> 'Tuple[ApplicationStatus, str]':
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
