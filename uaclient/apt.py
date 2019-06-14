@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 
+from uaclient import exceptions
 from uaclient import util
 
 try:
@@ -22,36 +23,38 @@ APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
 
-class InvalidAPTCredentialsError(RuntimeError):
-    """Raised when invalid token is provided for APT access"""
-    pass
-
-
-def valid_apt_credentials(repo_url, username, password):
+def assert_valid_apt_credentials(repo_url, username, password):
     """Validate apt credentials for a PPA.
 
     @param repo_url: private-ppa url path
     @param username: PPA login username.
     @param password: PPA login password or resource token.
 
-    @return: True if valid or unable to validate
+    @raises: UserFacingError for invalid credentials, timeout or unexpected
+        errors.
     """
     protocol, repo_path = repo_url.split('://')
     if not os.path.exists('/usr/lib/apt/apt-helper'):
-        return True   # Do not validate
+        return
     try:
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
                    '%s://%s:%s@%s/ubuntu/pool/' % (
                        protocol, username, password, repo_path),
-                   '/tmp/uaclient-apt-test'],
-                  capture=False)  # Hide credentials from logs
-        return True
-    except util.ProcessExecutionError:
-        pass
+                   '/tmp/uaclient-apt-test'])
+    except util.ProcessExecutionError as e:
+        if e.exit_code == 100:
+            stderr = str(e.stderr).lower()
+            if re.search(r'401\s+unauthorized|httperror401', stderr):
+                raise exceptions.UserFacingError(
+                    'Invalid APT credentials provided for %s' % repo_url)
+            elif re.search(r'connection timed out', stderr):
+                raise exceptions.UserFacingError(
+                    'Timeout trying to access APT repository at %s' % repo_url)
+        raise exceptions.UserFacingError(
+            'Unexpected APT error. See /var/log/ubuntu-advantage.log')
     finally:
         if os.path.exists('/tmp/uaclient-apt-test'):
             os.unlink('/tmp/uaclient-apt-test')
-    return False
 
 
 def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
@@ -69,9 +72,7 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
     series = util.get_platform_info()['series']
     if repo_url.endswith('/'):
         repo_url = repo_url[:-1]
-    if not valid_apt_credentials(repo_url, username, password):
-        raise InvalidAPTCredentialsError(
-            'Invalid APT credentials provided for %s' % repo_url)
+    assert_valid_apt_credentials(repo_url, username, password)
 
     # Does this system have updates suite enabled?
     policy, _err = util.subp(['apt-cache', 'policy'])
