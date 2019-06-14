@@ -19,6 +19,8 @@
 #include <apt-pkg/cachefile.h>
 #include <apt-pkg/error.h>
 #include <apt-pkg/init.h>
+#include <apt-pkg/pkgsystem.h>
+#include <apt-pkg/policy.h>
 #include <apt-pkg/strutl.h>
 
 #include <fstream>
