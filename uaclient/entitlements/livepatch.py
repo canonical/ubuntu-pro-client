@@ -2,10 +2,11 @@ import logging
 
 from uaclient.entitlements import base
 from uaclient.entitlements.repo import APT_RETRIES
-from uaclient import status
+from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
+SNAP_CMD = '/usr/bin/snap'
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 
 try:
@@ -46,15 +47,19 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
         if not util.which('/snap/bin/canonical-livepatch'):
-            if not util.which('snap'):
+            if not util.which(SNAP_CMD):
                 print('Installing snapd')
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
                           capture=True, retry_sleeps=APT_RETRIES)
-                util.subp(['snap', 'wait', 'system', 'seed.loaded'],
+                util.subp([SNAP_CMD, 'wait', 'system', 'seed.loaded'],
                           capture=True)
+            elif 'snapd' not in apt.get_installed_packages():
+                raise exceptions.UserFacingError(
+                    '/usr/bin/snap is present but snapd is not installed;'
+                    ' cannot enable {}'.format(self.title))
             print('Installing canonical-livepatch snap')
             try:
-                util.subp(['snap', 'install', 'canonical-livepatch'],
+                util.subp([SNAP_CMD, 'install', 'canonical-livepatch'],
                           capture=True, retry_sleeps=SNAP_INSTALL_RETRIES)
             except util.ProcessExecutionError as e:
                 msg = 'Unable to install Livepatch client: ' + str(e)
@@ -129,7 +134,8 @@ class LivepatchEntitlement(base.UAEntitlement):
         logging.debug('Removing canonical-livepatch snap')
         if not silent:
             print('Removing canonical-livepatch snap')
-        util.subp(['snap', 'remove', 'canonical-livepatch'], capture=True)
+        util.subp([SNAP_CMD, 'remove', 'canonical-livepatch'],
+                  capture=True)
         if not silent:
             print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
