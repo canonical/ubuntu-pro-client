@@ -1,6 +1,0 @@
-ubuntu-advantage-tools (%VERSION_LONG%-1~bddeb%PACKAGE_SUFFIX%) %DEBIAN_SERIES%; urgency=low
-
-  * test build created with bddeb
-
- -- Joe Cool <joe.cool@canonical.com>  Fri, 16 Jan 2019 11:50:25 -0500
-
