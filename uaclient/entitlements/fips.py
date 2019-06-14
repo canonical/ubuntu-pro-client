@@ -46,6 +46,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             print('Warning: no option to disable {}'.format(self.title))
         return False
 
+    def _cleanup(self) -> None:
+        """FIPS can't be cleaned up automatically, so don't do anything"""
+        pass
+
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 

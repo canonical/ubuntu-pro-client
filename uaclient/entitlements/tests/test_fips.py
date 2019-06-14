@@ -7,7 +7,7 @@ import mock
 
 import pytest
 
-from uaclient import config, status
+from uaclient import config, status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
 from uaclient.entitlements.repo import APT_RETRIES
@@ -183,6 +183,31 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
+
+    def test_failure_to_install_doesnt_remove_packages(self, entitlement):
+
+        def fake_subp(cmd, *args, **kwargs):
+            if 'install' in cmd:
+                raise util.ProcessExecutionError(cmd)
+            return ('', '')
+
+        with contextlib.ExitStack() as stack:
+            m_subp = stack.enter_context(
+                mock.patch('uaclient.util.subp', side_effect=fake_subp))
+            stack.enter_context(
+                mock.patch.object(entitlement, 'can_enable',
+                                  return_value=True))
+            stack.enter_context(
+                mock.patch.object(entitlement, 'setup_apt_config',
+                                  return_value=True))
+            stack.enter_context(
+                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
+            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+
+            assert False is entitlement.enable()
+
+        for call in m_subp.call_args_list:
+            assert 'remove' not in call[0][0]
 
 
 def _fips_pkg_combinations():
