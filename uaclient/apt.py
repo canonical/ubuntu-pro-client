@@ -254,5 +254,5 @@ def clean_apt_sources(*, _entitlements=None):
 
 
 def get_installed_packages() -> 'List[str]':
-    out, _ = util.subp(['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+    out, _ = util.subp(['dpkg-query', '-W', '--showformat=${Package}\\n'])
     return out.splitlines()

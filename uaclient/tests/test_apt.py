@@ -554,7 +554,7 @@ class TestGetInstalledPackages:
         get_installed_packages()
 
         expected_call = mock.call(
-            ['dpkg-query', '-W', '--showformat="${Package}\\n"'])
+            ['dpkg-query', '-W', '--showformat=${Package}\\n'])
         assert [expected_call] == m_subp.call_args_list
 
     @mock.patch('uaclient.apt.util.subp', return_value=('', ''))
