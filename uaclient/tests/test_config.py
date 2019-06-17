@@ -18,6 +18,45 @@ KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
 M_PATH = 'uaclient.entitlements.'
 
 
+class TestEntitlements:
+
+    def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
+        """Return machine_token resourceEntitlements, keyed by name."""
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        token = {
+            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [
+                {'type': 'entitlement1', 'entitled': True},
+                {'type': 'entitlement2', 'entitled': True}]}}}
+        cfg.write_cache('machine-token', token)
+        expected = {
+            'entitlement1': {
+                'entitlement': {'entitled': True, 'type': 'entitlement1'}},
+            'entitlement2': {
+                'entitlement': {'entitled': True, 'type': 'entitlement2'}}}
+        assert expected == cfg.entitlements
+
+    def test_entitlements_use_machine_access_when_present(self, tmpdir):
+        """Return specific machine-access info if present."""
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        token = {
+            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [
+                {'type': 'entitlement1', 'entitled': True},
+                {'type': 'entitlement2', 'entitled': True}]}}}
+        cfg.write_cache('machine-token', token)
+        cfg.write_cache(
+            'machine-access-entitlement1',
+            {'entitlement': {
+                'type': 'entitlement1', 'entitled': True,
+                'more': 'data'}})
+        expected = {
+            'entitlement1': {
+                'entitlement': {'entitled': True, 'type': 'entitlement1',
+                                'more': 'data'}},
+            'entitlement2': {
+                'entitlement': {'entitled': True, 'type': 'entitlement2'}}}
+        assert expected == cfg.entitlements
+
+
 class TestAccounts:
 
     def test_accounts_returns_empty_list_when_no_cached_account_value(

@@ -246,6 +246,38 @@ class TestGetPlatformInfo:
                 assert expected == util.get_platform_info()
 
 
+class TestApplySeriesOverrides:
+
+    def test_error_on_non_entitlement_dict(self):
+        """Raise a runtime error when seeing invalid dict type."""
+        with pytest.raises(RuntimeError) as exc:
+            util.apply_series_overrides({'some': 'dict'})
+        error = (
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            " {'some': 'dict'}")
+        assert error == str(exc.value)
+
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
+    def test_mutates_orig_access_dict(self, _):
+        """Mutate orig_access dict when called."""
+        orig_access = {
+            'entitlement': {
+                'a': {'a1': 'av1', 'a2': {'aa2': 'aav2'}},
+                'b': 'b1',
+                'c': 'c1',
+                'series': {
+                    'trusty': {'a': 't1'},
+                    'xenial': {'a': {'a2': {'aa2': 'xxv2'}}, 'b': 'bx1'}}}}
+        expected = {
+            'entitlement': {
+                'a': {'a1': 'av1', 'a2': {'aa2': 'xxv2'}},
+                'b': 'bx1',
+                'c': 'c1'}}
+        util.apply_series_overrides(orig_access)
+        assert orig_access == expected
+
+
 class TestGetMachineId:
 
     def test_get_machine_id_from_etc_machine_id(self, tmpdir):

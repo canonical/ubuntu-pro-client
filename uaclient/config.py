@@ -150,6 +150,7 @@ class UAConfig:
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}
+            util.apply_series_overrides(entitlement_cfg)
             self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
 
