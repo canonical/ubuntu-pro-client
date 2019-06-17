@@ -326,3 +326,18 @@ class TestFIPSEntitlementApplicationStatus:
             # passed through
             expected_msg = msg
         assert (expected_status, expected_msg) == application_status
+
+    def test_fips_does_not_show_enabled_when_fips_updates_is(
+            self, entitlement):
+        with mock.patch(M_PATH + 'util.subp') as m_subp:
+            m_subp.return_value = (
+                '1001 http://FIPS-UPDATES/ubuntu'
+                ' xenial-updates/main amd64 Packages\n', '')
+
+            application_status, _ = entitlement.application_status()
+
+        expected_status = status.ApplicationStatus.DISABLED
+        if isinstance(entitlement, FIPSUpdatesEntitlement):
+            expected_status = status.ApplicationStatus.PENDING
+
+        assert expected_status == application_status
