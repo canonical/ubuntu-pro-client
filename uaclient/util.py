@@ -56,6 +56,7 @@ class ProcessExecutionError(IOError):
                  stdout: str = '', stderr: str = '') -> None:
         self.stdout = stdout
         self.stderr = stderr
+        self.exit_code = exit_code
         if not exit_code:
             message_tmpl = "Invalid command specified '{cmd}'."
         else:
@@ -265,15 +266,13 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
             out, err = _subp(args, rcs, capture)
             break
         except ProcessExecutionError as e:
-            message = str(e)
-            if retry_sleeps:
-                logging.debug(
-                    message + " Retrying %d more times.", len(retry_sleeps))
-                time.sleep(retry_sleeps.pop(0))
-            else:
+            if not retry_sleeps:
                 if capture:
                     logging.error(str(e))
                 raise
+            logging.debug(
+                str(e) + " Retrying %d more times.", len(retry_sleeps))
+            time.sleep(retry_sleeps.pop(0))
     return out, err
 
 

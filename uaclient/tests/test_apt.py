@@ -12,8 +12,8 @@ from uaclient.apt import (
     APT_AUTH_COMMENT, add_apt_auth_conf_entry, add_auth_apt_repo,
     add_ppa_pinning, clean_apt_sources, find_apt_list_files,
     get_installed_packages, remove_apt_list_files, remove_auth_apt_repo,
-    remove_repo_from_apt_auth_file, valid_apt_credentials)
-from uaclient import apt, util
+    remove_repo_from_apt_auth_file, assert_valid_apt_credentials)
+from uaclient import apt, exceptions, util
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 
 
@@ -89,10 +89,10 @@ class TestValidAptCredentials:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('os.path.exists', return_value=False)
-    def test_valid_apt_credentials_true_when_missing_apt_helper(
+    def test_passes_when_missing_apt_helper(
             self, m_exists, m_subp):
-        """When apt-helper tool is absent return True without validation."""
-        assert True is valid_apt_credentials(
+        """When apt-helper tool is absent perform no validation."""
+        assert None is assert_valid_apt_credentials(
             repo_url='http://fakerepo', username='username', password='pass')
         expected_calls = [mock.call('/usr/lib/apt/apt-helper')]
         assert expected_calls == m_exists.call_args_list
@@ -101,14 +101,14 @@ class TestValidAptCredentials:
     @mock.patch('uaclient.apt.os.unlink', return_value=True)
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.os.path.exists', return_value=True)
-    def test_valid_apt_credentials_returns_true_on_valid_creds(
+    def test_passes_on_valid_creds(
             self, m_exists, m_subp, m_unlink):
-        """Return true when apt-helper succeeds in authentication to repo."""
+        """Succeed when apt-helper succeeds in authenticating to repo."""
 
         # Success apt-helper response
         m_subp.return_value = 'Get:1 https://fakerepo\nFetched 285 B in 1s', ''
 
-        assert True is valid_apt_credentials(
+        assert None is assert_valid_apt_credentials(
             repo_url='http://fakerepo', username='user', password='pwd')
         exists_calls = [mock.call('/usr/lib/apt/apt-helper'),
                         mock.call('/tmp/uaclient-apt-test')]
@@ -116,31 +116,43 @@ class TestValidAptCredentials:
         apt_helper_call = mock.call(
             ['/usr/lib/apt/apt-helper', 'download-file',
              'http://user:pwd@fakerepo/ubuntu/pool/',
-             '/tmp/uaclient-apt-test'], capture=False)
+             '/tmp/uaclient-apt-test'])
         assert [apt_helper_call] == m_subp.call_args_list
         assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
 
+    @pytest.mark.parametrize(
+        'exit_code,stderr,error_msg',
+        ((1, 'something broke',
+          'Unexpected APT error. See /var/log/ubuntu-advantage.log'),
+         (100, 'E: Failed to fetch ... HttpError401 on trusty',
+          'Invalid APT credentials provided for http://fakerepo'),
+         (100, 'E: Failed to fetch ... 401 Unauthorized on xenial',
+          'Invalid APT credentials provided for http://fakerepo'),
+         (100, 'E: Failed to fetch ... Connection timed out',
+          'Timeout trying to access APT repository at http://fakerepo')))
     @mock.patch('uaclient.apt.os.unlink', return_value=True)
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.os.path.exists', return_value=True)
-    def test_valid_apt_credentials_returns_false_on_invalid_creds(
-            self, m_exists, m_subp, m_unlink):
-        """Return false when apt-helper fails in authentication to repo."""
+    def test_errors_on_process_execution_errors(
+            self, m_exists, m_subp, m_unlink, exit_code, stderr, error_msg):
+        """Raise the appropriate user facing error from apt-helper failure."""
 
         # Failure apt-helper response
         m_subp.side_effect = util.ProcessExecutionError(
-            cmd='apt-helper died', exit_code=100, stdout='Err:1...',
-            stderr='E: Failed to fetch .... 401 Unauthorized')
+            cmd='apt-helper ', exit_code=exit_code, stdout='Err:1...',
+            stderr=stderr)
 
-        assert False is valid_apt_credentials(
-            repo_url='http://fakerepo', username='user', password='pwd')
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            assert_valid_apt_credentials(
+                repo_url='http://fakerepo', username='user', password='pwd')
+        assert error_msg == str(excinfo.value)
         exists_calls = [mock.call('/usr/lib/apt/apt-helper'),
                         mock.call('/tmp/uaclient-apt-test')]
         assert exists_calls == m_exists.call_args_list
         apt_helper_call = mock.call(
             ['/usr/lib/apt/apt-helper', 'download-file',
              'http://user:pwd@fakerepo/ubuntu/pool/',
-             '/tmp/uaclient-apt-test'], capture=False)
+             '/tmp/uaclient-apt-test'])
         assert [apt_helper_call] == m_subp.call_args_list
         assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
 
@@ -149,7 +161,7 @@ class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.apt.assert_valid_apt_credentials')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_sources_file(
@@ -172,7 +184,7 @@ class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.apt.assert_valid_apt_credentials')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
@@ -206,7 +218,7 @@ class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.apt.assert_valid_apt_credentials')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
@@ -236,7 +248,7 @@ class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.apt.assert_valid_apt_credentials')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
@@ -260,7 +272,7 @@ class TestAddAuthAptRepo:
 
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
-    @mock.patch('uaclient.apt.valid_apt_credentials', return_value=True)
+    @mock.patch('uaclient.apt.assert_valid_apt_credentials')
     @mock.patch('uaclient.util.get_platform_info',
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(

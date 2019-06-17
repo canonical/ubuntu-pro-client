@@ -217,13 +217,8 @@ class RepoEntitlement(base.UAEntitlement):
             except util.ProcessExecutionError as e:
                 logging.error(str(e))
                 return False
-        try:
-            apt.add_auth_apt_repo(
-                repo_filename, repo_url, token, repo_suites,
-                keyring_file)
-        except apt.InvalidAPTCredentialsError as e:
-            logging.error(str(e))
-            return False
+        apt.add_auth_apt_repo(repo_filename, repo_url, token, repo_suites,
+                              keyring_file)
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will new report the repo as accessible
