@@ -44,6 +44,7 @@ ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
     - refresh: add subcommand to refresh all contract details
     - status: add --json cli formatting option
     - updated manpage and help docs
+    - attach: added --no-auto-enable option
 
  -- Andreas Hasenack <andreas@canonical.com>  Mon, 15 Apr 2019 10:38:35 -0300
 
