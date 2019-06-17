@@ -18,12 +18,12 @@ apt:
 apt_http_proxy: http://10.76.88.1:3142  # support trusty
 apt_https_proxy: "DIRECT"
 packages:
+  - devscripts
   - equivs
   - git
   - libpython3-dev
   - libffi-dev
   - sshfs  # for `multipass mount`; save time by installing it ourselves
-  - ubuntu-dev-tools
   - virtualenvwrapper
 runcmd:
   # The expectation is that we will mount our local development repo in to the
