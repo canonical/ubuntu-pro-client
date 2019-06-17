@@ -9,6 +9,10 @@ from uaclient.exceptions import NonRootUserError
 
 M_PATH = 'uaclient.cli.'
 
+BASIC_MACHINE_TOKEN = {
+    'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
+                                          'resourceEntitlements': []}}}
+
 
 @mock.patch(M_PATH + 'os.getuid')
 def test_non_root_users_are_rejected(getuid):
@@ -50,12 +54,9 @@ class TestActionAttach:
         discharge_root_macaroon.return_value = bound_macaroon
         args = mock.MagicMock(token=None)
         cfg = FakeConfig.with_account()
-        machine_token = {
-            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
-                                                  'resourceEntitlements': []}}}
 
         def fake_contract_updates(cfg, contract_token, allow_enable):
-            cfg.write_cache('machine-token', machine_token)
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
             return True
 
         request_updated_contract.side_effect = fake_contract_updates
@@ -79,13 +80,10 @@ class TestActionAttach:
         token = 'contract-token'
         args = mock.MagicMock(token=token)
         cfg = FakeConfig.with_account()
-        machine_token = {
-            'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
-                                                  'resourceEntitlements': []}}}
 
         def fake_contract_attach(contract_token):
-            cfg.write_cache('machine-token', machine_token)
-            return machine_token
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
+            return BASIC_MACHINE_TOKEN
 
         contract_machine_attach.side_effect = fake_contract_attach
 
@@ -114,6 +112,22 @@ class TestActionAttach:
         expected_msg = ('Could not attach machine. Unable to obtain'
                         ' authenticated user token')
         assert expected_msg in capsys.readouterr()[0]
+
+    @pytest.mark.parametrize('auto_enable', (True, False))
+    def test_auto_enable_passed_through_to_request_updated_contract(
+            self, _m_getuid, auto_enable):
+        args = mock.MagicMock(auto_enable=auto_enable)
+
+        def fake_contract_updates(cfg, contract_token, allow_enable):
+            cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
+            return True
+
+        with mock.patch(M_PATH + 'contract.request_updated_contract') as m_ruc:
+            m_ruc.side_effect = fake_contract_updates
+            action_attach(args, FakeConfig.with_account())
+
+        expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
+        assert [expected_call] == m_ruc.call_args_list
 
 
 class TestParser:
@@ -159,3 +173,15 @@ class TestParser:
         parser = attach_parser()
         parser.print_help()
         assert UA_DASHBOARD_URL in capsys.readouterr()[0]
+
+    def test_attach_parser_accepts_and_stores_no_auto_enable(self):
+        parser = attach_parser()
+        with mock.patch('sys.argv', ['attach', '--no-auto-enable']):
+            args = parser.parse_args()
+        assert not args.auto_enable
+
+    def test_attach_parser_defaults_to_auto_enable(self):
+        parser = attach_parser()
+        with mock.patch('sys.argv', ['attach']):
+            args = parser.parse_args()
+        assert args.auto_enable
