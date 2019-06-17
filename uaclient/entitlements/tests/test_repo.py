@@ -8,36 +8,12 @@ from types import MappingProxyType
 from uaclient import apt
 from uaclient import config
 from uaclient.entitlements.repo import APT_RETRIES, RepoEntitlement
+from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
 from uaclient import util
 
 
 M_PATH = 'uaclient.entitlements.repo.'
-
-REPO_MACHINE_TOKEN = {
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [
-                {'type': 'repotest', 'entitled': True}]}}}
-REPO_RESOURCE_ENTITLED = {
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {
-            'enableByDefault': True
-        },
-        'type': 'repotest',
-        'entitled': True,
-        'directives': {
-            'aptURL': 'http://REPOTEST',
-            'aptKey': 'APTKEY',
-            'suites': ['xenial']
-        },
-        'affordances': {
-            'series': ['xenial']
-        }
-    }
-}
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 'x86_64',
@@ -57,16 +33,9 @@ class RepoTestEntitlement(RepoEntitlement):
 
 
 @pytest.fixture
-def entitlement(tmpdir):
-    """
-    A pytest fixture to create a RepoTestEntitlement with some default config
-
-    (Uses the tmpdir fixture for the underlying config cache.)
-    """
-    cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', dict(REPO_MACHINE_TOKEN))
-    cfg.write_cache('machine-access-repotest', dict(REPO_RESOURCE_ENTITLED))
-    return RepoTestEntitlement(cfg)
+def entitlement(entitlement_factory):
+    return entitlement_factory(RepoTestEntitlement,
+                               affordances={'series': ['xenial']})
 
 
 class TestUserFacingStatus:
@@ -91,7 +60,7 @@ class TestUserFacingStatus:
     def test_inapplicable_on_unentitled(
             self, m_platform_info, entitlement):
         """When unentitled raises a failure, return INAPPLICABLE."""
-        no_entitlements = copy.deepcopy(dict(REPO_MACHINE_TOKEN))
+        no_entitlements = copy.deepcopy(machine_token(RepoTestEntitlement))
         # delete all enttlements
         no_entitlements[
             'machineTokenInfo']['contractInfo']['resourceEntitlements'].pop()

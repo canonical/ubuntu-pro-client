@@ -5,37 +5,8 @@ import os.path
 import pytest
 
 from uaclient import apt
-from uaclient import config
 from uaclient.entitlements.esm import ESMEntitlement
 from uaclient.entitlements.repo import APT_RETRIES
-
-
-ESM_MACHINE_TOKEN = {
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [
-                {'type': 'esm', 'entitled': True}]}}}
-
-
-ESM_RESOURCE_ENTITLED = {
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {
-            'enableByDefault': True
-        },
-        'type': 'esm',
-        'entitled': True,
-        'directives': {
-            'aptURL': 'http://ESM',
-            'aptKey': 'APTKEY',
-            'suites': ['trusty']
-        },
-        'affordances': {
-            'series': []   # Will match all series
-        }
-    }
-}
 
 M_PATH = 'uaclient.entitlements.esm.ESMEntitlement.'
 M_REPOPATH = 'uaclient.entitlements.repo.'
@@ -43,16 +14,8 @@ M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
 
 @pytest.fixture
-def entitlement(tmpdir):
-    """
-    A pytest fixture to create a ESMEntitlement with some default config
-
-    (Uses the tmpdir fixture for the underlying config cache.)
-    """
-    cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', dict(ESM_MACHINE_TOKEN))
-    cfg.write_cache('machine-access-esm', dict(ESM_RESOURCE_ENTITLED))
-    return ESMEntitlement(cfg)
+def entitlement(entitlement_factory):
+    return entitlement_factory(ESMEntitlement, suites=['trusty'])
 
 
 class TestESMEntitlementEnable:

@@ -2,47 +2,23 @@
 
 import mock
 
-from uaclient import config, status
+import pytest
+
+from uaclient import status
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.repo import APT_RETRIES
 
 
-CIS_MACHINE_TOKEN = {
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [
-                {'type': 'cis-audit', 'entitled': True}]}}}
-
-
-CIS_RESOURCE_ENTITLED = {
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {
-            'enableByDefault': True
-        },
-        'type': 'cis-audit',
-        'entitled': True,
-        'directives': {
-            'aptURL': 'http://CIS',
-            'aptKey': 'APTKEY',
-            'suites': ['xenial']
-        },
-        'affordances': {
-            'series': []   # Will match all series
-        }
-    }
-}
+@pytest.fixture
+def entitlement(entitlement_factory):
+    return entitlement_factory(CISEntitlement)
 
 
 class TestCISEntitlementCanEnable:
 
-    def test_can_enable_true_on_entitlement_inactive(self, capsys, tmpdir):
+    def test_can_enable_true_on_entitlement_inactive(
+            self, capsys, entitlement):
         """When entitlement is INACTIVE, can_enable returns True."""
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cis-audit', CIS_RESOURCE_ENTITLED)
-        entitlement = CISEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
         with mock.patch.object(
@@ -57,7 +33,7 @@ class TestCISEntitlementEnable:
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.get_platform_info')
     def test_enable_configures_apt_sources_and_auth_files(
-            self, m_platform_info, m_subp, capsys, tmpdir):
+            self, m_platform_info, m_subp, capsys, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
 
         def fake_platform(key=None):
@@ -69,10 +45,6 @@ class TestCISEntitlementEnable:
 
         m_platform_info.side_effect = fake_platform
         m_subp.return_value = ('fakeout', '')
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', CIS_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cis-audit', CIS_RESOURCE_ENTITLED)
-        entitlement = CISEntitlement(cfg)
         # Unset static affordance container check
         entitlement.static_affordances = ()
 
@@ -85,7 +57,7 @@ class TestCISEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                'http://CIS', 'TOKEN', ['xenial'],
+                'http://CIS-AUDIT', 'TOKEN', ['xenial'],
                 '/usr/share/keyrings/ubuntu-securitybenchmarks-keyring.gpg')]
 
         subp_apt_cmds = [

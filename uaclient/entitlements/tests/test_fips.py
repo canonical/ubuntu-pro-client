@@ -7,46 +7,11 @@ import mock
 
 import pytest
 
-from uaclient import config, status, util
+from uaclient import status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
 from uaclient.entitlements.repo import APT_RETRIES
-
-try:
-    from typing import Any, Dict  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
-
-def machine_token(fips_type: str) -> 'Dict[str, Any]':
-    return {
-        'machineToken': 'blah',
-        'machineTokenInfo': {
-            'contractInfo': {
-                'resourceEntitlements': [
-                    {'type': fips_type, 'entitled': True}]}}}
-
-
-def machine_access(fips_type: str) -> 'Dict[str, Any]':
-    return {
-        'resourceToken': 'TOKEN',
-        'entitlement': {
-            'obligations': {
-                'enableByDefault': True
-            },
-            'type': fips_type,
-            'entitled': True,
-            'directives': {
-                'aptURL': 'http://{}'.format(fips_type.upper()),
-                'aptKey': 'APTKEY',
-                'suites': ['xenial']
-            },
-            'affordances': {
-                'series': []   # Will match all series
-            }
-        }
-    }
+from uaclient.entitlements.tests.conftest import machine_access
 
 
 M_PATH = 'uaclient.entitlements.fips.'
@@ -55,18 +20,9 @@ M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
 
 
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
-def entitlement(request, tmpdir):
-    """
-    pytest fixture for a FIPS/FIPS Updates entitlement with some default config
-
-    (Uses the tmpdir fixture for the underlying config cache.)
-    """
-    cls = request.param
-    cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', machine_token(cls.name))
-    cfg.write_cache('machine-access-{}'.format(cls.name),
-                    machine_access(cls.name))
-    return cls(cfg)
+def entitlement(request, entitlement_factory):
+    """Parameterized fixture so we apply all tests to both FIPS and Updates"""
+    return entitlement_factory(request.param)
 
 
 class TestFIPSEntitlementCanEnable:
