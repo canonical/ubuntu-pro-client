@@ -8,12 +8,12 @@ clean:
 	find . -type d -name '*__pycache__' -delete
 	$(MAKE) -C apt-hook clean
 
-test:
-	@tox
-
 demo:
 	@echo Creating contract-bionic-demo container with ua-contracts server
 	@./demo/demo-contract-service
+
+test:
+	@tox
 
 testdeps:
 	pip install tox
