@@ -1,3 +1,6 @@
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+mkfile_dir := $(dir $(mkfile_path))
+
 build:
 	$(MAKE) -C apt-hook build
 
@@ -18,7 +21,7 @@ deps:
 		apt-get install --no-install-recommends --yes devscripts equivs; \
 	}
 	mk-build-deps --tool "apt-get --no-install-recommends --yes" \
-		--install --remove ./debian/control
+		--install --remove ${mkfile_dir}/debian/control
 
 test:
 	@tox
