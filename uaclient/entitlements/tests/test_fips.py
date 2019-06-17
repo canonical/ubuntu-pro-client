@@ -38,7 +38,7 @@ def machine_access(fips_type: str) -> 'Dict[str, Any]':
             'type': fips_type,
             'entitled': True,
             'directives': {
-                'aptURL': 'http://FIPS',
+                'aptURL': 'http://{}'.format(fips_type.upper()),
                 'aptKey': 'APTKEY',
                 'suites': ['xenial']
             },
@@ -110,18 +110,19 @@ class TestFIPSEntitlementEnable:
 
             assert True is entitlement.enable()
 
+        repo_url = 'http://{}'.format(entitlement.name.upper())
         add_apt_calls = [
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
                     entitlement.name),
-                'http://FIPS', 'TOKEN', ['xenial'],
+                repo_url, 'TOKEN', ['xenial'],
                 '/usr/share/keyrings/ubuntu-{}-keyring.gpg'.format(
                     entitlement.name))]
         apt_pinning_calls = [
             mock.call(
                 '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
                     entitlement.name),
-                'http://FIPS', entitlement.origin, 1001)]
+                repo_url, entitlement.origin, 1001)]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
             capture=True, retry_sleeps=APT_RETRIES)
