@@ -59,7 +59,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     messaging = {'post_enable': [
         'FIPS configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPS'
-    repo_url = 'https://private-ppa.launchpad.net/ubuntu-advantage/fips'
+    repo_url = 'https://esm.ubuntu.com/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
     static_affordances = (
         ('Cannot install FIPS on a container', util.is_container, False),)
@@ -73,8 +73,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
         'FIPS Updates configured and pending, please reboot to make active.']}
     origin = 'UbuntuFIPSUpdates'
     description = 'Canonical FIPS 140-2 Certified Modules with Updates'
-    repo_url = (
-        'https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates')
+    repo_url = 'https://esm.ubuntu.com/fips-updates'
     repo_key_file = 'ubuntu-fips-updates-keyring.gpg'
     static_affordances = (
         ('Cannot install FIPS Updates on a container',

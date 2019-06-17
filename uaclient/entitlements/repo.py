@@ -115,7 +115,7 @@ class RepoEntitlement(base.UAEntitlement):
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')
         out, _err = util.subp(['apt-cache', 'policy'])
-        match = re.search(r'(?P<pin>(-)?\d+) %s' % repo_url, out)
+        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, out)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, '%s is active' % self.title
         return ApplicationStatus.DISABLED, '%s is not configured' % self.title
