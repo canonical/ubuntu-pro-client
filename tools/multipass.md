@@ -30,7 +30,7 @@ runcmd:
   # VM, but to install the build-deps at launch time we clone the public repo
   # temporarily
   - 'git clone https://github.com/CanonicalLtd/ubuntu-advantage-client /var/tmp/uac'
-  - 'mk-build-deps -t "apt-get --no-install-recommends --yes" -r -i /var/tmp/uac/debian/control'
+  - 'make -f /var/tmp/uac/Makefile deps'
   - 'rm -rf /var/tmp/uac'
   - 'echo alias pytest=py.test-3 >> /home/multipass/.bashrc'
 ssh_import_id:
