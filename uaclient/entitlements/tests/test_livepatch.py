@@ -6,42 +6,13 @@ from types import MappingProxyType
 
 import pytest
 
-from uaclient import config, exceptions
+from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
     LivepatchEntitlement, process_config_directives)
 from uaclient.entitlements.repo import APT_RETRIES
+from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
 from uaclient.status import ContractStatus
-
-
-LIVEPATCH_MACHINE_TOKEN = MappingProxyType({
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [
-                {'type': 'livepatch', 'entitled': True}]}}})
-
-
-LIVEPATCH_RESOURCE_ENTITLED = MappingProxyType({
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {
-            'enableByDefault': False
-        },
-        'type': 'livepatch',
-        'entitled': True,
-        'directives': {
-            'caCerts': '',
-            'remoteServer': 'https://alt.livepatch.com'
-        },
-        'affordances': {
-            'architectures': ['x86_64'],
-            'minKernelVersion': '4.3',
-            'kernelFlavors': ['generic', 'lowlatency'],
-            'tier': 'stable'
-        }
-    }
-})
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType({
     'arch': 'x86_64',
@@ -55,17 +26,20 @@ M_BASE_PATH = 'uaclient.entitlements.base.UAEntitlement.'
 
 
 @pytest.fixture
-def entitlement(tmpdir):
-    """
-    A pytest fixture to create a LivepatchEntitlement with some default config
-
-    (Uses the tmpdir fixture for the underlying config cache.)
-    """
-    cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-    cfg.write_cache('machine-token', dict(LIVEPATCH_MACHINE_TOKEN))
-    cfg.write_cache(
-        'machine-access-livepatch', dict(LIVEPATCH_RESOURCE_ENTITLED))
-    return LivepatchEntitlement(cfg)
+def entitlement(entitlement_factory):
+    affordances = {
+        'architectures': ['x86_64'],
+        'minKernelVersion': '4.3',
+        'kernelFlavors': ['generic', 'lowlatency'],
+        'tier': 'stable'
+    }
+    directives = {
+        'caCerts': '',
+        'remoteServer': 'https://alt.livepatch.com'
+    }
+    return entitlement_factory(LivepatchEntitlement,
+                               affordances=affordances,
+                               directives=directives)
 
 
 class TestLivepatchContractStatus:
@@ -86,7 +60,8 @@ class TestLivepatchUserFacingStatus:
     def test_user_facing_status_inapplicable_on_inapplicable_status(
             self, entitlement):
         """The user-facing details INAPPLICABLE applicability_status"""
-        livepatch_bionic = copy.deepcopy(dict(LIVEPATCH_RESOURCE_ENTITLED))
+        livepatch_bionic = entitlement.cfg.read_cache(
+            'machine-access-livepatch')
         livepatch_bionic['entitlement']['affordances']['series'] = ['bionic']
         entitlement.cfg.write_cache(
             'machine-access-livepatch', livepatch_bionic)
@@ -102,7 +77,7 @@ class TestLivepatchUserFacingStatus:
     def test_user_facing_status_inapplicable_on_unentitled(
             self, entitlement):
         """Status inapplicable on absent entitlement contract status."""
-        no_entitlements = copy.deepcopy(dict(LIVEPATCH_MACHINE_TOKEN))
+        no_entitlements = machine_token(LivepatchEntitlement.name)
         # Delete livepatch entitlement info
         no_entitlements[
             'machineTokenInfo']['contractInfo']['resourceEntitlements'].pop()
