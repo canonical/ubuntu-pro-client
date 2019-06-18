@@ -13,23 +13,26 @@ This is the cloud-config that I use (stored in
 ```yaml
 #cloud-config
 apt:
-  proxy: http://10.76.88.1:3142
-apt_proxy: http://10.76.88.1:3142  # support trusty
+  http_proxy: http://10.76.88.1:3142
+  https_proxy: "DIRECT"
+apt_http_proxy: http://10.76.88.1:3142  # support trusty
+apt_https_proxy: "DIRECT"
 packages:
+  - devscripts
   - equivs
   - git
   - libpython3-dev
   - libffi-dev
   - sshfs  # for `multipass mount`; save time by installing it ourselves
-  - ubuntu-dev-tools
   - virtualenvwrapper
 runcmd:
   # The expectation is that we will mount our local development repo in to the
   # VM, but to install the build-deps at launch time we clone the public repo
   # temporarily
-  - 'sudo -iu multipass git clone https://github.com/CanonicalLtd/ubuntu-advantage-client /var/tmp/uac'
-  - 'mk-build-deps -t "apt-get --no-install-recommends --yes" -i /var/tmp/uac/debian/control'
+  - 'git clone https://github.com/CanonicalLtd/ubuntu-advantage-client /var/tmp/uac'
+  - 'make -f /var/tmp/uac/Makefile deps'
   - 'rm -rf /var/tmp/uac'
+  - 'echo alias pytest=py.test-3 >> /home/multipass/.bashrc'
 ssh_import_id:
   - daniel-thewatkins
 ```
