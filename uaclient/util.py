@@ -170,6 +170,7 @@ def is_service_url(url: str) -> bool:
 
 def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
+    logging.debug('Reading file: %s', filename)
     with open(filename, 'rb') as stream:
         content = stream.read()
     return content.decode('utf-8')
