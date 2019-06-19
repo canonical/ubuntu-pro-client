@@ -46,7 +46,13 @@ ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
     - updated manpage and help docs
     - attach: added --no-auto-enable option
 
- -- Andreas Hasenack <andreas@canonical.com>  Mon, 15 Apr 2019 10:38:35 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 19 Jun 2019 09:27:57 -0300
+
+ubuntu-advantage-tools (19.4.1) eoan; urgency=medium
+
+  * apt-hook: Add missing headers for APT 1.9
+
+ -- Andreas Hasenack <andreas@canonical.com>  Tue, 18 Jun 2019 18:21:19 -0300
 
 ubuntu-advantage-tools (19.4) disco; urgency=medium
 
