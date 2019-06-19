@@ -230,10 +230,17 @@ class TestUaEntitlement:
         'orig_access,delta',
         (({'entitlement': {'entitled': True}}, {}),  # no deltas
          ({'entitlement': {'entitled': False}},
-          {'entitlement': {'entitled': True}})  # transition to entitled
+          {'entitlement': {'entitled': True}}),  # transition to entitled
+         ({'entitlement': {'entitled': False}},
+             {'entitlement': {
+                 'entitled': False,  # overridden True by series trusty
+                 'series': {'trusty': {'entitled': True}}}})
          ))
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'trusty'})
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
-            self, concrete_entitlement_factory, orig_access, delta):
+            self, m_platform_info, concrete_entitlement_factory, orig_access,
+            delta):
         """If deltas do not represent transition to unentitled, do nothing."""
         entitlement = concrete_entitlement_factory(
             entitled=True,

@@ -358,6 +358,25 @@ def get_platform_info() -> 'Dict[str, str]':
     return platform_info
 
 
+def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
+    """Apply series-specific overrides to an entitlement dict.
+
+    :param orig_access: Dict with original entitlement access details
+    """
+    if not all([isinstance(orig_access, dict), 'entitlement' in orig_access]):
+        raise RuntimeError(
+            'Expected entitlement access dict. Missing "entitlement" key: %s'
+            % orig_access)
+    series_name = get_platform_info()['series']
+    orig_entitlement = orig_access.get('entitlement', {})
+    overrides = orig_entitlement.pop('series', {}).pop(series_name, {})
+    for key, value in overrides.items():
+        try:
+            orig_access['entitlement'][key].update(value)
+        except AttributeError:
+            orig_access['entitlement'][key] = value
+
+
 def get_machine_id(data_dir: str) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     if os.path.exists(ETC_MACHINE_ID):
