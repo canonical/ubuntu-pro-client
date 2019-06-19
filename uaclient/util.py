@@ -361,6 +361,16 @@ def get_platform_info() -> 'Dict[str, str]':
 def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
     """Apply series-specific overrides to an entitlement dict.
 
+    This function mutates orig_access dict by applying any series-overrides to
+    the top-level keys under 'entitlement'. The series-overrides are sparse
+    and intended to supplement existing top-level dict values. So, sub-keys
+    under the top-level directives, obligations and affordance sub-key values
+    will be preserved if unspecified in series-overrides.
+
+    To more clearly indicate that orig_access in memory has already had
+    the overrides applied, the 'series' key is also removed from the
+    orig_access dict.
+
     :param orig_access: Dict with original entitlement access details
     """
     if not all([isinstance(orig_access, dict), 'entitlement' in orig_access]):
