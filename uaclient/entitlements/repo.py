@@ -13,14 +13,13 @@ except ImportError:
 
 
 from uaclient import apt
+from uaclient import exceptions
 from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = '-32768'
-# charm-helpers uses 10 seconds between retries. Hope for an optimal first try
-APT_RETRIES = [1.0, 10.0, 10.0]
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -68,6 +67,7 @@ class RepoEntitlement(base.UAEntitlement):
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
         if not self.setup_apt_config():
+            self.remove_apt_config()  # Cleanup any apt sources/auth artifacts
             return False
         if self.packages:
             try:
@@ -75,14 +75,12 @@ class RepoEntitlement(base.UAEntitlement):
                     'Installing {title} packages'.format(title=self.title))
                 for msg in self.messaging.get('pre_install', []):
                     print(msg)
-                util.subp(
+                apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
-                    capture=True, retry_sleeps=APT_RETRIES)
-            except util.ProcessExecutionError:
-                self._cleanup()
-                logging.error(
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
+            except (util.ProcessExecutionError, exceptions.UserFacingError):
+                self._cleanup()
                 return False
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
@@ -114,8 +112,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')
-        out, _err = util.subp(['apt-cache', 'policy'])
-        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, out)
+        policy = apt.run_apt_command(
+            ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
+        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, policy)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, '%s is active' % self.title
         return ApplicationStatus.DISABLED, '%s is not configured' % self.title
@@ -211,21 +210,25 @@ class RepoEntitlement(base.UAEntitlement):
             print('Installing prerequisites: {}'.format(
                 ', '.join(prerequisite_pkgs)))
             try:
-                util.subp(
+                apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    capture=True, retry_sleeps=APT_RETRIES)
-            except util.ProcessExecutionError as e:
+                    status.MESSAGE_APT_INSTALL_FAILED)
+            except exceptions.UserFacingError as e:
                 logging.error(str(e))
                 return False
         apt.add_auth_apt_repo(repo_filename, repo_url, token, repo_suites,
                               keyring_file)
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
-        # Side-effect is that apt policy will new report the repo as accessible
+        # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
         print('Updating package lists')
-        util.subp(
-            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)
+        try:
+            apt.run_apt_command(
+                ['apt-get', 'update'], status.MESSAGE_APT_UPDATE_FAILED)
+        except exceptions.UserFacingError as e:
+            logging.error(str(e))
+            return False
         return True
 
     def remove_apt_config(self):

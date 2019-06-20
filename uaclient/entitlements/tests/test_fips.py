@@ -7,10 +7,10 @@ import mock
 
 import pytest
 
+from uaclient import apt
 from uaclient import status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
-from uaclient.entitlements.repo import APT_RETRIES
 from uaclient.entitlements.tests.conftest import machine_access
 
 
@@ -50,7 +50,8 @@ class TestFIPSEntitlementEnable:
                 mock.patch('uaclient.apt.add_auth_apt_repo'))
             m_add_pinning = stack.enter_context(
                 mock.patch('uaclient.apt.add_ppa_pinning'))
-            m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+            m_subp = stack.enter_context(
+                mock.patch('uaclient.util.subp', return_value=('', '')))
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, 'can_enable'))
             stack.enter_context(
@@ -81,11 +82,11 @@ class TestFIPSEntitlementEnable:
                 repo_url, entitlement.origin, 1001)]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
-            capture=True, retry_sleeps=APT_RETRIES)
+            capture=True, retry_sleeps=apt.APT_RETRIES)
 
         subp_calls = [
-            mock.call(
-                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
+            mock.call(['apt-get', 'update'], capture=True,
+                      retry_sleeps=apt.APT_RETRIES),
             install_cmd]
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
@@ -131,6 +132,8 @@ class TestFIPSEntitlementEnable:
             m_add_pinning = stack.enter_context(
                 mock.patch('uaclient.apt.add_ppa_pinning'))
             stack.enter_context(mock.patch.object(entitlement, 'can_enable'))
+            m_remove_apt_config = stack.enter_context(
+                mock.patch.object(entitlement, 'remove_apt_config'))
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
@@ -139,6 +142,7 @@ class TestFIPSEntitlementEnable:
 
         assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
+        assert 1 == m_remove_apt_config.call_count
         assert 'ERROR    Cannot setup apt pin' in caplog_text()
 
     def test_failure_to_install_doesnt_remove_packages(self, entitlement):

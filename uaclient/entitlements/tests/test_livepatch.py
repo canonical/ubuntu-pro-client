@@ -6,10 +6,10 @@ from types import MappingProxyType
 
 import pytest
 
+from uaclient import apt
 from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
     LivepatchEntitlement, process_config_directives)
-from uaclient.entitlements.repo import APT_RETRIES
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
 from uaclient.status import ContractStatus
@@ -269,7 +269,7 @@ class TestLivepatchEntitlementEnable:
     mocks_snapd_install = [
         mock.call(
             ['apt-get', 'install', '--assume-yes', 'snapd'], capture=True,
-            retry_sleeps=APT_RETRIES),
+            retry_sleeps=apt.APT_RETRIES),
         mock.call(['/usr/bin/snap', 'wait', 'system', 'seed.loaded'],
                   capture=True),
     ]

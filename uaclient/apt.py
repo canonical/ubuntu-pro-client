@@ -5,6 +5,7 @@ import re
 import shutil
 
 from uaclient import exceptions
+from uaclient import status
 from uaclient import util
 
 try:
@@ -21,6 +22,12 @@ APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
 KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
+
+# Since we generally have a person at the command line prompt. Don't loop
+# for 5 minutes like charmhelpers because we expect the human to notice and
+# resolve to apt conflict or try again.
+# Hope for an optimal first try.
+APT_RETRIES = [1.0, 5.0, 10.0]
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
@@ -57,6 +64,21 @@ def assert_valid_apt_credentials(repo_url, username, password):
             os.unlink('/tmp/uaclient-apt-test')
 
 
+def run_apt_command(cmd, error_msg) -> str:
+    """Run an apt command, retrying upon failure APT_RETRIES times.
+
+    :return: stdout from successful run of the apt command.
+    :raise UserFacingError: on issues running apt-cache policy.
+    """
+    try:
+        out, _err = util.subp(cmd, capture=True, retry_sleeps=APT_RETRIES)
+    except util.ProcessExecutionError as e:
+        if 'Could not get lock /var/lib/dpkg/lock' in str(e.stderr):
+            error_msg += ' Another process is running APT.'
+        raise exceptions.UserFacingError(error_msg)
+    return out
+
+
 def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
                       suites: 'List[str]', keyring_file: str = None) -> None:
     """Add an authenticated apt repo and credentials to the system.
@@ -75,8 +97,9 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
     assert_valid_apt_credentials(repo_url, username, password)
 
     # Does this system have updates suite enabled?
-    policy, _err = util.subp(['apt-cache', 'policy'])
     updates_enabled = False
+    policy = run_apt_command(
+        ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
     for line in policy.splitlines():
         # We only care about $suite-updates lines
         if 'a={}-updates'.format(series) not in line:

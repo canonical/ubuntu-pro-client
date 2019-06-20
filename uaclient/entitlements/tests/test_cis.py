@@ -4,9 +4,9 @@ import mock
 
 import pytest
 
+from uaclient import apt
 from uaclient import status
 from uaclient.entitlements.cis import CISEntitlement
-from uaclient.entitlements.repo import APT_RETRIES
 
 
 @pytest.fixture
@@ -61,12 +61,13 @@ class TestCISEntitlementEnable:
                 '/usr/share/keyrings/ubuntu-securitybenchmarks-keyring.gpg')]
 
         subp_apt_cmds = [
-            mock.call(['apt-cache', 'policy']),
-            mock.call(
-                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
+            mock.call(['apt-cache', 'policy'],
+                      capture=True, retry_sleeps=apt.APT_RETRIES),
+            mock.call(['apt-get', 'update'],
+                      capture=True, retry_sleeps=apt.APT_RETRIES),
             mock.call(
                 ['apt-get', 'install', '--assume-yes'] + entitlement.packages,
-                capture=True, retry_sleeps=APT_RETRIES)]
+                capture=True, retry_sleeps=apt.APT_RETRIES)]
 
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis-audit

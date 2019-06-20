@@ -7,7 +7,7 @@ from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
-from uaclient.entitlements.repo import APT_RETRIES, RepoEntitlement
+from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
 from uaclient import util
@@ -232,7 +232,7 @@ class TestRepoEnable:
 
     @pytest.mark.parametrize('with_pre_install_msg', (False, True))
     @pytest.mark.parametrize('packages', (['a'], [], None))
-    @mock.patch(M_PATH + 'util.subp')
+    @mock.patch(M_PATH + 'util.subp', return_value=('', ''))
     @mock.patch(M_PATH + 'apt.add_auth_apt_repo')
     @mock.patch(M_PATH + 'os.path.exists', return_value=True)
     @mock.patch(M_PATH + 'util.get_platform_info')
@@ -252,7 +252,7 @@ class TestRepoEnable:
             messaging_patch = mock.MagicMock()
 
         expected_apt_calls = [mock.call(
-            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)]
+            ['apt-get', 'update'], capture=True, retry_sleeps=apt.APT_RETRIES)]
         expected_output = dedent("""\
         Updating package lists
         Repo Test Class enabled.
@@ -263,7 +263,7 @@ class TestRepoEnable:
                     mock.call(
                         ['apt-get', 'install', '--assume-yes',
                          ' '.join(packages)],
-                        capture=True, retry_sleeps=APT_RETRIES))
+                        capture=True, retry_sleeps=apt.APT_RETRIES))
                 expected_output = '\n'.join([
                     'Updating package lists',
                     'Installing Repo Test Class packages',

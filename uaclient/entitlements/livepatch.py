@@ -1,7 +1,6 @@
 import logging
 
 from uaclient.entitlements import base
-from uaclient.entitlements.repo import APT_RETRIES
 from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
@@ -50,7 +49,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             if not util.which(SNAP_CMD):
                 print('Installing snapd')
                 util.subp(['apt-get', 'install', '--assume-yes', 'snapd'],
-                          capture=True, retry_sleeps=APT_RETRIES)
+                          capture=True, retry_sleeps=apt.APT_RETRIES)
                 util.subp([SNAP_CMD, 'wait', 'system', 'seed.loaded'],
                           capture=True)
             elif 'snapd' not in apt.get_installed_packages():
