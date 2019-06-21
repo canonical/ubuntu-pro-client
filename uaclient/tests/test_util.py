@@ -157,7 +157,9 @@ class TestSubp:
         with pytest.raises(util.ProcessExecutionError) as excinfo:
             util.subp(['ls', '--bogus'])
 
-        expected_error = 'Failed running command \'ls --bogus\' [exit(2)]'
+        expected_error = (
+            "Failed running command 'ls --bogus' [exit(2)]."
+            " Message: ls: unrecognized option")
         assert expected_error in str(excinfo.value)
         assert 0 == m_sleep.call_count  # no retries
 

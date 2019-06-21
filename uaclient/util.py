@@ -231,13 +231,14 @@ def _subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
     except OSError:
         try:
             raise ProcessExecutionError(
-                cmd=' '.join(args), exit_code=proc.returncode, stderr=err)
+                cmd=' '.join(args), exit_code=proc.returncode,
+                stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
         except UnboundLocalError:
             raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
-            cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
-            stderr=err)
+            cmd=' '.join(args), exit_code=proc.returncode,
+            stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
     if capture:
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)
