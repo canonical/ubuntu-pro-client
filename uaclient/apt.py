@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import shutil
+import subprocess
 
 from uaclient import exceptions
 from uaclient import status
@@ -14,6 +15,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+APT_HELPER_TIMEOUT = 20.0    # 20 second timeout used for apt-helper call
 APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
@@ -47,7 +49,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
                    '%s://%s:%s@%s/ubuntu/pool/' % (
                        protocol, username, password, repo_path),
-                   '/tmp/uaclient-apt-test'])
+                   '/tmp/uaclient-apt-test'], timeout=APT_HELPER_TIMEOUT)
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
@@ -59,6 +61,11 @@ def assert_valid_apt_credentials(repo_url, username, password):
                     'Timeout trying to access APT repository at %s' % repo_url)
         raise exceptions.UserFacingError(
             'Unexpected APT error. See /var/log/ubuntu-advantage.log')
+    except subprocess.TimeoutExpired:
+        raise exceptions.UserFacingError(
+            'Cannot validate credentials for APT repo.'
+            ' Timeout after %d seconds trying to reach %s.' % (
+                APT_HELPER_TIMEOUT, repo_path))
     finally:
         if os.path.exists('/tmp/uaclient-apt-test'):
             os.unlink('/tmp/uaclient-apt-test')
