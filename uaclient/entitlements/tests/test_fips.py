@@ -8,10 +8,12 @@ import mock
 import pytest
 
 from uaclient import apt
+from uaclient import defaults
 from uaclient import status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
 from uaclient.entitlements.tests.conftest import machine_access
+from uaclient import exceptions
 
 
 M_PATH = 'uaclient.entitlements.fips.'
@@ -118,12 +120,17 @@ class TestFIPSEntitlementEnable:
             fips_entitled_no_suites)
 
         with mock.patch.object(entitlement, 'can_enable', return_value=True):
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
+        error_msg = (
+            'Empty %s apt suites directive from %s' % (
+                entitlement.name, defaults.BASE_CONTRACT_URL))
+        assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
 
     def test_enable_errors_on_repo_pin_but_invalid_origin(
-            self, caplog_text, entitlement):
-        """When can_enable is false enable returns false and noops."""
+            self, entitlement):
+        """Error when no valid origin is provided on a pinned entitlemnt."""
         entitlement.origin = None  # invalid value
 
         with contextlib.ExitStack() as stack:
@@ -138,12 +145,16 @@ class TestFIPSEntitlementEnable:
                 mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
 
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
 
+        error_msg = (
+            "Cannot setup apt pin. Empty apt repo origin value 'None'.\n"
+            "Could not enable %s." % entitlement.title)
+        assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
-        assert 1 == m_remove_apt_config.call_count
-        assert 'ERROR    Cannot setup apt pin' in caplog_text()
+        assert 0 == m_remove_apt_config.call_count
 
     def test_failure_to_install_doesnt_remove_packages(self, entitlement):
 
@@ -165,7 +176,10 @@ class TestFIPSEntitlementEnable:
                 mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
 
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
+            error_msg = 'Could not enable %s.' % entitlement.title
+            assert error_msg == excinfo.value.msg
 
         for call in m_subp.call_args_list:
             assert 'remove' not in call[0][0]

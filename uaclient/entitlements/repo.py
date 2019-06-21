@@ -63,12 +63,11 @@ class RepoEntitlement(base.UAEntitlement):
             this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
+        @raises: UserFacingError on failure to install suggested packages
         """
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
-        if not self.setup_apt_config():
-            self.remove_apt_config()  # Cleanup any apt sources/auth artifacts
-            return False
+        self.setup_apt_config()
         if self.packages:
             try:
                 print(
@@ -79,9 +78,9 @@ class RepoEntitlement(base.UAEntitlement):
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
-            except (util.ProcessExecutionError, exceptions.UserFacingError):
+            except exceptions.UserFacingError:
                 self._cleanup()
-                return False
+                raise
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -157,7 +156,12 @@ class RepoEntitlement(base.UAEntitlement):
         self.setup_apt_config()
         return True
 
-    def setup_apt_config(self):
+    def setup_apt_config(self) -> None:
+        """Setup apt config based on the resourceToken and  directives.
+
+        :raise UserFacingError: on failure to setup any aspect of this apt
+           configuration
+        """
         series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
@@ -178,19 +182,16 @@ class RepoEntitlement(base.UAEntitlement):
             repo_url = self.repo_url
         repo_suites = directives.get('suites')
         if not repo_suites:
-            logging.error(
-                'Empty %s apt suites directive from %s',
-                self.name, self.cfg.contract_url)
-            return False
+            raise exceptions.UserFacingError(
+                'Empty %s apt suites directive from %s' %
+                (self.name, self.cfg.contract_url))
         if self.repo_pin_priority:
             if not self.origin:
-                logging.error(
-                    "Cannot setup apt pin. Empty apt repo origin value '%s'." %
-                    self.origin)
-                logging.error(
-                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title))
-                return False
+                raise exceptions.UserFacingError(
+                    "Cannot setup apt pin. Empty apt repo origin value '%s'.\n"
+                    "%s" % (self.origin,
+                            status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                                title=self.title)))
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
             if self.repo_pin_priority != 'never':
@@ -213,9 +214,9 @@ class RepoEntitlement(base.UAEntitlement):
                 apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
                     status.MESSAGE_APT_INSTALL_FAILED)
-            except exceptions.UserFacingError as e:
-                logging.error(str(e))
-                return False
+            except exceptions.UserFacingError:
+                self.remove_apt_config()
+                raise
         apt.add_auth_apt_repo(repo_filename, repo_url, token, repo_suites,
                               keyring_file)
         # Run apt-update on any repo-entitlement enable because the machine
@@ -226,10 +227,9 @@ class RepoEntitlement(base.UAEntitlement):
         try:
             apt.run_apt_command(
                 ['apt-get', 'update'], status.MESSAGE_APT_UPDATE_FAILED)
-        except exceptions.UserFacingError as e:
-            logging.error(str(e))
-            return False
-        return True
+        except exceptions.UserFacingError:
+            self.remove_apt_config()
+            raise
 
     def remove_apt_config(self):
         """Remove any repository apt configuration files."""

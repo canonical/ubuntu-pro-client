@@ -6,6 +6,7 @@ import pytest
 
 from uaclient import apt
 from uaclient.entitlements.esm import ESMEntitlement
+from uaclient import exceptions
 from uaclient import util
 
 M_PATH = 'uaclient.entitlements.esm.ESMEntitlement.'
@@ -120,7 +121,8 @@ class TestESMEntitlementEnable:
 
             m_can_enable.return_value = True
 
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
 
         add_apt_calls = [
             mock.call(
@@ -133,6 +135,8 @@ class TestESMEntitlementEnable:
             mock.call(['apt-get', 'update'],
                       capture=True, retry_sleeps=apt.APT_RETRIES)]
 
+        error_msg = 'APT update failed. Another process is running APT.'
+        assert error_msg == excinfo.value.msg
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
@@ -140,9 +144,6 @@ class TestESMEntitlementEnable:
         unlink_calls = [mock.call('/etc/apt/preferences.d/ubuntu-esm-trusty')]
         assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
-        expected_error = (
-            'ERROR    APT update failed. Another process is running APT.')
-        assert expected_error in caplog_text()
 
 
 class TestESMEntitlementDisable:
@@ -168,7 +169,7 @@ class TestESMEntitlementDisable:
     def test_disable_removes_apt_config(
             self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
             m_restore_commented_apt_list_file,
-            entitlement, tmpdir, caplog_text):
+            entitlement, tmpdir):
         """When can_disable, disable removes apt configuration"""
 
         with mock.patch('uaclient.util.subp'):

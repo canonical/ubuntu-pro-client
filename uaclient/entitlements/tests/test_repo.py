@@ -9,6 +9,7 @@ from uaclient import apt
 from uaclient import config
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
+from uaclient import exceptions
 from uaclient import status
 from uaclient import util
 
@@ -299,16 +300,17 @@ class TestRepoEnable:
         m_subp.side_effect = fake_subp
 
         packages = ['fake_pkg', 'and_another']
-        with mock.patch.object(entitlement, 'setup_apt_config',
-                               return_value=True):
+        with mock.patch.object(entitlement, 'setup_apt_config'):
             with mock.patch.object(entitlement, 'can_enable',
                                    return_value=True):
                 with mock.patch.object(type(entitlement), 'packages',
                                        packages):
-                    with mock.patch.object(
-                            entitlement, 'remove_apt_config') as m_rac:
-                        entitlement.enable()
+                    with pytest.raises(exceptions.UserFacingError) as excinfo:
+                        with mock.patch.object(
+                                entitlement, 'remove_apt_config') as m_rac:
+                            entitlement.enable()
 
+        assert 'Could not enable Repo Test Class.' == excinfo.value.msg
         expected_call = mock.call(
             ['apt-get', 'remove', '--assume-yes'] + packages)
         assert expected_call in m_subp.call_args_list
