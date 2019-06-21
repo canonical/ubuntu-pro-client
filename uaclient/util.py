@@ -267,9 +267,9 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
             out, err = _subp(args, rcs, capture)
             break
         except ProcessExecutionError as e:
+            if capture:
+                logging.debug(str(e))
             if not retry_sleeps:
-                if capture:
-                    logging.error(str(e))
                 raise
             logging.debug(
                 str(e) + " Retrying %d more times.", len(retry_sleeps))
