@@ -3,8 +3,10 @@ import logging
 import os
 import re
 import shutil
+import subprocess
 
 from uaclient import exceptions
+from uaclient import status
 from uaclient import util
 
 try:
@@ -13,6 +15,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+APT_HELPER_TIMEOUT = 20.0    # 20 second timeout used for apt-helper call
 APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
@@ -21,6 +24,12 @@ APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
 KEYRINGS_DIR = '/usr/share/keyrings'
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
+
+# Since we generally have a person at the command line prompt. Don't loop
+# for 5 minutes like charmhelpers because we expect the human to notice and
+# resolve to apt conflict or try again.
+# Hope for an optimal first try.
+APT_RETRIES = [1.0, 5.0, 10.0]
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
@@ -40,7 +49,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
         util.subp(['/usr/lib/apt/apt-helper', 'download-file',
                    '%s://%s:%s@%s/ubuntu/pool/' % (
                        protocol, username, password, repo_path),
-                   '/tmp/uaclient-apt-test'])
+                   '/tmp/uaclient-apt-test'], timeout=APT_HELPER_TIMEOUT)
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
@@ -52,9 +61,29 @@ def assert_valid_apt_credentials(repo_url, username, password):
                     'Timeout trying to access APT repository at %s' % repo_url)
         raise exceptions.UserFacingError(
             'Unexpected APT error. See /var/log/ubuntu-advantage.log')
+    except subprocess.TimeoutExpired:
+        raise exceptions.UserFacingError(
+            'Cannot validate credentials for APT repo.'
+            ' Timeout after %d seconds trying to reach %s.' % (
+                APT_HELPER_TIMEOUT, repo_path))
     finally:
         if os.path.exists('/tmp/uaclient-apt-test'):
             os.unlink('/tmp/uaclient-apt-test')
+
+
+def run_apt_command(cmd, error_msg) -> str:
+    """Run an apt command, retrying upon failure APT_RETRIES times.
+
+    :return: stdout from successful run of the apt command.
+    :raise UserFacingError: on issues running apt-cache policy.
+    """
+    try:
+        out, _err = util.subp(cmd, capture=True, retry_sleeps=APT_RETRIES)
+    except util.ProcessExecutionError as e:
+        if 'Could not get lock /var/lib/dpkg/lock' in str(e.stderr):
+            error_msg += ' Another process is running APT.'
+        raise exceptions.UserFacingError(error_msg)
+    return out
 
 
 def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
@@ -75,8 +104,9 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
     assert_valid_apt_credentials(repo_url, username, password)
 
     # Does this system have updates suite enabled?
-    policy, _err = util.subp(['apt-cache', 'policy'])
     updates_enabled = False
+    policy = run_apt_command(
+        ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
     for line in policy.splitlines():
         # We only care about $suite-updates lines
         if 'a={}-updates'.format(series) not in line:

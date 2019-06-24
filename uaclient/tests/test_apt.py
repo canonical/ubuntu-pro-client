@@ -4,6 +4,7 @@ import glob
 import mock
 import os
 import stat
+import subprocess
 from textwrap import dedent
 
 import pytest
@@ -116,7 +117,7 @@ class TestValidAptCredentials:
         apt_helper_call = mock.call(
             ['/usr/lib/apt/apt-helper', 'download-file',
              'http://user:pwd@fakerepo/ubuntu/pool/',
-             '/tmp/uaclient-apt-test'])
+             '/tmp/uaclient-apt-test'], timeout=20)
         assert [apt_helper_call] == m_subp.call_args_list
         assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
 
@@ -152,7 +153,35 @@ class TestValidAptCredentials:
         apt_helper_call = mock.call(
             ['/usr/lib/apt/apt-helper', 'download-file',
              'http://user:pwd@fakerepo/ubuntu/pool/',
-             '/tmp/uaclient-apt-test'])
+             '/tmp/uaclient-apt-test'], timeout=20)
+        assert [apt_helper_call] == m_subp.call_args_list
+        assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
+
+    @mock.patch('uaclient.apt.os.unlink', return_value=True)
+    @mock.patch('uaclient.util.subp')
+    @mock.patch('uaclient.apt.os.path.exists', return_value=True)
+    def test_errors_on_apt_helper_process_timeout(
+            self, m_exists, m_subp, m_unlink):
+        """Raise the appropriate user facing error from apt-helper timeout."""
+
+        # Failure apt-helper response
+        m_subp.side_effect = subprocess.TimeoutExpired(
+            'something timed out', timeout=1000000)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            assert_valid_apt_credentials(
+                repo_url='http://fakerepo', username='user', password='pwd')
+        error_msg = (
+            'Cannot validate credentials for APT repo. Timeout'
+            ' after %d seconds trying to reach fakerepo.' %
+            apt.APT_HELPER_TIMEOUT)
+        assert error_msg == excinfo.value.msg
+        exists_calls = [mock.call('/usr/lib/apt/apt-helper'),
+                        mock.call('/tmp/uaclient-apt-test')]
+        assert exists_calls == m_exists.call_args_list
+        apt_helper_call = mock.call(
+            ['/usr/lib/apt/apt-helper', 'download-file',
+             'http://user:pwd@fakerepo/ubuntu/pool/',
+             '/tmp/uaclient-apt-test'], timeout=apt.APT_HELPER_TIMEOUT)
         assert [apt_helper_call] == m_subp.call_args_list
         assert [mock.call('/tmp/uaclient-apt-test')] == m_unlink.call_args_list
 

@@ -7,8 +7,9 @@ from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
-from uaclient.entitlements.repo import APT_RETRIES, RepoEntitlement
+from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
+from uaclient import exceptions
 from uaclient import status
 from uaclient import util
 
@@ -232,7 +233,7 @@ class TestRepoEnable:
 
     @pytest.mark.parametrize('with_pre_install_msg', (False, True))
     @pytest.mark.parametrize('packages', (['a'], [], None))
-    @mock.patch(M_PATH + 'util.subp')
+    @mock.patch(M_PATH + 'util.subp', return_value=('', ''))
     @mock.patch(M_PATH + 'apt.add_auth_apt_repo')
     @mock.patch(M_PATH + 'os.path.exists', return_value=True)
     @mock.patch(M_PATH + 'util.get_platform_info')
@@ -252,7 +253,7 @@ class TestRepoEnable:
             messaging_patch = mock.MagicMock()
 
         expected_apt_calls = [mock.call(
-            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)]
+            ['apt-get', 'update'], capture=True, retry_sleeps=apt.APT_RETRIES)]
         expected_output = dedent("""\
         Updating package lists
         Repo Test Class enabled.
@@ -263,7 +264,7 @@ class TestRepoEnable:
                     mock.call(
                         ['apt-get', 'install', '--assume-yes',
                          ' '.join(packages)],
-                        capture=True, retry_sleeps=APT_RETRIES))
+                        capture=True, retry_sleeps=apt.APT_RETRIES))
                 expected_output = '\n'.join([
                     'Updating package lists',
                     'Installing Repo Test Class packages',
@@ -299,16 +300,17 @@ class TestRepoEnable:
         m_subp.side_effect = fake_subp
 
         packages = ['fake_pkg', 'and_another']
-        with mock.patch.object(entitlement, 'setup_apt_config',
-                               return_value=True):
+        with mock.patch.object(entitlement, 'setup_apt_config'):
             with mock.patch.object(entitlement, 'can_enable',
                                    return_value=True):
                 with mock.patch.object(type(entitlement), 'packages',
                                        packages):
-                    with mock.patch.object(
-                            entitlement, 'remove_apt_config') as m_rac:
-                        entitlement.enable()
+                    with pytest.raises(exceptions.UserFacingError) as excinfo:
+                        with mock.patch.object(
+                                entitlement, 'remove_apt_config') as m_rac:
+                            entitlement.enable()
 
+        assert 'Could not enable Repo Test Class.' == excinfo.value.msg
         expected_call = mock.call(
             ['apt-get', 'remove', '--assume-yes'] + packages)
         assert expected_call in m_subp.call_args_list

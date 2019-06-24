@@ -7,11 +7,13 @@ import mock
 
 import pytest
 
+from uaclient import apt
+from uaclient import defaults
 from uaclient import status, util
 from uaclient.entitlements.fips import (
     FIPSCommonEntitlement, FIPSEntitlement, FIPSUpdatesEntitlement)
-from uaclient.entitlements.repo import APT_RETRIES
 from uaclient.entitlements.tests.conftest import machine_access
+from uaclient import exceptions
 
 
 M_PATH = 'uaclient.entitlements.fips.'
@@ -50,7 +52,8 @@ class TestFIPSEntitlementEnable:
                 mock.patch('uaclient.apt.add_auth_apt_repo'))
             m_add_pinning = stack.enter_context(
                 mock.patch('uaclient.apt.add_ppa_pinning'))
-            m_subp = stack.enter_context(mock.patch('uaclient.util.subp'))
+            m_subp = stack.enter_context(
+                mock.patch('uaclient.util.subp', return_value=('', '')))
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, 'can_enable'))
             stack.enter_context(
@@ -81,11 +84,11 @@ class TestFIPSEntitlementEnable:
                 repo_url, entitlement.origin, 1001)]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
-            capture=True, retry_sleeps=APT_RETRIES)
+            capture=True, retry_sleeps=apt.APT_RETRIES)
 
         subp_calls = [
-            mock.call(
-                ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES),
+            mock.call(['apt-get', 'update'], capture=True,
+                      retry_sleeps=apt.APT_RETRIES),
             install_cmd]
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
@@ -117,12 +120,17 @@ class TestFIPSEntitlementEnable:
             fips_entitled_no_suites)
 
         with mock.patch.object(entitlement, 'can_enable', return_value=True):
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
+        error_msg = (
+            'Empty %s apt suites directive from %s' % (
+                entitlement.name, defaults.BASE_CONTRACT_URL))
+        assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
 
     def test_enable_errors_on_repo_pin_but_invalid_origin(
-            self, caplog_text, entitlement):
-        """When can_enable is false enable returns false and noops."""
+            self, entitlement):
+        """Error when no valid origin is provided on a pinned entitlemnt."""
         entitlement.origin = None  # invalid value
 
         with contextlib.ExitStack() as stack:
@@ -131,15 +139,22 @@ class TestFIPSEntitlementEnable:
             m_add_pinning = stack.enter_context(
                 mock.patch('uaclient.apt.add_ppa_pinning'))
             stack.enter_context(mock.patch.object(entitlement, 'can_enable'))
+            m_remove_apt_config = stack.enter_context(
+                mock.patch.object(entitlement, 'remove_apt_config'))
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
 
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
 
+        error_msg = (
+            "Cannot setup apt pin. Empty apt repo origin value 'None'.\n"
+            "Could not enable %s." % entitlement.title)
+        assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
         assert 0 == m_add_pinning.call_count
-        assert 'ERROR    Cannot setup apt pin' in caplog_text()
+        assert 0 == m_remove_apt_config.call_count
 
     def test_failure_to_install_doesnt_remove_packages(self, entitlement):
 
@@ -161,7 +176,10 @@ class TestFIPSEntitlementEnable:
                 mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'}))
             stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
 
-            assert False is entitlement.enable()
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                entitlement.enable()
+            error_msg = 'Could not enable %s.' % entitlement.title
+            assert error_msg == excinfo.value.msg
 
         for call in m_subp.call_args_list:
             assert 'remove' not in call[0][0]

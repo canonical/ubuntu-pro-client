@@ -208,17 +208,23 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
     return content, resp.headers
 
 
-def _subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
-          capture: bool = False) -> 'Tuple[str, str]':
+def _subp(args: 'Sequence[str]',
+          rcs: 'Optional[List[int]]' = None,
+          capture: bool = False,
+          timeout: 'Optional[float]' = None) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
-    @param subp: A list of arguments to feed to subprocess.Popen
+    @param args: A list of arguments to feed to subprocess.Popen
     @param rcs: A list of allowed return_codes. If returncode not in rcs
         raise a ProcessExecutionError.
-     @param capture: Boolean set True to log the command and response.
+    @param capture: Boolean set True to log the command and response.
+    @param timeout: Optional float indicating number of seconds to wait for
+        subp to return.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
+    @raises subprocess.TimeoutError when timeout specified and the command
+        exceeds that number of seconds.
     """
     bytes_args = [x if isinstance(x, bytes) else x.encode("utf-8")
                   for x in args]
@@ -227,17 +233,18 @@ def _subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
     try:
         proc = subprocess.Popen(
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (out, err) = proc.communicate()
+        (out, err) = proc.communicate(timeout=timeout)
     except OSError:
         try:
             raise ProcessExecutionError(
-                cmd=' '.join(args), exit_code=proc.returncode, stderr=err)
+                cmd=' '.join(args), exit_code=proc.returncode,
+                stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
         except UnboundLocalError:
             raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
-            cmd=' '.join(args), exit_code=proc.returncode, stdout=out,
-            stderr=err)
+            cmd=' '.join(args), exit_code=proc.returncode,
+            stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
     if capture:
         logging.debug('Ran cmd: %s, rc: %s stderr: %s',
                       ' '.join(args), proc.returncode, err)
@@ -245,7 +252,7 @@ def _subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
 
 
 def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
-         capture: bool = False,
+         capture: bool = False, timeout: 'Optional[float]' = None,
          retry_sleeps: 'Optional[List[float]]' = None) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -253,6 +260,8 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
      @param rcs: A list of allowed return_codes. If returncode not in rcs
          raise a ProcessExecutionError.
      @param capture: Boolean set True to log the command and response.
+     @param timeout: Optional float indicating number of seconds to wait for a
+         subp call to return.
      @param retry_sleeps: Optional list of sleep lengths to apply between
         retries. Specifying a list of [0.5, 1] instructs subp to retry twice
         on failure; sleeping half a second before the first retry and 1 second
@@ -260,16 +269,18 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
+    @raises subprocess.TimeoutError when timeout specified and the command
+        exceeds that number of seconds.
     """
     retry_sleeps = retry_sleeps.copy() if retry_sleeps is not None else None
     while True:
         try:
-            out, err = _subp(args, rcs, capture)
+            out, err = _subp(args, rcs, capture, timeout)
             break
         except ProcessExecutionError as e:
+            if capture:
+                logging.debug(str(e))
             if not retry_sleeps:
-                if capture:
-                    logging.error(str(e))
                 raise
             logging.debug(
                 str(e) + " Retrying %d more times.", len(retry_sleeps))

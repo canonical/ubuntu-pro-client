@@ -1,6 +1,7 @@
 """Tests related to uaclient.util module."""
 import logging
 import posix
+import subprocess
 import uuid
 
 import mock
@@ -151,13 +152,22 @@ class TestIsContainer:
 
 class TestSubp:
 
+    def test_raise_error_on_timeout(self):
+        """When cmd exceeds the timeout raises a TimeoutExpired error."""
+        with pytest.raises(subprocess.TimeoutExpired) as excinfo:
+            util.subp(['sleep', '2'], timeout=0)
+        msg = "Command '[b'sleep', b'2']' timed out after 0 seconds"
+        assert msg == str(excinfo.value)
+
     @mock.patch('uaclient.util.time.sleep')
     def test_default_do_not_retry_on_failure_return_code(self, m_sleep):
         """When no retry_sleeps are specified, do not retry failures."""
         with pytest.raises(util.ProcessExecutionError) as excinfo:
             util.subp(['ls', '--bogus'])
 
-        expected_error = 'Failed running command \'ls --bogus\' [exit(2)]'
+        expected_error = (
+            "Failed running command 'ls --bogus' [exit(2)]."
+            " Message: ls: unrecognized option")
         assert expected_error in str(excinfo.value)
         assert 0 == m_sleep.call_count  # no retries
 

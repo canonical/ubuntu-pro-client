@@ -13,14 +13,13 @@ except ImportError:
 
 
 from uaclient import apt
+from uaclient import exceptions
 from uaclient.entitlements import base
 from uaclient import status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = '-32768'
-# charm-helpers uses 10 seconds between retries. Hope for an optimal first try
-APT_RETRIES = [1.0, 10.0, 10.0]
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -64,26 +63,24 @@ class RepoEntitlement(base.UAEntitlement):
             this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
+        @raises: UserFacingError on failure to install suggested packages
         """
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
-        if not self.setup_apt_config():
-            return False
+        self.setup_apt_config()
         if self.packages:
             try:
                 print(
                     'Installing {title} packages'.format(title=self.title))
                 for msg in self.messaging.get('pre_install', []):
                     print(msg)
-                util.subp(
+                apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
-                    capture=True, retry_sleeps=APT_RETRIES)
-            except util.ProcessExecutionError:
-                self._cleanup()
-                logging.error(
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title))
-                return False
+            except exceptions.UserFacingError:
+                self._cleanup()
+                raise
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get('post_enable', []):
             print(msg)
@@ -114,8 +111,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')
-        out, _err = util.subp(['apt-cache', 'policy'])
-        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, out)
+        policy = apt.run_apt_command(
+            ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
+        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, policy)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, '%s is active' % self.title
         return ApplicationStatus.DISABLED, '%s is not configured' % self.title
@@ -158,7 +156,12 @@ class RepoEntitlement(base.UAEntitlement):
         self.setup_apt_config()
         return True
 
-    def setup_apt_config(self):
+    def setup_apt_config(self) -> None:
+        """Setup apt config based on the resourceToken and  directives.
+
+        :raise UserFacingError: on failure to setup any aspect of this apt
+           configuration
+        """
         series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series)
@@ -179,19 +182,16 @@ class RepoEntitlement(base.UAEntitlement):
             repo_url = self.repo_url
         repo_suites = directives.get('suites')
         if not repo_suites:
-            logging.error(
-                'Empty %s apt suites directive from %s',
-                self.name, self.cfg.contract_url)
-            return False
+            raise exceptions.UserFacingError(
+                'Empty %s apt suites directive from %s' %
+                (self.name, self.cfg.contract_url))
         if self.repo_pin_priority:
             if not self.origin:
-                logging.error(
-                    "Cannot setup apt pin. Empty apt repo origin value '%s'." %
-                    self.origin)
-                logging.error(
-                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title))
-                return False
+                raise exceptions.UserFacingError(
+                    "Cannot setup apt pin. Empty apt repo origin value '%s'.\n"
+                    "%s" % (self.origin,
+                            status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                                title=self.title)))
             repo_pref_file = self.repo_pref_file_tmpl.format(
                 name=self.name, series=series)
             if self.repo_pin_priority != 'never':
@@ -211,22 +211,25 @@ class RepoEntitlement(base.UAEntitlement):
             print('Installing prerequisites: {}'.format(
                 ', '.join(prerequisite_pkgs)))
             try:
-                util.subp(
+                apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    capture=True, retry_sleeps=APT_RETRIES)
-            except util.ProcessExecutionError as e:
-                logging.error(str(e))
-                return False
+                    status.MESSAGE_APT_INSTALL_FAILED)
+            except exceptions.UserFacingError:
+                self.remove_apt_config()
+                raise
         apt.add_auth_apt_repo(repo_filename, repo_url, token, repo_suites,
                               keyring_file)
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
-        # Side-effect is that apt policy will new report the repo as accessible
+        # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
         print('Updating package lists')
-        util.subp(
-            ['apt-get', 'update'], capture=True, retry_sleeps=APT_RETRIES)
-        return True
+        try:
+            apt.run_apt_command(
+                ['apt-get', 'update'], status.MESSAGE_APT_UPDATE_FAILED)
+        except exceptions.UserFacingError:
+            self.remove_apt_config()
+            raise
 
     def remove_apt_config(self):
         """Remove any repository apt configuration files."""
