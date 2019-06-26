@@ -34,10 +34,21 @@ autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 
 ## Building
 
-To build the Ubuntu Advantage Client package users
+The packaging for the UA client package (ubuntu-advantage-tools) is
+in-tree, so you can build the package the way you would normally build
+a Debian package:
 
 ```shell
-make deb
+dpkg-buildpackage
+```
+
+or, if you want to build for a target release other than the release
+you're on, [configure sbuild](https://wiki.ubuntu.com/SimpleSbuild) and
+use that for the build:
+
+```shell
+debuild -S
+sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
 ```
 
 ## Daily Builds
