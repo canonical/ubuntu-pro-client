@@ -161,7 +161,7 @@ class TestPromptRequestMacaroon:
             sso.prompt_request_macaroon(config_mock, 'caveat_id')
         expected_calls = [
             mock.call('Email: '),
-            mock.call('Re-enter second-factor auth: ')]
+            mock.call('Invalid second-factor auth, try again: ')]
         assert expected_calls == m_input.call_args_list
 
     @pytest.mark.parametrize(
@@ -187,7 +187,7 @@ class TestPromptRequestMacaroon:
             sso.prompt_request_macaroon(config_mock, 'caveat_id')
             expected_calls = [
                 mock.call('Email: '),
-                mock.call('Re-enter second-factor auth: ')]
+                mock.call('Invalid second-factor auth, try again: ')]
         else:
             with pytest.raises(exceptions.UserFacingError):
                 sso.prompt_request_macaroon(config_mock, 'caveat_id')

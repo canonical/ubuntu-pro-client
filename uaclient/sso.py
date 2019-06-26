@@ -191,7 +191,8 @@ def prompt_request_macaroon(cfg: UAConfig, caveat_id: str) -> dict:
                 # 2-factor.
                 if '2-factor' in e[API_ERROR_INVALID_CREDENTIALS]:
                     if twofactor_retries < TWOFACTOR_RETRIES:
-                        args['otp'] = input('Re-enter second-factor auth: ')
+                        args['otp'] = input(
+                            'Invalid second-factor auth, try again: ')
                         twofactor_retries += 1
                         continue
             raise exceptions.UserFacingError(str(e))
