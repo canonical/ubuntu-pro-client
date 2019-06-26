@@ -121,9 +121,9 @@ MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. To enable run `ua enable {name}`"""
 MESSAGE_DETACH_SUCCESS = 'This machine is now detached'
 
-MESSAGE_REFRESH_ENABLE = 'Refreshing contracts prior to enable'
-MESSAGE_REFRESH_SUCCESS = 'Refreshed Ubuntu Advantage contracts.'
-MESSAGE_REFRESH_FAILURE = 'Unable to refresh Ubuntu Advantage contracts.'
+MESSAGE_REFRESH_ENABLE = 'One moment, checking your subscription first'
+MESSAGE_REFRESH_SUCCESS = 'Successfully refreshed your subscription'
+MESSAGE_REFRESH_FAILURE = 'Unable to refresh your subscription'
 
 
 def format_tabular(status):
