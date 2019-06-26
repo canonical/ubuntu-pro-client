@@ -104,9 +104,6 @@ MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See `ua attach` or https://ubuntu.com/advantage"""
 
-STATUS_HEADER_TMPL = """\
-Account: {account}
-Subscription: {subscription}"""
 STATUS_SERVICE_HEADER = '\nSERVICE'
 STATUS_TMPL = '{name: <14}{entitled: <26}{status}'
 
@@ -132,10 +129,14 @@ def format_tabular(status):
         return MESSAGE_UNATTACHED
     tech_support_level = status['techSupportLevel']
 
-    content = [STATUS_HEADER_TMPL.format(
-        account=status['account'], subscription=status['subscription'])]
-    if status['origin'] != 'free':  # All free accounts will have 'free' origin
-        content.append('Valid until: ' + str(status['expires']))
+    content = []
+    if status['origin'] == 'free':
+        content.append('     Account: ' + status['account'])
+        content.append('Subscription: ' + status['subscription'])
+    else:
+        content.append('                Account: ' + status['account'])
+        content.append('           Subscription: ' + status['subscription'])
+        content.append('            Valid until: ' + str(status['expires']))
         content.append('Technical support level: ' + STATUS_COLOR.get(
             tech_support_level, tech_support_level))
     content.append(STATUS_SERVICE_HEADER)
