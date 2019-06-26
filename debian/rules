@@ -13,7 +13,7 @@ else ifeq (${VERSION_ID},"18.04")
 LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.6.9)"
 else ifeq (${VERSION_ID},"18.10")
 LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.7.4)"
-else
+else ifeq (${VERSION_ID},"19.04")
 LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.8.1)"
 endif
 
@@ -37,7 +37,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	echo extra:Depends=$(LIBAPT_PKG_DEP) >> debian/ubuntu-advantage-tools.substvars
+	[ -z '$(LIBAPT_PKG_DEP)' ] || echo extra:Depends=$(LIBAPT_PKG_DEP) >> debian/ubuntu-advantage-tools.substvars
 	dh_gencontrol
 
 override_dh_auto_install:
