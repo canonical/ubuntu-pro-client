@@ -129,16 +129,18 @@ def format_tabular(status):
         return MESSAGE_UNATTACHED
     tech_support_level = status['techSupportLevel']
 
-    content = []
-    if status['origin'] == 'free':
-        content.append('     Account: ' + status['account'])
-        content.append('Subscription: ' + status['subscription'])
-    else:
-        content.append('                Account: ' + status['account'])
-        content.append('           Subscription: ' + status['subscription'])
-        content.append('            Valid until: ' + str(status['expires']))
-        content.append('Technical support level: ' + STATUS_COLOR.get(
-            tech_support_level, tech_support_level))
+    pairs = [
+        ('Account', status['account']),
+        ('Subscription', status['subscription']),
+    ]
+    if status['origin'] != 'free':
+        pairs.append(('Valid until', str(status['expires'])))
+        pairs.append(
+            ('Technical support level',
+             STATUS_COLOR.get(tech_support_level, tech_support_level)))
+    template_length = max([len(pair[0]) for pair in pairs])
+    template = '{{:>{}}}: {{}}'.format(template_length)
+    content = [template.format(*pair) for pair in pairs]
     content.append(STATUS_SERVICE_HEADER)
     for service_status in status['services']:
         entitled = service_status['entitled']
