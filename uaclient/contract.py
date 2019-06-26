@@ -240,9 +240,7 @@ def request_updated_contract(cfg, contract_token=None, allow_enable=False):
         try:
             new_token = contract_client.request_contract_machine_attach(
                 contract_token=contract_token)
-        except util.UrlError as e:
-            logging.error(
-                'Could not obtain machine token. %s', str(e))
+        except util.UrlError:
             return False
     else:
         machine_token = orig_token['machineToken']
@@ -250,9 +248,7 @@ def request_updated_contract(cfg, contract_token=None, allow_enable=False):
         try:
             new_token = contract_client.request_machine_token_refresh(
                 machine_token=machine_token, contract_id=contract_id)
-        except util.UrlError as e:
-            logging.error(
-                'Could not refresh machine token. %s', str(e))
+        except util.UrlError:
             return False
     try:
         for name, entitlement in sorted(cfg.entitlements.items()):
