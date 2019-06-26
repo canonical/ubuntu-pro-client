@@ -18,15 +18,19 @@ class TestProcessEntitlementDeltas:
 
     def test_error_on_missing_entitlement_type(self):
         """Raise an error when neither dict contains entitlement type."""
+        new_access = {'entitlement': {'something': 'non-empty'}}
         error_msg = ('Could not determine contract delta service type %s %s' %
-                     ({}, {'something': 'non-empty'}))
+                     ({}, new_access))
         with pytest.raises(RuntimeError) as exc:
-            process_entitlement_delta({}, {'something': 'non-empty'})
+            process_entitlement_delta({}, new_access)
         assert error_msg == str(exc.value)
 
     def test_no_delta_on_equal_dicts(self):
         """No deltas are reported or processed when dicts are equal."""
-        assert {} == process_entitlement_delta({'no': 'diff'}, {'no': 'diff'})
+        assert {} == process_entitlement_delta(
+            {'entitlement': {'no': 'diff'}},
+            {'entitlement': {'no': 'diff'}},
+        )
 
     @mock.patch(M_REPO_PATH + 'process_contract_deltas')
     def test_deltas_handled_by_entitlement_process_contract_deltas(
@@ -51,6 +55,23 @@ class TestProcessEntitlementDeltas:
         assert new_access == process_entitlement_delta({}, new_access)
         expected_calls = [mock.call({}, new_access, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
+
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'fake_series'})
+    @mock.patch(M_REPO_PATH + 'process_contract_deltas')
+    def test_overrides_applied_before_comparison(
+            self, m_process_contract_deltas, _):
+        old_access = {
+            'entitlement': {'type': 'esm', 'some_key': 'some_value'}}
+        new_access = {
+            'entitlement': {
+                'type': 'esm',
+                'some_key': 'will be overridden',
+                'series': {'fake_series': {'some_key': 'some_value'}}}}
+
+        process_entitlement_delta(old_access, new_access)
+
+        assert 0 == m_process_contract_deltas.call_count
 
 
 class TestRequestUpdatedContract:
