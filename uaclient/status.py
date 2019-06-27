@@ -1,6 +1,12 @@
 import enum
 import sys
 
+try:
+    from typing import Any, Dict  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 class TxtColor:
     OKGREEN = '\033[92m'
@@ -124,12 +130,12 @@ MESSAGE_REFRESH_SUCCESS = 'Successfully refreshed your subscription'
 MESSAGE_REFRESH_FAILURE = 'Unable to refresh your subscription'
 
 
-def colorize(string):
+def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
     return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
 
 
-def format_tabular(status):
+def format_tabular(status: 'Dict[str, Any]') -> str:
     """Format status dict for tabular output."""
     if not status['attached']:
         return MESSAGE_UNATTACHED
