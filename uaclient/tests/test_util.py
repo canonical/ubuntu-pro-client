@@ -287,6 +287,18 @@ class TestApplySeriesOverrides:
         util.apply_series_overrides(orig_access)
         assert orig_access == expected
 
+    @mock.patch('uaclient.util.get_platform_info',
+                return_value={'series': 'xenial'})
+    def test_missing_keys_are_handled(self, _):
+        orig_access = {
+            'entitlement': {'series': {'xenial': {'directives': {
+                'suites': ['xenial']}}}}}
+        expected = {'entitlement': {'directives': {'suites': ['xenial']}}}
+
+        util.apply_series_overrides(orig_access)
+
+        assert expected == orig_access
+
 
 class TestGetMachineId:
 
