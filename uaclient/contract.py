@@ -198,6 +198,7 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
+    util.apply_series_overrides(new_access)
     deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:
         name = orig_access.get('entitlement', {}).get('type')
