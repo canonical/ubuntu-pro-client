@@ -1,3 +1,4 @@
+import mock
 import pytest
 
 from uaclient import config
@@ -6,14 +7,23 @@ from uaclient.status import format_tabular, TxtColor
 
 class TestFormatTabular:
 
-    @pytest.mark.parametrize('support_level,expected_colour', [
-        ('n/a', TxtColor.DISABLEGREY),
-        ('essential', TxtColor.OKGREEN),
-        ('standard', TxtColor.OKGREEN),
-        ('advanced', TxtColor.OKGREEN),
-        ('something else', None),
+    @pytest.mark.parametrize('support_level,expected_colour,istty', [
+        ('n/a', TxtColor.DISABLEGREY, True),
+        ('essential', TxtColor.OKGREEN, True),
+        ('standard', TxtColor.OKGREEN, True),
+        ('advanced', TxtColor.OKGREEN, True),
+        ('something else', None, True),
+        ('n/a', TxtColor.DISABLEGREY, True),
+        ('essential', None, False),
+        ('standard', None, False),
+        ('advanced', None, False),
+        ('something else', None, False),
+        ('n/a', None, False),
+
     ])
-    def test_support_colouring(self, support_level, expected_colour):
+    @mock.patch('sys.stdout.isatty')
+    def test_support_colouring(self, m_isatty, support_level, expected_colour,
+                               istty):
         status = config.DEFAULT_STATUS.copy()
         status['techSupportLevel'] = support_level
 
@@ -23,6 +33,7 @@ class TestFormatTabular:
         status['subscription'] = 'subscription'
         status['expires'] = 'expires'
 
+        m_isatty.return_value = istty
         tabular_output = format_tabular(status)
 
         expected_string = 'Technical support level: {}'.format(

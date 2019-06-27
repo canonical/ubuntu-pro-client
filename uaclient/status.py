@@ -1,4 +1,5 @@
 import enum
+import sys
 
 
 class TxtColor:
@@ -123,6 +124,11 @@ MESSAGE_REFRESH_SUCCESS = 'Successfully refreshed your subscription'
 MESSAGE_REFRESH_FAILURE = 'Unable to refresh your subscription'
 
 
+def colorize(string):
+    """Return colorized string if using a tty, else original string."""
+    return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
+
+
 def format_tabular(status):
     """Format status dict for tabular output."""
     if not status['attached']:
@@ -135,9 +141,7 @@ def format_tabular(status):
     ]
     if status['origin'] != 'free':
         pairs.append(('Valid until', str(status['expires'])))
-        pairs.append(
-            ('Technical support level',
-             STATUS_COLOR.get(tech_support_level, tech_support_level)))
+        pairs.append(('Technical support level', colorize(tech_support_level)))
     template_length = max([len(pair[0]) for pair in pairs])
     template = '{{:>{}}}: {{}}'.format(template_length)
     content = [template.format(*pair) for pair in pairs]
@@ -146,9 +150,8 @@ def format_tabular(status):
         entitled = service_status['entitled']
         fmt_args = {
             'name': service_status['name'],
-            'entitled': STATUS_COLOR.get(entitled, entitled),
-            'status': STATUS_COLOR.get(
-                service_status['status'], service_status['status'])}
+            'entitled': colorize(entitled),
+            'status': colorize(service_status['status'])}
         content.append(STATUS_TMPL.format(**fmt_args))
     content.append('\nEnable entitlements with `ua enable <service>`')
     return '\n'.join(content)
