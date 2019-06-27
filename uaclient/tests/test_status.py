@@ -5,6 +5,19 @@ from uaclient import config
 from uaclient.status import format_tabular, TxtColor
 
 
+@pytest.fixture
+def status_dict_attached():
+    status = config.DEFAULT_STATUS.copy()
+
+    # The following are required so we don't get an "unattached" error
+    status['attached'] = True
+    status['account'] = 'account'
+    status['subscription'] = 'subscription'
+    status['expires'] = 'expires'
+
+    return status
+
+
 class TestFormatTabular:
 
     @pytest.mark.parametrize('support_level,expected_colour,istty', [
@@ -23,18 +36,11 @@ class TestFormatTabular:
     ])
     @mock.patch('sys.stdout.isatty')
     def test_support_colouring(self, m_isatty, support_level, expected_colour,
-                               istty):
-        status = config.DEFAULT_STATUS.copy()
-        status['techSupportLevel'] = support_level
-
-        # The following are required so we don't get an "unattached" error
-        status['attached'] = True
-        status['account'] = 'account'
-        status['subscription'] = 'subscription'
-        status['expires'] = 'expires'
+                               istty, status_dict_attached):
+        status_dict_attached['techSupportLevel'] = support_level
 
         m_isatty.return_value = istty
-        tabular_output = format_tabular(status)
+        tabular_output = format_tabular(status_dict_attached)
 
         expected_string = 'Technical support level: {}'.format(
             support_level if not expected_colour else
