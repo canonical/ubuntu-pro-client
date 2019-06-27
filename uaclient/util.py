@@ -393,9 +393,13 @@ def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
     orig_entitlement = orig_access.get('entitlement', {})
     overrides = orig_entitlement.pop('series', {}).pop(series_name, {})
     for key, value in overrides.items():
-        try:
-            orig_access['entitlement'][key].update(value)
-        except AttributeError:
+        current = orig_access['entitlement'].get(key)
+        if isinstance(current, dict):
+            # If the key already exists and is a dict, update that dict using
+            # the override
+            current.update(value)
+        else:
+            # Otherwise, replace it wholesale
             orig_access['entitlement'][key] = value
 
 
