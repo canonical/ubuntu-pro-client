@@ -42,7 +42,7 @@ Subscription: {subscription}
 Valid until: {contract_expiry}
 Technical support level: {tech_support_level}
 """
-UA_DASHBOARD_URL = 'https://contracts.canonical.com'
+UA_AUTH_TOKEN_URL = 'https://auth.contracts.canonical.com'
 
 DEFAULT_LOG_FORMAT = (
     '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s')
@@ -76,8 +76,9 @@ def attach_parser(parser=None):
     parser._optionals.title = 'Flags'
     parser.add_argument(
         'token', nargs='?',
-        help=('Optional token obtained from Ubuntu Advantage dashboard: %s' %
-              UA_DASHBOARD_URL))
+        help=(
+            'Optional token obtained for Ubuntu Advantage authentication: %s' %
+            UA_AUTH_TOKEN_URL))
     parser.add_argument(
         '--email', action='store',
         help='Optional email address for Ubuntu SSO login')
@@ -86,8 +87,8 @@ def attach_parser(parser=None):
         help='Optional password for Ubuntu SSO login')
     parser.add_argument(
         '--otp', action='store',
-        help=('Optional one-time password for login to Ubuntu Advantage'
-              ' Dashboard'))
+        help=('Optional one-time password for two-factor authentication'
+              ' to Ubuntu SSO'))
     parser.add_argument(
         '--no-auto-enable', action='store_false', dest='auto_enable',
         help='Do not enable any recommended services automatically')
