@@ -4,7 +4,7 @@ from uaclient.testing.fakes import FakeConfig
 
 import pytest
 
-from uaclient.cli import action_attach, attach_parser, UA_DASHBOARD_URL
+from uaclient.cli import UA_AUTH_TOKEN_URL, action_attach, attach_parser
 from uaclient.exceptions import NonRootUserError
 
 M_PATH = 'uaclient.cli.'
@@ -172,7 +172,7 @@ class TestParser:
         """Contracts' dashboard URL is referenced by ua attach --help."""
         parser = attach_parser()
         parser.print_help()
-        assert UA_DASHBOARD_URL in capsys.readouterr()[0]
+        assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
 
     def test_attach_parser_accepts_and_stores_no_auto_enable(self):
         parser = attach_parser()
