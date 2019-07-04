@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (19.6) UNRELEASED; urgency=medium
+
+  * New upstream release 
+
+ -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
+
 ubuntu-advantage-tools (19.5.1) eoan; urgency=medium
 
   * d/t/usage: fix dep8 test ("entitlements" was renamed to "services")
