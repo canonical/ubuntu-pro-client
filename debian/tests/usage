@@ -2,5 +2,5 @@
 
 set -ex
 
-ubuntu-advantage --help | grep --silent entitlements
+ubuntu-advantage --help | grep --silent services
 ubuntu-advantage status | grep --silent 'This machine is not attached'

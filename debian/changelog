@@ -1,4 +1,10 @@
-ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (19.5.1) eoan; urgency=medium
+
+  * d/t/usage: fix dep8 test ("entitlements" was renamed to "services")
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 03 Jul 2019 21:55:25 -0300
+
+ubuntu-advantage-tools (19.5) eoan; urgency=medium
 
   * New upstream release (LP: #1832757):
     - packaging:
@@ -53,7 +59,7 @@ ubuntu-advantage-tools (19.5) UNRELEASED; urgency=medium
     - repo: un-comment ESM sources.list lines on repo disable
     - updated manpage and help docs
 
- -- Andreas Hasenack <andreas@canonical.com>  Wed, 19 Jun 2019 09:27:57 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 03 Jul 2019 15:55:11 -0300
 
 ubuntu-advantage-tools (19.4.1) eoan; urgency=medium
 
