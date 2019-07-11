@@ -14,7 +14,8 @@ Build-Depends: bash-completion,
                python3-mock,
                python3-pytest,
                python3-setuptools,
-               python3-yaml
+               python3-yaml,
+               dh-systemd,
 Standards-Version: 4.3.0
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git

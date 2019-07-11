@@ -1,0 +1,12 @@
+[Unit]
+Description=Ubuntu Advantage status refresh
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ua status
+TimeoutSec=5
+
+[Install]
+WantedBy=multi-user.target
+After=network-online.target
+Want=network-online.target
