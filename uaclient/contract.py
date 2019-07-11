@@ -1,5 +1,6 @@
 import logging
 
+from uaclient import exceptions
 from uaclient import serviceclient
 from uaclient import util
 
@@ -138,8 +139,12 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
         contract refresh deltas
     :param orig_access: Dict with updated entitlement access details after
         contract refresh
-    :param allow_enable: Boolean set True to perform enable operation on
-        enableByDefault delta. When False log message about ignored default.
+    :param allow_enable: Boolean set True if allowed to perform the enable
+        operation. When False, a message will be logged to inform the user
+        about the recommended enabled service.
+
+    :raise UserFacingError: on failure to process deltas.
+    :return: Dict of processed deltas
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -166,15 +171,21 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
     return deltas
 
 
-def request_updated_contract(cfg, contract_token=None, allow_enable=False):
+def request_updated_contract(
+        cfg, contract_token: 'Optional[str]' = None, allow_enable=False):
     """Request contract refresh from ua-contracts service.
 
     Compare original token to new token and react to entitlement deltas.
 
     :param cfg: Instance of UAConfig for this machine.
     :param contract_token: String contraining an optional contract token.
+    :param allow_enable: Boolean set True if allowed to perform the enable
+        operation. When False, a message will be logged to inform the user
+        about the recommended enabled service.
 
-    @return: True on success False otherwise.
+    :raise UserFacingError: on failure to update contract or error processing
+        contract deltas
+    :raise UrlError: On failure to contact the server
     """
     orig_token = cfg.machine_token
     orig_entitlements = cfg.entitlements
@@ -183,32 +194,33 @@ def request_updated_contract(cfg, contract_token=None, allow_enable=False):
             'Got unexpected contract_token on an already attached machine')
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
-        try:
-            new_token = contract_client.request_contract_machine_attach(
-                contract_token=contract_token)
-        except util.UrlError:
-            return False
+        new_token = contract_client.request_contract_machine_attach(
+            contract_token=contract_token)
     else:
         machine_token = orig_token['machineToken']
         contract_id = orig_token['machineTokenInfo']['contractInfo']['id']
+        new_token = contract_client.request_machine_token_refresh(
+            machine_token=machine_token, contract_id=contract_id)
+    user_errors = []
+    for name, entitlement in sorted(cfg.entitlements.items()):
+        if entitlement['entitlement'].get('entitled'):
+            # Obtain each entitlement's accessContext for this machine
+            new_access = contract_client.request_resource_machine_access(
+                new_token['machineToken'], name)
+        else:
+            new_access = entitlement
         try:
-            new_token = contract_client.request_machine_token_refresh(
-                machine_token=machine_token, contract_id=contract_id)
-        except util.UrlError:
-            return False
-    try:
-        for name, entitlement in sorted(cfg.entitlements.items()):
-            if entitlement['entitlement'].get('entitled'):
-                # Obtain each entitlement's accessContext for this machine
-                new_access = contract_client.request_resource_machine_access(
-                    new_token['machineToken'], name)
-            else:
-                new_access = entitlement
             process_entitlement_delta(
                 orig_entitlements.get(name, {}), new_access,
                 allow_enable=allow_enable)
-    except util.UrlError as e:
-        logging.error(
-            'Could not obtain updated contract information. %s', str(e))
-        return False
-    return True
+        except exceptions.UserFacingError as e:
+            user_errors.append(e)
+        except Exception as e:
+            with util.disable_log_to_console():
+                logging.exception(str(e))
+            raise exceptions.UserFacingError(
+                'Unexpected error handling Ubuntu Advantage contract changes')
+    if user_errors:
+        error_lines = ['Failure processing Ubuntu Advantage contract changes.']
+        error_lines.extend(['- {}'.format(error) for error in user_errors])
+        raise exceptions.UserFacingError('\n'.join(error_lines))

@@ -62,9 +62,7 @@ class LivepatchEntitlement(base.UAEntitlement):
                           capture=True, retry_sleeps=SNAP_INSTALL_RETRIES)
             except util.ProcessExecutionError as e:
                 msg = 'Unable to install Livepatch client: ' + str(e)
-                print(msg)
-                logging.error(msg)
-                return False
+                raise exceptions.UserFacingError(msg)
         return self.setup_livepatch_config(
             process_directives=True, process_token=True)
 
