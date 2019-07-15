@@ -2,10 +2,10 @@ import glob
 import logging
 import os
 import re
-import shutil
 import subprocess
 
 from uaclient import exceptions
+from uaclient import gpg
 from uaclient import status
 from uaclient import util
 
@@ -22,6 +22,7 @@ APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
 APT_CONFIG_LISTS_DIR = 'Dir::State::lists/'
 APT_KEYS_DIR = '/etc/apt/trusted.gpg.d'
 KEYRINGS_DIR = '/usr/share/keyrings'
+UA_KEYRING_FILE = os.path.join(KEYRINGS_DIR, 'ubuntu-advantage-keyring.gpg')
 APT_METHOD_HTTPS_FILE = '/usr/lib/apt/methods/https'
 CA_CERTIFICATES_FILE = '/usr/sbin/update-ca-certificates'
 
@@ -86,8 +87,9 @@ def run_apt_command(cmd, error_msg) -> str:
     return out
 
 
-def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
-                      suites: 'List[str]', keyring_file: str = None) -> None:
+def add_auth_apt_repo(
+        repo_filename: str, repo_url: str, credentials: str,
+        suites: 'List[str]', key_id: str, keyring_file: str) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -134,9 +136,7 @@ def add_auth_apt_repo(repo_filename: str, repo_url: str, credentials: str,
                     )
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
-    if keyring_file:
-        logging.debug('Copying %s to %s', keyring_file, APT_KEYS_DIR)
-        shutil.copy(keyring_file, APT_KEYS_DIR)
+    gpg.export_gpg_key_from_keyring(key_id, UA_KEYRING_FILE, keyring_file)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
