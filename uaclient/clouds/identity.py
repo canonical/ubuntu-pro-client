@@ -15,13 +15,6 @@ def get_cloud_type_from_result_file(result_file=CLOUDINIT_RESULT_FILE) -> str:
     return dsname.replace("datasource", "")
 
 
-@util.retry(FileNotFoundError, [1, 2])
-def get_cloud_type_from_result_file(result_file=CLOUDINIT_RESULT_FILE) -> str:
-    result = json.loads((util.load_file(result_file)))
-    dsname = result['v1']['datasource'].split()[0].lower()
-    return dsname.replace('datasource', '')
-
-
 def get_cloud_type() -> str:
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
