@@ -1,12 +1,16 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import mock
+import os
 
 import pytest
 
 from uaclient import apt
 from uaclient import status
 from uaclient.entitlements.cis import CISEntitlement
+
+
+M_REPOPATH = 'uaclient.entitlements.repo.'
 
 
 @pytest.fixture
@@ -48,7 +52,7 @@ class TestCISEntitlementEnable:
         # Unset static affordance container check
         entitlement.static_affordances = ()
 
-        with mock.patch('uaclient.entitlements.repo.os.path.exists',
+        with mock.patch(M_REPOPATH + 'os.path.exists',
                         mock.Mock(return_value=True)):
             with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
                 with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
@@ -57,8 +61,8 @@ class TestCISEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list',
-                'http://CIS-AUDIT', 'TOKEN', ['xenial'],
-                '/usr/share/keyrings/ubuntu-securitybenchmarks-keyring.gpg')]
+                'http://CIS-AUDIT', 'TOKEN', ['xenial'], 'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy'],

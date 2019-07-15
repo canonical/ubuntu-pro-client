@@ -4,6 +4,7 @@ import contextlib
 import copy
 import itertools
 import mock
+import os
 
 import pytest
 
@@ -44,7 +45,8 @@ class TestFIPSEntitlementCanEnable:
 
 class TestFIPSEntitlementEnable:
 
-    def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
+    def test_enable_configures_apt_sources_and_auth_files(
+            self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ['a', 'b']
         with contextlib.ExitStack() as stack:
@@ -74,9 +76,8 @@ class TestFIPSEntitlementEnable:
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
                     entitlement.name),
-                repo_url, 'TOKEN', ['xenial'],
-                '/usr/share/keyrings/ubuntu-{}-keyring.gpg'.format(
-                    entitlement.name))]
+                repo_url, 'TOKEN', ['xenial'], 'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
         apt_pinning_calls = [
             mock.call(
                 '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(

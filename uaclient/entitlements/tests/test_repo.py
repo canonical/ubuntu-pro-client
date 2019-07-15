@@ -1,5 +1,6 @@
 import copy
 from textwrap import dedent
+import os
 
 import mock
 import pytest
@@ -282,10 +283,12 @@ class TestRepoEnable:
                           mock.call(apt.CA_CERTIFICATES_FILE)]
         assert expected_calls in m_exists.call_args_list
         assert expected_apt_calls == m_subp.call_args_list
-        assert [mock.call(
+        add_apt_calls = [mock.call(
             '/etc/apt/sources.list.d/ubuntu-repotest-xenial.list',
-            'http://REPOTEST', 'TOKEN', ['xenial'],
-            '/usr/share/keyrings/test.gpg')] == m_apt_add.call_args_list
+            'http://REPOTEST', 'TOKEN',
+            ['xenial'], 'APTKEY',
+            os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
+        assert add_apt_calls == m_apt_add.call_args_list
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 

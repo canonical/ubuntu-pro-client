@@ -63,9 +63,8 @@ class TestESMEntitlementEnable:
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-trusty.list'.format(
                     entitlement.name),
-                'http://ESM', 'TOKEN', ['trusty'],
-                '/usr/share/keyrings/ubuntu-{}-v2-keyring.gpg'.format(
-                    entitlement.name))]
+                'http://ESM', 'TOKEN', ['trusty'], 'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
             capture=True, retry_sleeps=apt.APT_RETRIES)
@@ -128,9 +127,8 @@ class TestESMEntitlementEnable:
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-trusty.list'.format(
                     entitlement.name),
-                'http://ESM', 'TOKEN', ['trusty'],
-                '/usr/share/keyrings/ubuntu-{}-v2-keyring.gpg'.format(
-                    entitlement.name))]
+                'http://ESM', 'TOKEN', ['trusty'], 'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
         subp_calls = [
             mock.call(['apt-get', 'update'],
                       capture=True, retry_sleeps=apt.APT_RETRIES)]
