@@ -11,6 +11,7 @@ except ImportError:
 
 
 from uaclient import apt
+from uaclient import defaults
 from uaclient import exceptions
 from uaclient.entitlements import base
 from uaclient import status
