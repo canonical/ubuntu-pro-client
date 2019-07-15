@@ -173,10 +173,11 @@ class RepoEntitlement(base.UAEntitlement):
                 'No specific resourceToken present. Using machine token'
                 ' as %s credentials', self.title)
             token = self.cfg.machine_token['machineToken']
-        if directives.get('aptKey'):
-            logging.debug(
-                "Ignoring aptKey directive '%s'", directives.get('aptKey'))
-        keyring_file = os.path.join(apt.KEYRINGS_DIR, self.repo_key_file)
+        aptKey = directives.get('aptKey')
+        if not aptKey:
+            raise exceptions.UserFacingError(
+                "Ubuntu Advantage server provided no aptKey directive for %s."
+                % self.name)
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
@@ -217,8 +218,9 @@ class RepoEntitlement(base.UAEntitlement):
             except exceptions.UserFacingError:
                 self.remove_apt_config()
                 raise
-        apt.add_auth_apt_repo(repo_filename, repo_url, token, repo_suites,
-                              keyring_file)
+        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
+        apt.add_auth_apt_repo(
+            repo_filename, repo_url, token, repo_suites, aptKey, keyring_file)
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
