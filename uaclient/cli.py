@@ -75,20 +75,8 @@ def attach_parser(parser=None):
         parser.prog = 'attach'
     parser._optionals.title = 'Flags'
     parser.add_argument(
-        'token', nargs='?',
-        help=(
-            'Optional token obtained for Ubuntu Advantage authentication: %s' %
-            UA_AUTH_TOKEN_URL))
-    parser.add_argument(
-        '--email', action='store',
-        help='Optional email address for Ubuntu SSO login')
-    parser.add_argument(
-        '--password', action='store',
-        help='Optional password for Ubuntu SSO login')
-    parser.add_argument(
-        '--otp', action='store',
-        help=('Optional one-time password for two-factor authentication'
-              ' to Ubuntu SSO'))
+        'token', help='Token obtained for Ubuntu Advantage authentication:'
+                      ' %s' % UA_AUTH_TOKEN_URL)
     parser.add_argument(
         '--no-auto-enable', action='store_false', dest='auto_enable',
         help='Do not enable any recommended services automatically')

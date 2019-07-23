@@ -21,14 +21,11 @@ described in more detail below.
 
 .SH COMMANDS
 .TP
-.BR "attach" " [--no-auto-enable] [token]"
+.BR "attach" " [--no-auto-enable] <token>"
 Connect an Ubuntu Advantage support contract to this machine.
 
-The optional \fItoken\fR parameter can be obtained from
-https://auth.contracts.canonical.com/. When no \fItoken\fR is provided,
-users are prompted for their Ubuntu SSO login credentials to
-https://login.ubuntu.com, which will enable an individual contract on
-the system.
+The \fItoken\fR parameter can be obtained from
+https://auth.contracts.canonical.com/.
 
 The optional \fI--no-auto-enable\fR flag will disable the automatic
 enablement of recommended entitlements which usually happens immediately

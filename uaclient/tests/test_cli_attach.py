@@ -133,7 +133,7 @@ class TestActionAttach:
 class TestParser:
 
     def test_attach_parser_creates_a_parser_when_not_provided(self):
-        """Create a named parser configured for 'attach' on no arguments."""
+        """Create a named parser configured for 'attach'."""
         parser = attach_parser()
 
         assert 'ubuntu-advantage attach [token] [flags]' == parser.usage
@@ -143,29 +143,18 @@ class TestParser:
         assert 'attach' == parser.prog
         assert 'Flags' == parser._optionals.title
 
+        with mock.patch('sys.argv', ['attach', 'token']):
+            args = parser.parse_args()
+        assert 'token' == args.token
+
+    def test_attach_parser_requires_positional_token(self, capsys):
+        """Token is required"""
+        parser = attach_parser()
         with mock.patch('sys.argv', ['attach']):
-            args = parser.parse_args()
-        assert None is args.password
-        assert None is args.token
-        assert None is args.email
-        assert None is args.otp
-
-    @pytest.mark.parametrize('param_name', ('email', 'otp', 'password'))
-    def test_attach_parser_sets_optional_params(self, param_name):
-        """Optional params are accepted by attach_parser."""
-        parser = attach_parser()
-        arg = '--%s' % param_name
-        value = 'val%s' % param_name
-        with mock.patch('sys.argv', ['attach', arg, value]):
-            args = parser.parse_args()
-        assert value == getattr(args, param_name)
-
-    def test_attach_parser_accepts_positional_token(self):
-        """Token positional param is accepted by attach_parser."""
-        parser = attach_parser()
-        with mock.patch('sys.argv', ['attach', 'tokenval']):
-            args = parser.parse_args()
-        assert 'tokenval' == args.token
+            with pytest.raises(SystemExit):
+                parser.parse_args()
+        _out, err = capsys.readouterr()
+        assert 'the following arguments are required: token' in err
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
             self, capsys):
@@ -176,12 +165,12 @@ class TestParser:
 
     def test_attach_parser_accepts_and_stores_no_auto_enable(self):
         parser = attach_parser()
-        with mock.patch('sys.argv', ['attach', '--no-auto-enable']):
+        with mock.patch('sys.argv', ['attach', '--no-auto-enable', 'token']):
             args = parser.parse_args()
         assert not args.auto_enable
 
     def test_attach_parser_defaults_to_auto_enable(self):
         parser = attach_parser()
-        with mock.patch('sys.argv', ['attach']):
+        with mock.patch('sys.argv', ['attach', 'token']):
             args = parser.parse_args()
         assert args.auto_enable
