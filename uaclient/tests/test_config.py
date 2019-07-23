@@ -13,8 +13,7 @@ from uaclient.entitlements import ENTITLEMENT_CLASSES
 from uaclient.testing.fakes import FakeConfig
 
 
-KNOWN_DATA_PATHS = (('bound-macaroon', 'bound-macaroon'),
-                    ('accounts', 'accounts.json'))
+KNOWN_DATA_PATHS = (('accounts', 'accounts.json'),)
 M_PATH = 'uaclient.entitlements.'
 
 

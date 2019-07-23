@@ -39,7 +39,6 @@ DataPath = namedtuple('DataPath', ('filename', 'private'))
 class UAConfig:
 
     data_paths = {
-        'bound-macaroon': DataPath('bound-macaroon', True),
         'accounts': DataPath('accounts.json', True),
         'account-users': DataPath('account-users.json', True),
         'contract-token': DataPath('contract-token.json', True),
