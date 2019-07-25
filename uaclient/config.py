@@ -172,8 +172,10 @@ class UAConfig:
             if not os.path.exists(cache_path) and not silent:
                 logging.debug('File does not exist: %s', cache_path)
             return None
-        json_content = util.maybe_parse_json(content)
-        return json_content if json_content else content
+        try:
+            return json.loads(content)
+        except ValueError:
+            return content
 
     def write_cache(self, key: str, content: 'Any') -> None:
         filepath = self.data_path(key)
