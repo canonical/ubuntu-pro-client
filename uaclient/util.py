@@ -193,8 +193,6 @@ def readurl(url: str, data: 'Optional[bytes]' = None,
     if data and not method:
         method = 'POST'
     req = request.Request(url, data=data, headers=headers, method=method)
-    if data:
-        data = maybe_parse_json(data.decode('utf-8'))
     logging.debug(
         'URL [%s]: %s, headers: %s, data: %s',
         method or 'GET', url, headers, data)
