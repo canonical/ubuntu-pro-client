@@ -359,7 +359,7 @@ class TestStatus:
     @mock.patch(M_PATH + 'livepatch.LivepatchEntitlement.user_facing_status')
     @mock.patch(M_PATH + 'repo.RepoEntitlement.user_facing_status')
     def test_attached_reports_contract_and_service_status(
-            self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid, tmpdir,
+            self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid,
             entitlements):
         """When attached, return contract and service user-facing status."""
         m_repo_uf_status.return_value = (
