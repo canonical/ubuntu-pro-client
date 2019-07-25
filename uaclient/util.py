@@ -176,17 +176,6 @@ def load_file(filename: str, decode: bool = True) -> str:
     return content.decode('utf-8')
 
 
-def maybe_parse_json(content: str) -> 'Optional[Any]':
-    """Attempt to parse json content.
-
-    @return: Structured content on success and None on failure.
-    """
-    try:
-        return json.loads(content)
-    except ValueError:
-        return None
-
-
 def readurl(url: str, data: 'Optional[bytes]' = None,
             headers: 'Dict[str, str]' = {}, method: 'Optional[str]' = None
             ) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
