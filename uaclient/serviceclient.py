@@ -51,7 +51,10 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 url=url, data=data, headers=headers, method=method)
         except error.URLError as e:
             if hasattr(e, 'read'):
-                error_details = util.maybe_parse_json(e.read().decode('utf-8'))
+                try:
+                    error_details = json.loads(e.read().decode('utf-8'))
+                except ValueError:
+                    error_details = None
                 if error_details:
                     raise self.api_error_cls(e, error_details)
             raise util.UrlError(e, code=e.code, headers=headers, url=url)
