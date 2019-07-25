@@ -1,3 +1,5 @@
+import json
+
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
 
@@ -29,15 +31,22 @@ class FakeContractClient(UAContractClient):
 class FakeConfig(UAConfig):
 
     def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
-        self._cache_contents = (
-            cache_contents if cache_contents is not None else {})
+        self._cache_contents = {}
+        if cache_contents:
+            self._cache_contents = {
+                k: json.dumps(v) for k, v in cache_contents.items()}
+
         super().__init__({})
 
     def read_cache(self, key: str, silent: bool = False) -> 'Optional[str]':
-        return self._cache_contents.get(key)
+        value = self._cache_contents.get(key)
+        if value:
+            value = json.loads(value)
+        return value
 
     def write_cache(
             self, key: str, content: 'Any', private: bool = True) -> None:
+        content = json.dumps(content)
         if private:
             self._cache_contents[key] = content
         else:
