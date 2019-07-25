@@ -186,7 +186,7 @@ class UAConfig:
             self._machine_token = None
             self._entitlements = None
         if not isinstance(content, str):
-            content = json.dumps(content)
+            content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
         mode = 0o600
         if key in self.data_paths:
             if not self.data_paths[key].private:

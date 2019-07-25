@@ -1,4 +1,5 @@
 import copy
+import datetime
 import itertools
 import json
 import os
@@ -159,6 +160,14 @@ class TestWriteCache:
         cfg.write_cache('path', '')
         assert mode == stat.S_IMODE(
             os.lstat(cfg.data_path('path')).st_mode)
+
+    def test_write_datetime(self, tmpdir):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        key = 'test_key'
+        dt = datetime.datetime.now()
+        cfg.write_cache(key, dt)
+        with open(cfg.data_path(key)) as f:
+            assert dt.isoformat() == f.read().strip('"')
 
 
 class TestReadCache:
