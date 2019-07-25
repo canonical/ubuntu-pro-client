@@ -1,4 +1,6 @@
 """Tests related to uaclient.util module."""
+import datetime
+import json
 import logging
 import posix
 import subprocess
@@ -428,3 +430,15 @@ class TestDisableLogToConsole:
         combined_output = out + err
         assert 'test error' in combined_output
         assert 'test info' in combined_output
+
+
+class TestDatetimeAwareJSONEncoder:
+
+    @pytest.mark.parametrize('input,out', (
+        ('a', '"a"'),
+        (1, '1'),
+        ({'a': 1}, '{"a": 1}'),
+        (datetime.datetime(2019, 7, 25, 14, 35, 51), '"2019-07-25T14:35:51"'),
+    ))
+    def test_encode(self, input, out):
+        assert out == json.dumps(input, cls=util.DatetimeAwareJSONEncoder)

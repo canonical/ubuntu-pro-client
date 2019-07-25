@@ -1,4 +1,5 @@
 from errno import ENOENT
+import datetime
 import json
 import logging
 import os
@@ -65,6 +66,15 @@ class ProcessExecutionError(IOError):
                 " Message: {stderr}")
         super().__init__(
             message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
+
+
+class DatetimeAwareJSONEncoder(json.JSONEncoder):
+    """A json.JSONEncoder subclass that writes out isoformat'd datetimes."""
+
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return super().default(o)
 
 
 def del_file(path: str) -> None:
