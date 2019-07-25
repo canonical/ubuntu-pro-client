@@ -9,7 +9,7 @@ try:
     from typing import cast, Dict, List, Type  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    def cast(_, x):
+    def cast(_, x):  # type: ignore
         return x
 
 ENTITLEMENT_CLASSES = [
