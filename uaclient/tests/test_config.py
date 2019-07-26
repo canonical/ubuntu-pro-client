@@ -460,14 +460,13 @@ class TestParseConfig:
             'data_dir': '/var/lib/ubuntu-advantage',
             'log_file': '/var/log/ubuntu-advantage.log',
             'log_level': 'INFO',
-            'sso_auth_url': 'https://login.ubuntu.com'}
+        }
         assert expected_default_config == config
 
     @mock.patch('uaclient.config.os.path.exists', return_value=False)
     def test_parse_config_scrubs_user_environ_values(
             self, m_exists):
         user_values = {
-            'UA_SSO_AUTH_URL': 'https://auth',
             'UA_CONTRACT_URL': 'https://contract',
             'ua_data_dir': '~/somedir',
             'Ua_LoG_FiLe': 'some.log',
@@ -480,17 +479,15 @@ class TestParseConfig:
             'data_dir': '%s/somedir' % expanded_dir,
             'log_file': 'some.log',
             'log_level': 'DEBUG',
-            'sso_auth_url': 'https://auth'}
+        }
         assert expected_default_config == config
 
     @mock.patch('uaclient.config.os.path.exists', return_value=False)
     def test_parse_raises_errors_on_invalid_urls(self, m_exists):
         user_values = {
-            'UA_SSO_AUTH_URL': 'auth',  # no acceptable url scheme
             'UA_CONTRACT_URL': 'htp://contract'}  # no acceptable url scheme
         with mock.patch.dict('uaclient.config.os.environ', values=user_values):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 parse_config()
-        expected_msg = ('Invalid url in config. contract_url: htp://contract\n'
-                        'Invalid url in config. sso_auth_url: auth')
+        expected_msg = 'Invalid url in config. contract_url: htp://contract'
         assert expected_msg == excinfo.value.msg

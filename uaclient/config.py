@@ -121,10 +121,6 @@ class UAConfig:
         return self.cfg.get('log_file', CONFIG_DEFAULTS['log_file'])
 
     @property
-    def sso_auth_url(self):
-        return self.cfg['sso_auth_url']
-
-    @property
     def entitlements(self):
         """Return a dictionary of entitlements keyed by entitlement name.
 
@@ -296,7 +292,7 @@ def parse_config(config_path=None):
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
     errors = []
-    for cfg_key in ('contract_url', 'sso_auth_url'):
+    for cfg_key in ('contract_url',):
         if not util.is_service_url(cfg[cfg_key]):
             errors.append(
                 'Invalid url in config. %s: %s' % (cfg_key, cfg[cfg_key]))
