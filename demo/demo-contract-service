@@ -84,7 +84,7 @@ if [ $? -eq 1 ]; then
   # Rename LP creds to /root/entitlement-creds.json
   lxc file push $USERCREDS_FILE $LXC_NAME/root/entitlement-creds.json
   lxc exec $LXC_NAME -- apt-get update
-  lxc exec $LXC_NAME -- apt-get install docker-compose python3-pymacaroons make --assume-yes
+  lxc exec $LXC_NAME -- apt-get install docker-compose make --assume-yes
   lxc exec $LXC_NAME -- dpkg -i /root/$UACLIENT_DEB
   lxc exec $LXC_NAME -- wget https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz
   lxc exec $LXC_NAME -- tar -C /usr/local -xzf go1.12.4.linux-amd64.tar.gz

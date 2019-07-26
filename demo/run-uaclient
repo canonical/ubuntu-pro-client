@@ -9,10 +9,10 @@ import re
 import sys
 
 MACAROON_DEPS = {
- 'trusty': ['python3-libnacl', 'libsodium18', 'python3-pymacaroons'],
- 'xenial': ['python3-libnacl', 'libsodium18', 'python3-pymacaroons'],
- 'bionic': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons'],
- 'disco': ['python3-libnacl', 'libsodium23', 'python3-pymacaroons']}
+ 'trusty': ['python3-libnacl', 'libsodium18'],
+ 'xenial': ['python3-libnacl', 'libsodium18'],
+ 'bionic': ['python3-libnacl', 'libsodium23'],
+ 'disco': ['python3-libnacl', 'libsodium23']}
 
 
 try:
