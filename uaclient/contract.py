@@ -10,7 +10,6 @@ except ImportError:
     pass
 
 
-API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
     '/v1/contracts/{contract}/context/machines/{machine}')
@@ -57,19 +56,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
-
-    def request_add_contract_token(self, macaroon_token, contract_id):
-        """Create a contract token for use when adding a machine to a contract
-
-        """
-        headers = self.headers()
-        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        url = API_V1_TMPL_ADD_CONTRACT_TOKEN.format(contract=contract_id)
-        contract_token, _headers = self.request_url(
-            url, headers=headers,
-            data={"TODO": "any other request body params?"})
-        self.cfg.write_cache('contract-token', contract_token)
-        return contract_token
 
     def request_contract_machine_attach(self, contract_token, machine_id=None):
         """Requests machine attach to the provided contact_id.
