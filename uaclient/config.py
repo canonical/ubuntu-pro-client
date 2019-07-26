@@ -291,11 +291,7 @@ def parse_config(config_path=None):
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
-    errors = []
-    for cfg_key in ('contract_url',):
-        if not util.is_service_url(cfg[cfg_key]):
-            errors.append(
-                'Invalid url in config. %s: %s' % (cfg_key, cfg[cfg_key]))
-    if errors:
-        raise exceptions.UserFacingError('\n'.join(errors))
+    if not util.is_service_url(cfg['contract_url']):
+        raise exceptions.UserFacingError(
+            'Invalid url in config. contract_url: %s' % (cfg['contract_url'],))
     return cfg
