@@ -16,7 +16,6 @@ API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
     '/v1/contracts/{contract}/context/machines/{machine}')
-API_V1_SSO_MACAROON = '/v1/canonical-sso-macaroon'
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     '/v1/resources/{resource}/context/machines/{machine}')
 
@@ -60,12 +59,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
-
-    def request_root_macaroon(self):
-        """Request root macaroon with 3rd party caveat for Ubuntu SSO."""
-        root_macaroon, _headers = self.request_url(API_V1_SSO_MACAROON)
-        self.cfg.write_cache('root-macaroon', root_macaroon)
-        return root_macaroon
 
     def request_accounts(self, macaroon_token):
         """Request list of accounts this user has access to."""

@@ -60,7 +60,6 @@ class UAConfig:
         'machine-token': DataPath('machine-token.json', True),
         'machine-token-refresh': DataPath('machine-token-refresh.json', True),
         'macaroon': DataPath('sso-macaroon.json', True),
-        'root-macaroon': DataPath('root-macaroon.json', True),
         'status-cache': DataPath('status.json', False),
         'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
