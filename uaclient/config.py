@@ -39,7 +39,6 @@ DataPath = namedtuple('DataPath', ('filename', 'private'))
 class UAConfig:
 
     data_paths = {
-        'accounts': DataPath('accounts.json', True),
         'account-users': DataPath('account-users.json', True),
         'contract-token': DataPath('contract-token.json', True),
         'local-access': DataPath('local-access', True),
@@ -77,28 +76,11 @@ class UAConfig:
     @property
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
-        accounts = self.read_cache('accounts')
-        if not accounts:
-            if self.is_attached:
-                accountInfo = self.machine_token[
-                    'machineTokenInfo']['accountInfo']
-                return [accountInfo]
-            return []
-        warning_msg = None
-        if not isinstance(accounts, dict):
-            warning_msg = ('Unexpected type %s in cache %s' %
-                           (type(accounts), self.data_path('accounts')))
-        elif 'accounts' not in accounts:
-            warning_msg = ("Missing 'accounts' key in cache %s" %
-                           self.data_path('accounts'))
-        elif not isinstance(accounts['accounts'], list):
-            warning_msg = (
-                "Unexpected 'accounts' type %s in cache %s" %
-                (type(accounts['accounts']), self.data_path('accounts')))
-        if warning_msg:
-            LOG.warning(warning_msg)
-            return []
-        return accounts['accounts']
+        if self.is_attached:
+            accountInfo = self.machine_token[
+                'machineTokenInfo']['accountInfo']
+            return [accountInfo]
+        return []
 
     @property
     def contract_url(self):

@@ -13,7 +13,7 @@ from uaclient.entitlements import ENTITLEMENT_CLASSES
 from uaclient.testing.fakes import FakeConfig
 
 
-KNOWN_DATA_PATHS = (('accounts', 'accounts.json'),)
+KNOWN_DATA_PATHS = (('machine-token', 'machine-token.json'),)
 M_PATH = 'uaclient.entitlements.'
 
 
@@ -65,14 +65,6 @@ class TestAccounts:
 
         assert [] == cfg.accounts
 
-    def test_accounts_extracts_accounts_key_from_account_read_cache(
-            self, tmpdir):
-        """Config.accounts property extracts the accounts key from cache."""
-        cfg = UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('accounts', {'accounts': ['acct1', 'acct2']})
-
-        assert ['acct1', 'acct2'] == cfg.accounts
-
     def test_accounts_extracts_accounts_key_from_machine_token_cache(
             self, tmpdir):
         """Use machine_token cached accountInfo when no accounts cache."""
@@ -83,42 +75,6 @@ class TestAccounts:
                         {'machineTokenInfo': {'accountInfo': accountInfo}})
 
         assert [accountInfo] == cfg.accounts
-
-    def test_accounts_logs_warning_when_non_dictionary_cache_content(
-            self, caplog_text, tmpdir):
-        """Config.accounts warns and returns empty list on non-dict cache."""
-        cfg = UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('accounts', 'non-dict-value')
-
-        assert [] == cfg.accounts
-        expected_warning = (
-            "WARNING  Unexpected type <class 'str'> in cache %s" % (
-                tmpdir.join(PRIVATE_SUBDIR, 'accounts.json')))
-        assert expected_warning in caplog_text()
-
-    def test_accounts_logs_warning_when_missing_accounts_key_in_cache(
-            self, caplog_text, tmpdir):
-        """Config.accounts warns when missing 'accounts' key in cache"""
-        cfg = UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('accounts', {'non-accounts': 'somethingelse'})
-
-        assert [] == cfg.accounts
-        expected_warning = (
-            "WARNING  Missing 'accounts' key in cache %s" %
-            tmpdir.join(PRIVATE_SUBDIR, 'accounts.json'))
-        assert expected_warning in caplog_text()
-
-    def test_accounts_logs_warning_when_non_list_accounts_cache_content(
-            self, caplog_text, tmpdir):
-        """Config.accounts warns on non-list accounts key."""
-        cfg = UAConfig({'data_dir': tmpdir.strpath})
-        cfg.write_cache('accounts', {'accounts': 'non-list-value'})
-
-        assert [] == cfg.accounts
-        expected_warning = (
-            "WARNING  Unexpected 'accounts' type <class 'str'> in cache %s" % (
-                tmpdir.join(PRIVATE_SUBDIR, 'accounts.json')))
-        assert expected_warning in caplog_text()
 
 
 class TestDataPath:

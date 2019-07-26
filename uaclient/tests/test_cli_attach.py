@@ -10,8 +10,12 @@ from uaclient.exceptions import NonRootUserError
 M_PATH = 'uaclient.cli.'
 
 BASIC_MACHINE_TOKEN = {
-    'machineTokenInfo': {'contractInfo': {'name': 'mycontract',
-                                          'resourceEntitlements': []}}}
+    'machineTokenInfo': {
+        'contractInfo': {'name': 'mycontract',
+                         'resourceEntitlements': []},
+        'accountInfo': {'name': 'accountName'},
+    },
+}
 
 
 @mock.patch(M_PATH + 'os.getuid')
@@ -51,7 +55,7 @@ class TestActionAttach:
         # post-conditions
         token = 'contract-token'
         args = mock.MagicMock(token=token)
-        cfg = FakeConfig.with_account()
+        cfg = FakeConfig()
 
         def fake_contract_attach(contract_token):
             cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
@@ -77,7 +81,7 @@ class TestActionAttach:
 
         with mock.patch(M_PATH + 'contract.request_updated_contract') as m_ruc:
             m_ruc.side_effect = fake_contract_updates
-            action_attach(args, FakeConfig.with_account())
+            action_attach(args, FakeConfig())
 
         expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
         assert [expected_call] == m_ruc.call_args_list
