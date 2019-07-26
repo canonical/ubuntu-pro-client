@@ -10,7 +10,6 @@ except ImportError:
     pass
 
 
-API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
 API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
@@ -58,14 +57,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
-
-    def request_account_contracts(self, macaroon_token, account_id):
-        """Request a list of contracts authorized for account_id."""
-        url = API_V1_TMPL_ACCOUNT_CONTRACTS.format(account=account_id)
-        headers = self.headers()
-        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        account_contracts, _headers = self.request_url(url, headers=headers)
-        return account_contracts
 
     def request_add_contract_token(self, macaroon_token, contract_id):
         """Create a contract token for use when adding a machine to a contract
