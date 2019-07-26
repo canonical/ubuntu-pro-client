@@ -10,7 +10,6 @@ except ImportError:
     pass
 
 
-API_V1_ACCOUNTS = '/v1/accounts'
 API_V1_TMPL_ACCOUNT_CONTRACTS = '/v1/accounts/{account}/contracts'
 API_V1_TMPL_ADD_CONTRACT_TOKEN = '/v1/contracts/{contract}/token'
 API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
@@ -59,15 +58,6 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = 'contract_url'
     api_error_cls = ContractAPIError
-
-    def request_accounts(self, macaroon_token):
-        """Request list of accounts this user has access to."""
-        headers = self.headers()
-        headers.update({'Authorization': 'Macaroon %s' % macaroon_token})
-        accounts, _headers = self.request_url(
-            API_V1_ACCOUNTS, headers=headers)
-        self.cfg.write_cache('accounts', accounts)
-        return accounts
 
     def request_account_contracts(self, macaroon_token, account_id):
         """Request a list of contracts authorized for account_id."""
