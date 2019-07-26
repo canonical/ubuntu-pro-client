@@ -39,10 +39,6 @@ DataPath = namedtuple('DataPath', ('filename', 'private'))
 class UAConfig:
 
     data_paths = {
-        'account-users': DataPath('account-users.json', True),
-        'contract-token': DataPath('contract-token.json', True),
-        'local-access': DataPath('local-access', True),
-        'machine-contracts': DataPath('machine-contracts.json', True),
         'machine-access-cc-eal': DataPath('machine-access-cc-eal.json', True),
         'machine-access-cis-audit': DataPath(
             'machine-access-cis-audit.json', True),
@@ -54,13 +50,9 @@ class UAConfig:
             'machine-access-livepatch.json', True),
         'machine-access-support': DataPath(
             'machine-access-support.json', True),
-        'machine-detach': DataPath('machine-detach.json', True),
         'machine-id': DataPath('machine-id', True),
         'machine-token': DataPath('machine-token.json', True),
-        'machine-token-refresh': DataPath('machine-token-refresh.json', True),
-        'macaroon': DataPath('sso-macaroon.json', True),
         'status-cache': DataPath('status.json', False),
-        'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
 
     _entitlements = None  # caching to avoid repetitive file reads
