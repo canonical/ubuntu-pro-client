@@ -77,6 +77,39 @@ class DatetimeAwareJSONEncoder(json.JSONEncoder):
         return super().default(o)
 
 
+class DatetimeAwareJSONDecoder(json.JSONDecoder):
+    """
+    A JSONDecoder that parses some ISO datetime strings to datetime objects.
+
+    Important note: the "some" is because we seem to only be able extend
+    Python's json library in a way that lets us convert string values within
+    JSON objects (e.g. '{"lastModified": "2019-07-25T14:35:51"}').  Strings
+    outside of JSON objects (e.g. '"2019-07-25T14:35:51"') will not be passed
+    through our decoder.
+
+    (N.B. This will override any object_hook specified using arguments to it,
+    or used in load or loads calls that specify this as the cls.)
+    """
+
+    def __init__(self, *args, **kwargs):
+        if 'object_hook' in kwargs:
+            kwargs.pop('object_hook')
+        super().__init__(*args, object_hook=self.object_hook, **kwargs)
+
+    @staticmethod
+    def object_hook(o):
+        for key, value in o.items():
+            if isinstance(value, str):
+                try:
+                    new_value = datetime.datetime.strptime(
+                        value, '%Y-%m-%dT%H:%M:%S')
+                except ValueError:
+                    # This isn't a string containing a valid ISO 8601 datetime
+                    new_value = value
+                o[key] = new_value
+        return o
+
+
 def del_file(path: str) -> None:
     try:
         os.unlink(path)

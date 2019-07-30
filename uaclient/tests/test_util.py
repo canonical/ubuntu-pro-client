@@ -432,13 +432,28 @@ class TestDisableLogToConsole:
         assert 'test info' in combined_output
 
 
+JSON_TEST_PAIRS = (
+    ('a', '"a"'),
+    (1, '1'),
+    ({'a': 1}, '{"a": 1}'),
+    # See the note in DatetimeAwareJSONDecoder for why this datetime is in a
+    # dict
+    ({'dt': datetime.datetime(2019, 7, 25, 14, 35, 51)},
+     '{"dt": "2019-07-25T14:35:51"}'),
+)
+
+
 class TestDatetimeAwareJSONEncoder:
 
-    @pytest.mark.parametrize('input,out', (
-        ('a', '"a"'),
-        (1, '1'),
-        ({'a': 1}, '{"a": 1}'),
-        (datetime.datetime(2019, 7, 25, 14, 35, 51), '"2019-07-25T14:35:51"'),
-    ))
+    @pytest.mark.parametrize('input,out', JSON_TEST_PAIRS)
     def test_encode(self, input, out):
         assert out == json.dumps(input, cls=util.DatetimeAwareJSONEncoder)
+
+
+class TestDatetimeAwareJSONDecoder:
+
+    # Note that the parameter names are flipped from
+    # TestDatetimeAwareJSONEncoder
+    @pytest.mark.parametrize('out,input', JSON_TEST_PAIRS)
+    def test_encode(self, input, out):
+        assert out == json.loads(input, cls=util.DatetimeAwareJSONDecoder)
