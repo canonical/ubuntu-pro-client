@@ -203,6 +203,16 @@ class TestReadCache:
 
         assert expected == cfg.read_cache(key)
 
+    def test_datetimes_are_unserialised(self, tmpdir):
+        cfg = UAConfig({'data_dir': tmpdir.strpath})
+        os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
+        data_path = tmpdir.join(PRIVATE_SUBDIR, 'dt_test')
+        with open(data_path.strpath, 'w') as f:
+            f.write('{"dt": "2019-07-25T14:35:51"}')
+
+        actual = cfg.read_cache('dt_test')
+        assert {'dt': datetime.datetime(2019, 7, 25, 14, 35, 51)} == actual
+
 
 class TestDeleteCache:
 
@@ -406,6 +416,27 @@ class TestStatus:
         assert expected == cfg.status()
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
+
+    @mock.patch('uaclient.config.os.getuid')
+    def test_expires_handled_appropriately(self, m_getuid):
+        token = {
+            'machineTokenInfo': {
+                'accountInfo': {'id': '1', 'name': 'accountname'},
+                'contractInfo': {'name': 'contractname',
+                                 'effectiveTo': '2020-07-18T00:00:00Z',
+                                 'resourceEntitlements': []}}}
+        cfg = FakeConfig.for_attached_machine(
+            account_name='accountname', machine_token=token)
+
+        # Test that root's status works as expected (including the cache write)
+        m_getuid.return_value = 0
+        expected_dt = datetime.datetime(2020, 7, 18, 0, 0, 0)
+        assert expected_dt == cfg.status()['expires']
+
+        # Test that the read from the status cache work properly for non-root
+        # users
+        m_getuid.return_value = 1000
+        assert expected_dt == cfg.status()['expires']
 
 
 class TestParseConfig:

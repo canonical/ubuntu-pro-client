@@ -2,7 +2,7 @@ import json
 
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
-from uaclient.util import DatetimeAwareJSONEncoder
+from uaclient.util import DatetimeAwareJSONDecoder, DatetimeAwareJSONEncoder
 
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -43,7 +43,7 @@ class FakeConfig(UAConfig):
     def read_cache(self, key: str, silent: bool = False) -> 'Optional[str]':
         value = self._cache_contents.get(key)
         if value:
-            value = json.loads(value)
+            value = json.loads(value, cls=DatetimeAwareJSONDecoder)
         return value
 
     def write_cache(

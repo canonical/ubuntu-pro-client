@@ -173,7 +173,7 @@ class UAConfig:
                 logging.debug('File does not exist: %s', cache_path)
             return None
         try:
-            return json.loads(content)
+            return json.loads(content, cls=util.DatetimeAwareJSONDecoder)
         except ValueError:
             return content
 
