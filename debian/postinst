@@ -3,12 +3,17 @@
 set -e
 
 ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
+ESM_KEY_ID_XENIAL="3CB3DF682220A643B43065E9B30EDAA63D8F61D0"
+ESM_KEY_ID_BIONIC="2926E7D347A1955504000A983121D2531EF59819"
 ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
 ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
-ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
-ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-trusty"
+ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-<SERIES>.list"
+ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-<SERIES>"
 UA_KEYRING_FILE="/usr/share/keyrings/ubuntu-advantage-keyring.gpg"
 
+
+# Get Ubuntu distro UBUNTU_CODENAME variable
+. /etc/os-release
 
 export_gpg_key_from_shared_keyring() {
     KEY_ID=$1
@@ -19,33 +24,62 @@ export_gpg_key_from_shared_keyring() {
     fi
 }
 
-configure_esm() {
-    rm -f $ESM_APT_GPG_KEY_OLD  # Remove retired key from key list
-    if [ ! -f "$ESM_APT_GPG_KEY" ]; then
-        export_gpg_key_from_shared_keyring $ESM_KEY_ID_TRUSTY
-    fi
-
-    if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
-        cat > $ESM_APT_SOURCE_FILE <<EOF
+write_esm_apt_source() {
+    ENABLE_SERIES=$1
+    for SERIES in trusty xenial bionic; do
+        APT_SOURCE=`echo $ESM_APT_SOURCE_FILE | sed -e "s/<SERIES>/$SERIES/"`
+        if [ "$SERIES" != "$ENABLE_SERIES" ]; then
+            # Delete inactive series apt source files
+            rm -f $APT_SOURCE;   # Delete inactive series files
+        elif [ ! -e "${APT_SOURCE}" ]; then
+            cat > $APT_SOURCE <<EOF
 # Written by ubuntu-advantage-tools
-deb https://esm.ubuntu.com/ubuntu trusty-security main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-security main
+deb https://esm.ubuntu.com/ubuntu $SERIES-security main
+# deb-src https://esm.ubuntu.com/ubuntu $SERIES-security main
 
-deb https://esm.ubuntu.com/ubuntu trusty-updates main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-updates main
-EOF
-    fi
-    if [ ! -e "$ESM_APT_PREF_FILE" ]; then
-        ESM_POLICY=`apt-cache policy | grep https://esm.ubuntu.com | awk 'END{print $1}'`
-        if [ "500" != "$ESM_POLICY" ]; then  # we are inactive
-            cat > $ESM_APT_PREF_FILE <<EOF
-# Written by ubuntu-advantage-tools
-Package: *
-Pin: release o=UbuntuESM, n=trusty
-Pin-Priority: never
+deb https://esm.ubuntu.com/ubuntu $SERIES-updates main
+# deb-src https://esm.ubuntu.com/ubuntu $SERIES-updates main
 EOF
         fi
+    done
+}
+
+write_esm_apt_pref() {
+    ENABLE_SERIES=$1
+    for SERIES in trusty xenial bionic; do
+        APT_PREF_FILE=`echo $ESM_APT_PREF_FILE | sed -e "s/<SERIES>/$SERIES/"`
+        if [ "$SERIES" != "$ENABLE_SERIES" ]; then
+            # Delete inactive series apt pref files
+            rm -f $APT_PREF_FILE
+        elif [ ! -e "${APT_PREF_FILE}" ]; then
+            ESM_POLICY=`apt-cache policy | grep https://esm.ubuntu.com | awk 'END{print $1}'`
+            if [ "500" != "$ESM_POLICY" ]; then  # we are inactive
+                cat > $APT_PREF_FILE <<EOF
+# Written by ubuntu-advantage-tools
+Package: *
+Pin: release o=UbuntuESM, n=$SERIES
+Pin-Priority: never
+EOF
+            fi
+        fi
+    done
+}
+
+configure_esm() {
+    rm -f $ESM_APT_GPG_KEY_OLD  # Remove retired key from key list
+    SERIES=${UBUNTU_CODENAME:-"unknown"}
+    if [ $SERIES = "unknown" ]; then
+        grep -iq trusty /etc/os-release && SERIES="trusty"
     fi
+    APT_GPG_KEY_ID=""
+    case "$SERIES" in
+        trusty)	APT_GPG_KEY_ID=$ESM_KEY_ID_TRUSTY ;;
+        xenial)	APT_GPG_KEY_ID=$ESM_KEY_ID_XENIAL ;;
+        bionic)	APT_GPG_KEY_ID=$ESM_KEY_ID_BIONIC ;;
+    esac
+    export_gpg_key_from_shared_keyring $APT_GPG_KEY_ID
+    write_esm_apt_source $SERIES
+    write_esm_apt_pref $SERIES
 }
 
 upgrade_to_status_cache() {
@@ -66,7 +100,7 @@ case "$1" in
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
 
-      grep -iq trusty /etc/os-release && configure_esm
+      configure_esm
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
       fi
