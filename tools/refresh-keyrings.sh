@@ -9,6 +9,18 @@
 #
 # N.B. This will rename any existing keyrings with the suffix .old.
 
+if [ $# != 1 -o ! -d $1 ]; then
+ echo "Usage: $0 <key_directory>"
+ exit 1
+fi
+
+if [ $(lsb_release -sc) != "trusty" ]; then
+    echo "ERROR: must run on trusty to ensure compatibility"
+    exit 1
+fi
+
+TARGET_DIR="$1"
+
 generate_keyring() {
     KEYRING_FILE="$1"
     shift
@@ -25,24 +37,19 @@ generate_keyring() {
         --recv-keys $KEYS
 }
 
-if [ $(lsb_release -sc) != "trusty" ]; then
-    echo "ERROR: must run on trusty to ensure compatibility"
-    exit 1
-fi
+EAL_KEY_ID_XENIAL="9F912DADD99EE1CC6BFFFF243A186E733F491C46"
+ESM_KEY_ID_PRECISE="74AE092F7629ACDF4FB17310B4C2AF7A67C7A026"
+ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
+ESM_KEY_ID_XENIAL="3CB3DF682220A643B43065E9B30EDAA63D8F61D0"
+ESM_KEY_ID_BIONIC="2926E7D347A1955504000A983121D2531EF59819"
+# fips and fips-updates are same key ID
+FIPS_KEY_ID_XENIAL="E23341B2A1467EDBF07057D6C1997C40EDE22758"
 
-TARGET_DIR="$1"
 
-KEYRING_ESM="ubuntu-esm-v2-keyring.gpg"
-KEYRING_FIPS="ubuntu-fips-keyring.gpg"
-KEYRING_FIPS_UPDATES="ubuntu-fips-updates-keyring.gpg"
-KEYRING_CC="ubuntu-cc-keyring.gpg"
+UA_KEYRING="ubuntu-advantage-keyring.gpg"
 
-KEYS_ESM="4067E40313CB4B13"
-KEYS_FIPS="C1997C40EDE22758"
-KEYS_FIPS_UPDATES="C1997C40EDE22758"
-KEYS_CC="3A186E733F491C46"
-
-generate_keyring "$TARGET_DIR/$KEYRING_ESM" "$KEYS_ESM"
-generate_keyring "$TARGET_DIR/$KEYRING_FIPS" "$KEYS_FIPS"
-generate_keyring "$TARGET_DIR/$KEYRING_FIPS_UPDATES" "$KEYS_FIPS_UPDATES"
-generate_keyring "$TARGET_DIR/$KEYRING_CC" "$KEYS_CC"
+generate_keyring $TARGET_DIR/$UA_KEYRING $EAL_KEY_ID_XENIAL $ESM_KEY_ID_PRECISE $ESM_KEY_ID_TRUSTY $ESM_KEY_ID_XENIAL $ESM_KEY_ID_BIONIC $FIPS_KEY_ID_XENIAL
+sed -i "s/ESM_KEY_ID_TRUSTY=.*/ESM_KEY_ID_TRUSTY=\"${ESM_KEY_ID_TRUSTY}\"/" \
+    -i "s/ESM_KEY_ID_XENIAL=.*/ESM_KEY_ID_XENIAL=\"${ESM_KEY_ID_XENIAL}\"/" \
+    -i "s/ESM_KEY_ID_BIONIC=.*/ESM_KEY_ID_BIONIC=\"${ESM_KEY_ID_BIONIC}\"/" \
+    debian/postinst
