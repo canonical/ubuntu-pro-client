@@ -1,5 +1,8 @@
+import json
+
 from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
+from uaclient.util import DatetimeAwareJSONDecoder, DatetimeAwareJSONEncoder
 
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -29,15 +32,23 @@ class FakeContractClient(UAContractClient):
 class FakeConfig(UAConfig):
 
     def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
-        self._cache_contents = (
-            cache_contents if cache_contents is not None else {})
+        self._cache_contents = {}
+        if cache_contents:
+            self._cache_contents = {
+                k: json.dumps(v, cls=DatetimeAwareJSONEncoder)
+                for k, v in cache_contents.items()}
+
         super().__init__({})
 
     def read_cache(self, key: str, silent: bool = False) -> 'Optional[str]':
-        return self._cache_contents.get(key)
+        value = self._cache_contents.get(key)
+        if value:
+            value = json.loads(value, cls=DatetimeAwareJSONDecoder)
+        return value
 
     def write_cache(
             self, key: str, content: 'Any', private: bool = True) -> None:
+        content = json.dumps(content, cls=DatetimeAwareJSONEncoder)
         if private:
             self._cache_contents[key] = content
         else:
