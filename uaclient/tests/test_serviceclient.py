@@ -23,7 +23,7 @@ class OurServiceClient(UAServiceClient):
 
     @property
     def cfg_url_base_attr(self):
-        return 'unused'
+        return 'url_attr'
 
 
 class TestRequestUrl:
@@ -40,7 +40,7 @@ class TestRequestUrl:
             self, m_readurl, fp, expected_exception, expected_attrs):
         m_readurl.side_effect = HTTPError(None, 619, None, None, fp)
 
-        client = OurServiceClient(cfg=mock.MagicMock())
+        client = OurServiceClient(cfg=mock.Mock(url_attr="http://example.com"))
         with pytest.raises(expected_exception) as excinfo:
             client.request_url('/')
 
