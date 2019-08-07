@@ -44,21 +44,14 @@ class FakeConfig(UAConfig):
             self._cache_contents['public-' + key] = content
 
     @classmethod
-    def with_account(cls, account_name: str = 'test_account'):
-        return cls({
-            'accounts': {
-                'accounts': [{'name': account_name, 'id': account_name}]},
-        })
-
-    @classmethod
     def for_attached_machine(
             cls, account_name: str = 'test_account',
             machine_token: 'Dict[str, Any]' = None):
         value = {
-            'accounts': {'accounts': [{'name': account_name}]},
             'machine-token': {
                 'machineToken': 'not-null',
                 'machineTokenInfo': {
+                    'accountInfo': {'name': account_name},
                     'contractInfo': {'id': 'cid', 'name': 'test_contract',
                                      'resourceEntitlements': []}}}
         }

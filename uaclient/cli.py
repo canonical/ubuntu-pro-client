@@ -25,7 +25,6 @@ from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
 from uaclient import exceptions
-from uaclient import sso
 from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
@@ -75,20 +74,8 @@ def attach_parser(parser=None):
         parser.prog = 'attach'
     parser._optionals.title = 'Flags'
     parser.add_argument(
-        'token', nargs='?',
-        help=(
-            'Optional token obtained for Ubuntu Advantage authentication: %s' %
-            UA_AUTH_TOKEN_URL))
-    parser.add_argument(
-        '--email', action='store',
-        help='Optional email address for Ubuntu SSO login')
-    parser.add_argument(
-        '--password', action='store',
-        help='Optional password for Ubuntu SSO login')
-    parser.add_argument(
-        '--otp', action='store',
-        help=('Optional one-time password for two-factor authentication'
-              ' to Ubuntu SSO'))
+        'token', help='Token obtained for Ubuntu Advantage authentication:'
+                      ' %s' % UA_AUTH_TOKEN_URL)
     parser.add_argument(
         '--no-auto-enable', action='store_false', dest='auto_enable',
         help='Do not enable any recommended services automatically')
@@ -244,27 +231,7 @@ def action_attach(args, cfg):
         return 0
     if os.getuid() != 0:
         raise exceptions.NonRootUserError()
-    contract_client = contract.UAContractClient(cfg)
-    if not args.token:
-        with util.disable_log_to_console():
-            bound_macaroon_bytes = sso.discharge_root_macaroon(contract_client)
-        if bound_macaroon_bytes is None:
-            print('Could not attach machine. Unable to obtain authenticated'
-                  ' user token')
-            return 1
-        bound_macaroon = bound_macaroon_bytes.decode('utf-8')
-        cfg.write_cache('bound-macaroon', bound_macaroon)
-        try:
-            contract_client.request_accounts(macaroon_token=bound_macaroon)
-            contract_token = contract.get_contract_token_for_account(
-                contract_client, bound_macaroon, cfg.accounts[0]['id'])
-        except (sso.SSOAuthError, util.UrlError) as e:
-            logging.error(str(e))
-            print('Could not attach machine. Unable to obtain authenticated'
-                  ' contract token')
-            return 1
-    else:
-        contract_token = args.token
+    contract_token = args.token
     if not contract_token:
         print('No valid contract token available')
         return 1

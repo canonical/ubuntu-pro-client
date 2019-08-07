@@ -39,12 +39,6 @@ DataPath = namedtuple('DataPath', ('filename', 'private'))
 class UAConfig:
 
     data_paths = {
-        'bound-macaroon': DataPath('bound-macaroon', True),
-        'accounts': DataPath('accounts.json', True),
-        'account-users': DataPath('account-users.json', True),
-        'contract-token': DataPath('contract-token.json', True),
-        'local-access': DataPath('local-access', True),
-        'machine-contracts': DataPath('machine-contracts.json', True),
         'machine-access-cc-eal': DataPath('machine-access-cc-eal.json', True),
         'machine-access-cis-audit': DataPath(
             'machine-access-cis-audit.json', True),
@@ -56,14 +50,9 @@ class UAConfig:
             'machine-access-livepatch.json', True),
         'machine-access-support': DataPath(
             'machine-access-support.json', True),
-        'machine-detach': DataPath('machine-detach.json', True),
         'machine-id': DataPath('machine-id', True),
         'machine-token': DataPath('machine-token.json', True),
-        'machine-token-refresh': DataPath('machine-token-refresh.json', True),
-        'macaroon': DataPath('sso-macaroon.json', True),
-        'root-macaroon': DataPath('root-macaroon.json', True),
         'status-cache': DataPath('status.json', False),
-        'oauth': DataPath('sso-oauth.json', True)
     }  # type: Dict[str, DataPath]
 
     _entitlements = None  # caching to avoid repetitive file reads
@@ -79,28 +68,11 @@ class UAConfig:
     @property
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
-        accounts = self.read_cache('accounts')
-        if not accounts:
-            if self.is_attached:
-                accountInfo = self.machine_token[
-                    'machineTokenInfo']['accountInfo']
-                return [accountInfo]
-            return []
-        warning_msg = None
-        if not isinstance(accounts, dict):
-            warning_msg = ('Unexpected type %s in cache %s' %
-                           (type(accounts), self.data_path('accounts')))
-        elif 'accounts' not in accounts:
-            warning_msg = ("Missing 'accounts' key in cache %s" %
-                           self.data_path('accounts'))
-        elif not isinstance(accounts['accounts'], list):
-            warning_msg = (
-                "Unexpected 'accounts' type %s in cache %s" %
-                (type(accounts['accounts']), self.data_path('accounts')))
-        if warning_msg:
-            LOG.warning(warning_msg)
-            return []
-        return accounts['accounts']
+        if self.is_attached:
+            accountInfo = self.machine_token[
+                'machineTokenInfo']['accountInfo']
+            return [accountInfo]
+        return []
 
     @property
     def contract_url(self):
@@ -121,10 +93,6 @@ class UAConfig:
     @property
     def log_file(self):
         return self.cfg.get('log_file', CONFIG_DEFAULTS['log_file'])
-
-    @property
-    def sso_auth_url(self):
-        return self.cfg['sso_auth_url']
 
     @property
     def entitlements(self):
@@ -297,11 +265,7 @@ def parse_config(config_path=None):
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
-    errors = []
-    for cfg_key in ('contract_url', 'sso_auth_url'):
-        if not util.is_service_url(cfg[cfg_key]):
-            errors.append(
-                'Invalid url in config. %s: %s' % (cfg_key, cfg[cfg_key]))
-    if errors:
-        raise exceptions.UserFacingError('\n'.join(errors))
+    if not util.is_service_url(cfg['contract_url']):
+        raise exceptions.UserFacingError(
+            'Invalid url in config. contract_url: %s' % (cfg['contract_url'],))
     return cfg
