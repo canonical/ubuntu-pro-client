@@ -2,13 +2,10 @@ import json
 
 from uaclient import exceptions
 from uaclient import clouds
-<<<<<<< HEAD
 from uaclient import status
 from uaclient import util
-=======
 
 CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
->>>>>>> 75a313c... demo: add trusty platform/cloud detection and upstart
 
 
 @util.retry(FileNotFoundError, [1, 2])

@@ -24,7 +24,19 @@ ubuntu-advantage-tools (19.6) focal; urgency=medium
       that is restricted in LP builders and test runners.
     - fix the d/t/usage DEP8 test that was also using status
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 09 Aug 2019 14:48:57 -0600
+
+ubuntu-advantage-tools (19.5.1ubuntu2) bionic; urgency=medium
+
+  * Unit test fixes
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 09 Aug 2019 13:12:27 -0600
+
+ubuntu-advantage-tools (19.5.1ubuntu1) bionic; urgency=medium
+
+  * Premium Image demo for AWS
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 09 Aug 2019 12:12:27 -0600
 
 ubuntu-advantage-tools (19.5.1) eoan; urgency=medium
 
