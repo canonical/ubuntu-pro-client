@@ -4,7 +4,7 @@
 import glob
 import setuptools
 
-from uaclient import defaults, version
+from uaclient import defaults, util, version
 
 NAME = "ubuntu-advantage-tools"
 
@@ -20,6 +20,21 @@ def _get_version():
     return major_minor
 
 
+def _get_data_files():
+    data_files = [
+        ("/etc/apt/apt.conf.d", ["apt.conf.d/51ubuntu-advantage-esm"]),
+        ("/etc/ubuntu-advantage", ["uaclient.conf"]),
+        ("/usr/share/keyrings", glob.glob("keyrings/*")),
+        (defaults.CONFIG_DEFAULTS["data_dir"], []),
+    ]
+    rel_major, _rel_minor = util.get_platform_info()["release"].split(".")
+    if rel_major == "14":
+        data_files.append(("/etc/init", glob.glob("upstart/*")))
+    else:
+        data_files.append(("/lib/systemd/system", glob.glob("systemd/*")))
+    return data_files
+
+
 setuptools.setup(
     name=NAME,
     version=_get_version(),
@@ -33,12 +48,7 @@ setuptools.setup(
             "features.*",
         ]
     ),
-    data_files=[
-        ("/etc/apt/apt.conf.d", ["apt.conf.d/51ubuntu-advantage-esm"]),
-        ("/etc/ubuntu-advantage", ["uaclient.conf"]),
-        ("/usr/share/keyrings", glob.glob("keyrings/*")),
-        (defaults.CONFIG_DEFAULTS["data_dir"], []),
-    ],
+    data_files=_get_data_files(),
     install_requires=INSTALL_REQUIRES,
     extras_require=dict(test=TEST_REQUIRES),
     author="Ubuntu Server Team",

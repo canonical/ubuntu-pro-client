@@ -1,0 +1,13 @@
+[Unit]
+Description=Ubuntu Advantage premium attach
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ua attach-premium
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
+After=network-online.target
+Want=network-online.target
+
