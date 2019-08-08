@@ -60,6 +60,34 @@ def assert_attached_root(func):
     return wrapper
 
 
+def assert_not_attached_root(func):
+    """Decorator asserting root user and not attached config."""
+    def wrapper(args, cfg):
+        if os.getuid() != 0:
+            raise exceptions.NonRootUserError()
+        if cfg.is_attached:
+            print("This machine is already attached to '%s'." %
+                  cfg.accounts[0]['name'])
+            return 0
+        return func(args, cfg)
+    return wrapper
+
+
+def attach_premium_parser(parser=None):
+    """Build or extend an arg parser for init-attach subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command='attach-premium')
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog='attach-premium',
+            description=('For premium Ubuntu images, automatically attach'
+                         ' Ubuntu Advantage support subscription'),
+            usage=usage)
+    else:
+        parser.usage = usage
+        parser.prog = 'premium-attach'
+    return parser
+
+
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command='attach [token]')
@@ -224,13 +252,34 @@ def action_detach(args, cfg):
     return 0
 
 
-def action_attach(args, cfg):
-    if cfg.is_attached:
-        print("This machine is already attached to '%s'." %
-              cfg.accounts[0]['name'])
+@assert_not_attached_root
+def action_attach_premium(args, cfg):
+    from uaclient.clouds import identity
+    cloud_type = identity.get_cloud_type()
+    if cloud_type != 'aws':
+        print(
+            "No premium image support for cloud '%s'. Use ua attach <token>" %
+            cloud_type)
         return 0
-    if os.getuid() != 0:
-        raise exceptions.NonRootUserError()
+    instance = identity.cloud_instance_factory()
+    contract_client = contract.UAContractClient(cfg)
+    pkcs7 = instance.identity_doc
+    contractTokenResponse = contract_client.request_premium_aws_attach(pkcs7)
+    contract_token = contractTokenResponse['contractToken']
+    if not contract.request_updated_contract(
+            cfg, contract_token, allow_enable=True):
+        print(
+            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
+    contract_name = (
+        cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
+    action_status(args=None, cfg=cfg)
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name))
+
+
+@assert_not_attached_root
+def action_attach(args, cfg):
     contract_token = args.token
     if not contract_token:
         print('No valid contract token available')
@@ -272,6 +321,12 @@ def get_parser():
         help='attach this machine to an ubuntu advantage subscription')
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
+    parser_attach_premium = subparsers.add_parser(
+        'attach-premium',
+        help=('for premium ubuntu images, attach this machine to an ubuntu'
+              ' advantage subscription'))
+    attach_premium_parser(parser_attach_premium)
+    parser_attach_premium.set_defaults(action=action_attach_premium)
     parser_detach = subparsers.add_parser(
         'detach',
         help='remove this machine from an ubuntu advantage subscription')

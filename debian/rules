@@ -18,7 +18,7 @@ LIBAPT_PKG_DEP="libapt-pkg5.0 (>= 1.8.1)"
 endif
 
 %:
-	dh $@ --with python3,bash-completion --buildsystem=pybuild
+	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild
 
 override_dh_auto_build:
 	dh_auto_build
