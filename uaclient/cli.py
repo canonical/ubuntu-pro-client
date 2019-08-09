@@ -235,6 +235,9 @@ def action_attach(args, cfg):
     if not contract_token:
         print('No valid contract token available')
         return 1
+    if not contract.validate_contract_token(contract_token):
+        print('Not a valid contract token.')
+        return 1
     if not contract.request_updated_contract(
             cfg, contract_token, allow_enable=args.auto_enable):
         print(

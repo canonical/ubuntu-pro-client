@@ -5,7 +5,7 @@ import pytest
 from uaclient.contract import (
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS, process_entitlement_delta,
-    request_updated_contract)
+    request_updated_contract, validate_contract_token)
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
 
@@ -144,3 +144,19 @@ class TestRequestUpdatedContract:
                       {'entitlement': {'entitled': False, 'type': 'ent2'}},
                       allow_enable=False)]
         assert process_calls == process_entitlement_delta.call_args_list
+
+
+class TestContractValidateToken:
+
+    def test_valid_token(self):
+        good_token = 'C12aqX7gmHQyfFoxoLeSYqa4gEKVsQ'
+        assert validate_contract_token(good_token)
+
+    def test_bad_tokens(self):
+        # A token not starting with 'C' isn't valid
+        bad_token = 'X12aqX7gmHQyfFoxoLeSYqa4gEKVsQ'
+        assert validate_contract_token(bad_token) == False
+
+        # A token that doesn't validate b58 decode w/ checksum isn't validate
+        bad_token = 'C21aqX7gmHQyfFoxoLeSYqa4gEKVsQ'
+        assert validate_contract_token(bad_token) == False

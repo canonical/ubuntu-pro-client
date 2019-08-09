@@ -47,8 +47,9 @@ class TestActionAttach:
         M_PATH + 'contract.UAContractClient.request_contract_machine_attach'
     )
     @mock.patch(M_PATH + 'action_status')
+    @mock.patch(M_PATH + 'contract.validate_contract_token')
     def test_happy_path_with_token_arg(
-        self, action_status, contract_machine_attach, _m_getuid
+        self, validate_token, action_status, contract_machine_attach, _m_getuid
     ):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
@@ -62,6 +63,7 @@ class TestActionAttach:
             return BASIC_MACHINE_TOKEN
 
         contract_machine_attach.side_effect = fake_contract_attach
+        validate_token.return_value = True
 
         ret = action_attach(args, cfg)
 
@@ -71,8 +73,9 @@ class TestActionAttach:
         assert expected_calls == contract_machine_attach.call_args_list
 
     @pytest.mark.parametrize('auto_enable', (True, False))
+    @mock.patch(M_PATH + 'contract.validate_contract_token')
     def test_auto_enable_passed_through_to_request_updated_contract(
-        self, _m_getuid, auto_enable
+        self, validate_token, _m_getuid, auto_enable
     ):
         args = mock.MagicMock(auto_enable=auto_enable)
 
@@ -80,6 +83,7 @@ class TestActionAttach:
             cfg.write_cache('machine-token', BASIC_MACHINE_TOKEN)
             return True
 
+        validate_token.return_value = True
         with mock.patch(M_PATH + 'contract.request_updated_contract') as m_ruc:
             m_ruc.side_effect = fake_contract_updates
             action_attach(args, FakeConfig())

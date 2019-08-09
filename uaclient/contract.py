@@ -2,6 +2,7 @@ import logging
 
 from uaclient import serviceclient
 from uaclient import util
+from uaclient.vend.base58 import b58decode_chk
 
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -212,3 +213,15 @@ def request_updated_contract(cfg, contract_token=None, allow_enable=False):
             'Could not obtain updated contract information. %s', str(e))
         return False
     return True
+
+
+def validate_contract_token(token):
+    """Validates that the token is of the valid format.
+
+    This doesn't check that the token is a valid one in the contract service,
+    merely that the token could be--e.g. it has not been typed in wrong or
+    copy/pasted badly.
+    """
+    if not token.startswith('C'):
+        return False
+    return (b58decode_chk(token[1:]) is not None)
