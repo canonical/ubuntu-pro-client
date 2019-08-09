@@ -118,7 +118,7 @@ class UAConfig:
             entitlement_cfg = {}
             if ent_value.get('entitled'):
                 entitlement_cfg = self.read_cache(
-                    'machine-access-%s' % entitlement_name, silent=True
+                    'machine-access-{}'.format(entitlement_name), silent=True
                 )
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
@@ -281,6 +281,8 @@ def parse_config(config_path=None):
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
     if not util.is_service_url(cfg['contract_url']):
         raise exceptions.UserFacingError(
-            'Invalid url in config. contract_url: %s' % (cfg['contract_url'],)
+            'Invalid url in config. contract_url: {}'.format(
+                cfg['contract_url']
+            )
         )
     return cfg

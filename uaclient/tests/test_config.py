@@ -109,7 +109,7 @@ class TestDataPath:
     def test_data_path_returns_data_dir_path_without_key(self):
         """The data_path method returns the data_dir when key is absent."""
         cfg = UAConfig({'data_dir': '/my/dir'})
-        assert '/my/dir/%s' % PRIVATE_SUBDIR == cfg.data_path()
+        assert '/my/dir/{}'.format(PRIVATE_SUBDIR) == cfg.data_path()
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_data_path_returns_file_path_with_defined_data_paths(
@@ -117,7 +117,7 @@ class TestDataPath:
     ):
         """When key is defined in Config.data_paths return data_path value."""
         cfg = UAConfig({'data_dir': '/my/dir'})
-        private_path = '/my/dir/%s/%s' % (PRIVATE_SUBDIR, path_basename)
+        private_path = '/my/dir/{}/{}'.format(PRIVATE_SUBDIR, path_basename)
         assert private_path == cfg.data_path(key=key)
 
     @pytest.mark.parametrize(
@@ -128,7 +128,9 @@ class TestDataPath:
     ):
         """When key is not in Config.data_paths the key is used to data_dir"""
         cfg = UAConfig({'data_dir': '/my/d'})
-        assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
+        assert '/my/d/{}/{}'.format(PRIVATE_SUBDIR, key) == cfg.data_path(
+            key=key
+        )
 
     def test_data_path_returns_public_path_for_public_datapath(self):
         cfg = UAConfig({'data_dir': '/my/d'})
@@ -148,12 +150,12 @@ class TestWriteCache:
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         expected_path = tmpdir.join(PRIVATE_SUBDIR, key)
 
-        assert not expected_path.check(), (
-            'Found unexpected file %s' % expected_path
+        assert not expected_path.check(), 'Found unexpected file {}'.format(
+            expected_path
         )
         assert None is cfg.write_cache(key, content)
-        assert expected_path.check(), (
-            'Missing expected file %s' % expected_path
+        assert expected_path.check(), 'Missing expected file {}'.format(
+            expected_path
         )
         assert content == cfg.read_cache(key)
 
@@ -164,13 +166,13 @@ class TestWriteCache:
         tmp_subdir = tmpdir.join('does/not/exist')
         cfg = UAConfig({'data_dir': tmp_subdir.strpath})
 
-        assert False is os.path.isdir(tmp_subdir.strpath), (
-            'Found unexpected directory %s' % tmp_subdir
-        )
+        assert False is os.path.isdir(
+            tmp_subdir.strpath
+        ), 'Found unexpected directory {}'.format(tmp_subdir)
         assert None is cfg.write_cache('somekey', 'someval')
-        assert True is os.path.isdir(tmp_subdir.strpath), (
-            'Missing expected directory %s' % tmp_subdir
-        )
+        assert True is os.path.isdir(
+            tmp_subdir.strpath
+        ), 'Missing expected directory {}'.format(tmp_subdir)
         assert 'someval' == cfg.read_cache('somekey')
 
     @pytest.mark.parametrize(
@@ -225,9 +227,9 @@ class TestReadCache:
         os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
         data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
         with open(data_path.strpath, 'w') as f:
-            f.write('content%s' % key)
+            f.write('content{}'.format(key))
 
-        assert 'content%s' % key == cfg.read_cache(key)
+        assert 'content{}'.format(key) == cfg.read_cache(key)
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_read_cache_returns_stuctured_content_when_json_data_path_present(
@@ -236,7 +238,7 @@ class TestReadCache:
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
         data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
-        expected = {key: 'content%s' % key}
+        expected = {key: 'content{}'.format(key)}
         with open(data_path.strpath, 'w') as f:
             f.write(json.dumps(expected))
 
@@ -325,7 +327,9 @@ class TestDeleteCache:
                 *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
             )
         )
-        assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
+        assert 0 == len(dirty_files), '{} files not deleted'.format(
+            len(dirty_files)
+        )
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
         self, tmpdir
@@ -535,7 +539,7 @@ class TestParseConfig:
         with mock.patch.dict('uaclient.config.os.environ', values={}):
             config = parse_config()
         expected_calls = [
-            mock.call('%s/uaclient.conf' % cwd),
+            mock.call('{}/uaclient.conf'.format(cwd)),
             mock.call('/etc/ubuntu-advantage/uaclient.conf'),
         ]
         assert expected_calls == m_exists.call_args_list
@@ -560,7 +564,7 @@ class TestParseConfig:
         expanded_dir = os.path.expanduser('~')
         expected_default_config = {
             'contract_url': 'https://contract',
-            'data_dir': '%s/somedir' % expanded_dir,
+            'data_dir': '{}/somedir'.format(expanded_dir),
             'log_file': 'some.log',
             'log_level': 'DEBUG',
         }

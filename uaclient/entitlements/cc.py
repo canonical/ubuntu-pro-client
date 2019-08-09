@@ -21,6 +21,8 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
             ' time.)'
         ],
         'post_enable': [
-            'Please follow instructions in %s to configure EAL2' % CC_README
+            'Please follow instructions in {} to configure EAL2'.format(
+                CC_README
+            )
         ],
     }

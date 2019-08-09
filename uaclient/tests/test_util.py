@@ -25,10 +25,10 @@ VERSION_ID="19.04"
 HOME_URL="https://www.ubuntu.com/"
 SUPPORT_URL="https://help.ubuntu.com/"
 BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="%s"
+PRIVACY_POLICY_URL="{}"
 VERSION_CODENAME=disco
 UBUNTU_CODENAME=disco
-""" % (
+""".format(
     PRIVACY_POLICY_URL
 )
 
@@ -42,10 +42,10 @@ VERSION_ID="18.04"
 HOME_URL="https://www.ubuntu.com/"
 SUPPORT_URL="https://help.ubuntu.com/"
 BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-PRIVACY_POLICY_URL="%s"
+PRIVACY_POLICY_URL="{}"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
-""" % (
+""".format(
     PRIVACY_POLICY_URL
 )
 
