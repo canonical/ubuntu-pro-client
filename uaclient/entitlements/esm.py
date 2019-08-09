@@ -8,7 +8,8 @@ class ESMEntitlement(repo.RepoEntitlement):
     origin = 'UbuntuESM'
     description = (
         'Ubuntu Extended Security Maintenance archive'
-        ' (https://ubuntu.com/esm)')
+        ' (https://ubuntu.com/esm)'
+    )
     repo_url = 'https://esm.ubuntu.com'
     repo_key_file = 'ubuntu-esm-v2-keyring.gpg'
     repo_pin_priority = 'never'

@@ -34,6 +34,7 @@ def caplog_text(request):
 
         def _func():
             return caplog.text
+
     except LookupError:
         # If the caplog fixture isn't available, shim something in ourselves
         root = logging.getLogger()
@@ -41,7 +42,9 @@ def caplog_text(request):
         handler = logging.StreamHandler(io.StringIO())
         handler.setFormatter(
             logging.Formatter(
-                "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"))
+                "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"
+            )
+        )
         root.addHandler(handler)
 
         def _func():
@@ -62,6 +65,7 @@ def logging_sandbox():
 
     with mock.patch.object(logging, 'root', root_logger):
         with mock.patch.object(logging.Logger, 'root', root_logger):
-            with mock.patch.object(logging.Logger, 'manager',
-                                   logging.Manager(root_logger)):
+            with mock.patch.object(
+                logging.Logger, 'manager', logging.Manager(root_logger)
+            ):
                 yield

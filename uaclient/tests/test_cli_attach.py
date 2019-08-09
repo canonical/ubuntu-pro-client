@@ -11,10 +11,9 @@ M_PATH = 'uaclient.cli.'
 
 BASIC_MACHINE_TOKEN = {
     'machineTokenInfo': {
-        'contractInfo': {'name': 'mycontract',
-                         'resourceEntitlements': []},
+        'contractInfo': {'name': 'mycontract', 'resourceEntitlements': []},
         'accountInfo': {'name': 'accountName'},
-    },
+    }
 }
 
 
@@ -31,7 +30,6 @@ def test_non_root_users_are_rejected(getuid):
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + 'os.getuid', return_value=0)
 class TestActionAttach:
-
     def test_already_attached(self, _m_getuid, capsys):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = 'test_account'
@@ -41,15 +39,17 @@ class TestActionAttach:
 
         assert 0 == ret
         expected_msg = "This machine is already attached to '{}'.".format(
-            account_name)
+            account_name
+        )
         assert expected_msg in capsys.readouterr()[0]
 
     @mock.patch(
-        M_PATH + 'contract.UAContractClient.request_contract_machine_attach')
+        M_PATH + 'contract.UAContractClient.request_contract_machine_attach'
+    )
     @mock.patch(M_PATH + 'action_status')
-    def test_happy_path_with_token_arg(self, action_status,
-                                       contract_machine_attach,
-                                       _m_getuid):
+    def test_happy_path_with_token_arg(
+        self, action_status, contract_machine_attach, _m_getuid
+    ):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
@@ -72,7 +72,8 @@ class TestActionAttach:
 
     @pytest.mark.parametrize('auto_enable', (True, False))
     def test_auto_enable_passed_through_to_request_updated_contract(
-            self, _m_getuid, auto_enable):
+        self, _m_getuid, auto_enable
+    ):
         args = mock.MagicMock(auto_enable=auto_enable)
 
         def fake_contract_updates(cfg, contract_token, allow_enable):
@@ -88,14 +89,15 @@ class TestActionAttach:
 
 
 class TestParser:
-
     def test_attach_parser_creates_a_parser_when_not_provided(self):
         """Create a named parser configured for 'attach'."""
         parser = attach_parser()
 
         assert 'ubuntu-advantage attach [token] [flags]' == parser.usage
-        descr = ('Attach this machine to an existing Ubuntu Advantage support'
-                 ' subscription')
+        descr = (
+            'Attach this machine to an existing Ubuntu Advantage support'
+            ' subscription'
+        )
         assert descr == parser.description
         assert 'attach' == parser.prog
         assert 'Flags' == parser._optionals.title
@@ -114,7 +116,8 @@ class TestParser:
         assert 'the following arguments are required: token' in err
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
-            self, capsys):
+        self, capsys
+    ):
         """Contracts' dashboard URL is referenced by ua attach --help."""
         parser = attach_parser()
         parser.print_help()

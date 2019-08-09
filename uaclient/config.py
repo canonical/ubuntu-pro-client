@@ -41,15 +41,19 @@ class UAConfig:
     data_paths = {
         'machine-access-cc-eal': DataPath('machine-access-cc-eal.json', True),
         'machine-access-cis-audit': DataPath(
-            'machine-access-cis-audit.json', True),
+            'machine-access-cis-audit.json', True
+        ),
         'machine-access-esm': DataPath('machine-access-esm.json', True),
         'machine-access-fips': DataPath('machine-access-fips.json', True),
         'machine-access-fips-updates': DataPath(
-            'machine-access-fips-updates.json', True),
+            'machine-access-fips-updates.json', True
+        ),
         'machine-access-livepatch': DataPath(
-            'machine-access-livepatch.json', True),
+            'machine-access-livepatch.json', True
+        ),
         'machine-access-support': DataPath(
-            'machine-access-support.json', True),
+            'machine-access-support.json', True
+        ),
         'machine-id': DataPath('machine-id', True),
         'machine-token': DataPath('machine-token.json', True),
         'status-cache': DataPath('status.json', False),
@@ -69,8 +73,7 @@ class UAConfig:
     def accounts(self):
         """Return the list of accounts that apply to this authorized user."""
         if self.is_attached:
-            accountInfo = self.machine_token[
-                'machineTokenInfo']['accountInfo']
+            accountInfo = self.machine_token['machineTokenInfo']['accountInfo']
             return [accountInfo]
         return []
 
@@ -109,12 +112,14 @@ class UAConfig:
         self._entitlements = {}
         contractInfo = machine_token['machineTokenInfo']['contractInfo']
         ent_by_name = dict(
-            (e['type'], e) for e in contractInfo['resourceEntitlements'])
+            (e['type'], e) for e in contractInfo['resourceEntitlements']
+        )
         for entitlement_name, ent_value in ent_by_name.items():
             entitlement_cfg = {}
             if ent_value.get('entitled'):
                 entitlement_cfg = self.read_cache(
-                    'machine-access-%s' % entitlement_name, silent=True)
+                    'machine-access-%s' % entitlement_name, silent=True
+                )
             if not entitlement_cfg:
                 # Fallback to machine-token info on unentitled
                 entitlement_cfg = {'entitlement': ent_value}
@@ -125,7 +130,7 @@ class UAConfig:
     @property
     def is_attached(self):
         """Report whether this machine configuration is attached to UA."""
-        return bool(self.machine_token)   # machine_token is removed on detach
+        return bool(self.machine_token)  # machine_token is removed on detach
 
     @property
     def machine_token(self):
@@ -143,7 +148,8 @@ class UAConfig:
             data_path = self.data_paths[key]
             if data_path.private:
                 return os.path.join(
-                    data_dir, PRIVATE_SUBDIR, data_path.filename)
+                    data_dir, PRIVATE_SUBDIR, data_path.filename
+                )
             return os.path.join(data_dir, data_path.filename)
         return os.path.join(data_dir, PRIVATE_SUBDIR, key)
 
@@ -151,7 +157,8 @@ class UAConfig:
         """Remove specific cache file."""
         if not key:
             raise RuntimeError(
-                'Invalid or empty key provided to delete_cache_key')
+                'Invalid or empty key provided to delete_cache_key'
+            )
         if key.startswith('machine-access') or key == 'machine-token':
             self._entitlements = None
             self._machine_token = None
@@ -196,6 +203,7 @@ class UAConfig:
     def _status(self) -> 'Dict[str, Any]':
         """Return configuration status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
+
         response = copy.deepcopy(DEFAULT_STATUS)
         response['attached'] = self.is_attached
         if not self.is_attached:
@@ -205,15 +213,19 @@ class UAConfig:
         response['subscription'] = contractInfo['name']
         if contractInfo.get('effectiveTo'):
             response['expires'] = datetime.strptime(
-                contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ')
+                contractInfo['effectiveTo'], '%Y-%m-%dT%H:%M:%SZ'
+            )
         response['origin'] = contractInfo.get('origin')
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             contract_status = ent.contract_status().value
             status, details = ent.user_facing_status()
             service_status = {
-                'name': ent.name, 'entitled': contract_status,
-                'status': status.value, 'statusDetails': details}
+                'name': ent.name,
+                'entitled': contract_status,
+                'status': status.value,
+                'statusDetails': details,
+            }
             response['services'].append(service_status)
         support = self.entitlements.get('support', {}).get('entitlement')
         if support:
@@ -263,11 +275,12 @@ def parse_config(config_path=None):
     for key, value in os.environ.items():
         key = key.lower()
         if key.startswith('ua_'):
-            env_keys[key[3:]] = value   # Strip leading UA_
+            env_keys[key[3:]] = value  # Strip leading UA_
     cfg.update(env_keys)
     cfg['log_level'] = cfg['log_level'].upper()
     cfg['data_dir'] = os.path.expanduser(cfg['data_dir'])
     if not util.is_service_url(cfg['contract_url']):
         raise exceptions.UserFacingError(
-            'Invalid url in config. contract_url: %s' % (cfg['contract_url'],))
+            'Invalid url in config. contract_url: %s' % (cfg['contract_url'],)
+        )
     return cfg

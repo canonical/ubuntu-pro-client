@@ -8,14 +8,15 @@ import pytest
 
 from uaclient.cli import assert_attached_root, main, setup_logging
 from uaclient.exceptions import (
-    NonRootUserError, UserFacingError, UnattachedError)
+    NonRootUserError,
+    UserFacingError,
+    UnattachedError,
+)
 from uaclient.testing.fakes import FakeConfig
 
 
 class TestAssertAttachedRoot:
-
     def test_assert_attached_root_happy_path(self, capsys):
-
         @assert_attached_root
         def test_function(args, cfg):
             return mock.sentinel.success
@@ -30,14 +31,17 @@ class TestAssertAttachedRoot:
         out, _err = capsys.readouterr()
         assert '' == out.strip()
 
-    @pytest.mark.parametrize('attached,uid,expected_exception', [
-        (True, 1000, NonRootUserError),
-        (False, 1000, NonRootUserError),
-        (False, 0, UnattachedError),
-    ])
+    @pytest.mark.parametrize(
+        'attached,uid,expected_exception',
+        [
+            (True, 1000, NonRootUserError),
+            (False, 1000, NonRootUserError),
+            (False, 0, UnattachedError),
+        ],
+    )
     def test_assert_attached_root_exceptions(
-            self, attached, uid, expected_exception):
-
+        self, attached, uid, expected_exception
+    ):
         @assert_attached_root
         def test_function(args, cfg):
             return mock.sentinel.success
@@ -53,12 +57,16 @@ class TestAssertAttachedRoot:
 
 
 class TestMain:
-
     @mock.patch('uaclient.cli.setup_logging')
     @mock.patch('uaclient.cli.get_parser')
     def test_keyboard_interrupt_handled_gracefully(
-            self, m_get_parser, _m_setup_logging, capsys, logging_sandbox,
-            caplog_text):
+        self,
+        m_get_parser,
+        _m_setup_logging,
+        capsys,
+        logging_sandbox,
+        caplog_text,
+    ):
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = KeyboardInterrupt
 
@@ -78,8 +86,13 @@ class TestMain:
     @mock.patch('uaclient.cli.setup_logging')
     @mock.patch('uaclient.cli.get_parser')
     def test_user_facing_error_handled_gracefully(
-            self, m_get_parser, _m_setup_logging, capsys, logging_sandbox,
-            caplog_text):
+        self,
+        m_get_parser,
+        _m_setup_logging,
+        capsys,
+        logging_sandbox,
+        caplog_text,
+    ):
         msg = 'You need to know about this.'
 
         m_args = m_get_parser.return_value.parse_args.return_value
@@ -100,10 +113,10 @@ class TestMain:
 
 
 class TestSetupLogging:
-
     @pytest.mark.parametrize('level', (logging.INFO, logging.ERROR))
     def test_console_log_configured_if_not_present(
-            self, level, capsys, logging_sandbox):
+        self, level, capsys, logging_sandbox
+    ):
         setup_logging(level, logging.INFO)
         logging.log(level, 'after setup')
         logging.log(level - 1, 'not present')
@@ -113,7 +126,8 @@ class TestSetupLogging:
         assert 'not present' not in err
 
     def test_console_log_configured_if_already_present(
-            self, capsys, logging_sandbox):
+        self, capsys, logging_sandbox
+    ):
         logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
         logging.error('before setup')
@@ -127,7 +141,8 @@ class TestSetupLogging:
         assert 'ERROR: after setup' in err
 
     def test_file_log_not_configured_if_not_root(
-            self, tmpdir, logging_sandbox):
+        self, tmpdir, logging_sandbox
+    ):
         log_file = tmpdir.join('log_file')
 
         setup_logging(logging.INFO, logging.INFO, log_file=log_file.strpath)
@@ -139,7 +154,8 @@ class TestSetupLogging:
     @mock.patch('uaclient.cli.os.getuid', return_value=0)
     @mock.patch('uaclient.cli.config')
     def test_file_log_configured_if_root(
-            self, m_config, _m_getuid, log_filename, logging_sandbox, tmpdir):
+        self, m_config, _m_getuid, log_filename, logging_sandbox, tmpdir
+    ):
         if log_filename is None:
             log_filename = 'default.log'
             log_file = tmpdir.join(log_filename)
@@ -156,7 +172,8 @@ class TestSetupLogging:
     @mock.patch('uaclient.cli.os.getuid', return_value=0)
     @mock.patch('uaclient.cli.config')
     def test_file_log_only_readable_by_root(
-            self, m_config, _m_getuid, logging_sandbox, tmpdir, pre_existing):
+        self, m_config, _m_getuid, logging_sandbox, tmpdir, pre_existing
+    ):
         log_file = tmpdir.join('root-only.log')
         log_path = log_file.strpath
 
