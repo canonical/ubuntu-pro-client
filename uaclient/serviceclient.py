@@ -35,7 +35,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
 
     def headers(self):
         return {
-            'user-agent': 'UA-Client/%s' % version.get_version(),
+            'user-agent': 'UA-Client/{}'.format(version.get_version()),
             'accept': 'application/json',
             'content-type': 'application/json',
         }

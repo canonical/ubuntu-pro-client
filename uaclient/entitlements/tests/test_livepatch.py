@@ -98,13 +98,13 @@ class TestLivepatchUserFacingStatus:
 class TestLivepatchProcessConfigDirectives:
     @pytest.mark.parametrize(
         'directive_key,livepatch_param_tmpl',
-        (('remoteServer', 'remote-server=%s'), ('caCerts', 'ca-certs=%s')),
+        (('remoteServer', 'remote-server={}'), ('caCerts', 'ca-certs={}')),
     )
     def test_call_livepatch_config_command(
         self, directive_key, livepatch_param_tmpl
     ):
         """Livepatch config directives are passed to livepatch config."""
-        directive_value = '%s-value' % directive_key
+        directive_value = '{}-value'.format(directive_key)
         cfg = {'entitlement': {'directives': {directive_key: directive_value}}}
         with mock.patch('uaclient.util.subp') as m_subp:
             process_config_directives(cfg)
@@ -112,7 +112,7 @@ class TestLivepatchProcessConfigDirectives:
             [
                 '/snap/bin/canonical-livepatch',
                 'config',
-                livepatch_param_tmpl % directive_value,
+                livepatch_param_tmpl.format(directive_value),
             ],
             capture=True,
         )

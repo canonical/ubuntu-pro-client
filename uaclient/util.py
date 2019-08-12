@@ -442,8 +442,8 @@ def get_platform_info() -> 'Dict[str, str]':
     match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
-            'Could not parse /etc/os-release VERSION: %s (modified to %s)'
-            % (os_release['VERSION'], version)
+            'Could not parse /etc/os-release VERSION: {} (modified to'
+            ' {})'.format(os_release['VERSION'], version)
         )
     match_dict = match.groupdict()
     platform_info.update(
@@ -477,8 +477,8 @@ def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
     """
     if not all([isinstance(orig_access, dict), 'entitlement' in orig_access]):
         raise RuntimeError(
-            'Expected entitlement access dict. Missing "entitlement" key: %s'
-            % orig_access
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            ' {}'.format(orig_access)
         )
     series_name = get_platform_info()['series']
     orig_entitlement = orig_access.get('entitlement', {})
