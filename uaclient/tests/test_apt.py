@@ -188,6 +188,7 @@ class TestValidAptCredentials:
 
 class TestAddAuthAptRepo:
 
+    @mock.patch('uaclient.apt.gpg.export_gpg_key_from_keyring')
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.assert_valid_apt_credentials')
@@ -195,7 +196,7 @@ class TestAddAuthAptRepo:
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_sources_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
+            m_gpg_export, tmpdir):
         """Write a properly configured sources file to repo_filename."""
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
@@ -204,13 +205,17 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
-            credentials='mycreds', suites=('xenial',))
+            credentials='mycreds', suites=('xenial',), key_id='1',
+            keyring_file='keyring')
 
         expected_content = (
             'deb http://fakerepo/ubuntu xenial main\n'
             '# deb-src http://fakerepo/ubuntu xenial main\n')
         assert expected_content == util.load_file(repo_file)
+        gpg_export_calls = [mock.call('1', apt.UA_KEYRING_FILE, 'keyring')]
+        assert gpg_export_calls == m_gpg_export.call_args_list
 
+    @mock.patch('uaclient.apt.gpg.export_gpg_key_from_keyring')
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.assert_valid_apt_credentials')
@@ -218,7 +223,7 @@ class TestAddAuthAptRepo:
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_ignores_suites_not_matching_series(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
+            m_gpg_export, tmpdir):
         """Skip any apt suites that don't match the current series."""
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
@@ -235,7 +240,7 @@ class TestAddAuthAptRepo:
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
             suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
-        )
+            key_id='1', keyring_file='keyring')
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -245,6 +250,7 @@ class TestAddAuthAptRepo:
         """)
         assert expected_content == util.load_file(repo_file)
 
+    @mock.patch('uaclient.apt.gpg.export_gpg_key_from_keyring')
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.assert_valid_apt_credentials')
@@ -252,7 +258,7 @@ class TestAddAuthAptRepo:
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_comments_updates_suites_on_non_update_machine(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
+            m_gpg_export, tmpdir):
         """Skip any apt suites that don't match the current series."""
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
@@ -265,7 +271,8 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='mycreds',
-            suites=('xenial-one', 'xenial-updates', 'trusty-gone'))
+            suites=('xenial-one', 'xenial-updates', 'trusty-gone'),
+            key_id='1', keyring_file='keyring')
 
         expected_content = dedent("""\
             deb http://fakerepo/ubuntu xenial-one main
@@ -275,6 +282,7 @@ class TestAddAuthAptRepo:
         """)
         assert expected_content == util.load_file(repo_file)
 
+    @mock.patch('uaclient.apt.gpg.export_gpg_key_from_keyring')
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.assert_valid_apt_credentials')
@@ -282,7 +290,7 @@ class TestAddAuthAptRepo:
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_username_password_to_auth_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
+            m_gpg_export, tmpdir):
         """Write apt authentication file when credentials are user:pwd."""
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
@@ -292,13 +300,14 @@ class TestAddAuthAptRepo:
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo',
             credentials='user:password',
-            suites=('xenial',))
+            suites=('xenial',), key_id='1', keyring_file='keyring')
 
         expected_content = (
             'machine fakerepo/ login user password password%s\n' %
             APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
+    @mock.patch('uaclient.apt.gpg.export_gpg_key_from_keyring')
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
     @mock.patch('uaclient.apt.assert_valid_apt_credentials')
@@ -306,7 +315,7 @@ class TestAddAuthAptRepo:
                 return_value={'series': 'xenial'})
     def test_add_auth_apt_repo_writes_bearer_resource_token_to_auth_file(
             self, m_platform, m_valid_creds, m_get_apt_auth_file, m_subp,
-            tmpdir):
+            m_gpg_export, tmpdir):
         """Write apt authentication file when credentials are bearer token."""
         repo_file = tmpdir.join('repo.conf').strpath
         auth_file = tmpdir.join('auth.conf').strpath
@@ -315,7 +324,8 @@ class TestAddAuthAptRepo:
 
         add_auth_apt_repo(
             repo_filename=repo_file, repo_url='http://fakerepo/',
-            credentials='SOMELONGTOKEN', suites=('xenia',))
+            credentials='SOMELONGTOKEN', suites=('xenia',),
+            key_id='1', keyring_file='keyring')
 
         expected_content = (
             'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'

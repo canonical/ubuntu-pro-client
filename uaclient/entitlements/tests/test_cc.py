@@ -13,6 +13,7 @@ from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 
+M_REPOPATH = 'uaclient.entitlements.repo.'
 
 CC_MACHINE_TOKEN = {
     'machineToken': 'blah',
@@ -60,7 +61,7 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
          ('s390x', 'trusty', '14.04 LTS (Trusty Tahr)', 'Canonical Common'
           ' Criteria EAL2 Provisioning is not available for Ubuntu 14.04 LTS'
           ' (Trusty Tahr).')))
-    @mock.patch('uaclient.entitlements.repo.os.getuid', return_value=0)
+    @mock.patch(M_REPOPATH + 'os.getuid', return_value=0)
     @mock.patch('uaclient.util.get_platform_info')
     def test_inapplicable_on_invalid_affordances(
             self, m_platform_info, m_getuid, arch, series, version, details,
@@ -137,14 +138,15 @@ class TestCommonCriteriaEntitlementEnable:
 
         with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
             with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
-                with mock.patch('uaclient.entitlements.repo.os.path.exists',
+                with mock.patch(M_REPOPATH + 'os.path.exists',
                                 side_effect=exists):
                     assert True is entitlement.enable()
 
         add_apt_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list',
-                      'http://CC', 'TOKEN', ['xenial'],
-                      '/usr/share/keyrings/ubuntu-cc-keyring.gpg')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list',
+                'http://CC', 'TOKEN', ['xenial'], 'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
 
         subp_apt_cmds = [
             mock.call(['apt-cache', 'policy'],
