@@ -20,7 +20,6 @@ def entitlement(entitlement_factory):
 
 
 class TestESMEntitlementEnable:
-
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ['a', 'b']
@@ -35,25 +34,34 @@ class TestESMEntitlementEnable:
 
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
-                mock.patch('uaclient.apt.add_auth_apt_repo'))
+                mock.patch('uaclient.apt.add_auth_apt_repo')
+            )
             m_add_pinning = stack.enter_context(
-                mock.patch('uaclient.apt.add_ppa_pinning'))
+                mock.patch('uaclient.apt.add_ppa_pinning')
+            )
             m_subp = stack.enter_context(
-                mock.patch('uaclient.util.subp', return_value=('', '')))
+                mock.patch('uaclient.util.subp', return_value=('', ''))
+            )
             m_can_enable = stack.enter_context(
-                mock.patch.object(entitlement, 'can_enable'))
+                mock.patch.object(entitlement, 'can_enable')
+            )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={'series': 'trusty'}))
+                mock.patch(M_GETPLATFORM, return_value={'series': 'trusty'})
+            )
             stack.enter_context(
-                mock.patch(M_REPOPATH + 'os.path.exists',
-                           side_effect=fake_exists))
+                mock.patch(
+                    M_REPOPATH + 'os.path.exists', side_effect=fake_exists
+                )
+            )
             m_unlink = stack.enter_context(
-                mock.patch('uaclient.apt.os.unlink'))
+                mock.patch('uaclient.apt.os.unlink')
+            )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
             stack.enter_context(
-                mock.patch.object(type(entitlement), 'packages', m_packages))
+                mock.patch.object(type(entitlement), 'packages', m_packages)
+            )
 
             m_can_enable.return_value = True
 
@@ -62,17 +70,29 @@ class TestESMEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-trusty.list'.format(
-                    entitlement.name),
-                'http://ESM', 'TOKEN', ['trusty'], 'APTKEY',
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
+                    entitlement.name
+                ),
+                'http://ESM',
+                'TOKEN',
+                ['trusty'],
+                'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+            )
+        ]
         install_cmd = mock.call(
             ['apt-get', 'install', '--assume-yes'] + patched_packages,
-            capture=True, retry_sleeps=apt.APT_RETRIES)
+            capture=True,
+            retry_sleeps=apt.APT_RETRIES,
+        )
 
         subp_calls = [
-            mock.call(['apt-get', 'update'],
-                      capture=True, retry_sleeps=apt.APT_RETRIES),
-            install_cmd]
+            mock.call(
+                ['apt-get', 'update'],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+            ),
+            install_cmd,
+        ]
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
@@ -82,7 +102,8 @@ class TestESMEntitlementEnable:
         assert unlink_calls == m_unlink.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
-            self, entitlement, caplog_text):
+        self, entitlement, caplog_text
+    ):
         """When setup_apt_config fails, cleanup any apt artifacts."""
         original_exists = os.path.exists
 
@@ -96,27 +117,37 @@ class TestESMEntitlementEnable:
         def fake_subp(cmd, capture=None, retry_sleeps=None):
             if cmd == ['apt-get', 'update']:
                 raise util.ProcessExecutionError(
-                    'Failure', stderr='Could not get lock /var/lib/dpkg/lock')
+                    'Failure', stderr='Could not get lock /var/lib/dpkg/lock'
+                )
             return '', ''
 
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
-                mock.patch('uaclient.apt.add_auth_apt_repo'))
+                mock.patch('uaclient.apt.add_auth_apt_repo')
+            )
             m_add_pinning = stack.enter_context(
-                mock.patch('uaclient.apt.add_ppa_pinning'))
+                mock.patch('uaclient.apt.add_ppa_pinning')
+            )
             m_subp = stack.enter_context(
-                mock.patch('uaclient.util.subp', side_effect=fake_subp))
+                mock.patch('uaclient.util.subp', side_effect=fake_subp)
+            )
             m_can_enable = stack.enter_context(
-                mock.patch.object(entitlement, 'can_enable'))
+                mock.patch.object(entitlement, 'can_enable')
+            )
             m_remove_apt_config = stack.enter_context(
-                mock.patch.object(entitlement, 'remove_apt_config'))
+                mock.patch.object(entitlement, 'remove_apt_config')
+            )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={'series': 'trusty'}))
+                mock.patch(M_GETPLATFORM, return_value={'series': 'trusty'})
+            )
             stack.enter_context(
-                mock.patch(M_REPOPATH + 'os.path.exists',
-                           side_effect=fake_exists))
+                mock.patch(
+                    M_REPOPATH + 'os.path.exists', side_effect=fake_exists
+                )
+            )
             m_unlink = stack.enter_context(
-                mock.patch('uaclient.apt.os.unlink'))
+                mock.patch('uaclient.apt.os.unlink')
+            )
 
             m_can_enable.return_value = True
 
@@ -126,12 +157,22 @@ class TestESMEntitlementEnable:
         add_apt_calls = [
             mock.call(
                 '/etc/apt/sources.list.d/ubuntu-{}-trusty.list'.format(
-                    entitlement.name),
-                'http://ESM', 'TOKEN', ['trusty'], 'APTKEY',
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
+                    entitlement.name
+                ),
+                'http://ESM',
+                'TOKEN',
+                ['trusty'],
+                'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+            )
+        ]
         subp_calls = [
-            mock.call(['apt-get', 'update'],
-                      capture=True, retry_sleeps=apt.APT_RETRIES)]
+            mock.call(
+                ['apt-get', 'update'],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+            )
+        ]
 
         error_msg = 'APT update failed. Another process is running APT.'
         assert error_msg == excinfo.value.msg
@@ -145,12 +186,12 @@ class TestESMEntitlementEnable:
 
 
 class TestESMEntitlementDisable:
-
     @pytest.mark.parametrize('silent', [False, True])
     @mock.patch('uaclient.util.get_platform_info')
     @mock.patch(M_PATH + 'can_disable', return_value=False)
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
-            self, m_can_disable, m_platform_info, silent):
+        self, m_can_disable, m_platform_info, silent
+    ):
         """When can_disable is false disable returns false and noops."""
         entitlement = ESMEntitlement({})
 
@@ -161,13 +202,19 @@ class TestESMEntitlementDisable:
 
     @mock.patch('uaclient.apt.restore_commented_apt_list_file')
     @mock.patch('uaclient.apt.remove_repo_from_apt_auth_file')
-    @mock.patch('uaclient.util.get_platform_info',
-                return_value={'series': 'trusty'})
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value={'series': 'trusty'}
+    )
     @mock.patch(M_PATH + 'can_disable', return_value=True)
     def test_disable_removes_apt_config(
-            self, m_can_disable, m_platform_info, m_rm_repo_from_auth,
-            m_restore_commented_apt_list_file,
-            entitlement, tmpdir):
+        self,
+        m_can_disable,
+        m_platform_info,
+        m_rm_repo_from_auth,
+        m_restore_commented_apt_list_file,
+        entitlement,
+        tmpdir,
+    ):
         """When can_disable, disable removes apt configuration"""
 
         with mock.patch('uaclient.util.subp'):
@@ -175,13 +222,17 @@ class TestESMEntitlementDisable:
                 assert entitlement.disable(True)
 
         # Disable esm repo again
-        write_calls = [mock.call(
-            '/etc/apt/preferences.d/ubuntu-esm-trusty',
-            'Package: *\nPin: release o=UbuntuESM, n=trusty\n'
-            'Pin-Priority: never\n')]
+        write_calls = [
+            mock.call(
+                '/etc/apt/preferences.d/ubuntu-esm-trusty',
+                'Package: *\nPin: release o=UbuntuESM, n=trusty\n'
+                'Pin-Priority: never\n',
+            )
+        ]
         assert write_calls == m_write.call_args_list
         assert [mock.call(True)] == m_can_disable.call_args_list
         auth_call = mock.call('http://ESM')
         assert [auth_call] == m_rm_repo_from_auth.call_args_list
-        assert [mock.call('/etc/apt/sources.list.d/ubuntu-esm-trusty.list')
-                ] == m_restore_commented_apt_list_file.call_args_list
+        assert [
+            mock.call('/etc/apt/sources.list.d/ubuntu-esm-trusty.list')
+        ] == m_restore_commented_apt_list_file.call_args_list

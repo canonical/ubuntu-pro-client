@@ -17,16 +17,19 @@ from uaclient import util
 
 M_PATH = 'uaclient.entitlements.repo.'
 
-PLATFORM_INFO_SUPPORTED = MappingProxyType({
-    'arch': 'x86_64',
-    'kernel': '4.4.0-00-generic',
-    'series': 'xenial',
-    'version': '16.04 LTS (Xenial Xerus)',
-})
+PLATFORM_INFO_SUPPORTED = MappingProxyType(
+    {
+        'arch': 'x86_64',
+        'kernel': '4.4.0-00-generic',
+        'series': 'xenial',
+        'version': '16.04 LTS (Xenial Xerus)',
+    }
+)
 
 
 class RepoTestEntitlement(RepoEntitlement):
     """Subclass so we can test shared repo functionality"""
+
     name = 'repotest'
     title = 'Repo Test Class'
     description = 'Repo entitlement for testing'
@@ -36,15 +39,16 @@ class RepoTestEntitlement(RepoEntitlement):
 
 @pytest.fixture
 def entitlement(entitlement_factory):
-    return entitlement_factory(RepoTestEntitlement,
-                               affordances={'series': ['xenial']})
+    return entitlement_factory(
+        RepoTestEntitlement, affordances={'series': ['xenial']}
+    )
 
 
 class TestUserFacingStatus:
-
     @mock.patch(M_PATH + 'util.get_platform_info')
     def test_inapplicable_on_inapplicable_applicability_status(
-            self, m_platform_info, entitlement):
+        self, m_platform_info, entitlement
+    ):
         """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
         platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         platform_unsupported['series'] = 'trusty'
@@ -52,20 +56,22 @@ class TestUserFacingStatus:
         m_platform_info.return_value = platform_unsupported
         applicability, details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.INAPPLICABLE == applicability
-        expected_details = ('Repo Test Class is not available for Ubuntu 14.04'
-                            ' LTS (Trusty Tahr).')
+        expected_details = (
+            'Repo Test Class is not available for Ubuntu 14.04'
+            ' LTS (Trusty Tahr).'
+        )
         assert expected_details == details
         uf_status, _ = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
 
     @mock.patch(M_PATH + 'util.get_platform_info')
-    def test_inapplicable_on_unentitled(
-            self, m_platform_info, entitlement):
+    def test_inapplicable_on_unentitled(self, m_platform_info, entitlement):
         """When unentitled raises a failure, return INAPPLICABLE."""
         no_entitlements = copy.deepcopy(machine_token(RepoTestEntitlement))
         # delete all enttlements
-        no_entitlements[
-            'machineTokenInfo']['contractInfo']['resourceEntitlements'].pop()
+        no_entitlements['machineTokenInfo']['contractInfo'][
+            'resourceEntitlements'
+        ].pop()
         entitlement.cfg.write_cache('machine-token', no_entitlements)
         entitlement.cfg.delete_cache_key('machine-access-repotest')
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
@@ -77,149 +83,228 @@ class TestUserFacingStatus:
 
 
 class TestProcessContractDeltas:
-
     @pytest.mark.parametrize('orig_access', ({}, {'entitlement': {}}))
     def test_on_no_deltas(self, orig_access):
         """Return True when no deltas are available to process."""
         entitlement = RepoTestEntitlement()
-        with mock.patch.object(entitlement,
-                               'remove_apt_config') as m_remove_apt_config:
-            with mock.patch.object(entitlement,
-                                   'setup_apt_config') as m_setup_apt_config:
+        with mock.patch.object(
+            entitlement, 'remove_apt_config'
+        ) as m_remove_apt_config:
+            with mock.patch.object(
+                entitlement, 'setup_apt_config'
+            ) as m_setup_apt_config:
                 assert entitlement.process_contract_deltas(orig_access, {})
         assert [] == m_remove_apt_config.call_args_list
         assert [] == m_setup_apt_config.call_args_list
 
     @pytest.mark.parametrize('entitled', (False, util.DROPPED_KEY))
-    @pytest.mark.parametrize('application_status', (
-        status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
+    @pytest.mark.parametrize(
+        'application_status',
+        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
+    )
     @mock.patch.object(RepoTestEntitlement, 'disable')
     @mock.patch.object(RepoTestEntitlement, 'can_disable', return_value=True)
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_disable_when_delta_to_unentitled(
-            self, m_application_status, m_can_disable, m_disable, entitlement,
-            entitled, application_status):
+        self,
+        m_application_status,
+        m_can_disable,
+        m_disable,
+        entitlement,
+        entitled,
+        application_status,
+    ):
         """Disable the service on contract transitions to unentitled."""
         m_application_status.return_value = (application_status, '')
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
-            {'entitlement': {'entitled': entitled}})
+            {'entitlement': {'entitled': entitled}},
+        )
         assert [mock.call()] == m_disable.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     @mock.patch.object(RepoTestEntitlement, 'applicability_status')
     def test_no_changes_when_service_inactive_and_not_enable_by_default(
-            self, m_applicability_status, m_application_status,
-            m_remove_apt_config, entitlement):
+        self,
+        m_applicability_status,
+        m_application_status,
+        m_remove_apt_config,
+        entitlement,
+    ):
         """Noop when service is inactive and not enableByDefault."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED, '')
+            status.ApplicationStatus.DISABLED,
+            '',
+        )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE, '')
+            status.ApplicabilityStatus.APPLICABLE,
+            '',
+        )
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
-            {'entitlement': {'obligations': {'enableByDefault': False}},
-             'resourceToken': 'TOKEN'})
+            {
+                'entitlement': {'obligations': {'enableByDefault': False}},
+                'resourceToken': 'TOKEN',
+            },
+        )
         assert [] == m_remove_apt_config.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, 'enable')
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     @mock.patch.object(RepoTestEntitlement, 'applicability_status')
     def test_allow_enable_when_inactive_enable_by_default_and_resource_token(
-            self, m_applicability_status, m_application_status, m_enable,
-            entitlement):
+        self,
+        m_applicability_status,
+        m_application_status,
+        m_enable,
+        entitlement,
+    ):
         """Update apt when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED, '')
+            status.ApplicationStatus.DISABLED,
+            '',
+        )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE, '')
+            status.ApplicabilityStatus.APPLICABLE,
+            '',
+        )
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
-            {'entitlement': {'obligations': {'enableByDefault': True}},
-             'resourceToken': 'TOKEN'},
-            allow_enable=True)
+            {
+                'entitlement': {'obligations': {'enableByDefault': True}},
+                'resourceToken': 'TOKEN',
+            },
+            allow_enable=True,
+        )
         assert [mock.call()] == m_enable.call_args_list
 
     @mock.patch.object(RepoTestEntitlement, 'enable')
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     @mock.patch.object(RepoTestEntitlement, 'applicability_status')
     def test_not_allow_enable_logs_message_when_inactive_enable_by_default(
-            self, m_applicability_status, m_application_status, m_enable,
-            entitlement, caplog_text):
+        self,
+        m_applicability_status,
+        m_application_status,
+        m_enable,
+        entitlement,
+        caplog_text,
+    ):
         """Log a message when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED, '')
+            status.ApplicationStatus.DISABLED,
+            '',
+        )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE, '')
+            status.ApplicabilityStatus.APPLICABLE,
+            '',
+        )
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
-            {'entitlement': {'obligations': {'enableByDefault': True}},
-             'resourceToken': 'TOKEN'},
-            allow_enable=False)
+            {
+                'entitlement': {'obligations': {'enableByDefault': True}},
+                'resourceToken': 'TOKEN',
+            },
+            allow_enable=False,
+        )
         assert [] == m_enable.call_args_list
         expected_msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
-            name='repotest')
+            name='repotest'
+        )
         assert expected_msg in caplog_text()
 
-    @pytest.mark.parametrize('application_status', (
-        status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
+    @pytest.mark.parametrize(
+        'application_status',
+        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
+    )
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_update_apt_config_when_active(
-            self, m_application_status, m_remove_apt_config,
-            m_setup_apt_config, m_remove_auth_apt_repo, entitlement,
-            application_status):
+        self,
+        m_application_status,
+        m_remove_apt_config,
+        m_setup_apt_config,
+        m_remove_auth_apt_repo,
+        entitlement,
+        application_status,
+    ):
         """Update_apt_config when service is active and not enableByDefault."""
         m_application_status.return_value = (application_status, '')
         assert entitlement.process_contract_deltas(
             {'entitlement': {'entitled': True}},
-            {'entitlement': {'obligations': {'enableByDefault': False}},
-             'resourceToken': 'TOKEN'})
+            {
+                'entitlement': {'obligations': {'enableByDefault': False}},
+                'resourceToken': 'TOKEN',
+            },
+        )
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
         assert [] == m_remove_auth_apt_repo.call_args_list
 
-    @pytest.mark.parametrize('application_status', (
-        status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
-    @mock.patch(M_PATH + 'util.get_platform_info',
-                return_value={'series': 'trusty'})
+    @pytest.mark.parametrize(
+        'application_status',
+        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
+    )
+    @mock.patch(
+        M_PATH + 'util.get_platform_info', return_value={'series': 'trusty'}
+    )
     @mock.patch(M_PATH + 'apt.remove_auth_apt_repo')
     @mock.patch.object(RepoTestEntitlement, 'setup_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'remove_apt_config')
     @mock.patch.object(RepoTestEntitlement, 'application_status')
     def test_remove_old_auth_apt_repo_when_active_and_apt_url_delta(
-            self, m_application_status, m_remove_apt_config,
-            m_setup_apt_config, m_remove_auth_apt_repo, m_platform_info,
-            entitlement, application_status):
+        self,
+        m_application_status,
+        m_remove_apt_config,
+        m_setup_apt_config,
+        m_remove_auth_apt_repo,
+        m_platform_info,
+        entitlement,
+        application_status,
+    ):
         """Remove old apt url when aptURL delta occurs on active service."""
         m_application_status.return_value = (application_status, '')
         assert entitlement.process_contract_deltas(
-            {'entitlement': {
-                'entitled': True, 'directives': {'aptURL': 'http://old'}}},
-            {'entitlement': {'obligations': {'enableByDefault': False},
-                             'directives': {'aptURL': 'http://new'}},
-             'resourceToken': 'TOKEN'})
+            {
+                'entitlement': {
+                    'entitled': True,
+                    'directives': {'aptURL': 'http://old'},
+                }
+            },
+            {
+                'entitlement': {
+                    'obligations': {'enableByDefault': False},
+                    'directives': {'aptURL': 'http://new'},
+                },
+                'resourceToken': 'TOKEN',
+            },
+        )
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
         apt_auth_remove_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
-                      'http://old')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
+                'http://old',
+            )
+        ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
         apt_auth_remove_calls = [
-            mock.call('/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
-                      'http://old')]
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-repotest-trusty.list',
+                'http://old',
+            )
+        ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
 
 
 class TestRepoEnable:
-
     @pytest.mark.parametrize('silent_if_inapplicable', (True, False, None))
     @mock.patch.object(RepoTestEntitlement, 'can_enable', return_value=False)
     def test_enable_passes_silent_if_inapplicable_through(
-            self, m_can_enable, caplog_text, tmpdir, silent_if_inapplicable):
+        self, m_can_enable, caplog_text, tmpdir, silent_if_inapplicable
+    ):
         """When can_enable returns False enable returns False."""
         cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
         entitlement = RepoTestEntitlement(cfg)
@@ -240,37 +325,68 @@ class TestRepoEnable:
     @mock.patch(M_PATH + 'util.get_platform_info')
     @mock.patch.object(RepoTestEntitlement, 'can_enable', return_value=True)
     def test_enable_calls_adds_apt_repo_and_calls_apt_update(
-            self, m_can_enable, m_platform, m_exists, m_apt_add, m_subp,
-            entitlement, capsys, caplog_text, tmpdir, packages,
-            with_pre_install_msg):
+        self,
+        m_can_enable,
+        m_platform,
+        m_exists,
+        m_apt_add,
+        m_subp,
+        entitlement,
+        capsys,
+        caplog_text,
+        tmpdir,
+        packages,
+        with_pre_install_msg,
+    ):
         """On enable add authenticated apt repo and refresh package lists."""
         m_platform.return_value = {'series': 'xenial'}
 
         pre_install_msgs = ['Some pre-install information', 'Some more info']
         if with_pre_install_msg:
             messaging_patch = mock.patch.object(
-                entitlement, 'messaging', {'pre_install': pre_install_msgs})
+                entitlement, 'messaging', {'pre_install': pre_install_msgs}
+            )
         else:
             messaging_patch = mock.MagicMock()
 
-        expected_apt_calls = [mock.call(
-            ['apt-get', 'update'], capture=True, retry_sleeps=apt.APT_RETRIES)]
-        expected_output = dedent("""\
+        expected_apt_calls = [
+            mock.call(
+                ['apt-get', 'update'],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+            )
+        ]
+        expected_output = dedent(
+            """\
         Updating package lists
         Repo Test Class enabled.
-        """)
+        """
+        )
         if packages is not None:
             if len(packages) > 0:
                 expected_apt_calls.append(
                     mock.call(
-                        ['apt-get', 'install', '--assume-yes',
-                         ' '.join(packages)],
-                        capture=True, retry_sleeps=apt.APT_RETRIES))
-                expected_output = '\n'.join([
-                    'Updating package lists',
-                    'Installing Repo Test Class packages',
-                ] + (pre_install_msgs if with_pre_install_msg else []) + [
-                    'Repo Test Class enabled.']) + '\n'
+                        [
+                            'apt-get',
+                            'install',
+                            '--assume-yes',
+                            ' '.join(packages),
+                        ],
+                        capture=True,
+                        retry_sleeps=apt.APT_RETRIES,
+                    )
+                )
+                expected_output = (
+                    '\n'.join(
+                        [
+                            'Updating package lists',
+                            'Installing Repo Test Class packages',
+                        ]
+                        + (pre_install_msgs if with_pre_install_msg else [])
+                        + ['Repo Test Class enabled.']
+                    )
+                    + '\n'
+                )
         else:
             packages = entitlement.packages
 
@@ -279,23 +395,30 @@ class TestRepoEnable:
             with messaging_patch:
                 entitlement.enable()
 
-        expected_calls = [mock.call(apt.APT_METHOD_HTTPS_FILE),
-                          mock.call(apt.CA_CERTIFICATES_FILE)]
+        expected_calls = [
+            mock.call(apt.APT_METHOD_HTTPS_FILE),
+            mock.call(apt.CA_CERTIFICATES_FILE),
+        ]
         assert expected_calls in m_exists.call_args_list
         assert expected_apt_calls == m_subp.call_args_list
-        add_apt_calls = [mock.call(
-            '/etc/apt/sources.list.d/ubuntu-repotest-xenial.list',
-            'http://REPOTEST', 'TOKEN',
-            ['xenial'], 'APTKEY',
-            os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file))]
+        add_apt_calls = [
+            mock.call(
+                '/etc/apt/sources.list.d/ubuntu-repotest-xenial.list',
+                'http://REPOTEST',
+                'TOKEN',
+                ['xenial'],
+                'APTKEY',
+                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+            )
+        ]
         assert add_apt_calls == m_apt_add.call_args_list
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 
     @mock.patch(M_PATH + 'util.subp')
     def test_failed_install_removes_apt_config_and_packages(
-            self, m_subp, entitlement):
-
+        self, m_subp, entitlement
+    ):
         def fake_subp(args, *other_args, **kwargs):
             if 'install' in args:
                 raise util.ProcessExecutionError(args)
@@ -304,17 +427,21 @@ class TestRepoEnable:
 
         packages = ['fake_pkg', 'and_another']
         with mock.patch.object(entitlement, 'setup_apt_config'):
-            with mock.patch.object(entitlement, 'can_enable',
-                                   return_value=True):
-                with mock.patch.object(type(entitlement), 'packages',
-                                       packages):
+            with mock.patch.object(
+                entitlement, 'can_enable', return_value=True
+            ):
+                with mock.patch.object(
+                    type(entitlement), 'packages', packages
+                ):
                     with pytest.raises(exceptions.UserFacingError) as excinfo:
                         with mock.patch.object(
-                                entitlement, 'remove_apt_config') as m_rac:
+                            entitlement, 'remove_apt_config'
+                        ) as m_rac:
                             entitlement.enable()
 
         assert 'Could not enable Repo Test Class.' == excinfo.value.msg
         expected_call = mock.call(
-            ['apt-get', 'remove', '--assume-yes'] + packages)
+            ['apt-get', 'remove', '--assume-yes'] + packages
+        )
         assert expected_call in m_subp.call_args_list
         assert 1 == m_rac.call_count
