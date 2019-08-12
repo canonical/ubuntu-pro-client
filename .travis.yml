@@ -30,5 +30,3 @@ matrix:
   allow_failures:
     - python: 3.8-dev
       env: TOXENV=py3,flake8
-    - python: 3.7
-      env: TOXENV=mypy
