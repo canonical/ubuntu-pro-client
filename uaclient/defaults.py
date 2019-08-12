@@ -12,5 +12,5 @@ CONFIG_DEFAULTS = {
     'contract_url': BASE_CONTRACT_URL,
     'data_dir': '/var/lib/ubuntu-advantage',
     'log_level': 'INFO',
-    'log_file': '/var/log/ubuntu-advantage.log'
+    'log_file': '/var/log/ubuntu-advantage.log',
 }

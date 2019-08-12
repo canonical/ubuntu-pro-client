@@ -15,7 +15,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-APT_HELPER_TIMEOUT = 20.0    # 20 second timeout used for apt-helper call
+APT_HELPER_TIMEOUT = 20.0  # 20 second timeout used for apt-helper call
 APT_AUTH_COMMENT = '  # ubuntu-advantage-tools'
 APT_CONFIG_AUTH_FILE = 'Dir::Etc::netrc/'
 APT_CONFIG_AUTH_PARTS_DIR = 'Dir::Etc::netrcparts/'
@@ -47,26 +47,36 @@ def assert_valid_apt_credentials(repo_url, username, password):
     if not os.path.exists('/usr/lib/apt/apt-helper'):
         return
     try:
-        util.subp(['/usr/lib/apt/apt-helper', 'download-file',
-                   '%s://%s:%s@%s/ubuntu/pool/' % (
-                       protocol, username, password, repo_path),
-                   '/tmp/uaclient-apt-test'], timeout=APT_HELPER_TIMEOUT)
+        util.subp(
+            [
+                '/usr/lib/apt/apt-helper',
+                'download-file',
+                '%s://%s:%s@%s/ubuntu/pool/'
+                % (protocol, username, password, repo_path),
+                '/tmp/uaclient-apt-test',
+            ],
+            timeout=APT_HELPER_TIMEOUT,
+        )
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
             if re.search(r'401\s+unauthorized|httperror401', stderr):
                 raise exceptions.UserFacingError(
-                    'Invalid APT credentials provided for %s' % repo_url)
+                    'Invalid APT credentials provided for %s' % repo_url
+                )
             elif re.search(r'connection timed out', stderr):
                 raise exceptions.UserFacingError(
-                    'Timeout trying to access APT repository at %s' % repo_url)
+                    'Timeout trying to access APT repository at %s' % repo_url
+                )
         raise exceptions.UserFacingError(
-            'Unexpected APT error. See /var/log/ubuntu-advantage.log')
+            'Unexpected APT error. See /var/log/ubuntu-advantage.log'
+        )
     except subprocess.TimeoutExpired:
         raise exceptions.UserFacingError(
             'Cannot validate credentials for APT repo.'
-            ' Timeout after %d seconds trying to reach %s.' % (
-                APT_HELPER_TIMEOUT, repo_path))
+            ' Timeout after %d seconds trying to reach %s.'
+            % (APT_HELPER_TIMEOUT, repo_path)
+        )
     finally:
         if os.path.exists('/tmp/uaclient-apt-test'):
             os.unlink('/tmp/uaclient-apt-test')
@@ -88,8 +98,13 @@ def run_apt_command(cmd, error_msg) -> str:
 
 
 def add_auth_apt_repo(
-        repo_filename: str, repo_url: str, credentials: str,
-        suites: 'List[str]', key_id: str, keyring_file: str) -> None:
+    repo_filename: str,
+    repo_url: str,
+    credentials: str,
+    suites: 'List[str]',
+    key_id: str,
+    keyring_file: str,
+) -> None:
     """Add an authenticated apt repo and credentials to the system.
 
     @raises: InvalidAPTCredentialsError when the token provided can't access
@@ -108,7 +123,8 @@ def add_auth_apt_repo(
     # Does this system have updates suite enabled?
     updates_enabled = False
     policy = run_apt_command(
-        ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
+        ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED
+    )
     for line in policy.splitlines():
         # We only care about $suite-updates lines
         if 'a={}-updates'.format(series) not in line:
@@ -123,17 +139,22 @@ def add_auth_apt_repo(
     content = ''
     for suite in suites:
         if series not in suite:
-            continue   # Only enable suites matching this current series
+            continue  # Only enable suites matching this current series
         maybe_comment = ''
         if '-updates' in suite and not updates_enabled:
             logging.debug(
                 'Not enabling apt suite "%s" because "%s-updates" is not'
-                ' enabled', suite, series)
+                ' enabled',
+                suite,
+                series,
+            )
             maybe_comment = '# '
-        content += ('{maybe_comment}deb {url}/ubuntu {suite} main\n'
-                    '# deb-src {url}/ubuntu {suite} main\n'.format(
-                        maybe_comment=maybe_comment, url=repo_url, suite=suite)
-                    )
+        content += (
+            '{maybe_comment}deb {url}/ubuntu {suite} main\n'
+            '# deb-src {url}/ubuntu {suite} main\n'.format(
+                maybe_comment=maybe_comment, url=repo_url, suite=suite
+            )
+        )
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
     gpg.export_gpg_key_from_keyring(key_id, UA_KEYRING_FILE, keyring_file)
@@ -150,9 +171,14 @@ def add_apt_auth_conf_entry(repo_url, login, password):
     else:
         orig_content = ''
     repo_auth_line = (
-        'machine {repo_path}/ login {login} password {password}{cmt}'.format(
-            repo_path=repo_path, login=login, password=password,
-            cmt=APT_AUTH_COMMENT))
+        'machine {repo_path}/ login {login} password {password}'
+        '{cmt}'.format(
+            repo_path=repo_path,
+            login=login,
+            password=password,
+            cmt=APT_AUTH_COMMENT,
+        )
+    )
     added_new_auth = False
     new_lines = []
     for line in orig_content.splitlines():
@@ -183,18 +209,19 @@ def remove_repo_from_apt_auth_file(repo_url):
     apt_auth_file = get_apt_auth_file_from_apt_config()
     if os.path.exists(apt_auth_file):
         apt_auth = util.load_file(apt_auth_file)
-        auth_prefix = 'machine {repo_path}/ login'.format(
-            repo_path=repo_path)
-        content = '\n'.join([
-            line for line in apt_auth.splitlines() if auth_prefix not in line])
+        auth_prefix = 'machine {repo_path}/ login'.format(repo_path=repo_path)
+        content = '\n'.join(
+            [line for line in apt_auth.splitlines() if auth_prefix not in line]
+        )
         if not content:
             os.unlink(apt_auth_file)
         else:
             util.write_file(apt_auth_file, content, mode=0o600)
 
 
-def remove_auth_apt_repo(repo_filename: str, repo_url: str,
-                         keyring_file: str = None) -> None:
+def remove_auth_apt_repo(
+    repo_filename: str, repo_url: str, keyring_file: str = None
+) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
     logging.info('Removing authenticated apt repo: %s', repo_url)
     util.del_file(repo_filename)
@@ -220,19 +247,23 @@ def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):
         'Package: *\n'
         'Pin: release o={origin}, n={series}\n'
         'Pin-Priority: {priority}\n'.format(
-            origin=origin, priority=priority, series=series))
+            origin=origin, priority=priority, series=series
+        )
+    )
     util.write_file(apt_preference_file, content)
 
 
 def get_apt_auth_file_from_apt_config():
     """Return to patch to the system configured APT auth file."""
     out, _err = util.subp(
-        ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_PARTS_DIR])
+        ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_PARTS_DIR]
+    )
     if out:  # then auth.conf.d parts is present
         return out.split("'")[1] + '90ubuntu-advantage'
-    else:    # then use configured /etc/apt/auth.conf
+    else:  # then use configured /etc/apt/auth.conf
         out, _err = util.subp(
-            ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_FILE])
+            ['apt-config', 'shell', 'key', APT_CONFIG_AUTH_FILE]
+        )
         return out.split("'")[1].rstrip('/')
 
 
@@ -242,14 +273,16 @@ def find_apt_list_files(repo_url, series):
     if repo_path.endswith('/'):  # strip trailing slash
         repo_path = repo_path[:-1]
     lists_dir = '/var/lib/apt/lists'
-    out, _err = util.subp(
-        ['apt-config', 'shell', 'key', APT_CONFIG_LISTS_DIR])
+    out, _err = util.subp(['apt-config', 'shell', 'key', APT_CONFIG_LISTS_DIR])
     if out:  # then lists dir is present in config
         lists_dir = out.split("'")[1]
 
     aptlist_filename = repo_path.replace('/', '_')
-    return sorted(glob.glob(
-        os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series)))
+    return sorted(
+        glob.glob(
+            os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series)
+        )
+    )
 
 
 def remove_apt_list_files(repo_url, series):
@@ -275,7 +308,8 @@ def clean_apt_sources(*, _entitlements=None):
         if not hasattr(ent_cls, 'repo_url'):
             continue
         repo_list_glob = ent_cls.repo_list_file_tmpl.format(
-            name=ent_cls.name, series='*')
+            name=ent_cls.name, series='*'
+        )
 
         # Remove list files
         for path in glob.glob(repo_list_glob):

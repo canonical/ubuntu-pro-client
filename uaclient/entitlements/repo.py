@@ -5,7 +5,14 @@ import re
 
 try:
     from typing import (  # noqa: F401
-        Any, cast, Dict, List, Optional, Tuple, Union)
+        Any,
+        cast,
+        Dict,
+        List,
+        Optional,
+        Tuple,
+        Union,
+    )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     def cast(_, x):  # type: ignore
@@ -70,14 +77,15 @@ class RepoEntitlement(base.UAEntitlement):
         self.setup_apt_config()
         if self.packages:
             try:
-                print(
-                    'Installing {title} packages'.format(title=self.title))
+                print('Installing {title} packages'.format(title=self.title))
                 for msg in self.messaging.get('pre_install', []):
                     print(msg)
                 apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title))
+                        title=self.title
+                    ),
+                )
             except exceptions.UserFacingError:
                 self._cleanup()
                 raise
@@ -98,29 +106,33 @@ class RepoEntitlement(base.UAEntitlement):
         """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config()
         try:
-            util.subp(
-                ['apt-get', 'remove', '--assume-yes'] + self.packages)
+            util.subp(['apt-get', 'remove', '--assume-yes'] + self.packages)
         except util.ProcessExecutionError:
             pass
 
     def application_status(self) -> 'Tuple[ApplicationStatus, str]':
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
-        directives = entitlement_cfg.get(
-            'entitlement', {}).get('directives', {})
+        directives = entitlement_cfg.get('entitlement', {}).get(
+            'directives', {}
+        )
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
         protocol, repo_path = repo_url.split('://')
         policy = apt.run_apt_command(
-            ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED)
+            ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED
+        )
         match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, policy)
         if match and match.group('pin') != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, '%s is active' % self.title
         return ApplicationStatus.DISABLED, '%s is not configured' % self.title
 
     def process_contract_deltas(
-            self, orig_access: 'Dict[str, Any]',
-            deltas: 'Dict[str, Any]', allow_enable: bool = False) -> bool:
+        self,
+        orig_access: 'Dict[str, Any]',
+        deltas: 'Dict[str, Any]',
+        allow_enable: bool = False,
+    ) -> bool:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -140,8 +152,8 @@ class RepoEntitlement(base.UAEntitlement):
         if application_status == status.ApplicationStatus.DISABLED:
             return True
         logging.info(
-            "Updating '%s' apt sources list on changed directives." %
-            self.name)
+            "Updating '%s' apt sources list on changed directives." % self.name
+        )
         delta_entitlement = deltas.get('entitlement', {})
         if delta_entitlement.get('directives', {}).get('aptURL'):
             orig_entitlement = orig_access.get('entitlement', {})
@@ -150,7 +162,8 @@ class RepoEntitlement(base.UAEntitlement):
                 # Remove original aptURL and auth and rewrite
                 series = util.get_platform_info()['series']
                 repo_filename = self.repo_list_file_tmpl.format(
-                    name=self.name, series=series)
+                    name=self.name, series=series
+                )
                 apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
         self.setup_apt_config()
@@ -164,41 +177,55 @@ class RepoEntitlement(base.UAEntitlement):
         """
         series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series)
+            name=self.name, series=series
+        )
         resource_cfg = self.cfg.entitlements.get(self.name)
         directives = resource_cfg['entitlement'].get('directives', {})
         token = resource_cfg.get('resourceToken')
         if not token:
             logging.debug(
                 'No specific resourceToken present. Using machine token'
-                ' as %s credentials', self.title)
+                ' as %s credentials',
+                self.title,
+            )
             token = self.cfg.machine_token['machineToken']
         aptKey = directives.get('aptKey')
         if not aptKey:
             raise exceptions.UserFacingError(
                 "Ubuntu Advantage server provided no aptKey directive for %s."
-                % self.name)
+                % self.name
+            )
         repo_url = directives.get('aptURL')
         if not repo_url:
             repo_url = self.repo_url
         repo_suites = directives.get('suites')
         if not repo_suites:
             raise exceptions.UserFacingError(
-                'Empty %s apt suites directive from %s' %
-                (self.name, self.cfg.contract_url))
+                'Empty %s apt suites directive from %s'
+                % (self.name, self.cfg.contract_url)
+            )
         if self.repo_pin_priority:
             if not self.origin:
                 raise exceptions.UserFacingError(
                     "Cannot setup apt pin. Empty apt repo origin value '%s'.\n"
-                    "%s" % (self.origin,
-                            status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                                title=self.title)))
+                    "%s"
+                    % (
+                        self.origin,
+                        status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                            title=self.title
+                        ),
+                    )
+                )
             repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series)
+                name=self.name, series=series
+            )
             if self.repo_pin_priority != 'never':
                 apt.add_ppa_pinning(
-                    repo_pref_file, repo_url, self.origin,
-                    self.repo_pin_priority)
+                    repo_pref_file,
+                    repo_url,
+                    self.origin,
+                    self.repo_pin_priority,
+                )
             elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)  # Remove disabling apt pref file
 
@@ -209,18 +236,23 @@ class RepoEntitlement(base.UAEntitlement):
             prerequisite_pkgs.append('ca-certificates')
 
         if prerequisite_pkgs:
-            print('Installing prerequisites: {}'.format(
-                ', '.join(prerequisite_pkgs)))
+            print(
+                'Installing prerequisites: {}'.format(
+                    ', '.join(prerequisite_pkgs)
+                )
+            )
             try:
                 apt.run_apt_command(
                     ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
-                    status.MESSAGE_APT_INSTALL_FAILED)
+                    status.MESSAGE_APT_INSTALL_FAILED,
+                )
             except exceptions.UserFacingError:
                 self.remove_apt_config()
                 raise
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
         apt.add_auth_apt_repo(
-            repo_filename, repo_url, token, repo_suites, aptKey, keyring_file)
+            repo_filename, repo_url, token, repo_suites, aptKey, keyring_file
+        )
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
@@ -228,7 +260,8 @@ class RepoEntitlement(base.UAEntitlement):
         print('Updating package lists')
         try:
             apt.run_apt_command(
-                ['apt-get', 'update'], status.MESSAGE_APT_UPDATE_FAILED)
+                ['apt-get', 'update'], status.MESSAGE_APT_UPDATE_FAILED
+            )
         except exceptions.UserFacingError:
             self.remove_apt_config()
             raise
@@ -237,10 +270,12 @@ class RepoEntitlement(base.UAEntitlement):
         """Remove any repository apt configuration files."""
         series = util.get_platform_info()['series']
         repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series)
+            name=self.name, series=series
+        )
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-        entitlement = self.cfg.read_cache(
-            'machine-access-%s' % self.name).get('entitlement', {})
+        entitlement = self.cfg.read_cache('machine-access-%s' % self.name).get(
+            'entitlement', {}
+        )
         access_directives = entitlement.get('directives', {})
         repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
@@ -256,11 +291,15 @@ class RepoEntitlement(base.UAEntitlement):
             apt.remove_apt_list_files(repo_url, series)
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series)
+                name=self.name, series=series
+            )
             if self.repo_pin_priority == 'never':
                 # Disable the repo with a pinning file
                 apt.add_ppa_pinning(
-                    repo_pref_file, repo_url, self.origin,
-                    self.repo_pin_priority)
+                    repo_pref_file,
+                    repo_url,
+                    self.origin,
+                    self.repo_pin_priority,
+                )
             elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
