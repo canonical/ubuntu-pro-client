@@ -21,8 +21,14 @@ class ConcreteTestEntitlement(base.UAEntitlement):
     title = 'Test Concrete Entitlement'
     description = 'Entitlement for testing'
 
-    def __init__(self, cfg=None, disable=None, enable=None,
-                 applicability_status=None, application_status=None):
+    def __init__(
+        self,
+        cfg=None,
+        disable=None,
+        enable=None,
+        applicability_status=None,
+        application_status=None,
+    ):
         super().__init__(cfg)
         self._disable = disable
         self._enable = enable
@@ -31,7 +37,9 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def disable(self):
         self._application_status = (
-            status.ApplicationStatus.DISABLED, 'disable() called')
+            status.ApplicationStatus.DISABLED,
+            'disable() called',
+        )
         return self._disable
 
     def enable(self, silent_if_inapplicable: bool = False):
@@ -47,7 +55,8 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 @pytest.fixture
 def concrete_entitlement_factory(tmpdir):
     def factory(
-        *, entitled: bool,
+        *,
+        entitled: bool,
         applicability_status: 'Tuple[status.ApplicabilityStatus, str]' = None,
         application_status: 'Tuple[status.ApplicationStatus, str]' = None
     ) -> ConcreteTestEntitlement:
@@ -57,20 +66,29 @@ def concrete_entitlement_factory(tmpdir):
             'machineTokenInfo': {
                 'contractInfo': {
                     'resourceEntitlements': [
-                        {'type': 'testconcreteentitlement',
-                         'entitled': entitled}]}}}
+                        {
+                            'type': 'testconcreteentitlement',
+                            'entitled': entitled,
+                        }
+                    ]
+                }
+            },
+        }
         cfg.write_cache('machine-token', machineToken)
-        cfg.write_cache('machine-access-testconcreteentitlement',
-                        {'entitlement': {'entitled': entitled}})
+        cfg.write_cache(
+            'machine-access-testconcreteentitlement',
+            {'entitlement': {'entitled': entitled}},
+        )
         return ConcreteTestEntitlement(
             cfg,
             applicability_status=applicability_status,
-            application_status=application_status)
+            application_status=application_status,
+        )
+
     return factory
 
 
 class TestUaEntitlement:
-
     def test_entitlement_abstract_class(self):
         """UAEntitlement is abstract requiring concrete methods."""
         with pytest.raises(TypeError) as excinfo:
@@ -78,7 +96,8 @@ class TestUaEntitlement:
         expected_msg = (
             "Can't instantiate abstract class UAEntitlement with abstract"
             " methods application_status, description, disable, enable, name,"
-            " title")
+            " title"
+        )
         assert expected_msg == str(excinfo.value)
 
     def test_init_default_sets_up_uaconfig(self):
@@ -93,26 +112,31 @@ class TestUaEntitlement:
         assert '/some/path' == entitlement.cfg.data_dir
 
     def test_can_disable_false_on_entitlement_inactive(
-            self, capsys, concrete_entitlement_factory):
+        self, capsys, concrete_entitlement_factory
+    ):
         """When  status is INACTIVE, can_disable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
 
         assert not entitlement.can_disable()
 
         expected_stdout = (
             'Test Concrete Entitlement is not currently enabled.\n'
-            'See `ua status`\n')
+            'See `ua status`\n'
+        )
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
     def test_can_disable_true_on_entitlement_active(
-            self, capsys, concrete_entitlement_factory):
+        self, capsys, concrete_entitlement_factory
+    ):
         """When entitlement is ENABLED, can_disable returns True."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ''))
+            application_status=(status.ApplicationStatus.ENABLED, ''),
+        )
 
         assert entitlement.can_disable()
 
@@ -121,7 +145,8 @@ class TestUaEntitlement:
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_unentitled(
-            self, capsys, concrete_entitlement_factory, silent):
+        self, capsys, concrete_entitlement_factory, silent
+    ):
         """When entitlement contract is not enabled, can_enable is False."""
 
         entitlement = concrete_entitlement_factory(entitled=False)
@@ -133,21 +158,25 @@ class TestUaEntitlement:
 
         expected_stdout = (
             'This subscription is not entitled to Test Concrete Entitlement.\n'
-            'See `ua status` or https://ubuntu.com/advantage\n')
+            'See `ua status` or https://ubuntu.com/advantage\n'
+        )
         if silent:
             expected_stdout = ''
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
 
     @pytest.mark.parametrize('silent', (True, False, None))
-    @pytest.mark.parametrize('application_status', (
-        status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING))
+    @pytest.mark.parametrize(
+        'application_status',
+        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
+    )
     def test_can_enable_false_on_entitlement_active(
-            self, capsys, concrete_entitlement_factory, silent,
-            application_status):
+        self, capsys, concrete_entitlement_factory, silent, application_status
+    ):
         """When entitlement is ENABLED or PENDING, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
-            entitled=True, application_status=(application_status, ''))
+            entitled=True, application_status=(application_status, '')
+        )
 
         kwargs = {}
         if silent is not None:
@@ -155,7 +184,8 @@ class TestUaEntitlement:
         assert not entitlement.can_enable(**kwargs)
 
         expected_stdout = (
-            'Test Concrete Entitlement is already enabled.\nSee `ua status`\n')
+            'Test Concrete Entitlement is already enabled.\nSee `ua status`\n'
+        )
         if silent:
             expected_stdout = ''
         stdout, _ = capsys.readouterr()
@@ -163,13 +193,17 @@ class TestUaEntitlement:
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_false_on_entitlement_inapplicable(
-            self, capsys, concrete_entitlement_factory, silent):
+        self, capsys, concrete_entitlement_factory, silent
+    ):
         """When entitlement is INAPPLICABLE, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.INAPPLICABLE,
-                                  'msg'),
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            applicability_status=(
+                status.ApplicabilityStatus.INAPPLICABLE,
+                'msg',
+            ),
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
 
         kwargs = {}
         if silent is not None:
@@ -184,12 +218,14 @@ class TestUaEntitlement:
 
     @pytest.mark.parametrize('silent', (True, False, None))
     def test_can_enable_true_on_entitlement_inactive(
-            self, capsys, concrete_entitlement_factory, silent):
+        self, capsys, concrete_entitlement_factory, silent
+    ):
         """When an entitlement is applicable and disabled, we can_enable"""
         entitlement = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
 
         kwargs = {}
         if silent is not None:
@@ -209,123 +245,173 @@ class TestUaEntitlement:
         entitlement = concrete_entitlement_factory(entitled=False)
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
-    @pytest.mark.parametrize('orig_access,delta', (
-        ({}, {}), ({}, {'entitlement': {'entitled': False}})))
+    @pytest.mark.parametrize(
+        'orig_access,delta',
+        (({}, {}), ({}, {'entitlement': {'entitled': False}})),
+    )
     def test_process_contract_deltas_does_nothing_on_empty_orig_access(
-            self, concrete_entitlement_factory, orig_access, delta):
+        self, concrete_entitlement_factory, orig_access, delta
+    ):
         """When orig_acccess dict is empty perform no work."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
         entitlement.process_contract_deltas(orig_access, delta)
         # Cache was not cleaned
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
 
     @pytest.mark.parametrize(
         'orig_access,delta',
-        (({'entitlement': {'entitled': True}}, {}),  # no deltas
-         ({'entitlement': {'entitled': False}},
-          {'entitlement': {'entitled': True}}),  # transition to entitled
-         ({'entitlement': {'entitled': False}},
-             {'entitlement': {
-                 'entitled': False,  # overridden True by series trusty
-                 'series': {'trusty': {'entitled': True}}}})
-         ))
-    @mock.patch('uaclient.util.get_platform_info',
-                return_value={'series': 'trusty'})
+        (
+            ({'entitlement': {'entitled': True}}, {}),  # no deltas
+            (
+                {'entitlement': {'entitled': False}},
+                {'entitlement': {'entitled': True}},
+            ),  # transition to entitled
+            (
+                {'entitlement': {'entitled': False}},
+                {
+                    'entitlement': {
+                        'entitled': False,  # overridden True by series trusty
+                        'series': {'trusty': {'entitled': True}},
+                    }
+                },
+            ),
+        ),
+    )
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value={'series': 'trusty'}
+    )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
-            self, m_platform_info, concrete_entitlement_factory, orig_access,
-            delta):
+        self, m_platform_info, concrete_entitlement_factory, orig_access, delta
+    ):
         """If deltas do not represent transition to unentitled, do nothing."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
         entitlement.process_contract_deltas(orig_access, delta)
         # Cache was not cleaned
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
 
     @pytest.mark.parametrize(
         'orig_access,delta',
-        (({'entitlement': {'entitled': True}},  # Full entitlement dropped
-          {'entitlement': {'entitled': util.DROPPED_KEY}}),
-         ({'entitlement': {'entitled': True}},
-          {'entitlement': {'entitled': False}})  # transition to unentitled
-         ))
+        (
+            (
+                {
+                    'entitlement': {'entitled': True}
+                },  # Full entitlement dropped
+                {'entitlement': {'entitled': util.DROPPED_KEY}},
+            ),
+            (
+                {'entitlement': {'entitled': True}},
+                {'entitlement': {'entitled': False}},
+            ),  # transition to unentitled
+        ),
+    )
     def test_process_contract_deltas_clean_cache_on_inactive_unentitled(
-            self, concrete_entitlement_factory, orig_access, delta,
-            caplog_text):
+        self, concrete_entitlement_factory, orig_access, delta, caplog_text
+    ):
         """Only clear cache when deltas transition inactive to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ''))
+            application_status=(status.ApplicationStatus.DISABLED, ''),
+        )
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
         entitlement.process_contract_deltas(orig_access, delta)
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
         # If an entitlement is disabled, we don't need to tell the user
         # anything about it becoming unentitled
         # (FIXME: Something on bionic means that DEBUG log lines are being
         # picked up by caplog_text(), so work around that here)
-        assert [] == [line for line in caplog_text().splitlines()
-                      if 'DEBUG' not in line]
+        assert [] == [
+            line for line in caplog_text().splitlines() if 'DEBUG' not in line
+        ]
 
     @pytest.mark.parametrize(
         'orig_access,delta',
-        (({'entitlement': {'entitled': True}},  # Full entitlement dropped
-          {'entitlement': {'entitled': util.DROPPED_KEY}}),
-         ({'entitlement': {'entitled': True}},
-          {'entitlement': {'entitled': False}})  # transition to unentitled
-         ))
+        (
+            (
+                {
+                    'entitlement': {'entitled': True}
+                },  # Full entitlement dropped
+                {'entitlement': {'entitled': util.DROPPED_KEY}},
+            ),
+            (
+                {'entitlement': {'entitled': True}},
+                {'entitlement': {'entitled': False}},
+            ),  # transition to unentitled
+        ),
+    )
     def test_process_contract_deltas_disable_clean_cache_on_active_unentitled(
-            self, concrete_entitlement_factory, orig_access, delta):
+        self, concrete_entitlement_factory, orig_access, delta
+    ):
         """Disable and clear cache when transition active to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ''))
+            application_status=(status.ApplicationStatus.ENABLED, ''),
+        )
         expected = {'entitlement': {'entitled': True}}
         assert expected == entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
+            'machine-access-testconcreteentitlement'
+        )
         entitlement.process_contract_deltas(orig_access, delta)
         # Cache was cleaned
         assert None is entitlement.cfg.read_cache(
-            'machine-access-testconcreteentitlement')
-        assert (status.ApplicationStatus.DISABLED,
-                mock.ANY) == entitlement.application_status()
+            'machine-access-testconcreteentitlement'
+        )
+        assert (
+            status.ApplicationStatus.DISABLED,
+            mock.ANY,
+        ) == entitlement.application_status()
 
 
 class TestUaEntitlementUserFacingStatus:
-
     def test_inapplicable_when_not_applicable(
-            self, concrete_entitlement_factory):
+        self, concrete_entitlement_factory
+    ):
         msg = 'inapplicable for very good reasons'
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.INAPPLICABLE,
-                                  msg))
+            applicability_status=(
+                status.ApplicabilityStatus.INAPPLICABLE,
+                msg,
+            ),
+        )
 
         user_facing_status, details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
         assert msg == details
 
     def test_inapplicable_when_applicable_but_not_entitled(
-            self, concrete_entitlement_factory):
+        self, concrete_entitlement_factory
+    ):
 
         entitlement = concrete_entitlement_factory(
             entitled=False,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''))
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
+        )
 
         user_facing_status, details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
@@ -333,11 +419,13 @@ class TestUaEntitlementUserFacingStatus:
         assert expected_details == details
 
     def test_inapplicable_when_applicable_but_no_entitlement_cfg(
-            self, concrete_entitlement_factory):
+        self, concrete_entitlement_factory
+    ):
 
         entitlement = concrete_entitlement_factory(
             entitled=False,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''))
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ''),
+        )
         entitlement.cfg._entitlements = {}
 
         user_facing_status, details = entitlement.user_facing_status()
@@ -345,14 +433,26 @@ class TestUaEntitlementUserFacingStatus:
         expected_details = '{} is not entitled'.format(entitlement.title)
         assert expected_details == details
 
-    @pytest.mark.parametrize('application_status,expected_uf_status', (
-        (status.ApplicationStatus.ENABLED, status.UserFacingStatus.ACTIVE),
-        (status.ApplicationStatus.DISABLED, status.UserFacingStatus.INACTIVE),
-        (status.ApplicationStatus.PENDING, status.UserFacingStatus.PENDING),
-    ))
+    @pytest.mark.parametrize(
+        'application_status,expected_uf_status',
+        (
+            (status.ApplicationStatus.ENABLED, status.UserFacingStatus.ACTIVE),
+            (
+                status.ApplicationStatus.DISABLED,
+                status.UserFacingStatus.INACTIVE,
+            ),
+            (
+                status.ApplicationStatus.PENDING,
+                status.UserFacingStatus.PENDING,
+            ),
+        ),
+    )
     def test_application_status_used_if_not_inapplicable(
-            self, concrete_entitlement_factory, application_status,
-            expected_uf_status):
+        self,
+        concrete_entitlement_factory,
+        application_status,
+        expected_uf_status,
+    ):
         msg = 'application status details'
         entitlement = concrete_entitlement_factory(
             entitled=True,

@@ -15,7 +15,6 @@ except ImportError:
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
-
     @property
     @abc.abstractmethod
     def api_error_cls(self) -> 'Type[Exception]':
@@ -35,9 +34,11 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             self.cfg = cfg
 
     def headers(self):
-        return {'user-agent': 'UA-Client/%s' % version.get_version(),
-                'accept': 'application/json',
-                'content-type': 'application/json'}
+        return {
+            'user-agent': 'UA-Client/%s' % version.get_version(),
+            'accept': 'application/json',
+            'content-type': 'application/json',
+        }
 
     def request_url(self, path, data=None, headers=None, method=None):
         path = path.lstrip('/')
@@ -48,7 +49,8 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         url = urljoin(getattr(self.cfg, self.cfg_url_base_attr), path)
         try:
             response, headers = util.readurl(
-                url=url, data=data, headers=headers, method=method)
+                url=url, data=data, headers=headers, method=method
+            )
         except error.URLError as e:
             if hasattr(e, 'read'):
                 try:

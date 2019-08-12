@@ -38,7 +38,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if running_kernel.endswith('-fips'):
             return super_status, super_msg
         return (
-            status.ApplicationStatus.PENDING, 'Reboot to FIPS kernel required')
+            status.ApplicationStatus.PENDING,
+            'Reboot to FIPS kernel required',
+        )
 
     def disable(self, silent: bool = False) -> bool:
         """FIPS cannot be disabled, so simply display a message to the user"""
@@ -56,25 +58,37 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     name = 'fips'
     title = 'FIPS'
     description = 'Canonical FIPS 140-2 Certified Modules'
-    messaging = {'post_enable': [
-        'FIPS configured and pending, please reboot to make active.']}
+    messaging = {
+        'post_enable': [
+            'FIPS configured and pending, please reboot to make active.'
+        ]
+    }
     origin = 'UbuntuFIPS'
     repo_url = 'https://esm.ubuntu.com/fips'
     repo_key_file = 'ubuntu-fips-keyring.gpg'
     static_affordances = (
-        ('Cannot install FIPS on a container', util.is_container, False),)
+        ('Cannot install FIPS on a container', util.is_container, False),
+    )
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     name = 'fips-updates'
     title = 'FIPS Updates'
-    messaging = {'post_enable': [
-        'FIPS Updates configured and pending, please reboot to make active.']}
+    messaging = {
+        'post_enable': [
+            'FIPS Updates configured and pending, please reboot to make'
+            ' active.'
+        ]
+    }
     origin = 'UbuntuFIPSUpdates'
     description = 'Canonical FIPS 140-2 Certified Modules with Updates'
     repo_url = 'https://esm.ubuntu.com/fips-updates'
     repo_key_file = 'ubuntu-fips-updates-keyring.gpg'
     static_affordances = (
-        ('Cannot install FIPS Updates on a container',
-         util.is_container, False),)
+        (
+            'Cannot install FIPS Updates on a container',
+            util.is_container,
+            False,
+        ),
+    )

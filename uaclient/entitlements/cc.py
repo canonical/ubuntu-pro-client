@@ -10,13 +10,17 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     description = (
         'Common Criteria for Information Technology Security Evaluation - EAL2'
     )
-    repo_url = ('https://private-ppa.launchpad.net/ubuntu-advantage/'
-                'commoncriteria')
+    repo_url = (
+        'https://private-ppa.launchpad.net/ubuntu-advantage/commoncriteria'
+    )
     repo_key_file = 'ubuntu-cc-keyring.gpg'
     packages = ['ubuntu-commoncriteria']
     messaging = {
         'pre_install': [
             '(This will download more than 500MB of packages, so may take some'
-            ' time.)'],
+            ' time.)'
+        ],
         'post_enable': [
-            'Please follow instructions in %s to configure EAL2' % CC_README]}
+            'Please follow instructions in %s to configure EAL2' % CC_README
+        ],
+    }

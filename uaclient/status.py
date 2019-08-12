@@ -20,6 +20,7 @@ class ApplicationStatus(enum.Enum):
     """
     An enum to represent the current application status of an entitlement
     """
+
     ENABLED = object()
     DISABLED = object()
     PENDING = object()
@@ -33,6 +34,7 @@ class ContractStatus(enum.Enum):
     (The value of each member is the string that will be used in status
     output.)
     """
+
     ENTITLED = 'entitled'
     UNENTITLED = 'none'
 
@@ -42,6 +44,7 @@ class ApplicabilityStatus(enum.Enum):
     """
     An enum to represent whether an entitlement could apply to this machine
     """
+
     APPLICABLE = object()
     INAPPLICABLE = object()
 
@@ -54,6 +57,7 @@ class UserFacingStatus(enum.Enum):
     This enum should only be used in display code, it should not be used in
     business logic.
     """
+
     ACTIVE = 'active'
     INACTIVE = 'inactive'
     INAPPLICABLE = 'n/a'
@@ -67,20 +71,28 @@ ADVANCED = 'advanced'
 # Colorized status output for terminal
 STATUS_COLOR = {
     UserFacingStatus.ACTIVE.value: (
-        TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC),
+        TxtColor.OKGREEN + UserFacingStatus.ACTIVE.value + TxtColor.ENDC
+    ),
     UserFacingStatus.PENDING.value: (
-        TxtColor.DISABLEGREY + UserFacingStatus.PENDING.value + TxtColor.ENDC),
+        TxtColor.DISABLEGREY + UserFacingStatus.PENDING.value + TxtColor.ENDC
+    ),
     UserFacingStatus.INACTIVE.value: (
-        TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC),
+        TxtColor.FAIL + UserFacingStatus.INACTIVE.value + TxtColor.ENDC
+    ),
     UserFacingStatus.INAPPLICABLE.value: (
-        TxtColor.DISABLEGREY + UserFacingStatus.INAPPLICABLE.value + TxtColor.ENDC),  # noqa: E501
+        TxtColor.DISABLEGREY
+        + UserFacingStatus.INAPPLICABLE.value
+        + TxtColor.ENDC
+    ),  # noqa: E501
     ContractStatus.ENTITLED.value: (
-        TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC),
+        TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC
+    ),
     ContractStatus.UNENTITLED.value: (
-        TxtColor.DISABLEGREY + ContractStatus.UNENTITLED.value + TxtColor.ENDC),  # noqa: E501
+        TxtColor.DISABLEGREY + ContractStatus.UNENTITLED.value + TxtColor.ENDC
+    ),  # noqa: E501
     ESSENTIAL: TxtColor.OKGREEN + ESSENTIAL + TxtColor.ENDC,
     STANDARD: TxtColor.OKGREEN + STANDARD + TxtColor.ENDC,
-    ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC
+    ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC,
 }
 
 MESSAGE_APT_INSTALL_FAILED = 'APT install failed.'
@@ -157,7 +169,8 @@ def format_tabular(status: 'Dict[str, Any]') -> str:
         fmt_args = {
             'name': service_status['name'],
             'entitled': colorize(entitled),
-            'status': colorize(service_status['status'])}
+            'status': colorize(service_status['status']),
+        }
         content.append(STATUS_TMPL.format(**fmt_args))
     content.append('\nEnable entitlements with `ua enable <service>`')
     return '\n'.join(content)

@@ -14,7 +14,14 @@ from http.client import HTTPMessage  # noqa: F401
 
 try:
     from typing import (  # noqa: F401
-        Any, Dict, List, Mapping, Optional, Sequence, Tuple, Union,
+        Any,
+        Dict,
+        List,
+        Mapping,
+        Optional,
+        Sequence,
+        Tuple,
+        Union,
     )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
@@ -39,10 +46,13 @@ class LogFormatter(logging.Formatter):
 
 
 class UrlError(IOError):
-
-    def __init__(self, cause: error.URLError, code: 'Optional[int]' = None,
-                 headers: 'Optional[Dict[str, str]]' = None,
-                 url: 'Optional[str]' = None):
+    def __init__(
+        self,
+        cause: error.URLError,
+        code: 'Optional[int]' = None,
+        headers: 'Optional[Dict[str, str]]' = None,
+        url: 'Optional[str]' = None,
+    ):
         super().__init__(str(cause))
         self.code = code
         self.headers = headers
@@ -52,9 +62,13 @@ class UrlError(IOError):
 
 
 class ProcessExecutionError(IOError):
-
-    def __init__(self, cmd: str, exit_code: 'Optional[int]' = None,
-                 stdout: str = '', stderr: str = '') -> None:
+    def __init__(
+        self,
+        cmd: str,
+        exit_code: 'Optional[int]' = None,
+        stdout: str = '',
+        stderr: str = '',
+    ) -> None:
         self.stdout = stdout
         self.stderr = stderr
         self.exit_code = exit_code
@@ -63,9 +77,11 @@ class ProcessExecutionError(IOError):
         else:
             message_tmpl = (
                 "Failed running command '{cmd}' [exit({exit_code})]."
-                " Message: {stderr}")
+                " Message: {stderr}"
+            )
         super().__init__(
-            message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code))
+            message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code)
+        )
 
 
 class DatetimeAwareJSONEncoder(json.JSONEncoder):
@@ -102,7 +118,8 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
             if isinstance(value, str):
                 try:
                     new_value = datetime.datetime.strptime(
-                        value, '%Y-%m-%dT%H:%M:%S')
+                        value, '%Y-%m-%dT%H:%M:%S'
+                    )
                 except ValueError:
                     # This isn't a string containing a valid ISO 8601 datetime
                     new_value = value
@@ -135,8 +152,11 @@ def disable_log_to_console():
     (Note that the @contextmanager decorator also allows this function to be
     used as a decorator.)
     """
-    potential_handlers = [handler for handler in logging.getLogger().handlers
-                          if handler.name == 'console']
+    potential_handlers = [
+        handler
+        for handler in logging.getLogger().handlers
+        if handler.name == 'console'
+    ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end
         # execution
@@ -157,8 +177,9 @@ def disable_log_to_console():
         console_handler.setLevel(old_level)
 
 
-def get_dict_deltas(orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]',
-                    path: str = '') -> 'Dict[str, Any]':
+def get_dict_deltas(
+    orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]', path: str = ''
+) -> 'Dict[str, Any]':
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}  # type: Dict[str, Any]
     for key, value in orig_dict.items():
@@ -167,14 +188,16 @@ def get_dict_deltas(orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]',
         if isinstance(value, dict):
             if key in new_dict:
                 sub_delta = get_dict_deltas(
-                    value, new_dict[key], path=key_path)
+                    value, new_dict[key], path=key_path
+                )
                 if sub_delta:
                     deltas[key] = sub_delta
             else:
                 deltas[key] = DROPPED_KEY
         elif value != new_value:
             logging.debug(
-                "Contract value for '%s' changed to '%s'", key_path, new_value)
+                "Contract value for '%s' changed to '%s'", key_path, new_value
+            )
             deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:
@@ -219,29 +242,42 @@ def load_file(filename: str, decode: bool = True) -> str:
     return content.decode('utf-8')
 
 
-def readurl(url: str, data: 'Optional[bytes]' = None,
-            headers: 'Dict[str, str]' = {}, method: 'Optional[str]' = None
-            ) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
+def readurl(
+    url: str,
+    data: 'Optional[bytes]' = None,
+    headers: 'Dict[str, str]' = {},
+    method: 'Optional[str]' = None,
+) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
     if data and not method:
         method = 'POST'
     req = request.Request(url, data=data, headers=headers, method=method)
     logging.debug(
         'URL [%s]: %s, headers: %s, data: %s',
-        method or 'GET', url, headers, data)
+        method or 'GET',
+        url,
+        headers,
+        data,
+    )
     resp = request.urlopen(req)
     content = resp.read().decode('utf-8')
     if 'application/json' in str(resp.headers.get('Content-type', '')):
         content = json.loads(content)
     logging.debug(
         'URL [%s] response: %s, headers: %s, data: %s',
-        method or 'GET', url, resp.headers, content)
+        method or 'GET',
+        url,
+        resp.headers,
+        content,
+    )
     return content, resp.headers
 
 
-def _subp(args: 'Sequence[str]',
-          rcs: 'Optional[List[int]]' = None,
-          capture: bool = False,
-          timeout: 'Optional[float]' = None) -> 'Tuple[str, str]':
+def _subp(
+    args: 'Sequence[str]',
+    rcs: 'Optional[List[int]]' = None,
+    capture: bool = False,
+    timeout: 'Optional[float]' = None,
+) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param args: A list of arguments to feed to subprocess.Popen
@@ -256,34 +292,50 @@ def _subp(args: 'Sequence[str]',
     @raises subprocess.TimeoutError when timeout specified and the command
         exceeds that number of seconds.
     """
-    bytes_args = [x if isinstance(x, bytes) else x.encode("utf-8")
-                  for x in args]
+    bytes_args = [
+        x if isinstance(x, bytes) else x.encode("utf-8") for x in args
+    ]
     if rcs is None:
         rcs = [0]
     try:
         proc = subprocess.Popen(
-            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
         try:
             raise ProcessExecutionError(
-                cmd=' '.join(args), exit_code=proc.returncode,
-                stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
+                cmd=' '.join(args),
+                exit_code=proc.returncode,
+                stdout=out.decode('utf-8'),
+                stderr=err.decode('utf-8'),
+            )
         except UnboundLocalError:
             raise ProcessExecutionError(cmd=' '.join(args))
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
-            cmd=' '.join(args), exit_code=proc.returncode,
-            stdout=out.decode('utf-8'), stderr=err.decode('utf-8'))
+            cmd=' '.join(args),
+            exit_code=proc.returncode,
+            stdout=out.decode('utf-8'),
+            stderr=err.decode('utf-8'),
+        )
     if capture:
-        logging.debug('Ran cmd: %s, rc: %s stderr: %s',
-                      ' '.join(args), proc.returncode, err)
+        logging.debug(
+            'Ran cmd: %s, rc: %s stderr: %s',
+            ' '.join(args),
+            proc.returncode,
+            err,
+        )
     return out.decode('utf-8'), err.decode('utf-8')
 
 
-def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
-         capture: bool = False, timeout: 'Optional[float]' = None,
-         retry_sleeps: 'Optional[List[float]]' = None) -> 'Tuple[str, str]':
+def subp(
+    args: 'Sequence[str]',
+    rcs: 'Optional[List[int]]' = None,
+    capture: bool = False,
+    timeout: 'Optional[float]' = None,
+    retry_sleeps: 'Optional[List[float]]' = None,
+) -> 'Tuple[str, str]':
     """Run a command and return a tuple of decoded stdout, stderr.
 
      @param subp: A list of arguments to feed to subprocess.Popen
@@ -313,7 +365,8 @@ def subp(args: 'Sequence[str]', rcs: 'Optional[List[int]]' = None,
             if not retry_sleeps:
                 raise
             logging.debug(
-                str(e) + " Retrying %d more times.", len(retry_sleeps))
+                str(e) + " Retrying %d more times.", len(retry_sleeps)
+            )
             time.sleep(retry_sleeps.pop(0))
     return out, err
 
@@ -324,8 +377,9 @@ def which(program: str) -> 'Optional[str]':
         # if program had a '/' in it, then do not search PATH
         if is_exe(program):
             return program
-    paths = [p.strip('"') for p in
-             os.environ.get("PATH", "").split(os.pathsep)]
+    paths = [
+        p.strip('"') for p in os.environ.get("PATH", "").split(os.pathsep)
+    ]
     normalized_paths = [os.path.abspath(p) for p in paths]
     for path in normalized_paths:
         program_path = os.path.join(path, program)
@@ -374,7 +428,8 @@ def get_platform_info() -> 'Dict[str, str]':
     os_release = parse_os_release()
     platform_info = {
         'distribution': os_release.get('NAME', 'UNKNOWN'),
-        'type': 'Linux'}
+        'type': 'Linux',
+    }
 
     version = os_release['VERSION']
     if ', ' in version:
@@ -387,11 +442,16 @@ def get_platform_info() -> 'Dict[str, str]':
     match = re.match(REGEX_OS_RELEASE_VERSION, version)
     if not match:
         raise RuntimeError(
-            'Could not parse /etc/os-release VERSION: %s (modified to %s)' %
-            (os_release['VERSION'], version))
+            'Could not parse /etc/os-release VERSION: %s (modified to %s)'
+            % (os_release['VERSION'], version)
+        )
     match_dict = match.groupdict()
-    platform_info.update({'release': match_dict['release'],
-                          'series': match_dict['series'].lower()})
+    platform_info.update(
+        {
+            'release': match_dict['release'],
+            'series': match_dict['series'].lower(),
+        }
+    )
 
     uname = os.uname()
     platform_info['kernel'] = uname.release
@@ -418,7 +478,8 @@ def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
     if not all([isinstance(orig_access, dict), 'entitlement' in orig_access]):
         raise RuntimeError(
             'Expected entitlement access dict. Missing "entitlement" key: %s'
-            % orig_access)
+            % orig_access
+        )
     series_name = get_platform_info()['series']
     orig_entitlement = orig_access.get('entitlement', {})
     overrides = orig_entitlement.pop('series', {}).pop(series_name, {})

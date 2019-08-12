@@ -28,7 +28,9 @@ BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
 PRIVACY_POLICY_URL="%s"
 VERSION_CODENAME=disco
 UBUNTU_CODENAME=disco
-""" % (PRIVACY_POLICY_URL)
+""" % (
+    PRIVACY_POLICY_URL
+)
 
 OS_RELEASE_BIONIC = """\
 NAME="Ubuntu"
@@ -43,7 +45,9 @@ BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
 PRIVACY_POLICY_URL="%s"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
-""" % (PRIVACY_POLICY_URL)
+""" % (
+    PRIVACY_POLICY_URL
+)
 
 OS_RELEASE_XENIAL = """\
 NAME="Ubuntu"
@@ -73,41 +77,49 @@ BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
 
 
 class TestGetDictDeltas:
-
-    @pytest.mark.parametrize('value1,value2',
-                             (('val1', 'val2'), ([1], [2]), ((1, 2), (3, 4))))
+    @pytest.mark.parametrize(
+        'value1,value2', (('val1', 'val2'), ([1], [2]), ((1, 2), (3, 4)))
+    )
     def test_non_dict_diffs_return_new_value(self, value1, value2):
         """When two values differ and are not a dict return the new value."""
         expected = {'key': value2}
         assert expected == util.get_dict_deltas(
-            {'key': value1}, {'key': value2})
+            {'key': value1}, {'key': value2}
+        )
 
     def test_diffs_return_new_keys_and_values(self):
         """New keys previously absent will be returned in the delta."""
         expected = {'newkey': 'val'}
         assert expected == util.get_dict_deltas(
-            {'k': 'v'}, {'newkey': 'val', 'k': 'v'})
+            {'k': 'v'}, {'newkey': 'val', 'k': 'v'}
+        )
 
     def test_diffs_return_dropped_keys_set_dropped(self):
         """Old keys which are now dropped are returned as DROPPED_KEY."""
         expected = {'oldkey': util.DROPPED_KEY, 'oldkey2': util.DROPPED_KEY}
         assert expected == util.get_dict_deltas(
-            {'oldkey': 'v', 'k': 'v', 'oldkey2': {}}, {'k': 'v'})
+            {'oldkey': 'v', 'k': 'v', 'oldkey2': {}}, {'k': 'v'}
+        )
 
     def test_return_only_keys_which_represent_deltas(self):
         """Only return specific keys which have deltas."""
         orig_dict = {
-            '1': '1', '2': 'orig2', '3': {'3.1': '3.1', '3.2': 'orig3.2'},
-            '4': {'4.1': '4.1'}}
+            '1': '1',
+            '2': 'orig2',
+            '3': {'3.1': '3.1', '3.2': 'orig3.2'},
+            '4': {'4.1': '4.1'},
+        }
         new_dict = {
-            '1': '1', '2': 'new2', '3': {'3.1': '3.1', '3.2': 'new3.2'},
-            '4': {'4.1': '4.1'}}
+            '1': '1',
+            '2': 'new2',
+            '3': {'3.1': '3.1', '3.2': 'new3.2'},
+            '4': {'4.1': '4.1'},
+        }
         expected = {'2': 'new2', '3': {'3.2': 'new3.2'}}
         assert expected == util.get_dict_deltas(orig_dict, new_dict)
 
 
 class TestIsContainer:
-
     @mock.patch('uaclient.util.subp')
     def test_true_systemd_detect_virt_success(self, m_subp):
         """Return True when systemd-detect virt exits success."""
@@ -138,7 +150,8 @@ class TestIsContainer:
 
     @mock.patch('uaclient.util.subp')
     def test_false_on_non_sytemd_detect_virt_and_no_runfiles(
-            self, m_subp, tmpdir):
+        self, m_subp, tmpdir
+    ):
         """Return False when sytemd-detect-virt erros and no /run/* files."""
         m_subp.side_effect = OSError('No systemd-detect-virt utility')
 
@@ -147,13 +160,14 @@ class TestIsContainer:
             assert False is util.is_container(run_path=tmpdir.strpath)
         calls = [mock.call(['systemd-detect-virt', '--quiet', '--container'])]
         assert calls == m_subp.call_args_list
-        exists_calls = [mock.call(tmpdir.join('container_type').strpath),
-                        mock.call(tmpdir.join('systemd/container').strpath)]
+        exists_calls = [
+            mock.call(tmpdir.join('container_type').strpath),
+            mock.call(tmpdir.join('systemd/container').strpath),
+        ]
         assert exists_calls == m_exists.call_args_list
 
 
 class TestSubp:
-
     def test_raise_error_on_timeout(self):
         """When cmd exceeds the timeout raises a TimeoutExpired error."""
         with pytest.raises(subprocess.TimeoutExpired) as excinfo:
@@ -169,7 +183,8 @@ class TestSubp:
 
         expected_error = (
             "Failed running command 'ls --bogus' [exit(2)]."
-            " Message: ls: unrecognized option")
+            " Message: ls: unrecognized option"
+        )
         assert expected_error in str(excinfo.value)
         assert 0 == m_sleep.call_count  # no retries
 
@@ -205,23 +220,25 @@ class TestSubp:
 
 
 class TestParseOSRelease:
-
     def test_parse_os_release(self, tmpdir):
         """parse_os_release returns a dict of values from /etc/os-release."""
         release_file = tmpdir.join('os-release')
         release_file.write(OS_RELEASE_TRUSTY)
-        expected = {'BUG_REPORT_URL': 'http://bugs.launchpad.net/ubuntu/',
-                    'HOME_URL': 'http://www.ubuntu.com/',
-                    'ID': 'ubuntu', 'ID_LIKE': 'debian',
-                    'NAME': 'Ubuntu', 'PRETTY_NAME': 'Ubuntu 14.04.5 LTS',
-                    'SUPPORT_URL': 'http://help.ubuntu.com/',
-                    'VERSION': '14.04.5 LTS, Trusty Tahr',
-                    'VERSION_ID': '14.04'}
+        expected = {
+            'BUG_REPORT_URL': 'http://bugs.launchpad.net/ubuntu/',
+            'HOME_URL': 'http://www.ubuntu.com/',
+            'ID': 'ubuntu',
+            'ID_LIKE': 'debian',
+            'NAME': 'Ubuntu',
+            'PRETTY_NAME': 'Ubuntu 14.04.5 LTS',
+            'SUPPORT_URL': 'http://help.ubuntu.com/',
+            'VERSION': '14.04.5 LTS, Trusty Tahr',
+            'VERSION_ID': '14.04',
+        }
         assert expected == util.parse_os_release(release_file.strpath)
 
 
 class TestGetPlatformInfo:
-
     @mock.patch('uaclient.util.subp')
     @mock.patch('uaclient.util.parse_os_release')
     def test_get_platform_info_error_no_version(self, m_parse, m_subp):
@@ -230,47 +247,65 @@ class TestGetPlatformInfo:
         with pytest.raises(RuntimeError) as excinfo:
             util.get_platform_info()
         expected_msg = (
-            'Could not parse /etc/os-release VERSION: junk (modified to junk)')
+            'Could not parse /etc/os-release VERSION: junk (modified to junk)'
+        )
         assert expected_msg == str(excinfo.value)
 
-    @pytest.mark.parametrize('series,release,version,os_release_content', [
-        ('trusty', '14.04', '14.04 LTS (Trusty Tahr)', OS_RELEASE_TRUSTY),
-        ('xenial', '16.04', '16.04 LTS (Xenial Xerus)', OS_RELEASE_XENIAL),
-        ('bionic', '18.04', '18.04 LTS (Bionic Beaver)', OS_RELEASE_BIONIC),
-        ('disco', '19.04', '19.04 (Disco Dingo)', OS_RELEASE_DISCO),
-    ])
+    @pytest.mark.parametrize(
+        'series,release,version,os_release_content',
+        [
+            ('trusty', '14.04', '14.04 LTS (Trusty Tahr)', OS_RELEASE_TRUSTY),
+            ('xenial', '16.04', '16.04 LTS (Xenial Xerus)', OS_RELEASE_XENIAL),
+            (
+                'bionic',
+                '18.04',
+                '18.04 LTS (Bionic Beaver)',
+                OS_RELEASE_BIONIC,
+            ),
+            ('disco', '19.04', '19.04 (Disco Dingo)', OS_RELEASE_DISCO),
+        ],
+    )
     def test_get_platform_info_with_version(
-            self, series, release, version, os_release_content, tmpdir):
+        self, series, release, version, os_release_content, tmpdir
+    ):
         release_file = tmpdir.join('os-release')
         release_file.write(os_release_content)
         parse_dict = util.parse_os_release(release_file.strpath)
 
-        expected = {'arch': 'arm64', 'distribution': 'Ubuntu',
-                    'kernel': 'kernel-ver', 'release': release,
-                    'series': series, 'type': 'Linux', 'version': version}
+        expected = {
+            'arch': 'arm64',
+            'distribution': 'Ubuntu',
+            'kernel': 'kernel-ver',
+            'release': release,
+            'series': series,
+            'type': 'Linux',
+            'version': version,
+        }
 
         with mock.patch('uaclient.util.parse_os_release') as m_parse:
             with mock.patch('uaclient.util.os.uname') as m_uname:
                 m_parse.return_value = parse_dict
                 # (sysname, nodename, release, version, machine)
                 m_uname.return_value = posix.uname_result(
-                    ('', '', 'kernel-ver', '', 'arm64'))
+                    ('', '', 'kernel-ver', '', 'arm64')
+                )
                 assert expected == util.get_platform_info()
 
 
 class TestApplySeriesOverrides:
-
     def test_error_on_non_entitlement_dict(self):
         """Raise a runtime error when seeing invalid dict type."""
         with pytest.raises(RuntimeError) as exc:
             util.apply_series_overrides({'some': 'dict'})
         error = (
             'Expected entitlement access dict. Missing "entitlement" key:'
-            " {'some': 'dict'}")
+            " {'some': 'dict'}"
+        )
         assert error == str(exc.value)
 
-    @mock.patch('uaclient.util.get_platform_info',
-                return_value={'series': 'xenial'})
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value={'series': 'xenial'}
+    )
     def test_mutates_orig_access_dict(self, _):
         """Mutate orig_access dict when called."""
         orig_access = {
@@ -280,21 +315,29 @@ class TestApplySeriesOverrides:
                 'c': 'c1',
                 'series': {
                     'trusty': {'a': 't1'},
-                    'xenial': {'a': {'a2': {'aa2': 'xxv2'}}, 'b': 'bx1'}}}}
+                    'xenial': {'a': {'a2': {'aa2': 'xxv2'}}, 'b': 'bx1'},
+                },
+            }
+        }
         expected = {
             'entitlement': {
                 'a': {'a1': 'av1', 'a2': {'aa2': 'xxv2'}},
                 'b': 'bx1',
-                'c': 'c1'}}
+                'c': 'c1',
+            }
+        }
         util.apply_series_overrides(orig_access)
         assert orig_access == expected
 
-    @mock.patch('uaclient.util.get_platform_info',
-                return_value={'series': 'xenial'})
+    @mock.patch(
+        'uaclient.util.get_platform_info', return_value={'series': 'xenial'}
+    )
     def test_missing_keys_are_handled(self, _):
         orig_access = {
-            'entitlement': {'series': {'xenial': {'directives': {
-                'suites': ['xenial']}}}}}
+            'entitlement': {
+                'series': {'xenial': {'directives': {'suites': ['xenial']}}}
+            }
+        }
         expected = {'entitlement': {'directives': {'suites': ['xenial']}}}
 
         util.apply_series_overrides(orig_access)
@@ -303,14 +346,14 @@ class TestApplySeriesOverrides:
 
 
 class TestGetMachineId:
-
     def test_get_machine_id_from_etc_machine_id(self, tmpdir):
         """Presence of /etc/machine-id is returned if it exists."""
         etc_machine_id = tmpdir.join('etc-machine-id')
         assert '/etc/machine-id' == util.ETC_MACHINE_ID
         etc_machine_id.write('etc-machine-id')
-        with mock.patch('uaclient.util.ETC_MACHINE_ID',
-                        etc_machine_id.strpath):
+        with mock.patch(
+            'uaclient.util.ETC_MACHINE_ID', etc_machine_id.strpath
+        ):
             value = util.get_machine_id(data_dir=None)
         assert 'etc-machine-id' == value
 
@@ -320,10 +363,12 @@ class TestGetMachineId:
         dbus_machine_id = tmpdir.join('dbus-machine-id')
         assert '/var/lib/dbus/machine-id' == util.DBUS_MACHINE_ID
         dbus_machine_id.write('dbus-machine-id')
-        with mock.patch('uaclient.util.DBUS_MACHINE_ID',
-                        dbus_machine_id.strpath):
-            with mock.patch('uaclient.util.ETC_MACHINE_ID',
-                            etc_machine_id.strpath):
+        with mock.patch(
+            'uaclient.util.DBUS_MACHINE_ID', dbus_machine_id.strpath
+        ):
+            with mock.patch(
+                'uaclient.util.ETC_MACHINE_ID', etc_machine_id.strpath
+            ):
                 value = util.get_machine_id(data_dir=None)
         assert 'dbus-machine-id' == value
 
@@ -349,30 +394,32 @@ class TestGetMachineId:
             with mock.patch('uaclient.util.uuid.uuid4') as m_uuid4:
                 m_exists.return_value = False
                 m_uuid4.return_value = uuid.UUID(
-                    '0123456789abcdef0123456789abcdef')
+                    '0123456789abcdef0123456789abcdef'
+                )
                 value = util.get_machine_id(data_dir=tmpdir.strpath)
         assert '01234567-89ab-cdef-0123-456789abcdef' == value
         assert '01234567-89ab-cdef-0123-456789abcdef' == data_machine_id.read()
 
 
 class TestIsServiceUrl:
-
-    @pytest.mark.parametrize('url,is_valid', (
-        ('http://asdf', True), ('http://asdf/', True), ('asdf', False)))
+    @pytest.mark.parametrize(
+        'url,is_valid',
+        (('http://asdf', True), ('http://asdf/', True), ('asdf', False)),
+    )
     def test_is_valid_url(self, url, is_valid):
         ret = util.is_service_url(url)
         assert is_valid is ret
 
 
 class TestReadurl:
-
     def test_simple_call_with_url_works(self):
         with mock.patch('uaclient.util.request.urlopen') as m_urlopen:
             util.readurl('http://some_url')
         assert 1 == m_urlopen.call_count
 
     @pytest.mark.parametrize(
-        'data', [b'{}', b'not a dict', b'{"caveat_id": "dict"}'])
+        'data', [b'{}', b'not a dict', b'{"caveat_id": "dict"}']
+    )
     def test_data_passed_through_unchanged(self, data):
         with mock.patch('uaclient.util.request.urlopen') as m_urlopen:
             util.readurl('http://some_url', data=data)
@@ -383,7 +430,6 @@ class TestReadurl:
 
 
 class TestDisableLogToConsole:
-
     @pytest.mark.parametrize('caplog_text', [logging.DEBUG], indirect=True)
     def test_no_error_if_console_handler_not_found(self, caplog_text):
         with mock.patch('uaclient.util.logging.getLogger') as m_getlogger:
@@ -395,7 +441,8 @@ class TestDisableLogToConsole:
 
     @pytest.mark.parametrize('disable_log', (True, False))
     def test_disable_log_to_console(
-            self, logging_sandbox, capsys, disable_log):
+        self, logging_sandbox, capsys, disable_log
+    ):
         # This test is parameterised so that we are sure that the context
         # manager is suppressing the output, not some other config change
 
@@ -419,7 +466,8 @@ class TestDisableLogToConsole:
             assert 'test info' in combined_output
 
     def test_disable_log_to_console_does_nothing_at_debug_level(
-            self, logging_sandbox, capsys):
+        self, logging_sandbox, capsys
+    ):
         cli.setup_logging(logging.DEBUG, logging.DEBUG)
 
         with util.disable_log_to_console():
@@ -438,13 +486,14 @@ JSON_TEST_PAIRS = (
     ({'a': 1}, '{"a": 1}'),
     # See the note in DatetimeAwareJSONDecoder for why this datetime is in a
     # dict
-    ({'dt': datetime.datetime(2019, 7, 25, 14, 35, 51)},
-     '{"dt": "2019-07-25T14:35:51"}'),
+    (
+        {'dt': datetime.datetime(2019, 7, 25, 14, 35, 51)},
+        '{"dt": "2019-07-25T14:35:51"}',
+    ),
 )
 
 
 class TestDatetimeAwareJSONEncoder:
-
     @pytest.mark.parametrize('input,out', JSON_TEST_PAIRS)
     def test_encode(self, input, out):
         assert out == json.dumps(input, cls=util.DatetimeAwareJSONEncoder)

@@ -19,67 +19,93 @@ M_PATH = 'uaclient.entitlements.'
 
 
 class TestEntitlements:
-
     def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
         """Return machine_token resourceEntitlements, keyed by name."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [
-                {'type': 'entitlement1', 'entitled': True},
-                {'type': 'entitlement2', 'entitled': True}]}}}
+            'machineTokenInfo': {
+                'contractInfo': {
+                    'resourceEntitlements': [
+                        {'type': 'entitlement1', 'entitled': True},
+                        {'type': 'entitlement2', 'entitled': True},
+                    ]
+                }
+            }
+        }
         cfg.write_cache('machine-token', token)
         expected = {
             'entitlement1': {
-                'entitlement': {'entitled': True, 'type': 'entitlement1'}},
+                'entitlement': {'entitled': True, 'type': 'entitlement1'}
+            },
             'entitlement2': {
-                'entitlement': {'entitled': True, 'type': 'entitlement2'}}}
+                'entitlement': {'entitled': True, 'type': 'entitlement2'}
+            },
+        }
         assert expected == cfg.entitlements
 
     def test_entitlements_use_machine_access_when_present(self, tmpdir):
         """Return specific machine-access info if present."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [
-                {'type': 'entitlement1', 'entitled': True},
-                {'type': 'entitlement2', 'entitled': True}]}}}
+            'machineTokenInfo': {
+                'contractInfo': {
+                    'resourceEntitlements': [
+                        {'type': 'entitlement1', 'entitled': True},
+                        {'type': 'entitlement2', 'entitled': True},
+                    ]
+                }
+            }
+        }
         cfg.write_cache('machine-token', token)
         cfg.write_cache(
             'machine-access-entitlement1',
-            {'entitlement': {
-                'type': 'entitlement1', 'entitled': True,
-                'more': 'data'}})
+            {
+                'entitlement': {
+                    'type': 'entitlement1',
+                    'entitled': True,
+                    'more': 'data',
+                }
+            },
+        )
         expected = {
             'entitlement1': {
-                'entitlement': {'entitled': True, 'type': 'entitlement1',
-                                'more': 'data'}},
+                'entitlement': {
+                    'entitled': True,
+                    'type': 'entitlement1',
+                    'more': 'data',
+                }
+            },
             'entitlement2': {
-                'entitlement': {'entitled': True, 'type': 'entitlement2'}}}
+                'entitlement': {'entitled': True, 'type': 'entitlement2'}
+            },
+        }
         assert expected == cfg.entitlements
 
 
 class TestAccounts:
-
     def test_accounts_returns_empty_list_when_no_cached_account_value(
-            self, tmpdir):
+        self, tmpdir
+    ):
         """Config.accounts property returns an empty list when no cache."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
 
         assert [] == cfg.accounts
 
     def test_accounts_extracts_accounts_key_from_machine_token_cache(
-            self, tmpdir):
+        self, tmpdir
+    ):
         """Use machine_token cached accountInfo when no accounts cache."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         accountInfo = {'id': '1', 'name': 'accountname'}
 
-        cfg.write_cache('machine-token',
-                        {'machineTokenInfo': {'accountInfo': accountInfo}})
+        cfg.write_cache(
+            'machine-token', {'machineTokenInfo': {'accountInfo': accountInfo}}
+        )
 
         assert [accountInfo] == cfg.accounts
 
 
 class TestDataPath:
-
     def test_data_path_returns_data_dir_path_without_key(self):
         """The data_path method returns the data_dir when key is absent."""
         cfg = UAConfig({'data_dir': '/my/dir'})
@@ -87,16 +113,19 @@ class TestDataPath:
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_data_path_returns_file_path_with_defined_data_paths(
-            self, key, path_basename):
+        self, key, path_basename
+    ):
         """When key is defined in Config.data_paths return data_path value."""
         cfg = UAConfig({'data_dir': '/my/dir'})
         private_path = '/my/dir/%s/%s' % (PRIVATE_SUBDIR, path_basename)
         assert private_path == cfg.data_path(key=key)
 
-    @pytest.mark.parametrize('key,path_basename', (
-        ('notHere', 'notHere'), ('anything', 'anything')))
+    @pytest.mark.parametrize(
+        'key,path_basename', (('notHere', 'notHere'), ('anything', 'anything'))
+    )
     def test_data_path_returns_file_path_with_undefined_data_paths(
-            self, key, path_basename):
+        self, key, path_basename
+    ):
         """When key is not in Config.data_paths the key is used to data_dir"""
         cfg = UAConfig({'data_dir': '/my/d'})
         assert '/my/d/%s/%s' % (PRIVATE_SUBDIR, key) == cfg.data_path(key=key)
@@ -108,39 +137,48 @@ class TestDataPath:
 
 
 class TestWriteCache:
-
-    @pytest.mark.parametrize('key,content', (
-        ('unknownkey', 'content1'), ('another-one', 'content2')))
+    @pytest.mark.parametrize(
+        'key,content',
+        (('unknownkey', 'content1'), ('another-one', 'content2')),
+    )
     def test_write_cache_write_key_name_in_data_dir_when_data_path_absent(
-            self, tmpdir, key, content):
+        self, tmpdir, key, content
+    ):
         """When key is not in data_paths, write content to data_dir/key."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         expected_path = tmpdir.join(PRIVATE_SUBDIR, key)
 
         assert not expected_path.check(), (
-            'Found unexpected file %s' % expected_path)
+            'Found unexpected file %s' % expected_path
+        )
         assert None is cfg.write_cache(key, content)
         assert expected_path.check(), (
-            'Missing expected file %s' % expected_path)
+            'Missing expected file %s' % expected_path
+        )
         assert content == cfg.read_cache(key)
 
     def test_write_cache_creates_dir_when_data_dir_does_not_exist(
-            self, tmpdir):
+        self, tmpdir
+    ):
         """When data_dir doesn't exist, create it."""
         tmp_subdir = tmpdir.join('does/not/exist')
         cfg = UAConfig({'data_dir': tmp_subdir.strpath})
 
         assert False is os.path.isdir(tmp_subdir.strpath), (
-            'Found unexpected directory %s' % tmp_subdir)
+            'Found unexpected directory %s' % tmp_subdir
+        )
         assert None is cfg.write_cache('somekey', 'someval')
         assert True is os.path.isdir(tmp_subdir.strpath), (
-            'Missing expected directory %s' % tmp_subdir)
+            'Missing expected directory %s' % tmp_subdir
+        )
         assert 'someval' == cfg.read_cache('somekey')
 
-    @pytest.mark.parametrize('key,value', (
-        ('dictkey', {'1': 'v1'}), ('listkey', [1, 2, 3])))
+    @pytest.mark.parametrize(
+        'key,value', (('dictkey', {'1': 'v1'}), ('listkey', [1, 2, 3]))
+    )
     def test_write_cache_writes_json_string_when_content_not_a_string(
-            self, tmpdir, key, value):
+        self, tmpdir, key, value
+    ):
         """When content is not a string, write a json string."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
 
@@ -150,16 +188,15 @@ class TestWriteCache:
             assert expected_json_content == stream.read()
         assert value == cfg.read_cache(key)
 
-    @pytest.mark.parametrize('datapath,mode', (
-        (DataPath('path', False), 0o644),
-        (DataPath('path', True), 0o600),
-    ))
+    @pytest.mark.parametrize(
+        'datapath,mode',
+        ((DataPath('path', False), 0o644), (DataPath('path', True), 0o600)),
+    )
     def test_permissions(self, tmpdir, datapath, mode):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         cfg.data_paths = {'path': datapath}
         cfg.write_cache('path', '')
-        assert mode == stat.S_IMODE(
-            os.lstat(cfg.data_path('path')).st_mode)
+        assert mode == stat.S_IMODE(os.lstat(cfg.data_path('path')).st_mode)
 
     def test_write_datetime(self, tmpdir):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
@@ -171,10 +208,10 @@ class TestWriteCache:
 
 
 class TestReadCache:
-
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_read_cache_returns_none_when_data_path_absent(
-            self, tmpdir, key, path_basename):
+        self, tmpdir, key, path_basename
+    ):
         """Return None when the specified key data_path is not cached."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         assert None is cfg.read_cache(key)
@@ -182,7 +219,8 @@ class TestReadCache:
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_read_cache_returns_content_when_data_path_present(
-            self, tmpdir, key, path_basename):
+        self, tmpdir, key, path_basename
+    ):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
         data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
@@ -193,7 +231,8 @@ class TestReadCache:
 
     @pytest.mark.parametrize('key,path_basename', KNOWN_DATA_PATHS)
     def test_read_cache_returns_stuctured_content_when_json_data_path_present(
-            self, tmpdir, key, path_basename):
+        self, tmpdir, key, path_basename
+    ):
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         os.makedirs(tmpdir.join(PRIVATE_SUBDIR).strpath)
         data_path = tmpdir.join(PRIVATE_SUBDIR, path_basename)
@@ -215,13 +254,13 @@ class TestReadCache:
 
 
 class TestDeleteCache:
-
     @pytest.mark.parametrize(
-        'property_name,data_path_name,expected_null_value', (
-            ('machine_token', 'machine-token', None),
-        ))
+        'property_name,data_path_name,expected_null_value',
+        (('machine_token', 'machine-token', None),),
+    )
     def test_delete_cache_properly_clears_all_caches_simple(
-            self, tmpdir, property_name, data_path_name, expected_null_value):
+        self, tmpdir, property_name, data_path_name, expected_null_value
+    ):
         """
         Ensure that delete_cache clears the cache for simple attributes
 
@@ -248,12 +287,20 @@ class TestDeleteCache:
         """The delete_cache unsets any cached entitlements content."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         token = {
-            'machineTokenInfo': {'contractInfo': {'resourceEntitlements': [{
-                'type': 'entitlement1', 'entitled': True}]}}}
+            'machineTokenInfo': {
+                'contractInfo': {
+                    'resourceEntitlements': [
+                        {'type': 'entitlement1', 'entitled': True}
+                    ]
+                }
+            }
+        }
         cfg.write_cache('machine-token', token)
         previous_entitlements = {
-            'entitlement1': {'entitlement':
-                                {'type': 'entitlement1', 'entitled': True}}}
+            'entitlement1': {
+                'entitlement': {'type': 'entitlement1', 'entitled': True}
+            }
+        }
         assert previous_entitlements == cfg.entitlements
         cfg.delete_cache()
         assert {} == cfg.entitlements
@@ -266,16 +313,23 @@ class TestDeleteCache:
         for odd_key in odd_keys:
             cfg.write_cache(odd_key, odd_key)
 
-        present_files = list(itertools.chain(
-            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
+        present_files = list(
+            itertools.chain(
+                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
+            )
+        )
         assert len(odd_keys) == len(present_files)
         cfg.delete_cache()
-        dirty_files = list(itertools.chain(
-            *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]))
+        dirty_files = list(
+            itertools.chain(
+                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
+            )
+        )
         assert 0 == len(dirty_files), '%d files not deleted' % len(dirty_files)
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
-            self, tmpdir):
+        self, tmpdir
+    ):
         """Any files in data_dir undefined in cfg.data_paths will remain."""
         cfg = UAConfig({'data_dir': tmpdir.strpath})
         t_file = tmpdir.join(PRIVATE_SUBDIR, 'otherfile')
@@ -283,14 +337,15 @@ class TestDeleteCache:
         with open(t_file.strpath, 'w') as f:
             f.write('content')
         assert [os.path.basename(t_file.strpath)] == os.listdir(
-            tmpdir.join(PRIVATE_SUBDIR).strpath)
+            tmpdir.join(PRIVATE_SUBDIR).strpath
+        )
         cfg.delete_cache()
         assert [os.path.basename(t_file.strpath)] == os.listdir(
-            tmpdir.join(PRIVATE_SUBDIR).strpath)
+            tmpdir.join(PRIVATE_SUBDIR).strpath
+        )
 
 
 class TestStatus:
-
     @mock.patch('uaclient.config.os.getuid', return_value=0)
     def test_root_unattached(self, _m_getuid):
         """Test we get the correct status dict when unattached"""
@@ -309,11 +364,14 @@ class TestStatus:
         """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
         expected_services = [
-            {'entitled': status.ContractStatus.UNENTITLED.value,
-             'name': cls.name,
-             'status': status.UserFacingStatus.INAPPLICABLE.value,
-             'statusDetails': mock.ANY}
-            for cls in entitlements.ENTITLEMENT_CLASSES]
+            {
+                'entitled': status.ContractStatus.UNENTITLED.value,
+                'name': cls.name,
+                'status': status.UserFacingStatus.INAPPLICABLE.value,
+                'statusDetails': mock.ANY,
+            }
+            for cls in entitlements.ENTITLEMENT_CLASSES
+        ]
         expected = {
             'account': 'test_account',
             'attached': True,
@@ -368,40 +426,62 @@ class TestStatus:
         cfg.status()
 
         assert 0o644 == stat.S_IMODE(
-            os.lstat(cfg.data_path('status-cache')).st_mode)
+            os.lstat(cfg.data_path('status-cache')).st_mode
+        )
 
-    @pytest.mark.parametrize('entitlements', (
-        [],
-        [{'type': 'support', 'entitled': True,
-          'affordances': {'supportLevel': 'anything'}}]))
+    @pytest.mark.parametrize(
+        'entitlements',
+        (
+            [],
+            [
+                {
+                    'type': 'support',
+                    'entitled': True,
+                    'affordances': {'supportLevel': 'anything'},
+                }
+            ],
+        ),
+    )
     @mock.patch('uaclient.config.os.getuid', return_value=0)
     @mock.patch(M_PATH + 'livepatch.LivepatchEntitlement.user_facing_status')
     @mock.patch(M_PATH + 'repo.RepoEntitlement.user_facing_status')
     def test_attached_reports_contract_and_service_status(
-            self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid,
-            entitlements):
+        self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid, entitlements
+    ):
         """When attached, return contract and service user-facing status."""
         m_repo_uf_status.return_value = (
-            status.UserFacingStatus.INAPPLICABLE, 'repo details')
+            status.UserFacingStatus.INAPPLICABLE,
+            'repo details',
+        )
         m_livepatch_uf_status.return_value = (
-            status.UserFacingStatus.ACTIVE, 'livepatch details')
+            status.UserFacingStatus.ACTIVE,
+            'livepatch details',
+        )
         token = {
             'machineTokenInfo': {
                 'accountInfo': {'id': '1', 'name': 'accountname'},
-                'contractInfo': {'name': 'contractname',
-                                 'resourceEntitlements': entitlements}}}
+                'contractInfo': {
+                    'name': 'contractname',
+                    'resourceEntitlements': entitlements,
+                },
+            }
+        }
         cfg = FakeConfig.for_attached_machine(
-            account_name='accountname', machine_token=token)
+            account_name='accountname', machine_token=token
+        )
         if not entitlements:
             support_level = status.UserFacingStatus.INAPPLICABLE.value
         else:
             support_level = entitlements[0]['affordances']['supportLevel']
         expected = {
-            'attached': True, 'account': 'accountname',
+            'attached': True,
+            'account': 'accountname',
             'expires': status.UserFacingStatus.INAPPLICABLE.value,
             'origin': None,
             'subscription': 'contractname',
-            'techSupportLevel': support_level, 'services': []}
+            'techSupportLevel': support_level,
+            'services': [],
+        }
         for cls in ENTITLEMENT_CLASSES:
             if cls.name == 'livepatch':
                 expected_status = status.UserFacingStatus.ACTIVE.value
@@ -410,9 +490,13 @@ class TestStatus:
                 expected_status = status.UserFacingStatus.INAPPLICABLE.value
                 details = 'repo details'
             expected['services'].append(
-                {'name': cls.name,
-                 'entitled': status.ContractStatus.UNENTITLED.value,
-                 'status': expected_status, 'statusDetails': details})
+                {
+                    'name': cls.name,
+                    'entitled': status.ContractStatus.UNENTITLED.value,
+                    'status': expected_status,
+                    'statusDetails': details,
+                }
+            )
         assert expected == cfg.status()
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
@@ -422,11 +506,16 @@ class TestStatus:
         token = {
             'machineTokenInfo': {
                 'accountInfo': {'id': '1', 'name': 'accountname'},
-                'contractInfo': {'name': 'contractname',
-                                 'effectiveTo': '2020-07-18T00:00:00Z',
-                                 'resourceEntitlements': []}}}
+                'contractInfo': {
+                    'name': 'contractname',
+                    'effectiveTo': '2020-07-18T00:00:00Z',
+                    'resourceEntitlements': [],
+                },
+            }
+        }
         cfg = FakeConfig.for_attached_machine(
-            account_name='accountname', machine_token=token)
+            account_name='accountname', machine_token=token
+        )
 
         # Test that root's status works as expected (including the cache write)
         m_getuid.return_value = 0
@@ -440,16 +529,15 @@ class TestStatus:
 
 
 class TestParseConfig:
-
     @mock.patch('uaclient.config.os.path.exists', return_value=False)
-    def test_parse_config_uses_defaults_when_no_config_present(
-            self, m_exists):
+    def test_parse_config_uses_defaults_when_no_config_present(self, m_exists):
         cwd = os.getcwd()
         with mock.patch.dict('uaclient.config.os.environ', values={}):
             config = parse_config()
         expected_calls = [
             mock.call('%s/uaclient.conf' % cwd),
-            mock.call('/etc/ubuntu-advantage/uaclient.conf')]
+            mock.call('/etc/ubuntu-advantage/uaclient.conf'),
+        ]
         assert expected_calls == m_exists.call_args_list
         expected_default_config = {
             'contract_url': 'https://contracts.canonical.com',
@@ -460,13 +548,13 @@ class TestParseConfig:
         assert expected_default_config == config
 
     @mock.patch('uaclient.config.os.path.exists', return_value=False)
-    def test_parse_config_scrubs_user_environ_values(
-            self, m_exists):
+    def test_parse_config_scrubs_user_environ_values(self, m_exists):
         user_values = {
             'UA_CONTRACT_URL': 'https://contract',
             'ua_data_dir': '~/somedir',
             'Ua_LoG_FiLe': 'some.log',
-            'UA_LOG_LEVEL': 'debug'}
+            'UA_LOG_LEVEL': 'debug',
+        }
         with mock.patch.dict('uaclient.config.os.environ', values=user_values):
             config = parse_config()
         expanded_dir = os.path.expanduser('~')
@@ -481,7 +569,8 @@ class TestParseConfig:
     @mock.patch('uaclient.config.os.path.exists', return_value=False)
     def test_parse_raises_errors_on_invalid_urls(self, m_exists):
         user_values = {
-            'UA_CONTRACT_URL': 'htp://contract'}  # no acceptable url scheme
+            'UA_CONTRACT_URL': 'htp://contract'  # no acceptable url scheme
+        }
         with mock.patch.dict('uaclient.config.os.environ', values=user_values):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 parse_config()
