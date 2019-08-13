@@ -5,8 +5,25 @@ from uaclient import exceptions, gpg, util
 from uaclient.testing import data
 
 
+@pytest.yield_fixture
+def home_dir(tmpdir):
+    home = tmpdir.join('home')
+    home.mkdir()
+
+    unset = object()
+    old_home = os.environ.get('HOME', unset)
+
+    os.environ['HOME'] = home.strpath
+    yield
+
+    if old_home is unset:
+        del os.environ['HOME']
+    else:
+        os.environ['HOME'] = old_home
+
+
 class TestExportGPGKeyFromKeyring:
-    def test_key_error_on_missing_key(self, tmpdir):
+    def test_key_error_on_missing_key(self, home_dir, tmpdir):
         """Raise UserFacingError when key_id is not in source_keyring_file."""
         src_keyring = tmpdir.join('ubuntu-advantage-keyring')
         src_keyring.write('')
@@ -28,7 +45,7 @@ class TestExportGPGKeyFromKeyring:
         assert not os.path.exists(destination_keyfile)
 
     def test_user_facing_error_on_invalid_keyring_packet(
-        self, caplog_text, tmpdir
+        self, caplog_text, home_dir, tmpdir
     ):
         """Raise UserFacingError on invalid keyring packet. Log cmd error."""
         source_keyring = tmpdir.join('keyring').strpath
@@ -50,7 +67,7 @@ class TestExportGPGKeyFromKeyring:
         msg = 'Unable to export GPG keys from keyring %s' % (source_keyring,)
         assert msg == str(excinfo.value)
 
-    def test_export_single_key_from_keyring(self, tmpdir):
+    def test_export_single_key_from_keyring(self, home_dir, tmpdir):
         """Only a single key is exported from a multi-key source keyring."""
         source_keyring = tmpdir.join('keyring').strpath
         destination_keyfile = tmpdir.join('destination_key').strpath
