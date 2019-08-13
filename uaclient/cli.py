@@ -197,12 +197,17 @@ def _perform_enable(entitlement_name: str, cfg: config.UAConfig, *,
     return ret
 
 
-@assert_attached_root
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
+    if os.getuid() != 0:
+        raise exceptions.NonRootUserError()
+    if not cfg.is_attached:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_ENABLE_NOT_ATTACHED_TMPL.format(name=args.name))
+
     print(ua_status.MESSAGE_REFRESH_ENABLE)
     if not contract.request_updated_contract(cfg):
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
@@ -371,7 +376,7 @@ def main_error_handler(func):
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
-            print('ERROR: {}'.format(exc.msg), file=sys.stderr)
+            print(str(exc), file=sys.stderr)
             sys.exit(1)
     return wrapper
 

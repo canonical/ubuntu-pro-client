@@ -106,7 +106,7 @@ class TestMain:
 
         out, err = capsys.readouterr()
         assert '' == out
-        assert 'ERROR: {}\n'.format(msg) == err
+        assert '{}\n'.format(msg) == err
         error_log = caplog_text()
         assert msg in error_log
         assert "Traceback (most recent call last):" in error_log
