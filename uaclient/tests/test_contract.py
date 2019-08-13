@@ -155,8 +155,8 @@ class TestContractValidateToken:
     def test_bad_tokens(self):
         # A token not starting with 'C' isn't valid
         bad_token = 'X12aqX7gmHQyfFoxoLeSYqa4gEKVsQ'
-        assert validate_contract_token(bad_token) == False
+        assert not validate_contract_token(bad_token)
 
         # A token that doesn't validate b58 decode w/ checksum isn't validate
         bad_token = 'C21aqX7gmHQyfFoxoLeSYqa4gEKVsQ'
-        assert validate_contract_token(bad_token) == False
+        assert not validate_contract_token(bad_token)
