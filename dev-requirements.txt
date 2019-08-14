@@ -1,1 +1,4 @@
+# The black version is also in .pre-commit-config.yaml; make sure to update
+# both together
 black==19.3b0
+pre-commit

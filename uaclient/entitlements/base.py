@@ -5,6 +5,7 @@ import re
 
 try:
     from typing import Any, Callable, Dict, Optional, Tuple  # noqa: F401
+
     StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
@@ -15,15 +16,18 @@ from uaclient import contract
 from uaclient import status
 from uaclient import util
 from uaclient.status import (
-    ApplicabilityStatus, ContractStatus, UserFacingStatus)
+    ApplicabilityStatus,
+    ContractStatus,
+    UserFacingStatus,
+)
 
 RE_KERNEL_UNAME = (
     r'(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)'
-    r'-(?P<flavor>[A-Za-z0-9_-]+)')
+    r'-(?P<flavor>[A-Za-z0-9_-]+)'
+)
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
-
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -77,8 +81,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         if application_status == status.ApplicationStatus.DISABLED:
             if not silent:
-                print(status.MESSAGE_ALREADY_DISABLED_TMPL.format(
-                    title=self.title))
+                print(
+                    status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                        title=self.title
+                    )
+                )
             return False
         return True
 
@@ -91,8 +98,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if self.is_access_expired():
             token = self.cfg.machine_token['machineToken']
             contract_client = contract.UAContractClient(self.cfg)
-            contract_client.request_resource_machine_access(
-                token, self.name)
+            contract_client.request_resource_machine_access(token, self.name)
         if not self.contract_status() == ContractStatus.ENTITLED:
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
@@ -100,8 +106,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         application_status, _ = self.application_status()
         if application_status != status.ApplicationStatus.DISABLED:
             if not silent:
-                print(status.MESSAGE_ALREADY_ENABLED_TMPL.format(
-                    title=self.title))
+                print(
+                    status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+                        title=self.title
+                    )
+                )
             return False
         applicability_status, details = self.applicability_status()
         if applicability_status == status.ApplicabilityStatus.INAPPLICABLE:
@@ -124,35 +133,50 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return (ApplicabilityStatus.APPLICABLE,
-                    'no entitlement affordances checked')
+            return (
+                ApplicabilityStatus.APPLICABLE,
+                'no entitlement affordances checked',
+            )
         affordances = entitlement_cfg['entitlement'].get('affordances', {})
         platform = util.get_platform_info()
         affordance_arches = affordances.get('architectures', [])
         if affordance_arches and platform['arch'] not in affordance_arches:
-            return (ApplicabilityStatus.INAPPLICABLE,
-                    status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
-                        title=self.title, arch=platform['arch'],
-                        supported_arches=', '.join(affordance_arches)))
+            return (
+                ApplicabilityStatus.INAPPLICABLE,
+                status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
+                    title=self.title,
+                    arch=platform['arch'],
+                    supported_arches=', '.join(affordance_arches),
+                ),
+            )
         affordance_series = affordances.get('series', [])
         if affordance_series and platform['series'] not in affordance_series:
-            return (ApplicabilityStatus.INAPPLICABLE,
-                    status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
-                        title=self.title, series=platform['version']))
+            return (
+                ApplicabilityStatus.INAPPLICABLE,
+                status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
+                    title=self.title, series=platform['version']
+                ),
+            )
         kernel = platform['kernel']
         affordance_kernels = affordances.get('kernelFlavors', [])
         affordance_min_kernel = affordances.get('minKernelVersion')
         match = re.match(RE_KERNEL_UNAME, kernel)
         if affordance_kernels:
             if not match or match.group('flavor') not in affordance_kernels:
-                return (ApplicabilityStatus.INAPPLICABLE,
-                        status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
-                            title=self.title, kernel=kernel,
-                            supported_kernels=', '.join(affordance_kernels)))
+                return (
+                    ApplicabilityStatus.INAPPLICABLE,
+                    status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
+                        title=self.title,
+                        kernel=kernel,
+                        supported_kernels=', '.join(affordance_kernels),
+                    ),
+                )
         if affordance_min_kernel:
             invalid_msg = status.MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL.format(
-                title=self.title, kernel=kernel,
-                min_kernel=affordance_min_kernel)
+                title=self.title,
+                kernel=kernel,
+                min_kernel=affordance_min_kernel,
+            )
             try:
                 kernel_major, kernel_minor = affordance_min_kernel.split('.')
                 min_kern_major = int(kernel_major)
@@ -160,13 +184,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             except ValueError:
                 logging.warning(
                     'Could not parse minKernelVersion: %s',
-                    affordance_min_kernel)
+                    affordance_min_kernel,
+                )
                 return (ApplicabilityStatus.INAPPLICABLE, invalid_msg)
 
             if not match:
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
-            if any([int(match.group('major')) < min_kern_major,
-                    int(match.group('minor')) < min_kern_minor]):
+            if any(
+                [
+                    int(match.group('major')) < min_kern_major,
+                    int(match.group('minor')) < min_kern_minor,
+                ]
+            ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
@@ -205,8 +234,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True
 
     def process_contract_deltas(
-            self, orig_access: 'Dict[str, Any]',
-            deltas: 'Dict[str, Any]', allow_enable: bool = False) -> bool:
+        self,
+        orig_access: 'Dict[str, Any]',
+        deltas: 'Dict[str, Any]',
+        allow_enable: bool = False,
+    ) -> bool:
         """Process any contract access deltas for this entitlement.
 
         :param orig_access: Dictionary containing the original
@@ -218,6 +250,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             about the recommended enabled service.
 
         :return: True when delta operations are processed; False when noop.
+        :raise: UserFacingError when auto-enable fails unexpectedly.
         """
         if not deltas:
             return True  # We processed all deltas that needed processing
@@ -229,8 +262,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 util.apply_series_overrides(deltas)
                 delta_entitlement = deltas['entitlement']
             if orig_access and 'entitled' in delta_entitlement:
-                transition_to_unentitled = (
-                    delta_entitlement['entitled'] in (False, util.DROPPED_KEY))
+                transition_to_unentitled = delta_entitlement['entitled'] in (
+                    False,
+                    util.DROPPED_KEY,
+                )
         if transition_to_unentitled:
             application_status, _ = self.application_status()
             if application_status != status.ApplicationStatus.DISABLED:
@@ -238,12 +273,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     self.disable()
                     logging.info(
                         "Due to contract refresh, '%s' is now disabled.",
-                        self.name)
+                        self.name,
+                    )
                 else:
                     logging.warning(
                         "Unable to disable '%s' as recommended during contract"
-                        " refresh. Service is still active. See `ua status`" %
-                        self.name)
+                        " refresh. Service is still active. See `ua status`"
+                        % self.name
+                    )
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
@@ -256,16 +293,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         delta_obligations = delta_entitlement.get('obligations', {})
         can_enable = self.can_enable(silent=True)
         enableByDefault = bool(
-            delta_obligations.get('enableByDefault') and resourceToken)
+            delta_obligations.get('enableByDefault') and resourceToken
+        )
         if can_enable and enableByDefault:
             if allow_enable:
                 msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
-                    name=self.name)
+                    name=self.name
+                )
                 logging.info(msg)
                 self.enable()
             else:
                 msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
-                    name=self.name)
+                    name=self.name
+                )
                 logging.info(msg)
             return True
 
@@ -278,11 +318,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return UserFacingStatus.INAPPLICABLE, details
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
-            return (UserFacingStatus.INAPPLICABLE,
-                    '%s is not entitled' % self.title)
+            return (
+                UserFacingStatus.INAPPLICABLE,
+                '%s is not entitled' % self.title,
+            )
         elif entitlement_cfg['entitlement'].get('entitled', False) is False:
-            return (UserFacingStatus.INAPPLICABLE,
-                    '%s is not entitled' % self.title)
+            return (
+                UserFacingStatus.INAPPLICABLE,
+                '%s is not entitled' % self.title,
+            )
 
         application_status, explanation = self.application_status()
         user_facing_status = {

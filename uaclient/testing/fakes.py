@@ -23,20 +23,27 @@ class FakeContractClient(UAContractClient):
 
     def request_url(self, path, data=None, headers=None, method=None):
         request = {
-            'path': path, 'data': data, 'headers': headers, 'method': method}
+            'path': path,
+            'data': data,
+            'headers': headers,
+            'method': method,
+        }
         self._requests.append(request)
         # Return a response if we have one or empty
-        return self._responses.get(path, {}), {'header1': ''}
+        response = self._responses.get(path, {})
+        if isinstance(response, Exception):
+            raise response
+        return response, {'header1': ''}
 
 
 class FakeConfig(UAConfig):
-
     def __init__(self, cache_contents: 'Dict[str, Any]' = None) -> None:
         self._cache_contents = {}
         if cache_contents:
             self._cache_contents = {
                 k: json.dumps(v, cls=DatetimeAwareJSONEncoder)
-                for k, v in cache_contents.items()}
+                for k, v in cache_contents.items()
+            }
 
         super().__init__({})
 
@@ -47,7 +54,8 @@ class FakeConfig(UAConfig):
         return value
 
     def write_cache(
-            self, key: str, content: 'Any', private: bool = True) -> None:
+        self, key: str, content: 'Any', private: bool = True
+    ) -> None:
         content = json.dumps(content, cls=DatetimeAwareJSONEncoder)
         if private:
             self._cache_contents[key] = content
@@ -56,15 +64,22 @@ class FakeConfig(UAConfig):
 
     @classmethod
     def for_attached_machine(
-            cls, account_name: str = 'test_account',
-            machine_token: 'Dict[str, Any]' = None):
+        cls,
+        account_name: str = 'test_account',
+        machine_token: 'Dict[str, Any]' = None,
+    ):
         value = {
             'machine-token': {
                 'machineToken': 'not-null',
                 'machineTokenInfo': {
                     'accountInfo': {'name': account_name},
-                    'contractInfo': {'id': 'cid', 'name': 'test_contract',
-                                     'resourceEntitlements': []}}}
+                    'contractInfo': {
+                        'id': 'cid',
+                        'name': 'test_contract',
+                        'resourceEntitlements': [],
+                    },
+                },
+            }
         }
         if machine_token:
             value['machine-token'] = machine_token
