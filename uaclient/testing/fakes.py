@@ -26,7 +26,10 @@ class FakeContractClient(UAContractClient):
             'path': path, 'data': data, 'headers': headers, 'method': method}
         self._requests.append(request)
         # Return a response if we have one or empty
-        return self._responses.get(path, {}), {'header1': ''}
+        response = self._responses.get(path, {})
+        if isinstance(response, Exception):
+            raise response
+        return response, {'header1': ''}
 
 
 class FakeConfig(UAConfig):

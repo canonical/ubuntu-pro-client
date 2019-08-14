@@ -204,8 +204,11 @@ def action_enable(args, cfg):
     @return: 0 on success, 1 otherwise
     """
     print(ua_status.MESSAGE_REFRESH_ENABLE)
-    if not contract.request_updated_contract(cfg):
-        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE)
+    try:
+        contract.request_updated_contract(cfg)
+    except (util.UrlError, exceptions.UserFacingError):
+        # Inability to refresh is not a critical issue during enable
+        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
     return 0 if _perform_enable(args.name, cfg) else 1
 
 
@@ -235,10 +238,18 @@ def action_attach(args, cfg):
     if not contract_token:
         print('No valid contract token available')
         return 1
-    if not contract.request_updated_contract(
-            cfg, contract_token, allow_enable=args.auto_enable):
+    try:
+        contract.request_updated_contract(
+            cfg, contract_token, allow_enable=args.auto_enable)
+    except util.UrlError as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc.msg)
         print(
             ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url))
+        return 1
+    except exceptions.UserFacingError as exc:
+        logging.warning(exc.msg)
+        action_status(args=None, cfg=cfg)
         return 1
     contract_name = (
         cfg.machine_token['machineTokenInfo']['contractInfo']['name'])
@@ -316,11 +327,14 @@ def print_version(_args=None, _cfg=None):
 
 @assert_attached_root
 def action_refresh(args, cfg):
-    if contract.request_updated_contract(cfg):
-        print(ua_status.MESSAGE_REFRESH_SUCCESS)
-        logging.debug(ua_status.MESSAGE_REFRESH_SUCCESS)
-        return 0
-    raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
+    try:
+        contract.request_updated_contract(cfg)
+    except util.UrlError as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc.msg)
+        raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
+    print(ua_status.MESSAGE_REFRESH_SUCCESS)
+    return 0
 
 
 def setup_logging(console_level, log_level, log_file=None):

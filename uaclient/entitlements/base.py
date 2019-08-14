@@ -218,6 +218,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             about the recommended enabled service.
 
         :return: True when delta operations are processed; False when noop.
+        :raise: UserFacingError when auto-enable fails unexpectedly.
         """
         if not deltas:
             return True  # We processed all deltas that needed processing
