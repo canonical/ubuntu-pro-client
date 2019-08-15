@@ -14,10 +14,10 @@ except ImportError:
 from uaclient import status
 from uaclient.cli import action_refresh
 
-M_PATH = 'uaclient.cli.'
+M_PATH = "uaclient.cli."
 
 
-@mock.patch(M_PATH + 'os.getuid', return_value=0)
+@mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionRefresh:
     def test_non_root_users_are_rejected(self, getuid):
         """Check that a UID != 0 will receive a message and exit non-zero"""
@@ -34,14 +34,14 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UnattachedError):
             action_refresh(mock.MagicMock(), cfg)
 
-    @mock.patch(M_PATH + 'logging.error')
-    @mock.patch(M_PATH + 'contract.request_updated_contract')
+    @mock.patch(M_PATH + "logging.error")
+    @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_error_on_failure_to_update_contract(
         self, request_updated_contract, logging_error, getuid
     ):
         """On failure in request_updates_contract emit an error."""
         request_updated_contract.side_effect = exceptions.UserFacingError(
-            'Failure to refresh'
+            "Failure to refresh"
         )
 
         cfg = FakeConfig.for_attached_machine()
@@ -49,9 +49,9 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(), cfg)
 
-        assert 'Failure to refresh' == excinfo.value.msg
+        assert "Failure to refresh" == excinfo.value.msg
 
-    @mock.patch(M_PATH + 'contract.request_updated_contract')
+    @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_happy_path(
         self, request_updated_contract, getuid, capsys
     ):

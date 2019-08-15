@@ -20,9 +20,9 @@ from uaclient.entitlements.tests.conftest import machine_access
 from uaclient import exceptions
 
 
-M_PATH = 'uaclient.entitlements.fips.'
-M_REPOPATH = 'uaclient.entitlements.repo.'
-M_GETPLATFORM = M_REPOPATH + 'util.get_platform_info'
+M_PATH = "uaclient.entitlements.fips."
+M_REPOPATH = "uaclient.entitlements.repo."
+M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 
 
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
@@ -38,66 +38,66 @@ class TestFIPSEntitlementCanEnable:
         """When entitlement is disabled, can_enable returns True."""
         with mock.patch.object(
             entitlement,
-            'applicability_status',
-            return_value=(status.ApplicabilityStatus.APPLICABLE, ''),
+            "applicability_status",
+            return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
         ):
             with mock.patch.object(
                 entitlement,
-                'application_status',
-                return_value=(status.ApplicationStatus.DISABLED, ''),
+                "application_status",
+                return_value=(status.ApplicationStatus.DISABLED, ""),
             ):
                 assert True is entitlement.can_enable()
-        assert ('', '') == capsys.readouterr()
+        assert ("", "") == capsys.readouterr()
 
 
 class TestFIPSEntitlementEnable:
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
-        patched_packages = ['a', 'b']
+        patched_packages = ["a", "b"]
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
-                mock.patch('uaclient.apt.add_auth_apt_repo')
+                mock.patch("uaclient.apt.add_auth_apt_repo")
             )
             m_add_pinning = stack.enter_context(
-                mock.patch('uaclient.apt.add_ppa_pinning')
+                mock.patch("uaclient.apt.add_ppa_pinning")
             )
             m_subp = stack.enter_context(
-                mock.patch('uaclient.util.subp', return_value=('', ''))
+                mock.patch("uaclient.util.subp", return_value=("", ""))
             )
             m_can_enable = stack.enter_context(
-                mock.patch.object(entitlement, 'can_enable')
+                mock.patch.object(entitlement, "can_enable")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'})
+                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
-            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+            stack.enter_context(mock.patch(M_REPOPATH + "os.path.exists"))
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
             stack.enter_context(
-                mock.patch.object(type(entitlement), 'packages', m_packages)
+                mock.patch.object(type(entitlement), "packages", m_packages)
             )
 
             m_can_enable.return_value = True
 
             assert True is entitlement.enable()
 
-        repo_url = 'http://{}'.format(entitlement.name.upper())
+        repo_url = "http://{}".format(entitlement.name.upper())
         add_apt_calls = [
             mock.call(
-                '/etc/apt/sources.list.d/ubuntu-{}-xenial.list'.format(
+                "/etc/apt/sources.list.d/ubuntu-{}-xenial.list".format(
                     entitlement.name
                 ),
                 repo_url,
-                'TOKEN',
-                ['xenial'],
-                'APTKEY',
+                "TOKEN",
+                ["xenial"],
+                "APTKEY",
                 os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
             )
         ]
         apt_pinning_calls = [
             mock.call(
-                '/etc/apt/preferences.d/ubuntu-{}-xenial'.format(
+                "/etc/apt/preferences.d/ubuntu-{}-xenial".format(
                     entitlement.name
                 ),
                 repo_url,
@@ -106,14 +106,14 @@ class TestFIPSEntitlementEnable:
             )
         ]
         install_cmd = mock.call(
-            ['apt-get', 'install', '--assume-yes'] + patched_packages,
+            ["apt-get", "install", "--assume-yes"] + patched_packages,
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
         )
 
         subp_calls = [
             mock.call(
-                ['apt-get', 'update'],
+                ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
             ),
@@ -126,19 +126,19 @@ class TestFIPSEntitlementEnable:
         assert subp_calls == m_subp.call_args_list
 
     @mock.patch(
-        'uaclient.util.get_platform_info', return_value={'series': 'xenial'}
+        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
     def test_enable_returns_false_on_can_enable_false(
         self, m_platform_info, entitlement
     ):
         """When can_enable is false enable returns false and noops."""
-        with mock.patch.object(entitlement, 'can_enable', return_value=False):
+        with mock.patch.object(entitlement, "can_enable", return_value=False):
             assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
-    @mock.patch('uaclient.apt.add_auth_apt_repo')
+    @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(
-        'uaclient.util.get_platform_info', return_value={'series': 'xenial'}
+        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
     def test_enable_returns_false_on_missing_suites_directive(
         self, m_platform_info, m_add_apt, entitlement
@@ -148,16 +148,16 @@ class TestFIPSEntitlementEnable:
         fips_entitled_no_suites = copy.deepcopy(
             machine_access(entitlement.name)
         )
-        fips_entitled_no_suites['entitlement']['directives']['suites'] = []
+        fips_entitled_no_suites["entitlement"]["directives"]["suites"] = []
         entitlement.cfg.write_cache(
-            'machine-access-{}'.format(entitlement.name),
+            "machine-access-{}".format(entitlement.name),
             fips_entitled_no_suites,
         )
 
-        with mock.patch.object(entitlement, 'can_enable', return_value=True):
+        with mock.patch.object(entitlement, "can_enable", return_value=True):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
-        error_msg = 'Empty {} apt suites directive from {}'.format(
+        error_msg = "Empty {} apt suites directive from {}".format(
             entitlement.name, defaults.BASE_CONTRACT_URL
         )
         assert error_msg == excinfo.value.msg
@@ -169,19 +169,19 @@ class TestFIPSEntitlementEnable:
 
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
-                mock.patch('uaclient.apt.add_auth_apt_repo')
+                mock.patch("uaclient.apt.add_auth_apt_repo")
             )
             m_add_pinning = stack.enter_context(
-                mock.patch('uaclient.apt.add_ppa_pinning')
+                mock.patch("uaclient.apt.add_ppa_pinning")
             )
-            stack.enter_context(mock.patch.object(entitlement, 'can_enable'))
+            stack.enter_context(mock.patch.object(entitlement, "can_enable"))
             m_remove_apt_config = stack.enter_context(
-                mock.patch.object(entitlement, 'remove_apt_config')
+                mock.patch.object(entitlement, "remove_apt_config")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'})
+                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
-            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+            stack.enter_context(mock.patch(M_REPOPATH + "os.path.exists"))
 
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
@@ -197,34 +197,34 @@ class TestFIPSEntitlementEnable:
 
     def test_failure_to_install_doesnt_remove_packages(self, entitlement):
         def fake_subp(cmd, *args, **kwargs):
-            if 'install' in cmd:
+            if "install" in cmd:
                 raise util.ProcessExecutionError(cmd)
-            return ('', '')
+            return ("", "")
 
         with contextlib.ExitStack() as stack:
             m_subp = stack.enter_context(
-                mock.patch('uaclient.util.subp', side_effect=fake_subp)
+                mock.patch("uaclient.util.subp", side_effect=fake_subp)
             )
             stack.enter_context(
-                mock.patch.object(entitlement, 'can_enable', return_value=True)
+                mock.patch.object(entitlement, "can_enable", return_value=True)
             )
             stack.enter_context(
                 mock.patch.object(
-                    entitlement, 'setup_apt_config', return_value=True
+                    entitlement, "setup_apt_config", return_value=True
                 )
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={'series': 'xenial'})
+                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
-            stack.enter_context(mock.patch(M_REPOPATH + 'os.path.exists'))
+            stack.enter_context(mock.patch(M_REPOPATH + "os.path.exists"))
 
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
-            error_msg = 'Could not enable {}.'.format(entitlement.title)
+            error_msg = "Could not enable {}.".format(entitlement.title)
             assert error_msg == excinfo.value.msg
 
         for call in m_subp.call_args_list:
-            assert 'remove' not in call[0][0]
+            assert "remove" not in call[0][0]
 
 
 def _fips_pkg_combinations():
@@ -250,12 +250,12 @@ def _fips_pkg_combinations():
 
 
 class TestFipsEntitlementPackages:
-    @mock.patch(M_PATH + 'apt.get_installed_packages', return_value=[])
+    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
     def test_packages_is_list(self, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
         assert isinstance(entitlement.packages, list)
 
-    @mock.patch(M_PATH + 'apt.get_installed_packages', return_value=[])
+    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
     def test_fips_required_packages_included(self, _mock, entitlement):
         """The fips_required_packages should always be in .packages"""
         assert entitlement.fips_required_packages.issubset(
@@ -263,9 +263,9 @@ class TestFipsEntitlementPackages:
         )
 
     @pytest.mark.parametrize(
-        'installed_packages,expected_installs', _fips_pkg_combinations()
+        "installed_packages,expected_installs", _fips_pkg_combinations()
     )
-    @mock.patch(M_PATH + 'apt.get_installed_packages')
+    @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_currently_installed_packages_are_included_in_packages(
         self,
         m_get_installed_packages,
@@ -280,7 +280,7 @@ class TestFipsEntitlementPackages:
         )
         assert full_expected_installs == entitlement.packages
 
-    @mock.patch(M_PATH + 'apt.get_installed_packages')
+    @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_multiple_packages_calls_dont_mutate_state(
         self, m_get_installed_packages, entitlement
     ):
@@ -303,27 +303,27 @@ class TestFipsEntitlementPackages:
 
 
 class TestFIPSEntitlementDisable:
-    @pytest.mark.parametrize('silent', [False, True])
-    @mock.patch('uaclient.util.get_platform_info')
+    @pytest.mark.parametrize("silent", [False, True])
+    @mock.patch("uaclient.util.get_platform_info")
     def test_disable_returns_false_and_does_nothing(
         self, m_platform_info, entitlement, silent, capsys
     ):
         """When can_disable is false disable returns false and noops."""
-        with mock.patch('uaclient.apt.remove_auth_apt_repo') as m_remove_apt:
+        with mock.patch("uaclient.apt.remove_auth_apt_repo") as m_remove_apt:
             assert False is entitlement.disable(silent)
         assert 0 == m_remove_apt.call_count
 
-        expected_stdout = ''
+        expected_stdout = ""
         if not silent:
-            expected_stdout = 'Warning: no option to disable {}\n'.format(
+            expected_stdout = "Warning: no option to disable {}\n".format(
                 entitlement.title
             )
-        assert (expected_stdout, '') == capsys.readouterr()
+        assert (expected_stdout, "") == capsys.readouterr()
 
 
 class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize(
-        'super_application_status',
+        "super_application_status",
         [
             s
             for s in status.ApplicationStatus
@@ -333,9 +333,9 @@ class TestFIPSEntitlementApplicationStatus:
     def test_non_enabled_passed_through(
         self, entitlement, super_application_status
     ):
-        msg = 'sure is some status here'
+        msg = "sure is some status here"
         with mock.patch(
-            M_PATH + 'repo.RepoEntitlement.application_status',
+            M_PATH + "repo.RepoEntitlement.application_status",
             return_value=(super_application_status, msg),
         ):
             application_status = entitlement.application_status()
@@ -343,30 +343,30 @@ class TestFIPSEntitlementApplicationStatus:
         assert (super_application_status, msg) == application_status
 
     @pytest.mark.parametrize(
-        'platform_info,expected_status,expected_msg',
+        "platform_info,expected_status,expected_msg",
         (
             (
-                {'kernel': '4.4.0-1002-fips'},
+                {"kernel": "4.4.0-1002-fips"},
                 status.ApplicationStatus.ENABLED,
                 None,
             ),
             (
-                {'kernel': '4.4.0-148-generic'},
+                {"kernel": "4.4.0-148-generic"},
                 status.ApplicationStatus.PENDING,
-                'Reboot to FIPS kernel required',
+                "Reboot to FIPS kernel required",
             ),
         ),
     )
     def test_kernels_are_used_to_switch_enabled_to_pending(
         self, entitlement, platform_info, expected_status, expected_msg
     ):
-        msg = 'sure is some status here'
+        msg = "sure is some status here"
         with mock.patch(
-            M_PATH + 'repo.RepoEntitlement.application_status',
+            M_PATH + "repo.RepoEntitlement.application_status",
             return_value=(status.ApplicationStatus.ENABLED, msg),
         ):
             with mock.patch(
-                M_PATH + 'util.get_platform_info', return_value=platform_info
+                M_PATH + "util.get_platform_info", return_value=platform_info
             ):
                 application_status = entitlement.application_status()
 
@@ -379,11 +379,11 @@ class TestFIPSEntitlementApplicationStatus:
     def test_fips_does_not_show_enabled_when_fips_updates_is(
         self, entitlement
     ):
-        with mock.patch(M_PATH + 'util.subp') as m_subp:
+        with mock.patch(M_PATH + "util.subp") as m_subp:
             m_subp.return_value = (
-                '1001 http://FIPS-UPDATES/ubuntu'
-                ' xenial-updates/main amd64 Packages\n',
-                '',
+                "1001 http://FIPS-UPDATES/ubuntu"
+                " xenial-updates/main amd64 Packages\n",
+                "",
             )
 
             application_status, _ = entitlement.application_status()

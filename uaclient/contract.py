@@ -11,52 +11,52 @@ except ImportError:
     pass
 
 
-API_V1_CONTEXT_MACHINE_TOKEN = '/v1/context/machines/token'
+API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
-    '/v1/contracts/{contract}/context/machines/{machine}'
+    "/v1/contracts/{contract}/context/machines/{machine}"
 )
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
-    '/v1/resources/{resource}/context/machines/{machine}'
+    "/v1/resources/{resource}/context/machines/{machine}"
 )
 
 
 class ContractAPIError(util.UrlError):
     def __init__(self, e, error_response):
         super().__init__(e, e.code, e.headers, e.url)
-        if 'error_list' in error_response:
-            self.api_errors = error_response['error_list']
+        if "error_list" in error_response:
+            self.api_errors = error_response["error_list"]
         else:
             self.api_errors = [error_response]
         for error in self.api_errors:
-            error['code'] = error.get('title', error.get('code'))
+            error["code"] = error.get("title", error.get("code"))
 
     def __contains__(self, error_code):
-        return error_code in [error['code'] for error in self.api_errors]
+        return error_code in [error["code"] for error in self.api_errors]
 
     def __get__(self, error_code, default=None):
         for error in self.api_errors:
-            if error['code'] == error_code:
-                return error['detail']
+            if error["code"] == error_code:
+                return error["detail"]
         return default
 
     def __str__(self):
         prefix = super().__str__()
         details = []
         for err in self.api_errors:
-            if not err.get('extra'):
-                details.append(err.get('detail', err.get('message', '')))
+            if not err.get("extra"):
+                details.append(err.get("detail", err.get("message", "")))
             else:
-                for extra in err['extra'].values():
+                for extra in err["extra"].values():
                     if isinstance(extra, list):
                         details.extend(extra)
                     else:
                         details.append(extra)
-        return prefix + ': [' + self.url + ']' + ', '.join(details)
+        return prefix + ": [" + self.url + "]" + ", ".join(details)
 
 
 class UAContractClient(serviceclient.UAServiceClient):
 
-    cfg_url_base_attr = 'contract_url'
+    cfg_url_base_attr = "contract_url"
     api_error_cls = ContractAPIError
 
     def request_contract_machine_attach(self, contract_token, machine_id=None):
@@ -73,22 +73,22 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
         os = util.get_platform_info()
-        arch = os.pop('arch')
+        arch = os.pop("arch")
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer {}'.format(contract_token)})
-        data = {'machineId': machine_id, 'architecture': arch, 'os': os}
+        headers.update({"Authorization": "Bearer {}".format(contract_token)})
+        data = {"machineId": machine_id, "architecture": arch, "os": os}
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
-        self.cfg.write_cache('machine-token', machine_token)
+        self.cfg.write_cache("machine-token", machine_token)
         return machine_token
 
     def request_resource_machine_access(
         self,
         machine_token: str,
         resource: str,
-        machine_id: 'Optional[str]' = None,
-    ) -> 'Dict[str, Any]':
+        machine_id: "Optional[str]" = None,
+    ) -> "Dict[str, Any]":
         """Requests machine access context for a given resource
 
         @param machine_token: The authentication token needed to talk to
@@ -103,15 +103,15 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer {}'.format(machine_token)})
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id
         )
         resource_access, headers = self.request_url(url, headers=headers)
-        if headers.get('expires'):
-            resource_access['expires'] = headers['expires']
+        if headers.get("expires"):
+            resource_access["expires"] = headers["expires"]
         self.cfg.write_cache(
-            'machine-access-{}'.format(resource), resource_access
+            "machine-access-{}".format(resource), resource_access
         )
         return resource_access
 
@@ -131,14 +131,14 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer {}'.format(machine_token)})
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
             contract=contract_id, machine=machine_id
         )
         response, headers = self.request_url(url, headers=headers)
-        if headers.get('expires'):
-            response['expires'] = headers['expires']
-        self.cfg.write_cache('machine-token', response)
+        if headers.get("expires"):
+            response["expires"] = headers["expires"]
+        self.cfg.write_cache("machine-token", response)
         return response
 
 
@@ -161,12 +161,12 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
     util.apply_series_overrides(new_access)
     deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:
-        name = orig_access.get('entitlement', {}).get('type')
+        name = orig_access.get("entitlement", {}).get("type")
         if not name:
-            name = deltas.get('entitlement', {}).get('type')
+            name = deltas.get("entitlement", {}).get("type")
         if not name:
             raise RuntimeError(
-                'Could not determine contract delta service type {} {}'.format(
+                "Could not determine contract delta service type {} {}".format(
                     orig_access, new_access
                 )
             )
@@ -185,7 +185,7 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
 
 
 def request_updated_contract(
-    cfg, contract_token: 'Optional[str]' = None, allow_enable=False
+    cfg, contract_token: "Optional[str]" = None, allow_enable=False
 ):
     """Request contract refresh from ua-contracts service.
 
@@ -205,7 +205,7 @@ def request_updated_contract(
     orig_entitlements = cfg.entitlements
     if orig_token and contract_token:
         raise RuntimeError(
-            'Got unexpected contract_token on an already attached machine'
+            "Got unexpected contract_token on an already attached machine"
         )
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
@@ -213,17 +213,17 @@ def request_updated_contract(
             contract_token=contract_token
         )
     else:
-        machine_token = orig_token['machineToken']
-        contract_id = orig_token['machineTokenInfo']['contractInfo']['id']
+        machine_token = orig_token["machineToken"]
+        contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
         new_token = contract_client.request_machine_token_refresh(
             machine_token=machine_token, contract_id=contract_id
         )
     user_errors = []
     for name, entitlement in sorted(cfg.entitlements.items()):
-        if entitlement['entitlement'].get('entitled'):
+        if entitlement["entitlement"].get("entitled"):
             # Obtain each entitlement's accessContext for this machine
             new_access = contract_client.request_resource_machine_access(
-                new_token['machineToken'], name
+                new_token["machineToken"], name
             )
         else:
             new_access = entitlement
@@ -239,9 +239,9 @@ def request_updated_contract(
             with util.disable_log_to_console():
                 logging.exception(str(e))
             raise exceptions.UserFacingError(
-                'Unexpected error handling Ubuntu Advantage contract changes'
+                "Unexpected error handling Ubuntu Advantage contract changes"
             )
     if user_errors:
-        error_lines = ['Failure processing Ubuntu Advantage contract changes.']
-        error_lines.extend(['- {}'.format(error) for error in user_errors])
-        raise exceptions.UserFacingError('\n'.join(error_lines))
+        error_lines = ["Failure processing Ubuntu Advantage contract changes."]
+        error_lines.extend(["- {}".format(error) for error in user_errors])
+        raise exceptions.UserFacingError("\n".join(error_lines))
