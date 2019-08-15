@@ -21,7 +21,7 @@ class OurServiceClient(UAServiceClient):
 
     @property
     def cfg_url_base_attr(self):
-        return 'url_attr'
+        return "url_attr"
 
 
 class TestRequestUrl:
@@ -29,17 +29,17 @@ class TestRequestUrl:
     # TODO: Non error-path tests
 
     @pytest.mark.parametrize(
-        'fp,expected_exception,expected_attrs',
+        "fp,expected_exception,expected_attrs",
         (
-            (BytesIO(), util.UrlError, {'code': 619}),
+            (BytesIO(), util.UrlError, {"code": 619}),
             (
                 BytesIO(b'{"a": "b"}'),
                 OurServiceClientException,
-                {'details': {"a": "b"}},
+                {"details": {"a": "b"}},
             ),
         ),
     )
-    @mock.patch('uaclient.serviceclient.util.readurl')
+    @mock.patch("uaclient.serviceclient.util.readurl")
     def test_urlerror_with_read(
         self, m_readurl, fp, expected_exception, expected_attrs
     ):
@@ -47,7 +47,7 @@ class TestRequestUrl:
 
         client = OurServiceClient(cfg=mock.Mock(url_attr="http://example.com"))
         with pytest.raises(expected_exception) as excinfo:
-            client.request_url('/')
+            client.request_url("/")
 
         for attr, expected_value in expected_attrs.items():
             assert expected_value == getattr(excinfo.value, attr)

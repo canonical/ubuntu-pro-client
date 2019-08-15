@@ -19,18 +19,18 @@ def export_gpg_key_from_keyring(
         the source_keyring_file.
     """
     export_cmd = [
-        'gpg',
-        '--output',
+        "gpg",
+        "--output",
         destination_keyfile,
-        '--yes',
-        '--no-auto-check-trustdb',
-        '--no-default-keyring',
-        '--keyring',
+        "--yes",
+        "--no-auto-check-trustdb",
+        "--no-default-keyring",
+        "--keyring",
         source_keyring_file,
-        '--export',
+        "--export",
         key_id,
     ]
-    logging.debug('Exporting GPG key %s from %s', key_id, source_keyring_file)
+    logging.debug("Exporting GPG key %s from %s", key_id, source_keyring_file)
     try:
         out, err = util.subp(export_cmd)
     except util.ProcessExecutionError as exc:
@@ -41,7 +41,7 @@ def export_gpg_key_from_keyring(
                 source_keyring_file
             )
         )
-    if 'nothing exported' in err:
+    if "nothing exported" in err:
         raise exceptions.UserFacingError(
             "GPG key '{}' not found in {}".format(key_id, source_keyring_file)
         )
@@ -50,5 +50,5 @@ def export_gpg_key_from_keyring(
             key_id, source_keyring_file
         )
         with util.disable_log_to_console():
-            logging.error(msg + ' Error: {}'.format(err))
+            logging.error(msg + " Error: {}".format(err))
         raise exceptions.UserFacingError(msg)

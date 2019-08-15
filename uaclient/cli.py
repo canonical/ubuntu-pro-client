@@ -29,11 +29,11 @@ from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
 
-NAME = 'ubuntu-advantage'
+NAME = "ubuntu-advantage"
 
-USAGE_TMPL = '{name} {command} [flags]'
+USAGE_TMPL = "{name} {command} [flags]"
 EPILOG_TMPL = (
-    'Use {name} {command} --help for more information about a command.'
+    "Use {name} {command} --help for more information about a command."
 )
 
 STATUS_HEADER_TMPL = """\
@@ -42,13 +42,13 @@ Subscription: {subscription}
 Valid until: {contract_expiry}
 Technical support level: {tech_support_level}
 """
-UA_AUTH_TOKEN_URL = 'https://auth.contracts.canonical.com'
+UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
 
 DEFAULT_LOG_FORMAT = (
-    '%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s'
+    "%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s"
 )
 
-STATUS_FORMATS = ['tabular', 'json']
+STATUS_FORMATS = ["tabular", "json"]
 
 
 def assert_attached_root(func):
@@ -66,133 +66,133 @@ def assert_attached_root(func):
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='attach [token]')
+    usage = USAGE_TMPL.format(name=NAME, command="attach [token]")
     if not parser:
         parser = argparse.ArgumentParser(
-            prog='attach',
+            prog="attach",
             description=(
-                'Attach this machine to an existing Ubuntu Advantage'
-                ' support subscription'
+                "Attach this machine to an existing Ubuntu Advantage"
+                " support subscription"
             ),
             usage=usage,
         )
     else:
         parser.usage = usage
-        parser.prog = 'attach'
-    parser._optionals.title = 'Flags'
+        parser.prog = "attach"
+    parser._optionals.title = "Flags"
     parser.add_argument(
-        'token',
-        help='Token obtained for Ubuntu Advantage authentication: {}'.format(
+        "token",
+        help="Token obtained for Ubuntu Advantage authentication: {}".format(
             UA_AUTH_TOKEN_URL
         ),
     )
     parser.add_argument(
-        '--no-auto-enable',
-        action='store_false',
-        dest='auto_enable',
-        help='Do not enable any recommended services automatically',
+        "--no-auto-enable",
+        action="store_false",
+        dest="auto_enable",
+        help="Do not enable any recommended services automatically",
     )
     return parser
 
 
 def detach_parser(parser=None):
     """Build or extend an arg parser for detach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='detach')
+    usage = USAGE_TMPL.format(name=NAME, command="detach")
     if not parser:
         parser = argparse.ArgumentParser(
-            prog='detach',
+            prog="detach",
             description=(
-                'Detach this machine from an existing Ubuntu Advantage'
-                ' support subscription'
+                "Detach this machine from an existing Ubuntu Advantage"
+                " support subscription"
             ),
             usage=usage,
         )
     else:
         parser.usage = usage
-        parser.prog = 'detach'
-    parser._optionals.title = 'Flags'
+        parser.prog = "detach"
+    parser._optionals.title = "Flags"
     return parser
 
 
 def enable_parser(parser=None):
     """Build or extend an arg parser for enable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='enable') + ' <name>'
+    usage = USAGE_TMPL.format(name=NAME, command="enable") + " <name>"
     if not parser:
         parser = argparse.ArgumentParser(
-            prog='enable',
-            description='Enable a support service on this machine',
+            prog="enable",
+            description="Enable a support service on this machine",
             usage=usage,
         )
     else:
         parser.usage = usage
-        parser.prog = 'enable'
-    parser._positionals.title = 'Services'
-    parser._optionals.title = 'Flags'
+        parser.prog = "enable"
+    parser._positionals.title = "Services"
+    parser._optionals.title = "Flags"
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES
     )
     parser.add_argument(
-        'name',
-        action='store',
+        "name",
+        action="store",
         choices=entitlement_names,
-        help='The name of the support service to enable',
+        help="The name of the support service to enable",
     )
     return parser
 
 
 def disable_parser(parser=None):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='disable') + ' <name>'
+    usage = USAGE_TMPL.format(name=NAME, command="disable") + " <name>"
     if not parser:
         parser = argparse.ArgumentParser(
-            prog='disable',
-            description='Disable a support service on this machine',
+            prog="disable",
+            description="Disable a support service on this machine",
             usage=usage,
         )
     else:
         parser.usage = usage
-        parser.prog = 'disable'
-    parser._positionals.title = 'Services'
-    parser._optionals.title = 'Flags'
+        parser.prog = "disable"
+    parser._positionals.title = "Services"
+    parser._optionals.title = "Flags"
     entitlement_names = list(
         cls.name for cls in entitlements.ENTITLEMENT_CLASSES
     )
     parser.add_argument(
-        'name',
-        action='store',
+        "name",
+        action="store",
         choices=entitlement_names,
-        help='The name of the support service to disable',
+        help="The name of the support service to disable",
     )
     return parser
 
 
 def status_parser(parser=None):
     """Build or extend an arg parser for status subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command='status')
+    usage = USAGE_TMPL.format(name=NAME, command="status")
     if not parser:
         parser = argparse.ArgumentParser(
-            prog='status',
+            prog="status",
             description=(
-                'Print status information for Ubuntu Advantage'
-                ' support subscription'
+                "Print status information for Ubuntu Advantage"
+                " support subscription"
             ),
             usage=usage,
         )
     else:
         parser.usage = usage
-        parser.prog = 'status'
+        parser.prog = "status"
     parser.add_argument(
-        '--format',
-        action='store',
+        "--format",
+        action="store",
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
         help=(
-            'Output status in the request format. Default: {}'.format(
+            "Output status in the request format. Default: {}".format(
                 STATUS_FORMATS[0]
             )
         ),
     )
-    parser._optionals.title = 'Flags'
+    parser._optionals.title = "Flags"
     return parser
 
 
@@ -269,7 +269,7 @@ def action_attach(args, cfg):
     if cfg.is_attached:
         print(
             "This machine is already attached to '{}'.".format(
-                cfg.accounts[0]['name']
+                cfg.accounts[0]["name"]
             )
         )
         return 0
@@ -277,7 +277,7 @@ def action_attach(args, cfg):
         raise exceptions.NonRootUserError()
     contract_token = args.token
     if not contract_token:
-        print('No valid contract token available')
+        print("No valid contract token available")
         return 1
     try:
         contract.request_updated_contract(
@@ -294,8 +294,8 @@ def action_attach(args, cfg):
         logging.warning(exc.msg)
         action_status(args=None, cfg=cfg)
         return 1
-    contract_name = cfg.machine_token['machineTokenInfo']['contractInfo'][
-        'name'
+    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
+        "name"
     ]
     print(
         ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
@@ -312,53 +312,53 @@ def get_parser():
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=__doc__,
-        usage=USAGE_TMPL.format(name=NAME, command='[command]'),
-        epilog=EPILOG_TMPL.format(name=NAME, command='[command]'),
+        usage=USAGE_TMPL.format(name=NAME, command="[command]"),
+        epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
     )
     parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='Show all debug log messages to console',
+        "--debug",
+        action="store_true",
+        help="Show all debug log messages to console",
     )
-    parser._optionals.title = 'Flags'
+    parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
-        title='Available Commands', dest='command', metavar=''
+        title="Available Commands", dest="command", metavar=""
     )
     subparsers.required = True
     parser_status = subparsers.add_parser(
-        'status', help='current status of all ubuntu advantage services'
+        "status", help="current status of all ubuntu advantage services"
     )
     parser_status.set_defaults(action=action_status)
     status_parser(parser_status)
     parser_attach = subparsers.add_parser(
-        'attach',
-        help='attach this machine to an ubuntu advantage subscription',
+        "attach",
+        help="attach this machine to an ubuntu advantage subscription",
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
     parser_detach = subparsers.add_parser(
-        'detach',
-        help='remove this machine from an ubuntu advantage subscription',
+        "detach",
+        help="remove this machine from an ubuntu advantage subscription",
     )
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
     parser_enable = subparsers.add_parser(
-        'enable', help='enable a specific support services on this machine'
+        "enable", help="enable a specific support services on this machine"
     )
     enable_parser(parser_enable)
     parser_enable.set_defaults(action=action_enable)
     parser_disable = subparsers.add_parser(
-        'disable', help='disable a specific support services on this machine'
+        "disable", help="disable a specific support services on this machine"
     )
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
     parser_refresh = subparsers.add_parser(
-        'refresh',
-        help='Refresh ubuntu-advantage services from contracts server.',
+        "refresh",
+        help="Refresh ubuntu-advantage services from contracts server.",
     )
     parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
-        'version', help='Show version of ua-client'
+        "version", help="Show version of ua-client"
     )
     parser_version.set_defaults(action=print_version)
     return parser
@@ -367,10 +367,10 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    if args and args.format == 'json':
+    if args and args.format == "json":
         status = cfg.status()
-        if status['expires'] != ua_status.UserFacingStatus.INAPPLICABLE.value:
-            status['expires'] = str(status['expires'])
+        if status["expires"] != ua_status.UserFacingStatus.INAPPLICABLE.value:
+            status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
         print(ua_status.format_tabular(cfg.status()))
@@ -396,7 +396,7 @@ def action_refresh(args, cfg):
 def setup_logging(console_level, log_level, log_file=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
-        log_file = config.CONFIG_DEFAULTS['log_file']
+        log_file = config.CONFIG_DEFAULTS["log_file"]
     console_formatter = util.LogFormatter()
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
@@ -404,18 +404,18 @@ def setup_logging(console_level, log_level, log_file=None):
     # Setup console logging
     stderr_found = False
     for handler in root.handlers:
-        if hasattr(handler, 'stream') and hasattr(handler.stream, 'name'):
-            if handler.stream.name == '<stderr>':
+        if hasattr(handler, "stream") and hasattr(handler.stream, "name"):
+            if handler.stream.name == "<stderr>":
                 handler.setLevel(console_level)
                 handler.setFormatter(console_formatter)
-                handler.set_name('console')  # Used to disable console logging
+                handler.set_name("console")  # Used to disable console logging
                 stderr_found = True
                 break
     if not stderr_found:
         console = logging.StreamHandler(sys.stderr)
         console.setFormatter(console_formatter)
         console.setLevel(console_level)
-        console.set_name('console')  # Used to disable console logging
+        console.set_name("console")  # Used to disable console logging
         root.addHandler(console)
     if os.getuid() == 0:
         # Setup readable-by-root-only debug file logging if running as root
@@ -435,13 +435,13 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             with util.disable_log_to_console():
-                logging.exception('KeyboardInterrupt')
-            print('Interrupt received; exiting.', file=sys.stderr)
+                logging.exception("KeyboardInterrupt")
+            print("Interrupt received; exiting.", file=sys.stderr)
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
-            print('ERROR: {}'.format(exc.msg), file=sys.stderr)
+            print("ERROR: {}".format(exc.msg), file=sys.stderr)
             sys.exit(1)
 
     return wrapper
@@ -455,7 +455,7 @@ def main(sys_argv=None):
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
-        print('Try \'ubuntu-advantage --help\' for more information.')
+        print("Try 'ubuntu-advantage --help' for more information.")
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
@@ -465,5 +465,5 @@ def main(sys_argv=None):
     return args.action(args, cfg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
