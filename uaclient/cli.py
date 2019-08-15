@@ -351,7 +351,7 @@ def get_parser():
     parser_disable.set_defaults(action=action_disable)
     parser_refresh = subparsers.add_parser(
         'refresh',
-        help=('Refresh ubuntu-advantage services from contracts server.'),
+        help='Refresh ubuntu-advantage services from contracts server.',
     )
     parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
