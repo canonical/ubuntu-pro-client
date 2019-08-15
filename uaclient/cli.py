@@ -82,8 +82,9 @@ def attach_parser(parser=None):
     parser._optionals.title = 'Flags'
     parser.add_argument(
         'token',
-        help='Token obtained for Ubuntu Advantage authentication:'
-        ' %s' % UA_AUTH_TOKEN_URL,
+        help='Token obtained for Ubuntu Advantage authentication: {}'.format(
+            UA_AUTH_TOKEN_URL
+        ),
     )
     parser.add_argument(
         '--no-auto-enable',
@@ -186,8 +187,9 @@ def status_parser(parser=None):
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
         help=(
-            'Output status in the request format. Default: %s'
-            % STATUS_FORMATS[0]
+            'Output status in the request format. Default: {}'.format(
+                STATUS_FORMATS[0]
+            )
         ),
     )
     parser._optionals.title = 'Flags'
@@ -266,8 +268,9 @@ def action_detach(args, cfg):
 def action_attach(args, cfg):
     if cfg.is_attached:
         print(
-            "This machine is already attached to '%s'."
-            % cfg.accounts[0]['name']
+            "This machine is already attached to '{}'.".format(
+                cfg.accounts[0]['name']
+            )
         )
         return 0
     if os.getuid() != 0:

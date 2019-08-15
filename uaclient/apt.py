@@ -51,8 +51,9 @@ def assert_valid_apt_credentials(repo_url, username, password):
             [
                 '/usr/lib/apt/apt-helper',
                 'download-file',
-                '%s://%s:%s@%s/ubuntu/pool/'
-                % (protocol, username, password, repo_path),
+                '{}://{}:{}@{}/ubuntu/pool/'.format(
+                    protocol, username, password, repo_path
+                ),
                 '/tmp/uaclient-apt-test',
             ],
             timeout=APT_HELPER_TIMEOUT,
@@ -62,11 +63,13 @@ def assert_valid_apt_credentials(repo_url, username, password):
             stderr = str(e.stderr).lower()
             if re.search(r'401\s+unauthorized|httperror401', stderr):
                 raise exceptions.UserFacingError(
-                    'Invalid APT credentials provided for %s' % repo_url
+                    'Invalid APT credentials provided for {}'.format(repo_url)
                 )
             elif re.search(r'connection timed out', stderr):
                 raise exceptions.UserFacingError(
-                    'Timeout trying to access APT repository at %s' % repo_url
+                    'Timeout trying to access APT repository at {}'.format(
+                        repo_url
+                    )
                 )
         raise exceptions.UserFacingError(
             'Unexpected APT error. See /var/log/ubuntu-advantage.log'
@@ -74,8 +77,9 @@ def assert_valid_apt_credentials(repo_url, username, password):
     except subprocess.TimeoutExpired:
         raise exceptions.UserFacingError(
             'Cannot validate credentials for APT repo.'
-            ' Timeout after %d seconds trying to reach %s.'
-            % (APT_HELPER_TIMEOUT, repo_path)
+            ' Timeout after {} seconds trying to reach {}.'.format(
+                APT_HELPER_TIMEOUT, repo_path
+            )
         )
     finally:
         if os.path.exists('/tmp/uaclient-apt-test'):
@@ -280,7 +284,9 @@ def find_apt_list_files(repo_url, series):
     aptlist_filename = repo_path.replace('/', '_')
     return sorted(
         glob.glob(
-            os.path.join(lists_dir, aptlist_filename + '_dists_%s*' % series)
+            os.path.join(
+                lists_dir, aptlist_filename + '_dists_{}*'.format(series)
+            )
         )
     )
 

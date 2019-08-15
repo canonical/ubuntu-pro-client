@@ -43,7 +43,7 @@ def export_gpg_key_from_keyring(
         )
     if 'nothing exported' in err:
         raise exceptions.UserFacingError(
-            "GPG key '%s' not found in %s" % (key_id, source_keyring_file)
+            "GPG key '{}' not found in {}".format(key_id, source_keyring_file)
         )
     if not os.path.exists(destination_keyfile):
         msg = "Unexpected error exporting GPG key '{}' from {}".format(

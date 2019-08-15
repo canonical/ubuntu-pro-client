@@ -75,7 +75,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         os = util.get_platform_info()
         arch = os.pop('arch')
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer %s' % contract_token})
+        headers.update({'Authorization': 'Bearer {}'.format(contract_token)})
         data = {'machineId': machine_id, 'architecture': arch, 'os': os}
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
@@ -103,14 +103,16 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer %s' % machine_token})
+        headers.update({'Authorization': 'Bearer {}'.format(machine_token)})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
             resource=resource, machine=machine_id
         )
         resource_access, headers = self.request_url(url, headers=headers)
         if headers.get('expires'):
             resource_access['expires'] = headers['expires']
-        self.cfg.write_cache('machine-access-%s' % resource, resource_access)
+        self.cfg.write_cache(
+            'machine-access-{}'.format(resource), resource_access
+        )
         return resource_access
 
     def request_machine_token_refresh(
@@ -129,7 +131,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
         headers = self.headers()
-        headers.update({'Authorization': 'Bearer %s' % machine_token})
+        headers.update({'Authorization': 'Bearer {}'.format(machine_token)})
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
             contract=contract_id, machine=machine_id
         )
@@ -164,8 +166,9 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
             name = deltas.get('entitlement', {}).get('type')
         if not name:
             raise RuntimeError(
-                'Could not determine contract delta service type %s %s'
-                % (orig_access, new_access)
+                'Could not determine contract delta service type {} {}'.format(
+                    orig_access, new_access
+                )
             )
         try:
             ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]

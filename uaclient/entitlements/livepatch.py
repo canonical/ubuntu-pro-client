@@ -196,7 +196,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         )
         process_token = bool(deltas.get('resourceToken', False))
         if any([process_directives, process_token]):
-            logging.info("Updating '%s' on changed directives." % self.name)
+            logging.info("Updating '%s' on changed directives.", self.name)
             return self.setup_livepatch_config(
                 process_directives=process_directives,
                 process_token=process_token,
@@ -223,7 +223,7 @@ def process_config_directives(cfg):
             [
                 '/snap/bin/canonical-livepatch',
                 'config',
-                'ca-certs=%s' % ca_certs,
+                'ca-certs={}'.format(ca_certs),
             ],
             capture=True,
         )
@@ -235,7 +235,7 @@ def process_config_directives(cfg):
             [
                 '/snap/bin/canonical-livepatch',
                 'config',
-                'remote-server=%s' % remote_server,
+                'remote-server={}'.format(remote_server),
             ],
             capture=True,
         )

@@ -21,9 +21,9 @@ class TestProcessEntitlementDeltas:
     def test_error_on_missing_entitlement_type(self):
         """Raise an error when neither dict contains entitlement type."""
         new_access = {'entitlement': {'something': 'non-empty'}}
-        error_msg = 'Could not determine contract delta service type %s %s' % (
-            {},
-            new_access,
+        error_msg = (
+            'Could not determine contract delta service type'
+            ' {{}} {}'.format(new_access)
         )
         with pytest.raises(RuntimeError) as exc:
             process_entitlement_delta({}, new_access)

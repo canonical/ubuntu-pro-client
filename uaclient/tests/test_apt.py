@@ -58,7 +58,7 @@ class TestFindAptListFilesFromRepoSeries:
     @mock.patch('uaclient.util.subp')
     def test_find_all_apt_list_files_from_apt_config_key(self, m_subp, tmpdir):
         """Find all matching apt list files from apt-config dir."""
-        m_subp.return_value = ("key='%s'" % tmpdir.strpath, '')
+        m_subp.return_value = ("key='{}'".format(tmpdir.strpath), '')
         repo_url = 'http://c.com/fips-updates/'
         _protocol, repo_path = repo_url.split('://')
         prefix = repo_path.rstrip('/').replace('/', '_')
@@ -83,7 +83,7 @@ class TestRemoveAptListFiles:
         self, m_subp, tmpdir
     ):
         """Remove all matching apt list files from apt-config dir."""
-        m_subp.return_value = ("key='%s'" % tmpdir.strpath, '')
+        m_subp.return_value = ("key='{}'".format(tmpdir.strpath), '')
         repo_url = 'http://c.com/fips-updates/'
         _protocol, repo_path = repo_url.split('://')
         prefix = repo_path.rstrip('/').replace('/', '_')
@@ -99,7 +99,7 @@ class TestRemoveAptListFiles:
             util.write_file(path, '')
 
         assert None is remove_apt_list_files(repo_url, 'xenial')
-        assert [nomatch_file] == glob.glob('%s/*' % tmpdir.strpath)
+        assert [nomatch_file] == glob.glob('{}/*'.format(tmpdir.strpath))
 
 
 class TestValidAptCredentials:
@@ -224,8 +224,9 @@ class TestValidAptCredentials:
             )
         error_msg = (
             'Cannot validate credentials for APT repo. Timeout'
-            ' after %d seconds trying to reach fakerepo.'
-            % apt.APT_HELPER_TIMEOUT
+            ' after {} seconds trying to reach fakerepo.'.format(
+                apt.APT_HELPER_TIMEOUT
+            )
         )
         assert error_msg == excinfo.value.msg
         exists_calls = [
@@ -413,8 +414,8 @@ class TestAddAuthAptRepo:
         )
 
         expected_content = (
-            'machine fakerepo/ login user password password%s\n'
-            % APT_AUTH_COMMENT
+            'machine fakerepo/ login user password password'
+            '{}\n'.format(APT_AUTH_COMMENT)
         )
         assert expected_content == util.load_file(auth_file)
 
@@ -450,8 +451,8 @@ class TestAddAuthAptRepo:
         )
 
         expected_content = (
-            'machine fakerepo/ login bearer password SOMELONGTOKEN%s\n'
-            % APT_AUTH_COMMENT
+            'machine fakerepo/ login bearer password'
+            ' SOMELONGTOKEN{}\n'.format(APT_AUTH_COMMENT)
         )
         assert expected_content == util.load_file(auth_file)
 
@@ -480,14 +481,14 @@ class TestAddAptAuthConfEntry:
             login='newlogin', password='newpass', repo_url='http://fakerepo/'
         )
 
-        expected_content = dedent(
+        content_template = dedent(
             """\
             machine fakerepo1/ login me password password1
-            machine fakerepo/ login newlogin password newpass%s
+            machine fakerepo/ login newlogin password newpass{}
             machine fakerepo2/ login other password otherpass
         """
-            % APT_AUTH_COMMENT
         )
+        expected_content = content_template.format(APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
     @mock.patch('uaclient.apt.get_apt_auth_file_from_apt_config')
@@ -515,15 +516,15 @@ class TestAddAptAuthConfEntry:
             repo_url='http://fakerepo/subroute',
         )
 
-        expected_content = dedent(
+        content_template = dedent(
             """\
             machine fakerepo1/ login me password password1
-            machine fakerepo/subroute/ login new password newpass%s
+            machine fakerepo/subroute/ login new password newpass{}
             machine fakerepo/ login old password oldpassword
             machine fakerepo2/ login other password otherpass
         """
-            % APT_AUTH_COMMENT
         )
+        expected_content = content_template.format(APT_AUTH_COMMENT)
         assert expected_content == util.load_file(auth_file)
 
 

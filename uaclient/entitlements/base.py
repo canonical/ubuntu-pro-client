@@ -278,13 +278,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 else:
                     logging.warning(
                         "Unable to disable '%s' as recommended during contract"
-                        " refresh. Service is still active. See `ua status`"
-                        % self.name
+                        " refresh. Service is still active. See"
+                        " `ua status`",
+                        self.name,
                     )
             # Clean up former entitled machine-access-<name> response cache
             # file because uaclient doesn't access machine-access-* routes or
             # responses on unentitled services.
-            self.cfg.delete_cache_key('machine-access-%s' % self.name)
+            self.cfg.delete_cache_key('machine-access-{}'.format(self.name))
             return True
 
         resourceToken = orig_access.get('resourceToken')
@@ -320,12 +321,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not entitlement_cfg:
             return (
                 UserFacingStatus.INAPPLICABLE,
-                '%s is not entitled' % self.title,
+                '{} is not entitled'.format(self.title),
             )
         elif entitlement_cfg['entitlement'].get('entitled', False) is False:
             return (
                 UserFacingStatus.INAPPLICABLE,
-                '%s is not entitled' % self.title,
+                '{} is not entitled'.format(self.title),
             )
 
         application_status, explanation = self.application_status()
