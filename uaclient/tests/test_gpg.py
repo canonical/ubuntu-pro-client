@@ -37,9 +37,8 @@ class TestExportGPGKeyFromKeyring:
                 destination_keyfile=destination_keyfile,
             )
 
-        error_msg = "GPG key '%s' not found in %s" % (
-            key_id,
-            src_keyring.strpath,
+        error_msg = "GPG key '{}' not found in {}".format(
+            key_id, src_keyring.strpath
         )
         assert error_msg in str(excinfo.value)
         assert not os.path.exists(destination_keyfile)
@@ -64,7 +63,9 @@ class TestExportGPGKeyFromKeyring:
         )
         assert 'ERROR    {}'.format(msg) in caplog_text()
         assert not os.path.exists(destination_keyfile)
-        msg = 'Unable to export GPG keys from keyring %s' % (source_keyring,)
+        msg = 'Unable to export GPG keys from keyring {}'.format(
+            source_keyring
+        )
         assert msg == str(excinfo.value)
 
     def test_export_single_key_from_keyring(self, home_dir, tmpdir):

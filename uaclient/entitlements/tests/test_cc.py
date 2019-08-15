@@ -109,7 +109,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
-        details = '%s is not configured' % entitlement.title
+        details = '{} is not configured'.format(entitlement.title)
         assert details == uf_status_details
         assert True is entitlement.can_enable()
         assert ('', '') == capsys.readouterr()
@@ -192,8 +192,8 @@ class TestCommonCriteriaEntitlementEnable:
             prerequisite_pkgs.append('ca-certificates')
 
         if prerequisite_pkgs:
-            expected_stdout = 'Installing prerequisites: %s\n' % ', '.join(
-                prerequisite_pkgs
+            expected_stdout = 'Installing prerequisites: {}\n'.format(
+                ', '.join(prerequisite_pkgs)
             )
             subp_apt_cmds.append(
                 mock.call(
@@ -233,8 +233,9 @@ class TestCommonCriteriaEntitlementEnable:
                 '(This will download more than 500MB of packages, so may take'
                 ' some time.)',
                 'Canonical Common Criteria EAL2 Provisioning enabled.',
-                'Please follow instructions in %s to configure EAL2\n'
-                % CC_README,
+                'Please follow instructions in {} to configure EAL2\n'.format(
+                    CC_README
+                ),
             ]
         )
         assert (expected_stdout, '') == capsys.readouterr()

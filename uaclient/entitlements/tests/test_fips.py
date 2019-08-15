@@ -157,9 +157,8 @@ class TestFIPSEntitlementEnable:
         with mock.patch.object(entitlement, 'can_enable', return_value=True):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
-        error_msg = 'Empty %s apt suites directive from %s' % (
-            entitlement.name,
-            defaults.BASE_CONTRACT_URL,
+        error_msg = 'Empty {} apt suites directive from {}'.format(
+            entitlement.name, defaults.BASE_CONTRACT_URL
         )
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
@@ -189,7 +188,7 @@ class TestFIPSEntitlementEnable:
 
         error_msg = (
             "Cannot setup apt pin. Empty apt repo origin value 'None'.\n"
-            "Could not enable %s." % entitlement.title
+            "Could not enable {}.".format(entitlement.title)
         )
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
@@ -221,7 +220,7 @@ class TestFIPSEntitlementEnable:
 
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
-            error_msg = 'Could not enable %s.' % entitlement.title
+            error_msg = 'Could not enable {}.'.format(entitlement.title)
             assert error_msg == excinfo.value.msg
 
         for call in m_subp.call_args_list:

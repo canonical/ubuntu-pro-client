@@ -122,10 +122,13 @@ class RepoEntitlement(base.UAEntitlement):
         policy = apt.run_apt_command(
             ['apt-cache', 'policy'], status.MESSAGE_APT_POLICY_FAILED
         )
-        match = re.search(r'(?P<pin>(-)?\d+) %s[^-]' % repo_url, policy)
+        match = re.search(r'(?P<pin>(-)?\d+) {}[^-]'.format(repo_url), policy)
         if match and match.group('pin') != APT_DISABLED_PIN:
-            return ApplicationStatus.ENABLED, '%s is active' % self.title
-        return ApplicationStatus.DISABLED, '%s is not configured' % self.title
+            return ApplicationStatus.ENABLED, '{} is active'.format(self.title)
+        return (
+            ApplicationStatus.DISABLED,
+            '{} is not configured'.format(self.title),
+        )
 
     def process_contract_deltas(
         self,
@@ -152,7 +155,7 @@ class RepoEntitlement(base.UAEntitlement):
         if application_status == status.ApplicationStatus.DISABLED:
             return True
         logging.info(
-            "Updating '%s' apt sources list on changed directives." % self.name
+            "Updating '%s' apt sources list on changed directives.", self.name
         )
         delta_entitlement = deltas.get('entitlement', {})
         if delta_entitlement.get('directives', {}).get('aptURL'):
@@ -192,8 +195,8 @@ class RepoEntitlement(base.UAEntitlement):
         aptKey = directives.get('aptKey')
         if not aptKey:
             raise exceptions.UserFacingError(
-                "Ubuntu Advantage server provided no aptKey directive for %s."
-                % self.name
+                "Ubuntu Advantage server provided no aptKey directive for"
+                " {}.".format(self.name)
             )
         repo_url = directives.get('aptURL')
         if not repo_url:
@@ -201,15 +204,15 @@ class RepoEntitlement(base.UAEntitlement):
         repo_suites = directives.get('suites')
         if not repo_suites:
             raise exceptions.UserFacingError(
-                'Empty %s apt suites directive from %s'
-                % (self.name, self.cfg.contract_url)
+                'Empty {} apt suites directive from {}'.format(
+                    self.name, self.cfg.contract_url
+                )
             )
         if self.repo_pin_priority:
             if not self.origin:
                 raise exceptions.UserFacingError(
-                    "Cannot setup apt pin. Empty apt repo origin value '%s'.\n"
-                    "%s"
-                    % (
+                    "Cannot setup apt pin. Empty apt repo origin value '{}'.\n"
+                    "{}".format(
                         self.origin,
                         status.MESSAGE_ENABLED_FAILED_TMPL.format(
                             title=self.title
@@ -273,9 +276,9 @@ class RepoEntitlement(base.UAEntitlement):
             name=self.name, series=series
         )
         keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
-        entitlement = self.cfg.read_cache('machine-access-%s' % self.name).get(
-            'entitlement', {}
-        )
+        entitlement = self.cfg.read_cache(
+            'machine-access-{}'.format(self.name)
+        ).get('entitlement', {})
         access_directives = entitlement.get('directives', {})
         repo_url = access_directives.get('aptURL', self.repo_url)
         if not repo_url:
