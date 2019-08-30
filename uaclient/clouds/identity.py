@@ -2,8 +2,13 @@ import json
 
 from uaclient import exceptions
 from uaclient import clouds
+<<<<<<< HEAD
 from uaclient import status
 from uaclient import util
+=======
+
+CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
+>>>>>>> 75a313c... demo: add trusty platform/cloud detection and upstart
 
 
 @util.retry(FileNotFoundError, [1, 2])
@@ -16,9 +21,13 @@ def get_cloud_type_from_result_file(result_file=CLOUDINIT_RESULT_FILE) -> str:
 def get_cloud_type() -> str:
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
-        out, _err = util.subp(['cloud-id'])
+        out, _err = util.subp(["cloud-id"])
         return out.strip()
-    return None  # TODO(determine cloud type on Trusty)
+    try:
+        return get_cloud_type_from_result_file()
+    except FileNotFoundError:
+        pass
+    return ""
 
 
 def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:

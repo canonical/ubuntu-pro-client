@@ -13,7 +13,7 @@ class UAPremiumAWSInstance(UAPremiumCloudInstance):
 
     # mypy can't handle decorater @property
     # https://github.com/python/mypy/issues/1362
-    @property    # type: ignore
+    @property  # type: ignore
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
     def identity_doc(self):
         response, _headers = util.readurl(IMDS_URL)
