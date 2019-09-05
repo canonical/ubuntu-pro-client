@@ -9,6 +9,7 @@ from uaclient.contract import (
     request_updated_contract,
 )
 from uaclient import exceptions
+from uaclient.status import MESSAGE_CONTRACT_EXPIRED_ERROR
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
 
@@ -248,3 +249,50 @@ class TestRequestUpdatedContract:
             ),
         ]
         assert process_calls == process_entitlement_delta.call_args_list
+
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch(M_PATH + "UAContractClient")
+    def test_attached_config_refresh_errors_on_expired_contract(
+        self, client, get_machine_id, process_entitlement_delta
+    ):
+        """Error when refreshing contract parses an expired contract token."""
+
+        machine_token = {
+            "machineToken": "mToken",
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": "2018-07-18T00:00:00Z",  # Expired date
+                    "id": "cid",
+                    "resourceEntitlements": [
+                        {"entitled": False, "type": "ent2"},
+                        {"entitled": True, "type": "ent1"},
+                    ],
+                }
+            },
+        }
+
+        def fake_contract_client(cfg):
+            client = FakeContractClient(cfg)
+            # Note ent2 access route is not called
+            client._responses = {
+                self.refresh_route: machine_token,
+                self.access_route_ent1: {
+                    "entitlement": {
+                        "entitled": True,
+                        "type": "ent1",
+                        "new": "newval",
+                    }
+                },
+            }
+            return client
+
+        client.side_effect = fake_contract_client
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        with pytest.raises(exceptions.UserFacingError) as exc:
+            request_updated_contract(cfg)
+        assert MESSAGE_CONTRACT_EXPIRED_ERROR == str(exc.value)
+        assert machine_token == cfg.read_cache("machine-token")
+
+        # No deltas are processed when contract is expired
+        assert 0 == process_entitlement_delta.call_count
