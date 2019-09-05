@@ -10,7 +10,7 @@ Available services:
  - esm: Extended Security Maintenance (https://ubuntu.com/esm)
  - fips: FIPS 140-2 (https://ubuntu.com/fips)
  - fips-updates: FIPS 140-2 with updates
- - lvepatch: Canonical Livepatch (https://ubuntu.com/livepatch)
+ - livepatch: Canonical Livepatch (https://ubuntu.com/livepatch)
 
 """
 
