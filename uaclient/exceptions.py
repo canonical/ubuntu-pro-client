@@ -24,5 +24,5 @@ class NonRootUserError(UserFacingError):
 class UnattachedError(UserFacingError):
     """An exception to be raised when a machine needs to be attached."""
 
-    def __init__(self) -> None:
-        super().__init__(status.MESSAGE_UNATTACHED)
+    def __init__(self, msg: str = status.MESSAGE_UNATTACHED) -> None:
+        super().__init__(msg)

@@ -1,6 +1,8 @@
+from datetime import datetime
 import logging
 
 from uaclient import exceptions
+from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 
@@ -218,6 +220,12 @@ def request_updated_contract(
         new_token = contract_client.request_machine_token_refresh(
             machine_token=machine_token, contract_id=contract_id
         )
+    expiry = new_token["machineTokenInfo"]["contractInfo"].get("effectiveTo")
+    if expiry:
+        if datetime.strptime(expiry, "%Y-%m-%dT%H:%M:%SZ") < datetime.utcnow():
+            raise exceptions.UserFacingError(
+                status.MESSAGE_CONTRACT_EXPIRED_ERROR
+            )
     user_errors = []
     for name, entitlement in sorted(cfg.entitlements.items()):
         if entitlement["entitlement"].get("entitled"):

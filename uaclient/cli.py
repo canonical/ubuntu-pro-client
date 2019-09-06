@@ -15,6 +15,7 @@ Available services:
 """
 
 import argparse
+from functools import wraps
 import json
 import logging
 import os
@@ -51,15 +52,28 @@ DEFAULT_LOG_FORMAT = (
 STATUS_FORMATS = ["tabular", "json"]
 
 
-def assert_attached_root(func):
-    """Decorator asserting root user and attached config."""
+def assert_attached_root(unattached_msg_tmpl=None):
+    """Decorator asserting root user and attached config.
 
-    def wrapper(args, cfg):
-        if os.getuid() != 0:
-            raise exceptions.NonRootUserError()
-        if not cfg.is_attached:
-            raise exceptions.UnattachedError()
-        return func(args, cfg)
+    :param unattached_msg_tmpl: Optional msg template to format if raising an
+        UnattachedError
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg):
+            if os.getuid() != 0:
+                raise exceptions.NonRootUserError()
+            if not cfg.is_attached:
+                if unattached_msg_tmpl:
+                    name = getattr(args, "name", "None")
+                    msg = unattached_msg_tmpl.format(name=name)
+                else:
+                    msg = None
+                raise exceptions.UnattachedError(msg)
+            return f(args, cfg)
+
+        return new_f
 
     return wrapper
 
@@ -128,13 +142,9 @@ def enable_parser(parser=None):
         parser.prog = "enable"
     parser._positionals.title = "Services"
     parser._optionals.title = "Flags"
-    entitlement_names = list(
-        cls.name for cls in entitlements.ENTITLEMENT_CLASSES
-    )
     parser.add_argument(
         "name",
         action="store",
-        choices=entitlement_names,
         help="The name of the support service to enable",
     )
     return parser
@@ -196,7 +206,7 @@ def status_parser(parser=None):
     return parser
 
 
-@assert_attached_root
+@assert_attached_root()
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -235,12 +245,18 @@ def _perform_enable(
     return ret
 
 
-@assert_attached_root
+@assert_attached_root(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
+    if args.name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
+                operation="enable", name=args.name
+            )
+        )
     print(ua_status.MESSAGE_REFRESH_ENABLE)
     try:
         contract.request_updated_contract(cfg)
@@ -250,7 +266,7 @@ def action_enable(args, cfg):
     return 0 if _perform_enable(args.name, cfg) else 1
 
 
-@assert_attached_root
+@assert_attached_root()
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
@@ -381,7 +397,7 @@ def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
-@assert_attached_root
+@assert_attached_root()
 def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)
@@ -441,7 +457,7 @@ def main_error_handler(func):
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
-            print("ERROR: {}".format(exc.msg), file=sys.stderr)
+            print("{}".format(exc.msg), file=sys.stderr)
             sys.exit(1)
 
     return wrapper
