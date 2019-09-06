@@ -140,8 +140,9 @@ class TestSetupLogging:
         assert "ERROR: before setup" not in err
         assert "ERROR: after setup" in err
 
+    @mock.patch("uaclient.cli.os.getuid", return_value=100)
     def test_file_log_not_configured_if_not_root(
-        self, tmpdir, logging_sandbox
+        self, m_getuid, tmpdir, logging_sandbox
     ):
         log_file = tmpdir.join("log_file")
 
