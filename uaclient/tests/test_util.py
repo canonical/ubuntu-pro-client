@@ -354,7 +354,9 @@ class TestGetMachineId:
         with mock.patch(
             "uaclient.util.ETC_MACHINE_ID", etc_machine_id.strpath
         ):
-            value = util.get_machine_id(data_dir=None)
+            value = util.get_machine_id(
+                data_dir=tmpdir.join("non-existent").strpath
+            )
         assert "etc-machine-id" == value
 
     def test_get_machine_id_from_var_lib_dbus_machine_id(self, tmpdir):
@@ -369,7 +371,9 @@ class TestGetMachineId:
             with mock.patch(
                 "uaclient.util.ETC_MACHINE_ID", etc_machine_id.strpath
             ):
-                value = util.get_machine_id(data_dir=None)
+                value = util.get_machine_id(
+                    data_dir=tmpdir.join("non-existent").strpath
+                )
         assert "dbus-machine-id" == value
 
     def test_get_machine_id_uses_machine_id_from_data_dir(self, tmpdir):
@@ -397,6 +401,24 @@ class TestGetMachineId:
                     "0123456789abcdef0123456789abcdef"
                 )
                 value = util.get_machine_id(data_dir=tmpdir.strpath)
+        assert "01234567-89ab-cdef-0123-456789abcdef" == value
+        assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
+
+    @pytest.mark.parametrize("empty_value", ["", "\n"])
+    def test_fallback_used_if_all_other_files_are_empty(
+        self, tmpdir, empty_value
+    ):
+        data_machine_id = tmpdir.join("machine-id")
+        with mock.patch("uaclient.util.os.path.exists") as m_exists:
+            m_exists.return_value = True
+            with mock.patch(
+                "uaclient.util.load_file", return_value=empty_value
+            ):
+                with mock.patch("uaclient.util.uuid.uuid4") as m_uuid4:
+                    m_uuid4.return_value = uuid.UUID(
+                        "0123456789abcdef0123456789abcdef"
+                    )
+                    value = util.get_machine_id(data_dir=tmpdir.strpath)
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
         assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
 
