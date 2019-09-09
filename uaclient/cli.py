@@ -140,7 +140,7 @@ def enable_parser(parser=None):
     else:
         parser.usage = usage
         parser.prog = "enable"
-    parser._positionals.title = "Services"
+    parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
         "name",
@@ -162,7 +162,7 @@ def disable_parser(parser=None):
     else:
         parser.usage = usage
         parser.prog = "disable"
-    parser._positionals.title = "Services"
+    parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
         "name",
