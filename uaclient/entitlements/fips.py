@@ -57,7 +57,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
     name = "fips"
     title = "FIPS"
-    description = "Canonical FIPS 140-2 Certified Modules"
+    description = "NIST-certified FIPS modules"
     messaging = {
         "post_enable": [
             "FIPS configured and pending, please reboot to make active."
@@ -82,7 +82,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
         ]
     }
     origin = "UbuntuFIPSUpdates"
-    description = "Canonical FIPS 140-2 Certified Modules with Updates"
+    description = "Uncertified security updates to FIPS modules"
     repo_url = "https://esm.ubuntu.com/fips-updates"
     repo_key_file = "ubuntu-fips-updates-keyring.gpg"
     static_affordances = (

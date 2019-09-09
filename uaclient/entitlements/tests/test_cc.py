@@ -61,16 +61,14 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
                 "arm64",
                 "xenial",
                 "16.04 LTS (Xenial Xerus)",
-                "Canonical Common Criteria EAL2 Provisioning is not available"
-                " for platform arm64.\n"
+                "CC EAL2 is not available for platform arm64.\n"
                 "Supported platforms are: x86_64, ppc64le, s390x",
             ),
             (
                 "s390x",
                 "trusty",
                 "14.04 LTS (Trusty Tahr)",
-                "Canonical Common Criteria EAL2 Provisioning is not available"
-                " for Ubuntu 14.04 LTS"
+                "CC EAL2 is not available for Ubuntu 14.04 LTS"
                 " (Trusty Tahr).",
             ),
         ),
@@ -228,11 +226,10 @@ class TestCommonCriteriaEntitlementEnable:
         expected_stdout += "\n".join(
             [
                 "Updating package lists",
-                "Installing Canonical Common Criteria EAL2 Provisioning"
-                " packages",
+                "Installing CC EAL2 packages",
                 "(This will download more than 500MB of packages, so may take"
                 " some time.)",
-                "Canonical Common Criteria EAL2 Provisioning enabled.",
+                "CC EAL2 enabled.",
                 "Please follow instructions in {} to configure EAL2\n".format(
                     CC_README
                 ),

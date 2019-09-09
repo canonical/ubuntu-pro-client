@@ -6,10 +6,8 @@ CC_README = "/usr/share/doc/ubuntu-commoncriteria/README"
 class CommonCriteriaEntitlement(repo.RepoEntitlement):
 
     name = "cc-eal"
-    title = "Canonical Common Criteria EAL2 Provisioning"
-    description = (
-        "Common Criteria for Information Technology Security Evaluation - EAL2"
-    )
+    title = "CC EAL2"
+    description = "Common Criteria EAL2 Provisioning Packages"
     repo_url = (
         "https://private-ppa.launchpad.net/ubuntu-advantage/commoncriteria"
     )

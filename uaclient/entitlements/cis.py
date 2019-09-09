@@ -4,8 +4,8 @@ from uaclient.entitlements import repo
 class CISEntitlement(repo.RepoEntitlement):
 
     name = "cis-audit"
-    title = "Canonical CIS Benchmark Audit Tool"
-    description = "Canonical Center for Internet Security Benchmark Audit Tool"
+    title = "CIS Audit"
+    description = "Center for Internet Security Audit Tools"
     repo_url = (
         "https://private-ppa.launchpad.net/ubuntu-advantage/"
         "security-benchmarks"
