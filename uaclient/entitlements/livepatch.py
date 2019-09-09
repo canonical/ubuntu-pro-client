@@ -24,7 +24,7 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     name = "livepatch"
     title = "Livepatch"
-    description = "Canonical Livepatch Service (https://ubuntu.com/livepatch)"
+    description = "Canonical Livepatch service"
 
     # Use a lambda so we can mock util.is_container in tests
     static_affordances = (

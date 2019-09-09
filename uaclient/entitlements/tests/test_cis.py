@@ -95,7 +95,7 @@ class TestCISEntitlementEnable:
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout = (
             "Updating package lists\n"
-            "Installing Canonical CIS Benchmark Audit Tool packages\n"
-            "Canonical CIS Benchmark Audit Tool enabled.\n"
+            "Installing CIS Audit packages\n"
+            "CIS Audit enabled.\n"
         )
         assert (expected_stdout, "") == capsys.readouterr()
