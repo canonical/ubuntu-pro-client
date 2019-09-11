@@ -80,7 +80,7 @@ def assert_attached_root(unattached_msg_tmpl=None):
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="attach [token]")
+    usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     if not parser:
         parser = argparse.ArgumentParser(
             prog="attach",
@@ -96,6 +96,7 @@ def attach_parser(parser=None):
     parser._optionals.title = "Flags"
     parser.add_argument(
         "token",
+        nargs="?",  # action_attach asserts this required argument
         help="Token obtained for Ubuntu Advantage authentication: {}".format(
             UA_AUTH_TOKEN_URL
         ),
@@ -293,13 +294,13 @@ def action_attach(args, cfg):
         return 0
     if os.getuid() != 0:
         raise exceptions.NonRootUserError()
-    contract_token = args.token
-    if not contract_token:
-        print("No valid contract token available")
-        return 1
+    if not args.token:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
+        )
     try:
         contract.request_updated_contract(
-            cfg, contract_token, allow_enable=args.auto_enable
+            cfg, args.token, allow_enable=args.auto_enable
         )
     except util.UrlError as exc:
         with util.disable_log_to_console():
@@ -475,7 +476,11 @@ def main(sys_argv=None):
         parser.print_usage()
         print("Try 'ubuntu-advantage --help' for more information.")
         sys.exit(1)
-    args = parser.parse_args(args=cli_arguments)
+    try:
+        args = parser.parse_args(args=cli_arguments)
+    except RequiredArgError as e:
+        print(str(e))
+        sys.exit(1)
     cfg = config.UAConfig()
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO

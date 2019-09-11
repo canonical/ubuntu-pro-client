@@ -5,7 +5,8 @@ from uaclient.testing.fakes import FakeConfig
 import pytest
 
 from uaclient.cli import UA_AUTH_TOKEN_URL, action_attach, attach_parser
-from uaclient.exceptions import NonRootUserError
+from uaclient.exceptions import NonRootUserError, UserFacingError
+from uaclient import status
 
 M_PATH = "uaclient.cli."
 
@@ -42,6 +43,14 @@ class TestActionAttach:
             account_name
         )
         assert expected_msg in capsys.readouterr()[0]
+
+    def test_token_is_a_required_argument(self, _m_getuid):
+        """When missing the required token argument, raise a UserFacingError"""
+        args = mock.MagicMock()
+        args.token = None
+        with pytest.raises(UserFacingError) as e:
+            action_attach(args, FakeConfig())
+        assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
@@ -93,7 +102,7 @@ class TestParser:
         """Create a named parser configured for 'attach'."""
         parser = attach_parser()
 
-        assert "ubuntu-advantage attach [token] [flags]" == parser.usage
+        assert "ubuntu-advantage attach <token> [flags]" == parser.usage
         descr = (
             "Attach this machine to an existing Ubuntu Advantage support"
             " subscription"
@@ -106,14 +115,12 @@ class TestParser:
             args = parser.parse_args()
         assert "token" == args.token
 
-    def test_attach_parser_requires_positional_token(self, capsys):
-        """Token is required"""
+    def test_attach_parser_allows_empty_required_token(self):
+        """Token is required. parse_args allows none but action_attach errors"""
         parser = attach_parser()
         with mock.patch("sys.argv", ["attach"]):
-            with pytest.raises(SystemExit):
-                parser.parse_args()
-        _out, err = capsys.readouterr()
-        assert "the following arguments are required: token" in err
+            args = parser.parse_args()
+        assert None is args.token
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
         self, capsys
