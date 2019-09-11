@@ -1,5 +1,5 @@
 import mock
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from io import BytesIO
 
 import pytest
@@ -40,7 +40,7 @@ class TestRequestUrl:
         ),
     )
     @mock.patch("uaclient.serviceclient.util.readurl")
-    def test_urlerror_with_read(
+    def test_httperror_handling(
         self, m_readurl, fp, expected_exception, expected_attrs
     ):
         m_readurl.side_effect = HTTPError(None, 619, None, None, fp)
@@ -51,3 +51,13 @@ class TestRequestUrl:
 
         for attr, expected_value in expected_attrs.items():
             assert expected_value == getattr(excinfo.value, attr)
+
+    @mock.patch("uaclient.serviceclient.util.readurl")
+    def test_urlerror_handling(self, m_readurl):
+        m_readurl.side_effect = URLError(None)
+
+        client = OurServiceClient(cfg=mock.Mock(url_attr="http://example.com"))
+        with pytest.raises(util.UrlError) as excinfo:
+            client.request_url("/")
+
+        assert excinfo.value.code is None

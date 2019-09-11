@@ -59,5 +59,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                     error_details = None
                 if error_details:
                     raise self.api_error_cls(e, error_details)
-            raise util.UrlError(e, code=e.code, headers=headers, url=url)
+            raise util.UrlError(
+                e, code=getattr(e, "code", None), headers=headers, url=url
+            )
         return response, headers
