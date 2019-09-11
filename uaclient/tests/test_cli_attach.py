@@ -116,7 +116,7 @@ class TestParser:
         assert "token" == args.token
 
     def test_attach_parser_allows_empty_required_token(self):
-        """Token is required. parse_args allows none but action_attach errors"""
+        """Token required but parse_args allows none due to action_attach"""
         parser = attach_parser()
         with mock.patch("sys.argv", ["attach"]):
             args = parser.parse_args()

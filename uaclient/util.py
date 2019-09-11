@@ -53,7 +53,11 @@ class UrlError(IOError):
         headers: "Optional[Dict[str, str]]" = None,
         url: "Optional[str]" = None,
     ):
-        super().__init__(str(cause))
+        if getattr(cause, "reason", None):
+            cause_error = str(cause.reason)
+        else:
+            cause_error = str(cause)
+        super().__init__(cause_error)
         self.code = code
         self.headers = headers
         if self.headers is None:

@@ -304,14 +304,11 @@ def action_attach(args, cfg):
         )
     except util.UrlError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc.msg)
-        print(
-            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url)
-        )
+            logging.exception(exc)
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError as exc:
         logging.warning(exc.msg)
-        action_status(args=None, cfg=cfg)
         return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
@@ -406,7 +403,7 @@ def action_refresh(args, cfg):
         contract.request_updated_contract(cfg)
     except util.UrlError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc.msg)
+            logging.exception(exc)
         raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
     print(ua_status.MESSAGE_REFRESH_SUCCESS)
     return 0
@@ -476,11 +473,7 @@ def main(sys_argv=None):
         parser.print_usage()
         print("Try 'ubuntu-advantage --help' for more information.")
         sys.exit(1)
-    try:
-        args = parser.parse_args(args=cli_arguments)
-    except RequiredArgError as e:
-        print(str(e))
-        sys.exit(1)
+    args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
