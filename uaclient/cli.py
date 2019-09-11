@@ -193,7 +193,7 @@ def status_parser(parser=None):
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
         help=(
-            "Output status in the request format. Default: {}".format(
+            "Output status in the specified format. Default: {}".format(
                 STATUS_FORMATS[0]
             )
         ),
