@@ -50,6 +50,23 @@ class ApplicabilityStatus(enum.Enum):
 
 
 @enum.unique
+class UserFacingAvailability(enum.Enum):
+    """
+    An enum representing whether a service could be available for a machine.
+
+    'Availability' means whether a service is available to machines with this
+    architecture, series and kernel. Whether a contract is entitled to use
+    the specific service is determined by the contract level.
+
+    This enum should only be used in display code, it should not be used in
+    business logic.
+    """
+
+    AVAILABLE = "yes"
+    UNAVAILABLE = "no"
+
+
+@enum.unique
 class UserFacingStatus(enum.Enum):
     """
     An enum representing the states we will display in status output.
@@ -125,7 +142,9 @@ This subscription is not entitled to {title}.
 See: sudo ua status or https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
-See `ua attach` or https://ubuntu.com/advantage"""
+See https://ubuntu.com/advantage"""
+
+STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
 STATUS_SERVICE_HEADER = "\nSERVICE"
 STATUS_TMPL = "{name: <14}{entitled: <26}{status}"
@@ -169,7 +188,17 @@ def colorize(string: str) -> str:
 def format_tabular(status: "Dict[str, Any]") -> str:
     """Format status dict for tabular output."""
     if not status["attached"]:
-        return MESSAGE_UNATTACHED
+        content = [
+            STATUS_UNATTACHED_TMPL.format(
+                name="\nSERVICE",
+                available="AVAILABLE",
+                description="DESCRIPTION",
+            )
+        ]
+        for service in status["services"]:
+            content.append(STATUS_UNATTACHED_TMPL.format(**service))
+        content.extend(["", MESSAGE_UNATTACHED])
+        return "\n".join(content)
     tech_support_level = status["techSupportLevel"]
 
     pairs = [

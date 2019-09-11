@@ -9,8 +9,17 @@ import mock
 import pytest
 
 from uaclient import entitlements, exceptions, status
-from uaclient.config import DataPath, PRIVATE_SUBDIR, UAConfig, parse_config
-from uaclient.entitlements import ENTITLEMENT_CLASSES
+from uaclient.config import (
+    DataPath,
+    DEFAULT_STATUS,
+    PRIVATE_SUBDIR,
+    UAConfig,
+    parse_config,
+)
+from uaclient.entitlements import (
+    ENTITLEMENT_CLASSES,
+    ENTITLEMENT_CLASS_BY_NAME,
+)
 from uaclient.testing.fakes import FakeConfig
 
 
@@ -350,17 +359,22 @@ class TestDeleteCache:
 
 
 class TestStatus:
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
-    def test_root_unattached(self, _m_getuid):
+    def test_root_unattached(self, _m_getuid, m_get_available_resources):
         """Test we get the correct status dict when unattached"""
         cfg = FakeConfig({})
-        expected = {
-            "attached": False,
-            "expires": status.UserFacingStatus.INAPPLICABLE.value,
-            "origin": None,
-            "services": [],
-            "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
-        }
+        m_get_available_resources.return_value = [
+            {"name": "esm", "available": True},
+            {"name": "fips", "available": False},
+        ]
+        esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm"].description
+        fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
+        expected = copy.deepcopy(DEFAULT_STATUS)
+        expected["services"] = [
+            {"available": "yes", "name": "esm", "description": esm_desc},
+            {"available": "no", "name": "fips", "description": fips_desc},
+        ]
         assert expected == cfg.status()
 
     @mock.patch("uaclient.config.os.getuid", return_value=0)
@@ -376,21 +390,24 @@ class TestStatus:
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
         ]
-        expected = {
-            "account": "test_account",
-            "attached": True,
-            "expires": status.UserFacingStatus.INAPPLICABLE.value,
-            "origin": None,
-            "services": expected_services,
-            "subscription": "test_contract",
-            "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
-        }
+        expected = copy.deepcopy(DEFAULT_STATUS)
+        expected.update(
+            {
+                "account": "test_account",
+                "attached": True,
+                "services": expected_services,
+                "subscription": "test_contract",
+            }
+        )
         assert expected == cfg.status()
         # cfg.status() idempotent
         assert expected == cfg.status()
 
+    @mock.patch("uaclient.contract.get_available_resources", return_value=[])
     @mock.patch("uaclient.config.os.getuid")
-    def test_nonroot_without_cache_is_same_as_unattached_root(self, m_getuid):
+    def test_nonroot_without_cache_is_same_as_unattached_root(
+        self, m_getuid, _m_get_available_resources
+    ):
         m_getuid.return_value = 1000
         cfg = FakeConfig()
 
@@ -401,8 +418,11 @@ class TestStatus:
 
         assert root_unattached_status == nonroot_status
 
+    @mock.patch("uaclient.contract.get_available_resources", return_value=[])
     @mock.patch("uaclient.config.os.getuid")
-    def test_root_followed_by_nonroot(self, m_getuid, tmpdir):
+    def test_root_followed_by_nonroot(
+        self, m_getuid, _m_get_available_resources, tmpdir
+    ):
         """Ensure that non-root run after root returns data"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
 
@@ -415,7 +435,7 @@ class TestStatus:
         other_cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("accounts", {"accounts": other_cfg.accounts})
         cfg.write_cache("machine-token", other_cfg.machine_token)
-        assert cfg._status() != before
+        assert cfg._attached_status() != before
 
         # Run as regular user and confirm that we see the result from
         # last time we called .status()
@@ -424,8 +444,11 @@ class TestStatus:
 
         assert before == after
 
+    @mock.patch("uaclient.contract.get_available_resources", return_value=[])
     @mock.patch("uaclient.config.os.getuid", return_value=0)
-    def test_cache_file_is_written_world_readable(self, _m_getuid, tmpdir):
+    def test_cache_file_is_written_world_readable(
+        self, _m_getuid, _m_get_available_resources, tmpdir
+    ):
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         cfg.status()
 
@@ -477,15 +500,15 @@ class TestStatus:
             support_level = status.UserFacingStatus.INAPPLICABLE.value
         else:
             support_level = entitlements[0]["affordances"]["supportLevel"]
-        expected = {
-            "attached": True,
-            "account": "accountname",
-            "expires": status.UserFacingStatus.INAPPLICABLE.value,
-            "origin": None,
-            "subscription": "contractname",
-            "techSupportLevel": support_level,
-            "services": [],
-        }
+        expected = copy.deepcopy(DEFAULT_STATUS)
+        expected.update(
+            {
+                "attached": True,
+                "account": "accountname",
+                "subscription": "contractname",
+                "techSupportLevel": support_level,
+            }
+        )
         for cls in ENTITLEMENT_CLASSES:
             if cls.name == "livepatch":
                 expected_status = status.UserFacingStatus.ACTIVE.value

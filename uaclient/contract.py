@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import urllib
 
 from uaclient import exceptions
 from uaclient import status
@@ -7,7 +8,7 @@ from uaclient import serviceclient
 from uaclient import util
 
 try:
-    from typing import Any, Dict, Optional  # noqa: F401
+    from typing import Any, Dict, List, Optional  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -17,6 +18,7 @@ API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
+API_V1_RESOURCES = "/v1/resources"
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
@@ -84,6 +86,19 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         self.cfg.write_cache("machine-token", machine_token)
         return machine_token
+
+    def request_resources(self) -> "Dict[str, Any]":
+        """Requests list of entitlements available to this machine type."""
+        platform = util.get_platform_info()
+        query_params = {
+            "architecture": platform["arch"],
+            "series": platform["series"],
+            "kernel": platform["kernel"],
+        }
+        resource_response, headers = self.request_url(
+            API_V1_RESOURCES + "?" + urllib.parse.urlencode(query_params)
+        )
+        return resource_response
 
     def request_resource_machine_access(
         self,
@@ -264,3 +279,10 @@ def request_updated_contract(
         raise exceptions.UserFacingError(
             status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
         )
+
+
+def get_available_resources(cfg) -> "List[Dict]":
+    """Query available resources from the contrct server for this machine."""
+    client = UAContractClient(cfg)
+    resources = client.request_resources()
+    return resources.get("resources", [])
