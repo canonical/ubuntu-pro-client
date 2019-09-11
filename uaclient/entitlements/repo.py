@@ -4,19 +4,10 @@ import os
 import re
 
 try:
-    from typing import (  # noqa: F401
-        Any,
-        cast,
-        Dict,
-        List,
-        Optional,
-        Tuple,
-        Union,
-    )
+    from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
-    def cast(_, x):  # type: ignore
-        return x
+    pass
 
 
 from uaclient import apt
