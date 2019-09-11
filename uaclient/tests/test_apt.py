@@ -114,10 +114,10 @@ class TestValidAptCredentials:
         assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
 
-    @mock.patch("uaclient.apt.os.unlink", return_value=True)
+    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
-    def test_passes_on_valid_creds(self, m_exists, m_subp, m_unlink):
+    def test_passes_on_valid_creds(self, m_exists, m_subp, m_ntf):
         """Succeed when apt-helper succeeds in authenticating to repo."""
 
         # Success apt-helper response
@@ -126,22 +126,18 @@ class TestValidAptCredentials:
         assert None is assert_valid_apt_credentials(
             repo_url="http://fakerepo", username="user", password="pwd"
         )
-        exists_calls = [
-            mock.call("/usr/lib/apt/apt-helper"),
-            mock.call("/tmp/uaclient-apt-test"),
-        ]
+        exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                "/tmp/uaclient-apt-test",
+                m_ntf.return_value.__enter__.return_value.name,
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        assert [mock.call("/tmp/uaclient-apt-test")] == m_unlink.call_args_list
 
     @pytest.mark.parametrize(
         "exit_code,stderr,error_msg",
@@ -168,11 +164,11 @@ class TestValidAptCredentials:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.os.unlink", return_value=True)
+    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
-        self, m_exists, m_subp, m_unlink, exit_code, stderr, error_msg
+        self, m_exists, m_subp, m_ntf, exit_code, stderr, error_msg
     ):
         """Raise the appropriate user facing error from apt-helper failure."""
 
@@ -189,28 +185,24 @@ class TestValidAptCredentials:
                 repo_url="http://fakerepo", username="user", password="pwd"
             )
         assert error_msg == str(excinfo.value)
-        exists_calls = [
-            mock.call("/usr/lib/apt/apt-helper"),
-            mock.call("/tmp/uaclient-apt-test"),
-        ]
+        exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                "/tmp/uaclient-apt-test",
+                m_ntf.return_value.__enter__.return_value.name,
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        assert [mock.call("/tmp/uaclient-apt-test")] == m_unlink.call_args_list
 
-    @mock.patch("uaclient.apt.os.unlink", return_value=True)
+    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
-        self, m_exists, m_subp, m_unlink
+        self, m_exists, m_subp, m_ntf
     ):
         """Raise the appropriate user facing error from apt-helper timeout."""
 
@@ -229,22 +221,18 @@ class TestValidAptCredentials:
             )
         )
         assert error_msg == excinfo.value.msg
-        exists_calls = [
-            mock.call("/usr/lib/apt/apt-helper"),
-            mock.call("/tmp/uaclient-apt-test"),
-        ]
+        exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                "/tmp/uaclient-apt-test",
+                m_ntf.return_value.__enter__.return_value.name,
             ],
             timeout=apt.APT_HELPER_TIMEOUT,
         )
         assert [apt_helper_call] == m_subp.call_args_list
-        assert [mock.call("/tmp/uaclient-apt-test")] == m_unlink.call_args_list
 
 
 class TestAddAuthAptRepo:
