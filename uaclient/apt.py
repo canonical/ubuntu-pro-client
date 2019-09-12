@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 
 from uaclient import exceptions
 from uaclient import gpg
@@ -47,17 +48,18 @@ def assert_valid_apt_credentials(repo_url, username, password):
     if not os.path.exists("/usr/lib/apt/apt-helper"):
         return
     try:
-        util.subp(
-            [
-                "/usr/lib/apt/apt-helper",
-                "download-file",
-                "{}://{}:{}@{}/ubuntu/pool/".format(
-                    protocol, username, password, repo_path
-                ),
-                "/tmp/uaclient-apt-test",
-            ],
-            timeout=APT_HELPER_TIMEOUT,
-        )
+        with tempfile.NamedTemporaryFile() as tmpf:
+            util.subp(
+                [
+                    "/usr/lib/apt/apt-helper",
+                    "download-file",
+                    "{}://{}:{}@{}/ubuntu/pool/".format(
+                        protocol, username, password, repo_path
+                    ),
+                    tmpf.name,
+                ],
+                timeout=APT_HELPER_TIMEOUT,
+            )
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
@@ -81,9 +83,6 @@ def assert_valid_apt_credentials(repo_url, username, password):
                 APT_HELPER_TIMEOUT, repo_path
             )
         )
-    finally:
-        if os.path.exists("/tmp/uaclient-apt-test"):
-            os.unlink("/tmp/uaclient-apt-test")
 
 
 def run_apt_command(cmd, error_msg) -> str:
