@@ -19,6 +19,8 @@ except ImportError:
 
 
 DEFAULT_STATUS = {
+    "_doc": "Content provided in json response is currently considered"
+    " Experimental and may change",
     "attached": False,
     "expires": status.UserFacingStatus.INAPPLICABLE.value,
     "origin": None,
@@ -200,30 +202,61 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def _status(self) -> "Dict[str, Any]":
-        """Return configuration status as a dictionary."""
+    def _unattached_status(self) -> "Dict[str, Any]":
+        """Return unattached status as a dict."""
+        from uaclient.contract import get_available_resources
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        response = copy.deepcopy(DEFAULT_STATUS)
+        resources = get_available_resources(self)
+        for resource in sorted(resources, key=lambda x: x["name"]):
+            if resource["available"]:
+                available = status.UserFacingAvailability.AVAILABLE.value
+            else:
+                available = status.UserFacingAvailability.UNAVAILABLE.value
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource["name"])
+            if not ent_cls:
+                LOG.debug(
+                    "Ignoring availability of unknown service %s"
+                    " from contract server",
+                    resource["name"],
+                )
+                continue
+            response["services"].append(
+                {
+                    "name": resource["name"],
+                    "description": ent_cls.description,
+                    "available": available,
+                }
+            )
+        return response
+
+    def _attached_status(self) -> "Dict[str, Any]":
+        """Return configuration of attached status as a dictionary."""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
         response = copy.deepcopy(DEFAULT_STATUS)
-        response["attached"] = self.is_attached
-        if not self.is_attached:
-            return response
-        response["account"] = self.accounts[0]["name"]
         contractInfo = self.machine_token["machineTokenInfo"]["contractInfo"]
-        response["subscription"] = contractInfo["name"]
+        response.update(
+            {
+                "attached": True,
+                "account": self.accounts[0]["name"],
+                "origin": contractInfo.get("origin"),
+                "subscription": contractInfo["name"],
+            }
+        )
         if contractInfo.get("effectiveTo"):
             response["expires"] = datetime.strptime(
                 contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
             )
-        response["origin"] = contractInfo.get("origin")
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             contract_status = ent.contract_status().value
-            status, details = ent.user_facing_status()
+            ent_status, details = ent.user_facing_status()
             service_status = {
                 "name": ent.name,
                 "entitled": contract_status,
-                "status": status.value,
+                "status": ent_status.value,
                 "statusDetails": details,
             }
             response["services"].append(service_status)
@@ -236,15 +269,25 @@ class UAConfig:
         return response
 
     def status(self) -> "Dict[str, Any]":
-        """Return status as a dict, using a cache for non-root users"""
+        """Return status as a dict, using a cache for non-root users
+
+        When unattached, get available resources from the contract service
+        to report detailed availability of different resources for this
+        machine.
+
+        Write the status-cache when called by root.
+        """
+        if not self.is_attached:
+            response = self._unattached_status()
+        elif os.getuid() == 0:
+            response = self._attached_status()
+        else:
+            response = cast("Dict[str, Any]", self.read_cache("status-cache"))
+            if not response:
+                response = DEFAULT_STATUS
         if os.getuid() == 0:
-            status = self._status()
-            self.write_cache("status-cache", status)
-            return status
-        cached_status = cast("Dict[str, Any]", self.read_cache("status-cache"))
-        if not cached_status:
-            return DEFAULT_STATUS
-        return cached_status
+            self.write_cache("status-cache", response)
+        return response
 
 
 def parse_config(config_path=None):

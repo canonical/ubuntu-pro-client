@@ -1,14 +1,18 @@
 import copy
 import mock
 import pytest
+import urllib
 
 from uaclient.contract import (
+    API_V1_RESOURCES,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
+    get_available_resources,
     process_entitlement_delta,
     request_updated_contract,
 )
 from uaclient import exceptions
+from uaclient import util
 from uaclient.status import MESSAGE_CONTRACT_EXPIRED_ERROR
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
@@ -83,6 +87,31 @@ class TestProcessEntitlementDeltas:
         process_entitlement_delta(old_access, new_access)
 
         assert 0 == m_process_contract_deltas.call_count
+
+
+@mock.patch(M_PATH + "UAContractClient")
+class TestGetAvailableResources:
+    def test_request_resources_from_contract_server(self, client):
+        """Call UAContractClient.request_resources to get updated resources."""
+        cfg = FakeConfig()
+
+        platform = util.get_platform_info()
+        resource_params = {
+            "architecture": platform["arch"],
+            "series": platform["series"],
+            "kernel": platform["kernel"],
+        }
+        url = API_V1_RESOURCES + "?" + urllib.parse.urlencode(resource_params)
+
+        new_resources = [{"name": "new_resource", "available": False}]
+
+        def fake_contract_client(cfg):
+            fake_client = FakeContractClient(cfg)
+            fake_client._responses = {url: {"resources": new_resources}}
+            return fake_client
+
+        client.side_effect = fake_contract_client
+        assert new_resources == get_available_resources(cfg)
 
 
 class TestRequestUpdatedContract:
