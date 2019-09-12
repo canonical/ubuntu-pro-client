@@ -4,16 +4,21 @@ import pytest
 import urllib
 
 from uaclient.contract import (
+    API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
+    ContractAPIError,
     get_available_resources,
     process_entitlement_delta,
     request_updated_contract,
 )
 from uaclient import exceptions
 from uaclient import util
-from uaclient.status import MESSAGE_CONTRACT_EXPIRED_ERROR
+from uaclient.status import (
+    MESSAGE_CONTRACT_EXPIRED_ERROR,
+    MESSAGE_ATTACH_INVALID_TOKEN,
+)
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
 
@@ -142,6 +147,34 @@ class TestRequestUpdatedContract:
             "Got unexpected contract_token on an already attached machine"
         )
         assert expected_msg == str(exc.value)
+
+    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch(M_PATH + "UAContractClient")
+    def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
+        self, client, get_machine_id
+    ):
+        """When attaching, invalid token errors result in proper user error."""
+
+        def fake_contract_client(cfg):
+            fake_client = FakeContractClient(cfg)
+            fake_client._responses = {
+                API_V1_CONTEXT_MACHINE_TOKEN: ContractAPIError(
+                    util.UrlError(
+                        "Server error", code=500, url="http://me", headers={}
+                    ),
+                    error_response={
+                        "message": "invalid token: checksum error"
+                    },
+                )
+            }
+            return fake_client
+
+        client.side_effect = fake_contract_client
+        cfg = FakeConfig()
+        with pytest.raises(exceptions.UserFacingError) as exc:
+            request_updated_contract(cfg, contract_token="yep")
+
+        assert MESSAGE_ATTACH_INVALID_TOKEN == str(exc.value)
 
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")

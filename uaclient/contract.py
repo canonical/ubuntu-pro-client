@@ -35,7 +35,12 @@ class ContractAPIError(util.UrlError):
             error["code"] = error.get("title", error.get("code"))
 
     def __contains__(self, error_code):
-        return error_code in [error["code"] for error in self.api_errors]
+        for error in self.api_errors:
+            if error_code == error.get("code"):
+                return True
+            if error.get("message", "").startswith(error_code):
+                return True
+        return False
 
     def __get__(self, error_code, default=None):
         for error in self.api_errors:
@@ -234,7 +239,7 @@ def request_updated_contract(
             if isinstance(e, ContractAPIError):
                 if API_ERROR_INVALID_TOKEN in e:
                     raise exceptions.UserFacingError(
-                        status.MESSAGE_ATTACH_FAILURE
+                        status.MESSAGE_ATTACH_INVALID_TOKEN
                     )
                 raise e
             with util.disable_log_to_console():
