@@ -98,6 +98,9 @@ STATUS_COLOR = {
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
 MESSAGE_APT_POLICY_FAILED = "Failure checking APT policy."
+MESSAGE_CONNECTIVITY_ERROR = """\
+Failed to connect to authentication server
+Check your Internet connection and try again"""
 MESSAGE_DISABLED_TMPL = "{title} disabled."
 MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)"
 MESSAGE_ALREADY_DISABLED_TMPL = """\
@@ -127,8 +130,13 @@ See `ua attach` or https://ubuntu.com/advantage"""
 STATUS_SERVICE_HEADER = "\nSERVICE"
 STATUS_TMPL = "{name: <14}{entitled: <26}{status}"
 
-MESSAGE_ATTACH_FAILURE_TMPL = """\
-Could not attach machine. Error contacting server {url}"""
+MESSAGE_ATTACH_REQUIRES_TOKEN = """\
+Attach requires a token: sudo ua attach <TOKEN>
+To obtain a token please visit: https://ubuntu.com/advantage"""
+MESSAGE_ATTACH_FAILURE = """\
+Failed to attach machine. See https://ubuntu.com/advantage"""
+MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES = """\
+Failed to enable default services, check: sudo ua status"""
 MESSAGE_ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'.
 """

@@ -12,7 +12,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-
+API_ERROR_INVALID_TOKEN = "invalid token"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
     "/v1/contracts/{contract}/context/machines/{machine}"
@@ -211,9 +211,20 @@ def request_updated_contract(
         )
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
-        new_token = contract_client.request_contract_machine_attach(
-            contract_token=contract_token
-        )
+        try:
+            new_token = contract_client.request_contract_machine_attach(
+                contract_token=contract_token
+            )
+        except util.UrlError as e:
+            if isinstance(e, ContractAPIError):
+                if API_ERROR_INVALID_TOKEN in e:
+                    raise exceptions.UserFacingError(
+                        status.MESSAGE_ATTACH_FAILURE
+                    )
+                raise e
+            with util.disable_log_to_console():
+                logging.exception(str(e))
+            raise exceptions.UserFacingError(status.MESSAGE_CONNECTIVITY_ERROR)
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
@@ -250,6 +261,6 @@ def request_updated_contract(
                 "Unexpected error handling Ubuntu Advantage contract changes"
             )
     if user_errors:
-        error_lines = ["Failure processing Ubuntu Advantage contract changes."]
-        error_lines.extend(["- {}".format(error) for error in user_errors])
-        raise exceptions.UserFacingError("\n".join(error_lines))
+        raise exceptions.UserFacingError(
+            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
+        )

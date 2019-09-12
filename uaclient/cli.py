@@ -80,7 +80,7 @@ def assert_attached_root(unattached_msg_tmpl=None):
 
 def attach_parser(parser=None):
     """Build or extend an arg parser for attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="attach [token]")
+    usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     if not parser:
         parser = argparse.ArgumentParser(
             prog="attach",
@@ -96,6 +96,7 @@ def attach_parser(parser=None):
     parser._optionals.title = "Flags"
     parser.add_argument(
         "token",
+        nargs="?",  # action_attach asserts this required argument
         help="Token obtained for Ubuntu Advantage authentication: {}".format(
             UA_AUTH_TOKEN_URL
         ),
@@ -293,24 +294,21 @@ def action_attach(args, cfg):
         return 0
     if os.getuid() != 0:
         raise exceptions.NonRootUserError()
-    contract_token = args.token
-    if not contract_token:
-        print("No valid contract token available")
-        return 1
+    if not args.token:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
+        )
     try:
         contract.request_updated_contract(
-            cfg, contract_token, allow_enable=args.auto_enable
+            cfg, args.token, allow_enable=args.auto_enable
         )
     except util.UrlError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc.msg)
-        print(
-            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url)
-        )
+            logging.exception(exc)
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError as exc:
         logging.warning(exc.msg)
-        action_status(args=None, cfg=cfg)
         return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
@@ -405,7 +403,7 @@ def action_refresh(args, cfg):
         contract.request_updated_contract(cfg)
     except util.UrlError as exc:
         with util.disable_log_to_console():
-            logging.exception(exc.msg)
+            logging.exception(exc)
         raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
     print(ua_status.MESSAGE_REFRESH_SUCCESS)
     return 0
