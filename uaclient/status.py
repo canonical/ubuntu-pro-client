@@ -149,6 +149,8 @@ STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 STATUS_SERVICE_HEADER = "\nSERVICE"
 STATUS_TMPL = "{name: <14}{entitled: <26}{status}"
 
+MESSAGE_ATTACH_INVALID_TOKEN = """\
+Invalid token. See https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_REQUIRES_TOKEN = """\
 Attach requires a token: sudo ua attach <TOKEN>
 To obtain a token please visit: https://ubuntu.com/advantage"""
