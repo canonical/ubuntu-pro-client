@@ -383,6 +383,7 @@ class TestStatus:
         cfg = FakeConfig.for_attached_machine()
         expected_services = [
             {
+                "description": cls.description,
                 "entitled": status.ContractStatus.UNENTITLED.value,
                 "name": cls.name,
                 "status": status.UserFacingStatus.INAPPLICABLE.value,
@@ -519,6 +520,7 @@ class TestStatus:
             expected["services"].append(
                 {
                     "name": cls.name,
+                    "description": cls.description,
                     "entitled": status.ContractStatus.UNENTITLED.value,
                     "status": expected_status,
                     "statusDetails": details,

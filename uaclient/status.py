@@ -146,8 +146,12 @@ See https://ubuntu.com/advantage"""
 
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
-STATUS_SERVICE_HEADER = "\nSERVICE"
-STATUS_TMPL = "{name: <14}{entitled: <26}{status}"
+STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
+# The widths listed below for entitled and status are actually 9 characters
+# less than reality because we colorize the values in entitled and status
+# columns. Colorizing has an opening and closing set of unprintable characters
+# that factor into formats len() calculations
+STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
 MESSAGE_ATTACH_INVALID_TOKEN = """\
 Invalid token. See https://ubuntu.com/advantage"""
@@ -201,6 +205,18 @@ def format_tabular(status: "Dict[str, Any]") -> str:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
         content.extend(["", MESSAGE_UNATTACHED])
         return "\n".join(content)
+
+    content = [STATUS_HEADER]
+    for service_status in status["services"]:
+        entitled = service_status["entitled"]
+        fmt_args = {
+            "name": service_status["name"],
+            "entitled": colorize(entitled),
+            "status": colorize(service_status["status"]),
+            "description": service_status["description"],
+        }
+        content.append(STATUS_TMPL.format(**fmt_args))
+    content.append("\nEnable services with: ua enable <service>\n")
     tech_support_level = status["techSupportLevel"]
 
     pairs = [
@@ -212,15 +228,5 @@ def format_tabular(status: "Dict[str, Any]") -> str:
         pairs.append(("Technical support level", colorize(tech_support_level)))
     template_length = max([len(pair[0]) for pair in pairs])
     template = "{{:>{}}}: {{}}".format(template_length)
-    content = [template.format(*pair) for pair in pairs]
-    content.append(STATUS_SERVICE_HEADER)
-    for service_status in status["services"]:
-        entitled = service_status["entitled"]
-        fmt_args = {
-            "name": service_status["name"],
-            "entitled": colorize(entitled),
-            "status": colorize(service_status["status"]),
-        }
-        content.append(STATUS_TMPL.format(**fmt_args))
-    content.append("\nEnable entitlements with `ua enable <service>`")
+    content.extend([template.format(*pair) for pair in pairs])
     return "\n".join(content)

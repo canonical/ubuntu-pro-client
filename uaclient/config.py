@@ -255,6 +255,7 @@ class UAConfig:
             ent_status, details = ent.user_facing_status()
             service_status = {
                 "name": ent.name,
+                "description": ent.description,
                 "entitled": contract_status,
                 "status": ent_status.value,
                 "statusDetails": details,
