@@ -374,14 +374,14 @@ class TestStatus:
         """Test we get the correct status dict when unattached"""
         cfg = FakeConfig({})
         m_get_available_resources.return_value = [
-            {"name": "esm", "available": True},
+            {"name": "esm-infra", "available": True},
             {"name": "fips", "available": False},
         ]
-        esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm"].description
+        esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
         fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["services"] = [
-            {"available": "yes", "name": "esm", "description": esm_desc},
+            {"available": "yes", "name": "esm-infra", "description": esm_desc},
             {"available": "no", "name": "fips", "description": fips_desc},
         ]
         assert expected == cfg.status()

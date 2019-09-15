@@ -28,6 +28,10 @@ RE_KERNEL_UNAME = (
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
+
+    # Optional URL for top-level product service information
+    help_doc_url = None  # type: str
+
     @property
     @abc.abstractmethod
     def name(self) -> str:

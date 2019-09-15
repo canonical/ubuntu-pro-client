@@ -55,6 +55,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 
+    help_doc_url = "https://ubuntu.com/fips"
     name = "fips"
     title = "FIPS"
     description = "NIST-certified FIPS modules"

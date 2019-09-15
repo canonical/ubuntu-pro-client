@@ -26,7 +26,7 @@ class TestESMEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            if path == "/etc/apt/preferences.d/ubuntu-esm-trusty":
+            if path == "/etc/apt/preferences.d/ubuntu-esm-infra-trusty":
                 return True
             if path in (apt.APT_METHOD_HTTPS_FILE, apt.CA_CERTIFICATES_FILE):
                 return True
@@ -72,7 +72,7 @@ class TestESMEntitlementEnable:
                 "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
                     entitlement.name
                 ),
-                "http://ESM",
+                "http://ESM-INFRA",
                 "TOKEN",
                 ["trusty"],
                 "APTKEY",
@@ -98,7 +98,9 @@ class TestESMEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        unlink_calls = [mock.call("/etc/apt/preferences.d/ubuntu-esm-trusty")]
+        unlink_calls = [
+            mock.call("/etc/apt/preferences.d/ubuntu-esm-infra-trusty")
+        ]
         assert unlink_calls == m_unlink.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
@@ -108,7 +110,7 @@ class TestESMEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            if path == "/etc/apt/preferences.d/ubuntu-esm-trusty":
+            if path == "/etc/apt/preferences.d/ubuntu-esm-infra-trusty":
                 return True
             if path in (apt.APT_METHOD_HTTPS_FILE, apt.CA_CERTIFICATES_FILE):
                 return True
@@ -159,7 +161,7 @@ class TestESMEntitlementEnable:
                 "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
                     entitlement.name
                 ),
-                "http://ESM",
+                "http://ESM-INFRA",
                 "TOKEN",
                 ["trusty"],
                 "APTKEY",
@@ -180,7 +182,9 @@ class TestESMEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        unlink_calls = [mock.call("/etc/apt/preferences.d/ubuntu-esm-trusty")]
+        unlink_calls = [
+            mock.call("/etc/apt/preferences.d/ubuntu-esm-infra-trusty")
+        ]
         assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
@@ -225,15 +229,15 @@ class TestESMEntitlementDisable:
         # Disable esm repo again
         write_calls = [
             mock.call(
-                "/etc/apt/preferences.d/ubuntu-esm-trusty",
+                "/etc/apt/preferences.d/ubuntu-esm-infra-trusty",
                 "Package: *\nPin: release o=UbuntuESM, n=trusty\n"
                 "Pin-Priority: never\n",
             )
         ]
         assert write_calls == m_write.call_args_list
         assert [mock.call(True)] == m_can_disable.call_args_list
-        auth_call = mock.call("http://ESM")
+        auth_call = mock.call("http://ESM-INFRA")
         assert [auth_call] == m_rm_repo_from_auth.call_args_list
         assert [
-            mock.call("/etc/apt/sources.list.d/ubuntu-esm-trusty.list")
+            mock.call("/etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list")
         ] == m_restore_commented_apt_list_file.call_args_list

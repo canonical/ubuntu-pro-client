@@ -319,12 +319,23 @@ def get_parser():
             url = " ({})".format(ent_cls.help_doc_url)
         else:
             url = ""
-        description.append(service_line_tmpl.format(name=name, description=ent_cls.description, url=url)
+        service_line = service_line_tmpl.format(
+            name=name, description=ent_cls.description, url=url
+        )
+        if len(service_line) <= 80:
+            description_lines.append(service_line)
+        else:
+            wrapped_words = []
+            line = service_line
+            while len(line) > 80:
+                [line, wrapped_word] = line.rsplit(" ", 1)
+                wrapped_words.insert(0, wrapped_word)
+            description_lines.extend([line, "   " + " ".join(wrapped_words)])
 
     parser = argparse.ArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="\n".join(description),
+        description="\n".join(description_lines),
         usage=USAGE_TMPL.format(name=NAME, command="[command]"),
         epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
     )

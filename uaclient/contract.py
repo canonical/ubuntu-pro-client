@@ -115,8 +115,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @param machine_token: The authentication token needed to talk to
             this contract service endpoint.
-        @param resource: Entitlement name. One of: livepatch, esm, fips or
-            fips-updates.
+        @param resource: Entitlement name.
         @param machine_id: Optional unique system machine id. When absent,
             contents of /etc/machine-id will be used.
 

@@ -50,7 +50,7 @@ class TestProcessEntitlementDeltas:
         self, m_process_contract_deltas
     ):
         """Call entitlement.process_contract_deltas to handle any deltas."""
-        original_access = {"entitlement": {"type": "esm"}}
+        original_access = {"entitlement": {"type": "esm-infra"}}
         new_access = copy.deepcopy(original_access)
         new_access["entitlement"]["newkey"] = "newvalue"
         expected = {"entitlement": {"newkey": "newvalue"}}
@@ -67,7 +67,7 @@ class TestProcessEntitlementDeltas:
         """Process and report full deltas on empty original access dict."""
         # Limit delta processing logic to handle attached state-A to state-B
         # Fresh installs will have empty/unset
-        new_access = {"entitlement": {"type": "esm", "other": "val2"}}
+        new_access = {"entitlement": {"type": "esm-infra", "other": "val2"}}
         assert new_access == process_entitlement_delta({}, new_access)
         expected_calls = [mock.call({}, new_access, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
