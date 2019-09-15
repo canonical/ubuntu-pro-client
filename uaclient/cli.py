@@ -1,18 +1,6 @@
 #!/usr/bin/env python
 
-"""\
-Client to manage Ubuntu Advantage support services on a machine.
-
-Available services:
- - cc-eal: Canonical Common Criteria EAL2 Provisioning
-   (https://ubuntu.com/cc-eal)
- - cis-audit: Canonical CIS Benchmark Audit Tool (https://ubuntu.com/cis)
- - esm: Extended Security Maintenance (https://ubuntu.com/esm)
- - fips: FIPS 140-2 (https://ubuntu.com/fips)
- - fips-updates: FIPS 140-2 with updates
- - livepatch: Canonical Livepatch (https://ubuntu.com/livepatch)
-
-"""
+"""Client to manage Ubuntu Advantage support services on a machine."""
 
 import argparse
 from functools import wraps
@@ -323,10 +311,20 @@ def action_attach(args, cfg):
 
 
 def get_parser():
+    service_line_tmpl = " - {name}: {description}{url}"
+    description_lines = [__doc__]
+    sorted_classes = sorted(entitlements.ENTITLEMENT_CLASS_BY_NAME.items())
+    for name, ent_cls in sorted_classes:
+        if ent_cls.help_doc_url:
+            url = " ({})".format(ent_cls.help_doc_url)
+        else:
+            url = ""
+        description.append(service_line_tmpl.format(name=name, description=ent_cls.description, url=url)
+
     parser = argparse.ArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=__doc__,
+        description="\n".join(description),
         usage=USAGE_TMPL.format(name=NAME, command="[command]"),
         epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
     )
