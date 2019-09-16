@@ -75,10 +75,11 @@ class UserFacingStatus(enum.Enum):
     business logic.
     """
 
-    ACTIVE = "active"
-    INACTIVE = "inactive"
+    ACTIVE = "enabled"
+    INACTIVE = "disabled"
     INAPPLICABLE = "n/a"
     PENDING = "pending"
+    UNAVAILABLE = "—"
 
 
 ESSENTIAL = "essential"
@@ -101,6 +102,11 @@ STATUS_COLOR = {
         + UserFacingStatus.INAPPLICABLE.value
         + TxtColor.ENDC
     ),  # noqa: E501
+    UserFacingStatus.UNAVAILABLE.value: (
+        TxtColor.DISABLEGREY
+        + UserFacingStatus.UNAVAILABLE.value
+        + TxtColor.ENDC
+    ),
     ContractStatus.ENTITLED.value: (
         TxtColor.OKGREEN + ContractStatus.ENTITLED.value + TxtColor.ENDC
     ),
