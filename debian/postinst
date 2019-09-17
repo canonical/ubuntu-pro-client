@@ -2,6 +2,8 @@
 
 set -e
 
+. /etc/os-release  # For VERSION_ID
+
 ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
 ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
 ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
@@ -20,6 +22,11 @@ export_gpg_key_from_shared_keyring() {
     fi
 }
 
+unconfigure_esm() {
+    rm -f $ESM_APT_GPG_KEY $ESM_APT_GPG_KEY_OLD $ESM_APT_SOURCE_FILE
+    rm -f $ESM_APT_PREF_FILE
+}
+
 configure_esm() {
     rm -f $ESM_APT_GPG_KEY_OLD  # Remove retired key from key list
     if [ ! -f "$ESM_APT_GPG_KEY" ]; then
@@ -29,11 +36,11 @@ configure_esm() {
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
         cat > $ESM_APT_SOURCE_FILE <<EOF
 # Written by ubuntu-advantage-tools
-deb https://esm.ubuntu.com/ubuntu trusty-security main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-security main
+deb https://esm.ubuntu.com/ubuntu trusty-infra-security main
+# deb-src https://esm.ubuntu.com/ubuntu trusty-infra-security main
 
-deb https://esm.ubuntu.com/ubuntu trusty-updates main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-updates main
+deb https://esm.ubuntu.com/ubuntu trusty-infra-updates main
+# deb-src https://esm.ubuntu.com/ubuntu trusty-infra-updates main
 EOF
     fi
     if [ ! -e "$ESM_APT_PREF_FILE" ]; then
@@ -67,7 +74,11 @@ case "$1" in
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
 
-      grep -iq trusty /etc/os-release && configure_esm
+      if [ "14.04" = "$VERSION_ID" ]; then
+        configure_esm
+      else
+        unconfigure_esm
+      fi
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
       fi
