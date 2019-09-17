@@ -172,9 +172,9 @@ MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL = """\
 To use '{name}' you need an Ubuntu Advantage subscription.
 Personal and community subscriptions are available at no charge
 See https://ubuntu.com/advantage"""
-MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service '{name}'"
+MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
-Service '{name}' is recommended by default. To enable run: ua enable {name}"""
+Service {name} is recommended by default. Run: sudo ua enable {name}"""
 MESSAGE_DETACH_SUCCESS = "This machine is now detached"
 
 MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
