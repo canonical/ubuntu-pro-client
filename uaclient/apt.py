@@ -138,7 +138,6 @@ def add_auth_apt_repo(
         updates_enabled = True
         break
 
-    logging.info("Enabling authenticated repo: %s", repo_url)
     content = ""
     for suite in suites:
         if series not in suite:
@@ -226,7 +225,6 @@ def remove_auth_apt_repo(
     repo_filename: str, repo_url: str, keyring_file: str = None
 ) -> None:
     """Remove an authenticated apt repo and credentials to the system"""
-    logging.info("Removing authenticated apt repo: %s", repo_url)
     util.del_file(repo_filename)
     if keyring_file:
         util.del_file(keyring_file)
