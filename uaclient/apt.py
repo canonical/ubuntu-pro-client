@@ -48,7 +48,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
     if not os.path.exists("/usr/lib/apt/apt-helper"):
         return
     try:
-        with tempfile.NamedTemporaryFile() as tmpf:
+        with tempfile.TemporaryDirectory() as tmpd:
             util.subp(
                 [
                     "/usr/lib/apt/apt-helper",
@@ -56,7 +56,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                     "{}://{}:{}@{}/ubuntu/pool/".format(
                         protocol, username, password, repo_path
                     ),
-                    tmpf.name,
+                    os.path.join(tmpd, "apt-helper-output"),
                 ],
                 timeout=APT_HELPER_TIMEOUT,
             )
