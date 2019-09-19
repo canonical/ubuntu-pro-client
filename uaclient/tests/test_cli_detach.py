@@ -1,4 +1,5 @@
 import mock
+from textwrap import dedent
 
 import pytest
 
@@ -6,6 +7,13 @@ from uaclient.cli import action_detach
 from uaclient import exceptions
 from uaclient import status
 from uaclient.testing.fakes import FakeConfig
+
+
+def entitlement_cls_mock_factory(can_disable, name=None):
+    m_instance = mock.Mock(can_disable=mock.Mock(return_value=can_disable))
+    if name:
+        m_instance.name = name
+    return mock.Mock(return_value=m_instance)
 
 
 @mock.patch("uaclient.cli.os.getuid")
@@ -33,17 +41,10 @@ class TestActionDetach:
     ):
         m_getuid.return_value = 0
 
-        def cls_mock_factory(can_disable):
-            return mock.Mock(
-                return_value=mock.Mock(
-                    can_disable=mock.Mock(return_value=can_disable)
-                )
-            )
-
         m_entitlements.ENTITLEMENT_CLASSES = [
-            cls_mock_factory(False),
-            cls_mock_factory(True),
-            cls_mock_factory(False),
+            entitlement_cls_mock_factory(False),
+            entitlement_cls_mock_factory(True),
+            entitlement_cls_mock_factory(False),
         ]
 
         action_detach(mock.MagicMock(), FakeConfig.for_attached_machine())
@@ -94,3 +95,25 @@ class TestActionDetach:
         ret = action_detach(mock.MagicMock(), mock.MagicMock())
 
         assert 0 == ret
+
+    @mock.patch("uaclient.cli.entitlements")
+    def test_informational_message_emitted(
+        self, m_entitlements, m_getuid, capsys
+    ):
+        m_getuid.return_value = 0
+        m_entitlements.ENTITLEMENT_CLASSES = [
+            entitlement_cls_mock_factory(True, name="ent1"),
+            entitlement_cls_mock_factory(False, name="ent2"),
+            entitlement_cls_mock_factory(True, name="ent3"),
+        ]
+        action_detach(mock.MagicMock(), mock.MagicMock())
+
+        out, _err = capsys.readouterr()
+
+        expected_message = dedent(
+            """\
+            Detach will disable the following services:
+                ent1
+                ent3"""
+        )
+        assert expected_message in out

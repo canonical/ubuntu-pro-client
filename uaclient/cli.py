@@ -276,10 +276,17 @@ def action_detach(args, cfg):
 
     @return: 0 on success, 1 otherwise
     """
+    to_disable = []
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg)
         if ent.can_disable(silent=True):
-            ent.disable(silent=True)
+            to_disable.append(ent)
+    if to_disable:
+        print("Detach will disable the following services:")
+        for ent in to_disable:
+            print("    {}".format(ent.name))
+    for ent in to_disable:
+        ent.disable(silent=True)
     cfg.delete_cache()
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
