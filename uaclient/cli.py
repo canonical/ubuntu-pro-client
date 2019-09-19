@@ -68,9 +68,10 @@ def assert_attached_root(unattached_msg_tmpl=None):
                 if unattached_msg_tmpl:
                     name = getattr(args, "name", "None")
                     msg = unattached_msg_tmpl.format(name=name)
+                    exception = exceptions.UnattachedError(msg)
                 else:
-                    msg = None
-                raise exceptions.UnattachedError(msg)
+                    exception = exceptions.UnattachedError()
+                raise exception
             return f(args, cfg)
 
         return new_f
