@@ -114,10 +114,12 @@ class TestValidAptCredentials:
         assert expected_calls == m_exists.call_args_list
         assert 0 == m_subp.call_count
 
-    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
+    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
-    def test_passes_on_valid_creds(self, m_exists, m_subp, m_ntf):
+    def test_passes_on_valid_creds(
+        self, m_exists, m_subp, m_temporary_directory
+    ):
         """Succeed when apt-helper succeeds in authenticating to repo."""
 
         # Success apt-helper response
@@ -128,12 +130,16 @@ class TestValidAptCredentials:
         )
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
+        expected_path = os.path.join(
+            m_temporary_directory.return_value.__enter__.return_value,
+            "apt-helper-output",
+        )
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                m_ntf.return_value.__enter__.return_value.name,
+                expected_path,
             ],
             timeout=20,
         )
@@ -164,11 +170,17 @@ class TestValidAptCredentials:
             ),
         ),
     )
-    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
+    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_process_execution_errors(
-        self, m_exists, m_subp, m_ntf, exit_code, stderr, error_msg
+        self,
+        m_exists,
+        m_subp,
+        m_temporary_directory,
+        exit_code,
+        stderr,
+        error_msg,
     ):
         """Raise the appropriate user facing error from apt-helper failure."""
 
@@ -187,22 +199,26 @@ class TestValidAptCredentials:
         assert error_msg == str(excinfo.value)
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
+        expected_path = os.path.join(
+            m_temporary_directory.return_value.__enter__.return_value,
+            "apt-helper-output",
+        )
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                m_ntf.return_value.__enter__.return_value.name,
+                expected_path,
             ],
             timeout=20,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
-    @mock.patch("uaclient.apt.tempfile.NamedTemporaryFile")
+    @mock.patch("uaclient.apt.tempfile.TemporaryDirectory")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.os.path.exists", return_value=True)
     def test_errors_on_apt_helper_process_timeout(
-        self, m_exists, m_subp, m_ntf
+        self, m_exists, m_subp, m_temporary_directory
     ):
         """Raise the appropriate user facing error from apt-helper timeout."""
 
@@ -223,12 +239,16 @@ class TestValidAptCredentials:
         assert error_msg == excinfo.value.msg
         exists_calls = [mock.call("/usr/lib/apt/apt-helper")]
         assert exists_calls == m_exists.call_args_list
+        expected_path = os.path.join(
+            m_temporary_directory.return_value.__enter__.return_value,
+            "apt-helper-output",
+        )
         apt_helper_call = mock.call(
             [
                 "/usr/lib/apt/apt-helper",
                 "download-file",
                 "http://user:pwd@fakerepo/ubuntu/pool/",
-                m_ntf.return_value.__enter__.return_value.name,
+                expected_path,
             ],
             timeout=apt.APT_HELPER_TIMEOUT,
         )
