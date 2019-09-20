@@ -62,7 +62,7 @@ class TestFormatTabular:
         tabular_output = format_tabular(status_dict_attached)
         colon_idx = None
         for line in tabular_output.splitlines():
-            if ":" not in line:
+            if ":" not in line or "Enable services" in line:
                 # This isn't a header line
                 continue
             if colon_idx is None:
@@ -97,6 +97,6 @@ class TestFormatTabular:
         headers = [
             line.split(":")[0].strip()
             for line in tabular_output.splitlines()
-            if ":" in line
+            if ":" in line and "Enable services" not in line
         ]
         assert list(expected_headers) == headers

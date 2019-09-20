@@ -233,6 +233,7 @@ class UAConfig:
 
     def _attached_status(self) -> "Dict[str, Any]":
         """Return configuration of attached status as a dictionary."""
+        from uaclient.contract import get_available_resources
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
         response = copy.deepcopy(DEFAULT_STATUS)
@@ -249,12 +250,23 @@ class UAConfig:
             response["expires"] = datetime.strptime(
                 contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
             )
+
+        resources = get_available_resources(self)
+        unavailable_resources = [
+            resource["name"]
+            for resource in sorted(resources, key=lambda x: x["name"])
+            if not resource["available"]
+        ]
+
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             contract_status = ent.contract_status().value
             ent_status, details = ent.user_facing_status()
+            if ent.name in unavailable_resources:
+                ent_status = status.UserFacingStatus.UNAVAILABLE
             service_status = {
                 "name": ent.name,
+                "description": ent.description,
                 "entitled": contract_status,
                 "status": ent_status.value,
                 "statusDetails": details,

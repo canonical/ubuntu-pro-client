@@ -27,6 +27,15 @@ KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
 M_PATH = "uaclient.entitlements."
 
 
+RESP_ALL_RESOURCES_AVAILABLE = [
+    {"name": name, "available": True} for name in ENTITLEMENT_CLASS_BY_NAME
+]
+RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
+    {"name": name, "available": name == "fips"}
+    for name in ENTITLEMENT_CLASS_BY_NAME
+]
+
+
 class TestEntitlements:
     def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
         """Return machine_token resourceEntitlements, keyed by name."""
@@ -377,19 +386,36 @@ class TestStatus:
         ]
         assert expected == cfg.status()
 
+    @pytest.mark.parametrize(
+        "resources,get_avail_resp",
+        (
+            (
+                entitlements.ENTITLEMENT_CLASS_BY_NAME.keys(),
+                RESP_ALL_RESOURCES_AVAILABLE,
+            ),
+            ("fips", RESP_ONLY_FIPS_RESOURCE_AVAILABLE),
+        ),
+    )
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
-    def test_root_attached(self, _m_getuid):
+    def test_root_attached(
+        self, _m_getuid, m_get_available_resources, resources, get_avail_resp
+    ):
         """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
+        inapplicable = status.UserFacingStatus.INAPPLICABLE.value
+        unavail = status.UserFacingStatus.UNAVAILABLE.value
         expected_services = [
             {
+                "description": cls.description,
                 "entitled": status.ContractStatus.UNENTITLED.value,
                 "name": cls.name,
-                "status": status.UserFacingStatus.INAPPLICABLE.value,
+                "status": inapplicable if cls.name in resources else unavail,
                 "statusDetails": mock.ANY,
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
         ]
+        m_get_available_resources.return_value = get_avail_resp
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
@@ -418,10 +444,10 @@ class TestStatus:
 
         assert root_unattached_status == nonroot_status
 
-    @mock.patch("uaclient.contract.get_available_resources", return_value=[])
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_root_followed_by_nonroot(
-        self, m_getuid, _m_get_available_resources, tmpdir
+        self, m_getuid, m_get_available_resources, tmpdir
     ):
         """Ensure that non-root run after root returns data"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
@@ -469,13 +495,20 @@ class TestStatus:
             ],
         ),
     )
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
     def test_attached_reports_contract_and_service_status(
-        self, m_repo_uf_status, m_livepatch_uf_status, _m_getuid, entitlements
+        self,
+        m_repo_uf_status,
+        m_livepatch_uf_status,
+        _m_getuid,
+        m_get_available_resources,
+        entitlements,
     ):
         """When attached, return contract and service user-facing status."""
+        m_get_available_resources.return_value = RESP_ALL_RESOURCES_AVAILABLE
         m_repo_uf_status.return_value = (
             status.UserFacingStatus.INAPPLICABLE,
             "repo details",
@@ -519,6 +552,7 @@ class TestStatus:
             expected["services"].append(
                 {
                     "name": cls.name,
+                    "description": cls.description,
                     "entitled": status.ContractStatus.UNENTITLED.value,
                     "status": expected_status,
                     "statusDetails": details,
