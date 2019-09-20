@@ -7,7 +7,8 @@ set -e
 ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
 ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
 ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
-ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
+ESM_APT_SOURCE_FILE_OLD="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
+ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list"
 ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-trusty"
 UA_KEYRING_FILE="/usr/share/keyrings/ubuntu-advantage-keyring.gpg"
 
@@ -33,6 +34,9 @@ configure_esm() {
         export_gpg_key_from_shared_keyring $ESM_KEY_ID_TRUSTY
     fi
 
+    if [ -e "$ESM_APT_SOURCE_FILE_OLD" ]; then
+	mv $ESM_APT_SOURCE_FILE_OLD $ESM_APT_SOURCE_FILE
+    fi
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
         cat > $ESM_APT_SOURCE_FILE <<EOF
 # Written by ubuntu-advantage-tools
