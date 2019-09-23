@@ -155,6 +155,15 @@ class UAConfig:
             return os.path.join(data_dir, data_path.filename)
         return os.path.join(data_dir, PRIVATE_SUBDIR, key)
 
+    def _perform_delete(self, cache_path: str) -> None:
+        """Delete the given cache_path if it exists.
+
+        (This is a separate method to allow easier disabling of deletion during
+        tests.)
+        """
+        if os.path.exists(cache_path):
+            os.unlink(cache_path)
+
     def delete_cache_key(self, key: str) -> None:
         """Remove specific cache file."""
         if not key:
@@ -165,8 +174,7 @@ class UAConfig:
             self._entitlements = None
             self._machine_token = None
         cache_path = self.data_path(key)
-        if os.path.exists(cache_path):
-            os.unlink(cache_path)
+        self._perform_delete(cache_path)
 
     def delete_cache(self):
         """Remove configuration cached response files class attributes."""
