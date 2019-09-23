@@ -562,8 +562,11 @@ class TestStatus:
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
 
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
-    def test_expires_handled_appropriately(self, m_getuid):
+    def test_expires_handled_appropriately(
+        self, m_getuid, _m_get_available_resources
+    ):
         token = {
             "machineTokenInfo": {
                 "accountInfo": {"id": "1", "name": "accountname"},
