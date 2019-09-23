@@ -96,24 +96,43 @@ class TestActionDetach:
 
         assert 0 == ret
 
+    @pytest.mark.parametrize(
+        "classes,expected_message",
+        [
+            (
+                [
+                    entitlement_cls_mock_factory(True, name="ent1"),
+                    entitlement_cls_mock_factory(False, name="ent2"),
+                    entitlement_cls_mock_factory(True, name="ent3"),
+                ],
+                dedent(
+                    """\
+                    Detach will disable the following services:
+                        ent1
+                        ent3"""
+                ),
+            ),
+            (
+                [
+                    entitlement_cls_mock_factory(True, name="ent1"),
+                    entitlement_cls_mock_factory(False, name="ent2"),
+                ],
+                dedent(
+                    """\
+                    Detach will disable the following service:
+                        ent1"""
+                ),
+            ),
+        ],
+    )
     @mock.patch("uaclient.cli.entitlements")
     def test_informational_message_emitted(
-        self, m_entitlements, m_getuid, capsys
+        self, m_entitlements, m_getuid, capsys, classes, expected_message
     ):
         m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = [
-            entitlement_cls_mock_factory(True, name="ent1"),
-            entitlement_cls_mock_factory(False, name="ent2"),
-            entitlement_cls_mock_factory(True, name="ent3"),
-        ]
+        m_entitlements.ENTITLEMENT_CLASSES = classes
         action_detach(mock.MagicMock(), mock.MagicMock())
 
         out, _err = capsys.readouterr()
 
-        expected_message = dedent(
-            """\
-            Detach will disable the following services:
-                ent1
-                ent3"""
-        )
         assert expected_message in out

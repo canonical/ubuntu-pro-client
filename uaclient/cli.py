@@ -282,7 +282,8 @@ def action_detach(args, cfg):
         if ent.can_disable(silent=True):
             to_disable.append(ent)
     if to_disable:
-        print("Detach will disable the following services:")
+        suffix = "s" if len(to_disable) > 1 else ""
+        print("Detach will disable the following service{}:".format(suffix))
         for ent in to_disable:
             print("    {}".format(ent.name))
     for ent in to_disable:
