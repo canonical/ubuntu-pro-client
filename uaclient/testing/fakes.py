@@ -47,6 +47,14 @@ class FakeConfig(UAConfig):
 
         super().__init__({})
 
+    def _perform_delete(self, cache_path: str) -> None:
+        pass
+
+    def delete_cache_key(self, key: str) -> None:
+        super().delete_cache_key(key)
+        if key in self._cache_contents:
+            del self._cache_contents[key]
+
     def read_cache(self, key: str, silent: bool = False) -> "Optional[str]":
         value = self._cache_contents.get(key)
         if value:

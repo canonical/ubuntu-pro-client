@@ -80,8 +80,9 @@ class TestActionAttach:
         assert expected_calls == contract_machine_attach.call_args_list
 
     @pytest.mark.parametrize("auto_enable", (True, False))
+    @mock.patch("uaclient.contract.get_available_resources")
     def test_auto_enable_passed_through_to_request_updated_contract(
-        self, _m_getuid, auto_enable
+        self, _m_getuid, _m_get_available_resources, auto_enable
     ):
         args = mock.MagicMock(auto_enable=auto_enable)
 
