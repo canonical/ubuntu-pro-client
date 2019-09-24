@@ -98,10 +98,6 @@ class TestProcessContractDeltas:
         assert [] == m_setup_apt_config.call_args_list
 
     @pytest.mark.parametrize("entitled", (False, util.DROPPED_KEY))
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch.object(RepoTestEntitlement, "disable")
     @mock.patch.object(RepoTestEntitlement, "can_disable", return_value=True)
     @mock.patch.object(RepoTestEntitlement, "application_status")
@@ -112,9 +108,9 @@ class TestProcessContractDeltas:
         m_disable,
         entitlement,
         entitled,
-        application_status,
     ):
         """Disable the service on contract transitions to unentitled."""
+        application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         assert entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
@@ -213,10 +209,6 @@ class TestProcessContractDeltas:
         )
         assert expected_msg in caplog_text()
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -228,9 +220,9 @@ class TestProcessContractDeltas:
         m_setup_apt_config,
         m_remove_auth_apt_repo,
         entitlement,
-        application_status,
     ):
         """Update_apt_config when service is active and not enableByDefault."""
+        application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         assert entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
@@ -243,10 +235,6 @@ class TestProcessContractDeltas:
         assert [mock.call()] == m_setup_apt_config.call_args_list
         assert [] == m_remove_auth_apt_repo.call_args_list
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch(
         M_PATH + "util.get_platform_info", return_value={"series": "trusty"}
     )
@@ -262,9 +250,9 @@ class TestProcessContractDeltas:
         m_remove_auth_apt_repo,
         m_platform_info,
         entitlement,
-        application_status,
     ):
         """Remove old apt url when aptURL delta occurs on active service."""
+        application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         assert entitlement.process_contract_deltas(
             {

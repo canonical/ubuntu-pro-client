@@ -166,10 +166,6 @@ class TestUaEntitlement:
         assert expected_stdout == stdout
 
     @pytest.mark.parametrize("silent", (True, False, None))
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     def test_can_enable_false_on_entitlement_active(
         self, capsys, concrete_entitlement_factory, silent
     ):
@@ -442,10 +438,6 @@ class TestUaEntitlementUserFacingStatus:
             (
                 status.ApplicationStatus.DISABLED,
                 status.UserFacingStatus.INACTIVE,
-            ),
-            (
-                status.ApplicationStatus.PENDING,
-                status.UserFacingStatus.PENDING,
             ),
         ),
     )

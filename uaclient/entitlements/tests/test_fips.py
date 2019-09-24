@@ -70,9 +70,7 @@ class TestFIPSEntitlementEnable:
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
-            m_exists = stack.enter_context(
-                mock.patch(M_REPOPATH + "os.path.exists")
-            )
+            stack.enter_context(mock.patch(M_REPOPATH + "os.path.exists"))
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
