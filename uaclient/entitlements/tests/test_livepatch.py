@@ -405,14 +405,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install snapd and canonical-livepatch snap when not on system."""
         m_app_status.return_value = application_status, "enabled"
@@ -441,14 +434,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install canonical-livepatch snap when not present on the system."""
         m_app_status.return_value = application_status, "enabled"
@@ -500,14 +486,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Do not attempt to install livepatch snap when it is present."""
         m_app_status.return_value = application_status, "enabled"

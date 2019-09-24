@@ -38,7 +38,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if running_kernel.endswith("-fips"):
             return super_status, super_msg
         return (
-            status.ApplicationStatus.PENDING,
+            status.ApplicationStatus.ENABLED,
             "Reboot to FIPS kernel required",
         )
 

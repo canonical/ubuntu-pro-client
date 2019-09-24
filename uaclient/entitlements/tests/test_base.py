@@ -171,9 +171,10 @@ class TestUaEntitlement:
         (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
     )
     def test_can_enable_false_on_entitlement_active(
-        self, capsys, concrete_entitlement_factory, silent, application_status
+        self, capsys, concrete_entitlement_factory, silent
     ):
-        """When entitlement is ENABLED or PENDING, can_enable returns False."""
+        """When entitlement is ENABLED, can_enable returns False."""
+        application_status = status.ApplicationStatus.ENABLED
         entitlement = concrete_entitlement_factory(
             entitled=True, application_status=(application_status, "")
         )
