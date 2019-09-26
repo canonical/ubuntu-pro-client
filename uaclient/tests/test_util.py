@@ -528,3 +528,23 @@ class TestDatetimeAwareJSONDecoder:
     @pytest.mark.parametrize("out,input", JSON_TEST_PAIRS)
     def test_encode(self, input, out):
         assert out == json.loads(input, cls=util.DatetimeAwareJSONDecoder)
+
+
+@mock.patch("uaclient.util.input")
+class TestPromptForConfirmation:
+    @pytest.mark.parametrize(
+        "return_value,user_input",
+        [(True, yes_input) for yes_input in ["y", "Y", "yes", "YES", "YeS"]]
+        + [
+            (False, no_input)
+            for no_input in ["n", "N", "no", "NO", "No", "asdf", "", "\nfoo\n"]
+        ],
+    )
+    def test_input_conversion(self, m_input, return_value, user_input):
+        m_input.return_value = user_input
+        assert return_value == util.prompt_for_confirmation()
+
+    def test_prompt_text(self, m_input):
+        util.prompt_for_confirmation()
+
+        assert [mock.call("Are you sure? (y/N) ")] == m_input.call_args_list

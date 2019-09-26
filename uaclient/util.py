@@ -353,6 +353,19 @@ def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
     return data
 
 
+def prompt_for_confirmation() -> bool:
+    """
+    Display a confirmation prompt, returning a bool indicating the response
+
+    This function will only prompt a single time, and defaults to "no" (i.e. it
+    returns False).
+    """
+    value = input("Are you sure? (y/N) ")
+    if value.lower().strip() in ["y", "yes"]:
+        return True
+    return False
+
+
 def readurl(
     url: str,
     data: "Optional[bytes]" = None,
