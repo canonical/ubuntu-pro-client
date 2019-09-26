@@ -18,18 +18,18 @@ def entitlement_cls_mock_factory(can_disable, name=None):
 
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionDetach:
-    def test_non_root_users_are_rejected(self, getuid):
+    def test_non_root_users_are_rejected(self, m_getuid):
         """Check that a UID != 0 will receive a message and exit non-zero"""
-        getuid.return_value = 1
+        m_getuid.return_value = 1
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_detach(mock.MagicMock(), cfg)
 
-    def test_unattached_error_message(self, getuid):
+    def test_unattached_error_message(self, m_getuid):
         """Check that root user gets unattached message."""
 
-        getuid.return_value = 0
+        m_getuid.return_value = 0
         cfg = FakeConfig()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(mock.MagicMock(), cfg)
