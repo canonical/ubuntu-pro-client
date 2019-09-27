@@ -45,9 +45,9 @@ def step_impl(context, command):
     process = _lxc_exec(
         context, shlex.split(command), capture_output=True, text=True
     )
-    context.output = process.stdout.strip()
+    context.process = process
 
 
-@then("I will see the following output")
+@then("I will see the following on stdout")
 def step_impl(context):
-    assert_that(context.output, equal_to(context.text))
+    assert_that(context.process.stdout.strip(), equal_to(context.text))

@@ -4,7 +4,7 @@ Feature: Unattached status
         Given a trusty lxd container
           And ubuntu-advantage-tools is installed
         When I run `ua status` as non-root
-        Then I will see the following output:
+        Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        no         Common Criteria EAL2 Provisioning Packages
