@@ -1,4 +1,5 @@
 import datetime
+import shlex
 import subprocess
 from typing import List
 
@@ -39,10 +40,10 @@ def step_impl(context):
     )
 
 
-@when("I run `ua status` as non-root")
-def step_impl(context):
+@when("I run `{command}` as non-root")
+def step_impl(context, command):
     process = _lxc_exec(
-        context, ["ua", "status"], capture_output=True, text=True
+        context, shlex.split(command), capture_output=True, text=True
     )
     context.output = process.stdout.strip()
 
