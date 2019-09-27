@@ -1,3 +1,4 @@
+import datetime
 import subprocess
 from typing import List
 
@@ -6,7 +7,7 @@ from behave.runner import Context
 from hamcrest import assert_that, equal_to
 
 
-CONTAINER_NAME = "behave-test"
+CONTAINER_PREFIX = "behave-test-"
 
 
 def _lxc_exec(context: Context, cmd: List[str], *args, **kwargs):
@@ -17,7 +18,8 @@ def _lxc_exec(context: Context, cmd: List[str], *args, **kwargs):
 
 @given("a trusty lxd container")
 def step_impl(context):
-    context.container_name = CONTAINER_NAME
+    now = datetime.datetime.now()
+    context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
     subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
 
 
