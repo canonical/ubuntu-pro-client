@@ -295,3 +295,7 @@ class RepoEntitlement(base.UAEntitlement):
                 )
             elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
+        print("Updating package lists")
+        apt.run_apt_command(
+            ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+        )
