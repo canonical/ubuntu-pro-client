@@ -297,14 +297,14 @@ class UAConfig:
 
         Write the status-cache when called by root.
         """
-        if not self.is_attached:
-            response = self._unattached_status()
-        elif os.getuid() == 0:
-            response = self._attached_status()
-        else:
+        if os.getuid() != 0:
             response = cast("Dict[str, Any]", self.read_cache("status-cache"))
             if not response:
                 response = DEFAULT_STATUS
+        elif not self.is_attached:
+            response = self._unattached_status()
+        else:
+            response = self._attached_status()
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
         return response

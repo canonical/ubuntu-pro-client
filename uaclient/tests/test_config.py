@@ -591,6 +591,16 @@ class TestStatus:
         m_getuid.return_value = 1000
         assert expected_dt == cfg.status()["expires"]
 
+    @mock.patch("uaclient.config.os.getuid")
+    def test_nonroot_user_uses_cache_if_available(self, m_getuid, tmpdir):
+        m_getuid.return_value = 1000
+
+        status = {"pass": True}
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg.write_cache("status-cache", status)
+
+        assert status == cfg.status()
+
 
 class TestParseConfig:
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
