@@ -32,6 +32,9 @@ ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DROPPED_KEY = object()
 
+# N.B. this relies on the version normalisation we perform in get_platform_info
+REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
+
 
 class LogFormatter(logging.Formatter):
 
@@ -131,6 +134,40 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         return o
 
 
+def apply_series_overrides(orig_access: "Dict[str, Any]") -> None:
+    """Apply series-specific overrides to an entitlement dict.
+
+    This function mutates orig_access dict by applying any series-overrides to
+    the top-level keys under 'entitlement'. The series-overrides are sparse
+    and intended to supplement existing top-level dict values. So, sub-keys
+    under the top-level directives, obligations and affordance sub-key values
+    will be preserved if unspecified in series-overrides.
+
+    To more clearly indicate that orig_access in memory has already had
+    the overrides applied, the 'series' key is also removed from the
+    orig_access dict.
+
+    :param orig_access: Dict with original entitlement access details
+    """
+    if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
+        raise RuntimeError(
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            " {}".format(orig_access)
+        )
+    series_name = get_platform_info()["series"]
+    orig_entitlement = orig_access.get("entitlement", {})
+    overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
+    for key, value in overrides.items():
+        current = orig_access["entitlement"].get(key)
+        if isinstance(current, dict):
+            # If the key already exists and is a dict, update that dict using
+            # the override
+            current.update(value)
+        else:
+            # Otherwise, replace it wholesale
+            orig_access["entitlement"][key] = value
+
+
 def del_file(path: str) -> None:
     try:
         os.unlink(path)
@@ -209,6 +246,65 @@ def get_dict_deltas(
     return deltas
 
 
+def get_machine_id(data_dir: str) -> str:
+    """Get system's unique machine-id or create our own in data_dir."""
+    # Generate, cache our own uuid if not present on the system
+    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
+    # per Issue: #489
+    fallback_machine_id_file = os.path.join(data_dir, "machine-id")
+
+    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
+        if os.path.exists(path):
+            content = load_file(path).rstrip("\n")
+            if content:
+                return content
+    machine_id = str(uuid.uuid4())
+    write_file(fallback_machine_id_file, machine_id)
+    return machine_id
+
+
+def get_platform_info() -> "Dict[str, str]":
+    """
+    Returns a dict of platform information.
+
+    N.B. This dict is sent to the contract server, which requires the
+    distribution, type and release keys.
+    """
+    os_release = parse_os_release()
+    platform_info = {
+        "distribution": os_release.get("NAME", "UNKNOWN"),
+        "type": "Linux",
+    }
+
+    version = os_release["VERSION"]
+    if ", " in version:
+        # Fix up trusty's version formatting
+        version = "{} ({})".format(*version.split(", "))
+    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
+    version = re.sub(r"\.\d LTS", " LTS", version)
+    platform_info["version"] = version
+
+    match = re.match(REGEX_OS_RELEASE_VERSION, version)
+    if not match:
+        raise RuntimeError(
+            "Could not parse /etc/os-release VERSION: {} (modified to"
+            " {})".format(os_release["VERSION"], version)
+        )
+    match_dict = match.groupdict()
+    platform_info.update(
+        {
+            "release": match_dict["release"],
+            "series": match_dict["series"].lower(),
+        }
+    )
+
+    uname = os.uname()
+    platform_info["kernel"] = uname.release
+    platform_info["arch"] = uname.machine
+
+    return platform_info
+
+
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
     try:
@@ -244,6 +340,17 @@ def load_file(filename: str, decode: bool = True) -> str:
     with open(filename, "rb") as stream:
         content = stream.read()
     return content.decode("utf-8")
+
+
+def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
+    if not release_file:
+        release_file = "/etc/os-release"
+    data = {}
+    for line in load_file(release_file).splitlines():
+        key, value = line.split("=", 1)
+        if value:
+            data[key] = value.strip().strip('"')
+    return data
 
 
 def readurl(
@@ -405,111 +512,3 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         fh.write(content.encode("utf-8"))
         fh.flush()
     os.chmod(filename, mode)
-
-
-def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
-    if not release_file:
-        release_file = "/etc/os-release"
-    data = {}
-    for line in load_file(release_file).splitlines():
-        key, value = line.split("=", 1)
-        if value:
-            data[key] = value.strip().strip('"')
-    return data
-
-
-# N.B. this relies on the version normalisation we perform in get_platform_info
-REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
-
-
-def get_platform_info() -> "Dict[str, str]":
-    """
-    Returns a dict of platform information.
-
-    N.B. This dict is sent to the contract server, which requires the
-    distribution, type and release keys.
-    """
-    os_release = parse_os_release()
-    platform_info = {
-        "distribution": os_release.get("NAME", "UNKNOWN"),
-        "type": "Linux",
-    }
-
-    version = os_release["VERSION"]
-    if ", " in version:
-        # Fix up trusty's version formatting
-        version = "{} ({})".format(*version.split(", "))
-    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
-    version = re.sub(r"\.\d LTS", " LTS", version)
-    platform_info["version"] = version
-
-    match = re.match(REGEX_OS_RELEASE_VERSION, version)
-    if not match:
-        raise RuntimeError(
-            "Could not parse /etc/os-release VERSION: {} (modified to"
-            " {})".format(os_release["VERSION"], version)
-        )
-    match_dict = match.groupdict()
-    platform_info.update(
-        {
-            "release": match_dict["release"],
-            "series": match_dict["series"].lower(),
-        }
-    )
-
-    uname = os.uname()
-    platform_info["kernel"] = uname.release
-    platform_info["arch"] = uname.machine
-
-    return platform_info
-
-
-def apply_series_overrides(orig_access: "Dict[str, Any]") -> None:
-    """Apply series-specific overrides to an entitlement dict.
-
-    This function mutates orig_access dict by applying any series-overrides to
-    the top-level keys under 'entitlement'. The series-overrides are sparse
-    and intended to supplement existing top-level dict values. So, sub-keys
-    under the top-level directives, obligations and affordance sub-key values
-    will be preserved if unspecified in series-overrides.
-
-    To more clearly indicate that orig_access in memory has already had
-    the overrides applied, the 'series' key is also removed from the
-    orig_access dict.
-
-    :param orig_access: Dict with original entitlement access details
-    """
-    if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
-        raise RuntimeError(
-            'Expected entitlement access dict. Missing "entitlement" key:'
-            " {}".format(orig_access)
-        )
-    series_name = get_platform_info()["series"]
-    orig_entitlement = orig_access.get("entitlement", {})
-    overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
-    for key, value in overrides.items():
-        current = orig_access["entitlement"].get(key)
-        if isinstance(current, dict):
-            # If the key already exists and is a dict, update that dict using
-            # the override
-            current.update(value)
-        else:
-            # Otherwise, replace it wholesale
-            orig_access["entitlement"][key] = value
-
-
-def get_machine_id(data_dir: str) -> str:
-    """Get system's unique machine-id or create our own in data_dir."""
-    # Generate, cache our own uuid if not present on the system
-    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
-    # per Issue: #489
-    fallback_machine_id_file = os.path.join(data_dir, "machine-id")
-
-    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
-        if os.path.exists(path):
-            content = load_file(path).rstrip("\n")
-            if content:
-                return content
-    machine_id = str(uuid.uuid4())
-    write_file(fallback_machine_id_file, machine_id)
-    return machine_id
