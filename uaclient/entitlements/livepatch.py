@@ -151,8 +151,6 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not silent:
             print("Removing canonical-livepatch snap")
         util.subp([SNAP_CMD, "remove", "canonical-livepatch"], capture=True)
-        if not silent:
-            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def application_status(self) -> "Tuple[ApplicationStatus, str]":
