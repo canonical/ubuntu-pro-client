@@ -1,5 +1,12 @@
+# Linting
 flake8
-mock
 pycodestyle
+
+# Unit testing
+mock
 pytest
 pytest-cov
+
+# Integration testing
+behave
+PyHamcrest
