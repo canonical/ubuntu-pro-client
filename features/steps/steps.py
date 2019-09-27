@@ -57,3 +57,8 @@ def step_impl(context, command):
 @then("I will see the following on stdout")
 def step_impl(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))
+
+
+@then("I will see the following on stderr")
+def step_impl(context):
+    assert_that(context.process.stderr.strip(), equal_to(context.text))
