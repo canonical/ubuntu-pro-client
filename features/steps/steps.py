@@ -23,6 +23,12 @@ def step_impl(context):
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
     subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
 
+    def cleanup_container():
+        subprocess.run(["lxc", "stop", context.container_name])
+        subprocess.run(["lxc", "delete", context.container_name])
+
+    context.add_cleanup(cleanup_container)
+
 
 @given("ubuntu-advantage-tools is installed")
 def step_impl(context):
