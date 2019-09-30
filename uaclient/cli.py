@@ -79,21 +79,11 @@ def assert_attached_root(unattached_msg_tmpl=None):
     return wrapper
 
 
-def attach_parser(parser=None):
+def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="attach",
-            description=(
-                "Attach this machine to an existing Ubuntu Advantage"
-                " support subscription"
-            ),
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "attach"
+    parser.usage = usage
+    parser.prog = "attach"
     parser._optionals.title = "Flags"
     parser.add_argument(
         "token",
@@ -111,37 +101,20 @@ def attach_parser(parser=None):
     return parser
 
 
-def detach_parser(parser=None):
+def detach_parser(parser):
     """Build or extend an arg parser for detach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="detach")
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="detach",
-            description=(
-                "Detach this machine from an existing Ubuntu Advantage"
-                " support subscription"
-            ),
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "detach"
+    parser.usage = usage
+    parser.prog = "detach"
     parser._optionals.title = "Flags"
     return parser
 
 
-def enable_parser(parser=None):
+def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="enable") + " <name>"
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="enable",
-            description="Enable a support service on this machine",
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "enable"
+    parser.usage = usage
+    parser.prog = "enable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -152,18 +125,11 @@ def enable_parser(parser=None):
     return parser
 
 
-def disable_parser(parser=None):
+def disable_parser(parser):
     """Build or extend an arg parser for disable subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="disable") + " <name>"
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="disable",
-            description="Disable a support service on this machine",
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "disable"
+    parser.usage = usage
+    parser.prog = "disable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -174,21 +140,11 @@ def disable_parser(parser=None):
     return parser
 
 
-def status_parser(parser=None):
+def status_parser(parser):
     """Build or extend an arg parser for status subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="status")
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="status",
-            description=(
-                "Print status information for Ubuntu Advantage"
-                " support subscription"
-            ),
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "status"
+    parser.usage = usage
+    parser.prog = "status"
     parser.add_argument(
         "--format",
         action="store",
