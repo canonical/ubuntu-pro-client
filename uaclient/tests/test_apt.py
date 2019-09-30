@@ -121,7 +121,9 @@ class TestValidAptCredentials:
         self, m_exists, m_subp, m_temporary_directory
     ):
         """Succeed when apt-helper succeeds in authenticating to repo."""
-
+        m_temporary_directory.return_value.__enter__.return_value = (
+            "/does/not/exist"
+        )
         # Success apt-helper response
         m_subp.return_value = "Get:1 https://fakerepo\nFetched 285 B in 1s", ""
 
@@ -183,7 +185,9 @@ class TestValidAptCredentials:
         error_msg,
     ):
         """Raise the appropriate user facing error from apt-helper failure."""
-
+        m_temporary_directory.return_value.__enter__.return_value = (
+            "/does/not/exist"
+        )
         # Failure apt-helper response
         m_subp.side_effect = util.ProcessExecutionError(
             cmd="apt-helper ",
@@ -221,7 +225,9 @@ class TestValidAptCredentials:
         self, m_exists, m_subp, m_temporary_directory
     ):
         """Raise the appropriate user facing error from apt-helper timeout."""
-
+        m_temporary_directory.return_value.__enter__.return_value = (
+            "/does/not/exist"
+        )
         # Failure apt-helper response
         m_subp.side_effect = subprocess.TimeoutExpired(
             "something timed out", timeout=1000000
