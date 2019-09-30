@@ -73,6 +73,10 @@ case "$1" in
       fi
       chmod 0600 /var/log/ubuntu-advantage.log
       chown root:root /var/log/ubuntu-advantage.log
+      private_dir="/var/lib/ubuntu-advantage/private"
+      if [ -d "$private_dir" ]; then
+          chmod 0700 "$private_dir"
+      fi
       ;;
 esac
 
