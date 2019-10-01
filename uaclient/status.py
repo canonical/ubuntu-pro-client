@@ -121,6 +121,7 @@ STATUS_COLOR = {
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
 MESSAGE_APT_POLICY_FAILED = "Failure checking APT policy."
+MESSAGE_APT_UPDATING_LISTS = "Updating package lists"
 MESSAGE_CONNECTIVITY_ERROR = """\
 Failed to connect to authentication server
 Check your Internet connection and try again"""
