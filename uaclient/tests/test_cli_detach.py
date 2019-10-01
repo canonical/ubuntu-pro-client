@@ -50,7 +50,9 @@ class TestActionDetach:
             entitlement_cls_mock_factory(False),
         ]
 
-        action_detach(mock.MagicMock(), FakeConfig.for_attached_machine())
+        return_code = action_detach(
+            mock.MagicMock(), FakeConfig.for_attached_machine()
+        )
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
@@ -69,8 +71,10 @@ class TestActionDetach:
             assert [
                 mock.call(silent=True)
             ] == disabled_cls.return_value.disable.call_args_list
+            assert 0 == return_code
         else:
             assert 0 == disabled_cls.return_value.disable.call_count
+            assert 1 == return_code
 
     @mock.patch("uaclient.cli.entitlements")
     def test_config_cache_deleted(self, m_entitlements, m_getuid, _m_prompt):

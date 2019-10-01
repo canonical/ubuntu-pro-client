@@ -243,7 +243,7 @@ def action_detach(args, cfg):
         for ent in to_disable:
             print("    {}".format(ent.name))
     if not util.prompt_for_confirmation():
-        return 0
+        return 1
     for ent in to_disable:
         ent.disable(silent=True)
     cfg.delete_cache()
