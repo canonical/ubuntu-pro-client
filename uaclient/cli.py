@@ -21,6 +21,7 @@ import logging
 import os
 import pathlib
 import sys
+import textwrap
 
 from uaclient import config
 from uaclient import contract
@@ -145,6 +146,37 @@ def status_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="status")
     parser.usage = usage
     parser.prog = "status"
+    # This formatter_class ensures that our formatting below isn't lost
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = textwrap.dedent(
+        """\
+        Report current status of Ubuntu Advantage services on system.
+
+        This shows whether this machine is attached to an Ubuntu Advantage
+        support contract. When attached, the report includes the specific
+        support contract details including contract name, expiry dates, and the
+        status of each service on this system.
+
+        The attached status output has four columns:
+
+        * SERVICE: name of the service
+        * ENTITLED: whether the contract to which this machine is attached
+          entitles use of this service. Possible values are: yes or no
+        * STATUS: whether the service is enabled on this machine.  Possible
+          values are: enabled, disabled, n/a (if your contract entitles
+          you to the service, but it isn't available for this machine) or — (if
+          you aren't entitled to this service)
+        * DESCRIPTION: a brief description of the service
+
+        The unattached status output instead has three columns. SERVICE
+        and DESCRIPTION are the same as above, and there is the addition
+        of:
+
+        * AVAILABLE: whether this service would be available if this machine
+          were attached.  The possible values are yes or no.
+        """
+    )
+
     parser.add_argument(
         "--format",
         action="store",
