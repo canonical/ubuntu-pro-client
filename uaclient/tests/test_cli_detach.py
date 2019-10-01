@@ -16,30 +16,33 @@ def entitlement_cls_mock_factory(can_disable, name=None):
     return mock.Mock(return_value=m_instance)
 
 
+@mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionDetach:
-    def test_non_root_users_are_rejected(self, getuid):
+    def test_non_root_users_are_rejected(self, m_getuid, _m_prompt):
         """Check that a UID != 0 will receive a message and exit non-zero"""
-        getuid.return_value = 1
+        m_getuid.return_value = 1
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_detach(mock.MagicMock(), cfg)
 
-    def test_unattached_error_message(self, getuid):
+    def test_unattached_error_message(self, m_getuid, _m_prompt):
         """Check that root user gets unattached message."""
 
-        getuid.return_value = 0
+        m_getuid.return_value = 0
         cfg = FakeConfig()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
+    @pytest.mark.parametrize("prompt_response", [True, False])
     @mock.patch("uaclient.cli.entitlements")
-    def test_entitlements_disabled_if_can_disable(
-        self, m_entitlements, m_getuid
+    def test_entitlements_disabled_if_can_disable_and_prompt_true(
+        self, m_entitlements, m_getuid, m_prompt, prompt_response
     ):
         m_getuid.return_value = 0
+        m_prompt.return_value = prompt_response
 
         m_entitlements.ENTITLEMENT_CLASSES = [
             entitlement_cls_mock_factory(False),
@@ -47,7 +50,9 @@ class TestActionDetach:
             entitlement_cls_mock_factory(False),
         ]
 
-        action_detach(mock.MagicMock(), FakeConfig.for_attached_machine())
+        return_code = action_detach(
+            mock.MagicMock(), FakeConfig.for_attached_machine()
+        )
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
@@ -62,12 +67,17 @@ class TestActionDetach:
         ]:
             assert 0 == undisabled_cls.return_value.disable.call_count
         disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
-        assert [
-            mock.call(silent=True)
-        ] == disabled_cls.return_value.disable.call_args_list
+        if prompt_response:
+            assert [
+                mock.call(silent=True)
+            ] == disabled_cls.return_value.disable.call_args_list
+            assert 0 == return_code
+        else:
+            assert 0 == disabled_cls.return_value.disable.call_count
+            assert 1 == return_code
 
     @mock.patch("uaclient.cli.entitlements")
-    def test_config_cache_deleted(self, m_entitlements, m_getuid):
+    def test_config_cache_deleted(self, m_entitlements, m_getuid, _m_prompt):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
 
@@ -77,7 +87,9 @@ class TestActionDetach:
         assert [mock.call()] == cfg.delete_cache.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
-    def test_correct_message_emitted(self, m_entitlements, m_getuid, capsys):
+    def test_correct_message_emitted(
+        self, m_entitlements, m_getuid, _m_prompt, capsys
+    ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
 
@@ -88,7 +100,7 @@ class TestActionDetach:
         assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
 
     @mock.patch("uaclient.cli.entitlements")
-    def test_returns_zero(self, m_entitlements, m_getuid):
+    def test_returns_zero(self, m_entitlements, m_getuid, _m_prompt):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
 
@@ -127,7 +139,13 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.cli.entitlements")
     def test_informational_message_emitted(
-        self, m_entitlements, m_getuid, capsys, classes, expected_message
+        self,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        capsys,
+        classes,
+        expected_message,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
