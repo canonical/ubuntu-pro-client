@@ -9,7 +9,8 @@ ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
 ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
 ESM_APT_SOURCE_FILE_OLD="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list"
-ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-trusty"
+ESM_APT_PREF_FILE_OLD="/etc/apt/preferences.d/ubuntu-esm-trusty"
+ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
 UA_KEYRING_FILE="/usr/share/keyrings/ubuntu-advantage-keyring.gpg"
 
 
@@ -25,7 +26,7 @@ export_gpg_key_from_shared_keyring() {
 
 unconfigure_esm() {
     rm -f $ESM_APT_GPG_KEY $ESM_APT_GPG_KEY_OLD $ESM_APT_SOURCE_FILE
-    rm -f $ESM_APT_PREF_FILE
+    rm -f $ESM_APT_PREF_FILE_OLD $ESM_APT_PREF_FILE
 }
 
 configure_esm() {
@@ -35,7 +36,10 @@ configure_esm() {
     fi
 
     if [ -e "$ESM_APT_SOURCE_FILE_OLD" ]; then
-	mv $ESM_APT_SOURCE_FILE_OLD $ESM_APT_SOURCE_FILE
+        mv $ESM_APT_SOURCE_FILE_OLD $ESM_APT_SOURCE_FILE
+    fi
+    if [ -e "$ESM_APT_PREF_FILE_OLD" ]; then
+        mv $ESM_APT_PREF_FILE_OLD $ESM_APT_PREF_FILE
     fi
     if [ ! -e "$ESM_APT_SOURCE_FILE" ]; then
         cat > $ESM_APT_SOURCE_FILE <<EOF
@@ -46,17 +50,13 @@ deb https://esm.ubuntu.com/ubuntu trusty-infra-security main
 deb https://esm.ubuntu.com/ubuntu trusty-infra-updates main
 # deb-src https://esm.ubuntu.com/ubuntu trusty-infra-updates main
 EOF
-    fi
-    if [ ! -e "$ESM_APT_PREF_FILE" ]; then
-        ESM_POLICY=`apt-cache policy | grep https://esm.ubuntu.com | awk 'END{print $1}'`
-        if [ "500" != "$ESM_POLICY" ]; then  # we are inactive
-            cat > $ESM_APT_PREF_FILE <<EOF
+        # Automatically disable esm sources via apt preferences until enabled
+        cat > $ESM_APT_PREF_FILE <<EOF
 # Written by ubuntu-advantage-tools
 Package: *
 Pin: release o=UbuntuESM, n=trusty
 Pin-Priority: never
 EOF
-        fi
     fi
 }
 
