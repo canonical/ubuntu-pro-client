@@ -89,8 +89,6 @@ class RepoEntitlement(base.UAEntitlement):
         if not self.can_disable(silent):
             return False
         self._cleanup()
-        if not silent:
-            print(status.MESSAGE_DISABLED_TMPL.format(title=self.title))
         return True
 
     def _cleanup(self) -> None:
