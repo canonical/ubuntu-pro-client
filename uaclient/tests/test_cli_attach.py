@@ -4,7 +4,12 @@ from uaclient.testing.fakes import FakeConfig
 
 import pytest
 
-from uaclient.cli import UA_AUTH_TOKEN_URL, action_attach, attach_parser
+from uaclient.cli import (
+    UA_AUTH_TOKEN_URL,
+    action_attach,
+    attach_parser,
+    get_parser,
+)
 from uaclient.exceptions import NonRootUserError, UserFacingError
 from uaclient import status
 
@@ -101,44 +106,43 @@ class TestActionAttach:
 class TestParser:
     def test_attach_parser_creates_a_parser_when_not_provided(self):
         """Create a named parser configured for 'attach'."""
-        parser = attach_parser()
+        m_parser = attach_parser(mock.Mock())
+        assert "ubuntu-advantage attach <token> [flags]" == m_parser.usage
+        assert "attach" == m_parser.prog
+        assert "Flags" == m_parser._optionals.title
 
-        assert "ubuntu-advantage attach <token> [flags]" == parser.usage
-        descr = (
-            "Attach this machine to an existing Ubuntu Advantage support"
-            " subscription"
-        )
-        assert descr == parser.description
-        assert "attach" == parser.prog
-        assert "Flags" == parser._optionals.title
-
-        with mock.patch("sys.argv", ["attach", "token"]):
-            args = parser.parse_args()
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "attach", "token"]):
+            args = full_parser.parse_args()
         assert "token" == args.token
 
     def test_attach_parser_allows_empty_required_token(self):
         """Token required but parse_args allows none due to action_attach"""
-        parser = attach_parser()
-        with mock.patch("sys.argv", ["attach"]):
-            args = parser.parse_args()
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "attach"]):
+            args = full_parser.parse_args()
         assert None is args.token
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
         self, capsys
     ):
         """Contracts' dashboard URL is referenced by ua attach --help."""
-        parser = attach_parser()
-        parser.print_help()
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "attach", "--help"]):
+            with pytest.raises(SystemExit):
+                full_parser.parse_args()
         assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
 
     def test_attach_parser_accepts_and_stores_no_auto_enable(self):
-        parser = attach_parser()
-        with mock.patch("sys.argv", ["attach", "--no-auto-enable", "token"]):
-            args = parser.parse_args()
+        full_parser = get_parser()
+        with mock.patch(
+            "sys.argv", ["ua", "attach", "--no-auto-enable", "token"]
+        ):
+            args = full_parser.parse_args()
         assert not args.auto_enable
 
     def test_attach_parser_defaults_to_auto_enable(self):
-        parser = attach_parser()
-        with mock.patch("sys.argv", ["attach", "token"]):
-            args = parser.parse_args()
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "attach", "token"]):
+            args = full_parser.parse_args()
         assert args.auto_enable
