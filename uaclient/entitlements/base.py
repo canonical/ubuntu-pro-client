@@ -320,12 +320,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if not entitlement_cfg:
             return (
-                UserFacingStatus.INAPPLICABLE,
+                UserFacingStatus.UNAVAILABLE,
                 "{} is not entitled".format(self.title),
             )
         elif entitlement_cfg["entitlement"].get("entitled", False) is False:
             return (
-                UserFacingStatus.INAPPLICABLE,
+                UserFacingStatus.UNAVAILABLE,
                 "{} is not entitled".format(self.title),
             )
 

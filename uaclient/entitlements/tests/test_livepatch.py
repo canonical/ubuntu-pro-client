@@ -79,8 +79,8 @@ class TestLivepatchUserFacingStatus:
         )
         assert expected_details == details
 
-    def test_user_facing_status_inapplicable_on_unentitled(self, entitlement):
-        """Status inapplicable on absent entitlement contract status."""
+    def test_user_facing_status_unavailable_on_unentitled(self, entitlement):
+        """Status UNAVAILABLE on absent entitlement contract status."""
         no_entitlements = machine_token(LivepatchEntitlement.name)
         # Delete livepatch entitlement info
         no_entitlements["machineTokenInfo"]["contractInfo"][
@@ -91,7 +91,7 @@ class TestLivepatchUserFacingStatus:
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
-        assert uf_status == status.UserFacingStatus.INAPPLICABLE
+        assert uf_status == status.UserFacingStatus.UNAVAILABLE
         assert "Livepatch is not entitled" == details
 
 

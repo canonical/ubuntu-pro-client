@@ -402,7 +402,7 @@ class TestUaEntitlementUserFacingStatus:
         assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
         assert msg == details
 
-    def test_inapplicable_when_applicable_but_not_entitled(
+    def test_unavailable_when_applicable_but_not_entitled(
         self, concrete_entitlement_factory
     ):
 
@@ -412,11 +412,11 @@ class TestUaEntitlementUserFacingStatus:
         )
 
         user_facing_status, details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
         assert expected_details == details
 
-    def test_inapplicable_when_applicable_but_no_entitlement_cfg(
+    def test_unavailable_when_applicable_but_no_entitlement_cfg(
         self, concrete_entitlement_factory
     ):
 
@@ -427,7 +427,7 @@ class TestUaEntitlementUserFacingStatus:
         entitlement.cfg._entitlements = {}
 
         user_facing_status, details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
         assert expected_details == details
 
