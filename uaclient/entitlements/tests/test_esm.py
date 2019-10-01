@@ -217,9 +217,10 @@ class TestESMEntitlementDisable:
     ):
         """When can_disable, disable removes apt configuration"""
 
-        with mock.patch("uaclient.util.subp"):
-            with mock.patch("uaclient.util.write_file") as m_write:
-                assert entitlement.disable(True)
+        with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
+            with mock.patch("uaclient.util.subp"):
+                with mock.patch("uaclient.util.write_file") as m_write:
+                    assert entitlement.disable(True)
 
         # Disable esm repo again
         write_calls = [

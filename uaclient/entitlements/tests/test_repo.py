@@ -445,3 +445,16 @@ class TestRepoEnable:
         )
         assert expected_call in m_subp.call_args_list
         assert 1 == m_rac.call_count
+
+
+class TestRemoveAptConfig:
+    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.remove_apt_list_files")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_apt_get_update_called(
+        self, m_run_apt_command, _m_apt1, _m_apt2, entitlement
+    ):
+        entitlement.remove_apt_config()
+
+        expected_call = mock.call(["apt-get", "update"], mock.ANY)
+        assert expected_call in m_run_apt_command.call_args_list

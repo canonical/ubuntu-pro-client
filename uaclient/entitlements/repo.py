@@ -249,7 +249,7 @@ class RepoEntitlement(base.UAEntitlement):
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
-        print("Updating package lists")
+        print(status.MESSAGE_APT_UPDATING_LISTS)
         try:
             apt.run_apt_command(
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
@@ -295,3 +295,7 @@ class RepoEntitlement(base.UAEntitlement):
                 )
             elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
+        print(status.MESSAGE_APT_UPDATING_LISTS)
+        apt.run_apt_command(
+            ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+        )
