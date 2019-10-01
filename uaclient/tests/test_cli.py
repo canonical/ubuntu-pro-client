@@ -1,18 +1,73 @@
+import io
 import logging
 import mock
 import os
 import stat
 import sys
+import textwrap
 
 import pytest
 
-from uaclient.cli import assert_attached_root, main, setup_logging
+from uaclient.cli import assert_attached_root, get_parser, main, setup_logging
+
 from uaclient.exceptions import (
     NonRootUserError,
     UserFacingError,
     UnattachedError,
 )
 from uaclient.testing.fakes import FakeConfig
+
+
+BIG_DESC = "123456789 " * 7 + "next line"
+BIG_URL = "http://" + "adsf" * 10
+
+
+SERVICES_WRAPPED_HELP = textwrap.dedent(
+    """
+Client to manage Ubuntu Advantage support services on a machine.
+ - cc-eal: Common Criteria EAL2 Provisioning Packages
+   (https://ubuntu.com/cc-eal)
+ - cis-audit: Center for Internet Security Audit Tools
+   (https://ubuntu.com/cis-audit)
+ - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
+ - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
+ - fips-updates: Uncertified security updates to FIPS modules
+ - livepatch: Canonical Livepatch service (https://ubuntu.com/livepatch)
+"""
+)
+
+
+class TestCLIParser:
+    maxDiff = None
+
+    @mock.patch("uaclient.cli.entitlements")
+    def test_help_descr_and_url_is_wrapped_at_eighty_chars(
+        self, m_entitlements
+    ):
+        """Help lines are wrapped at 80 chars"""
+
+        def cls_mock_factory(desc, url):
+            return mock.Mock(description=desc, help_doc_url=url)
+
+        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
+            "test": cls_mock_factory(BIG_DESC, BIG_URL)
+        }
+
+        parser = get_parser()
+        help_file = io.StringIO()
+        parser.print_help(file=help_file)
+        lines = [
+            " - test: " + " ".join(["123456789"] * 7),
+            "   next line ({url})".format(url=BIG_URL),
+        ]
+        assert "\n".join(lines) in help_file.getvalue()
+
+    def test_help_sourced_dynamically_from_each_entitlement(self):
+        """Help output is sourced from entitlement name and description."""
+        parser = get_parser()
+        help_file = io.StringIO()
+        parser.print_help(file=help_file)
+        assert SERVICES_WRAPPED_HELP in help_file.getvalue()
 
 
 class TestAssertAttachedRoot:

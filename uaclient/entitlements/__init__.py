@@ -22,6 +22,7 @@ ENTITLEMENT_CLASSES = [
     LivepatchEntitlement,
 ]  # type: List[Type[UAEntitlement]]
 
+
 ENTITLEMENT_CLASS_BY_NAME = dict(
     (cast(str, cls.name), cls) for cls in ENTITLEMENT_CLASSES
 )  # type: Dict[str, Type[UAEntitlement]]

@@ -3,7 +3,8 @@ from uaclient.entitlements import repo
 
 class ESMEntitlement(repo.RepoEntitlement):
 
-    name = "esm"
+    help_doc_url = "https://ubuntu.com/esm"
+    name = "esm-infra"
     title = "ESM Infra"
     origin = "UbuntuESM"
     description = "UA Infra: Extended Security Maintenance"

@@ -55,8 +55,8 @@ class TestDisable:
         cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.name = "esm"
+            args.name = "esm-infra"
             action_disable(args, cfg)
         assert status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL.format(
-            name="esm"
+            name="esm-infra"
         ) == str(err.value)
