@@ -530,7 +530,7 @@ class TestDatetimeAwareJSONDecoder:
         assert out == json.loads(input, cls=util.DatetimeAwareJSONDecoder)
 
 
-@mock.patch("uaclient.util.input")
+@mock.patch("builtins.input")
 class TestPromptForConfirmation:
     @pytest.mark.parametrize(
         "return_value,user_input",
