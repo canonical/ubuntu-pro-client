@@ -34,8 +34,8 @@ class ContractStatus(enum.Enum):
     output.)
     """
 
-    ENTITLED = "entitled"
-    UNENTITLED = "none"
+    ENTITLED = "yes"
+    UNENTITLED = "no"
 
 
 @enum.unique
