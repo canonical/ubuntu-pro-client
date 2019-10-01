@@ -59,9 +59,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     title = "FIPS"
     description = "NIST-certified FIPS modules"
     messaging = {
-        "post_enable": [
-            "FIPS configured and pending, please reboot to make active."
-        ]
+        "post_enable": ["A reboot is required to complete the install"]
     }
     origin = "UbuntuFIPS"
     repo_url = "https://esm.ubuntu.com/fips"
