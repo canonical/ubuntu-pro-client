@@ -4,11 +4,8 @@ set -e
 
 
 remove_apt_auth(){
+    # config file created at runtime, needs explicit handling on purge
     rm -f /etc/apt/auth.conf.d/90ubuntu-advantage
-}
-
-remove_apt_hook(){
-    rm -f /etc/apt/apt.conf.d/20apt-esm-hook.conf
 }
 
 remove_cache_dir(){
@@ -20,18 +17,15 @@ remove_logs(){
 }
 
 remove_esm(){
+    # config files created in postinst, need explicit handling on purge
     rm -f /etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg
-    rm -f /etc/apt/sources.list.d/ubuntu-esm-trusty.list
     rm -f /etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list
-    rm -f /etc/apt/apt.conf.d/51ubuntu-advantage-esm
-    rm -f /etc/apt/preferences.d/ubuntu-esm-trusty
     rm -f /etc/apt/preferences.d/ubuntu-esm-infra-trusty
 }
 
 case "$1" in
     purge)
         remove_apt_auth
-        remove_apt_hook
         remove_cache_dir
         remove_logs
         remove_esm
