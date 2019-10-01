@@ -352,12 +352,12 @@ class TestFIPSEntitlementApplicationStatus:
             ),
             (
                 {"kernel": "4.4.0-148-generic"},
-                status.ApplicationStatus.PENDING,
+                status.ApplicationStatus.ENABLED,
                 "Reboot to FIPS kernel required",
             ),
         ),
     )
-    def test_kernels_are_used_to_switch_enabled_to_pending(
+    def test_kernels_are_used_to_detemine_application_status_message(
         self, entitlement, platform_info, expected_status, expected_msg
     ):
         msg = "sure is some status here"
@@ -390,6 +390,6 @@ class TestFIPSEntitlementApplicationStatus:
 
         expected_status = status.ApplicationStatus.DISABLED
         if isinstance(entitlement, FIPSUpdatesEntitlement):
-            expected_status = status.ApplicationStatus.PENDING
+            expected_status = status.ApplicationStatus.ENABLED
 
         assert expected_status == application_status

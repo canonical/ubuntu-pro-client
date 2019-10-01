@@ -333,7 +333,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         user_facing_status = {
             status.ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
             status.ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
-            status.ApplicationStatus.PENDING: UserFacingStatus.PENDING,
         }[application_status]
         return user_facing_status, explanation
 

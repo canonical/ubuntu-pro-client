@@ -261,10 +261,6 @@ class TestLivepatchProcessContractDeltas:
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @pytest.mark.parametrize(
         "directives,process_directives,process_token",
         (
             ({"caCerts": "new"}, True, False),
@@ -282,9 +278,9 @@ class TestLivepatchProcessContractDeltas:
         directives,
         process_directives,
         process_token,
-        application_status,
     ):
         """Run setup when livepatch ACTIVE and deltas are supported keys."""
+        application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         deltas = {"entitlement": {"directives": directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
@@ -299,10 +295,6 @@ class TestLivepatchProcessContractDeltas:
             setup_calls = []
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @pytest.mark.parametrize(
         "deltas,process_directives,process_token",
         (
@@ -320,9 +312,9 @@ class TestLivepatchProcessContractDeltas:
         deltas,
         process_directives,
         process_token,
-        application_status,
     ):
         """Run livepatch calls setup when resourceToken changes."""
+        application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
@@ -396,25 +388,15 @@ class TestLivepatchEntitlementEnable:
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.which", return_value=False)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install snapd and canonical-livepatch snap when not on system."""
+        application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
@@ -430,10 +412,6 @@ class TestLivepatchEntitlementEnable:
         ]
         assert expected_calls == m_which.call_args_list
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch("uaclient.util.subp", return_value=("snapd", ""))
     @mock.patch(
         "uaclient.util.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
@@ -441,16 +419,10 @@ class TestLivepatchEntitlementEnable:
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install canonical-livepatch snap when not present on the system."""
+        application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert (
@@ -491,25 +463,15 @@ class TestLivepatchEntitlementEnable:
         )
         assert expected_msg == excinfo.value.msg
 
-    @pytest.mark.parametrize(
-        "application_status",
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.which", return_value="/found/livepatch")
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Do not attempt to install livepatch snap when it is present."""
+        application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert self.mocks_config == m_subp.call_args_list
