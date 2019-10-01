@@ -12,6 +12,10 @@ script:
 matrix:
   fast_finish: true
   include:
+    - install:
+        - make travis-deb-install
+      script:
+        - make travis-deb-script
     - python: 3.4
       env: TOXENV=py3-trusty,flake8-trusty
       dist: trusty

@@ -29,5 +29,19 @@ test:
 testdeps:
 	pip install tox
 
+travis-deb-install:
+	git fetch --unshallow
+	sudo apt-get update
+	sudo apt-get build-dep -y ubuntu-advantage-tools
+	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools fakeroot tox
+
+travis-deb-script:
+	debuild -S -uc -us
+	sudo sbuild-adduser ${USER}
+	cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/${USER}/.sbuildrc
+	# Use this to get a new shell where we're in the sbuild group
+	sudo -E su ${USER} -c 'mk-sbuild xenial'
+	sudo -E su ${USER} -c 'sbuild --nolog --verbose --dist=xenial ../ubuntu-advantage-tools*.dsc'
+
 
 .PHONY: build clean test testdeps demo
