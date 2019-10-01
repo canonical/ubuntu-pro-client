@@ -403,14 +403,12 @@ class TestStatus:
     ):
         """Test we get the correct status dict when attached with basic conf"""
         cfg = FakeConfig.for_attached_machine()
-        inapplicable = status.UserFacingStatus.INAPPLICABLE.value
-        unavail = status.UserFacingStatus.UNAVAILABLE.value
         expected_services = [
             {
                 "description": cls.description,
                 "entitled": status.ContractStatus.UNENTITLED.value,
                 "name": cls.name,
-                "status": inapplicable if cls.name in resources else unavail,
+                "status": status.UserFacingStatus.UNAVAILABLE.value,
                 "statusDetails": mock.ANY,
             }
             for cls in entitlements.ENTITLEMENT_CLASSES

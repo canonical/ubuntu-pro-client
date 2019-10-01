@@ -65,8 +65,8 @@ class TestUserFacingStatus:
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
 
     @mock.patch(M_PATH + "util.get_platform_info")
-    def test_inapplicable_on_unentitled(self, m_platform_info, entitlement):
-        """When unentitled raises a failure, return INAPPLICABLE."""
+    def test_unavailable_on_unentitled(self, m_platform_info, entitlement):
+        """When unentitled, return UNAVAILABLE."""
         no_entitlements = copy.deepcopy(machine_token(RepoTestEntitlement))
         # delete all enttlements
         no_entitlements["machineTokenInfo"]["contractInfo"][
@@ -78,7 +78,7 @@ class TestUserFacingStatus:
         applicability, _details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.APPLICABLE == applicability
         uf_status, uf_details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == uf_status
+        assert status.UserFacingStatus.UNAVAILABLE == uf_status
         assert "Repo Test Class is not entitled" == uf_details
 
 
