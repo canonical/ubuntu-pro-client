@@ -33,7 +33,9 @@ travis-deb-install:
 	git fetch --unshallow
 	sudo apt-get update
 	sudo apt-get build-dep -y ubuntu-advantage-tools
-	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools fakeroot tox
+	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools
+	# Missing build-deps
+	sudo apt-get install -y --install-recommends libapt-pkg-dev python3-mock python3-pytest
 
 # Use the mirror for a GCE region, to speed things up. (Travis build VMs use
 # DataSourceNone so we can't dynamically determine the correct region.)
