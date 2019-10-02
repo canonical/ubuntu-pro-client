@@ -24,6 +24,7 @@ def export_gpg_key_from_keyring(
         destination_keyfile,
         "--yes",
         "--no-auto-check-trustdb",
+        "--no-options",
         "--no-default-keyring",
         "--keyring",
         source_keyring_file,

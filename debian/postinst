@@ -14,8 +14,9 @@ export_gpg_key_from_shared_keyring() {
     KEY_ID=$1
     if [ ! -z "$KEY_ID" ]; then
         rm -f $ESM_APT_GPG_KEY
-        gpg --no-auto-check-trustdb --options /dev/null --no-default-keyring \
-            --keyring $UA_KEYRING_FILE --export $KEY_ID > $ESM_APT_GPG_KEY
+        gpg --no-auto-check-trustdb --no-options --no-default-keyring \
+            --keyring $UA_KEYRING_FILE --export $KEY_ID \
+            --output $ESM_APT_GPG_KEY --yes
     fi
 }
 
