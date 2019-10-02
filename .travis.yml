@@ -1,5 +1,5 @@
 language: python
-dist: xenial
+dist: bionic
 
 install:
   # Required so `git describe` will definitely find a tag; see
@@ -17,6 +17,7 @@ matrix:
       dist: trusty
     - python: 3.5
       env: TOXENV=py3-xenial,flake8-xenial
+      dist: xenial
     - python: 3.6
       env: TOXENV=py3-bionic,flake8-bionic
     - python: 3.7
