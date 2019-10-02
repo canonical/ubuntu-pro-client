@@ -191,7 +191,6 @@ class TestWriteCache:
             os.lstat(expected_dir.strpath).st_mode
         )
 
-
     def test_write_cache_creates_dir_when_data_dir_does_not_exist(
         self, tmpdir
     ):
