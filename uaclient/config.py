@@ -244,14 +244,19 @@ class UAConfig:
     def _attached_service_status(
         self, ent, unavailable_resources
     ) -> "Dict[str, str]":
-        contract_status = ent.contract_status().value
-        ent_status, details = ent.user_facing_status()
-        if ent.name in unavailable_resources:
+        details = ""
+        contract_status = ent.contract_status()
+        if contract_status == status.ContractStatus.UNENTITLED:
             ent_status = status.UserFacingStatus.UNAVAILABLE
+        else:
+            if ent.name in unavailable_resources:
+                ent_status = status.UserFacingStatus.UNAVAILABLE
+            else:
+                ent_status, details = ent.user_facing_status()
         return {
             "name": ent.name,
             "description": ent.description,
-            "entitled": contract_status,
+            "entitled": contract_status.value,
             "status": ent_status.value,
             "statusDetails": details,
         }

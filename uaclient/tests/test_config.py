@@ -511,10 +511,14 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
+    @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
+    @mock.patch(M_PATH + "repo.RepoEntitlement.contract_status")
     def test_attached_reports_contract_and_service_status(
         self,
+        m_repo_contract_status,
         m_repo_uf_status,
+        m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_getuid,
         m_get_available_resources,
@@ -522,9 +526,13 @@ class TestStatus:
     ):
         """When attached, return contract and service user-facing status."""
         m_get_available_resources.return_value = RESP_ALL_RESOURCES_AVAILABLE
+        m_repo_contract_status.return_value = status.ContractStatus.ENTITLED
         m_repo_uf_status.return_value = (
             status.UserFacingStatus.INAPPLICABLE,
             "repo details",
+        )
+        m_livepatch_contract_status.return_value = (
+            status.ContractStatus.ENTITLED
         )
         m_livepatch_uf_status.return_value = (
             status.UserFacingStatus.ACTIVE,
@@ -566,7 +574,7 @@ class TestStatus:
                 {
                     "name": cls.name,
                     "description": cls.description,
-                    "entitled": status.ContractStatus.UNENTITLED.value,
+                    "entitled": status.ContractStatus.ENTITLED.value,
                     "status": expected_status,
                     "statusDetails": details,
                 }
@@ -621,11 +629,10 @@ ATTACHED_SERVICE_STATUS_PARAMETERS = [
     (ContractStatus.ENTITLED, UserFacingStatus.INACTIVE, False, "disabled"),
     (ContractStatus.ENTITLED, UserFacingStatus.INAPPLICABLE, False, "n/a"),
     (ContractStatus.ENTITLED, UserFacingStatus.UNAVAILABLE, False, "—"),
-    # UNENTITLED => display the given user-facing status (TODO: fix this, as
-    # part of #789)
-    (ContractStatus.UNENTITLED, UserFacingStatus.ACTIVE, False, "enabled"),
-    (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, False, "disabled"),
-    (ContractStatus.UNENTITLED, UserFacingStatus.INAPPLICABLE, False, "n/a"),
+    # UNENTITLED => UNAVAILABLE
+    (ContractStatus.UNENTITLED, UserFacingStatus.ACTIVE, False, "—"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, False, "—"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INAPPLICABLE, False, "—"),
     (ContractStatus.UNENTITLED, UserFacingStatus.UNAVAILABLE, [], "—"),
     # ENTITLED but in unavailable_resources => UNAVAILABLE (TODO: this should
     # be INAPPLICABLE, fix this as part of #789)
