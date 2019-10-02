@@ -21,6 +21,7 @@ from uaclient.entitlements import (
     ENTITLEMENT_CLASS_BY_NAME,
 )
 from uaclient.testing.fakes import FakeConfig
+from uaclient.status import ContractStatus, UserFacingStatus
 
 
 KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
@@ -598,6 +599,55 @@ class TestStatus:
         cfg.write_cache("status-cache", status)
 
         assert status == cfg.status()
+
+
+ATTACHED_SERVICE_STATUS_PARAMETERS = [
+    # ENTITLED => display the given user-facing status
+    (ContractStatus.ENTITLED, UserFacingStatus.ACTIVE, False, "enabled"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INACTIVE, False, "disabled"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INAPPLICABLE, False, "n/a"),
+    (ContractStatus.ENTITLED, UserFacingStatus.UNAVAILABLE, False, "—"),
+    # UNENTITLED => display the given user-facing status (TODO: fix this, as
+    # part of #789)
+    (ContractStatus.UNENTITLED, UserFacingStatus.ACTIVE, False, "enabled"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, False, "disabled"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INAPPLICABLE, False, "n/a"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.UNAVAILABLE, [], "—"),
+    # ENTITLED but in unavailable_resources => UNAVAILABLE (TODO: this should
+    # be INAPPLICABLE, fix this as part of #789)
+    (ContractStatus.ENTITLED, UserFacingStatus.ACTIVE, True, "—"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INACTIVE, True, "—"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INAPPLICABLE, True, "—"),
+    (ContractStatus.ENTITLED, UserFacingStatus.UNAVAILABLE, True, "—"),
+    # UNENTITLED and in unavailable_resources => UNAVAILABLE
+    (ContractStatus.UNENTITLED, UserFacingStatus.ACTIVE, True, "—"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, True, "—"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.INAPPLICABLE, True, "—"),
+    (ContractStatus.UNENTITLED, UserFacingStatus.UNAVAILABLE, True, "—"),
+]
+
+
+class TestAttachedServiceStatus:
+    @pytest.mark.parametrize(
+        "contract_status,uf_status,in_unavailable_resources,expected_status",
+        ATTACHED_SERVICE_STATUS_PARAMETERS,
+    )
+    def test_status(
+        self,
+        contract_status,
+        uf_status,
+        in_unavailable_resources,
+        expected_status,
+    ):
+        ent = mock.MagicMock()
+        ent.name = "test_entitlement"
+        ent.contract_status.return_value = contract_status
+        ent.user_facing_status.return_value = (uf_status, "")
+
+        unavailable_resources = [ent.name] if in_unavailable_resources else []
+        ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
+
+        assert expected_status == ret["status"]
 
 
 class TestParseConfig:
