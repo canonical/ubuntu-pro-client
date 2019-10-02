@@ -439,11 +439,14 @@ class TestStatus:
         # cfg.status() idempotent
         assert expected == cfg.status()
 
-    @mock.patch("uaclient.contract.get_available_resources", return_value=[])
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
-    def test_nonroot_without_cache_is_same_as_unattached_root(
-        self, m_getuid, _m_get_available_resources
+    def test_nonroot_unattached_is_same_as_unattached_root(
+        self, m_getuid, m_get_available_resources
     ):
+        m_get_available_resources.return_value = [
+            {"name": "esm-infra", "available": True}
+        ]
         m_getuid.return_value = 1000
         cfg = FakeConfig()
 

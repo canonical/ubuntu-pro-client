@@ -308,7 +308,7 @@ class UAConfig:
         if os.getuid() != 0:
             response = cast("Dict[str, Any]", self.read_cache("status-cache"))
             if not response:
-                response = DEFAULT_STATUS
+                response = self._unattached_status()
         elif not self.is_attached:
             response = self._unattached_status()
         else:
