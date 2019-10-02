@@ -239,6 +239,21 @@ class UAConfig:
             )
         return response
 
+    def _attached_service_status(
+        self, ent, unavailable_resources
+    ) -> "Dict[str, str]":
+        contract_status = ent.contract_status().value
+        ent_status, details = ent.user_facing_status()
+        if ent.name in unavailable_resources:
+            ent_status = status.UserFacingStatus.UNAVAILABLE
+        return {
+            "name": ent.name,
+            "description": ent.description,
+            "entitled": contract_status,
+            "status": ent_status.value,
+            "statusDetails": details,
+        }
+
     def _attached_status(self) -> "Dict[str, Any]":
         """Return configuration of attached status as a dictionary."""
         from uaclient.contract import get_available_resources
@@ -268,18 +283,9 @@ class UAConfig:
 
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
-            contract_status = ent.contract_status().value
-            ent_status, details = ent.user_facing_status()
-            if ent.name in unavailable_resources:
-                ent_status = status.UserFacingStatus.UNAVAILABLE
-            service_status = {
-                "name": ent.name,
-                "description": ent.description,
-                "entitled": contract_status,
-                "status": ent_status.value,
-                "statusDetails": details,
-            }
-            response["services"].append(service_status)
+            response["services"].append(
+                self._attached_service_status(ent, unavailable_resources)
+            )
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:
             supportLevel = support.get("affordances", {}).get("supportLevel")
