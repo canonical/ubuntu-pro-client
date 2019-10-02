@@ -242,15 +242,15 @@ class UAConfig:
         return response
 
     def _attached_service_status(
-        self, ent, unavailable_resources
+        self, ent, inapplicable_resources
     ) -> "Dict[str, str]":
         details = ""
         contract_status = ent.contract_status()
         if contract_status == status.ContractStatus.UNENTITLED:
             ent_status = status.UserFacingStatus.UNAVAILABLE
         else:
-            if ent.name in unavailable_resources:
-                ent_status = status.UserFacingStatus.UNAVAILABLE
+            if ent.name in inapplicable_resources:
+                ent_status = status.UserFacingStatus.INAPPLICABLE
             else:
                 ent_status, details = ent.user_facing_status()
         return {
@@ -282,7 +282,7 @@ class UAConfig:
             )
 
         resources = get_available_resources(self)
-        unavailable_resources = [
+        inapplicable_resources = [
             resource["name"]
             for resource in sorted(resources, key=lambda x: x["name"])
             if not resource["available"]
@@ -291,7 +291,7 @@ class UAConfig:
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)
             response["services"].append(
-                self._attached_service_status(ent, unavailable_resources)
+                self._attached_service_status(ent, inapplicable_resources)
             )
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:

@@ -634,12 +634,11 @@ ATTACHED_SERVICE_STATUS_PARAMETERS = [
     (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, False, "—"),
     (ContractStatus.UNENTITLED, UserFacingStatus.INAPPLICABLE, False, "—"),
     (ContractStatus.UNENTITLED, UserFacingStatus.UNAVAILABLE, [], "—"),
-    # ENTITLED but in unavailable_resources => UNAVAILABLE (TODO: this should
-    # be INAPPLICABLE, fix this as part of #789)
-    (ContractStatus.ENTITLED, UserFacingStatus.ACTIVE, True, "—"),
-    (ContractStatus.ENTITLED, UserFacingStatus.INACTIVE, True, "—"),
-    (ContractStatus.ENTITLED, UserFacingStatus.INAPPLICABLE, True, "—"),
-    (ContractStatus.ENTITLED, UserFacingStatus.UNAVAILABLE, True, "—"),
+    # ENTITLED but in unavailable_resources => INAPPLICABLE
+    (ContractStatus.ENTITLED, UserFacingStatus.ACTIVE, True, "n/a"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INACTIVE, True, "n/a"),
+    (ContractStatus.ENTITLED, UserFacingStatus.INAPPLICABLE, True, "n/a"),
+    (ContractStatus.ENTITLED, UserFacingStatus.UNAVAILABLE, True, "n/a"),
     # UNENTITLED and in unavailable_resources => UNAVAILABLE
     (ContractStatus.UNENTITLED, UserFacingStatus.ACTIVE, True, "—"),
     (ContractStatus.UNENTITLED, UserFacingStatus.INACTIVE, True, "—"),
@@ -650,14 +649,14 @@ ATTACHED_SERVICE_STATUS_PARAMETERS = [
 
 class TestAttachedServiceStatus:
     @pytest.mark.parametrize(
-        "contract_status,uf_status,in_unavailable_resources,expected_status",
+        "contract_status,uf_status,in_inapplicable_resources,expected_status",
         ATTACHED_SERVICE_STATUS_PARAMETERS,
     )
     def test_status(
         self,
         contract_status,
         uf_status,
-        in_unavailable_resources,
+        in_inapplicable_resources,
         expected_status,
     ):
         ent = mock.MagicMock()
@@ -665,7 +664,7 @@ class TestAttachedServiceStatus:
         ent.contract_status.return_value = contract_status
         ent.user_facing_status.return_value = (uf_status, "")
 
-        unavailable_resources = [ent.name] if in_unavailable_resources else []
+        unavailable_resources = [ent.name] if in_inapplicable_resources else []
         ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
 
         assert expected_status == ret["status"]
