@@ -178,6 +178,20 @@ class TestWriteCache:
         )
         assert content == cfg.read_cache(key)
 
+    def test_write_cache_creates_secure_private_dir(self, tmpdir):
+        """private_dir is created with permission 0o700."""
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        # unknown keys are written to the private dir
+        expected_dir = tmpdir.join(PRIVATE_SUBDIR)
+        assert None is cfg.write_cache("somekey", "somevalue")
+        assert True is os.path.isdir(
+            expected_dir.strpath
+        ), "Missing expected directory {}".format(expected_dir)
+        assert 0o700 == stat.S_IMODE(
+            os.lstat(expected_dir.strpath).st_mode
+        )
+
+
     def test_write_cache_creates_dir_when_data_dir_does_not_exist(
         self, tmpdir
     ):
