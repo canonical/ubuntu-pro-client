@@ -187,9 +187,7 @@ class TestWriteCache:
         assert True is os.path.isdir(
             expected_dir.strpath
         ), "Missing expected directory {}".format(expected_dir)
-        assert 0o700 == stat.S_IMODE(
-            os.lstat(expected_dir.strpath).st_mode
-        )
+        assert 0o700 == stat.S_IMODE(os.lstat(expected_dir.strpath).st_mode)
 
     def test_write_cache_creates_dir_when_data_dir_does_not_exist(
         self, tmpdir
