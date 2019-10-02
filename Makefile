@@ -45,8 +45,8 @@ travis-deb-script:
 	sudo sbuild-adduser ${USER}
 	cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/${USER}/.sbuildrc
 	# Use this to get a new shell where we're in the sbuild group
-	sudo -E su ${USER} -c 'mk-sbuild xenial'
-	sudo -E su ${USER} -c 'sbuild --nolog --verbose --dist=xenial ../ubuntu-advantage-tools*.dsc'
+	sudo -E su ${USER} -c 'mk-sbuild ${PACKAGE_BUILD_SERIES}'
+	sudo -E su ${USER} -c 'sbuild --nolog --verbose --dist=${PACKAGE_BUILD_SERIES} ../ubuntu-advantage-tools*.dsc'
 
 
 .PHONY: build clean test testdeps demo

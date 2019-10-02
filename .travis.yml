@@ -12,7 +12,9 @@ script:
 matrix:
   fast_finish: true
   include:
-    - install:
+    - env:
+        PACKAGE_BUILD_SERIES=xenial
+      install:
         - make travis-deb-install
       script:
         - make travis-deb-script
