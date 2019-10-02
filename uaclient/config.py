@@ -199,6 +199,8 @@ class UAConfig:
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
+            if os.path.basename(data_dir) == PRIVATE_SUBDIR:
+                os.chmod(data_dir, 0o700)
         if key.startswith("machine-access") or key == "machine-token":
             self._machine_token = None
             self._entitlements = None
