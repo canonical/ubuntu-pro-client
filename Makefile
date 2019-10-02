@@ -35,6 +35,9 @@ travis-deb-install:
 	sudo apt-get build-dep -y ubuntu-advantage-tools
 	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools fakeroot tox
 
+# Use the mirror for a GCE region, to speed things up. (Travis build VMs use
+# DataSourceNone so we can't dynamically determine the correct region.)
+travis-deb-script: export DEBOOTSTRAP_MIRROR=http://us-central1.gce.archive.ubuntu.com/ubuntu/
 travis-deb-script:
 	debuild -S -uc -us
 	sudo sbuild-adduser ${USER}
