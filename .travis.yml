@@ -1,6 +1,6 @@
 language: python
 dist: xenial
-matrix:
+
 install:
   # Required so `git describe` will definitely find a tag; see
   # https://github.com/travis-ci/travis-ci/issues/7422
