@@ -40,9 +40,9 @@ def step_impl(context):
             "ppa:canonical-server/ua-client-daily",
         ],
     )
-    _lxc_exec(context, ["apt-get", "update", "-q"])
+    _lxc_exec(context, ["apt-get", "update", "-qq"])
     _lxc_exec(
-        context, ["apt-get", "install", "-q", "-y", "ubuntu-advantage-tools"]
+        context, ["apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"]
     )
 
 
