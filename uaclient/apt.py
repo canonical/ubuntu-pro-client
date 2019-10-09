@@ -301,7 +301,7 @@ def clean_apt_sources(*, _entitlements=None):
 
     :param _entitlements:
         The uaclient.entitlements module to use, defaults to
-        uaclient.entitlements.  (This is only present for testing, because the
+        uaclient.entitlements. (This is only present for testing, because the
         import happens within the function to avoid circular imports.)
     """
     if _entitlements is None:

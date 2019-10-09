@@ -131,7 +131,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         revisions.
 
         :return:
-            tuple of (ApplicabilityStatus, detailed_message).  APPLICABLE if
+            tuple of (ApplicabilityStatus, detailed_message). APPLICABLE if
             platform passes all defined affordances, INAPPLICABLE if it doesn't
             meet all of the provided constraints.
         """
