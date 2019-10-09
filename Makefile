@@ -39,13 +39,16 @@ travis-deb-install:
 
 # Use the mirror for a GCE region, to speed things up. (Travis build VMs use
 # DataSourceNone so we can't dynamically determine the correct region.)
-travis-deb-script: export DEBOOTSTRAP_MIRROR=http://us-central1.gce.archive.ubuntu.com/ubuntu/
 travis-deb-script:
 	debuild -S -uc -us
 	sudo sbuild-adduser ${USER}
 	cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/${USER}/.sbuildrc
 	# Use this to get a new shell where we're in the sbuild group
-	sudo -E su ${USER} -c 'mk-sbuild ${PACKAGE_BUILD_SERIES}'
+	case ${PACKAGE_BUILD_SERIES} in \
+		trusty) ;; \
+		*) DEBOOTSTRAP_MIRROR=http://us-central1.gce.archive.ubuntu.com/ubuntu/;; \
+	esac; \
+		sudo -E su ${USER} -c 'mk-sbuild ${PACKAGE_BUILD_SERIES}'
 	sudo -E su ${USER} -c 'sbuild --nolog --verbose --dist=${PACKAGE_BUILD_SERIES} ../ubuntu-advantage-tools*.dsc'
 
 
