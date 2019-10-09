@@ -429,9 +429,11 @@ class TestStatus:
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
+                "account-id": "acct-1",
                 "account": "test_account",
                 "attached": True,
                 "services": expected_services,
+                "subscription-id": "contract-1",
                 "subscription": "test_contract",
             }
         )
@@ -540,8 +542,9 @@ class TestStatus:
         )
         token = {
             "machineTokenInfo": {
-                "accountInfo": {"id": "1", "name": "accountname"},
+                "accountInfo": {"id": "acct-1", "name": "accountname"},
                 "contractInfo": {
+                    "id": "contract-1",
                     "name": "contractname",
                     "resourceEntitlements": entitlements,
                 },
@@ -559,7 +562,9 @@ class TestStatus:
             {
                 "attached": True,
                 "account": "accountname",
+                "account-id": "acct-1",
                 "subscription": "contractname",
+                "subscription-id": "contract-1",
                 "techSupportLevel": support_level,
             }
         )
@@ -590,8 +595,9 @@ class TestStatus:
     ):
         token = {
             "machineTokenInfo": {
-                "accountInfo": {"id": "1", "name": "accountname"},
+                "accountInfo": {"id": "acct-1", "name": "accountname"},
                 "contractInfo": {
+                    "id": "contract-1",
                     "name": "contractname",
                     "effectiveTo": "2020-07-18T00:00:00Z",
                     "resourceEntitlements": [],

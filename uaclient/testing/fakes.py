@@ -80,9 +80,9 @@ class FakeConfig(UAConfig):
             "machine-token": {
                 "machineToken": "not-null",
                 "machineTokenInfo": {
-                    "accountInfo": {"name": account_name},
+                    "accountInfo": {"id": "acct-1", "name": account_name},
                     "contractInfo": {
-                        "id": "cid",
+                        "id": "contract-1",
                         "name": "test_contract",
                         "resourceEntitlements": [],
                     },

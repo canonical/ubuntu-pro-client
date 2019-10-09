@@ -272,8 +272,10 @@ class UAConfig:
             {
                 "attached": True,
                 "account": self.accounts[0]["name"],
+                "account-id": self.accounts[0]["id"],
                 "origin": contractInfo.get("origin"),
                 "subscription": contractInfo["name"],
+                "subscription-id": contractInfo["id"],
             }
         )
         if contractInfo.get("effectiveTo"):
