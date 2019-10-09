@@ -106,7 +106,7 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
 
     Important note: the "some" is because we seem to only be able extend
     Python's json library in a way that lets us convert string values within
-    JSON objects (e.g. '{"lastModified": "2019-07-25T14:35:51"}').  Strings
+    JSON objects (e.g. '{"lastModified": "2019-07-25T14:35:51"}'). Strings
     outside of JSON objects (e.g. '"2019-07-25T14:35:51"') will not be passed
     through our decoder.
 
@@ -187,7 +187,7 @@ def disable_log_to_console():
 
     This context manager will allow us to gradually move away from using the
     logging framework for user-facing output, by applying it to parts of the
-    codebase piece-wise.  (Once the conversion is complete, we should have no
+    codebase piece-wise. (Once the conversion is complete, we should have no
     further use for it and it can be removed.)
 
     (Note that the @contextmanager decorator also allows this function to be

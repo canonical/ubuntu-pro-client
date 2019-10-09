@@ -14,9 +14,9 @@ def caplog_text(request):
     uses caplog.text if available, or a shim which replicates what it does.
 
     Specifically, bionic is the first Ubuntu release to contain a version of
-    pytest new enough for the caplog fixture to be present.  In xenial, the
+    pytest new enough for the caplog fixture to be present. In xenial, the
     python3-pytest-catchlog package provides the same functionality (this is
-    the code that was later integrated in to pytest).  For trusty, there is no
+    the code that was later integrated in to pytest). For trusty, there is no
     packaged alternative to this shim.
 
     (It returns a function so that the requester can decide when to examine the

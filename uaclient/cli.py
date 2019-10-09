@@ -150,7 +150,7 @@ def status_parser(parser):
         * SERVICE: name of the service
         * ENTITLED: whether the contract to which this machine is attached
           entitles use of this service. Possible values are: yes or no
-        * STATUS: whether the service is enabled on this machine.  Possible
+        * STATUS: whether the service is enabled on this machine. Possible
           values are: enabled, disabled, n/a (if your contract entitles
           you to the service, but it isn't available for this machine) or — (if
           you aren't entitled to this service)
@@ -161,7 +161,7 @@ def status_parser(parser):
         of:
 
         * AVAILABLE: whether this service would be available if this machine
-          were attached.  The possible values are yes or no.
+          were attached. The possible values are yes or no.
         """
     )
 
