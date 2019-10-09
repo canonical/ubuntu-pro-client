@@ -1,5 +1,6 @@
 import mock
 import pytest
+import string
 
 from uaclient import config
 from uaclient.status import format_tabular, TxtColor
@@ -14,6 +15,21 @@ def status_dict_attached():
     status["account"] = "account"
     status["subscription"] = "subscription"
     status["expires"] = "expires"
+
+    return status
+
+
+@pytest.fixture
+def status_dict_unattached():
+    status = config.DEFAULT_STATUS.copy()
+
+    status["services"] = [
+        {
+            "name": "cc-eal",
+            "description": "Common Criteria EAL2 Provisioning Packages",
+            "available": "no",
+        }
+    ]
 
     return status
 
@@ -100,3 +116,16 @@ class TestFormatTabular:
             if ":" in line and "Enable services" not in line
         ]
         assert list(expected_headers) == headers
+
+    def test_correct_unattached_column_alignment(self, status_dict_unattached):
+        tabular_output = format_tabular(status_dict_unattached)
+        [header, eal_service_line] = [
+            line
+            for line in tabular_output.splitlines()
+            if "eal" in line or "AVAILABLE" in line
+        ]
+        printable_eal_line = "".join(
+            filter(lambda x: x in string.printable, eal_service_line)
+        )
+        assert header.find("AVAILABLE") == printable_eal_line.find("no")
+        assert header.find("DESCRIPTION") == printable_eal_line.find("Common")
