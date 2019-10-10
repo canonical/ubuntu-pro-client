@@ -53,8 +53,8 @@ def assert_root(f):
     return new_f
 
 
-def assert_attached_root(unattached_msg_tmpl=None):
-    """Decorator asserting root user and attached config.
+def assert_attached(unattached_msg_tmpl=None):
+    """Decorator asserting attached config.
 
     :param unattached_msg_tmpl: Optional msg template to format if raising an
         UnattachedError
@@ -62,7 +62,6 @@ def assert_attached_root(unattached_msg_tmpl=None):
 
     def wrapper(f):
         @wraps(f)
-        @assert_root
         def new_f(args, cfg):
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
@@ -75,6 +74,21 @@ def assert_attached_root(unattached_msg_tmpl=None):
             return f(args, cfg)
 
         return new_f
+
+    return wrapper
+
+
+def assert_attached_root(unattached_msg_tmpl=None):
+    """Decorator asserting root user and attached config.
+
+    This is sugar for using assert_root and assert_attached together.
+
+    :param unattached_msg_tmpl: Optional msg template to format if raising an
+        UnattachedError
+    """
+
+    def wrapper(f):
+        return wraps(f)(assert_root(assert_attached(unattached_msg_tmpl)(f)))
 
     return wrapper
 

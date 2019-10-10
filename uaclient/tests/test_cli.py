@@ -9,6 +9,7 @@ import textwrap
 import pytest
 
 from uaclient.cli import (
+    assert_attached,
     assert_attached_root,
     assert_root,
     get_parser,
@@ -141,6 +142,36 @@ class TestAssertRoot:
         with mock.patch("uaclient.cli.os.getuid", return_value=1000):
             with pytest.raises(NonRootUserError):
                 test_function()
+
+
+# Test multiple uids, to be sure that the root checking is absent
+@pytest.mark.parametrize("uid", [0, 1000])
+class TestAssertAttached:
+    def test_assert_attached_when_attached(self, capsys, uid):
+        @assert_attached()
+        def test_function(args, cfg):
+            return mock.sentinel.success
+
+        cfg = FakeConfig.for_attached_machine()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            ret = test_function(mock.Mock(), cfg)
+
+        assert mock.sentinel.success == ret
+
+        out, _err = capsys.readouterr()
+        assert "" == out.strip()
+
+    def test_assert_attached_when_unattached(self, uid):
+        @assert_attached()
+        def test_function(args, cfg):
+            pass
+
+        cfg = FakeConfig()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            with pytest.raises(UnattachedError):
+                test_function(mock.Mock(), cfg)
 
 
 class TestMain:
