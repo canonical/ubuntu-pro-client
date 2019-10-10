@@ -8,7 +8,13 @@ import textwrap
 
 import pytest
 
-from uaclient.cli import assert_attached_root, get_parser, main, setup_logging
+from uaclient.cli import (
+    assert_attached_root,
+    assert_root,
+    get_parser,
+    main,
+    setup_logging,
+)
 
 from uaclient.exceptions import (
     NonRootUserError,
@@ -109,6 +115,32 @@ class TestAssertAttachedRoot:
         with pytest.raises(expected_exception):
             with mock.patch("uaclient.cli.os.getuid", return_value=uid):
                 test_function(mock.Mock(), cfg)
+
+
+class TestAssertRoot:
+    def test_assert_root_when_root(self):
+        arg, kwarg = mock.sentinel.arg, mock.sentinel.kwarg
+
+        @assert_root
+        def test_function(arg, *, kwarg):
+            assert arg == mock.sentinel.arg
+            assert kwarg == mock.sentinel.kwarg
+
+            return mock.sentinel.success
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=0):
+            ret = test_function(arg, kwarg=kwarg)
+
+        assert mock.sentinel.success == ret
+
+    def test_assert_root_when_not_root(self):
+        @assert_root
+        def test_function():
+            pass
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=1000):
+            with pytest.raises(NonRootUserError):
+                test_function()
 
 
 class TestMain:

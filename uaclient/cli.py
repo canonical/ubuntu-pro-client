@@ -41,6 +41,18 @@ DEFAULT_LOG_FORMAT = (
 STATUS_FORMATS = ["tabular", "json"]
 
 
+def assert_root(f):
+    """Decorator asserting root user"""
+
+    @wraps(f)
+    def new_f(*args, **kwargs):
+        if os.getuid() != 0:
+            raise exceptions.NonRootUserError()
+        return f(*args, **kwargs)
+
+    return new_f
+
+
 def assert_attached_root(unattached_msg_tmpl=None):
     """Decorator asserting root user and attached config.
 
@@ -50,9 +62,8 @@ def assert_attached_root(unattached_msg_tmpl=None):
 
     def wrapper(f):
         @wraps(f)
+        @assert_root
         def new_f(args, cfg):
-            if os.getuid() != 0:
-                raise exceptions.NonRootUserError()
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
                     name = getattr(args, "name", "None")
