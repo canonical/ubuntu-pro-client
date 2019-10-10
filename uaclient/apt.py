@@ -23,7 +23,6 @@ APT_CONFIG_AUTH_PARTS_DIR = "Dir::Etc::netrcparts/"
 APT_CONFIG_LISTS_DIR = "Dir::State::lists/"
 APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
 KEYRINGS_DIR = "/usr/share/keyrings"
-UA_KEYRING_FILE = os.path.join(KEYRINGS_DIR, "ubuntu-advantage-keyring.gpg")
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
 CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
 
@@ -105,7 +104,6 @@ def add_auth_apt_repo(
     repo_url: str,
     credentials: str,
     suites: "List[str]",
-    key_id: str,
     keyring_file: str,
 ) -> None:
     """Add an authenticated apt repo and credentials to the system.
@@ -159,7 +157,9 @@ def add_auth_apt_repo(
         )
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
-    gpg.export_gpg_key_from_keyring(key_id, UA_KEYRING_FILE, keyring_file)
+    source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)
+    destination_keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
+    gpg.export_gpg_key(source_keyring_file, destination_keyring_file)
 
 
 def add_apt_auth_conf_entry(repo_url, login, password):
@@ -227,6 +227,7 @@ def remove_auth_apt_repo(
     """Remove an authenticated apt repo and credentials to the system"""
     util.del_file(repo_filename)
     if keyring_file:
+        keyring_file = os.path.join(APT_KEYS_DIR, keyring_file)
         util.del_file(keyring_file)
     remove_repo_from_apt_auth_file(repo_url)
 

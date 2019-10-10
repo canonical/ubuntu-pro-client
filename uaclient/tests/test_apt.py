@@ -10,7 +10,9 @@ from textwrap import dedent
 import pytest
 
 from uaclient.apt import (
+    APT_KEYS_DIR,
     APT_AUTH_COMMENT,
+    KEYRINGS_DIR,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
@@ -262,7 +264,7 @@ class TestValidAptCredentials:
 
 
 class TestAddAuthAptRepo:
-    @mock.patch("uaclient.apt.gpg.export_gpg_key_from_keyring")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
@@ -289,7 +291,6 @@ class TestAddAuthAptRepo:
             repo_url="http://fakerepo",
             credentials="mycreds",
             suites=("xenial",),
-            key_id="1",
             keyring_file="keyring",
         )
 
@@ -298,10 +299,12 @@ class TestAddAuthAptRepo:
             "# deb-src http://fakerepo/ubuntu xenial main\n"
         )
         assert expected_content == util.load_file(repo_file)
-        gpg_export_calls = [mock.call("1", apt.UA_KEYRING_FILE, "keyring")]
+        src_keyfile = os.path.join(KEYRINGS_DIR, "keyring")
+        dest_keyfile = os.path.join(APT_KEYS_DIR, "keyring")
+        gpg_export_calls = [mock.call(src_keyfile, dest_keyfile)]
         assert gpg_export_calls == m_gpg_export.call_args_list
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key_from_keyring")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
@@ -336,7 +339,6 @@ class TestAddAuthAptRepo:
             repo_url="http://fakerepo",
             credentials="mycreds",
             suites=("xenial-one", "xenial-updates", "trusty-gone"),
-            key_id="1",
             keyring_file="keyring",
         )
 
@@ -350,7 +352,7 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == util.load_file(repo_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key_from_keyring")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
@@ -382,7 +384,6 @@ class TestAddAuthAptRepo:
             repo_url="http://fakerepo",
             credentials="mycreds",
             suites=("xenial-one", "xenial-updates", "trusty-gone"),
-            key_id="1",
             keyring_file="keyring",
         )
 
@@ -396,7 +397,7 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == util.load_file(repo_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key_from_keyring")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
@@ -423,7 +424,6 @@ class TestAddAuthAptRepo:
             repo_url="http://fakerepo",
             credentials="user:password",
             suites=("xenial",),
-            key_id="1",
             keyring_file="keyring",
         )
 
@@ -433,7 +433,7 @@ class TestAddAuthAptRepo:
         )
         assert expected_content == util.load_file(auth_file)
 
-    @mock.patch("uaclient.apt.gpg.export_gpg_key_from_keyring")
+    @mock.patch("uaclient.apt.gpg.export_gpg_key")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.get_apt_auth_file_from_apt_config")
     @mock.patch("uaclient.apt.assert_valid_apt_credentials")
@@ -460,7 +460,6 @@ class TestAddAuthAptRepo:
             repo_url="http://fakerepo/",
             credentials="SOMELONGTOKEN",
             suites=("xenia",),
-            key_id="1",
             keyring_file="keyring",
         )
 
@@ -651,7 +650,10 @@ class TestRemoveAuthAptRepo:
 
         keyring_file = remove_auth_apt_repo_kwargs.get("keyring_file")
         if keyring_file:
-            assert mock.call(keyring_file) in m_del_file.call_args_list
+            assert (
+                mock.call(os.path.join(APT_KEYS_DIR, keyring_file))
+                in m_del_file.call_args_list
+            )
         else:
             assert mock.call(keyring_file) not in m_del_file.call_args_list
 

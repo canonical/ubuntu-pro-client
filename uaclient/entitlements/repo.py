@@ -241,9 +241,8 @@ class RepoEntitlement(base.UAEntitlement):
             except exceptions.UserFacingError:
                 self.remove_apt_config()
                 raise
-        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
         apt.add_auth_apt_repo(
-            repo_filename, repo_url, token, repo_suites, aptKey, keyring_file
+            repo_filename, repo_url, token, repo_suites, self.repo_key_file
         )
         # Run apt-update on any repo-entitlement enable because the machine
         # probably wants access to the repo that was just enabled.
@@ -264,7 +263,6 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series
         )
-        keyring_file = os.path.join(apt.APT_KEYS_DIR, self.repo_key_file)
         entitlement = self.cfg.read_cache(
             "machine-access-{}".format(self.name)
         ).get("entitlement", {})
@@ -279,7 +277,9 @@ class RepoEntitlement(base.UAEntitlement):
             apt.remove_repo_from_apt_auth_file(repo_url)
             apt.restore_commented_apt_list_file(repo_filename)
         else:
-            apt.remove_auth_apt_repo(repo_filename, repo_url, keyring_file)
+            apt.remove_auth_apt_repo(
+                repo_filename, repo_url, self.repo_key_file
+            )
             apt.remove_apt_list_files(repo_url, series)
         if self.repo_pin_priority:
             repo_pref_file = self.repo_pref_file_tmpl.format(

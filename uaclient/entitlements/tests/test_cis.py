@@ -1,7 +1,6 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import mock
-import os
 
 import pytest
 
@@ -66,8 +65,7 @@ class TestCISEntitlementEnable:
                 "http://CIS-AUDIT",
                 "TOKEN",
                 ["xenial"],
-                "APTKEY",
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+                entitlement.repo_key_file,
             )
         ]
 

@@ -75,8 +75,7 @@ class TestESMEntitlementEnable:
                 "http://ESM-INFRA",
                 "TOKEN",
                 ["trusty"],
-                "APTKEY",
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+                entitlement.repo_key_file,
             )
         ]
         install_cmd = mock.call(
@@ -164,8 +163,7 @@ class TestESMEntitlementEnable:
                 "http://ESM-INFRA",
                 "TOKEN",
                 ["trusty"],
-                "APTKEY",
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+                entitlement.repo_key_file,
             )
         ]
         subp_calls = [
