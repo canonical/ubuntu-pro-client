@@ -45,7 +45,9 @@ class UAConfig:
         "machine-access-cis-audit": DataPath(
             "machine-access-cis-audit.json", True
         ),
-        "machine-access-esm": DataPath("machine-access-esm.json", True),
+        "machine-access-esm-infra": DataPath(
+            "machine-access-esm-infra.json", True
+        ),
         "machine-access-fips": DataPath("machine-access-fips.json", True),
         "machine-access-fips-updates": DataPath(
             "machine-access-fips-updates.json", True
