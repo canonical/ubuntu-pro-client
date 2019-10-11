@@ -8,7 +8,13 @@ import textwrap
 
 import pytest
 
-from uaclient.cli import assert_attached_root, get_parser, main, setup_logging
+from uaclient.cli import (
+    assert_attached,
+    assert_root,
+    get_parser,
+    main,
+    setup_logging,
+)
 
 from uaclient.exceptions import (
     NonRootUserError,
@@ -70,15 +76,43 @@ class TestCLIParser:
         assert SERVICES_WRAPPED_HELP in help_file.getvalue()
 
 
-class TestAssertAttachedRoot:
-    def test_assert_attached_root_happy_path(self, capsys):
-        @assert_attached_root()
+class TestAssertRoot:
+    def test_assert_root_when_root(self):
+        arg, kwarg = mock.sentinel.arg, mock.sentinel.kwarg
+
+        @assert_root
+        def test_function(arg, *, kwarg):
+            assert arg == mock.sentinel.arg
+            assert kwarg == mock.sentinel.kwarg
+
+            return mock.sentinel.success
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=0):
+            ret = test_function(arg, kwarg=kwarg)
+
+        assert mock.sentinel.success == ret
+
+    def test_assert_root_when_not_root(self):
+        @assert_root
+        def test_function():
+            pass
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=1000):
+            with pytest.raises(NonRootUserError):
+                test_function()
+
+
+# Test multiple uids, to be sure that the root checking is absent
+@pytest.mark.parametrize("uid", [0, 1000])
+class TestAssertAttached:
+    def test_assert_attached_when_attached(self, capsys, uid):
+        @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
 
         cfg = FakeConfig.for_attached_machine()
 
-        with mock.patch("uaclient.cli.os.getuid", return_value=0):
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)
 
         assert mock.sentinel.success == ret
@@ -86,28 +120,15 @@ class TestAssertAttachedRoot:
         out, _err = capsys.readouterr()
         assert "" == out.strip()
 
-    @pytest.mark.parametrize(
-        "attached,uid,expected_exception",
-        [
-            (True, 1000, NonRootUserError),
-            (False, 1000, NonRootUserError),
-            (False, 0, UnattachedError),
-        ],
-    )
-    def test_assert_attached_root_exceptions(
-        self, attached, uid, expected_exception
-    ):
-        @assert_attached_root()
+    def test_assert_attached_when_unattached(self, uid):
+        @assert_attached()
         def test_function(args, cfg):
-            return mock.sentinel.success
+            pass
 
-        if attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
+        cfg = FakeConfig()
 
-        with pytest.raises(expected_exception):
-            with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            with pytest.raises(UnattachedError):
                 test_function(mock.Mock(), cfg)
 
 

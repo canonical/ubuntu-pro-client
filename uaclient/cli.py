@@ -41,8 +41,20 @@ DEFAULT_LOG_FORMAT = (
 STATUS_FORMATS = ["tabular", "json"]
 
 
-def assert_attached_root(unattached_msg_tmpl=None):
-    """Decorator asserting root user and attached config.
+def assert_root(f):
+    """Decorator asserting root user"""
+
+    @wraps(f)
+    def new_f(*args, **kwargs):
+        if os.getuid() != 0:
+            raise exceptions.NonRootUserError()
+        return f(*args, **kwargs)
+
+    return new_f
+
+
+def assert_attached(unattached_msg_tmpl=None):
+    """Decorator asserting attached config.
 
     :param unattached_msg_tmpl: Optional msg template to format if raising an
         UnattachedError
@@ -51,8 +63,6 @@ def assert_attached_root(unattached_msg_tmpl=None):
     def wrapper(f):
         @wraps(f)
         def new_f(args, cfg):
-            if os.getuid() != 0:
-                raise exceptions.NonRootUserError()
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
                     name = getattr(args, "name", "None")
@@ -180,7 +190,8 @@ def status_parser(parser):
     return parser
 
 
-@assert_attached_root(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_root
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -225,7 +236,8 @@ def _perform_enable(
     return ret
 
 
-@assert_attached_root(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_root
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
@@ -246,7 +258,8 @@ def action_enable(args, cfg):
     return 0 if _perform_enable(args.name, cfg) else 1
 
 
-@assert_attached_root()
+@assert_root
+@assert_attached()
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
@@ -405,7 +418,8 @@ def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
-@assert_attached_root()
+@assert_root
+@assert_attached()
 def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)
