@@ -13,6 +13,7 @@ from uaclient.cli import (
     assert_root,
     get_parser,
     main,
+    require_valid_entitlement_name,
     setup_logging,
 )
 
@@ -130,6 +131,41 @@ class TestAssertAttached:
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(UnattachedError):
                 test_function(mock.Mock(), cfg)
+
+
+class TestRequireValidEntitlementName:
+    # rven used in test names as short hand for require_valid_entitlement_name
+    def test_rven_without_name(self):
+        @require_valid_entitlement_name("operation")
+        def test_function(args, cfg):
+            return mock.sentinel.success
+
+        assert mock.sentinel.success == test_function(object(), object())
+
+    def test_rven_with_valid_name(self):
+        @require_valid_entitlement_name("operation")
+        def test_function(args, cfg):
+            return mock.sentinel.success
+
+        m_args = mock.Mock()
+        m_args.name = "esm-infra"
+        assert mock.sentinel.success == test_function(m_args, object())
+
+    @pytest.mark.parametrize("operation_name", ["operation1", "operation2"])
+    def test_rven_with_invalid_name(self, operation_name):
+        @require_valid_entitlement_name(operation_name)
+        def test_function(args, cfg):
+            pass
+
+        m_args = mock.Mock()
+        m_args.name = "invalid_entitlement"
+        with pytest.raises(UserFacingError) as excinfo:
+            test_function(m_args, object())
+
+        assert (
+            "Cannot {} 'invalid_entitlement'".format(operation_name)
+            in excinfo.value.msg
+        )
 
 
 class TestMain:
