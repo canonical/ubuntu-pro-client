@@ -4,35 +4,25 @@ set -e
 
 . /etc/os-release  # For VERSION_ID
 
-ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
-ESM_APT_GPG_KEY="/etc/apt/trusted.gpg.d/ubuntu-esm-v2-keyring.gpg"
-ESM_APT_GPG_KEY_OLD="/etc/apt/trusted.gpg.d/ubuntu-esm-keyring.gpg"
+APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
+ESM_INFRA_KEY="ubuntu-advantage-esm-infra-trusty.gpg"
 ESM_APT_SOURCE_FILE_OLD="/etc/apt/sources.list.d/ubuntu-esm-trusty.list"
 ESM_APT_SOURCE_FILE="/etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list"
 ESM_APT_PREF_FILE_OLD="/etc/apt/preferences.d/ubuntu-esm-trusty"
 ESM_APT_PREF_FILE="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
-UA_KEYRING_FILE="/usr/share/keyrings/ubuntu-advantage-keyring.gpg"
+UA_KEYRING_DIR="/usr/share/keyrings/"
 
-
-export_gpg_key_from_shared_keyring() {
-    KEY_ID=$1
-    if [ ! -z "$KEY_ID" ]; then
-        rm -f $ESM_APT_GPG_KEY
-        gpg --no-auto-check-trustdb --no-options --no-default-keyring \
-            --keyring $UA_KEYRING_FILE --export $KEY_ID \
-            --yes > $ESM_APT_GPG_KEY
-    fi
-}
 
 unconfigure_esm() {
-    rm -f $ESM_APT_GPG_KEY $ESM_APT_GPG_KEY_OLD $ESM_APT_SOURCE_FILE
+    rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
+    rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY $ESM_APT_SOURCE_FILE
     rm -f $ESM_APT_PREF_FILE_OLD $ESM_APT_PREF_FILE
 }
 
 configure_esm() {
-    rm -f $ESM_APT_GPG_KEY_OLD  # Remove retired key from key list
-    if [ ! -f "$ESM_APT_GPG_KEY" ]; then
-        export_gpg_key_from_shared_keyring $ESM_KEY_ID_TRUSTY
+    rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
+    if [ ! -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY" ]; then
+        cp $UA_KEYRING_DIR/$ESM_INFRA_KEY $APT_TRUSTED_KEY_DIR
     fi
 
     if [ -e "$ESM_APT_SOURCE_FILE_OLD" ]; then

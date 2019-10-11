@@ -1,6 +1,5 @@
 import copy
 from textwrap import dedent
-import os
 
 import mock
 import pytest
@@ -395,8 +394,7 @@ class TestRepoEnable:
                 "http://REPOTEST",
                 "TOKEN",
                 ["xenial"],
-                "APTKEY",
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+                entitlement.repo_key_file,
             )
         ]
         assert add_apt_calls == m_apt_add.call_args_list
