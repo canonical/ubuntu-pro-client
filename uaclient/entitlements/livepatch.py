@@ -50,6 +50,17 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which("/snap/bin/canonical-livepatch"):
             if not util.which(SNAP_CMD):
                 print("Installing snapd")
+                print(status.MESSAGE_APT_UPDATING_LISTS)
+                try:
+                    apt.run_apt_command(
+                        ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+                    )
+                except exceptions.UserFacingError as e:
+                    logging.debug(
+                        "Trying to install snapd."
+                        " Ignoring apt-get update failure: %s",
+                        str(e),
+                    )
                 util.subp(
                     ["apt-get", "install", "--assume-yes", "snapd"],
                     capture=True,
