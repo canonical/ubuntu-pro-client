@@ -214,18 +214,13 @@ def status_parser(parser):
 
 
 @assert_root
+@require_valid_entitlement_name("disable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    if args.name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
-                operation="disable", name=args.name
-            )
-        )
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     ret = 0 if entitlement.disable() else 1
