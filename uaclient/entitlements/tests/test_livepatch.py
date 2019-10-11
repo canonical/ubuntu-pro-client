@@ -219,9 +219,11 @@ class TestLivepatchEntitlementCanEnable:
 
     def test_can_enable_false_on_containers(self, capsys, entitlement):
         """When is_container is True, can_enable returns False."""
+        unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
             with mock.patch("uaclient.util.is_container") as m_container:
-                m_platform.return_value = PLATFORM_INFO_SUPPORTED
+                m_platform.return_value = unsupported_min_kernel
                 m_container.return_value = True
                 entitlement = LivepatchEntitlement(entitlement.cfg)
                 assert not entitlement.can_enable()
