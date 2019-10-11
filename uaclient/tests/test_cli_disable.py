@@ -7,14 +7,14 @@ from uaclient import status
 from uaclient.testing.fakes import FakeConfig
 
 
+@mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
     @mock.patch("uaclient.cli.entitlements")
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_entitlement_instantiated_and_disabled(
-        self, _m_getuid, m_entitlements, disable_return, return_code
+        self, m_entitlements, _m_getuid, disable_return, return_code
     ):
         m_entitlement_cls = mock.Mock()
         m_entitlement = m_entitlement_cls.return_value
@@ -37,7 +37,6 @@ class TestDisable:
 
         assert 1 == m_cfg.status.call_count
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_invalid_service_error_message(self, m_getuid):
         """Check invalid service name results in custom error message."""
         cfg = FakeConfig.for_attached_machine()
@@ -49,7 +48,6 @@ class TestDisable:
             operation="disable", name="bogus"
         ) == str(err.value)
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_unattached_error_message(self, m_getuid):
         """Check that root user gets unattached message."""
         cfg = FakeConfig()
