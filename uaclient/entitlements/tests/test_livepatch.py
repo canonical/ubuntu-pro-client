@@ -1,6 +1,7 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import copy
+import logging
 import mock
 from types import MappingProxyType
 
@@ -331,6 +332,9 @@ class TestLivepatchProcessContractDeltas:
 
 class TestLivepatchEntitlementEnable:
 
+    mocks_apt_update = [
+        mock.call(["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED)
+    ]
     mocks_snapd_install = [
         mock.call(
             ["apt-get", "install", "--assume-yes", "snapd"],
@@ -388,24 +392,54 @@ class TestLivepatchEntitlementEnable:
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize("apt_update_success", (True, False))
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.apt.run_apt_command")
     @mock.patch("uaclient.util.which", return_value=False)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
-        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
+        self,
+        m_can_enable,
+        m_app_status,
+        m_which,
+        m_run_apt,
+        m_subp,
+        capsys,
+        caplog_text,
+        entitlement,
+        apt_update_success,
     ):
         """Install snapd and canonical-livepatch snap when not on system."""
         application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
+
+        def fake_run_apt(cmd, message):
+            if apt_update_success:
+                return
+            raise exceptions.UserFacingError("Apt go BOOM")
+
+        m_run_apt.side_effect = fake_run_apt
+
         assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
+        assert self.mocks_apt_update == m_run_apt.call_args_list
         msg = (
             "Installing snapd\n"
+            "Updating package lists\n"
             "Installing canonical-livepatch snap\n"
             "Canonical livepatch enabled.\n"
         )
         assert (msg, "") == capsys.readouterr()
+        expected_log = (
+            "DEBUG    Trying to install snapd."
+            " Ignoring apt-get update failure: Apt go BOOM"
+        )
+        if apt_update_success:
+            assert expected_log not in caplog_text()
+        else:
+            assert expected_log in caplog_text()
         expected_calls = [
             mock.call("/snap/bin/canonical-livepatch"),
             mock.call("/usr/bin/snap"),
