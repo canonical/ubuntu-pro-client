@@ -7,14 +7,14 @@ from uaclient import status
 from uaclient.testing.fakes import FakeConfig
 
 
+@mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
     @mock.patch("uaclient.cli.entitlements")
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
     def test_entitlement_instantiated_and_disabled(
-        self, _m_getuid, m_entitlements, disable_return, return_code
+        self, m_entitlements, _m_getuid, disable_return, return_code
     ):
         m_entitlement_cls = mock.Mock()
         m_entitlement = m_entitlement_cls.return_value
@@ -37,26 +37,47 @@ class TestDisable:
 
         assert 1 == m_cfg.status.call_count
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
-    def test_invalid_service_error_message(self, m_getuid):
+    @pytest.mark.parametrize(
+        "uid,expected_error_template",
+        [
+            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
+            (1000, status.MESSAGE_NONROOT_USER),
+        ],
+    )
+    def test_invalid_service_error_message(
+        self, m_getuid, uid, expected_error_template
+    ):
         """Check invalid service name results in custom error message."""
+        m_getuid.return_value = uid
+
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "bogus"
             action_disable(args, cfg)
-        assert status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
-            operation="disable", name="bogus"
-        ) == str(err.value)
+        assert (
+            expected_error_template.format(operation="disable", name="bogus")
+            == err.value.msg
+        )
 
-    @mock.patch("uaclient.cli.os.getuid", return_value=0)
-    def test_unattached_error_message(self, m_getuid):
+    @pytest.mark.parametrize(
+        "uid,expected_error_template",
+        [
+            (0, status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL),
+            (1000, status.MESSAGE_NONROOT_USER),
+        ],
+    )
+    def test_unattached_error_message(
+        self, m_getuid, uid, expected_error_template
+    ):
         """Check that root user gets unattached message."""
+        m_getuid.return_value = uid
+
         cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "esm-infra"
             action_disable(args, cfg)
-        assert status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL.format(
-            name="esm-infra"
-        ) == str(err.value)
+        assert (
+            expected_error_template.format(name="esm-infra") == err.value.msg
+        )

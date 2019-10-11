@@ -78,6 +78,29 @@ def assert_attached(unattached_msg_tmpl=None):
     return wrapper
 
 
+def require_valid_entitlement_name(operation: str):
+    """Decorator ensuring that args.name is a valid service.
+
+    :param operation: the operation name to use in error messages
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg):
+            if hasattr(args, "name"):
+                name = args.name
+                tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+                if name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+                    raise exceptions.UserFacingError(
+                        tmpl.format(operation=operation, name=name)
+                    )
+            return f(args, cfg)
+
+        return new_f
+
+    return wrapper
+
+
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
@@ -191,18 +214,13 @@ def status_parser(parser):
 
 
 @assert_root
+@require_valid_entitlement_name("disable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    if args.name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
-                operation="disable", name=args.name
-            )
-        )
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
     entitlement = ent_cls(cfg)
     ret = 0 if entitlement.disable() else 1
@@ -237,18 +255,13 @@ def _perform_enable(
 
 
 @assert_root
+@require_valid_entitlement_name("enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    if args.name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
-                operation="enable", name=args.name
-            )
-        )
     print(ua_status.MESSAGE_REFRESH_ENABLE)
     try:
         contract.request_updated_contract(cfg)
