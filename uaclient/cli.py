@@ -255,18 +255,13 @@ def _perform_enable(
 
 
 @assert_root
+@require_valid_entitlement_name("enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    if args.name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL.format(
-                operation="enable", name=args.name
-            )
-        )
     print(ua_status.MESSAGE_REFRESH_ENABLE)
     try:
         contract.request_updated_contract(cfg)
