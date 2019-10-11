@@ -141,6 +141,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ApplicabilityStatus.APPLICABLE,
                 "no entitlement affordances checked",
             )
+        for error_message, functor, expected_result in self.static_affordances:
+            if functor() != expected_result:
+                return ApplicabilityStatus.INAPPLICABLE, error_message
         affordances = entitlement_cfg["entitlement"].get("affordances", {})
         platform = util.get_platform_info()
         affordance_arches = affordances.get("architectures", [])
@@ -201,9 +204,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ]
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
-        for error_message, functor, expected_result in self.static_affordances:
-            if functor() != expected_result:
-                return ApplicabilityStatus.INAPPLICABLE, error_message
         return ApplicabilityStatus.APPLICABLE, ""
 
     @abc.abstractmethod
