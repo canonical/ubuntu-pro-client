@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
                res.disabled_esms);
 
       ioprintf(std::cout, "\n");
-      ioprintf(std::cout, gettext("See 'ua enable esm' or https://ubuntu.com/esm"));
+      ioprintf(std::cout, gettext("See 'ua enable esm-infra' or https://ubuntu.com/esm"));
       ioprintf(std::cout, "\n");
    }
 
