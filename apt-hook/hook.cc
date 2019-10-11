@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
    if (res.enabled_esms > 0 && (command_used == "update"))
    {
       ioprintf(std::cout,
-               ngettext("%d of the updates is from Extended Security Maintenance.",
-                        "%d of the updates are from Extended Security Maintenance.",
+               ngettext("%d of the updates is from UA Infrastructure ESM.",
+                        "%d of the updates are from UA Infrastructure ESM.",
                         res.enabled_esms),
                res.enabled_esms);
       ioprintf(std::cout, "\n");
@@ -220,13 +220,15 @@ int main(int argc, char *argv[])
       if (command_used != "update")
          std::cout << std::endl;
       ioprintf(std::cout,
-               ngettext("%d additional update is available with Extended Security Maintenance.",
-                        "%d additional updates are available with Extended Security Maintenance.",
+               ngettext("%d additional update is available with UA Infrastructure ESM.",
+                        "%d additional updates are available with UA Infrastructure ESM.",
                         res.disabled_esms),
                res.disabled_esms);
 
       ioprintf(std::cout, "\n");
-      ioprintf(std::cout, gettext("See 'ua enable esm' or https://ubuntu.com/esm"));
+      ioprintf(std::cout, gettext("To see these additional updates run: apt list --upgradable"));
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, gettext("See https://ubuntu.com/advantage or run: sudo ua status"));
       ioprintf(std::cout, "\n");
    }
 
