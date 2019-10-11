@@ -78,21 +78,6 @@ def assert_attached(unattached_msg_tmpl=None):
     return wrapper
 
 
-def assert_attached_root(unattached_msg_tmpl=None):
-    """Decorator asserting root user and attached config.
-
-    This is sugar for using assert_root and assert_attached together.
-
-    :param unattached_msg_tmpl: Optional msg template to format if raising an
-        UnattachedError
-    """
-
-    def wrapper(f):
-        return wraps(f)(assert_root(assert_attached(unattached_msg_tmpl)(f)))
-
-    return wrapper
-
-
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
@@ -205,7 +190,8 @@ def status_parser(parser):
     return parser
 
 
-@assert_attached_root(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_root
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg):
     """Perform the disable action on a named entitlement.
 
@@ -250,7 +236,8 @@ def _perform_enable(
     return ret
 
 
-@assert_attached_root(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_root
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg):
     """Perform the enable action on a named entitlement.
 
@@ -271,7 +258,8 @@ def action_enable(args, cfg):
     return 0 if _perform_enable(args.name, cfg) else 1
 
 
-@assert_attached_root()
+@assert_root
+@assert_attached()
 def action_detach(args, cfg):
     """Perform the detach action for this machine.
 
@@ -430,7 +418,8 @@ def print_version(_args=None, _cfg=None):
     print(version.get_version())
 
 
-@assert_attached_root()
+@assert_root
+@assert_attached()
 def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)

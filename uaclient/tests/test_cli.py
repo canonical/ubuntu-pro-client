@@ -10,7 +10,6 @@ import pytest
 
 from uaclient.cli import (
     assert_attached,
-    assert_attached_root,
     assert_root,
     get_parser,
     main,
@@ -75,47 +74,6 @@ class TestCLIParser:
         help_file = io.StringIO()
         parser.print_help(file=help_file)
         assert SERVICES_WRAPPED_HELP in help_file.getvalue()
-
-
-class TestAssertAttachedRoot:
-    def test_assert_attached_root_happy_path(self, capsys):
-        @assert_attached_root()
-        def test_function(args, cfg):
-            return mock.sentinel.success
-
-        cfg = FakeConfig.for_attached_machine()
-
-        with mock.patch("uaclient.cli.os.getuid", return_value=0):
-            ret = test_function(mock.Mock(), cfg)
-
-        assert mock.sentinel.success == ret
-
-        out, _err = capsys.readouterr()
-        assert "" == out.strip()
-
-    @pytest.mark.parametrize(
-        "attached,uid,expected_exception",
-        [
-            (True, 1000, NonRootUserError),
-            (False, 1000, NonRootUserError),
-            (False, 0, UnattachedError),
-        ],
-    )
-    def test_assert_attached_root_exceptions(
-        self, attached, uid, expected_exception
-    ):
-        @assert_attached_root()
-        def test_function(args, cfg):
-            return mock.sentinel.success
-
-        if attached:
-            cfg = FakeConfig.for_attached_machine()
-        else:
-            cfg = FakeConfig()
-
-        with pytest.raises(expected_exception):
-            with mock.patch("uaclient.cli.os.getuid", return_value=uid):
-                test_function(mock.Mock(), cfg)
 
 
 class TestAssertRoot:
