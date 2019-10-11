@@ -17,8 +17,12 @@ M_PATH = "uaclient.cli."
 
 BASIC_MACHINE_TOKEN = {
     "machineTokenInfo": {
-        "contractInfo": {"name": "mycontract", "resourceEntitlements": []},
-        "accountInfo": {"name": "accountName"},
+        "contractInfo": {
+            "name": "mycontract",
+            "id": "contract-1",
+            "resourceEntitlements": [],
+        },
+        "accountInfo": {"id": "acct-1", "name": "accountName"},
     }
 }
 
