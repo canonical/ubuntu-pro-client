@@ -245,14 +245,16 @@ class UAConfig:
 
     def _attached_service_status(
         self, ent, inapplicable_resources
-    ) -> "Dict[str, str]":
+    ) -> "Dict[str, Optional[str]]":
         details = ""
+        description_override = None
         contract_status = ent.contract_status()
         if contract_status == status.ContractStatus.UNENTITLED:
             ent_status = status.UserFacingStatus.UNAVAILABLE
         else:
             if ent.name in inapplicable_resources:
                 ent_status = status.UserFacingStatus.INAPPLICABLE
+                description_override = inapplicable_resources[ent.name]
             else:
                 ent_status, details = ent.user_facing_status()
         return {
@@ -261,6 +263,7 @@ class UAConfig:
             "entitled": contract_status.value,
             "status": ent_status.value,
             "statusDetails": details,
+            "description_override": description_override,
         }
 
     def _attached_status(self) -> "Dict[str, Any]":
@@ -286,11 +289,11 @@ class UAConfig:
             )
 
         resources = get_available_resources(self)
-        inapplicable_resources = [
-            resource["name"]
+        inapplicable_resources = {
+            resource["name"]: resource.get("description")
             for resource in sorted(resources, key=lambda x: x["name"])
             if not resource["available"]
-        ]
+        }
 
         for ent_cls in ENTITLEMENT_CLASSES:
             ent = ent_cls(self)

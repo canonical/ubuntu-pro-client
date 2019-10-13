@@ -214,11 +214,15 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     content = [STATUS_HEADER]
     for service_status in status["services"]:
         entitled = service_status["entitled"]
+        descr_override = service_status["description_override"]
+        description = (
+            descr_override if descr_override else service_status["description"]
+        )
         fmt_args = {
             "name": service_status["name"],
             "entitled": colorize(entitled),
             "status": colorize(service_status["status"]),
-            "description": service_status["description"],
+            "description": description,
         }
         content.append(STATUS_TMPL.format(**fmt_args))
     content.append("\nEnable services with: ua enable <service>\n")

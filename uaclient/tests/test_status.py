@@ -140,3 +140,28 @@ class TestFormatTabular:
             status_dict = status_dict_unattached
 
         assert not format_tabular(status_dict).startswith("\n")
+
+    @pytest.mark.parametrize(
+        "description_override, uf_status, uf_descr",
+        (
+            ("", "n/a", "Common Criteria EAL2 default descr"),
+            ("Custom descr", "n/a", "Custom descr"),
+            ("Custom call to action", "enabled", "Custom call to action"),
+        ),
+    )
+    def test_custom_descr(
+        self, description_override, uf_status, uf_descr, status_dict_attached
+    ):
+        """Services can provide a custom call to action if present."""
+        default_descr = "Common Criteria EAL2 default descr"
+        status_dict_attached["services"] = [
+            {
+                "name": "cc-eal",
+                "description": default_descr,
+                "available": "no",
+                "status": uf_status,
+                "entitled": True,
+                "description_override": description_override,
+            }
+        ]
+        assert uf_descr in format_tabular(status_dict_attached)
