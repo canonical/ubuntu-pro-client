@@ -196,12 +196,11 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     """Format status dict for tabular output."""
     if not status["attached"]:
         content = [
-            "",
             STATUS_UNATTACHED_TMPL.format(
                 name="SERVICE",
                 available="AVAILABLE",
                 description="DESCRIPTION",
-            ),
+            )
         ]
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
