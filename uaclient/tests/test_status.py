@@ -129,3 +129,14 @@ class TestFormatTabular:
         )
         assert header.find("AVAILABLE") == printable_eal_line.find("no")
         assert header.find("DESCRIPTION") == printable_eal_line.find("Common")
+
+    @pytest.mark.parametrize("attached", [True, False])
+    def test_no_leading_newline(
+        self, attached, status_dict_attached, status_dict_unattached
+    ):
+        if attached:
+            status_dict = status_dict_attached
+        else:
+            status_dict = status_dict_unattached
+
+        assert not format_tabular(status_dict).startswith("\n")
