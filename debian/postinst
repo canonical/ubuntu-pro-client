@@ -71,7 +71,7 @@ case "$1" in
       # So all we need to do is rename the precise sources file to trusty.
       # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/693
       case $PREVIOUS_PKG_VER in
-          *12.04*) # upgraded from precise
+          1) # upgraded from precise which will only ever have version 1
               if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
                   mv $ESM_APT_SOURCE_FILE_PRECISE \
                       $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
