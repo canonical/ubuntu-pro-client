@@ -58,8 +58,11 @@ class TestLivepatchContractStatus:
 
 
 class TestLivepatchUserFacingStatus:
+    @mock.patch(
+        "uaclient.entitlements.livepatch.util.is_container", return_value=False
+    )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
-        self, entitlement
+        self, _m_is_container, entitlement
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
         livepatch_bionic = entitlement.cfg.read_cache(
@@ -157,13 +160,16 @@ class TestLivepatchProcessConfigDirectives:
         assert 0 == m_subp.call_count
 
 
+@mock.patch(
+    "uaclient.entitlements.livepatch.util.is_container", return_value=False
+)
 class TestLivepatchEntitlementCanEnable:
     @pytest.mark.parametrize(
         "supported_kernel_ver",
         ("4.4.0-00-generic", "5.0.0-00-generic", "4.19.0-00-generic"),
     )
     def test_can_enable_true_on_entitlement_inactive(
-        self, supported_kernel_ver, capsys, entitlement
+        self, _m_is_container, supported_kernel_ver, capsys, entitlement
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
         supported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -177,7 +183,7 @@ class TestLivepatchEntitlementCanEnable:
         assert [mock.call()] == m_container.call_args_list
 
     def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -193,7 +199,7 @@ class TestLivepatchEntitlementCanEnable:
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -219,7 +225,12 @@ class TestLivepatchEntitlementCanEnable:
         ),
     )
     def test_can_enable_false_on_unsupported_min_kernel_version(
-        self, kernel_version, meets_min_version, capsys, entitlement
+        self,
+        _m_is_container,
+        kernel_version,
+        meets_min_version,
+        capsys,
+        entitlement,
     ):
         """"When on an unsupported kernel version, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -241,7 +252,7 @@ class TestLivepatchEntitlementCanEnable:
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_architecture(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -255,16 +266,17 @@ class TestLivepatchEntitlementCanEnable:
         )
         assert (msg, "") == capsys.readouterr()
 
-    def test_can_enable_false_on_containers(self, capsys, entitlement):
+    def test_can_enable_false_on_containers(
+        self, m_is_container, capsys, entitlement
+    ):
         """When is_container is True, can_enable returns False."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
-            with mock.patch("uaclient.util.is_container") as m_container:
-                m_platform.return_value = unsupported_min_kernel
-                m_container.return_value = True
-                entitlement = LivepatchEntitlement(entitlement.cfg)
-                assert not entitlement.can_enable()
+            m_platform.return_value = unsupported_min_kernel
+            m_is_container.return_value = True
+            entitlement = LivepatchEntitlement(entitlement.cfg)
+            assert not entitlement.can_enable()
         msg = "Cannot install Livepatch on a container\n"
         assert (msg, "") == capsys.readouterr()
 
