@@ -34,7 +34,7 @@ M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 def entitlement(entitlement_factory):
     affordances = {
         "architectures": ["x86_64"],
-        "minKernelVersion": "4.3",
+        "minKernelVersion": "4.4",
         "kernelFlavors": ["generic", "lowlatency"],
         "tier": "stable",
     }
@@ -158,13 +158,19 @@ class TestLivepatchProcessConfigDirectives:
 
 
 class TestLivepatchEntitlementCanEnable:
+    @pytest.mark.parametrize(
+        "supported_kernel_ver",
+        ("4.4.0-00-generic", "5.0.0-00-generic", "4.19.0-00-generic"),
+    )
     def test_can_enable_true_on_entitlement_inactive(
-        self, capsys, entitlement
+        self, supported_kernel_ver, capsys, entitlement
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
+        supported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        supported_kernel["kernel"] = supported_kernel_ver
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
             with mock.patch("uaclient.util.is_container") as m_container:
-                m_platform.return_value = PLATFORM_INFO_SUPPORTED
+                m_platform.return_value = supported_kernel
                 m_container.return_value = False
                 assert entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
@@ -182,7 +188,7 @@ class TestLivepatchEntitlementCanEnable:
             assert not entitlement.can_enable()
         msg = (
             "Livepatch is not available for kernel 4.2.9-00-generic.\n"
-            "Minimum kernel version required: 4.3\n"
+            "Minimum kernel version required: 4.4\n"
         )
         assert (msg, "") == capsys.readouterr()
 
@@ -200,6 +206,38 @@ class TestLivepatchEntitlementCanEnable:
             "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
             "Supported flavors are: generic, lowlatency\n"
         )
+        assert (msg, "") == capsys.readouterr()
+
+    @pytest.mark.parametrize(
+        "kernel_version,meets_min_version",
+        (
+            ("3.5.0-00-generic", False),
+            ("4.3.0-00-generic", False),
+            ("4.4.0-00-generic", True),
+            ("4.10.0-00-generic", True),
+            ("5.0.0-00-generic", True),
+        ),
+    )
+    def test_can_enable_false_on_unsupported_min_kernel_version(
+        self, kernel_version, meets_min_version, capsys, entitlement
+    ):
+        """"When on an unsupported kernel version, can_enable returns False."""
+        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_kernel["kernel"] = kernel_version
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
+            m_platform.return_value = unsupported_kernel
+            entitlement = LivepatchEntitlement(entitlement.cfg)
+            if meets_min_version:
+                assert entitlement.can_enable()
+            else:
+                assert not entitlement.can_enable()
+        if meets_min_version:
+            msg = ""
+        else:
+            msg = (
+                "Livepatch is not available for kernel {}.\n"
+                "Minimum kernel version required: 4.4\n".format(kernel_version)
+            )
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_architecture(

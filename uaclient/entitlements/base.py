@@ -197,11 +197,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
             if not match:
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
-            if any(
-                [
-                    int(match.group("major")) < min_kern_major,
-                    int(match.group("minor")) < min_kern_minor,
-                ]
+            kernel_major = int(match.group("major"))
+            kernel_minor = int(match.group("minor"))
+            if kernel_major < min_kern_major:
+                return ApplicabilityStatus.INAPPLICABLE, invalid_msg
+            elif (
+                kernel_major == min_kern_major
+                and kernel_minor < min_kern_minor
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
         return ApplicabilityStatus.APPLICABLE, ""
