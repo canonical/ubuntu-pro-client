@@ -32,6 +32,34 @@ The client also includes built-in dep8 tests. These are run as follows:
 autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 ```
 
+### Integration Tests
+
+ubuntu-advantage-client uses [behave](https://behave.readthedocs.io)
+for its integration testing.
+
+The integration test definitions are stored in the `features/`
+directory and consist of two parts: `.feature` files that define the
+tests we want to run, and `.py` files which implement the underlying
+logic for those tests.
+
+To run the tests, you can use `tox`:
+
+```shell
+tox -e behave
+```
+
+or, if you just want to run a specific file, or a test within a file:
+
+```shell
+tox -e behave features/unattached_commands.feature
+tox -e behave features/unattached_commands.feature:55
+```
+
+(If you're getting started with behave, we recommend at least reading
+through [the behave
+tutorial](https://behave.readthedocs.io/en/latest/tutorial.html) to get
+an idea of how it works, and how tests are written.)
+
 ## Building
 
 The packaging for the UA client package (ubuntu-advantage-tools) is
