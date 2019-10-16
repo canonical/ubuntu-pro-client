@@ -37,7 +37,7 @@ def _wait_for_boot(context: Context) -> None:
 
 
 @given("a trusty lxd container")
-def step_impl(context):
+def given_a_trusty_lxd_container(context):
     now = datetime.datetime.now()
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
     subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
@@ -52,7 +52,7 @@ def step_impl(context):
 
 
 @given("ubuntu-advantage-tools is installed")
-def step_impl(context):
+def given_uat_is_installed(context):
     _lxc_exec(
         context,
         [
@@ -68,7 +68,7 @@ def step_impl(context):
 
 
 @when("I run `{command}` as non-root")
-def step_impl(context, command):
+def when_i_run_command(context, command):
     process = _lxc_exec(
         context, shlex.split(command), capture_output=True, text=True
     )
@@ -76,10 +76,10 @@ def step_impl(context, command):
 
 
 @then("I will see the following on stdout")
-def step_impl(context):
+def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))
 
 
 @then("I will see the following on stderr")
-def step_impl(context):
+def then_i_will_see_on_stderr(context):
     assert_that(context.process.stderr.strip(), equal_to(context.text))
