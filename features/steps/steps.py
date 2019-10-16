@@ -24,7 +24,11 @@ def _wait_for_boot(context: Context) -> None:
         process = _lxc_exec(
             context, ["runlevel"], capture_output=True, text=True
         )
-        _, runlevel = process.stdout.strip().split(" ", 2)
+        try:
+            _, runlevel = process.stdout.strip().split(" ", 2)
+        except ValueError:
+            print("Unexpected runlevel output: ", process.stdout.strip())
+            runlevel = None
         if runlevel == "2":
             break
         time.sleep(sleep_time)
