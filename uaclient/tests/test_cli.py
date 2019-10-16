@@ -44,12 +44,27 @@ Client to manage Ubuntu Advantage support services on a machine.
 )
 
 
+@pytest.fixture(params=["direct"])
+def get_help(request):
+    if request.param == "direct":
+
+        def _get_help_output():
+            parser = get_parser()
+            help_file = io.StringIO()
+            parser.print_help(file=help_file)
+            return help_file.getvalue()
+
+    else:
+        raise NotImplementedError("Unknown help source: {}", request.param)
+    return _get_help_output
+
+
 class TestCLIParser:
     maxDiff = None
 
     @mock.patch("uaclient.cli.entitlements")
     def test_help_descr_and_url_is_wrapped_at_eighty_chars(
-        self, m_entitlements
+        self, m_entitlements, get_help
     ):
         """Help lines are wrapped at 80 chars"""
 
@@ -60,21 +75,15 @@ class TestCLIParser:
             "test": cls_mock_factory(BIG_DESC, BIG_URL)
         }
 
-        parser = get_parser()
-        help_file = io.StringIO()
-        parser.print_help(file=help_file)
         lines = [
             " - test: " + " ".join(["123456789"] * 7),
             "   next line ({url})".format(url=BIG_URL),
         ]
-        assert "\n".join(lines) in help_file.getvalue()
+        assert "\n".join(lines) in get_help()
 
-    def test_help_sourced_dynamically_from_each_entitlement(self):
+    def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
-        parser = get_parser()
-        help_file = io.StringIO()
-        parser.print_help(file=help_file)
-        assert SERVICES_WRAPPED_HELP in help_file.getvalue()
+        assert SERVICES_WRAPPED_HELP in get_help()
 
 
 class TestAssertRoot:
