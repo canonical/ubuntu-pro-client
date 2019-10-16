@@ -44,7 +44,7 @@ Client to manage Ubuntu Advantage support services on a machine.
 )
 
 
-@pytest.fixture(params=["direct", "--help"])
+@pytest.fixture(params=["direct", "--help", "ua help"])
 def get_help(request, capsys):
     if request.param == "direct":
 
@@ -61,6 +61,14 @@ def get_help(request, capsys):
             with mock.patch("sys.argv", ["ua", "--help"]):
                 with pytest.raises(SystemExit):
                     parser.parse_args()
+            out, _err = capsys.readouterr()
+            return out
+
+    elif request.param == "ua help":
+
+        def _get_help_output():
+            with mock.patch("sys.argv", ["ua", "help"]):
+                main()
             out, _err = capsys.readouterr()
             return out
 
