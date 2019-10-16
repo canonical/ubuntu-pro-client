@@ -111,7 +111,7 @@ class TestParser:
     def test_attach_parser_creates_a_parser_when_not_provided(self):
         """Create a named parser configured for 'attach'."""
         m_parser = attach_parser(mock.Mock())
-        assert "ubuntu-advantage attach <token> [flags]" == m_parser.usage
+        assert "ua attach <token> [flags]" == m_parser.usage
         assert "attach" == m_parser.prog
         assert "Flags" == m_parser._optionals.title
 
