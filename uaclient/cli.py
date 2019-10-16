@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Client to manage Ubuntu Advantage support services on a machine."""
+"""Client to manage Ubuntu Advantage services on a machine."""
 
 import argparse
 from functools import wraps
@@ -110,7 +110,7 @@ def attach_parser(parser):
     parser.add_argument(
         "token",
         nargs="?",  # action_attach asserts this required argument
-        help="Token obtained for Ubuntu Advantage authentication: {}".format(
+        help="token obtained for Ubuntu Advantage authentication: {}".format(
             UA_AUTH_TOKEN_URL
         ),
     )
@@ -118,7 +118,7 @@ def attach_parser(parser):
         "--no-auto-enable",
         action="store_false",
         dest="auto_enable",
-        help="Do not enable any recommended services automatically",
+        help="do not enable any recommended services automatically",
     )
     return parser
 
@@ -142,7 +142,7 @@ def enable_parser(parser):
     parser.add_argument(
         "name",
         action="store",
-        help="The name of the support service to enable",
+        help="the name of the Ubuntu Advantage service to enable",
     )
     return parser
 
@@ -157,7 +157,7 @@ def disable_parser(parser):
     parser.add_argument(
         "name",
         action="store",
-        help="The name of the support service to disable",
+        help="the name of the Ubuntu Advantage service to disable",
     )
     return parser
 
@@ -204,7 +204,7 @@ def status_parser(parser):
         choices=STATUS_FORMATS,
         default=STATUS_FORMATS[0],
         help=(
-            "Output status in the specified format. Default: {}".format(
+            "output status in the specified format (default: {})".format(
                 STATUS_FORMATS[0]
             )
         ),
@@ -368,7 +368,7 @@ def get_parser():
     parser.add_argument(
         "--debug",
         action="store_true",
-        help="Show all debug log messages to console",
+        help="show all debug log messages to console",
     )
     parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
@@ -376,39 +376,41 @@ def get_parser():
     )
     subparsers.required = True
     parser_status = subparsers.add_parser(
-        "status", help="current status of all ubuntu advantage services"
+        "status", help="current status of all Ubuntu Advantage services"
     )
     parser_status.set_defaults(action=action_status)
     status_parser(parser_status)
     parser_attach = subparsers.add_parser(
         "attach",
-        help="attach this machine to an ubuntu advantage subscription",
+        help="attach this machine to an Ubuntu Advantage subscription",
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
     parser_detach = subparsers.add_parser(
         "detach",
-        help="remove this machine from an ubuntu advantage subscription",
+        help="remove this machine from an Ubuntu Advantage subscription",
     )
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
     parser_enable = subparsers.add_parser(
-        "enable", help="enable a specific support services on this machine"
+        "enable",
+        help="enable a specific Ubuntu Advantage service on this machine",
     )
     enable_parser(parser_enable)
     parser_enable.set_defaults(action=action_enable)
     parser_disable = subparsers.add_parser(
-        "disable", help="disable a specific support services on this machine"
+        "disable",
+        help="disable a specific Ubuntu Advantage service on this machine",
     )
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
     parser_refresh = subparsers.add_parser(
         "refresh",
-        help="Refresh ubuntu-advantage services from contracts server.",
+        help="refresh Ubuntu Advantage services from contracts server",
     )
     parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
-        "version", help="Show version of ua-client"
+        "version", help="show version of {}".format(NAME)
     )
     parser_version.set_defaults(action=print_version)
     parser_help = subparsers.add_parser(
