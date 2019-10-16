@@ -19,7 +19,7 @@ from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
 
-NAME = "ubuntu-advantage"
+NAME = "ua"
 
 USAGE_TMPL = "{name} {command} [flags]"
 EPILOG_TMPL = (
@@ -517,7 +517,7 @@ def main(sys_argv=None):
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
-        print("Try 'ubuntu-advantage --help' for more information.")
+        print("Try 'ua --help' for more information.")
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     cfg = config.UAConfig()
