@@ -7,17 +7,17 @@ FLAKE8 := $(shell flake8 --version 2> /dev/null)
 include /etc/os-release
 # see https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1840091/comments/3
 ifeq (${VERSION_ID},"14.04")
-LIBAPT_PKG_DEP="apt (>= 1.0.1ubuntu2.23), apt-transport-https (>= 1.0.1ubuntu2.23), apt-utils (>= 1.0.1ubuntu2.23), libapt-inst1.5 (>= 1.0.1ubuntu2.23), libapt-pkg4.12 (>= 1.0.1ubuntu2.23) "
+APT_PKG_DEPS="apt (>= 1.0.1ubuntu2.23), apt-transport-https (>= 1.0.1ubuntu2.23), apt-utils (>= 1.0.1ubuntu2.23), libapt-inst1.5 (>= 1.0.1ubuntu2.23), libapt-pkg4.12 (>= 1.0.1ubuntu2.23) "
 else ifeq (${VERSION_ID},"16.04")
-LIBAPT_PKG_DEP="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32)"
+APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32)"
 else ifeq (${VERSION_ID},"18.04")
-LIBAPT_PKG_DEP="apt (>= 1.6.11), apt-transport-https (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11)"
+APT_PKG_DEPS="apt (>= 1.6.11), apt-transport-https (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11)"
 else ifeq (${VERSION_ID},"18.10")
-LIBAPT_PKG_DEP="apt (>= 1.7.5), apt-transport-https (>= 1.7.5), apt-utils (>= 1.7.5), libapt-inst2.0 (>= 1.7.5), libapt-pkg5.0 (>= 1.7.5)"
+APT_PKG_DEPS="apt (>= 1.7.5), apt-transport-https (>= 1.7.5), apt-utils (>= 1.7.5), libapt-inst2.0 (>= 1.7.5), libapt-pkg5.0 (>= 1.7.5)"
 else ifeq (${VERSION_ID},"19.04")
-LIBAPT_PKG_DEP="apt (>= 1.8.1), apt-transport-https (>= 1.8.1), apt-utils (>= 1.8.1), libapt-inst2.0 (>= 1.8.1), libapt-pkg5.0 (>= 1.8.1)"
+APT_PKG_DEPS="apt (>= 1.8.1), apt-transport-https (>= 1.8.1), apt-utils (>= 1.8.1), libapt-inst2.0 (>= 1.8.1), libapt-pkg5.0 (>= 1.8.1)"
 else ifeq (${VERSION_ID},"19.10")
-LIBAPT_PKG_DEP="apt (>= 1.8.1), apt-transport-https (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
+APT_PKG_DEPS="apt (>= 1.8.1), apt-transport-https (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
@@ -40,7 +40,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	[ -z '$(LIBAPT_PKG_DEP)' ] || echo extra:Depends=$(LIBAPT_PKG_DEP) >> debian/ubuntu-advantage-tools.substvars
+	[ -z '$(APT_PKG_DEPS)' ] || echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
 	dh_gencontrol
 
 override_dh_auto_install:
