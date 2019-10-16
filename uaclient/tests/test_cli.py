@@ -31,7 +31,7 @@ BIG_URL = "http://" + "adsf" * 10
 
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
-Client to manage Ubuntu Advantage support services on a machine.
+Client to manage Ubuntu Advantage services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
