@@ -1,6 +1,7 @@
 import datetime
 import shlex
 import subprocess
+import time
 from typing import List
 
 from behave import given, then, when
@@ -17,6 +18,20 @@ def _lxc_exec(context: Context, cmd: List[str], *args, **kwargs):
     )
 
 
+def _wait_for_boot(context: Context) -> None:
+    retries = [2] * 5
+    for sleep_time in retries:
+        process = _lxc_exec(
+            context, ["runlevel"], capture_output=True, text=True
+        )
+        _, runlevel = process.stdout.strip().split(" ", 2)
+        if runlevel == "2":
+            break
+        time.sleep(sleep_time)
+    else:
+        raise Exception("System did not boot in {}s".format(sum(retries)))
+
+
 @given("a trusty lxd container")
 def step_impl(context):
     now = datetime.datetime.now()
@@ -28,6 +43,8 @@ def step_impl(context):
         subprocess.run(["lxc", "delete", context.container_name])
 
     context.add_cleanup(cleanup_container)
+
+    _wait_for_boot(context)
 
 
 @given("ubuntu-advantage-tools is installed")
