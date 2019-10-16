@@ -12,8 +12,6 @@ else ifeq (${VERSION_ID},"16.04")
 APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32)"
 else ifeq (${VERSION_ID},"18.04")
 APT_PKG_DEPS="apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11)"
-else ifeq (${VERSION_ID},"18.10")
-APT_PKG_DEPS="apt (>= 1.7.5), apt-utils (>= 1.7.5), libapt-inst2.0 (>= 1.7.5), libapt-pkg5.0 (>= 1.7.5)"
 else ifeq (${VERSION_ID},"19.04")
 APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-inst2.0 (>= 1.8.1), libapt-pkg5.0 (>= 1.8.1)"
 else ifeq (${VERSION_ID},"19.10")
