@@ -411,6 +411,10 @@ def get_parser():
         "version", help="Show version of ua-client"
     )
     parser_version.set_defaults(action=print_version)
+    parser_help = subparsers.add_parser(
+        "help", help="show this help message and exit"
+    )
+    parser_help.set_defaults(action=action_help)
     return parser
 
 
@@ -441,6 +445,11 @@ def action_refresh(args, cfg):
             logging.exception(exc)
         raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
     print(ua_status.MESSAGE_REFRESH_SUCCESS)
+    return 0
+
+
+def action_help(_args, _cfg):
+    get_parser().print_help()
     return 0
 
 
