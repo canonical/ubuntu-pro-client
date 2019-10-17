@@ -1,6 +1,7 @@
 import copy
 import mock
 import pytest
+import socket
 import urllib
 
 from uaclient.contract import (
@@ -9,6 +10,7 @@ from uaclient.contract import (
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
+    UAContractClient,
     get_available_resources,
     process_entitlement_delta,
     request_updated_contract,
@@ -94,8 +96,24 @@ class TestProcessEntitlementDeltas:
         assert 0 == m_process_contract_deltas.call_count
 
 
-@mock.patch(M_PATH + "UAContractClient")
 class TestGetAvailableResources:
+    @mock.patch.object(UAContractClient, "request_resources")
+    def test_request_resources_error_on_network_disconnected(
+        self, m_request_resources
+    ):
+        """Raise error get_available_resources can't contact backend"""
+        cfg = FakeConfig()
+
+        urlerror = util.UrlError(
+            socket.gaierror(-2, "Name or service not known")
+        )
+        m_request_resources.side_effect = urlerror
+
+        with pytest.raises(util.UrlError) as exc:
+            get_available_resources(cfg)
+        assert urlerror == exc.value
+
+    @mock.patch(M_PATH + "UAContractClient")
     def test_request_resources_from_contract_server(self, client):
         """Call UAContractClient.request_resources to get updated resources."""
         cfg = FakeConfig()
