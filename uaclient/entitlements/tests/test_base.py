@@ -158,7 +158,7 @@ class TestUaEntitlement:
 
         expected_stdout = (
             "This subscription is not entitled to Test Concrete Entitlement.\n"
-            "See: sudo ua status or https://ubuntu.com/advantage\n"
+            "For more information see: https://ubuntu.com/advantage\n"
         )
         if silent:
             expected_stdout = ""

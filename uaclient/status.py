@@ -140,7 +140,7 @@ MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL = """\
 Minimum kernel version required: {min_kernel}"""
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
-See: sudo ua status or https://ubuntu.com/advantage"""
+For more information see: https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""
