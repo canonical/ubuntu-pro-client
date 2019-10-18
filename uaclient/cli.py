@@ -429,7 +429,16 @@ def action_status(args, cfg):
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
-        print(ua_status.format_tabular(cfg.status()))
+        output = ua_status.format_tabular(cfg.status())
+        # Replace our Unicode dash with an ASCII dash if we aren't going to be
+        # writing to a utf-8 output; see
+        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859
+        if (
+            sys.stdout.encoding is None
+            or "UTF-8" not in sys.stdout.encoding.upper()
+        ):
+            output = output.replace("\u2014", "-")
+        print(output)
     return 0
 
 

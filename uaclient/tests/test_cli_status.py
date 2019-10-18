@@ -1,3 +1,4 @@
+import io
 import json
 import mock
 import socket
@@ -98,3 +99,28 @@ class TestActionStatus:
 
         with pytest.raises(util.UrlError):
             action_status(mock.MagicMock(), cfg)
+
+    @pytest.mark.parametrize(
+        "encoding,expected_dash",
+        (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
+    )
+    def test_unicode_dash_replacement_when_unprintable(
+        self, _m_getuid, _m_get_avail_resources, encoding, expected_dash
+    ):
+        # This test can't use capsys because it doesn't emulate sys.stdout
+        # encoding accurately in older versions of pytest
+        underlying_stdout = io.BytesIO()
+        fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
+
+        with mock.patch("sys.stdout", fake_stdout):
+            action_status(mock.MagicMock(), FakeConfig.for_attached_machine())
+
+        fake_stdout.flush()  # Make sure all output is in underlying_stdout
+        out = underlying_stdout.getvalue().decode(encoding)
+
+        # Colour codes are converted to spaces, so strip them out for
+        # comparison
+        out = out.replace(" " * 17, " " * 8)
+
+        expected_out = ATTACHED_STATUS.replace("\u2014", expected_dash)
+        assert expected_out == out
