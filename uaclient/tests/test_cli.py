@@ -2,6 +2,7 @@ import io
 import logging
 import mock
 import os
+import socket
 import stat
 import sys
 import textwrap
@@ -23,6 +24,8 @@ from uaclient.exceptions import (
     UnattachedError,
 )
 from uaclient.testing.fakes import FakeConfig
+from uaclient import status
+from uaclient import util
 
 
 BIG_DESC = "123456789 " * 7 + "next line"
@@ -248,6 +251,35 @@ class TestMain:
         assert "{}\n".format(msg) == err
         error_log = caplog_text()
         assert msg in error_log
+        assert "Traceback (most recent call last):" in error_log
+
+    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.cli.get_parser")
+    def test_url_error_handled_gracefully(
+        self,
+        m_get_parser,
+        _m_setup_logging,
+        capsys,
+        logging_sandbox,
+        caplog_text,
+    ):
+
+        m_args = m_get_parser.return_value.parse_args.return_value
+        m_args.action.side_effect = util.UrlError(
+            socket.gaierror(-2, "Name or service not known")
+        )
+
+        with pytest.raises(SystemExit) as excinfo:
+            main(["some", "args"])
+
+        exc = excinfo.value
+        assert 1 == exc.code
+
+        out, err = capsys.readouterr()
+        assert "" == out
+        assert "{}\n".format(status.MESSAGE_CONNECTIVITY_ERROR) == err
+        error_log = caplog_text()
+        assert " [Errno -2] Name or service not known" in error_log
         assert "Traceback (most recent call last):" in error_log
 
 
