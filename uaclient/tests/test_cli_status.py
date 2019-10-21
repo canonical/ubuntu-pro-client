@@ -1,6 +1,8 @@
+import io
 import json
 import mock
 import socket
+import sys
 
 import pytest
 
@@ -23,12 +25,14 @@ See https://ubuntu.com/advantage
 
 ATTACHED_STATUS = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
-cc-eal        no        —         Common Criteria EAL2 Provisioning Packages
-cis-audit     no        —         Center for Internet Security Audit Tools
-esm-infra     no        —         UA Infra: Extended Security Maintenance
-fips          no        —         NIST-certified FIPS modules
-fips-updates  no        —         Uncertified security updates to FIPS modules
-livepatch     no        —         Canonical Livepatch service
+cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
+ Packages
+cis-audit     no        {dash}         Center for Internet Security Audit Tools
+esm-infra     no        {dash}         UA Infra: Extended Security Maintenance
+fips          no        {dash}         NIST-certified FIPS modules
+fips-updates  no        {dash}         Uncertified security updates to FIPS\
+ modules
+livepatch     no        {dash}         Canonical Livepatch service
 
 Enable services with: ua enable <service>
 
@@ -52,7 +56,16 @@ class TestActionStatus:
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
         printable_stdout = capsys.readouterr()[0].replace(" " * 17, " " * 8)
-        assert ATTACHED_STATUS == printable_stdout
+
+        # On older versions of pytest, capsys doesn't set sys.stdout.encoding
+        # to something that Python parses as UTF-8 compatible, so we get the
+        # ASCII dash; testing for the "wrong" dash here is OK, because we have
+        # a specific test that the correct one is used in
+        # test_unicode_dash_replacement_when_unprintable
+        expected_dash = "-"
+        if sys.stdout.encoding and "UTF-8" in sys.stdout.encoding.upper():
+            expected_dash = "\u2014"
+        assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
 
     def test_unattached(self, m_getuid, m_get_avail_resources, capsys):
         """Check that unattached status is emitted to console"""
@@ -98,3 +111,28 @@ class TestActionStatus:
 
         with pytest.raises(util.UrlError):
             action_status(mock.MagicMock(), cfg)
+
+    @pytest.mark.parametrize(
+        "encoding,expected_dash",
+        (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
+    )
+    def test_unicode_dash_replacement_when_unprintable(
+        self, _m_getuid, _m_get_avail_resources, encoding, expected_dash
+    ):
+        # This test can't use capsys because it doesn't emulate sys.stdout
+        # encoding accurately in older versions of pytest
+        underlying_stdout = io.BytesIO()
+        fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
+
+        with mock.patch("sys.stdout", fake_stdout):
+            action_status(mock.MagicMock(), FakeConfig.for_attached_machine())
+
+        fake_stdout.flush()  # Make sure all output is in underlying_stdout
+        out = underlying_stdout.getvalue().decode(encoding)
+
+        # Colour codes are converted to spaces, so strip them out for
+        # comparison
+        out = out.replace(" " * 17, " " * 8)
+
+        expected_out = ATTACHED_STATUS.format(dash=expected_dash)
+        assert expected_out == out
