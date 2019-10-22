@@ -228,7 +228,7 @@ class TestCommonCriteriaEntitlementEnable:
                 "Installing CC EAL2 packages",
                 "(This will download more than 500MB of packages, so may take"
                 " some time.)",
-                "CC EAL2 enabled.",
+                "CC EAL2 enabled",
                 "Please follow instructions in {} to configure EAL2\n".format(
                     CC_README
                 ),

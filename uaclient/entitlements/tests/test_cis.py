@@ -94,6 +94,6 @@ class TestCISEntitlementEnable:
         expected_stdout = (
             "Updating package lists\n"
             "Installing CIS Audit packages\n"
-            "CIS Audit enabled.\n"
+            "CIS Audit enabled\n"
         )
         assert (expected_stdout, "") == capsys.readouterr()
