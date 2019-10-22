@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (19.6) focal; urgency=medium
+ubuntu-advantage-tools (19.6~ubuntu14.04.1) trusty; urgency=medium
 
   * New upstream release. Main changes:
     - drop SSO interactive login support
