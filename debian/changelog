@@ -11,6 +11,8 @@ ubuntu-advantage-tools (19.6) focal; urgency=medium
     - don't unecessarily remove config files that are already handled by dpkg
     - expand the apt related runtime dependencies
     - handle sources.list.d esm snippet when release upgrading from precise
+    - ua status now reports availability of services even in unattached state
+    - the "ua status" output was changed, including the json format option
 
  -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
 
