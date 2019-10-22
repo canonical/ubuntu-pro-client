@@ -1,6 +1,16 @@
-ubuntu-advantage-tools (19.6) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (19.6) focal; urgency=medium
 
-  * New upstream release 
+  * New upstream release. Main changes:
+    - drop SSO interactive login support
+    - d/control: no longer depend on pymacaroons, which was only needed for
+      the SSO interactive login support
+    - drop keyrings for services not supported in trusty: cc-eal, fips,
+      fips-updates, cis audit
+    - make sure /var/lib/ubuntu-advantage/private has 0700 perms
+    - rename esm to esm-infra. Also handle upgrades
+    - don't unecessarily remove config files that are already handled by dpkg
+    - expand the apt related runtime dependencies
+    - handle sources.list.d esm snippet when release upgrading from precise
 
  -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
 
