@@ -224,7 +224,6 @@ class TestMain:
         error_log = caplog_text()
         assert "Traceback (most recent call last):" in error_log
 
-    @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
@@ -253,12 +252,30 @@ class TestMain:
         assert msg in error_log
         assert "Traceback (most recent call last):" in error_log
 
+    @pytest.mark.parametrize(
+        "error_url,expected_log",
+        (
+            (
+                None,
+                "Check your Internet connection and try again."
+                " [Errno -2] Name or service not known",
+            ),
+            (
+                "http://nowhere.com",
+                "Check your Internet connection and try again."
+                " Failed to access URL: http://nowhere.com."
+                " [Errno -2] Name or service not known",
+            ),
+        ),
+    )
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_url_error_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
+        error_url,
+        expected_log,
         capsys,
         logging_sandbox,
         caplog_text,
@@ -266,7 +283,7 @@ class TestMain:
 
         m_args = m_get_parser.return_value.parse_args.return_value
         m_args.action.side_effect = util.UrlError(
-            socket.gaierror(-2, "Name or service not known")
+            socket.gaierror(-2, "Name or service not known"), url=error_url
         )
 
         with pytest.raises(SystemExit) as excinfo:
@@ -279,7 +296,8 @@ class TestMain:
         assert "" == out
         assert "{}\n".format(status.MESSAGE_CONNECTIVITY_ERROR) == err
         error_log = caplog_text()
-        assert " [Errno -2] Name or service not known" in error_log
+
+        assert expected_log in error_log
         assert "Traceback (most recent call last):" in error_log
 
 
