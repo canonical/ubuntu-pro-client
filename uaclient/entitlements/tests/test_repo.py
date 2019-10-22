@@ -346,7 +346,7 @@ class TestRepoEnable:
         expected_output = dedent(
             """\
         Updating package lists
-        Repo Test Class enabled.
+        Repo Test Class enabled
         """
         )
         if packages is not None:
@@ -370,7 +370,7 @@ class TestRepoEnable:
                             "Installing Repo Test Class packages",
                         ]
                         + (pre_install_msgs if with_pre_install_msg else [])
-                        + ["Repo Test Class enabled."]
+                        + ["Repo Test Class enabled"]
                     )
                     + "\n"
                 )

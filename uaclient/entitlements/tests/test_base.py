@@ -123,7 +123,7 @@ class TestUaEntitlement:
         assert not entitlement.can_disable()
 
         expected_stdout = (
-            "Test Concrete Entitlement is not currently enabled.\n"
+            "Test Concrete Entitlement is not currently enabled\n"
             "See: sudo ua status\n"
         )
         stdout, _ = capsys.readouterr()
