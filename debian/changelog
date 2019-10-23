@@ -17,7 +17,7 @@ ubuntu-advantage-tools (19.6~ubuntu14.04.1) trusty; urgency=medium
       that is restricted in LP builders and test runners.
     - fix the d/t/usage DEP8 test that was also using status
 
- -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 23 Oct 2019 13:12:08 -0300
 
 ubuntu-advantage-tools (19.5.1) eoan; urgency=medium
 
