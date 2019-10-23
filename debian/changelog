@@ -1,6 +1,6 @@
 ubuntu-advantage-tools (19.6~ubuntu14.04.1) trusty; urgency=medium
 
-  * New upstream release. Main changes:
+  * New upstream release (LP: #1832757). Main changes:
     - drop SSO interactive login support
     - d/control: no longer depend on pymacaroons, which was only needed for
       the SSO interactive login support
