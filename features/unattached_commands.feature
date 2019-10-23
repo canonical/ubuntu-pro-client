@@ -8,7 +8,7 @@ Feature: Command behaviour when unattached
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua detach` as root
+        When I run `ua detach` with sudo
         Then I will see the following on stderr:
             """
             This machine is not attached to a UA subscription.
@@ -23,7 +23,7 @@ Feature: Command behaviour when unattached
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua refresh` as root
+        When I run `ua refresh` with sudo
         Then I will see the following on stderr:
             """
             This machine is not attached to a UA subscription.
@@ -39,7 +39,7 @@ Feature: Command behaviour when unattached
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
-        When I run `ua enable livepatch` as root
+        When I run `ua enable livepatch` with sudo
         Then I will see the following on stderr:
             """
             To use 'livepatch' you need an Ubuntu Advantage subscription
@@ -55,7 +55,7 @@ Feature: Command behaviour when unattached
             Cannot enable 'foobar'
             For a list of services see: sudo ua status
             """
-        When I run `ua enable foobar` as root
+        When I run `ua enable foobar` with sudo
         Then I will see the following on stderr:
             """
             Cannot enable 'foobar'
@@ -71,7 +71,7 @@ Feature: Command behaviour when unattached
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
-        When I run `ua disable livepatch` as root
+        When I run `ua disable livepatch` with sudo
         Then I will see the following on stderr:
             """
             To use 'livepatch' you need an Ubuntu Advantage subscription
@@ -87,7 +87,7 @@ Feature: Command behaviour when unattached
             Cannot disable 'foobar'
             For a list of services see: sudo ua status
             """
-        When I run `ua disable foobar` as root
+        When I run `ua disable foobar` with sudo
         Then I will see the following on stderr:
             """
             Cannot disable 'foobar'
