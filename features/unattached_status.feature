@@ -16,7 +16,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status` as root
+        When I run `ua status` with sudo
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION

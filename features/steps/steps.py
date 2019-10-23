@@ -34,14 +34,15 @@ def given_uat_is_installed(context):
     )
 
 
-@when("I run `{command}` as {user}")
-def when_i_run_command(context, command, user):
+@when("I run `{command}` {user_spec}")
+def when_i_run_command(context, command, user_spec):
     prefix = []
-    if user == "root":
+    if user_spec == "with sudo":
         prefix = ["sudo"]
-    elif user != "non-root":
+    elif user_spec != "as non-root":
         raise Exception(
-            "The two acceptable values for user are: root, non-root"
+            "The two acceptable values for user_spec are: 'with sudo',"
+            " 'as non-root'"
         )
     process = lxc_exec(
         context.container_name,
