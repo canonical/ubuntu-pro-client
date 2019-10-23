@@ -120,6 +120,10 @@ MESSAGE_APT_UPDATING_LISTS = "Updating package lists"
 MESSAGE_CONNECTIVITY_ERROR = """\
 Failed to connect to authentication server
 Check your Internet connection and try again"""
+LOG_CONNECTIVITY_ERROR_TMPL = MESSAGE_CONNECTIVITY_ERROR + ". {error}"
+LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
+    MESSAGE_CONNECTIVITY_ERROR + ". Failed to access URL: {url}. {error}"
+)
 MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)"
 MESSAGE_ALREADY_DISABLED_TMPL = """\
 {title} is not currently enabled\nSee: sudo ua status"""
