@@ -67,10 +67,17 @@ def given_uat_is_installed(context):
     )
 
 
-@when("I run `{command}` as non-root")
-def when_i_run_command(context, command):
+@when("I run `{command}` as {user}")
+def when_i_run_command(context, command, user):
+    prefix = []
+    if user == "root":
+        prefix = ["sudo"]
+    elif user != "non-root":
+        raise Exception(
+            "The two acceptable values for user are: root, non-root"
+        )
     process = _lxc_exec(
-        context, shlex.split(command), capture_output=True, text=True
+        context, prefix + shlex.split(command), capture_output=True, text=True
     )
     context.process = process
 
