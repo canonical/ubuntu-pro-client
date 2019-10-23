@@ -38,7 +38,7 @@ Feature: Command behaviour when unattached
         When I run `ua enable livepatch` as non-root
         Then I will see the following on stderr:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription.
+            To use 'livepatch' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
@@ -72,7 +72,7 @@ Feature: Command behaviour when unattached
         When I run `ua disable livepatch` as non-root
         Then I will see the following on stderr:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription.
+            To use 'livepatch' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
