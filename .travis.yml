@@ -12,6 +12,12 @@ script:
 matrix:
   fast_finish: true
   include:
+    - python: 3.7
+      env: TOXENV=behave
+      script:
+          - sudo lxd init --auto
+          - sudo usermod -a -G lxd $USER
+          - sg lxd -c 'make test'
     - env:
         PACKAGE_BUILD_SERIES=trusty
       install:
@@ -54,3 +60,10 @@ matrix:
       env: TOXENV=mypy
     - python: 3.7
       env: TOXENV=black
+  allow_failures:
+    - python: 3.7
+      env: TOXENV=behave
+      script:
+          - sudo lxd init --auto
+          - sudo usermod -a -G lxd $USER
+          - sg lxd -c 'make test'
