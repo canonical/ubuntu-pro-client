@@ -2,7 +2,6 @@
 export DH_VERBOSE=1
 
 include /usr/share/dpkg/pkg-info.mk
-FLAKE8 := $(shell flake8 --version 2> /dev/null)
 
 include /etc/os-release
 # see https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1840091/comments/3
@@ -28,13 +27,6 @@ override_dh_auto_build:
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	python3 -m pytest
-ifdef FLAKE8
-	# required for Trusty: flake8 does not install a __main__  for -m
-	# invocation
-	python3 $(shell which flake8) uaclient
-else
-	python3 -m flake8 uaclient
-endif
 endif
 
 override_dh_gencontrol:
