@@ -2,6 +2,28 @@ import subprocess
 import time
 from typing import Any, List
 
+from behave.runner import Context
+
+
+def launch_trusty_lxd_container(context: Context) -> None:
+    """Launch a trusty container and wait for it to boot
+
+    This will also register a cleanup with behave so the container will be
+    removed before test execution completes.
+
+    :param context:
+        A `behave.runner.Context` which should have `container_name` set.  The
+        launched container will be named `context.container_name`.
+    """
+    subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
+
+    def cleanup_container() -> None:
+        subprocess.run(["lxc", "delete", "-f", context.container_name])
+
+    context.add_cleanup(cleanup_container)
+
+    wait_for_boot(context.container_name)
+
 
 def lxc_exec(
     container_name: str, cmd: List[str], *args: Any, **kwargs: Any

@@ -1,11 +1,10 @@
 import datetime
 import shlex
-import subprocess
 
 from behave import given, then, when
 from hamcrest import assert_that, equal_to
 
-from features.util import lxc_exec, wait_for_boot
+from features.util import launch_trusty_lxd_container, lxc_exec
 
 
 CONTAINER_PREFIX = "behave-test-"
@@ -15,14 +14,7 @@ CONTAINER_PREFIX = "behave-test-"
 def given_a_trusty_lxd_container(context):
     now = datetime.datetime.now()
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
-    subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
-
-    def cleanup_container():
-        subprocess.run(["lxc", "delete", "-f", context.container_name])
-
-    context.add_cleanup(cleanup_container)
-
-    wait_for_boot(context.container_name)
+    launch_trusty_lxd_container(context)
 
 
 @given("ubuntu-advantage-tools is installed")
