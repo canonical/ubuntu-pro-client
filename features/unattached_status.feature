@@ -1,8 +1,7 @@
 Feature: Unattached status
 
     Scenario: Unattached status in a trusty lxd container
-        Given a trusty lxd container
-          And ubuntu-advantage-tools is installed
+        Given a trusty lxd container with ubuntu-advantage-tools installed
         When I run `ua status` as non-root
         Then I will see the following on stdout:
             """
