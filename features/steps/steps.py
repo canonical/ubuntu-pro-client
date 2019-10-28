@@ -18,8 +18,7 @@ def given_a_trusty_lxd_container(context):
     subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
 
     def cleanup_container():
-        subprocess.run(["lxc", "stop", context.container_name])
-        subprocess.run(["lxc", "delete", context.container_name])
+        subprocess.run(["lxc", "delete", "-f", context.container_name])
 
     context.add_cleanup(cleanup_container)
 
