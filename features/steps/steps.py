@@ -4,7 +4,7 @@ import shlex
 from behave import given, then, when
 from hamcrest import assert_that, equal_to
 
-from features.util import launch_trusty_lxd_container, lxc_exec
+from features.util import launch_lxd_container, lxc_exec
 
 
 CONTAINER_PREFIX = "behave-test-"
@@ -14,7 +14,7 @@ CONTAINER_PREFIX = "behave-test-"
 def given_a_trusty_lxd_container(context):
     now = datetime.datetime.now()
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
-    launch_trusty_lxd_container(context, context.container_name)
+    launch_lxd_container(context, "ubuntu:trusty", context.container_name)
 
 
 @given("ubuntu-advantage-tools is installed")
