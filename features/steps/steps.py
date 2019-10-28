@@ -23,7 +23,7 @@ def given_a_trusty_lxd_container(context):
 
     context.add_cleanup(cleanup_container)
 
-    wait_for_boot(context)
+    wait_for_boot(context.container_name)
 
 
 @given("ubuntu-advantage-tools is installed")

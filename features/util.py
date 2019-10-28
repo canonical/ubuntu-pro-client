@@ -2,8 +2,6 @@ import subprocess
 import time
 from typing import Any, List
 
-from behave.runner import Context
-
 
 def lxc_exec(
     container_name: str, cmd: List[str], *args: Any, **kwargs: Any
@@ -26,20 +24,16 @@ def lxc_exec(
     )
 
 
-def wait_for_boot(context: Context) -> None:
+def wait_for_boot(container_name: str) -> None:
     """Wait for a test container to boot.
 
-    :param context:
-        A `behave.runner.Context` which should have `container_name` set on it.
-        The container named `context.container_name` will be operated on.
+    :param container_name:
+        The name of the container to wait for.
     """
     retries = [2] * 5
     for sleep_time in retries:
         process = lxc_exec(
-            context.container_name,
-            ["runlevel"],
-            capture_output=True,
-            text=True,
+            container_name, ["runlevel"], capture_output=True, text=True
         )
         try:
             _, runlevel = process.stdout.strip().split(" ", 2)
