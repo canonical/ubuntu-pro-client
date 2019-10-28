@@ -14,7 +14,7 @@ CONTAINER_PREFIX = "behave-test-"
 def given_a_trusty_lxd_container(context):
     now = datetime.datetime.now()
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
-    launch_trusty_lxd_container(context)
+    launch_trusty_lxd_container(context, context.container_name)
 
 
 @given("ubuntu-advantage-tools is installed")
