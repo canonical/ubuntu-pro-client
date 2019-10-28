@@ -1,37 +1,14 @@
 import datetime
 import shlex
 import subprocess
-import time
 
 from behave import given, then, when
-from behave.runner import Context
 from hamcrest import assert_that, equal_to
 
-from features.util import lxc_exec
+from features.util import lxc_exec, wait_for_boot
 
 
 CONTAINER_PREFIX = "behave-test-"
-
-
-def _wait_for_boot(context: Context) -> None:
-    retries = [2] * 5
-    for sleep_time in retries:
-        process = lxc_exec(
-            context.container_name,
-            ["runlevel"],
-            capture_output=True,
-            text=True,
-        )
-        try:
-            _, runlevel = process.stdout.strip().split(" ", 2)
-        except ValueError:
-            print("Unexpected runlevel output: ", process.stdout.strip())
-            runlevel = None
-        if runlevel == "2":
-            break
-        time.sleep(sleep_time)
-    else:
-        raise Exception("System did not boot in {}s".format(sum(retries)))
 
 
 @given("a trusty lxd container")
@@ -46,7 +23,7 @@ def given_a_trusty_lxd_container(context):
 
     context.add_cleanup(cleanup_container)
 
-    _wait_for_boot(context)
+    wait_for_boot(context)
 
 
 @given("ubuntu-advantage-tools is installed")
