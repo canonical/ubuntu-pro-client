@@ -17,7 +17,10 @@ def _wait_for_boot(context: Context) -> None:
     retries = [2] * 5
     for sleep_time in retries:
         process = lxc_exec(
-            context, ["runlevel"], capture_output=True, text=True
+            context.container_name,
+            ["runlevel"],
+            capture_output=True,
+            text=True,
         )
         try:
             _, runlevel = process.stdout.strip().split(" ", 2)
@@ -49,16 +52,17 @@ def given_a_trusty_lxd_container(context):
 @given("ubuntu-advantage-tools is installed")
 def given_uat_is_installed(context):
     lxc_exec(
-        context,
+        context.container_name,
         [
             "add-apt-repository",
             "--yes",
             "ppa:canonical-server/ua-client-daily",
         ],
     )
-    lxc_exec(context, ["apt-get", "update", "-qq"])
+    lxc_exec(context.container_name, ["apt-get", "update", "-qq"])
     lxc_exec(
-        context, ["apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"]
+        context.container_name,
+        ["apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
     )
 
 
@@ -72,7 +76,10 @@ def when_i_run_command(context, command, user):
             "The two acceptable values for user are: root, non-root"
         )
     process = lxc_exec(
-        context, prefix + shlex.split(command), capture_output=True, text=True
+        context.container_name,
+        prefix + shlex.split(command),
+        capture_output=True,
+        text=True,
     )
     context.process = process
 
