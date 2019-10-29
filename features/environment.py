@@ -47,6 +47,11 @@ def create_trusty_uat_lxd_image(context: Context) -> None:
     _install_uat_in_container(build_container_name)
     _capture_container_as_image(build_container_name, context.image_name)
 
+    def image_cleanup() -> None:
+        subprocess.run(["lxc", "image", "delete", context.image_name])
+
+    context.add_cleanup(image_cleanup)
+
 
 def _install_uat_in_container(container_name: str) -> None:
     """Install ubuntu-advantage-tools into the specified container
