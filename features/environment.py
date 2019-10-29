@@ -40,11 +40,12 @@ def create_trusty_uat_lxd_image(context: Context) -> None:
         A `behave.runner.Context`; this will have `image_name` set on it.
     """
     now = datetime.datetime.now()
-    context.image_name = "behave-image-build-" + now.strftime("%s%f")
+    context.image_name = "behave-image-" + now.strftime("%s%f")
+    build_container_name = "behave-image-build-" + now.strftime("%s%f")
 
-    launch_lxd_container(context, "ubuntu:trusty", context.image_name)
-    _install_uat_in_container(context.image_name)
-    _capture_container_as_image(context.image_name, context.image_name)
+    launch_lxd_container(context, "ubuntu:trusty", build_container_name)
+    _install_uat_in_container(build_container_name)
+    _capture_container_as_image(build_container_name, context.image_name)
 
 
 def _install_uat_in_container(container_name: str) -> None:
