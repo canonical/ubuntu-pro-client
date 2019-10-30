@@ -46,7 +46,7 @@ def lxc_exec(
         The `subprocess.CompletedProcess` returned by `subprocess.run`.
     """
     return subprocess.run(
-        ["lxc", "exec", container_name, "--"] + cmd, **kwargs
+        ["lxc", "exec", "--user", "1000", container_name, "--"] + cmd, **kwargs
     )
 
 

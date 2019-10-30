@@ -5,8 +5,7 @@ Feature: Command behaviour when unattached
         When I run `ua detach` as non-root
         Then I will see the following on stderr:
             """
-            This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            This command must be run as root (try using sudo)
             """
         When I run `ua detach` with sudo
         Then I will see the following on stderr:
@@ -20,8 +19,7 @@ Feature: Command behaviour when unattached
         When I run `ua refresh` as non-root
         Then I will see the following on stderr:
             """
-            This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            This command must be run as root (try using sudo)
             """
         When I run `ua refresh` with sudo
         Then I will see the following on stderr:
@@ -35,9 +33,7 @@ Feature: Command behaviour when unattached
         When I run `ua enable livepatch` as non-root
         Then I will see the following on stderr:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription
-            Personal and community subscriptions are available at no charge
-            See https://ubuntu.com/advantage
+            This command must be run as root (try using sudo)
             """
         When I run `ua enable livepatch` with sudo
         Then I will see the following on stderr:
@@ -52,8 +48,7 @@ Feature: Command behaviour when unattached
         When I run `ua enable foobar` as non-root
         Then I will see the following on stderr:
             """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
+            This command must be run as root (try using sudo)
             """
         When I run `ua enable foobar` with sudo
         Then I will see the following on stderr:
@@ -67,9 +62,7 @@ Feature: Command behaviour when unattached
         When I run `ua disable livepatch` as non-root
         Then I will see the following on stderr:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription
-            Personal and community subscriptions are available at no charge
-            See https://ubuntu.com/advantage
+            This command must be run as root (try using sudo)
             """
         When I run `ua disable livepatch` with sudo
         Then I will see the following on stderr:
@@ -84,8 +77,7 @@ Feature: Command behaviour when unattached
         When I run `ua disable foobar` as non-root
         Then I will see the following on stderr:
             """
-            Cannot disable 'foobar'
-            For a list of services see: sudo ua status
+            This command must be run as root (try using sudo)
             """
         When I run `ua disable foobar` with sudo
         Then I will see the following on stderr:

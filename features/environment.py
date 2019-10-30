@@ -143,13 +143,14 @@ def _install_uat_in_container(container_name: str) -> None:
     lxc_exec(
         container_name,
         [
+            "sudo",
             "add-apt-repository",
             "--yes",
             "ppa:canonical-server/ua-client-daily",
         ],
     )
-    lxc_exec(container_name, ["apt-get", "update", "-qq"])
+    lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
     lxc_exec(
         container_name,
-        ["apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
+        ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
     )
