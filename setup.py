@@ -6,14 +6,14 @@ import setuptools
 
 from uaclient import defaults, version
 
-NAME = 'ubuntu-advantage-tools'
+NAME = "ubuntu-advantage-tools"
 
-INSTALL_REQUIRES = open('requirements.txt').read().rstrip('\n').split('\n')
-TEST_REQUIRES = open('test-requirements.txt').read().rstrip('\n').split('\n')
+INSTALL_REQUIRES = open("requirements.txt").read().rstrip("\n").split("\n")
+TEST_REQUIRES = open("test-requirements.txt").read().rstrip("\n").split("\n")
 
 
 def _get_version():
-    parts = version.get_version().split('-')
+    parts = version.get_version().split("-")
     if len(parts) == 1:
         return parts[0]
     major_minor, _subrev, _commitish = parts
@@ -24,25 +24,32 @@ setuptools.setup(
     name=NAME,
     version=_get_version(),
     packages=setuptools.find_packages(
-        exclude=['*.testing', 'tests.*', '*.tests', 'tests', 'features', 'features.*']
+        exclude=[
+            "*.testing",
+            "tests.*",
+            "*.tests",
+            "tests",
+            "features",
+            "features.*",
+        ]
     ),
     data_files=[
-        ('/etc/apt/apt.conf.d', ['apt.conf.d/51ubuntu-advantage-esm']),
-        ('/etc/ubuntu-advantage', ['uaclient.conf']),
-        ('/usr/share/keyrings', glob.glob('keyrings/*')),
-        (defaults.CONFIG_DEFAULTS['data_dir'], [])
+        ("/etc/apt/apt.conf.d", ["apt.conf.d/51ubuntu-advantage-esm"]),
+        ("/etc/ubuntu-advantage", ["uaclient.conf"]),
+        ("/usr/share/keyrings", glob.glob("keyrings/*")),
+        (defaults.CONFIG_DEFAULTS["data_dir"], []),
     ],
     install_requires=INSTALL_REQUIRES,
     extras_require=dict(test=TEST_REQUIRES),
-    author='Ubuntu Server Team',
-    author_email='ubuntu-server@lists.ubuntu.com',
-    description=('Manage Ubuntu Advantage support entitlements'),
-    license='GPLv3',
-    url='https://ubuntu.com/support',
+    author="Ubuntu Server Team",
+    author_email="ubuntu-server@lists.ubuntu.com",
+    description=("Manage Ubuntu Advantage support entitlements"),
+    license="GPLv3",
+    url="https://ubuntu.com/support",
     entry_points={
-        'console_scripts': [
-            'ubuntu-advantage=uaclient.cli:main',
-            'ua=uaclient.cli:main'
+        "console_scripts": [
+            "ubuntu-advantage=uaclient.cli:main",
+            "ua=uaclient.cli:main",
         ]
-    }
+    },
 )
