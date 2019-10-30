@@ -18,6 +18,10 @@ class UAClientBehaveConfig:
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
+    :param reuse_image:
+        A string with an image name that should be used instead of building a
+        fresh image for this test run.  If specified, image_clean will be set
+        to False.
     """
 
     prefix = "UACLIENT_BEHAVE_"
@@ -26,14 +30,27 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["image_clean"]
+    str_options = ["reuse_image"]
 
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
-    all_options = boolean_options
+    all_options = boolean_options + str_options
 
-    def __init__(self, *, image_clean: bool = True) -> None:
+    def __init__(
+        self, *, image_clean: bool = True, reuse_image: str = None
+    ) -> None:
+        # First, store the values we've detected
         self.image_clean = image_clean
+        self.reuse_image = reuse_image
 
+        # Next, perform any required validation
+        if self.reuse_image is not None:
+            if self.image_clean:
+                print("reuse_image specified, setting image_clean = False")
+                self.image_clean = False
+
+        # Finally, print the config options.  This helps users debug the use of
+        # config options, and means they'll be included in test logs in CI.
         print("Config options:")
         for option in self.all_options:
             print("  {}".format(option), "=", getattr(self, option, "ERROR"))
@@ -70,7 +87,10 @@ def before_all(context: Context) -> None:
     test execution time.
     """
     context.config = UAClientBehaveConfig.from_environ()
-    create_trusty_uat_lxd_image(context)
+    if context.config.reuse_image is None:
+        create_trusty_uat_lxd_image(context)
+    else:
+        context.image_name = context.config.reuse_image
 
 
 def _capture_container_as_image(container_name: str, image_name: str) -> None:
