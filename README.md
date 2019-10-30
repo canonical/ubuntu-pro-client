@@ -60,6 +60,42 @@ through [the behave
 tutorial](https://behave.readthedocs.io/en/latest/tutorial.html) to get
 an idea of how it works, and how tests are written.)
 
+#### Iterating Locally
+
+To make running the tests repeatedly less time-intensive, our behave
+testing setup has support for reusing images between runs via two
+configuration options (provided in environment variables),
+`UACLIENT_BEHAVE_IMAGE_CLEAN` and `UACLIENT_BEHAVE_REUSE_IMAGE`.
+
+To avoid the test framework cleaning up the image it creates, you can
+run it like this:
+
+```sh
+UACLIENT_BEHAVE_IMAGE_CLEAN=0 tox -e behave
+```
+
+which will emit a line like this above the test summary:
+
+```
+Image cleanup disabled, not deleting: behave-image-1572443113978755
+```
+
+You can then reuse that image by plugging its name into your next test
+run, like so:
+
+```sh
+UACLIENT_BEHAVE_REUSE_IMAGE=behave-image-1572443113978755 tox -e behave
+```
+
+If you've done this correctly, you should see something like
+`reuse_image = behave-image-1572443113978755` in the "Config options"
+output, and test execution should start immediately (without the usual
+image build step).
+
+(Note that this handling is specific to our behave tests as it's
+performed in `features/environment.py`, so don't expect to find
+documentation about it outside of this codebase.)
+
 ## Building
 
 The packaging for the UA client package (ubuntu-advantage-tools) is
