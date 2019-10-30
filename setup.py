@@ -24,7 +24,7 @@ setuptools.setup(
     name=NAME,
     version=_get_version(),
     packages=setuptools.find_packages(
-        exclude=['*.testing', 'tests.*', '*.tests', 'tests']
+        exclude=['*.testing', 'tests.*', '*.tests', 'tests', 'features']
     ),
     data_files=[
         ('/etc/apt/apt.conf.d', ['apt.conf.d/51ubuntu-advantage-esm']),
