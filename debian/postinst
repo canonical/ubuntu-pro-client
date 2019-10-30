@@ -63,14 +63,10 @@ case "$1" in
       # do-release-upgrade substitutes s/precise/trusty/ in all apt sources.
       # So all we need to do is rename the precise sources file to trusty.
       # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/693
-      case $PREVIOUS_PKG_VER in
-          1) # upgraded from precise which will only ever have version 1
-              if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
-                  mv $ESM_APT_SOURCE_FILE_PRECISE \
-                      $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-              fi
-              ;;
-      esac
+      if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
+          mv $ESM_APT_SOURCE_FILE_PRECISE \
+              $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
+      fi
 
       # We changed the way we store public files in 19.5
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "19.5~"; then
