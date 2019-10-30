@@ -15,6 +15,11 @@ matrix:
     - python: 3.7
       env: TOXENV=behave
       script:
+          # bionic has lxd from deb installed, remove it first to avoid
+          # confusion over versions
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c 'make test'
@@ -64,6 +69,11 @@ matrix:
     - python: 3.7
       env: TOXENV=behave
       script:
+          # bionic has lxd from deb installed, remove it first to avoid
+          # confusion over versions
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c 'make test'
