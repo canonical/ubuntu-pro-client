@@ -30,7 +30,7 @@ def launch_lxd_container(
 
 
 def lxc_exec(
-    container_name: str, cmd: List[str], *args: Any, **kwargs: Any
+    container_name: str, cmd: List[str], **kwargs: Any
 ) -> subprocess.CompletedProcess:
     """Run `lxc exec` in a container.
 
@@ -39,14 +39,14 @@ def lxc_exec(
     :param cmd:
         A list containing the command to be run and its parameters; this will
         be appended to a list that is passed to `subprocess.run`.
-    :param args, kwargs:
+    :param kwargs:
         These are passed directly to `subprocess.run`.
 
     :return:
         The `subprocess.CompletedProcess` returned by `subprocess.run`.
     """
     return subprocess.run(
-        ["lxc", "exec", container_name, "--"] + cmd, *args, **kwargs
+        ["lxc", "exec", container_name, "--"] + cmd, **kwargs
     )
 
 
