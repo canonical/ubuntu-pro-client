@@ -1,6 +1,6 @@
 ubuntu-advantage-tools (19.6.1) trusty; urgency=medium
 
-  * AWS Premium Demo
+  * AWS Premium Demo (GH: #898)
   * Add systemd unit files with TimeoutSec=0
 
  -- Chad Smith <chad.smith@canonical.com>  Tue, 29 Oct 2019 21:55:25 -0300
