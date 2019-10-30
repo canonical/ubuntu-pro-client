@@ -5,8 +5,10 @@ from typing import Any, List
 from behave.runner import Context
 
 
-def launch_trusty_lxd_container(context: Context, container_name: str) -> None:
-    """Launch a trusty container and wait for it to boot
+def launch_lxd_container(
+    context: Context, image_name: str, container_name: str
+) -> None:
+    """Launch a container from an image and wait for it to boot
 
     This will also register a cleanup with behave so the container will be
     removed before test execution completes.
@@ -17,7 +19,7 @@ def launch_trusty_lxd_container(context: Context, container_name: str) -> None:
     :param container_name:
         The name to be used for the launched container.
     """
-    subprocess.run(["lxc", "launch", "ubuntu:trusty", container_name])
+    subprocess.run(["lxc", "launch", image_name, container_name])
 
     def cleanup_container() -> None:
         subprocess.run(["lxc", "delete", "-f", container_name])
