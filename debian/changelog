@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (19.6~ubuntu14.04.3) trusty; urgency=medium
+
+  * d/postinst: rename existing ubuntu-esm-precise.list file to trusty.
+    This fixes the upgrade path from precise to trusty and to this client
+    while esm is enabled (LP: #1850672)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Wed, 30 Oct 2019 10:01:58 -0300
+
 ubuntu-advantage-tools (19.6~ubuntu14.04.2) trusty; urgency=medium
 
   * d/control, d/rules: don't run flake8 tests since python3-flake8 is in
