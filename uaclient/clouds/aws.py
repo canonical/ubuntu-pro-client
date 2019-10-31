@@ -11,7 +11,7 @@ DMI_PRODUCT_UUID = "/sys/class/dmi/id/product_uuid"
 
 class UAPremiumAWSInstance(UAPremiumCloudInstance):
 
-    # mypy can't handle decorater @property
+    # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
