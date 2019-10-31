@@ -28,8 +28,8 @@ KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
 M_PATH = "uaclient.entitlements."
 
 
-RESP_ALL_RESOURCES_AVAILABLE = [
-    {"name": name, "available": True} for name in ENTITLEMENT_CLASS_BY_NAME
+NO_RESOURCES_ENTITLED = [
+    {"type": name, "entitled": False} for name in ENTITLEMENT_CLASS_BY_NAME
 ]
 RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
     {"name": name, "available": name == "fips"}
@@ -399,33 +399,86 @@ class TestStatus:
         assert expected == cfg.status()
 
     @pytest.mark.parametrize(
-        "resources,get_avail_resp",
+        "avail_res,entitled_res,uf_entitled,uf_status",
         (
-            (
-                entitlements.ENTITLEMENT_CLASS_BY_NAME.keys(),
-                RESP_ALL_RESOURCES_AVAILABLE,
+            (  # Empty lists means UNENTITLED and UNAVAILABLE
+                [],
+                [],
+                status.ContractStatus.UNENTITLED.value,
+                status.UserFacingStatus.UNAVAILABLE.value,
             ),
-            ("fips", RESP_ONLY_FIPS_RESOURCE_AVAILABLE),
+            (  # available == False means UNAVAILABLE
+                [{"name": "livepatch", "available": False}],
+                [],
+                status.ContractStatus.UNENTITLED.value,
+                status.UserFacingStatus.UNAVAILABLE.value,
+            ),
+            (  # available == True but unentitled means UNAVAILABLE
+                [{"name": "livepatch", "available": True}],
+                [],
+                status.ContractStatus.UNENTITLED.value,
+                status.UserFacingStatus.UNAVAILABLE.value,
+            ),
+            (  # available == False and entitled means INAPPLICABLE
+                [{"name": "livepatch", "available": False}],
+                [{"type": "livepatch", "entitled": True}],
+                status.ContractStatus.ENTITLED.value,
+                status.UserFacingStatus.INAPPLICABLE.value,
+            ),
         ),
     )
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_root_attached(
-        self, _m_getuid, m_get_available_resources, resources, get_avail_resp
+        self,
+        _m_getuid,
+        m_get_avail_resources,
+        avail_res,
+        entitled_res,
+        uf_entitled,
+        uf_status,
     ):
         """Test we get the correct status dict when attached with basic conf"""
-        cfg = FakeConfig.for_attached_machine()
-        expected_services = [
+        resource_names = [resource["name"] for resource in avail_res]
+        default_entitled = status.ContractStatus.UNENTITLED.value
+        default_status = status.UserFacingStatus.UNAVAILABLE.value
+        token = {
+            "machineTokenInfo": {
+                "accountInfo": {"id": "acct-1", "name": "test_account"},
+                "contractInfo": {
+                    "id": "cid",
+                    "name": "test_contract",
+                    "resourceEntitlements": entitled_res,
+                },
+            }
+        }
+        available_resource_response = [
             {
-                "description": cls.description,
-                "entitled": status.ContractStatus.UNENTITLED.value,
                 "name": cls.name,
-                "status": status.UserFacingStatus.UNAVAILABLE.value,
-                "statusDetails": mock.ANY,
+                "available": bool(
+                    {"name": cls.name, "available": True} in avail_res
+                ),
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
         ]
-        m_get_available_resources.return_value = get_avail_resp
+        m_get_avail_resources.return_value = available_resource_response
+
+        cfg = FakeConfig.for_attached_machine(machine_token=token)
+        expected_services = [
+            {
+                "description": cls.description,
+                "entitled": uf_entitled
+                if cls.name in resource_names
+                else default_entitled,
+                "name": cls.name,
+                "status": uf_status
+                if cls.name in resource_names
+                else default_status,
+                "statusDetails": mock.ANY,
+                "description_override": None,
+            }
+            for cls in entitlements.ENTITLEMENT_CLASSES
+        ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
@@ -438,6 +491,7 @@ class TestStatus:
             }
         )
         assert expected == cfg.status()
+        assert m_get_avail_resources.call_count == 1
         # cfg.status() idempotent
         assert expected == cfg.status()
 
@@ -523,11 +577,10 @@ class TestStatus:
         m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_getuid,
-        m_get_available_resources,
+        _m_get_available_resources,
         entitlements,
     ):
         """When attached, return contract and service user-facing status."""
-        m_get_available_resources.return_value = RESP_ALL_RESOURCES_AVAILABLE
         m_repo_contract_status.return_value = status.ContractStatus.ENTITLED
         m_repo_uf_status.return_value = (
             status.UserFacingStatus.INAPPLICABLE,
@@ -582,6 +635,7 @@ class TestStatus:
                     "entitled": status.ContractStatus.ENTITLED.value,
                     "status": expected_status,
                     "statusDetails": details,
+                    "description_override": None,
                 }
             )
         assert expected == cfg.status()
@@ -670,7 +724,9 @@ class TestAttachedServiceStatus:
         ent.contract_status.return_value = contract_status
         ent.user_facing_status.return_value = (uf_status, "")
 
-        unavailable_resources = [ent.name] if in_inapplicable_resources else []
+        unavailable_resources = (
+            {ent.name: ""} if in_inapplicable_resources else {}
+        )
         ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
 
         assert expected_status == ret["status"]
