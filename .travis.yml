@@ -12,6 +12,17 @@ script:
 matrix:
   fast_finish: true
   include:
+    - python: 3.7
+      env: TOXENV=behave
+      script:
+          # bionic has lxd from deb installed, remove it first to avoid
+          # confusion over versions
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - sudo snap install lxd
+          - sudo lxd init --auto
+          - sudo usermod -a -G lxd $USER
+          - sg lxd -c 'make test'
     - env:
         PACKAGE_BUILD_SERIES=trusty
       install:
@@ -48,14 +59,21 @@ matrix:
       env: TOXENV=py3-disco,flake8-disco
     - python: 3.7
       env: TOXENV=py3-eoan,flake8-eoan
-    - python: 3.7
-      env: TOXENV=py3,flake8
-    - python: 3.8-dev
+    - python: 3.8
       env: TOXENV=py3,flake8
     - python: 3.7
       env: TOXENV=mypy
     - python: 3.7
       env: TOXENV=black
   allow_failures:
-    - python: 3.8
-      env: TOXENV=py3,flake8
+    - python: 3.7
+      env: TOXENV=behave
+      script:
+          # bionic has lxd from deb installed, remove it first to avoid
+          # confusion over versions
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - sudo snap install lxd
+          - sudo lxd init --auto
+          - sudo usermod -a -G lxd $USER
+          - sg lxd -c 'make test'

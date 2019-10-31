@@ -56,13 +56,6 @@ EOF
     fi
 }
 
-upgrade_to_status_cache() {
-    # Remove all publicly-readable files
-    find /var/lib/ubuntu-advantage/ -maxdepth 1 -type f -delete
-    # Regenerate the status.json cache
-    ua status 2>&1 > /dev/null
-}
-
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -70,19 +63,15 @@ case "$1" in
       # do-release-upgrade substitutes s/precise/trusty/ in all apt sources.
       # So all we need to do is rename the precise sources file to trusty.
       # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/693
-      case $PREVIOUS_PKG_VER in
-          1) # upgraded from precise which will only ever have version 1
-              if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
-                  mv $ESM_APT_SOURCE_FILE_PRECISE \
-                      $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-              fi
-              ;;
-      esac
+      if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
+          mv $ESM_APT_SOURCE_FILE_PRECISE \
+              $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
+      fi
 
-      # We changed the way we store public files in 19.5; transition to the new
-      # status cache for installs of a previous version
+      # We changed the way we store public files in 19.5
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "19.5~"; then
-          upgrade_to_status_cache
+          # Remove all publicly-readable files
+          find /var/lib/ubuntu-advantage/ -maxdepth 1 -type f -delete
       fi
 
       # CACHE_DIR is no longer present or used since 19.1

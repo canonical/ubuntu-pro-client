@@ -1,76 +1,37 @@
 import datetime
 import shlex
-import subprocess
-import time
-from typing import List
 
 from behave import given, then, when
-from behave.runner import Context
 from hamcrest import assert_that, equal_to
+
+from features.util import launch_lxd_container, lxc_exec
 
 
 CONTAINER_PREFIX = "behave-test-"
 
 
-def _lxc_exec(context: Context, cmd: List[str], *args, **kwargs):
-    return subprocess.run(
-        ["lxc", "exec", context.container_name, "--"] + cmd, *args, **kwargs
-    )
-
-
-def _wait_for_boot(context: Context) -> None:
-    retries = [2] * 5
-    for sleep_time in retries:
-        process = _lxc_exec(
-            context, ["runlevel"], capture_output=True, text=True
-        )
-        try:
-            _, runlevel = process.stdout.strip().split(" ", 2)
-        except ValueError:
-            print("Unexpected runlevel output: ", process.stdout.strip())
-            runlevel = None
-        if runlevel == "2":
-            break
-        time.sleep(sleep_time)
-    else:
-        raise Exception("System did not boot in {}s".format(sum(retries)))
-
-
-@given("a trusty lxd container")
+@given("a trusty lxd container with ubuntu-advantage-tools installed")
 def given_a_trusty_lxd_container(context):
     now = datetime.datetime.now()
     context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
-    subprocess.run(["lxc", "launch", "ubuntu:trusty", context.container_name])
-
-    def cleanup_container():
-        subprocess.run(["lxc", "stop", context.container_name])
-        subprocess.run(["lxc", "delete", context.container_name])
-
-    context.add_cleanup(cleanup_container)
-
-    _wait_for_boot(context)
+    launch_lxd_container(context, context.image_name, context.container_name)
 
 
-@given("ubuntu-advantage-tools is installed")
-def given_uat_is_installed(context):
-    _lxc_exec(
-        context,
-        [
-            "add-apt-repository",
-            "--yes",
-            "ppa:canonical-server/ua-client-daily",
-        ],
-    )
-    _lxc_exec(context, ["apt-get", "update", "-qq"])
-    _lxc_exec(
-        context, ["apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"]
-    )
-
-
-@when("I run `{command}` as non-root")
-def when_i_run_command(context, command):
-    process = _lxc_exec(
-        context, shlex.split(command), capture_output=True, text=True
+@when("I run `{command}` {user_spec}")
+def when_i_run_command(context, command, user_spec):
+    prefix = []
+    if user_spec == "with sudo":
+        prefix = ["sudo"]
+    elif user_spec != "as non-root":
+        raise Exception(
+            "The two acceptable values for user_spec are: 'with sudo',"
+            " 'as non-root'"
+        )
+    process = lxc_exec(
+        context.container_name,
+        prefix + shlex.split(command),
+        capture_output=True,
+        text=True,
     )
     context.process = process
 

@@ -19,6 +19,9 @@ ubuntu-advantage-tools (19.6) focal; urgency=medium
     - handle sources.list.d esm snippet when release upgrading from precise
     - ua status now reports availability of services even in unattached state
     - the "ua status" output was changed, including the json format option
+    - drop "ua status" call in postinst as it now requires internet access and
+      that is restricted in LP builders and test runners.
+    - fix the d/t/usage DEP8 test that was also using status
 
  -- Andreas Hasenack <andreas@canonical.com>  Thu, 04 Jul 2019 14:12:58 -0300
 

@@ -511,7 +511,12 @@ def main_error_handler(func):
             sys.exit(1)
         except util.UrlError as exc:
             with util.disable_log_to_console():
-                logging.exception(exc)
+                msg_args = {"url": exc.url, "error": exc}
+                if exc.url:
+                    msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
+                else:
+                    msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
+                logging.exception(msg_tmpl.format(**msg_args))
             print(ua_status.MESSAGE_CONNECTIVITY_ERROR, file=sys.stderr)
             sys.exit(1)
         except exceptions.UserFacingError as exc:

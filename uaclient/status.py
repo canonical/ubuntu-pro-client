@@ -120,6 +120,10 @@ MESSAGE_APT_UPDATING_LISTS = "Updating package lists"
 MESSAGE_CONNECTIVITY_ERROR = """\
 Failed to connect to authentication server
 Check your Internet connection and try again"""
+LOG_CONNECTIVITY_ERROR_TMPL = MESSAGE_CONNECTIVITY_ERROR + ". {error}"
+LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
+    MESSAGE_CONNECTIVITY_ERROR + ". Failed to access URL: {url}. {error}"
+)
 MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)"
 MESSAGE_ALREADY_DISABLED_TMPL = """\
 {title} is not currently enabled\nSee: sudo ua status"""
@@ -210,11 +214,15 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     content = [STATUS_HEADER]
     for service_status in status["services"]:
         entitled = service_status["entitled"]
+        descr_override = service_status["description_override"]
+        description = (
+            descr_override if descr_override else service_status["description"]
+        )
         fmt_args = {
             "name": service_status["name"],
             "entitled": colorize(entitled),
             "status": colorize(service_status["status"]),
-            "description": service_status["description"],
+            "description": description,
         }
         content.append(STATUS_TMPL.format(**fmt_args))
     content.append("\nEnable services with: ua enable <service>\n")
