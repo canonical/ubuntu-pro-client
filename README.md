@@ -32,6 +32,70 @@ The client also includes built-in dep8 tests. These are run as follows:
 autopkgtest -U --shell-fail . -- lxd ubuntu:xenial
 ```
 
+### Integration Tests
+
+ubuntu-advantage-client uses [behave](https://behave.readthedocs.io)
+for its integration testing.
+
+The integration test definitions are stored in the `features/`
+directory and consist of two parts: `.feature` files that define the
+tests we want to run, and `.py` files which implement the underlying
+logic for those tests.
+
+To run the tests, you can use `tox`:
+
+```shell
+tox -e behave
+```
+
+or, if you just want to run a specific file, or a test within a file:
+
+```shell
+tox -e behave features/unattached_commands.feature
+tox -e behave features/unattached_commands.feature:55
+```
+
+(If you're getting started with behave, we recommend at least reading
+through [the behave
+tutorial](https://behave.readthedocs.io/en/latest/tutorial.html) to get
+an idea of how it works, and how tests are written.)
+
+#### Iterating Locally
+
+To make running the tests repeatedly less time-intensive, our behave
+testing setup has support for reusing images between runs via two
+configuration options (provided in environment variables),
+`UACLIENT_BEHAVE_IMAGE_CLEAN` and `UACLIENT_BEHAVE_REUSE_IMAGE`.
+
+To avoid the test framework cleaning up the image it creates, you can
+run it like this:
+
+```sh
+UACLIENT_BEHAVE_IMAGE_CLEAN=0 tox -e behave
+```
+
+which will emit a line like this above the test summary:
+
+```
+Image cleanup disabled, not deleting: behave-image-1572443113978755
+```
+
+You can then reuse that image by plugging its name into your next test
+run, like so:
+
+```sh
+UACLIENT_BEHAVE_REUSE_IMAGE=behave-image-1572443113978755 tox -e behave
+```
+
+If you've done this correctly, you should see something like
+`reuse_image = behave-image-1572443113978755` in the "Config options"
+output, and test execution should start immediately (without the usual
+image build step).
+
+(Note that this handling is specific to our behave tests as it's
+performed in `features/environment.py`, so don't expect to find
+documentation about it outside of this codebase.)
+
 ## Building
 
 The packaging for the UA client package (ubuntu-advantage-tools) is
@@ -50,6 +114,29 @@ use that for the build:
 debuild -S
 sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
 ```
+
+## Code Formatting
+
+The `ubuntu-advantage-client` code base is formatted using
+[black](https://github.com/psf/black).  When making changes, you should
+ensure that your code is blackened, or it will be rejected by CI.
+Formatting the whole codebase is as simple as running:
+
+```shell
+black uaclient/
+```
+
+To make it easier to avoid committing incorrectly formatted code, this
+repo includes configuration for [pre-commit](https://pre-commit.com/)
+which will stop you from committing any code that isn't blackened.  To
+install the project's pre-commit hook, install `pre-commit` and run:
+
+```shell
+pre-commit install
+```
+
+(To install `black` and `pre-commit` at the appropriate versions for
+the project, you should install them via `dev-requirements.txt`.)
 
 ## Daily Builds
 

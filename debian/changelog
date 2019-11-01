@@ -1,6 +1,28 @@
-ubuntu-advantage-tools (19.5.1ubuntu3) bionic; urgency=medium
+ubuntu-advantage-tools (19.6.1) trusty; urgency=medium
 
-  * Add systemd unit files with TimeoutSec=0 
+  * AWS Premium Demo (GH: #898)
+  * Add systemd unit files with TimeoutSec=0
+
+ -- Chad Smith <chad.smith@canonical.com>  Tue, 29 Oct 2019 21:55:25 -0300
+
+ubuntu-advantage-tools (19.6) focal; urgency=medium
+
+  * New upstream release. Main changes:
+    - drop SSO interactive login support
+    - d/control: no longer depend on pymacaroons, which was only needed for
+      the SSO interactive login support
+    - drop keyrings for services not supported in trusty: cc-eal, fips,
+      fips-updates, cis audit
+    - make sure /var/lib/ubuntu-advantage/private has 0700 perms
+    - rename esm to esm-infra. Also handle upgrades
+    - don't unecessarily remove config files that are already handled by dpkg
+    - expand the apt related runtime dependencies
+    - handle sources.list.d esm snippet when release upgrading from precise
+    - ua status now reports availability of services even in unattached state
+    - the "ua status" output was changed, including the json format option
+    - drop "ua status" call in postinst as it now requires internet access and
+      that is restricted in LP builders and test runners.
+    - fix the d/t/usage DEP8 test that was also using status
 
  -- Chad Smith <chad.smith@canonical.com>  Fri, 09 Aug 2019 14:48:57 -0600
 

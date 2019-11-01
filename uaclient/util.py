@@ -29,20 +29,23 @@ except ImportError:
     pass
 
 
-ETC_MACHINE_ID = '/etc/machine-id'
-DBUS_MACHINE_ID = '/var/lib/dbus/machine-id'
+ETC_MACHINE_ID = "/etc/machine-id"
+DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DROPPED_KEY = object()
+
+# N.B. this relies on the version normalisation we perform in get_platform_info
+REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
 
 
 class LogFormatter(logging.Formatter):
 
     FORMATS = {
-        logging.ERROR: 'ERROR: %(message)s',
-        logging.DEBUG: 'DEBUG: %(message)s',
+        logging.ERROR: "ERROR: %(message)s",
+        logging.DEBUG: "DEBUG: %(message)s",
     }
 
     def format(self, record: logging.LogRecord) -> str:
-        log_fmt = self.FORMATS.get(record.levelno, '%(message)s')
+        log_fmt = self.FORMATS.get(record.levelno, "%(message)s")
         return logging.Formatter(log_fmt).format(record)
 
 
@@ -50,11 +53,15 @@ class UrlError(IOError):
     def __init__(
         self,
         cause: error.URLError,
-        code: 'Optional[int]' = None,
-        headers: 'Optional[Dict[str, str]]' = None,
-        url: 'Optional[str]' = None,
+        code: "Optional[int]" = None,
+        headers: "Optional[Dict[str, str]]" = None,
+        url: "Optional[str]" = None,
     ):
-        super().__init__(str(cause))
+        if getattr(cause, "reason", None):
+            cause_error = str(cause.reason)
+        else:
+            cause_error = str(cause)
+        super().__init__(cause_error)
         self.code = code
         self.headers = headers
         if self.headers is None:
@@ -66,9 +73,9 @@ class ProcessExecutionError(IOError):
     def __init__(
         self,
         cmd: str,
-        exit_code: 'Optional[int]' = None,
-        stdout: str = '',
-        stderr: str = '',
+        exit_code: "Optional[int]" = None,
+        stdout: str = "",
+        stderr: str = "",
     ) -> None:
         self.stdout = stdout
         self.stderr = stderr
@@ -100,7 +107,7 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
 
     Important note: the "some" is because we seem to only be able extend
     Python's json library in a way that lets us convert string values within
-    JSON objects (e.g. '{"lastModified": "2019-07-25T14:35:51"}').  Strings
+    JSON objects (e.g. '{"lastModified": "2019-07-25T14:35:51"}'). Strings
     outside of JSON objects (e.g. '"2019-07-25T14:35:51"') will not be passed
     through our decoder.
 
@@ -109,8 +116,8 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
     """
 
     def __init__(self, *args, **kwargs):
-        if 'object_hook' in kwargs:
-            kwargs.pop('object_hook')
+        if "object_hook" in kwargs:
+            kwargs.pop("object_hook")
         super().__init__(*args, object_hook=self.object_hook, **kwargs)
 
     @staticmethod
@@ -119,13 +126,47 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
             if isinstance(value, str):
                 try:
                     new_value = datetime.datetime.strptime(
-                        value, '%Y-%m-%dT%H:%M:%S'
+                        value, "%Y-%m-%dT%H:%M:%S"
                     )
                 except ValueError:
                     # This isn't a string containing a valid ISO 8601 datetime
                     new_value = value
                 o[key] = new_value
         return o
+
+
+def apply_series_overrides(orig_access: "Dict[str, Any]") -> None:
+    """Apply series-specific overrides to an entitlement dict.
+
+    This function mutates orig_access dict by applying any series-overrides to
+    the top-level keys under 'entitlement'. The series-overrides are sparse
+    and intended to supplement existing top-level dict values. So, sub-keys
+    under the top-level directives, obligations and affordance sub-key values
+    will be preserved if unspecified in series-overrides.
+
+    To more clearly indicate that orig_access in memory has already had
+    the overrides applied, the 'series' key is also removed from the
+    orig_access dict.
+
+    :param orig_access: Dict with original entitlement access details
+    """
+    if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
+        raise RuntimeError(
+            'Expected entitlement access dict. Missing "entitlement" key:'
+            " {}".format(orig_access)
+        )
+    series_name = get_platform_info()["series"]
+    orig_entitlement = orig_access.get("entitlement", {})
+    overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
+    for key, value in overrides.items():
+        current = orig_access["entitlement"].get(key)
+        if isinstance(current, dict):
+            # If the key already exists and is a dict, update that dict using
+            # the override
+            current.update(value)
+        else:
+            # Otherwise, replace it wholesale
+            orig_access["entitlement"][key] = value
 
 
 def del_file(path: str) -> None:
@@ -147,7 +188,7 @@ def disable_log_to_console():
 
     This context manager will allow us to gradually move away from using the
     logging framework for user-facing output, by applying it to parts of the
-    codebase piece-wise.  (Once the conversion is complete, we should have no
+    codebase piece-wise. (Once the conversion is complete, we should have no
     further use for it and it can be removed.)
 
     (Note that the @contextmanager decorator also allows this function to be
@@ -156,12 +197,12 @@ def disable_log_to_console():
     potential_handlers = [
         handler
         for handler in logging.getLogger().handlers
-        if handler.name == 'console'
+        if handler.name == "console"
     ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end
         # execution
-        logging.debug('disable_log_to_console: no console handler found')
+        logging.debug("disable_log_to_console: no console handler found")
         yield
         return
 
@@ -185,8 +226,8 @@ def retry(exception, retry_sleeps):
         retries. Specifying a list of [0.5, 1] instructs subp to retry twice
         on failure; sleeping half a second before the first retry and 1 second
     """
-    def wrapper(f):
 
+    def wrapper(f):
         @wraps(f)
         def decorator(*args, **kwargs):
             sleeps = retry_sleeps.copy()
@@ -197,21 +238,23 @@ def retry(exception, retry_sleeps):
                     if not sleeps:
                         raise e
                     logging.debug(
-                        str(e) + " Retrying %d more times.", len(sleeps))
+                        str(e) + " Retrying %d more times.", len(sleeps)
+                    )
                     time.sleep(sleeps.pop(0))
+
         return decorator
 
     return wrapper
 
 
 def get_dict_deltas(
-    orig_dict: 'Dict[str, Any]', new_dict: 'Dict[str, Any]', path: str = ''
-) -> 'Dict[str, Any]':
+    orig_dict: "Dict[str, Any]", new_dict: "Dict[str, Any]", path: str = ""
+) -> "Dict[str, Any]":
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}  # type: Dict[str, Any]
     for key, value in orig_dict.items():
         new_value = new_dict.get(key, DROPPED_KEY)
-        key_path = key if not path else path + '.' + key
+        key_path = key if not path else path + "." + key
         if isinstance(value, dict):
             if key in new_dict:
                 sub_delta = get_dict_deltas(
@@ -232,14 +275,73 @@ def get_dict_deltas(
     return deltas
 
 
-def is_container(run_path: str = '/run') -> bool:
+def get_machine_id(data_dir: str) -> str:
+    """Get system's unique machine-id or create our own in data_dir."""
+    # Generate, cache our own uuid if not present on the system
+    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
+    # per Issue: #489
+    fallback_machine_id_file = os.path.join(data_dir, "machine-id")
+
+    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
+        if os.path.exists(path):
+            content = load_file(path).rstrip("\n")
+            if content:
+                return content
+    machine_id = str(uuid.uuid4())
+    write_file(fallback_machine_id_file, machine_id)
+    return machine_id
+
+
+def get_platform_info() -> "Dict[str, str]":
+    """
+    Returns a dict of platform information.
+
+    N.B. This dict is sent to the contract server, which requires the
+    distribution, type and release keys.
+    """
+    os_release = parse_os_release()
+    platform_info = {
+        "distribution": os_release.get("NAME", "UNKNOWN"),
+        "type": "Linux",
+    }
+
+    version = os_release["VERSION"]
+    if ", " in version:
+        # Fix up trusty's version formatting
+        version = "{} ({})".format(*version.split(", "))
+    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
+    version = re.sub(r"\.\d LTS", " LTS", version)
+    platform_info["version"] = version
+
+    match = re.match(REGEX_OS_RELEASE_VERSION, version)
+    if not match:
+        raise RuntimeError(
+            "Could not parse /etc/os-release VERSION: {} (modified to"
+            " {})".format(os_release["VERSION"], version)
+        )
+    match_dict = match.groupdict()
+    platform_info.update(
+        {
+            "release": match_dict["release"],
+            "series": match_dict["series"].lower(),
+        }
+    )
+
+    uname = os.uname()
+    platform_info["kernel"] = uname.release
+    platform_info["arch"] = uname.machine
+
+    return platform_info
+
+
+def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
     try:
-        subp(['systemd-detect-virt', '--quiet', '--container'])
+        subp(["systemd-detect-virt", "--quiet", "--container"])
         return True
     except (IOError, OSError):
         pass
-    for filename in ('container_type', 'systemd/container'):
+    for filename in ("container_type", "systemd/container"):
         path = os.path.join(run_path, filename)
         if os.path.exists(path):
             return True
@@ -256,42 +358,66 @@ def is_service_url(url: str) -> bool:
         parsed_url = urlparse(url)
     except ValueError:
         return False
-    if parsed_url.scheme not in ('https', 'http'):
+    if parsed_url.scheme not in ("https", "http"):
         return False
     return True
 
 
 def load_file(filename: str, decode: bool = True) -> str:
     """Read filename and decode content."""
-    logging.debug('Reading file: %s', filename)
-    with open(filename, 'rb') as stream:
+    logging.debug("Reading file: %s", filename)
+    with open(filename, "rb") as stream:
         content = stream.read()
-    return content.decode('utf-8')
+    return content.decode("utf-8")
+
+
+def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
+    if not release_file:
+        release_file = "/etc/os-release"
+    data = {}
+    for line in load_file(release_file).splitlines():
+        key, value = line.split("=", 1)
+        if value:
+            data[key] = value.strip().strip('"')
+    return data
+
+
+def prompt_for_confirmation() -> bool:
+    """
+    Display a confirmation prompt, returning a bool indicating the response
+
+    This function will only prompt a single time, and defaults to "no" (i.e. it
+    returns False).
+    """
+    value = input("Are you sure? (y/N) ")
+    if value.lower().strip() in ["y", "yes"]:
+        return True
+    return False
 
 
 def readurl(
     url: str,
-    data: 'Optional[bytes]' = None,
-    headers: 'Dict[str, str]' = {},
-    method: 'Optional[str]' = None,
-) -> 'Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]':
+    data: "Optional[bytes]" = None,
+    headers: "Dict[str, str]" = {},
+    method: "Optional[str]" = None,
+) -> "Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]":
     if data and not method:
-        method = 'POST'
+        method = "POST"
     req = request.Request(url, data=data, headers=headers, method=method)
     logging.debug(
-        'URL [%s]: %s, headers: %s, data: %s',
-        method or 'GET',
+        "URL [%s]: %s, headers: %s, data: %s",
+        method or "GET",
         url,
         headers,
         data,
     )
     resp = request.urlopen(req)
-    content = resp.read().decode('utf-8')
-    if 'application/json' in str(resp.headers.get('Content-type', '')):
+    content = resp.read().decode("utf-8")
+    if "application/json" in str(resp.headers.get("Content-type", "")):
         content = json.loads(content)
     logging.debug(
-        'URL [%s] response: %s, headers: %s, data: %s',
-        method or 'GET',
+        "URL [%s] response: %s, headers: %s, data: %s",
+        method or "GET",
         url,
         resp.headers,
         content,
@@ -300,11 +426,11 @@ def readurl(
 
 
 def _subp(
-    args: 'Sequence[str]',
-    rcs: 'Optional[List[int]]' = None,
+    args: "Sequence[str]",
+    rcs: "Optional[List[int]]" = None,
     capture: bool = False,
-    timeout: 'Optional[float]' = None,
-) -> 'Tuple[str, str]':
+    timeout: "Optional[float]" = None,
+) -> "Tuple[str, str]":
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param args: A list of arguments to feed to subprocess.Popen
@@ -332,37 +458,37 @@ def _subp(
     except OSError:
         try:
             raise ProcessExecutionError(
-                cmd=' '.join(args),
+                cmd=" ".join(args),
                 exit_code=proc.returncode,
-                stdout=out.decode('utf-8'),
-                stderr=err.decode('utf-8'),
+                stdout=out.decode("utf-8"),
+                stderr=err.decode("utf-8"),
             )
         except UnboundLocalError:
-            raise ProcessExecutionError(cmd=' '.join(args))
+            raise ProcessExecutionError(cmd=" ".join(args))
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
-            cmd=' '.join(args),
+            cmd=" ".join(args),
             exit_code=proc.returncode,
-            stdout=out.decode('utf-8'),
-            stderr=err.decode('utf-8'),
+            stdout=out.decode("utf-8"),
+            stderr=err.decode("utf-8"),
         )
     if capture:
         logging.debug(
-            'Ran cmd: %s, rc: %s stderr: %s',
-            ' '.join(args),
+            "Ran cmd: %s, rc: %s stderr: %s",
+            " ".join(args),
             proc.returncode,
             err,
         )
-    return out.decode('utf-8'), err.decode('utf-8')
+    return out.decode("utf-8"), err.decode("utf-8")
 
 
 def subp(
-    args: 'Sequence[str]',
-    rcs: 'Optional[List[int]]' = None,
+    args: "Sequence[str]",
+    rcs: "Optional[List[int]]" = None,
     capture: bool = False,
-    timeout: 'Optional[float]' = None,
-    retry_sleeps: 'Optional[List[float]]' = None,
-) -> 'Tuple[str, str]':
+    timeout: "Optional[float]" = None,
+    retry_sleeps: "Optional[List[float]]" = None,
+) -> "Tuple[str, str]":
     """Run a command and return a tuple of decoded stdout, stderr.
 
      @param subp: A list of arguments to feed to subprocess.Popen
@@ -398,7 +524,7 @@ def subp(
     return out, err
 
 
-def which(program: str) -> 'Optional[str]':
+def which(program: str) -> "Optional[str]":
     """Find whether the provided program is executable in our PATH"""
     if os.path.sep in program:
         # if program had a '/' in it, then do not search PATH
@@ -423,116 +549,8 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     @param mode: The filesystem mode to set on the file.
     @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
-    logging.debug('Writing file: %s', filename)
-    with open(filename, 'wb') as fh:
-        fh.write(content.encode('utf-8'))
+    logging.debug("Writing file: %s", filename)
+    with open(filename, "wb") as fh:
+        fh.write(content.encode("utf-8"))
         fh.flush()
     os.chmod(filename, mode)
-
-
-def parse_os_release(release_file: 'Optional[str]' = None) -> 'Dict[str, str]':
-    if not release_file:
-        release_file = '/etc/os-release'
-    data = {}
-    for line in load_file(release_file).splitlines():
-        key, value = line.split('=', 1)
-        if value:
-            data[key] = value.strip().strip('"')
-    return data
-
-
-# N.B. this relies on the version normalisation we perform in get_platform_info
-REGEX_OS_RELEASE_VERSION = r'(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*'
-
-
-def get_platform_info() -> 'Dict[str, str]':
-    """
-    Returns a dict of platform information.
-
-    N.B. This dict is sent to the contract server, which requires the
-    distribution, type and release keys.
-    """
-    os_release = parse_os_release()
-    platform_info = {
-        'distribution': os_release.get('NAME', 'UNKNOWN'),
-        'type': 'Linux',
-    }
-
-    version = os_release['VERSION']
-    if ', ' in version:
-        # Fix up trusty's version formatting
-        version = '{} ({})'.format(*version.split(', '))
-    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
-    version = re.sub(r'\.\d LTS', ' LTS', version)
-    platform_info['version'] = version
-
-    match = re.match(REGEX_OS_RELEASE_VERSION, version)
-    if not match:
-        raise RuntimeError(
-            'Could not parse /etc/os-release VERSION: {} (modified to'
-            ' {})'.format(os_release['VERSION'], version)
-        )
-    match_dict = match.groupdict()
-    platform_info.update(
-        {
-            'release': match_dict['release'],
-            'series': match_dict['series'].lower(),
-        }
-    )
-
-    uname = os.uname()
-    platform_info['kernel'] = uname.release
-    platform_info['arch'] = uname.machine
-
-    return platform_info
-
-
-def apply_series_overrides(orig_access: 'Dict[str, Any]') -> None:
-    """Apply series-specific overrides to an entitlement dict.
-
-    This function mutates orig_access dict by applying any series-overrides to
-    the top-level keys under 'entitlement'. The series-overrides are sparse
-    and intended to supplement existing top-level dict values. So, sub-keys
-    under the top-level directives, obligations and affordance sub-key values
-    will be preserved if unspecified in series-overrides.
-
-    To more clearly indicate that orig_access in memory has already had
-    the overrides applied, the 'series' key is also removed from the
-    orig_access dict.
-
-    :param orig_access: Dict with original entitlement access details
-    """
-    if not all([isinstance(orig_access, dict), 'entitlement' in orig_access]):
-        raise RuntimeError(
-            'Expected entitlement access dict. Missing "entitlement" key:'
-            ' {}'.format(orig_access)
-        )
-    series_name = get_platform_info()['series']
-    orig_entitlement = orig_access.get('entitlement', {})
-    overrides = orig_entitlement.pop('series', {}).pop(series_name, {})
-    for key, value in overrides.items():
-        current = orig_access['entitlement'].get(key)
-        if isinstance(current, dict):
-            # If the key already exists and is a dict, update that dict using
-            # the override
-            current.update(value)
-        else:
-            # Otherwise, replace it wholesale
-            orig_access['entitlement'][key] = value
-
-
-def get_machine_id(data_dir: str) -> str:
-    """Get system's unique machine-id or create our own in data_dir."""
-    if os.path.exists(ETC_MACHINE_ID):
-        return load_file(ETC_MACHINE_ID).rstrip('\n')
-    if os.path.exists(DBUS_MACHINE_ID):  # Trusty
-        return load_file(DBUS_MACHINE_ID).rstrip('\n')
-    fallback_machine_id_file = os.path.join(data_dir, 'machine-id')
-    # Generate, cache our own uuid if not present on the system
-    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
-    # per Issue: #489
-    if os.path.exists(fallback_machine_id_file):  # Use our generated uuid
-        return load_file(fallback_machine_id_file).rstrip('\n')
-    machine_id = str(uuid.uuid4())
-    write_file(fallback_machine_id_file, machine_id)
-    return machine_id

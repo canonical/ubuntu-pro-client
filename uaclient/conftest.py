@@ -14,22 +14,22 @@ def caplog_text(request):
     uses caplog.text if available, or a shim which replicates what it does.
 
     Specifically, bionic is the first Ubuntu release to contain a version of
-    pytest new enough for the caplog fixture to be present.  In xenial, the
+    pytest new enough for the caplog fixture to be present. In xenial, the
     python3-pytest-catchlog package provides the same functionality (this is
-    the code that was later integrated in to pytest).  For trusty, there is no
+    the code that was later integrated in to pytest). For trusty, there is no
     packaged alternative to this shim.
 
     (It returns a function so that the requester can decide when to examine the
     logs; if it returned caplog.text directly, that would always be empty.)
     """
-    log_level = getattr(request, 'param', logging.INFO)
+    log_level = getattr(request, "param", logging.INFO)
     try:
         try:
-            caplog = request.getfixturevalue('caplog')
+            caplog = request.getfixturevalue("caplog")
         except AttributeError:
             # Older versions of pytest only have getfuncargvalue, which is now
             # deprecated in favour of getfixturevalue
-            caplog = request.getfuncargvalue('caplog')
+            caplog = request.getfuncargvalue("caplog")
         caplog.set_level(log_level)
 
         def _func():
@@ -63,9 +63,9 @@ def logging_sandbox():
     # configuration don't persist outside of the test
     root_logger = logging.RootLogger(logging.WARNING)
 
-    with mock.patch.object(logging, 'root', root_logger):
-        with mock.patch.object(logging.Logger, 'root', root_logger):
+    with mock.patch.object(logging, "root", root_logger):
+        with mock.patch.object(logging.Logger, "root", root_logger):
             with mock.patch.object(
-                logging.Logger, 'manager', logging.Manager(root_logger)
+                logging.Logger, "manager", logging.Manager(root_logger)
             ):
                 yield

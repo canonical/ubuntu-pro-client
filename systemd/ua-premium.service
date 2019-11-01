@@ -1,5 +1,5 @@
 [Unit]
-Description=Ubuntu Advantage Premium attach
+Description=Ubuntu Advantage premium attach
 
 [Service]
 Type=oneshot

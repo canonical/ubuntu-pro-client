@@ -1,3 +1,15 @@
-from uaclient.clouds import aws
+import abc
 
-CLOUD_INSTANCE_MAP = {'aws': aws.UAPremiumAWSInstance}
+
+class UAPremiumCloudInstance(metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
+    def identity_doc(self) -> str:
+        """Return the identity document representing this cloud instance"""
+        pass
+
+    @property
+    @abc.abstractmethod
+    def is_viable(self) -> bool:
+        """Return True if the machine is a viable UAPremiumCloudInstance."""
+        pass

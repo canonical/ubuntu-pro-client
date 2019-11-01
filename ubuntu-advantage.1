@@ -38,19 +38,19 @@ also disables all enabled services that can be.
 
 .TP
 .BR "disable" " [cc-eal|cis-audit|esm|fips|fips-updates|livepatch]"
-Disable this machine's access to an Ubuntu Advantage support services.
+Disable this machine's access to an Ubuntu Advantage service.
 
 .TP
 .BR "enable" " [cc-eal|cis-audit|esm|fips|fips-updates|livepatch]"
 Activate and configure this machine's access to an Ubuntu Advantage
-services.
+service.
 
 .TP
 .B refresh
 Refresh contract and service details from Canonical.
 
 .TP
-.BR "status" " [--format=table|json]"
+.BR "status" " [--format=tabular|json]"
 Report current status of Ubuntu Advantage services on system.
 
 This shows whether this machine is attached to an Ubuntu Advantage
@@ -58,18 +58,31 @@ support contract. When attached, the report includes the specific
 support contract details including contract name, expiry dates, and the
 status of each service on this system.
 
-Each service status line has three columns:
+The attached status output has four columns:
 
-.BR "name" ":"
+.BR "SERVICE" ":"
 name of the service
 
-.BR "availability" ":"
-whether the contract entitles use of this service. Possible values are:
-none or entitled
+.BR "ENTITLED" ":"
+whether the contract to which this machine is attached entitles use of
+this service. Possible values are: \fIyes\fR or \fIno\fR
 
-.BR "status" ":"
-whether the service is activated on this machine.
-Possible values are: active, inactive, or n/a
+.BR "STATUS" ":"
+whether the service is enabled on this machine.
+Possible values are: \fIenabled\fR, \fIdisabled\fR, \fIn/a\fR (if your
+contract entitles you to the service, but it isn't available for this
+machine) or \fI—\fR (if you aren't entitled to this service)
+
+.BR "DESCRIPTION" ":"
+a brief description of the service
+
+The unattached status output instead has three columns. \fBSERVICE\fR
+and \fBDESCRIPTION\fR are the same as above, and there is the addition
+of:
+
+.BR "AVAILABLE" ":"
+whether this service would be available if this machine were attached.
+The possible values are \fIyes\fR or \fIno\fR.
 
 .TP
 .B version
@@ -129,8 +142,8 @@ Enables and installs the CIS Audit artifacts.
 .TP
 .B "Extended Security Maintenance (esm)"
 Extended Security Maintenance ensures the ongoing security and
-integrity of Ubuntu Long-term support (LTS) systems through Ubuntu
-Advantage for Infrastructure.
+integrity of systems running Ubuntu Long Term Support (LTS) releases
+through Ubuntu Advantage for Infrastructure.
 
 See https://ubuntu.com/esm for more information.
 

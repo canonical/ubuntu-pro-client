@@ -13,82 +13,80 @@ from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 
-M_REPOPATH = 'uaclient.entitlements.repo.'
+M_REPOPATH = "uaclient.entitlements.repo."
 
 CC_MACHINE_TOKEN = {
-    'machineToken': 'blah',
-    'machineTokenInfo': {
-        'contractInfo': {
-            'resourceEntitlements': [{'type': 'cc-eal', 'entitled': True}]
+    "machineToken": "blah",
+    "machineTokenInfo": {
+        "contractInfo": {
+            "resourceEntitlements": [{"type": "cc-eal", "entitled": True}]
         }
     },
 }
 
 
 CC_RESOURCE_ENTITLED = {
-    'resourceToken': 'TOKEN',
-    'entitlement': {
-        'obligations': {'enableByDefault': False},
-        'type': 'cc-eal',
-        'entitled': True,
-        'directives': {
-            'aptURL': 'http://CC',
-            'aptKey': 'APTKEY',
-            'suites': ['xenial'],
+    "resourceToken": "TOKEN",
+    "entitlement": {
+        "obligations": {"enableByDefault": False},
+        "type": "cc-eal",
+        "entitled": True,
+        "directives": {
+            "aptURL": "http://CC",
+            "aptKey": "APTKEY",
+            "suites": ["xenial"],
         },
-        'affordances': {
-            'architectures': ['x86_64', 'ppc64le', 's390x'],
-            'series': ['xenial'],
+        "affordances": {
+            "architectures": ["x86_64", "ppc64le", "s390x"],
+            "series": ["xenial"],
         },
     },
 }
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
-        'arch': 's390x',
-        'series': 'xenial',
-        'kernel': '4.15.0-00-generic',
-        'version': '16.04 LTS (Xenial Xerus)',
+        "arch": "s390x",
+        "series": "xenial",
+        "kernel": "4.15.0-00-generic",
+        "version": "16.04 LTS (Xenial Xerus)",
     }
 )
 
 
 class TestCommonCriteriaEntitlementUserFacingStatus:
     @pytest.mark.parametrize(
-        'arch,series,version,details',
+        "arch,series,version,details",
         (
             (
-                'arm64',
-                'xenial',
-                '16.04 LTS (Xenial Xerus)',
-                'Canonical Common Criteria EAL2 Provisioning is not available'
-                ' for platform arm64.\n'
-                'Supported platforms are: x86_64, ppc64le, s390x',
+                "arm64",
+                "xenial",
+                "16.04 LTS (Xenial Xerus)",
+                "CC EAL2 is not available for platform arm64.\n"
+                "Supported platforms are: x86_64, ppc64le, s390x",
             ),
             (
-                's390x',
-                'trusty',
-                '14.04 LTS (Trusty Tahr)',
-                'Canonical Common Criteria EAL2 Provisioning is not available'
-                ' for Ubuntu 14.04 LTS'
-                ' (Trusty Tahr).',
+                "s390x",
+                "trusty",
+                "14.04 LTS (Trusty Tahr)",
+                "CC EAL2 is not available for Ubuntu 14.04 LTS"
+                " (Trusty Tahr).",
             ),
         ),
     )
-    @mock.patch(M_REPOPATH + 'os.getuid', return_value=0)
-    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch(M_REPOPATH + "os.getuid", return_value=0)
+    @mock.patch("uaclient.util.get_platform_info")
     def test_inapplicable_on_invalid_affordances(
         self, m_platform_info, m_getuid, arch, series, version, details, tmpdir
     ):
         """Test invalid affordances result in inapplicable status."""
         unsupported_info = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_info['arch'] = arch
-        unsupported_info['series'] = series
-        unsupported_info['version'] = version
+        unsupported_info["arch"] = arch
+        unsupported_info["series"] = series
+        unsupported_info["version"] = version
         m_platform_info.return_value = unsupported_info
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
+        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
@@ -96,34 +94,34 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
 
 
 class TestCommonCriteriaEntitlementCanEnable:
-    @mock.patch('uaclient.util.subp', return_value=('', ''))
-    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch("uaclient.util.subp", return_value=("", ""))
+    @mock.patch("uaclient.util.get_platform_info")
     def test_can_enable_true_on_entitlement_inactive(
         self, m_platform_info, _m_subp, capsys, tmpdir
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
+        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
-        details = '%s is not configured' % entitlement.title
+        details = "{} is not configured".format(entitlement.title)
         assert details == uf_status_details
         assert True is entitlement.can_enable()
-        assert ('', '') == capsys.readouterr()
+        assert ("", "") == capsys.readouterr()
 
 
 class TestCommonCriteriaEntitlementEnable:
 
     # Paramterize True/False for apt_transport_https and ca_certificates
     @pytest.mark.parametrize(
-        'apt_transport_https,ca_certificates',
+        "apt_transport_https,ca_certificates",
         itertools.product([False, True], repeat=2),
     )
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.get_platform_info')
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.get_platform_info")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         m_platform_info,
@@ -134,11 +132,11 @@ class TestCommonCriteriaEntitlementEnable:
         ca_certificates,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
-        m_subp.return_value = ('fakeout', '')
+        m_subp.return_value = ("fakeout", "")
         original_exists = os.path.exists
 
         def fake_platform(key=None):
-            if key == 'series':
+            if key == "series":
                 return PLATFORM_INFO_SUPPORTED[key]
             return PLATFORM_INFO_SUPPORTED
 
@@ -149,37 +147,36 @@ class TestCommonCriteriaEntitlementEnable:
                 return not ca_certificates
             elif not path.startswith(tmpdir.strpath):
                 raise Exception(
-                    'os.path.exists call outside of tmpdir: {}'.format(path)
+                    "os.path.exists call outside of tmpdir: {}".format(path)
                 )
             return original_exists(path)
 
         m_platform_info.side_effect = fake_platform
-        cfg = config.UAConfig(cfg={'data_dir': tmpdir.strpath})
-        cfg.write_cache('machine-token', CC_MACHINE_TOKEN)
-        cfg.write_cache('machine-access-cc-eal', CC_RESOURCE_ENTITLED)
+        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+        cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
+        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
 
-        with mock.patch('uaclient.apt.add_auth_apt_repo') as m_add_apt:
-            with mock.patch('uaclient.apt.add_ppa_pinning') as m_add_pin:
+        with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
+            with mock.patch("uaclient.apt.add_ppa_pinning") as m_add_pin:
                 with mock.patch(
-                    M_REPOPATH + 'os.path.exists', side_effect=exists
+                    M_REPOPATH + "os.path.exists", side_effect=exists
                 ):
                     assert True is entitlement.enable()
 
         add_apt_calls = [
             mock.call(
-                '/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list',
-                'http://CC',
-                'TOKEN',
-                ['xenial'],
-                'APTKEY',
-                os.path.join(apt.APT_KEYS_DIR, entitlement.repo_key_file),
+                "/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list",
+                "http://CC",
+                "TOKEN",
+                ["xenial"],
+                entitlement.repo_key_file,
             )
         ]
 
         subp_apt_cmds = [
             mock.call(
-                ['apt-cache', 'policy'],
+                ["apt-cache", "policy"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
             )
@@ -187,33 +184,33 @@ class TestCommonCriteriaEntitlementEnable:
 
         prerequisite_pkgs = []
         if apt_transport_https:
-            prerequisite_pkgs.append('apt-transport-https')
+            prerequisite_pkgs.append("apt-transport-https")
         if ca_certificates:
-            prerequisite_pkgs.append('ca-certificates')
+            prerequisite_pkgs.append("ca-certificates")
 
         if prerequisite_pkgs:
-            expected_stdout = 'Installing prerequisites: %s\n' % ', '.join(
-                prerequisite_pkgs
+            expected_stdout = "Installing prerequisites: {}\n".format(
+                ", ".join(prerequisite_pkgs)
             )
             subp_apt_cmds.append(
                 mock.call(
-                    ['apt-get', 'install', '--assume-yes'] + prerequisite_pkgs,
+                    ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
                 )
             )
         else:
-            expected_stdout = ''
+            expected_stdout = ""
 
         subp_apt_cmds.extend(
             [
                 mock.call(
-                    ['apt-get', 'update'],
+                    ["apt-get", "update"],
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
                 ),
                 mock.call(
-                    ['apt-get', 'install', '--assume-yes']
+                    ["apt-get", "install", "--assume-yes"]
                     + entitlement.packages,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
@@ -225,16 +222,16 @@ class TestCommonCriteriaEntitlementEnable:
         # No apt pinning for cc
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
-        expected_stdout += '\n'.join(
+        expected_stdout += "\n".join(
             [
-                'Updating package lists',
-                'Installing Canonical Common Criteria EAL2 Provisioning'
-                ' packages',
-                '(This will download more than 500MB of packages, so may take'
-                ' some time.)',
-                'Canonical Common Criteria EAL2 Provisioning enabled.',
-                'Please follow instructions in %s to configure EAL2\n'
-                % CC_README,
+                "Updating package lists",
+                "Installing CC EAL2 packages",
+                "(This will download more than 500MB of packages, so may take"
+                " some time.)",
+                "CC EAL2 enabled",
+                "Please follow instructions in {} to configure EAL2\n".format(
+                    CC_README
+                ),
             ]
         )
-        assert (expected_stdout, '') == capsys.readouterr()
+        assert (expected_stdout, "") == capsys.readouterr()

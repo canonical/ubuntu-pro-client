@@ -1,6 +1,7 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import copy
+import logging
 import mock
 from types import MappingProxyType
 
@@ -18,26 +19,26 @@ from uaclient.status import ContractStatus
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
-        'arch': 'x86_64',
-        'kernel': '4.4.0-00-generic',
-        'series': 'xenial',
-        'version': '16.04 LTS (Xenial Xerus)',
+        "arch": "x86_64",
+        "kernel": "4.4.0-00-generic",
+        "series": "xenial",
+        "version": "16.04 LTS (Xenial Xerus)",
     }
 )
 
-M_PATH = 'uaclient.entitlements.livepatch.'  # mock path
-M_BASE_PATH = 'uaclient.entitlements.base.UAEntitlement.'
+M_PATH = "uaclient.entitlements.livepatch."  # mock path
+M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 
 
 @pytest.fixture
 def entitlement(entitlement_factory):
     affordances = {
-        'architectures': ['x86_64'],
-        'minKernelVersion': '4.3',
-        'kernelFlavors': ['generic', 'lowlatency'],
-        'tier': 'stable',
+        "architectures": ["x86_64"],
+        "minKernelVersion": "4.4",
+        "kernelFlavors": ["generic", "lowlatency"],
+        "tier": "stable",
     }
-    directives = {'caCerts': '', 'remoteServer': 'https://alt.livepatch.com'}
+    directives = {"caCerts": "", "remoteServer": "https://alt.livepatch.com"}
     return entitlement_factory(
         LivepatchEntitlement, affordances=affordances, directives=directives
     )
@@ -51,67 +52,70 @@ class TestLivepatchContractStatus:
     def test_contract_status_unentitled(self, entitlement):
         """The contract_status returns NONE when entitled is False."""
         entitlement.cfg.write_cache(
-            'machine-access-livepatch', {'entitlement': {'entitled': False}}
+            "machine-access-livepatch", {"entitlement": {"entitled": False}}
         )
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
 class TestLivepatchUserFacingStatus:
+    @mock.patch(
+        "uaclient.entitlements.livepatch.util.is_container", return_value=False
+    )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
-        self, entitlement
+        self, _m_is_container, entitlement
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
         livepatch_bionic = entitlement.cfg.read_cache(
-            'machine-access-livepatch'
+            "machine-access-livepatch"
         )
-        livepatch_bionic['entitlement']['affordances']['series'] = ['bionic']
+        livepatch_bionic["entitlement"]["affordances"]["series"] = ["bionic"]
         entitlement.cfg.write_cache(
-            'machine-access-livepatch', livepatch_bionic
+            "machine-access-livepatch", livepatch_bionic
         )
 
-        with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
+        with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == status.UserFacingStatus.INAPPLICABLE
         expected_details = (
-            'Livepatch is not available for Ubuntu 16.04 LTS'
-            ' (Xenial Xerus).'
+            "Livepatch is not available for Ubuntu 16.04 LTS"
+            " (Xenial Xerus)."
         )
         assert expected_details == details
 
-    def test_user_facing_status_inapplicable_on_unentitled(self, entitlement):
-        """Status inapplicable on absent entitlement contract status."""
+    def test_user_facing_status_unavailable_on_unentitled(self, entitlement):
+        """Status UNAVAILABLE on absent entitlement contract status."""
         no_entitlements = machine_token(LivepatchEntitlement.name)
         # Delete livepatch entitlement info
-        no_entitlements['machineTokenInfo']['contractInfo'][
-            'resourceEntitlements'
+        no_entitlements["machineTokenInfo"]["contractInfo"][
+            "resourceEntitlements"
         ].pop()
-        entitlement.cfg.write_cache('machine-token', no_entitlements)
+        entitlement.cfg.write_cache("machine-token", no_entitlements)
 
-        with mock.patch('uaclient.util.get_platform_info') as m_platform_info:
+        with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
-        assert uf_status == status.UserFacingStatus.INAPPLICABLE
-        assert 'Livepatch is not entitled' == details
+        assert uf_status == status.UserFacingStatus.UNAVAILABLE
+        assert "Livepatch is not entitled" == details
 
 
 class TestLivepatchProcessConfigDirectives:
     @pytest.mark.parametrize(
-        'directive_key,livepatch_param_tmpl',
-        (('remoteServer', 'remote-server={}'), ('caCerts', 'ca-certs={}')),
+        "directive_key,livepatch_param_tmpl",
+        (("remoteServer", "remote-server={}"), ("caCerts", "ca-certs={}")),
     )
     def test_call_livepatch_config_command(
         self, directive_key, livepatch_param_tmpl
     ):
         """Livepatch config directives are passed to livepatch config."""
-        directive_value = '{}-value'.format(directive_key)
-        cfg = {'entitlement': {'directives': {directive_key: directive_value}}}
-        with mock.patch('uaclient.util.subp') as m_subp:
+        directive_value = "{}-value".format(directive_key)
+        cfg = {"entitlement": {"directives": {directive_key: directive_value}}}
+        with mock.patch("uaclient.util.subp") as m_subp:
             process_config_directives(cfg)
         expected_subp = mock.call(
             [
-                '/snap/bin/canonical-livepatch',
-                'config',
+                "/snap/bin/canonical-livepatch",
+                "config",
                 livepatch_param_tmpl.format(directive_value),
             ],
             capture=True,
@@ -121,115 +125,164 @@ class TestLivepatchProcessConfigDirectives:
     def test_handle_multiple_directives(self):
         """Handle multiple Livepatch directives using livepatch config."""
         cfg = {
-            'entitlement': {
-                'directives': {
-                    'remoteServer': 'value1',
-                    'caCerts': 'value2',
-                    'ignored': 'ignoredvalue',
+            "entitlement": {
+                "directives": {
+                    "remoteServer": "value1",
+                    "caCerts": "value2",
+                    "ignored": "ignoredvalue",
                 }
             }
         }
-        with mock.patch('uaclient.util.subp') as m_subp:
+        with mock.patch("uaclient.util.subp") as m_subp:
             process_config_directives(cfg)
         expected_calls = [
             mock.call(
-                ['/snap/bin/canonical-livepatch', 'config', 'ca-certs=value2'],
+                ["/snap/bin/canonical-livepatch", "config", "ca-certs=value2"],
                 capture=True,
             ),
             mock.call(
                 [
-                    '/snap/bin/canonical-livepatch',
-                    'config',
-                    'remote-server=value1',
+                    "/snap/bin/canonical-livepatch",
+                    "config",
+                    "remote-server=value1",
                 ],
                 capture=True,
             ),
         ]
         assert expected_calls == m_subp.call_args_list
 
-    @pytest.mark.parametrize('directives', ({}, {'otherkey': 'othervalue'}))
+    @pytest.mark.parametrize("directives", ({}, {"otherkey": "othervalue"}))
     def test_ignores_other_or_absent(self, directives):
         """Ignore empty or unexpected directives and do not call livepatch."""
-        cfg = {'entitlement': {'directives': directives}}
-        with mock.patch('uaclient.util.subp') as m_subp:
+        cfg = {"entitlement": {"directives": directives}}
+        with mock.patch("uaclient.util.subp") as m_subp:
             process_config_directives(cfg)
         assert 0 == m_subp.call_count
 
 
+@mock.patch(
+    "uaclient.entitlements.livepatch.util.is_container", return_value=False
+)
 class TestLivepatchEntitlementCanEnable:
+    @pytest.mark.parametrize(
+        "supported_kernel_ver",
+        ("4.4.0-00-generic", "5.0.0-00-generic", "4.19.0-00-generic"),
+    )
     def test_can_enable_true_on_entitlement_inactive(
-        self, capsys, entitlement
+        self, _m_is_container, supported_kernel_ver, capsys, entitlement
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
-        with mock.patch('uaclient.util.get_platform_info') as m_platform:
-            with mock.patch('uaclient.util.is_container') as m_container:
-                m_platform.return_value = PLATFORM_INFO_SUPPORTED
+        supported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        supported_kernel["kernel"] = supported_kernel_ver
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
+            with mock.patch("uaclient.util.is_container") as m_container:
+                m_platform.return_value = supported_kernel
                 m_container.return_value = False
                 assert entitlement.can_enable()
-        assert ('', '') == capsys.readouterr()
+        assert ("", "") == capsys.readouterr()
         assert [mock.call()] == m_container.call_args_list
 
     def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_min_kernel['kernel'] = '4.2.9-00-generic'
-        with mock.patch('uaclient.util.get_platform_info') as m_platform:
+        unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_min_kernel
             entitlement = LivepatchEntitlement(entitlement.cfg)
             assert not entitlement.can_enable()
         msg = (
-            'Livepatch is not available for kernel 4.2.9-00-generic.\n'
-            'Minimum kernel version required: 4.3\n'
+            "Livepatch is not available for kernel 4.2.9-00-generic.\n"
+            "Minimum kernel version required: 4.4\n"
         )
-        assert (msg, '') == capsys.readouterr()
+        assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_kernel['kernel'] = '4.4.0-140-notgeneric'
-        with mock.patch('uaclient.util.get_platform_info') as m_platform:
+        unsupported_kernel["kernel"] = "4.4.0-140-notgeneric"
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_kernel
             entitlement = LivepatchEntitlement(entitlement.cfg)
             assert not entitlement.can_enable()
         msg = (
-            'Livepatch is not available for kernel 4.4.0-140-notgeneric.\n'
-            'Supported flavors are: generic, lowlatency\n'
+            "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
+            "Supported flavors are: generic, lowlatency\n"
         )
-        assert (msg, '') == capsys.readouterr()
+        assert (msg, "") == capsys.readouterr()
+
+    @pytest.mark.parametrize(
+        "kernel_version,meets_min_version",
+        (
+            ("3.5.0-00-generic", False),
+            ("4.3.0-00-generic", False),
+            ("4.4.0-00-generic", True),
+            ("4.10.0-00-generic", True),
+            ("5.0.0-00-generic", True),
+        ),
+    )
+    def test_can_enable_false_on_unsupported_min_kernel_version(
+        self,
+        _m_is_container,
+        kernel_version,
+        meets_min_version,
+        capsys,
+        entitlement,
+    ):
+        """"When on an unsupported kernel version, can_enable returns False."""
+        unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_kernel["kernel"] = kernel_version
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
+            m_platform.return_value = unsupported_kernel
+            entitlement = LivepatchEntitlement(entitlement.cfg)
+            if meets_min_version:
+                assert entitlement.can_enable()
+            else:
+                assert not entitlement.can_enable()
+        if meets_min_version:
+            msg = ""
+        else:
+            msg = (
+                "Livepatch is not available for kernel {}.\n"
+                "Minimum kernel version required: 4.4\n".format(kernel_version)
+            )
+        assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_architecture(
-        self, capsys, entitlement
+        self, _m_is_container, capsys, entitlement
     ):
         """"When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        unsupported_kernel['arch'] = 'ppc64le'
-        with mock.patch('uaclient.util.get_platform_info') as m_platform:
+        unsupported_kernel["arch"] = "ppc64le"
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_kernel
             assert not entitlement.can_enable()
         msg = (
-            'Livepatch is not available for platform ppc64le.\n'
-            'Supported platforms are: x86_64\n'
+            "Livepatch is not available for platform ppc64le.\n"
+            "Supported platforms are: x86_64\n"
         )
-        assert (msg, '') == capsys.readouterr()
+        assert (msg, "") == capsys.readouterr()
 
-    def test_can_enable_false_on_containers(self, capsys, entitlement):
+    def test_can_enable_false_on_containers(
+        self, m_is_container, capsys, entitlement
+    ):
         """When is_container is True, can_enable returns False."""
-        with mock.patch('uaclient.util.get_platform_info') as m_platform:
-            with mock.patch('uaclient.util.is_container') as m_container:
-                m_platform.return_value = PLATFORM_INFO_SUPPORTED
-                m_container.return_value = True
-                entitlement = LivepatchEntitlement(entitlement.cfg)
-                assert not entitlement.can_enable()
-        msg = 'Cannot install Livepatch on a container\n'
-        assert (msg, '') == capsys.readouterr()
+        unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
+        unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
+        with mock.patch("uaclient.util.get_platform_info") as m_platform:
+            m_platform.return_value = unsupported_min_kernel
+            m_is_container.return_value = True
+            entitlement = LivepatchEntitlement(entitlement.cfg)
+            assert not entitlement.can_enable()
+        msg = "Cannot install Livepatch on a container\n"
+        assert (msg, "") == capsys.readouterr()
 
 
 class TestLivepatchProcessContractDeltas:
-    @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
+    @mock.patch(M_PATH + "LivepatchEntitlement.setup_livepatch_config")
     def test_true_on_parent_process_deltas(
         self, m_setup_livepatch_config, entitlement
     ):
@@ -237,9 +290,9 @@ class TestLivepatchProcessContractDeltas:
         assert entitlement.process_contract_deltas({}, {}, False)
         assert [] == m_setup_livepatch_config.call_args_list
 
-    @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.applicability_status')
+    @mock.patch(M_PATH + "LivepatchEntitlement.setup_livepatch_config")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.applicability_status")
     def test_true_on_inactive_livepatch_service(
         self,
         m_applicability_status,
@@ -250,30 +303,26 @@ class TestLivepatchProcessContractDeltas:
         """When livepatch is INACTIVE return True and do no setup."""
         m_applicability_status.return_value = (
             status.ApplicabilityStatus.APPLICABLE,
-            '',
+            "",
         )
         m_application_status.return_value = (
             status.ApplicationStatus.DISABLED,
-            '',
+            "",
         )
-        deltas = {'entitlement': {'directives': {'caCerts': 'new'}}}
+        deltas = {"entitlement": {"directives": {"caCerts": "new"}}}
         assert entitlement.process_contract_deltas({}, deltas, False)
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
-        'application_status',
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @pytest.mark.parametrize(
-        'directives,process_directives,process_token',
+        "directives,process_directives,process_token",
         (
-            ({'caCerts': 'new'}, True, False),
-            ({'remoteServer': 'new'}, True, False),
-            ({'unhandledKey': 'new'}, False, False),
+            ({"caCerts": "new"}, True, False),
+            ({"remoteServer": "new"}, True, False),
+            ({"unhandledKey": "new"}, False, False),
         ),
     )
-    @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
+    @mock.patch(M_PATH + "LivepatchEntitlement.setup_livepatch_config")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     def test_setup_performed_when_active_and_supported_deltas(
         self,
         m_application_status,
@@ -282,11 +331,11 @@ class TestLivepatchProcessContractDeltas:
         directives,
         process_directives,
         process_token,
-        application_status,
     ):
         """Run setup when livepatch ACTIVE and deltas are supported keys."""
-        m_application_status.return_value = (application_status, '')
-        deltas = {'entitlement': {'directives': directives}}
+        application_status = status.ApplicationStatus.ENABLED
+        m_application_status.return_value = (application_status, "")
+        deltas = {"entitlement": {"directives": directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
             setup_calls = [
@@ -300,18 +349,14 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
-        'application_status',
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @pytest.mark.parametrize(
-        'deltas,process_directives,process_token',
+        "deltas,process_directives,process_token",
         (
-            ({'entitlement': {'something': 1}}, False, False),
-            ({'resourceToken': 'new'}, False, True),
+            ({"entitlement": {"something": 1}}, False, False),
+            ({"resourceToken": "new"}, False, True),
         ),
     )
-    @mock.patch(M_PATH + 'LivepatchEntitlement.setup_livepatch_config')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
+    @mock.patch(M_PATH + "LivepatchEntitlement.setup_livepatch_config")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     def test_livepatch_disable_and_setup_performed_when_resource_token_changes(
         self,
         m_application_status,
@@ -320,10 +365,10 @@ class TestLivepatchProcessContractDeltas:
         deltas,
         process_directives,
         process_token,
-        application_status,
     ):
         """Run livepatch calls setup when resourceToken changes."""
-        m_application_status.return_value = (application_status, '')
+        application_status = status.ApplicationStatus.ENABLED
+        m_application_status.return_value = (application_status, "")
         entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
             setup_calls = [
@@ -339,19 +384,22 @@ class TestLivepatchProcessContractDeltas:
 
 class TestLivepatchEntitlementEnable:
 
+    mocks_apt_update = [
+        mock.call(["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED)
+    ]
     mocks_snapd_install = [
         mock.call(
-            ['apt-get', 'install', '--assume-yes', 'snapd'],
+            ["apt-get", "install", "--assume-yes", "snapd"],
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
         ),
         mock.call(
-            ['/usr/bin/snap', 'wait', 'system', 'seed.loaded'], capture=True
+            ["/usr/bin/snap", "wait", "system", "seed.loaded"], capture=True
         ),
     ]
     mocks_livepatch_install = [
         mock.call(
-            ['/usr/bin/snap', 'install', 'canonical-livepatch'],
+            ["/usr/bin/snap", "install", "canonical-livepatch"],
             capture=True,
             retry_sleeps=[0.5, 1, 5],
         )
@@ -360,185 +408,185 @@ class TestLivepatchEntitlementEnable:
     mocks_config = [
         mock.call(
             [
-                '/snap/bin/canonical-livepatch',
-                'config',
-                'remote-server=https://alt.livepatch.com',
+                "/snap/bin/canonical-livepatch",
+                "config",
+                "remote-server=https://alt.livepatch.com",
             ],
             capture=True,
         ),
-        mock.call(['/snap/bin/canonical-livepatch', 'disable']),
+        mock.call(["/snap/bin/canonical-livepatch", "disable"]),
         mock.call(
-            ['/snap/bin/canonical-livepatch', 'enable', 'TOKEN'], capture=True
+            ["/snap/bin/canonical-livepatch", "enable", "TOKEN"], capture=True
         ),
     ]
 
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=False)
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=False)
     def test_enable_false_when_can_enable_false(
         self, m_can_enable, caplog_text, capsys, entitlement
     ):
         """When can_enable returns False enable returns False."""
         assert not entitlement.enable()
-        assert '' == caplog_text()
-        assert ('', '') == capsys.readouterr()  # No additional prints
+        assert "" == caplog_text()
+        assert ("", "") == capsys.readouterr()  # No additional prints
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
 
-    @pytest.mark.parametrize('silent_if_inapplicable', (True, False, None))
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=False)
+    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=False)
     def test_enable_passes_silent_if_inapplicable_through(
         self, m_can_enable, caplog_text, entitlement, silent_if_inapplicable
     ):
         """When can_enable returns False enable returns False."""
         kwargs = {}
         if silent_if_inapplicable is not None:
-            kwargs['silent_if_inapplicable'] = silent_if_inapplicable
+            kwargs["silent_if_inapplicable"] = silent_if_inapplicable
         entitlement.enable(**kwargs)
 
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
 
-    @pytest.mark.parametrize(
-        'application_status',
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.which', return_value=False)
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize("apt_update_success", (True, False))
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.apt.run_apt_command")
+    @mock.patch("uaclient.util.which", return_value=False)
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_snapd_and_livepatch_snap_when_absent(
         self,
         m_can_enable,
         m_app_status,
         m_which,
+        m_run_apt,
         m_subp,
         capsys,
+        caplog_text,
         entitlement,
-        application_status,
+        apt_update_success,
     ):
         """Install snapd and canonical-livepatch snap when not on system."""
-        m_app_status.return_value = application_status, 'enabled'
+        application_status = status.ApplicationStatus.ENABLED
+        m_app_status.return_value = application_status, "enabled"
+
+        def fake_run_apt(cmd, message):
+            if apt_update_success:
+                return
+            raise exceptions.UserFacingError("Apt go BOOM")
+
+        m_run_apt.side_effect = fake_run_apt
+
         assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
+        assert self.mocks_apt_update == m_run_apt.call_args_list
         msg = (
-            'Installing snapd\n'
-            'Installing canonical-livepatch snap\n'
-            'Canonical livepatch enabled.\n'
+            "Installing snapd\n"
+            "Updating package lists\n"
+            "Installing canonical-livepatch snap\n"
+            "Canonical livepatch enabled.\n"
         )
-        assert (msg, '') == capsys.readouterr()
+        assert (msg, "") == capsys.readouterr()
+        expected_log = (
+            "DEBUG    Trying to install snapd."
+            " Ignoring apt-get update failure: Apt go BOOM"
+        )
+        if apt_update_success:
+            assert expected_log not in caplog_text()
+        else:
+            assert expected_log in caplog_text()
         expected_calls = [
-            mock.call('/snap/bin/canonical-livepatch'),
-            mock.call('/usr/bin/snap'),
+            mock.call("/snap/bin/canonical-livepatch"),
+            mock.call("/usr/bin/snap"),
         ]
         assert expected_calls == m_which.call_args_list
 
-    @pytest.mark.parametrize(
-        'application_status',
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @mock.patch('uaclient.util.subp', return_value=('snapd', ''))
+    @mock.patch("uaclient.util.subp", return_value=("snapd", ""))
     @mock.patch(
-        'uaclient.util.which', side_effect=lambda cmd: cmd == '/usr/bin/snap'
+        "uaclient.util.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
     )
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install canonical-livepatch snap when not present on the system."""
-        m_app_status.return_value = application_status, 'enabled'
+        application_status = status.ApplicationStatus.ENABLED
+        m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert (
             self.mocks_livepatch_install + self.mocks_config
             in m_subp.call_args_list
         )
         msg = (
-            'Installing canonical-livepatch snap\n'
-            'Canonical livepatch enabled.\n'
+            "Installing canonical-livepatch snap\n"
+            "Canonical livepatch enabled.\n"
         )
-        assert (msg, '') == capsys.readouterr()
+        assert (msg, "") == capsys.readouterr()
         expected_calls = [
-            mock.call('/snap/bin/canonical-livepatch'),
-            mock.call('/usr/bin/snap'),
+            mock.call("/snap/bin/canonical-livepatch"),
+            mock.call("/usr/bin/snap"),
         ]
         assert expected_calls == m_which.call_args_list
 
-    @mock.patch('uaclient.util.subp')
+    @mock.patch("uaclient.util.subp")
     @mock.patch(
-        'uaclient.util.which', side_effect=lambda cmd: cmd == '/usr/bin/snap'
+        "uaclient.util.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
     )
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_bails_if_snap_cmd_exists_but_snapd_pkg_not_installed(
         self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Install canonical-livepatch snap when not present on the system."""
-        m_app_status.return_value = status.ApplicationStatus.ENABLED, 'enabled'
+        m_app_status.return_value = status.ApplicationStatus.ENABLED, "enabled"
         with mock.patch(
-            M_PATH + 'apt.get_installed_packages', return_value=[]
+            M_PATH + "apt.get_installed_packages", return_value=[]
         ):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
 
         expected_msg = (
-            '/usr/bin/snap is present but snapd is not installed;'
-            ' cannot enable {}'.format(entitlement.title)
+            "/usr/bin/snap is present but snapd is not installed;"
+            " cannot enable {}".format(entitlement.title)
         )
         assert expected_msg == excinfo.value.msg
 
-    @pytest.mark.parametrize(
-        'application_status',
-        (status.ApplicationStatus.ENABLED, status.ApplicationStatus.PENDING),
-    )
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-        self,
-        m_can_enable,
-        m_app_status,
-        m_which,
-        m_subp,
-        capsys,
-        entitlement,
-        application_status,
+        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Do not attempt to install livepatch snap when it is present."""
-        m_app_status.return_value = application_status, 'enabled'
+        application_status = status.ApplicationStatus.ENABLED
+        m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert self.mocks_config == m_subp.call_args_list
-        assert ('Canonical livepatch enabled.\n', '') == capsys.readouterr()
+        assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
 
-    @mock.patch('uaclient.util.subp')
-    @mock.patch('uaclient.util.which', return_value='/found/livepatch')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.application_status')
-    @mock.patch(M_PATH + 'LivepatchEntitlement.can_enable', return_value=True)
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
+    @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_disable_inactive_livepatch_snap_when_present(
         self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
     ):
         """Do not attempt to disable livepatch snap when it is inactive."""
 
-        m_app_status.return_value = status.ApplicationStatus.DISABLED, 'nope'
+        m_app_status.return_value = status.ApplicationStatus.DISABLED, "nope"
         assert entitlement.enable()
         subp_no_livepatch_disable = [
             mock.call(
                 [
-                    '/snap/bin/canonical-livepatch',
-                    'config',
-                    'remote-server=https://alt.livepatch.com',
+                    "/snap/bin/canonical-livepatch",
+                    "config",
+                    "remote-server=https://alt.livepatch.com",
                 ],
                 capture=True,
             ),
             mock.call(
-                ['/snap/bin/canonical-livepatch', 'enable', 'TOKEN'],
+                ["/snap/bin/canonical-livepatch", "enable", "TOKEN"],
                 capture=True,
             ),
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
-        assert ('Canonical livepatch enabled.\n', '') == capsys.readouterr()
+        assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
