@@ -16,7 +16,7 @@ except ImportError:
 API_ERROR_INVALID_TOKEN = "invalid token"
 API_ERROR_MISSING_INSTANCE_INFORMATION = "missing instance information"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
-API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
+API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
 API_V1_RESOURCES = "/v1/resources"
@@ -83,11 +83,11 @@ class UAContractClient(serviceclient.UAServiceClient):
         """
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg.data_dir)
-        os = util.get_platform_info()
-        arch = os.pop("arch")
+        platform = util.get_platform_info()
+        arch = platform.pop("arch")
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
-        data = {"machineId": machine_id, "architecture": arch, "os": os}
+        data = {"machineId": machine_id, "architecture": arch, "os": platform}
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
@@ -154,7 +154,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_access
 
-    def request_machine_token_refresh(
+    def request_machine_token_update(
         self, machine_token, contract_id, machine_id=None
     ):
         """Request machine token refresh from contract server.
@@ -171,10 +171,13 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_id = util.get_machine_id(self.cfg.data_dir)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
+        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
             contract=contract_id, machine=machine_id
         )
-        response, headers = self.request_url(url, headers=headers)
+        platform = util.get_platform_info()
+        arch = platform.pop("arch")
+        data = {"machineId": machine_id, "architecture": arch, "os": platform}
+        response, headers = self.request_url(url, headers=headers, data=data)
         if headers.get("expires"):
             response["expires"] = headers["expires"]
         self.cfg.write_cache("machine-token", response)
@@ -265,7 +268,7 @@ def request_updated_contract(
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
-        new_token = contract_client.request_machine_token_refresh(
+        new_token = contract_client.request_machine_token_update(
             machine_token=machine_token, contract_id=contract_id
         )
     expiry = new_token["machineTokenInfo"]["contractInfo"].get("effectiveTo")
