@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (19.6~ubuntu14.04.4) trusty; urgency=medium
+
+  * d/postinst: only configure ESM on supported architectures (LP: #1851858)
+
+ -- Andreas Hasenack <andreas@canonical.com>  Mon, 11 Nov 2019 09:56:46 -0300
+
 ubuntu-advantage-tools (19.6~ubuntu14.04.3) trusty; urgency=medium
 
   * d/postinst: rename existing ubuntu-esm-precise.list file to trusty.
