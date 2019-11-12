@@ -17,6 +17,8 @@ ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
 ESM_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-trusty"
 ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
 
+MYARCH="$(dpkg --print-architecture)"
+ESM_SUPPORTED_ARCHS="i386 amd64"
 
 unconfigure_esm() {
     rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
@@ -78,8 +80,15 @@ case "$1" in
       rm -rf /var/cache/ubuntu-advantage-tools
 
       if [ "14.04" = "$VERSION_ID" ]; then
-        configure_esm
+        if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
+          # 14.04 and supported arch
+          configure_esm
+        else
+          # 14.04 and unsupported arch
+          unconfigure_esm
+        fi
       else
+        # not 14.04, regardless of arch
         unconfigure_esm
       fi
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
