@@ -30,7 +30,10 @@ def get_cloud_type() -> str:
 def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:
     from uaclient.clouds import aws
 
-    cloud_instance_map = {"aws": aws.UAPremiumAWSInstance}
+    cloud_instance_map = {
+        "aws": aws.UAPremiumAWSInstance,
+        "ec2": aws.UAPremiumAWSInstance,
+    }
 
     cloud_type = get_cloud_type()
     if not cloud_type:

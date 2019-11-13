@@ -328,7 +328,7 @@ def action_attach_premium(args, cfg):
     if os.getuid() != 0:
         raise exceptions.NonRootUserError()
     cloud_type = identity.get_cloud_type()
-    if cloud_type != "aws":
+    if cloud_type not in ("aws", "ec2"):
         print(
             "Premium image support is not supported on '%s'.\n"
             "For more information see: https://ubuntu.com/advantage"
