@@ -9,10 +9,7 @@ from uaclient.cli import (
     attach_premium_parser,
     get_parser,
 )
-from uaclient.exceptions import (
-    AlreadyAttachedError,
-    NonRootUserError,
-)
+from uaclient.exceptions import AlreadyAttachedError, NonRootUserError
 
 M_PATH = "uaclient.cli."
 

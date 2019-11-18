@@ -316,6 +316,35 @@ def action_detach(args, cfg):
     return 0
 
 
+def _attach_with_token(
+    cfg: config.UAConfig, token: str, allow_enable: bool
+) -> int:
+    """Common functionality to take a token and attach via contract backend"""
+    try:
+        contract.request_updated_contract(
+            cfg, token, allow_enable=allow_enable
+        )
+    except util.UrlError as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc)
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
+        return 1
+    except exceptions.UserFacingError as exc:
+        logging.warning(exc.msg)
+        return 1
+    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
+        "name"
+    ]
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name
+        )
+    )
+
+    action_status(args=None, cfg=cfg)
+    return 0
+
+
 @assert_not_attached
 @assert_root
 def action_attach_premium(args, cfg):
@@ -338,25 +367,9 @@ def action_attach_premium(args, cfg):
     contractTokenResponse = contract_client.request_premium_aws_contract_token(
         pkcs7
     )
-    try:
-        contract.request_updated_contract(
-            cfg, contractTokenResponse["contractToken"], allow_enable=True
-        )
-    except util.UrlError as exc:
-        with util.disable_log_to_console():
-            logging.exception(exc)
-        print(ua_status.MESSAGE_ATTACH_FAILURE)
-        return 1
-    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
-        "name"
-    ]
-    action_status(args=None, cfg=cfg)
-    print(
-        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
-            contract_name=contract_name
-        )
+    return _attach_with_token(
+        cfg, token=contractTokenResponse["contractToken"], allow_enable=True
     )
-    return 0
 
 
 @assert_not_attached
@@ -366,29 +379,9 @@ def action_attach(args, cfg):
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
         )
-    try:
-        contract.request_updated_contract(
-            cfg, args.token, allow_enable=args.auto_enable
-        )
-    except util.UrlError as exc:
-        with util.disable_log_to_console():
-            logging.exception(exc)
-        print(ua_status.MESSAGE_ATTACH_FAILURE)
-        return 1
-    except exceptions.UserFacingError as exc:
-        logging.warning(exc.msg)
-        return 1
-    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
-        "name"
-    ]
-    print(
-        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
-            contract_name=contract_name
-        )
+    return _attach_with_token(
+        cfg, token=args.token, allow_enable=args.auto_enable
     )
-
-    action_status(args=None, cfg=cfg)
-    return 0
 
 
 def get_parser():
