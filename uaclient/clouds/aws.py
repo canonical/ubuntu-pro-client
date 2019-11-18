@@ -1,8 +1,6 @@
 from uaclient.clouds import UAPremiumCloudInstance
 from uaclient import util
 
-from urllib.error import HTTPError
-
 IMDS_URL = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
 SYS_HYPERVISOR_PRODUCT_UUID = "/sys/hypervisor/uuid"
 DMI_PRODUCT_SERIAL = "/sys/class/dmi/id/product_serial"
@@ -10,11 +8,7 @@ DMI_PRODUCT_UUID = "/sys/class/dmi/id/product_uuid"
 
 
 class UAPremiumAWSInstance(UAPremiumCloudInstance):
-
-    # mypy does not handle @property around inner decorators
-    # https://github.com/python/mypy/issues/1362
-    @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    @property
     def identity_doc(self):
         response, _headers = util.readurl(IMDS_URL)
         return response

@@ -12,7 +12,6 @@ CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
 DATASOURCE_TO_CLOUD_ID = {"ec2": "aws"}
 
 
-@util.retry(FileNotFoundError, [1, 2])
 def get_cloud_type_from_result_file(result_file=CLOUDINIT_RESULT_FILE) -> str:
     result = json.loads((util.load_file(result_file)))
     dsname = result["v1"]["datasource"].split()[0].lower()

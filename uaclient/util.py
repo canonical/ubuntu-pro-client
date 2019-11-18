@@ -10,7 +10,6 @@ from urllib import error, request
 from urllib.parse import urlparse
 import uuid
 from contextlib import contextmanager
-from functools import wraps
 from http.client import HTTPMessage  # noqa: F401
 
 try:
@@ -217,34 +216,6 @@ def disable_log_to_console():
         yield
     finally:
         console_handler.setLevel(old_level)
-
-
-def retry(exception, retry_sleeps):
-    """Decorator to retry on exception for retry_sleeps.
-
-     @param retry_sleeps: List of sleep lengths to apply between
-        retries. Specifying a list of [0.5, 1] instructs subp to retry twice
-        on failure; sleeping half a second before the first retry and 1 second
-    """
-
-    def wrapper(f):
-        @wraps(f)
-        def decorator(*args, **kwargs):
-            sleeps = retry_sleeps.copy()
-            while True:
-                try:
-                    return f(*args, **kwargs)
-                except exception as e:
-                    if not sleeps:
-                        raise e
-                    logging.debug(
-                        str(e) + " Retrying %d more times.", len(sleeps)
-                    )
-                    time.sleep(sleeps.pop(0))
-
-        return decorator
-
-    return wrapper
 
 
 def get_dict_deltas(
