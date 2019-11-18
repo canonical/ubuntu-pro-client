@@ -327,18 +327,11 @@ def action_detach(args, cfg):
     return 0
 
 
+@assert_not_attached
+@assert_root
 def action_attach_premium(args, cfg):
     from uaclient.clouds import identity
 
-    if cfg.is_attached:
-        print(
-            "This machine is already attached to '{}'.".format(
-                cfg.accounts[0]["name"]
-            )
-        )
-        return 0
-    if os.getuid() != 0:
-        raise exceptions.NonRootUserError()
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
         print(
@@ -369,16 +362,9 @@ def action_attach_premium(args, cfg):
     )
 
 
+@assert_not_attached
+@assert_root
 def action_attach(args, cfg):
-    if cfg.is_attached:
-        print(
-            "This machine is already attached to '{}'.".format(
-                cfg.accounts[0]["name"]
-            )
-        )
-        return 0
-    if os.getuid() != 0:
-        raise exceptions.NonRootUserError()
     if not args.token:
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN

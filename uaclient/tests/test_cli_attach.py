@@ -10,7 +10,11 @@ from uaclient.cli import (
     attach_parser,
     get_parser,
 )
-from uaclient.exceptions import NonRootUserError, UserFacingError
+from uaclient.exceptions import (
+    AlreadyAttachedError,
+    NonRootUserError,
+    UserFacingError,
+)
 from uaclient import status
 
 M_PATH = "uaclient.cli."
@@ -45,13 +49,8 @@ class TestActionAttach:
         account_name = "test_account"
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
-        ret = action_attach(mock.MagicMock(), cfg)
-
-        assert 0 == ret
-        expected_msg = "This machine is already attached to '{}'.".format(
-            account_name
-        )
-        assert expected_msg in capsys.readouterr()[0]
+        with pytest.raises(AlreadyAttachedError):
+            action_attach(mock.MagicMock(), cfg)
 
     def test_token_is_a_required_argument(self, _m_getuid):
         """When missing the required token argument, raise a UserFacingError"""
