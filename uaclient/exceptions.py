@@ -10,12 +10,16 @@ class UserFacingError(Exception):
         should be emitted before exiting non-zero.
     """
 
+    exit_code = 1
+
     def __init__(self, msg: str) -> None:
         self.msg = msg
 
 
 class AlreadyAttachedError(UserFacingError):
     """An exception to be raised when a command needs an unattached system."""
+
+    exit_code = 0
 
     def __init__(self, cfg):
         super().__init__(

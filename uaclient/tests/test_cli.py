@@ -255,6 +255,13 @@ class TestMain:
         error_log = caplog_text()
         assert "Traceback (most recent call last):" in error_log
 
+    @pytest.mark.parametrize(
+        "exception,expected_exit_code",
+        [
+            (UserFacingError("You need to know about this."), 1),
+            (AlreadyAttachedError(mock.MagicMock()), 0),
+        ],
+    )
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
@@ -264,23 +271,24 @@ class TestMain:
         capsys,
         logging_sandbox,
         caplog_text,
+        exception,
+        expected_exit_code,
     ):
-        msg = "You need to know about this."
-
         m_args = m_get_parser.return_value.parse_args.return_value
-        m_args.action.side_effect = UserFacingError(msg)
+        m_args.action.side_effect = exception
+        expected_msg = exception.msg
 
         with pytest.raises(SystemExit) as excinfo:
             main(["some", "args"])
 
         exc = excinfo.value
-        assert 1 == exc.code
+        assert expected_exit_code == exc.code
 
         out, err = capsys.readouterr()
         assert "" == out
-        assert "{}\n".format(msg) == err
+        assert "{}\n".format(expected_msg) == err
         error_log = caplog_text()
-        assert msg in error_log
+        assert expected_msg in error_log
         assert "Traceback (most recent call last):" in error_log
 
     @pytest.mark.parametrize(

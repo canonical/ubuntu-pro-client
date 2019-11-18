@@ -587,7 +587,7 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
-            sys.exit(1)
+            sys.exit(exc.exit_code)
 
     return wrapper
 
