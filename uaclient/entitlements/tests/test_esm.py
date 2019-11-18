@@ -5,21 +5,21 @@ import os.path
 import pytest
 
 from uaclient import apt
-from uaclient.entitlements.esm import ESMEntitlement
+from uaclient.entitlements.esm import ESMInfraEntitlement
 from uaclient import exceptions
 from uaclient import util
 
-M_PATH = "uaclient.entitlements.esm.ESMEntitlement."
+M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
 M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 
 
 @pytest.fixture
 def entitlement(entitlement_factory):
-    return entitlement_factory(ESMEntitlement, suites=["trusty"])
+    return entitlement_factory(ESMInfraEntitlement, suites=["trusty"])
 
 
-class TestESMEntitlementEnable:
+class TestESMInfraEntitlementEnable:
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
@@ -187,7 +187,7 @@ class TestESMEntitlementEnable:
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
-class TestESMEntitlementDisable:
+class TestESMInfraEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=False)
@@ -195,7 +195,7 @@ class TestESMEntitlementDisable:
         self, m_can_disable, m_platform_info, silent
     ):
         """When can_disable is false disable returns false and noops."""
-        entitlement = ESMEntitlement({})
+        entitlement = ESMInfraEntitlement({})
 
         with mock.patch("uaclient.apt.remove_auth_apt_repo") as m_remove_apt:
             assert False is entitlement.disable(silent)
