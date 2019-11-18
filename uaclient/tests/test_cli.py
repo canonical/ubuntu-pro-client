@@ -11,6 +11,7 @@ import pytest
 
 from uaclient.cli import (
     assert_attached,
+    assert_not_attached,
     assert_root,
     get_parser,
     main,
@@ -19,6 +20,7 @@ from uaclient.cli import (
 )
 
 from uaclient.exceptions import (
+    AlreadyAttachedError,
     NonRootUserError,
     UserFacingError,
     UnattachedError,
@@ -161,6 +163,35 @@ class TestAssertAttached:
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(UnattachedError):
                 test_function(mock.Mock(), cfg)
+
+
+@pytest.mark.parametrize("uid", [0, 1000])
+class TestAssertNotAttached:
+    def test_when_attached(self, uid):
+        @assert_not_attached
+        def test_function(args, cfg):
+            pass
+
+        cfg = FakeConfig.for_attached_machine()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            with pytest.raises(AlreadyAttachedError):
+                test_function(mock.Mock(), cfg)
+
+    def test_when_not_attached(self, capsys, uid):
+        @assert_not_attached
+        def test_function(args, cfg):
+            return mock.sentinel.success
+
+        cfg = FakeConfig()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            ret = test_function(mock.Mock(), cfg)
+
+        assert mock.sentinel.success == ret
+
+        out, _err = capsys.readouterr()
+        assert "" == out.strip()
 
 
 class TestRequireValidEntitlementName:

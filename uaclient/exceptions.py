@@ -14,6 +14,17 @@ class UserFacingError(Exception):
         self.msg = msg
 
 
+class AlreadyAttachedError(UserFacingError):
+    """An exception to be raised when a command needs an unattached system."""
+
+    def __init__(self, cfg):
+        super().__init__(
+            status.MESSAGE_ALREADY_ATTACHED.format(
+                account_name=cfg.accounts[0]["name"]
+            )
+        )
+
+
 class NonRootUserError(UserFacingError):
     """An exception to be raised when a user needs to be root."""
 

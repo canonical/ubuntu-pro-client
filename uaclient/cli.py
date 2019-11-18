@@ -78,6 +78,18 @@ def assert_attached(unattached_msg_tmpl=None):
     return wrapper
 
 
+def assert_not_attached(f):
+    """Decorator asserting unattached config."""
+
+    @wraps(f)
+    def new_f(args, cfg):
+        if cfg.is_attached:
+            raise exceptions.AlreadyAttachedError(cfg)
+        return f(args, cfg)
+
+    return new_f
+
+
 def require_valid_entitlement_name(operation: str):
     """Decorator ensuring that args.name is a valid service.
 
