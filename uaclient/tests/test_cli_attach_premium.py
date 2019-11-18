@@ -5,13 +5,14 @@ from uaclient.testing.fakes import FakeConfig
 import pytest
 
 from uaclient.cli import (
-    UA_AUTH_TOKEN_URL,
     action_attach_premium,
     attach_premium_parser,
     get_parser,
 )
-from uaclient.exceptions import NonRootUserError, UserFacingError
-from uaclient import status
+from uaclient.exceptions import (
+    AlreadyAttachedError,
+    NonRootUserError,
+)
 
 M_PATH = "uaclient.cli."
 
@@ -41,26 +42,25 @@ def test_non_root_users_are_rejected(getuid):
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAttach:
     def test_already_attached(self, _m_getuid, capsys):
-        """Check that an already-attached machine emits message and exits 0"""
+        """Check that an attached machine raises AlreadyAttachedError."""
         account_name = "test_account"
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
-        ret = action_attach_premium(mock.MagicMock(), cfg)
-
-        assert 0 == ret
-        expected_msg = "This machine is already attached to '{}'.".format(
-            account_name
-        )
-        assert expected_msg in capsys.readouterr()[0]
+        with pytest.raises(AlreadyAttachedError):
+            action_attach_premium(mock.MagicMock(), cfg)
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_premium_aws_contract_token"
     )
+    @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
+    @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
     @mock.patch(M_PATH + "action_status")
     def test_happy_path_on_aws(
         self,
         action_status,
+        get_cloud_type,
+        cloud_instance_factory,
         contract_aws_token,
         request_updated_contract,
         _m_getuid,
@@ -83,23 +83,19 @@ class TestActionAttach:
 
         request_updated_contract.side_effect = fake_request_updated_contract
 
-        m_identity = mock.Mock()
-        m_identity.get_cloud_type.return_value = "aws"
-
         def fake_instance_factory():
             m_instance = mock.Mock()
             m_instance.identity_doc = "mypkcs7"
             return m_instance
 
-        instance = mock.Mock()
-        m_identity.cloud_instance_factory.side_effect = fake_instance_factory
-        ret = action_attach_premium(args, cfg, identity=m_identity)
-
+        cloud_instance_factory.side_effect = fake_instance_factory
+        ret = action_attach_premium(args, cfg)
 
         assert 0 == ret
+        assert 1 == get_cloud_type.call_count
         assert 1 == action_status.call_count
         assert [mock.call("mypkcs7")] == contract_aws_token.call_args_list
-        expected_calls = [mock.call(cfg, 'myPKCS7-token', allow_enable=True)]
+        expected_calls = [mock.call(cfg, "myPKCS7-token", allow_enable=True)]
         assert expected_calls == request_updated_contract.call_args_list
 
 

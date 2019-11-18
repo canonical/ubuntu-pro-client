@@ -318,9 +318,9 @@ def action_detach(args, cfg):
 
 @assert_not_attached
 @assert_root
-def action_attach_premium(args, cfg, identity=None):
-    if identity is None:
-        from uaclient.clouds import identity
+def action_attach_premium(args, cfg):
+    # TODO(import identity from the top of the module)
+    from uaclient.clouds import identity
 
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
@@ -338,12 +338,14 @@ def action_attach_premium(args, cfg, identity=None):
     contractTokenResponse = contract_client.request_premium_aws_contract_token(
         pkcs7
     )
-    if not contract.request_updated_contract(
-        cfg, contractTokenResponse["contractToken"], allow_enable=True
-    ):
-        print(
-            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url)
+    try:
+        contract.request_updated_contract(
+            cfg, contractTokenResponse["contractToken"], allow_enable=True
         )
+    except util.UrlError as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc)
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
