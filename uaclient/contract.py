@@ -106,8 +106,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_response
 
-    def request_premium_aws_attach(self, pkcs7: str):
-        """Requests machine attach for premium images on AWS.
+    def request_premium_aws_contract_token(self, pkcs7: str):
+        """Requests contract token for premium images on AWS.
 
         @param pkcs7: string obtained from AWS metadata service from
             http://169.254.169.254/latest/dynamic/instance-identity/pkcs7

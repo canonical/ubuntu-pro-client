@@ -147,9 +147,9 @@ Minimum kernel version required: {min_kernel}"""
 MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 For more information see: https://ubuntu.com/advantage"""
-MESSAGE_UNSUPPORTED_PREMIUM = """\
-Platform not supported by premium image
-For more information see: https://ubuntu.com/advantage"""
+MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE = """\
+Premium image support is not available on {cloud_type}.
+See: https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""

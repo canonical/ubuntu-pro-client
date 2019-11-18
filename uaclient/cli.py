@@ -115,26 +115,15 @@ def require_valid_entitlement_name(operation: str):
 
 def attach_premium_parser(parser):
     """Build or extend an arg parser for init-attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="attach-premium")
-    if not parser:
-        parser = argparse.ArgumentParser(
-            prog="attach-premium",
-            description=(
-                "Automatically enable Ubuntu Advantage on a premium Ubuntu"
-                " image"
-            ),
-            usage=usage,
-        )
-    else:
-        parser.usage = usage
-        parser.prog = "premium-attach"
+    parser.prog = "attach-premium"
+    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser._optionals.title = "Flags"
     return parser
 
 
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
-    parser.usage = usage
+    parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     parser.prog = "attach"
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -329,28 +318,33 @@ def action_detach(args, cfg):
 
 @assert_not_attached
 @assert_root
-def action_attach_premium(args, cfg):
-    from uaclient.clouds import identity
+def action_attach_premium(args, cfg, identity=None):
+    if identity is None:
+        from uaclient.clouds import identity
 
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
         print(
-            "Premium image support is not supported on '%s'.\n"
-            "For more information see: https://ubuntu.com/advantage"
-            % cloud_type
+            ua_status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
+                cloud_type=cloud_type
+            )
         )
         return 0
+    # TODO(Clean up the attach_premium flow a bit and add error handling)
     instance = identity.cloud_instance_factory()
     contract_client = contract.UAContractClient(cfg)
     pkcs7 = instance.identity_doc
-    contractTokenResponse = contract_client.request_premium_aws_attach(pkcs7)
-    contract_token = contractTokenResponse["contractToken"]
+    # TODO(Need to handle errors due to non-premium ec2 images)
+    contractTokenResponse = contract_client.request_premium_aws_contract_token(
+        pkcs7
+    )
     if not contract.request_updated_contract(
-        cfg, contract_token, allow_enable=True
+        cfg, contractTokenResponse["contractToken"], allow_enable=True
     ):
         print(
             ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url)
         )
+        return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
     ]
@@ -360,6 +354,7 @@ def action_attach_premium(args, cfg):
             contract_name=contract_name
         )
     )
+    return 0
 
 
 @assert_not_attached
