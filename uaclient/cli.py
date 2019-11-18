@@ -101,6 +101,24 @@ def require_valid_entitlement_name(operation: str):
     return wrapper
 
 
+def attach_premium_parser(parser):
+    """Build or extend an arg parser for init-attach subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command="attach-premium")
+    if not parser:
+        parser = argparse.ArgumentParser(
+            prog="attach-premium",
+            description=(
+                "Automatically enable Ubuntu Advantage on a premium Ubuntu"
+                " image"
+            ),
+            usage=usage,
+        )
+    else:
+        parser.usage = usage
+        parser.prog = "premium-attach"
+    return parser
+
+
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
@@ -297,6 +315,48 @@ def action_detach(args, cfg):
     return 0
 
 
+def action_attach_premium(args, cfg):
+    from uaclient.clouds import identity
+
+    if cfg.is_attached:
+        print(
+            "This machine is already attached to '{}'.".format(
+                cfg.accounts[0]["name"]
+            )
+        )
+        return 0
+    if os.getuid() != 0:
+        raise exceptions.NonRootUserError()
+    cloud_type = identity.get_cloud_type()
+    if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
+        print(
+            "Premium image support is not supported on '%s'.\n"
+            "For more information see: https://ubuntu.com/advantage"
+            % cloud_type
+        )
+        return 0
+    instance = identity.cloud_instance_factory()
+    contract_client = contract.UAContractClient(cfg)
+    pkcs7 = instance.identity_doc
+    contractTokenResponse = contract_client.request_premium_aws_attach(pkcs7)
+    contract_token = contractTokenResponse["contractToken"]
+    if not contract.request_updated_contract(
+        cfg, contract_token, allow_enable=True
+    ):
+        print(
+            ua_status.MESSAGE_ATTACH_FAILURE_TMPL.format(url=cfg.contract_url)
+        )
+    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
+        "name"
+    ]
+    action_status(args=None, cfg=cfg)
+    print(
+        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+            contract_name=contract_name
+        )
+    )
+
+
 def action_attach(args, cfg):
     if cfg.is_attached:
         print(
@@ -386,6 +446,12 @@ def get_parser():
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
+    parser_attach_premium = subparsers.add_parser(
+        "attach-premium",
+        help="automatically enable Ubuntu Advantage on a premium Ubuntu image",
+    )
+    attach_premium_parser(parser_attach_premium)
+    parser_attach_premium.set_defaults(action=action_attach_premium)
     parser_detach = subparsers.add_parser(
         "detach",
         help="remove this machine from an Ubuntu Advantage subscription",
