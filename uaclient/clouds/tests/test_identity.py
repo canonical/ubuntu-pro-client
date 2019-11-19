@@ -57,6 +57,16 @@ class TestGetCloudType:
         assert "cloud9" == get_cloud_type()
         assert [mock.call()] == m_cloud_type_from_result_file.call_args_list
 
+    @mock.patch(M_PATH + "util.which", return_value=None)
+    @mock.patch(
+        M_PATH + "get_cloud_type_from_result_file",
+        side_effect=FileNotFoundError,
+    )
+    def test_fallback_if_no_cloud_type_found(
+        self, m_cloud_type_from_result_file, m_which
+    ):
+        assert "" == get_cloud_type()
+
 
 @mock.patch(M_PATH + "get_cloud_type")
 class TestCloudInstanceFactory:
