@@ -18,6 +18,7 @@ from uaclient import exceptions
 from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
+from uaclient.clouds import identity
 
 NAME = "ua"
 
@@ -78,6 +79,18 @@ def assert_attached(unattached_msg_tmpl=None):
     return wrapper
 
 
+def assert_not_attached(f):
+    """Decorator asserting unattached config."""
+
+    @wraps(f)
+    def new_f(args, cfg):
+        if cfg.is_attached:
+            raise exceptions.AlreadyAttachedError(cfg)
+        return f(args, cfg)
+
+    return new_f
+
+
 def require_valid_entitlement_name(operation: str):
     """Decorator ensuring that args.name is a valid service.
 
@@ -101,10 +114,17 @@ def require_valid_entitlement_name(operation: str):
     return wrapper
 
 
+def attach_premium_parser(parser):
+    """Build or extend an arg parser for attach-premium subcommand."""
+    parser.prog = "attach-premium"
+    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser._optionals.title = "Flags"
+    return parser
+
+
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
-    parser.usage = usage
+    parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     parser.prog = "attach"
     parser._optionals.title = "Flags"
     parser.add_argument(
@@ -297,23 +317,13 @@ def action_detach(args, cfg):
     return 0
 
 
-def action_attach(args, cfg):
-    if cfg.is_attached:
-        print(
-            "This machine is already attached to '{}'.".format(
-                cfg.accounts[0]["name"]
-            )
-        )
-        return 0
-    if os.getuid() != 0:
-        raise exceptions.NonRootUserError()
-    if not args.token:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
-        )
+def _attach_with_token(
+    cfg: config.UAConfig, token: str, allow_enable: bool
+) -> int:
+    """Common functionality to take a token and attach via contract backend"""
     try:
         contract.request_updated_contract(
-            cfg, args.token, allow_enable=args.auto_enable
+            cfg, token, allow_enable=allow_enable
         )
     except util.UrlError as exc:
         with util.disable_log_to_console():
@@ -334,6 +344,42 @@ def action_attach(args, cfg):
 
     action_status(args=None, cfg=cfg)
     return 0
+
+
+@assert_not_attached
+@assert_root
+def action_attach_premium(args, cfg):
+    cloud_type = identity.get_cloud_type()
+    if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
+        print(
+            ua_status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
+                cloud_type=cloud_type
+            )
+        )
+        return 0
+    # TODO(Clean up the attach_premium flow a bit and add error handling)
+    instance = identity.cloud_instance_factory()
+    contract_client = contract.UAContractClient(cfg)
+    pkcs7 = instance.identity_doc
+    # TODO(Need to handle errors due to non-premium ec2 images)
+    contractTokenResponse = contract_client.request_premium_aws_contract_token(
+        pkcs7
+    )
+    return _attach_with_token(
+        cfg, token=contractTokenResponse["contractToken"], allow_enable=True
+    )
+
+
+@assert_not_attached
+@assert_root
+def action_attach(args, cfg):
+    if not args.token:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
+        )
+    return _attach_with_token(
+        cfg, token=args.token, allow_enable=args.auto_enable
+    )
 
 
 def get_parser():
@@ -386,6 +432,12 @@ def get_parser():
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
+    parser_attach_premium = subparsers.add_parser(
+        "attach-premium",
+        help="automatically enable Ubuntu Advantage on a premium Ubuntu image",
+    )
+    attach_premium_parser(parser_attach_premium)
+    parser_attach_premium.set_defaults(action=action_attach_premium)
     parser_detach = subparsers.add_parser(
         "detach",
         help="remove this machine from an Ubuntu Advantage subscription",
@@ -523,7 +575,7 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
-            sys.exit(1)
+            sys.exit(exc.exit_code)
 
     return wrapper
 
