@@ -18,6 +18,7 @@ from uaclient import exceptions
 from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
+from uaclient.clouds import identity
 
 NAME = "ua"
 
@@ -348,9 +349,6 @@ def _attach_with_token(
 @assert_not_attached
 @assert_root
 def action_attach_premium(args, cfg):
-    # TODO(import identity from the top of the module)
-    from uaclient.clouds import identity
-
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
         print(
