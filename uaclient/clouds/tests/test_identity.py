@@ -28,7 +28,7 @@ class TestGetCloudTypeFromResultFile:
     def test_get_cloud_type_from_lowercase_v1_datasource_key(
         self, ds_name, expected, tmpdir
     ):
-        """The value of cloud_type is extacted from results datasource key.
+        """The value of cloud_type is extracted from results datasource key.
 
         ec2 gets mapped to aws"""
         results = {"v1": {"datasource": ds_name}}
