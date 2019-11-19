@@ -101,7 +101,10 @@ class RepoEntitlement(base.UAEntitlement):
         )
         repo_url = directives.get("aptURL")
         if not repo_url:
-            raise exceptions.MissingAptURLDirective(self.name)
+            return (
+                ApplicationStatus.DISABLED,
+                "{} does not have an aptURL directive".format(self.title),
+            )
         protocol, repo_path = repo_url.split("://")
         policy = apt.run_apt_command(
             ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED

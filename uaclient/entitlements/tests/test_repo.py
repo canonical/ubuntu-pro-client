@@ -461,7 +461,9 @@ class TestApplicationStatus:
         # Make aptURL missing
         entitlement = entitlement_factory(RepoTestEntitlement, directives={})
 
-        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
-            entitlement.application_status()
+        application_status, explanation = entitlement.application_status()
 
-        assert "repotest" in str(excinfo.value)
+        assert status.ApplicationStatus.DISABLED == application_status
+        assert (
+            "Repo Test Class does not have an aptURL directive" == explanation
+        )
