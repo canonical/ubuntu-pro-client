@@ -8,7 +8,6 @@ class ESMInfraEntitlement(repo.RepoEntitlement):
     title = "ESM Infra"
     origin = "UbuntuESM"
     description = "UA Infra: Extended Security Maintenance"
-    repo_url = "https://esm.ubuntu.com"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
     repo_pin_priority = "never"
     disable_apt_auth_only = True  # Only remove apt auth files when disabling

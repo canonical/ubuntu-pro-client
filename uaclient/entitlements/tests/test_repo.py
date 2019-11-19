@@ -32,7 +32,6 @@ class RepoTestEntitlement(RepoEntitlement):
     name = "repotest"
     title = "Repo Test Class"
     description = "Repo entitlement for testing"
-    repo_url = "http://example.com/ubuntu"
     repo_key_file = "test.gpg"
 
 
@@ -444,3 +443,25 @@ class TestRemoveAptConfig:
 
         expected_call = mock.call(["apt-get", "update"], mock.ANY)
         assert expected_call in m_run_apt_command.call_args_list
+
+    def test_missing_aptURL(self, entitlement_factory):
+        # Make aptURL missing
+        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+
+        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
+            entitlement.remove_apt_config()
+
+        assert "repotest" in str(excinfo.value)
+
+
+class TestApplicationStatus:
+    # TODO: Write tests for all functionality
+
+    def test_missing_aptURL(self, entitlement_factory):
+        # Make aptURL missing
+        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+
+        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
+            entitlement.application_status()
+
+        assert "repotest" in str(excinfo.value)
