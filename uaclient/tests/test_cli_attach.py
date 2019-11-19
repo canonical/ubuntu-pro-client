@@ -19,6 +19,7 @@ from uaclient import status
 
 M_PATH = "uaclient.cli."
 
+# Also used in test_cli_attach_premium.py
 BASIC_MACHINE_TOKEN = {
     "machineTokenInfo": {
         "contractInfo": {

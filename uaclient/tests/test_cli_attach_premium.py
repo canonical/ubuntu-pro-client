@@ -9,19 +9,9 @@ from uaclient.cli import (
 )
 from uaclient.exceptions import AlreadyAttachedError, NonRootUserError
 from uaclient.testing.fakes import FakeConfig
+from uaclient.tests.test_cli_attach import BASIC_MACHINE_TOKEN
 
 M_PATH = "uaclient.cli."
-
-BASIC_MACHINE_TOKEN = {
-    "machineTokenInfo": {
-        "contractInfo": {
-            "name": "mycontract",
-            "id": "contract-1",
-            "resourceEntitlements": [],
-        },
-        "accountInfo": {"id": "acct-1", "name": "accountName"},
-    }
-}
 
 
 @mock.patch(M_PATH + "os.getuid")
