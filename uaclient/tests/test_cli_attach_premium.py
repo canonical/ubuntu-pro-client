@@ -1,7 +1,5 @@
 import mock
 
-from uaclient.testing.fakes import FakeConfig
-
 import pytest
 
 from uaclient.cli import (
@@ -10,6 +8,7 @@ from uaclient.cli import (
     get_parser,
 )
 from uaclient.exceptions import AlreadyAttachedError, NonRootUserError
+from uaclient.testing.fakes import FakeConfig
 
 M_PATH = "uaclient.cli."
 
