@@ -114,7 +114,7 @@ def require_valid_entitlement_name(operation: str):
 
 
 def attach_premium_parser(parser):
-    """Build or extend an arg parser for init-attach subcommand."""
+    """Build or extend an arg parser for attach-premium subcommand."""
     parser.prog = "attach-premium"
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = "Flags"
