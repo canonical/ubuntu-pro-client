@@ -159,6 +159,8 @@ See: https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""
+MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
+Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 

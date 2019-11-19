@@ -29,6 +29,17 @@ class AlreadyAttachedError(UserFacingError):
         )
 
 
+class MissingAptURLDirective(UserFacingError):
+    """An exception for when the contract server doesn't include aptURL"""
+
+    def __init__(self, entitlement_name):
+        super().__init__(
+            status.MESSAGE_MISSING_APT_URL_DIRECTIVE.format(
+                entitlement_name=entitlement_name
+            )
+        )
+
+
 class NonRootUserError(UserFacingError):
     """An exception to be raised when a user needs to be root."""
 

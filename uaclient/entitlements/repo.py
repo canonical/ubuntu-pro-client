@@ -45,11 +45,6 @@ class RepoEntitlement(base.UAEntitlement):
 
     @property
     @abc.abstractmethod
-    def repo_url(self) -> str:
-        pass
-
-    @property
-    @abc.abstractmethod
     def repo_key_file(self) -> str:
         pass
 
@@ -106,7 +101,7 @@ class RepoEntitlement(base.UAEntitlement):
         )
         repo_url = directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            raise exceptions.MissingAptURLDirective(self.name)
         protocol, repo_path = repo_url.split("://")
         policy = apt.run_apt_command(
             ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED
@@ -189,7 +184,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
         repo_url = directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            raise exceptions.MissingAptURLDirective(self.name)
         repo_suites = directives.get("suites")
         if not repo_suites:
             raise exceptions.UserFacingError(
@@ -267,9 +262,9 @@ class RepoEntitlement(base.UAEntitlement):
             "machine-access-{}".format(self.name)
         ).get("entitlement", {})
         access_directives = entitlement.get("directives", {})
-        repo_url = access_directives.get("aptURL", self.repo_url)
+        repo_url = access_directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            raise exceptions.MissingAptURLDirective(self.name)
         if self.disable_apt_auth_only:
             # We only remove the repo from the apt auth file, because ESM
             # is a special-case: we want to be able to report on the
