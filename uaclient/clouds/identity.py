@@ -5,6 +5,12 @@ from uaclient import clouds
 from uaclient import status
 from uaclient import util
 
+try:
+    from typing import Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
 
 
@@ -21,7 +27,7 @@ def get_cloud_type_from_result_file(
     return DATASOURCE_TO_CLOUD_ID.get(dsname, dsname)
 
 
-def get_cloud_type() -> str:
+def get_cloud_type() -> "Optional[str]":
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
         out, _err = util.subp(["cloud-id"])
@@ -30,7 +36,7 @@ def get_cloud_type() -> str:
         return get_cloud_type_from_result_file()
     except FileNotFoundError:
         pass
-    return ""
+    return None
 
 
 def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:

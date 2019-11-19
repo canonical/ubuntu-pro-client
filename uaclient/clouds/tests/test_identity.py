@@ -65,7 +65,7 @@ class TestGetCloudType:
     def test_fallback_if_no_cloud_type_found(
         self, m_cloud_type_from_result_file, m_which
     ):
-        assert "" == get_cloud_type()
+        assert get_cloud_type() is None
 
 
 @mock.patch(M_PATH + "get_cloud_type")
