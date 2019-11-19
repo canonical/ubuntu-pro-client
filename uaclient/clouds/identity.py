@@ -47,8 +47,7 @@ def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:
     cloud_type = get_cloud_type()
     if not cloud_type:
         raise exceptions.UserFacingError(
-            "Unable to determine premium image platform support\n"
-            "For more information see: https://ubuntu.com/advantage"
+            status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
         )
     cls = cloud_instance_map.get(cloud_type)
     if not cls:

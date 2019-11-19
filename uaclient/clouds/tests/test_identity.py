@@ -1,6 +1,5 @@
 import json
 import mock
-import textwrap
 
 import pytest
 
@@ -75,13 +74,10 @@ class TestCloudInstanceFactory:
         m_get_cloud_type.return_value = None
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
-        error_msg = textwrap.dedent(
-            """\
-        Unable to determine premium image platform support
-        For more information see: https://ubuntu.com/advantage"""
-        )
         assert 1 == m_get_cloud_type.call_count
-        assert error_msg == str(excinfo.value)
+        assert status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE == str(
+            excinfo.value
+        )
 
     def test_raise_error_when_not_aws(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
