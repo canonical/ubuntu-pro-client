@@ -15,7 +15,7 @@ DATASOURCE_TO_CLOUD_ID = {"ec2": "aws"}
 def get_cloud_type_from_result_file(
     result_file: str = CLOUDINIT_RESULT_FILE
 ) -> str:
-    result = json.loads((util.load_file(result_file)))
+    result = json.loads(util.load_file(result_file))
     dsname = result["v1"]["datasource"].split()[0].lower()
     dsname = dsname.replace("datasource", "")
     return DATASOURCE_TO_CLOUD_ID.get(dsname, dsname)
