@@ -1,4 +1,7 @@
+import logging
 import mock
+from io import BytesIO
+from urllib.error import HTTPError
 
 import pytest
 
@@ -16,6 +19,46 @@ class TestUAPremiumAWSInstance:
         assert "pkcs7WOOT!==" == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
         assert [mock.call(url)] == readurl.call_args_list
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize("fail_count,exception", ((3, False), (4, True)))
+    @mock.patch(M_PATH + "util.time.sleep")
+    @mock.patch(M_PATH + "util.readurl")
+    def test_retry_backoff_on_failed_identity_doc(
+        self, readurl, sleep, fail_count, exception, caplog_text
+    ):
+        """Retry backoff is attempted before failing to get AWS.identity_doc"""
+
+        def fake_someurlerrors(url):
+            if readurl.call_count <= fail_count:
+                raise HTTPError(
+                    "http://me",
+                    700 + readurl.call_count,
+                    "funky error msg",
+                    None,
+                    BytesIO(),
+                )
+            return "pkcs7WOOT!==", {"header": "stuff"}
+
+        readurl.side_effect = fake_someurlerrors
+        instance = UAPremiumAWSInstance()
+        if exception:
+            with pytest.raises(HTTPError) as excinfo:
+                instance.identity_doc
+            assert 704 == excinfo.value.code
+        else:
+            assert "pkcs7WOOT!==" == instance.identity_doc
+
+        expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
+        assert expected_sleep_calls == sleep.call_args_list
+        expected_logs = [
+            "HTTP Error 701: funky error msg Retrying 3 more times.",
+            "HTTP Error 702: funky error msg Retrying 2 more times.",
+            "HTTP Error 703: funky error msg Retrying 1 more times.",
+        ]
+        logs = caplog_text()
+        for log in expected_logs:
+            assert log in logs
 
     @pytest.mark.parametrize("uuid", ("ec2", "ec2yep"))
     @mock.patch(M_PATH + "util.load_file")
