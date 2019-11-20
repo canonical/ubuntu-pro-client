@@ -14,6 +14,7 @@ except ImportError:
     pass
 
 API_ERROR_INVALID_TOKEN = "invalid token"
+API_ERROR_MISSING_INSTANCE_INFORMATION = "missing instance information"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH = (
     "/v1/contracts/{contract}/context/machines/{machine}"
