@@ -5,7 +5,7 @@ import os.path
 import pytest
 
 from uaclient import apt
-from uaclient.entitlements.esm import ESMInfraEntitlement
+from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient import exceptions
 from uaclient import util
 
@@ -14,9 +14,9 @@ M_REPOPATH = "uaclient.entitlements.repo."
 M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 
 
-@pytest.fixture
-def entitlement(entitlement_factory):
-    return entitlement_factory(ESMInfraEntitlement, suites=["trusty"])
+@pytest.fixture(params=[ESMAppsEntitlement, ESMInfraEntitlement])
+def entitlement(request, entitlement_factory):
+    return entitlement_factory(request.param, suites=["trusty"])
 
 
 class TestESMInfraEntitlementEnable:
@@ -26,7 +26,10 @@ class TestESMInfraEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            if path == "/etc/apt/preferences.d/ubuntu-esm-infra-trusty":
+            prefs_path = "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                entitlement.name
+            )
+            if path == prefs_path:
                 return True
             if path in (apt.APT_METHOD_HTTPS_FILE, apt.CA_CERTIFICATES_FILE):
                 return True
@@ -72,7 +75,7 @@ class TestESMInfraEntitlementEnable:
                 "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
                     entitlement.name
                 ),
-                "http://ESM-INFRA",
+                "http://{}".format(entitlement.name.upper()),
                 "TOKEN",
                 ["trusty"],
                 entitlement.repo_key_file,
@@ -98,7 +101,11 @@ class TestESMInfraEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
         unlink_calls = [
-            mock.call("/etc/apt/preferences.d/ubuntu-esm-infra-trusty")
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                )
+            )
         ]
         assert unlink_calls == m_unlink.call_args_list
 
@@ -109,7 +116,10 @@ class TestESMInfraEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            if path == "/etc/apt/preferences.d/ubuntu-esm-infra-trusty":
+            prefs_path = "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                entitlement.name
+            )
+            if path == prefs_path:
                 return True
             if path in (apt.APT_METHOD_HTTPS_FILE, apt.CA_CERTIFICATES_FILE):
                 return True
@@ -160,7 +170,7 @@ class TestESMInfraEntitlementEnable:
                 "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
                     entitlement.name
                 ),
-                "http://ESM-INFRA",
+                "http://{}".format(entitlement.name.upper()),
                 "TOKEN",
                 ["trusty"],
                 entitlement.repo_key_file,
@@ -181,7 +191,11 @@ class TestESMInfraEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
         unlink_calls = [
-            mock.call("/etc/apt/preferences.d/ubuntu-esm-infra-trusty")
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                )
+            )
         ]
         assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
@@ -207,10 +221,8 @@ class TestESMInfraEntitlementDisable:
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "trusty"}
     )
-    @mock.patch(M_PATH + "can_disable", return_value=True)
     def test_disable_removes_apt_config(
         self,
-        m_can_disable,
         m_platform_info,
         m_rm_repo_from_auth,
         m_restore_commented_apt_list_file,
@@ -219,23 +231,32 @@ class TestESMInfraEntitlementDisable:
     ):
         """When can_disable, disable removes apt configuration"""
 
-        with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
-            with mock.patch("uaclient.util.subp"):
-                with mock.patch("uaclient.util.write_file") as m_write:
-                    assert entitlement.disable(True)
+        with mock.patch.object(
+            entitlement, "can_disable", return_value=True
+        ) as m_can_disable:
+            with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
+                with mock.patch("uaclient.util.subp"):
+                    with mock.patch("uaclient.util.write_file") as m_write:
+                        assert entitlement.disable(True)
 
         # Disable esm repo again
         write_calls = [
             mock.call(
-                "/etc/apt/preferences.d/ubuntu-esm-infra-trusty",
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                ),
                 "Package: *\nPin: release o=UbuntuESM, n=trusty\n"
                 "Pin-Priority: never\n",
             )
         ]
         assert write_calls == m_write.call_args_list
         assert [mock.call(True)] == m_can_disable.call_args_list
-        auth_call = mock.call("http://ESM-INFRA")
+        auth_call = mock.call("http://{}".format(entitlement.name.upper()))
         assert [auth_call] == m_rm_repo_from_auth.call_args_list
         assert [
-            mock.call("/etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list")
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
+                    entitlement.name
+                )
+            )
         ] == m_restore_commented_apt_list_file.call_args_list
