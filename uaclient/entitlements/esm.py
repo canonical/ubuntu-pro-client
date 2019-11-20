@@ -5,7 +5,6 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/esm"
     origin = "UbuntuESM"
     repo_pin_priority = "never"
-    disable_apt_auth_only = True  # Only remove apt auth files when disabling
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
@@ -20,3 +19,4 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "ESM Infra"
     description = "UA Infra: Extended Security Maintenance"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    # TODO: Restore disable_apt_auth_only for trusty
