@@ -1,3 +1,6 @@
 Unattended-Upgrade::Allowed-Origins {
   "${distro_id}ESM:${distro_codename}-infra-security";
 };
+Unattended-Upgrade::Allowed-Origins {
+  "${distro_id}ESMApps:${distro_codename}-apps-security";
+};
