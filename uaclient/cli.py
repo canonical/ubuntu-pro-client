@@ -352,8 +352,10 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     :param cfg: a ``config.UAConfig`` instance
 
     :raise NonPremiumImageError: When not on a premium image type.
-    :raise UserFacingError: On unexpected connectivity issues to contract
+    :raise UrlError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
+    :raise ContractAPIError: On unexpected errors when talking to the contract
+        server.
 
     :return: contract token obtained from identity doc
     """
