@@ -346,28 +346,48 @@ def _attach_with_token(
     return 0
 
 
-@assert_not_attached
-@assert_root
-def action_attach_premium(args, cfg):
+def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
+    """Detect cloud_type and request a contract token from identity info.
+
+    :param cfg: a ``config.UAConfig`` instance
+
+    :raise NonPremiumImageError: When not on a premium image type.
+    :raise UrlError: On unexpected connectivity issues to contract
+        server or inability to access identity doc from metadata service.
+    :raise ContractAPIError: On unexpected errors when talking to the contract
+        server.
+
+    :return: contract token obtained from identity doc
+    """
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
-        print(
+        raise exceptions.NonPremiumImageError(
             ua_status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
                 cloud_type=cloud_type
             )
         )
-        return 0
-    # TODO(Clean up the attach_premium flow a bit and add error handling)
     instance = identity.cloud_instance_factory()
     contract_client = contract.UAContractClient(cfg)
     pkcs7 = instance.identity_doc
-    # TODO(Need to handle errors due to non-premium ec2 images)
-    contractTokenResponse = contract_client.request_premium_aws_contract_token(
-        pkcs7
-    )
-    return _attach_with_token(
-        cfg, token=contractTokenResponse["contractToken"], allow_enable=True
-    )
+    try:
+        # TODO(make this logic cloud-agnostic if possible)
+        tokenResponse = contract_client.request_premium_aws_contract_token(
+            pkcs7
+        )
+    except contract.ContractAPIError as e:
+        if contract.API_ERROR_MISSING_INSTANCE_INFORMATION in e:
+            raise exceptions.NonPremiumImageError(
+                ua_status.MESSAGE_UNSUPPORTED_PREMIUM
+            )
+        raise e
+    return tokenResponse["contractToken"]
+
+
+@assert_not_attached
+@assert_root
+def action_attach_premium(args, cfg):
+    token = _get_contract_token_from_cloud_identity(cfg)
+    return _attach_with_token(cfg, token=token, allow_enable=True)
 
 
 @assert_not_attached

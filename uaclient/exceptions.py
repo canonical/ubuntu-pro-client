@@ -16,6 +16,12 @@ class UserFacingError(Exception):
         self.msg = msg
 
 
+class NonPremiumImageError(UserFacingError):
+    """Raised when machine doesn't appear to be premium/pro"""
+
+    exit_code = 0
+
+
 class AlreadyAttachedError(UserFacingError):
     """An exception to be raised when a command needs an unattached system."""
 
