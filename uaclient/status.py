@@ -148,13 +148,13 @@ MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 For more information see: https://ubuntu.com/advantage"""
 MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
-Unable to determine premium image platform support
+Unable to determine Ubuntu Pro image platform support
 For more information see: https://ubuntu.com/advantage"""
-MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE = """\
-Premium image support is not available on {cloud_type}.
+MESSAGE_UNSUPPORTED_UBUNTU_PRO_CLOUD_TYPE = """\
+Ubuntu Pro image support is not available on {cloud_type}.
 See: https://ubuntu.com/advantage"""
-MESSAGE_UNSUPPORTED_PREMIUM = """\
-Premium image support is not available on this image type.
+MESSAGE_UNSUPPORTED_UBUNTU_PRO = """\
+Ubuntu Pro image support is not available on this image type.
 See: https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.

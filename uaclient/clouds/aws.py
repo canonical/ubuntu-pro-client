@@ -1,6 +1,6 @@
 from urllib.error import HTTPError
 
-from uaclient.clouds import UAPremiumCloudInstance
+from uaclient.clouds import UAProCloudInstance
 from uaclient import util
 
 
@@ -10,7 +10,7 @@ DMI_PRODUCT_SERIAL = "/sys/class/dmi/id/product_serial"
 DMI_PRODUCT_UUID = "/sys/class/dmi/id/product_uuid"
 
 
-class UAPremiumAWSInstance(UAPremiumCloudInstance):
+class UAProAWSInstance(UAProCloudInstance):
 
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362

@@ -39,10 +39,10 @@ def get_cloud_type() -> "Optional[str]":
     return None
 
 
-def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:
+def cloud_instance_factory() -> clouds.UAProCloudInstance:
     from uaclient.clouds import aws
 
-    cloud_instance_map = {"aws": aws.UAPremiumAWSInstance}
+    cloud_instance_map = {"aws": aws.UAProAWSInstance}
 
     cloud_type = get_cloud_type()
     if not cloud_type:
@@ -52,11 +52,11 @@ def cloud_instance_factory() -> clouds.UAPremiumCloudInstance:
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
         raise exceptions.UserFacingError(
-            status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
+            status.MESSAGE_UNSUPPORTED_UBUNTU_PRO_CLOUD_TYPE.format(
                 cloud_type=cloud_type
             )
         )
     instance = cls()
     if not instance.is_viable:
-        raise exceptions.UserFacingError(status.MESSAGE_UNSUPPORTED_PREMIUM)
+        raise exceptions.UserFacingError(status.MESSAGE_UNSUPPORTED_UBUNTU_PRO)
     return instance

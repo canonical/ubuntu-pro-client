@@ -16,8 +16,8 @@ class UserFacingError(Exception):
         self.msg = msg
 
 
-class NonPremiumImageError(UserFacingError):
-    """Raised when machine doesn't appear to be premium/pro"""
+class NonUbuntuProImageError(UserFacingError):
+    """Raised when machine doesn't appear to be ubuntu pro"""
 
     exit_code = 0
 

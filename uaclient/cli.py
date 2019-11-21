@@ -114,9 +114,9 @@ def require_valid_entitlement_name(operation: str):
     return wrapper
 
 
-def attach_premium_parser(parser):
-    """Build or extend an arg parser for attach-premium subcommand."""
-    parser.prog = "attach-premium"
+def auto_attach_parser(parser):
+    """Build or extend an arg parser for auto-attach subcommand."""
+    parser.prog = "auto-attach"
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = "Flags"
     return parser
@@ -351,7 +351,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
     :param cfg: a ``config.UAConfig`` instance
 
-    :raise NonPremiumImageError: When not on a premium image type.
+    :raise NonUbuntuProImageError: When not on an Ubuntu Pro image type.
     :raise UrlError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
     :raise ContractAPIError: On unexpected errors when talking to the contract
@@ -361,8 +361,8 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     """
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
-        raise exceptions.NonPremiumImageError(
-            ua_status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
+        raise exceptions.NonUbuntuProImageError(
+            ua_status.MESSAGE_UNSUPPORTED_UBUNTU_PRO_CLOUD_TYPE.format(
                 cloud_type=cloud_type
             )
         )
@@ -371,13 +371,11 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     pkcs7 = instance.identity_doc
     try:
         # TODO(make this logic cloud-agnostic if possible)
-        tokenResponse = contract_client.request_premium_aws_contract_token(
-            pkcs7
-        )
+        tokenResponse = contract_client.request_pro_aws_contract_token(pkcs7)
     except contract.ContractAPIError as e:
         if contract.API_ERROR_MISSING_INSTANCE_INFORMATION in e:
-            raise exceptions.NonPremiumImageError(
-                ua_status.MESSAGE_UNSUPPORTED_PREMIUM
+            raise exceptions.NonUbuntuProImageError(
+                ua_status.MESSAGE_UNSUPPORTED_UBUNTU_PRO
             )
         raise e
     return tokenResponse["contractToken"]
@@ -385,7 +383,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
 @assert_not_attached
 @assert_root
-def action_attach_premium(args, cfg):
+def action_auto_attach(args, cfg):
     token = _get_contract_token_from_cloud_identity(cfg)
     return _attach_with_token(cfg, token=token, allow_enable=True)
 
@@ -452,12 +450,12 @@ def get_parser():
     )
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
-    parser_attach_premium = subparsers.add_parser(
-        "attach-premium",
-        help="automatically enable Ubuntu Advantage on a premium Ubuntu image",
+    parser_auto_attach = subparsers.add_parser(
+        "auto-attach",
+        help="automatically enable Ubuntu Advantage on an Ubuntu Pro image",
     )
-    attach_premium_parser(parser_attach_premium)
-    parser_attach_premium.set_defaults(action=action_attach_premium)
+    auto_attach_parser(parser_auto_attach)
+    parser_auto_attach.set_defaults(action=action_auto_attach)
     parser_detach = subparsers.add_parser(
         "detach",
         help="remove this machine from an Ubuntu Advantage subscription",
