@@ -1,8 +1,0 @@
-[Unit]
-Description=Ubuntu Advantage premium attach
-After=cloud-final.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/ua attach-premium
-TimeoutSec=0

@@ -1,0 +1,11 @@
+[Unit]
+Description=Ubuntu Advantage auto attach
+After=cloud-final.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ua auto-attach
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target

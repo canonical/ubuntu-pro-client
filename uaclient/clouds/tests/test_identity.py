@@ -84,16 +84,16 @@ class TestCloudInstanceFactory:
         m_get_cloud_type.return_value = "nonaws"
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
-        error_msg = status.MESSAGE_UNSUPPORTED_PREMIUM_CLOUD_TYPE.format(
+        error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
             cloud_type="nonaws"
         )
         assert error_msg == str(excinfo.value)
 
-    @mock.patch("uaclient.clouds.aws.UAPremiumAWSInstance")
-    def test_raise_error_when_not_viable_aws_premium(
+    @mock.patch("uaclient.clouds.aws.UAAutoAttachAWSInstance")
+    def test_raise_error_when_not_viable_aws_ubuntu_pro(
         self, m_aws_instance, m_get_cloud_type
     ):
-        """Raise appropriate error when the AWS instance is not viable."""
+        """Raise error when the AWS instance is not viable auto-attach."""
         m_get_cloud_type.return_value = "aws"
 
         def fake_aws_instance():
@@ -104,5 +104,5 @@ class TestCloudInstanceFactory:
         m_aws_instance.side_effect = fake_aws_instance
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
-        error_msg = status.MESSAGE_UNSUPPORTED_PREMIUM
+        error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
         assert error_msg == str(excinfo.value)

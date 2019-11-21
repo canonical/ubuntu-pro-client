@@ -16,8 +16,8 @@ class UserFacingError(Exception):
         self.msg = msg
 
 
-class NonPremiumImageError(UserFacingError):
-    """Raised when machine doesn't appear to be premium/pro"""
+class NonAutoAttachImageError(UserFacingError):
+    """Raised when machine isn't running an auto-attach enabled image"""
 
     exit_code = 0
 
