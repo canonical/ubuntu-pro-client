@@ -1,7 +1,7 @@
 from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
-from uaclient.entitlements.esm import ESMInfraEntitlement
+from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements import fips
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 
@@ -16,6 +16,7 @@ except ImportError:
 ENTITLEMENT_CLASSES = [
     CommonCriteriaEntitlement,
     CISEntitlement,
+    ESMAppsEntitlement,
     ESMInfraEntitlement,
     fips.FIPSEntitlement,
     fips.FIPSUpdatesEntitlement,

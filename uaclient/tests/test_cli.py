@@ -41,6 +41,7 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
    (https://ubuntu.com/cis-audit)
+ - esm-apps: UA Apps: Extended Security Maintenance (https://ubuntu.com/esm)
  - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
  - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
  - fips-updates: Uncertified security updates to FIPS modules
