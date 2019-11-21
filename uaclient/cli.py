@@ -349,9 +349,9 @@ def _attach_with_token(
 def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     """Detect cloud_type and request a contract token from identity info.
 
-    :param cfg: Parsed configuration dictionary
+    :param cfg: a ``config.UAConfig`` instance
 
-    :raise NonPremiumImageError: When not on a premium image type. Exits 0.
+    :raise NonPremiumImageError: When not on a premium image type.
     :raise UserFacingError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
 
