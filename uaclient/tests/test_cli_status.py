@@ -28,6 +28,7 @@ SERVICE       ENTITLED  STATUS    DESCRIPTION
 cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
  Packages
 cis-audit     no        {dash}         Center for Internet Security Audit Tools
+esm-apps      no        {dash}         UA Apps: Extended Security Maintenance
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance
 fips          no        {dash}         NIST-certified FIPS modules
 fips-updates  no        {dash}         Uncertified security updates to FIPS\

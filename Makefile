@@ -33,7 +33,7 @@ travis-deb-install:
 	git fetch --unshallow
 	sudo apt-get update
 	sudo apt-get build-dep -y ubuntu-advantage-tools
-	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools
+	sudo apt-get install -y --install-recommends sbuild ubuntu-dev-tools dh-systemd
 	# Missing build-deps
 	sudo apt-get install -y --install-recommends libapt-pkg-dev python3-mock python3-pytest
 

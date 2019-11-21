@@ -10,8 +10,40 @@ class UserFacingError(Exception):
         should be emitted before exiting non-zero.
     """
 
+    exit_code = 1
+
     def __init__(self, msg: str) -> None:
         self.msg = msg
+
+
+class NonPremiumImageError(UserFacingError):
+    """Raised when machine doesn't appear to be premium/pro"""
+
+    exit_code = 0
+
+
+class AlreadyAttachedError(UserFacingError):
+    """An exception to be raised when a command needs an unattached system."""
+
+    exit_code = 0
+
+    def __init__(self, cfg):
+        super().__init__(
+            status.MESSAGE_ALREADY_ATTACHED.format(
+                account_name=cfg.accounts[0]["name"]
+            )
+        )
+
+
+class MissingAptURLDirective(UserFacingError):
+    """An exception for when the contract server doesn't include aptURL"""
+
+    def __init__(self, entitlement_name):
+        super().__init__(
+            status.MESSAGE_MISSING_APT_URL_DIRECTIVE.format(
+                entitlement_name=entitlement_name
+            )
+        )
 
 
 class NonRootUserError(UserFacingError):

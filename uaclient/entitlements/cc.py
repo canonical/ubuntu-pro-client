@@ -9,9 +9,6 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     name = "cc-eal"
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
-    repo_url = (
-        "https://private-ppa.launchpad.net/ubuntu-advantage/commoncriteria"
-    )
     repo_key_file = "ubuntu-cc-keyring.gpg"
     packages = ["ubuntu-commoncriteria"]
     messaging = {

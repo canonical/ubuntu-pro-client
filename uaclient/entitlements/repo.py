@@ -45,11 +45,6 @@ class RepoEntitlement(base.UAEntitlement):
 
     @property
     @abc.abstractmethod
-    def repo_url(self) -> str:
-        pass
-
-    @property
-    @abc.abstractmethod
     def repo_key_file(self) -> str:
         pass
 
@@ -106,12 +101,17 @@ class RepoEntitlement(base.UAEntitlement):
         )
         repo_url = directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            return (
+                ApplicationStatus.DISABLED,
+                "{} does not have an aptURL directive".format(self.title),
+            )
         protocol, repo_path = repo_url.split("://")
         policy = apt.run_apt_command(
             ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED
         )
-        match = re.search(r"(?P<pin>(-)?\d+) {}[^-]".format(repo_url), policy)
+        match = re.search(
+            r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
+        )
         if match and match.group("pin") != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, "{} is active".format(self.title)
         return (
@@ -189,7 +189,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
         repo_url = directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            raise exceptions.MissingAptURLDirective(self.name)
         repo_suites = directives.get("suites")
         if not repo_suites:
             raise exceptions.UserFacingError(
@@ -267,9 +267,9 @@ class RepoEntitlement(base.UAEntitlement):
             "machine-access-{}".format(self.name)
         ).get("entitlement", {})
         access_directives = entitlement.get("directives", {})
-        repo_url = access_directives.get("aptURL", self.repo_url)
+        repo_url = access_directives.get("aptURL")
         if not repo_url:
-            repo_url = self.repo_url
+            raise exceptions.MissingAptURLDirective(self.name)
         if self.disable_apt_auth_only:
             # We only remove the repo from the apt auth file, because ESM
             # is a special-case: we want to be able to report on the

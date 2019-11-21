@@ -11,6 +11,7 @@ import pytest
 
 from uaclient.cli import (
     assert_attached,
+    assert_not_attached,
     assert_root,
     get_parser,
     main,
@@ -19,6 +20,7 @@ from uaclient.cli import (
 )
 
 from uaclient.exceptions import (
+    AlreadyAttachedError,
     NonRootUserError,
     UserFacingError,
     UnattachedError,
@@ -39,6 +41,7 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
    (https://ubuntu.com/cis-audit)
+ - esm-apps: UA Apps: Extended Security Maintenance (https://ubuntu.com/esm)
  - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
  - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
  - fips-updates: Uncertified security updates to FIPS modules
@@ -163,6 +166,35 @@ class TestAssertAttached:
                 test_function(mock.Mock(), cfg)
 
 
+@pytest.mark.parametrize("uid", [0, 1000])
+class TestAssertNotAttached:
+    def test_when_attached(self, uid):
+        @assert_not_attached
+        def test_function(args, cfg):
+            pass
+
+        cfg = FakeConfig.for_attached_machine()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            with pytest.raises(AlreadyAttachedError):
+                test_function(mock.Mock(), cfg)
+
+    def test_when_not_attached(self, capsys, uid):
+        @assert_not_attached
+        def test_function(args, cfg):
+            return mock.sentinel.success
+
+        cfg = FakeConfig()
+
+        with mock.patch("uaclient.cli.os.getuid", return_value=uid):
+            ret = test_function(mock.Mock(), cfg)
+
+        assert mock.sentinel.success == ret
+
+        out, _err = capsys.readouterr()
+        assert "" == out.strip()
+
+
 class TestRequireValidEntitlementName:
     # rven used in test names as short hand for require_valid_entitlement_name
     def test_rven_without_name(self):
@@ -224,6 +256,13 @@ class TestMain:
         error_log = caplog_text()
         assert "Traceback (most recent call last):" in error_log
 
+    @pytest.mark.parametrize(
+        "exception,expected_exit_code",
+        [
+            (UserFacingError("You need to know about this."), 1),
+            (AlreadyAttachedError(mock.MagicMock()), 0),
+        ],
+    )
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_user_facing_error_handled_gracefully(
@@ -233,23 +272,24 @@ class TestMain:
         capsys,
         logging_sandbox,
         caplog_text,
+        exception,
+        expected_exit_code,
     ):
-        msg = "You need to know about this."
-
         m_args = m_get_parser.return_value.parse_args.return_value
-        m_args.action.side_effect = UserFacingError(msg)
+        m_args.action.side_effect = exception
+        expected_msg = exception.msg
 
         with pytest.raises(SystemExit) as excinfo:
             main(["some", "args"])
 
         exc = excinfo.value
-        assert 1 == exc.code
+        assert expected_exit_code == exc.code
 
         out, err = capsys.readouterr()
         assert "" == out
-        assert "{}\n".format(msg) == err
+        assert "{}\n".format(expected_msg) == err
         error_log = caplog_text()
-        assert msg in error_log
+        assert expected_msg in error_log
         assert "Traceback (most recent call last):" in error_log
 
     @pytest.mark.parametrize(
