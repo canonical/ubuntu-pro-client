@@ -245,8 +245,8 @@ class TestESMInfraEntitlementDisable:
                 "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
                     entitlement.name
                 ),
-                "Package: *\nPin: release o=UbuntuESM, n=trusty\n"
-                "Pin-Priority: never\n",
+                "Package: *\nPin: release o={}, n=trusty\n"
+                "Pin-Priority: never\n".format(entitlement.origin),
             )
         ]
         assert write_calls == m_write.call_args_list
