@@ -145,9 +145,11 @@ class TestActionAttachPremium:
         _m_getuid,
     ):
         """Noop when _get_contract_token_from_cloud_identity finds no token"""
-        get_contract_token_from_cloud_identity.return_value = None
+        exc = NonPremiumImageError("msg")
+        get_contract_token_from_cloud_identity.side_effect = exc
 
-        assert 0 == action_attach_premium(mock.MagicMock(), FakeConfig())
+        with pytest.raises(NonPremiumImageError):
+            action_attach_premium(mock.MagicMock(), FakeConfig())
         assert 0 == request_updated_contract.call_count
 
     @mock.patch(M_PATH + "contract.request_updated_contract")

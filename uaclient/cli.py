@@ -385,8 +385,6 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 @assert_root
 def action_attach_premium(args, cfg):
     token = _get_contract_token_from_cloud_identity(cfg)
-    if token is None:
-        return 0
     return _attach_with_token(cfg, token=token, allow_enable=True)
 
 
