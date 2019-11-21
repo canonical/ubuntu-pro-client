@@ -12,7 +12,7 @@ from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
     NonRootUserError,
-    NonUbuntuProImageError,
+    NonAutoAttachImageError,
 )
 from uaclient import status
 from uaclient.testing.fakes import FakeConfig
@@ -45,38 +45,38 @@ class TestGetContractTokenFromCloudIdentity:
     ):
         """Non-aws clouds will error."""
         m_get_cloud_type.return_value = cloud_type
-        with pytest.raises(NonUbuntuProImageError) as excinfo:
+        with pytest.raises(NonAutoAttachImageError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
-        assert status.MESSAGE_UNSUPPORTED_UBUNTU_PRO_CLOUD_TYPE.format(
+        assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
             cloud_type=cloud_type
         ) == str(excinfo.value)
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_pro_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_aws_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
-    def test_aws_cloud_type_non_ubuntu_pro_returns_no_token(
+    def test_aws_cloud_type_non_auto_attach_returns_no_token(
         self,
         _get_cloud_type,
         cloud_instance_factory,
-        request_pro_aws_contract_token,
+        request_aws_contract_token,
     ):
-        """AWS clouds on non-Ubuntu Pro images not return a token."""
+        """AWS clouds on non-auto-attach images not return a token."""
 
         cloud_instance_factory.side_effect = self.fake_instance_factory
-        request_pro_aws_contract_token.side_effect = ContractAPIError(
+        request_aws_contract_token.side_effect = ContractAPIError(
             util.UrlError(
                 "Server error", code=500, url="http://me", headers={}
             ),
             error_response={"message": "missing instance information"},
         )
-        with pytest.raises(NonUbuntuProImageError) as excinfo:
+        with pytest.raises(NonAutoAttachImageError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
-        assert status.MESSAGE_UNSUPPORTED_UBUNTU_PRO == str(excinfo.value)
+        assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_pro_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_aws_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
@@ -84,7 +84,7 @@ class TestGetContractTokenFromCloudIdentity:
         self,
         _get_cloud_type,
         cloud_instance_factory,
-        request_pro_aws_contract_token,
+        request_aws_contract_token,
     ):
         """Any unexpected errors will be raised."""
 
@@ -95,14 +95,14 @@ class TestGetContractTokenFromCloudIdentity:
             ),
             error_response={"message": "something unexpected"},
         )
-        request_pro_aws_contract_token.side_effect = unexpected_error
+        request_aws_contract_token.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
         assert unexpected_error == excinfo.value
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_pro_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_aws_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
@@ -138,31 +138,31 @@ class TestActionAutoAttach:
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
-    def test_happy_path_on_aws_non_ubuntu_pro(
+    def test_happy_path_on_aws_non_auto_attach(
         self,
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
     ):
         """Noop when _get_contract_token_from_cloud_identity finds no token"""
-        exc = NonUbuntuProImageError("msg")
+        exc = NonAutoAttachImageError("msg")
         get_contract_token_from_cloud_identity.side_effect = exc
 
-        with pytest.raises(NonUbuntuProImageError):
+        with pytest.raises(NonAutoAttachImageError):
             action_auto_attach(mock.MagicMock(), FakeConfig())
         assert 0 == request_updated_contract.call_count
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
     @mock.patch(M_PATH + "action_status")
-    def test_happy_path_on_aws_ubuntu_pro(
+    def test_happy_path_on_aws_auto_attach(
         self,
         action_status,
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
     ):
-        """A mock-heavy test for the happy path on Ubuntu Pro AWS"""
+        """A mock-heavy test for the happy path on auto attach AWS"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
         cfg = FakeConfig()

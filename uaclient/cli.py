@@ -351,7 +351,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
     :param cfg: a ``config.UAConfig`` instance
 
-    :raise NonUbuntuProImageError: When not on an Ubuntu Pro image type.
+    :raise NonAutoAttachImageError: When not on an auto-attach image type.
     :raise UrlError: On unexpected connectivity issues to contract
         server or inability to access identity doc from metadata service.
     :raise ContractAPIError: On unexpected errors when talking to the contract
@@ -361,8 +361,8 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     """
     cloud_type = identity.get_cloud_type()
     if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
-        raise exceptions.NonUbuntuProImageError(
-            ua_status.MESSAGE_UNSUPPORTED_UBUNTU_PRO_CLOUD_TYPE.format(
+        raise exceptions.NonAutoAttachImageError(
+            ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
                 cloud_type=cloud_type
             )
         )
@@ -371,11 +371,11 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     pkcs7 = instance.identity_doc
     try:
         # TODO(make this logic cloud-agnostic if possible)
-        tokenResponse = contract_client.request_pro_aws_contract_token(pkcs7)
+        tokenResponse = contract_client.request_aws_contract_token(pkcs7)
     except contract.ContractAPIError as e:
         if contract.API_ERROR_MISSING_INSTANCE_INFORMATION in e:
-            raise exceptions.NonUbuntuProImageError(
-                ua_status.MESSAGE_UNSUPPORTED_UBUNTU_PRO
+            raise exceptions.NonAutoAttachImageError(
+                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
         raise e
     return tokenResponse["contractToken"]
@@ -452,7 +452,7 @@ def get_parser():
     parser_attach.set_defaults(action=action_attach)
     parser_auto_attach = subparsers.add_parser(
         "auto-attach",
-        help="automatically enable Ubuntu Advantage on an Ubuntu Pro image",
+        help="automatically enable Ubuntu Advantage on supported platforms",
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)

@@ -1,7 +1,7 @@
 import abc
 
 
-class UAProCloudInstance(metaclass=abc.ABCMeta):
+class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def identity_doc(self) -> str:
@@ -11,5 +11,5 @@ class UAProCloudInstance(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def is_viable(self) -> bool:
-        """Return True if the machine is a viable UAProCloudInstance."""
+        """Return True if the machine is a viable AutoAttachCloudInstance."""
         pass
