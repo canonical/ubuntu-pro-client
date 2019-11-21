@@ -467,3 +467,41 @@ class TestApplicationStatus:
         assert (
             "Repo Test Class does not have an aptURL directive" == explanation
         )
+
+    @pytest.mark.parametrize(
+        "pin,policy_url,enabled",
+        (
+            (500, "https://esm.ubuntu.com/apps/ubuntu", False),
+            (-32768, "https://esm.ubuntu.com/ubuntu", False),
+            (500, "https://esm.ubuntu.com/ubuntu", True),
+        ),
+    )
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_enabled_status_by_apt_policy(
+        self, m_run_apt_command, pin, policy_url, enabled, entitlement_factory
+    ):
+        """Report ENABLED when apt-policy lists specific aptURL and 500 pin."""
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            directives={"aptURL": "https://esm.ubuntu.com"},
+        )
+
+        policy_lines = [
+            "{pin} {policy_url} bionic-security/main amd64 Packages".format(
+                pin=pin, policy_url=policy_url
+            ),
+            " release v=18.04,o=UbuntuESMApps,...,n=bionic,l=UbuntuESMApps",
+            "  origin esm.ubuntu.com",
+        ]
+        m_run_apt_command.return_value = "\n".join(policy_lines)
+
+        application_status, explanation = entitlement.application_status()
+
+        if enabled:
+            expected_status = status.ApplicationStatus.ENABLED
+            expected_explanation = "Repo Test Class is active"
+        else:
+            expected_status = status.ApplicationStatus.DISABLED
+            expected_explanation = "Repo Test Class is not configured"
+        assert expected_status == application_status
+        assert expected_explanation == explanation

@@ -109,7 +109,9 @@ class RepoEntitlement(base.UAEntitlement):
         policy = apt.run_apt_command(
             ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED
         )
-        match = re.search(r"(?P<pin>(-)?\d+) {}[^-]".format(repo_url), policy)
+        match = re.search(
+            r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
+        )
         if match and match.group("pin") != APT_DISABLED_PIN:
             return ApplicationStatus.ENABLED, "{} is active".format(self.title)
         return (
