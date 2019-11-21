@@ -3,7 +3,7 @@ from uaclient.entitlements import repo
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/esm"
-    repo_pin_priority = "never"
+    # TODO: Restore repo_pin_priority = "never" for trusty
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
