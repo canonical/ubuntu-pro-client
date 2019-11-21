@@ -6,3 +6,6 @@ After=cloud-final.target
 Type=oneshot
 ExecStart=/usr/bin/ua auto-attach
 TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
