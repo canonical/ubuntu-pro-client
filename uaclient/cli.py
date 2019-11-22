@@ -452,7 +452,7 @@ def get_parser():
     parser_attach.set_defaults(action=action_attach)
     parser_auto_attach = subparsers.add_parser(
         "auto-attach",
-        help="automatically enable Ubuntu Advantage on supported platforms",
+        help="automatically attach Ubuntu Advantage on supported platforms",
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
