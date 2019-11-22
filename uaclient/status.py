@@ -130,7 +130,7 @@ MESSAGE_ALREADY_DISABLED_TMPL = """\
 MESSAGE_ENABLED_FAILED_TMPL = "Could not enable {title}."
 MESSAGE_ENABLED_TMPL = "{title} enabled"
 MESSAGE_ALREADY_ATTACHED = """\
-This machine is already attached to '{account_name}'."""
+This machine is already attached to '{account_name}'"""
 MESSAGE_ALREADY_ENABLED_TMPL = """\
 {title} is already enabled.\nSee: sudo ua status"""
 MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
@@ -148,13 +148,13 @@ MESSAGE_UNENTITLED_TMPL = """\
 This subscription is not entitled to {title}.
 For more information see: https://ubuntu.com/advantage"""
 MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
-Unable to determine auto-attach image platform support
+Unable to determine auto-attach platform support
 For more information see: https://ubuntu.com/advantage"""
 MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = """\
-Auto-attach image support is not available on {cloud_type}.
+Auto-attach image support is not available on {cloud_type}
 See: https://ubuntu.com/advantage"""
 MESSAGE_UNSUPPORTED_AUTO_ATTACH = """\
-Auto-attach image support is not available on this image type.
+Auto-attach image support is not available on this image
 See: https://ubuntu.com/advantage"""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
