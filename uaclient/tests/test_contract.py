@@ -7,7 +7,7 @@ import urllib
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH,
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
     UAContractClient,
@@ -139,7 +139,7 @@ class TestGetAvailableResources:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_REFRESH.format(
+    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
         contract="cid", machine="mid"
     )
     access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(

@@ -28,6 +28,12 @@ KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
 M_PATH = "uaclient.entitlements."
 
 
+ALL_RESOURCES_AVAILABLE = [
+    {"name": name, "available": True} for name in ENTITLEMENT_CLASS_BY_NAME
+]
+ALL_RESOURCES_ENTITLED = [
+    {"type": name, "entitled": True} for name in ENTITLEMENT_CLASS_BY_NAME
+]
 NO_RESOURCES_ENTITLED = [
     {"type": name, "entitled": False} for name in ENTITLEMENT_CLASS_BY_NAME
 ]
@@ -42,6 +48,7 @@ class TestEntitlements:
         """Return machine_token resourceEntitlements, keyed by name."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
                 "contractInfo": {
                     "resourceEntitlements": [
@@ -49,7 +56,7 @@ class TestEntitlements:
                         {"type": "entitlement2", "entitled": True},
                     ]
                 }
-            }
+            },
         }
         cfg.write_cache("machine-token", token)
         expected = {
@@ -66,6 +73,7 @@ class TestEntitlements:
         """Return specific machine-access info if present."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
                 "contractInfo": {
                     "resourceEntitlements": [
@@ -73,7 +81,7 @@ class TestEntitlements:
                         {"type": "entitlement2", "entitled": True},
                     ]
                 }
-            }
+            },
         }
         cfg.write_cache("machine-token", token)
         cfg.write_cache(
@@ -118,7 +126,11 @@ class TestAccounts:
         accountInfo = {"id": "1", "name": "accountname"}
 
         cfg.write_cache(
-            "machine-token", {"machineTokenInfo": {"accountInfo": accountInfo}}
+            "machine-token",
+            {
+                "availableResources": ALL_RESOURCES_AVAILABLE,
+                "machineTokenInfo": {"accountInfo": accountInfo},
+            },
         )
 
         assert [accountInfo] == cfg.accounts
@@ -319,13 +331,14 @@ class TestDeleteCache:
         """The delete_cache unsets any cached entitlements content."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
                 "contractInfo": {
                     "resourceEntitlements": [
                         {"type": "entitlement1", "entitled": True}
                     ]
                 }
-            }
+            },
         }
         cfg.write_cache("machine-token", token)
         previous_entitlements = {
@@ -443,6 +456,7 @@ class TestStatus:
         default_entitled = status.ContractStatus.UNENTITLED.value
         default_status = status.UserFacingStatus.UNAVAILABLE.value
         token = {
+            "availableResources": [],
             "machineTokenInfo": {
                 "accountInfo": {"id": "acct-1", "name": "test_account"},
                 "contractInfo": {
@@ -450,7 +464,7 @@ class TestStatus:
                     "name": "test_contract",
                     "resourceEntitlements": entitled_res,
                 },
-            }
+            },
         }
         available_resource_response = [
             {
@@ -461,7 +475,10 @@ class TestStatus:
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
         ]
-        m_get_avail_resources.return_value = available_resource_response
+        if avail_res:
+            token["availableResources"] = available_resource_response
+        else:
+            m_get_avail_resources.return_value = available_resource_response
 
         cfg = FakeConfig.for_attached_machine(machine_token=token)
         expected_services = [
@@ -491,7 +508,10 @@ class TestStatus:
             }
         )
         assert expected == cfg.status()
-        assert m_get_avail_resources.call_count == 1
+        if avail_res:
+            assert m_get_avail_resources.call_count == 0
+        else:
+            assert m_get_avail_resources.call_count == 1
         # cfg.status() idempotent
         assert expected == cfg.status()
 
@@ -564,7 +584,6 @@ class TestStatus:
             ],
         ),
     )
-    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
@@ -577,7 +596,6 @@ class TestStatus:
         m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_getuid,
-        _m_get_available_resources,
         entitlements,
     ):
         """When attached, return contract and service user-facing status."""
@@ -594,6 +612,7 @@ class TestStatus:
             "livepatch details",
         )
         token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
                 "accountInfo": {"id": "1", "name": "accountname"},
                 "contractInfo": {
@@ -601,7 +620,7 @@ class TestStatus:
                     "name": "contractname",
                     "resourceEntitlements": entitlements,
                 },
-            }
+            },
         }
         cfg = FakeConfig.for_attached_machine(
             account_name="accountname", machine_token=token
@@ -648,6 +667,7 @@ class TestStatus:
         self, m_getuid, _m_get_available_resources
     ):
         token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
                 "accountInfo": {"id": "1", "name": "accountname"},
                 "contractInfo": {
@@ -656,7 +676,7 @@ class TestStatus:
                     "effectiveTo": "2020-07-18T00:00:00Z",
                     "resourceEntitlements": [],
                 },
-            }
+            },
         }
         cfg = FakeConfig.for_attached_machine(
             account_name="accountname", machine_token=token

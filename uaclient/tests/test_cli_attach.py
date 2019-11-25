@@ -21,6 +21,7 @@ M_PATH = "uaclient.cli."
 
 # Also used in test_cli_auto_attach.py
 BASIC_MACHINE_TOKEN = {
+    "availableResources": [],
     "machineTokenInfo": {
         "contractInfo": {
             "name": "mycontract",
@@ -28,7 +29,7 @@ BASIC_MACHINE_TOKEN = {
             "resourceEntitlements": [],
         },
         "accountInfo": {"id": "acct-1", "name": "accountName"},
-    }
+    },
 }
 
 

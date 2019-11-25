@@ -288,7 +288,9 @@ class UAConfig:
                 contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
             )
 
-        resources = get_available_resources(self)
+        resources = self.machine_token.get("availableResources")
+        if not resources:
+            resources = get_available_resources(self)
         inapplicable_resources = {
             resource["name"]: resource.get("description")
             for resource in sorted(resources, key=lambda x: x["name"])

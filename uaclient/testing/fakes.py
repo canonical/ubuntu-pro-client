@@ -78,6 +78,7 @@ class FakeConfig(UAConfig):
     ):
         value = {
             "machine-token": {
+                "availableResources": [],
                 "machineToken": "not-null",
                 "machineTokenInfo": {
                     "accountInfo": {"id": "acct-1", "name": account_name},
