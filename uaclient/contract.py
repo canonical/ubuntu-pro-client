@@ -81,13 +81,9 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing the machine-token.
         """
-        if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
-        platform = util.get_platform_info()
-        arch = platform.pop("arch")
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(contract_token)})
-        data = {"machineId": machine_id, "architecture": arch, "os": platform}
+        data = self._get_platform_data(machine_id)
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
@@ -167,21 +163,25 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing refreshed machine-token
         """
-        if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
+        data = self._get_platform_data(machine_id)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
-            contract=contract_id, machine=machine_id
+            contract=contract_id, machine=data["machineId"]
         )
-        platform = util.get_platform_info()
-        arch = platform.pop("arch")
-        data = {"machineId": machine_id, "architecture": arch, "os": platform}
         response, headers = self.request_url(url, headers=headers, data=data)
         if headers.get("expires"):
             response["expires"] = headers["expires"]
         self.cfg.write_cache("machine-token", response)
         return response
+
+    def _get_platform_data(self, machine_id):
+        """"Return a dict of platform-relateddata for contract requests"""
+        if not machine_id:
+            machine_id = util.get_machine_id(self.cfg.data_dir)
+        platform = util.get_platform_info()
+        arch = platform.pop("arch")
+        return {"machineId": machine_id, "architecture": arch, "os": platform}
 
 
 def process_entitlement_delta(orig_access, new_access, allow_enable=False):
