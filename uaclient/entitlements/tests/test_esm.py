@@ -216,16 +216,16 @@ class TestESMInfraEntitlementDisable:
         assert [mock.call(silent)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
-    @mock.patch(M_REPOPATH + "apt.remove_apt_list_files")
-    @mock.patch(M_REPOPATH + "apt.remove_auth_apt_repo")
+    @mock.patch("uaclient.apt.restore_commented_apt_list_file")
+    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "trusty"}
     )
     def test_disable_removes_apt_config(
         self,
         m_platform_info,
-        m_remove_auth_apt_repo,
-        m_remove_apt_list_files,
+        m_rm_repo_from_auth,
+        m_restore_commented_apt_list_file,
         entitlement,
         tmpdir,
     ):
@@ -251,26 +251,12 @@ class TestESMInfraEntitlementDisable:
         ]
         assert write_calls == m_write.call_args_list
         assert [mock.call(True)] == m_can_disable.call_args_list
-
-        expected_key_name = "ubuntu-advantage-{}.gpg".format(
-            entitlement.name
-            if isinstance(entitlement, ESMAppsEntitlement)
-            else entitlement.name + "-trusty"
-        )
-        expected_rm_repo_calls = [
+        auth_call = mock.call("http://{}".format(entitlement.name.upper()))
+        assert [auth_call] == m_rm_repo_from_auth.call_args_list
+        assert [
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
                     entitlement.name
-                ),
-                "http://{}".format(entitlement.name.upper()),
-                expected_key_name,
+                )
             )
-        ]
-        expected_rm_list_files_calls = [
-            mock.call("http://{}".format(entitlement.name.upper()), "trusty")
-        ]
-        assert expected_rm_repo_calls == m_remove_auth_apt_repo.call_args_list
-        assert (
-            expected_rm_list_files_calls
-            == m_remove_apt_list_files.call_args_list
-        )
+        ] == m_restore_commented_apt_list_file.call_args_list
