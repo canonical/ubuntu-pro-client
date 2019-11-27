@@ -56,6 +56,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
@@ -97,6 +100,14 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        unlink_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                )
+            )
+        ]
+        assert unlink_calls == m_unlink.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
         self, entitlement, caplog_text
@@ -145,6 +156,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
 
             m_can_enable.return_value = True
 
@@ -176,6 +190,14 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        unlink_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                )
+            )
+        ]
+        assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
@@ -214,8 +236,20 @@ class TestESMInfraEntitlementDisable:
         ) as m_can_disable:
             with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
                 with mock.patch("uaclient.util.subp"):
-                    assert entitlement.disable(True)
+                    with mock.patch("uaclient.util.write_file") as m_write:
+                        assert entitlement.disable(True)
 
+        # Disable esm repo again
+        write_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                    entitlement.name
+                ),
+                "Package: *\nPin: release o={}, n=trusty\n"
+                "Pin-Priority: never\n".format(entitlement.origin),
+            )
+        ]
+        assert write_calls == m_write.call_args_list
         assert [mock.call(True)] == m_can_disable.call_args_list
 
         expected_key_name = "ubuntu-advantage-{}.gpg".format(
