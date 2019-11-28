@@ -23,9 +23,14 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     @property
     def is_viable(self):
         """This machine is a viable AWSInstance"""
-        hypervisor_uuid = util.load_file(SYS_HYPERVISOR_PRODUCT_UUID)
-        if "ec2" == hypervisor_uuid[0:3]:
-            return True
+        try:
+            hypervisor_uuid = util.load_file(SYS_HYPERVISOR_PRODUCT_UUID)
+            if "ec2" == hypervisor_uuid[0:3]:
+                return True
+        except FileNotFoundError:
+            # SYS_HYPERVISOR_PRODUCT_UUID isn't present on all EC2 instance
+            # types, fall through
+            pass
         # Both DMI product_uuid and product_serial start with 'ec2'
         dmi_uuid = util.load_file(DMI_PRODUCT_UUID).lower()
         dmi_serial = util.load_file(DMI_PRODUCT_SERIAL).lower()
