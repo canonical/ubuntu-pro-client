@@ -72,7 +72,9 @@ class TestUAAutoAttachAWSInstance:
         "hypervisor_uuid,prod_uuid,prod_serial,viable",
         (
             ("notec2", "ec2UUID", "ec2Serial", True),
+            (None, "ec2UUID", "ec2Serial", True),
             ("notec2", "EC2UUID", "Ec2Serial", True),
+            (None, "EC2UUID", "Ec2Serial", True),
             ("notec2", "!EC2UUID", "Ec2Serial", False),
             ("notec2", "EC2UUID", "1Ec2Serial", False),
             ("notec2", "ec2UUID", "ec3Serial", False),
@@ -87,7 +89,9 @@ class TestUAAutoAttachAWSInstance:
 
         def fake_load_file(f_name):
             if f_name == "/sys/hypervisor/uuid":
-                return hypervisor_uuid
+                if hypervisor_uuid is not None:
+                    return hypervisor_uuid
+                raise FileNotFoundError()
             if f_name == "/sys/class/dmi/id/product_uuid":
                 return prod_uuid
             if f_name == "/sys/class/dmi/id/product_serial":
