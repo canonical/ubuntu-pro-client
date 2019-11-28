@@ -56,6 +56,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
@@ -97,6 +100,17 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        if entitlement.name == "esm-infra":  # Then remove apt pref pin never
+            unlink_calls = [
+                mock.call(
+                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                        entitlement.name
+                    )
+                )
+            ]
+        else:
+            unlink_calls = []  # esm-apps doesn't write an apt pref file
+        assert unlink_calls == m_unlink.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
         self, entitlement, caplog_text
@@ -145,6 +159,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
 
             m_can_enable.return_value = True
 
@@ -176,6 +193,18 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        if entitlement.name == "esm-infra":
+            # Enable esm-infra trusty removes apt preferences pin 'never' file
+            unlink_calls = [
+                mock.call(
+                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                        entitlement.name
+                    )
+                )
+            ]
+        else:
+            unlink_calls = []  # esm-apps there is no apt pref file to remove
+        assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
@@ -194,6 +223,8 @@ class TestESMInfraEntitlementDisable:
         assert [mock.call(silent)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
+    @mock.patch("uaclient.apt.restore_commented_apt_list_file")
+    @mock.patch("uaclient.apt.remove_repo_from_apt_auth_file")
     @mock.patch(M_REPOPATH + "apt.remove_apt_list_files")
     @mock.patch(M_REPOPATH + "apt.remove_auth_apt_repo")
     @mock.patch(
@@ -204,6 +235,8 @@ class TestESMInfraEntitlementDisable:
         m_platform_info,
         m_remove_auth_apt_repo,
         m_remove_apt_list_files,
+        m_remove_repo_from_apt_auth_file,
+        m_restore_commented_apt_list_file,
         entitlement,
         tmpdir,
     ):
@@ -214,29 +247,71 @@ class TestESMInfraEntitlementDisable:
         ) as m_can_disable:
             with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
                 with mock.patch("uaclient.util.subp"):
-                    assert entitlement.disable(True)
-
-        assert [mock.call(True)] == m_can_disable.call_args_list
+                    with mock.patch("uaclient.util.write_file") as m_write:
+                        assert entitlement.disable(True)
 
         expected_key_name = "ubuntu-advantage-{}.gpg".format(
             entitlement.name
             if isinstance(entitlement, ESMAppsEntitlement)
             else entitlement.name + "-trusty"
         )
-        expected_rm_repo_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
-                    entitlement.name
-                ),
-                "http://{}".format(entitlement.name.upper()),
-                expected_key_name,
-            )
-        ]
-        expected_rm_list_files_calls = [
-            mock.call("http://{}".format(entitlement.name.upper()), "trusty")
-        ]
+
+        if entitlement.name == "esm-infra":
+            # Only esm-infra sets up apt pref file to pin 'never'
+            write_calls = [
+                mock.call(
+                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                        entitlement.name
+                    ),
+                    "Package: *\nPin: release o={}, n=trusty\n"
+                    "Pin-Priority: never\n".format(entitlement.origin),
+                )
+            ]
+            expected_rm_repo_calls = []  # esm-infra leaves repo around
+            expected_rm_list_files_calls = []  # esm-infra leaves apt-list
+            # esm-infra redacts apt auth to disable
+            expected_remove_repo_from_apt_auth_file_calls = [
+                mock.call("http://{}".format(entitlement.name.upper()))
+            ]
+            expected_restore_commented_apt_list_file = [
+                mock.call(
+                    "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
+                        entitlement.name
+                    )
+                )
+            ]
+        else:
+            write_calls = []  # esm-apps doesn't write apt pref pin never
+            expected_rm_repo_calls = [  # esm-apps removes apt source
+                mock.call(
+                    "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
+                        entitlement.name
+                    ),
+                    "http://{}".format(entitlement.name.upper()),
+                    expected_key_name,
+                )
+            ]
+            expected_rm_list_files_calls = [  # esm-apps removes apt list file
+                mock.call(
+                    "http://{}".format(entitlement.name.upper()), "trusty"
+                )
+            ]
+            expected_remove_repo_from_apt_auth_file_calls = []
+            expected_restore_commented_apt_list_file = []
+        assert write_calls == m_write.call_args_list
+        assert [mock.call(True)] == m_can_disable.call_args_list
+
         assert expected_rm_repo_calls == m_remove_auth_apt_repo.call_args_list
         assert (
             expected_rm_list_files_calls
             == m_remove_apt_list_files.call_args_list
+        )
+        assert (
+            expected_remove_repo_from_apt_auth_file_calls
+            == m_remove_repo_from_apt_auth_file.call_args_list
+        )
+
+        assert (
+            expected_restore_commented_apt_list_file
+            == m_restore_commented_apt_list_file.call_args_list
         )
