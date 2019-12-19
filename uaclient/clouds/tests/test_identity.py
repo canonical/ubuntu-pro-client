@@ -79,13 +79,14 @@ class TestCloudInstanceFactory:
             excinfo.value
         )
 
-    def test_raise_error_when_not_aws(self, m_get_cloud_type):
+    @pytest.mark.parametrize("cloud_type", ("awslookalike", "!azure", "!aws"))
+    def test_raise_error_when_not_aws(self, m_get_cloud_type, cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
-        m_get_cloud_type.return_value = "nonaws"
+        m_get_cloud_type.return_value = cloud_type
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-            cloud_type="nonaws"
+            cloud_type=cloud_type
         )
         assert error_msg == str(excinfo.value)
 
