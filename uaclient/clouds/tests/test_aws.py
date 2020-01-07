@@ -11,6 +11,10 @@ M_PATH = "uaclient.clouds.aws."
 
 
 class TestUAAutoAttachAWSInstance:
+    def test_cloud_type(self):
+        instance = UAAutoAttachAWSInstance()
+        assert "aws" == instance.cloud_type
+
     @mock.patch(M_PATH + "util.readurl")
     def test_identity_doc_from_aws_url_pkcs7(self, readurl):
         """Return pkcs7 content from IMDS as AWS' identity doc"""

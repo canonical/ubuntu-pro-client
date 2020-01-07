@@ -116,7 +116,7 @@ class TestGetContractTokenFromCloudIdentity:
 
         cloud_instance_factory.side_effect = self.fake_instance_factory
 
-        def fake_contract_token(cloud_type, instance_doc):
+        def fake_contract_token(instance):
             return {"contractToken": "myPKCS7-token"}
 
         request_auto_attach_contract_token.side_effect = fake_contract_token
