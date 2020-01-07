@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 import urllib
 
+from uaclient import clouds
 from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
@@ -104,22 +105,19 @@ class UAContractClient(serviceclient.UAServiceClient):
         return resource_response
 
     def request_auto_attach_contract_token(
-        self, cloud_type: "Optional[str]", instance_doc: "Dict[str, Any]"
+        self, *, instance: clouds.AutoAttachCloudInstance
     ):
         """Requests contract token for auto-attach images for Pro clouds.
 
-        @param cloud_type: string representing the unique cloud for which the
-            auto-attach request is made. For example: aws or azure.
-        @param instance_doc: A dictionary of key value pairs representing
-            this instance identity information to be used as the payload
-            for the auto-attach request. Different clouds have different
-            required identity_doc fields.
+        @param instance: AutoAttachCloudInstance for the cloud.
 
         @return: Dict of the JSON response containing the contract-token.
         """
         response, _headers = self.request_url(
-            API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(cloud_type=cloud_type),
-            data=instance_doc,
+            API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(
+                cloud_type=instance.cloud_type
+            ),
+            data=instance.identity_doc,
         )
         self.cfg.write_cache("contract-token", response)
         return response

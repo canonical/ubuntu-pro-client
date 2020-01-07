@@ -21,6 +21,10 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         return response
 
     @property
+    def cloud_type(self):
+        return "aws"
+
+    @property
     def is_viable(self):
         """This machine is a viable AWSInstance"""
         try:
