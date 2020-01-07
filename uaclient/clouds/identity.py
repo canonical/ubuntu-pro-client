@@ -51,7 +51,7 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
         )
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
-        raise exceptions.UserFacingError(
+        raise exceptions.NonAutoAttachImageError(
             status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
                 cloud_type=cloud_type
             )
