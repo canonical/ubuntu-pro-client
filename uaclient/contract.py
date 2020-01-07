@@ -23,7 +23,7 @@ API_V1_RESOURCES = "/v1/resources"
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
-API_V1_AUTO_ATTACH_AWS_TOKEN = "/v1/clouds/aws/token"
+API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 
 
 class ContractAPIError(util.UrlError):
@@ -103,18 +103,23 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_response
 
-    def request_aws_contract_token(self, pkcs7: str):
-        """Requests contract token for auto-attach images on AWS.
+    def request_auto_attach_contract_token(
+        self, cloud_type: "Optional[str]", instance_doc: "Dict[str, Any]"
+    ):
+        """Requests contract token for auto-attach images for Pro clouds.
 
-        @param pkcs7: string obtained from AWS metadata service from
-            http://169.254.169.254/latest/dynamic/instance-identity/pkcs7
-            from this instance.
+        @param cloud_type: string representing the unique cloud for which the
+            auto-attach request is made. For example: aws or azure.
+        @param instance_doc: A dictionary of key value pairs representing
+            this instance identity information to be used as the payload
+            for the auto-attach request. Different clouds have different
+            required identity_doc fields.
 
         @return: Dict of the JSON response containing the contract-token.
         """
-        data = {"pkcs7": pkcs7}
         response, _headers = self.request_url(
-            API_V1_AUTO_ATTACH_AWS_TOKEN, data=data
+            API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(cloud_type=cloud_type),
+            data=instance_doc,
         )
         self.cfg.write_cache("contract-token", response)
         return response

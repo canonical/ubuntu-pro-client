@@ -368,10 +368,11 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
         )
     instance = identity.cloud_instance_factory()
     contract_client = contract.UAContractClient(cfg)
-    pkcs7 = instance.identity_doc
     try:
         # TODO(make this logic cloud-agnostic if possible)
-        tokenResponse = contract_client.request_aws_contract_token(pkcs7)
+        tokenResponse = contract_client.request_auto_attach_contract_token(
+            cloud_type=cloud_type, instance_doc=instance.identity_doc
+        )
     except contract.ContractAPIError as e:
         if contract.API_ERROR_MISSING_INSTANCE_INFORMATION in e:
             raise exceptions.NonAutoAttachImageError(
