@@ -356,20 +356,15 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
         server or inability to access identity doc from metadata service.
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
+    :raise NonAutoAttachImageError: If this cloud type does not have
+        auto-attach support.
 
     :return: contract token obtained from identity doc
     """
     cloud_type = identity.get_cloud_type()
-    if cloud_type not in ("aws",):  # TODO(avoid hard-coding supported types)
-        raise exceptions.NonAutoAttachImageError(
-            ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-                cloud_type=cloud_type
-            )
-        )
     instance = identity.cloud_instance_factory()
     contract_client = contract.UAContractClient(cfg)
     try:
-        # TODO(make this logic cloud-agnostic if possible)
         tokenResponse = contract_client.request_auto_attach_contract_token(
             cloud_type=cloud_type, instance_doc=instance.identity_doc
         )
