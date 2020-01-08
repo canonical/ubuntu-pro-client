@@ -4,3 +4,4 @@ pep8==1.7.0
 py==1.4.31
 pytest==2.8.7
 pytest-cov==2.2.1
+pyyaml==3.11
