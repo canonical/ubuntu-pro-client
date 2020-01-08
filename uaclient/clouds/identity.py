@@ -41,8 +41,12 @@ def get_cloud_type() -> "Optional[str]":
 
 def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
     from uaclient.clouds import aws
+    from uaclient.clouds import azure
 
-    cloud_instance_map = {"aws": aws.UAAutoAttachAWSInstance}
+    cloud_instance_map = {
+        "aws": aws.UAAutoAttachAWSInstance,
+        "azure": azure.UAAutoAttachAzureInstance,
+    }
 
     cloud_type = get_cloud_type()
     if not cloud_type:
