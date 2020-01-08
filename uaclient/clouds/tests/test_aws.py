@@ -11,12 +11,16 @@ M_PATH = "uaclient.clouds.aws."
 
 
 class TestUAAutoAttachAWSInstance:
+    def test_cloud_type(self):
+        instance = UAAutoAttachAWSInstance()
+        assert "aws" == instance.cloud_type
+
     @mock.patch(M_PATH + "util.readurl")
     def test_identity_doc_from_aws_url_pkcs7(self, readurl):
         """Return pkcs7 content from IMDS as AWS' identity doc"""
         readurl.return_value = "pkcs7WOOT!==", {"header": "stuff"}
         instance = UAAutoAttachAWSInstance()
-        assert "pkcs7WOOT!==" == instance.identity_doc
+        assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
         assert [mock.call(url)] == readurl.call_args_list
 
@@ -47,7 +51,7 @@ class TestUAAutoAttachAWSInstance:
                 instance.identity_doc
             assert 704 == excinfo.value.code
         else:
-            assert "pkcs7WOOT!==" == instance.identity_doc
+            assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
 
         expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
         assert expected_sleep_calls == sleep.call_args_list

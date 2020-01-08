@@ -18,7 +18,11 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
     def identity_doc(self):
         response, _headers = util.readurl(IMDS_URL)
-        return response
+        return {"pkcs7": response}
+
+    @property
+    def cloud_type(self):
+        return "aws"
 
     @property
     def is_viable(self):

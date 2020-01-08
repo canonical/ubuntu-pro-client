@@ -2,6 +2,7 @@ from datetime import datetime
 import logging
 import urllib
 
+from uaclient import clouds
 from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
@@ -23,7 +24,7 @@ API_V1_RESOURCES = "/v1/resources"
 API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
-API_V1_AUTO_ATTACH_AWS_TOKEN = "/v1/clouds/aws/token"
+API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 
 
 class ContractAPIError(util.UrlError):
@@ -103,18 +104,20 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         return resource_response
 
-    def request_aws_contract_token(self, pkcs7: str):
-        """Requests contract token for auto-attach images on AWS.
+    def request_auto_attach_contract_token(
+        self, *, instance: clouds.AutoAttachCloudInstance
+    ):
+        """Requests contract token for auto-attach images for Pro clouds.
 
-        @param pkcs7: string obtained from AWS metadata service from
-            http://169.254.169.254/latest/dynamic/instance-identity/pkcs7
-            from this instance.
+        @param instance: AutoAttachCloudInstance for the cloud.
 
         @return: Dict of the JSON response containing the contract-token.
         """
-        data = {"pkcs7": pkcs7}
         response, _headers = self.request_url(
-            API_V1_AUTO_ATTACH_AWS_TOKEN, data=data
+            API_V1_AUTO_ATTACH_CLOUD_TOKEN.format(
+                cloud_type=instance.cloud_type
+            ),
+            data=instance.identity_doc,
         )
         self.cfg.write_cache("contract-token", response)
         return response

@@ -38,7 +38,7 @@ class TestGetContractTokenFromCloudIdentity:
         m_instance.identity_doc = "pkcs7-validated-by-backend"
         return m_instance
 
-    @pytest.mark.parametrize("cloud_type", ("awslookalike", "azure", "!aws"))
+    @pytest.mark.parametrize("cloud_type", ("awslookalike", "azure2", "!aws"))
     @mock.patch("uaclient.clouds.identity.get_cloud_type")
     def test_non_aws_cloud_type_raises_error(
         self, m_get_cloud_type, cloud_type
@@ -52,7 +52,7 @@ class TestGetContractTokenFromCloudIdentity:
         ) == str(excinfo.value)
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
@@ -60,12 +60,12 @@ class TestGetContractTokenFromCloudIdentity:
         self,
         _get_cloud_type,
         cloud_instance_factory,
-        request_aws_contract_token,
+        request_auto_attach_contract_token,
     ):
         """AWS clouds on non-auto-attach images not return a token."""
 
         cloud_instance_factory.side_effect = self.fake_instance_factory
-        request_aws_contract_token.side_effect = ContractAPIError(
+        request_auto_attach_contract_token.side_effect = ContractAPIError(
             util.UrlError(
                 "Server error", code=500, url="http://me", headers={}
             ),
@@ -76,7 +76,7 @@ class TestGetContractTokenFromCloudIdentity:
         assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
@@ -84,7 +84,7 @@ class TestGetContractTokenFromCloudIdentity:
         self,
         _get_cloud_type,
         cloud_instance_factory,
-        request_aws_contract_token,
+        request_auto_attach_contract_token,
     ):
         """Any unexpected errors will be raised."""
 
@@ -95,14 +95,14 @@ class TestGetContractTokenFromCloudIdentity:
             ),
             error_response={"message": "something unexpected"},
         )
-        request_aws_contract_token.side_effect = unexpected_error
+        request_auto_attach_contract_token.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
         assert unexpected_error == excinfo.value
 
     @mock.patch(
-        M_PATH + "contract.UAContractClient.request_aws_contract_token"
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
     @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
@@ -110,16 +110,16 @@ class TestGetContractTokenFromCloudIdentity:
         self,
         _get_cloud_type,
         cloud_instance_factory,
-        request_aws_contract_token,
+        request_auto_attach_contract_token,
     ):
         """Return token from the contract server using the identity."""
 
         cloud_instance_factory.side_effect = self.fake_instance_factory
 
-        def fake_aws_contract_token(contract_token):
+        def fake_contract_token(instance):
             return {"contractToken": "myPKCS7-token"}
 
-        request_aws_contract_token.side_effect = fake_aws_contract_token
+        request_auto_attach_contract_token.side_effect = fake_contract_token
 
         cfg = FakeConfig()
         assert "myPKCS7-token" == _get_contract_token_from_cloud_identity(cfg)
