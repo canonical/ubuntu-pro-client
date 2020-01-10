@@ -1,5 +1,11 @@
 from urllib.error import HTTPError
 
+try:
+    from typing import Any, Dict  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 from uaclient.clouds import AutoAttachCloudInstance
 from uaclient import util
 
@@ -16,16 +22,16 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
-    def identity_doc(self):
+    def identity_doc(self) -> "Dict[str, Any]":
         response, _headers = util.readurl(IMDS_URL)
         return response
 
     @property
-    def cloud_type(self):
+    def cloud_type(self) -> str:
         return "aws"
 
     @property
-    def is_viable(self):
+    def is_viable(self) -> bool:
         """This machine is a viable AWSInstance"""
         try:
             hypervisor_uuid = util.load_file(SYS_HYPERVISOR_PRODUCT_UUID)
