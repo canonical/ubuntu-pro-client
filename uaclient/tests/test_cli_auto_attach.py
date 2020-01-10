@@ -38,7 +38,9 @@ class TestGetContractTokenFromCloudIdentity:
         m_instance.identity_doc = "pkcs7-validated-by-backend"
         return m_instance
 
-    @pytest.mark.parametrize("cloud_type", ("awslookalike", "azure2", "!aws"))
+    @pytest.mark.parametrize(
+        "cloud_type", ("awslookalike", "unsupported-cloud", "azure2", "!aws")
+    )
     @mock.patch("uaclient.clouds.identity.get_cloud_type")
     def test_non_aws_cloud_type_raises_error(
         self, m_get_cloud_type, cloud_type

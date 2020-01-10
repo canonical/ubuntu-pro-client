@@ -79,30 +79,36 @@ class TestCloudInstanceFactory:
             excinfo.value
         )
 
-    def test_raise_error_when_not_aws(self, m_get_cloud_type):
+    def test_raise_error_when_not_aws_or_azure(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
-        m_get_cloud_type.return_value = "nonaws"
+        m_get_cloud_type.return_value = "unsupported-cloud"
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-            cloud_type="nonaws"
+            cloud_type="unsupported-cloud"
         )
         assert error_msg == str(excinfo.value)
 
-    @mock.patch("uaclient.clouds.aws.UAAutoAttachAWSInstance")
-    def test_raise_error_when_not_viable_aws_ubuntu_pro(
-        self, m_aws_instance, m_get_cloud_type
+    @pytest.mark.parametrize("cloud_type", ("aws", "azure"))
+    def test_raise_error_when_not_viable_for_ubuntu_pro(
+        self, m_get_cloud_type, cloud_type
     ):
-        """Raise error when the AWS instance is not viable auto-attach."""
-        m_get_cloud_type.return_value = "aws"
+        """Raise error when AWS or Azure instance is not viable auto-attach."""
+        m_get_cloud_type.return_value = cloud_type
 
-        def fake_aws_instance():
+        def fake_invalid_instance():
             instance = mock.Mock()
             instance.is_viable = False
             return instance
 
-        m_aws_instance.side_effect = fake_aws_instance
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            cloud_instance_factory()
+        if cloud_type == "aws":
+            M_INSTANCE_PATH = "uaclient.clouds.aws.UAAutoAttachAWSInstance"
+        else:
+            M_INSTANCE_PATH = "uaclient.clouds.azure.UAAutoAttachAzureInstance"
+
+        with mock.patch(M_INSTANCE_PATH) as m_instance:
+            m_instance.side_effect = fake_invalid_instance
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
         assert error_msg == str(excinfo.value)
