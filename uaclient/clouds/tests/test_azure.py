@@ -37,8 +37,8 @@ class TestUAAutoAttachAzureInstance:
         url1 = IMDS_BASE_URL + "instance/compute?api-version=2019-06-04"
         url2 = IMDS_BASE_URL + "attested/document?api-version=2019-06-04"
         assert [
-            mock.call(url1, headers={"Metadata": True}),
-            mock.call(url2, headers={"Metadata": True}),
+            mock.call(url1, headers={"Metadata": "true"}),
+            mock.call(url2, headers={"Metadata": "true"}),
         ] == readurl.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -91,8 +91,10 @@ class TestUAAutoAttachAzureInstance:
     @pytest.mark.parametrize(
         "chassis_asset_tag,ovf_env_exists,viable",
         (
+            (None, True, True),
             ("7783-7084-3265-9085-8269-3286-77", False, True),
             ("6783-7084-3265-9085-8269-3286-77", True, True),
+            (None, False, False),
             ("6783-7084-3265-9085-8269-3286-77", False, False),
         ),
     )
@@ -104,7 +106,9 @@ class TestUAAutoAttachAzureInstance:
         """Platform viable if chassis asset tag matches or ovf.env exists."""
 
         def fake_exists(f_name):
-            if f_name == "/var/lib/cloud/seed/azure/ovf-env.xml":
+            if f_name == "/sys/class/dmi/id/chassis_asset_tag":
+                return bool(chassis_asset_tag is not None)
+            elif f_name == "/var/lib/cloud/seed/azure/ovf-env.xml":
                 return ovf_env_exists
             raise AssertionError("Invalid os.path.exist of {}".format(f_name))
 
