@@ -8,7 +8,7 @@ import os.path
 from subprocess import check_output
 
 
-__VERSION__ = "19.7"
+__VERSION__ = "20.1"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 
