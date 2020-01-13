@@ -1,0 +1,57 @@
+import os
+
+from urllib.error import HTTPError
+
+try:
+    from typing import Any, Dict  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
+from uaclient.clouds import AutoAttachCloudInstance
+from uaclient import util
+
+
+IMDS_BASE_URL = "http://169.254.169.254/metadata/"
+
+API_VERSION = "2019-06-04"  # Needed to get subscription ID in attested data
+IMDS_URLS = {
+    "pkcs7": IMDS_BASE_URL + "attested/document?api-version=" + API_VERSION,
+    "compute": IMDS_BASE_URL + "instance/compute?api-version=" + API_VERSION,
+}
+
+DMI_CHASSIS_ASSET_TAG = "/sys/class/dmi/id/chassis_asset_tag"
+AZURE_OVF_ENV_FILE = "/var/lib/cloud/seed/azure/ovf-env.xml"
+AZURE_CHASSIS_ASSET_TAG = "7783-7084-3265-9085-8269-3286-77"
+
+
+class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
+
+    # mypy does not handle @property around inner decorators
+    # https://github.com/python/mypy/issues/1362
+    @property  # type: ignore
+    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    def identity_doc(self) -> "Dict[str, Any]":
+        responses = {}
+        for key, url in sorted(IMDS_URLS.items()):
+            url_response, _headers = util.readurl(
+                url, headers={"Metadata": "true"}
+            )
+            if key == "pkcs7":
+                responses[key] = url_response["signature"]
+            else:
+                responses[key] = url_response
+        return responses
+
+    @property
+    def cloud_type(self) -> str:
+        return "azure"
+
+    @property
+    def is_viable(self) -> bool:
+        """This machine is a viable AzureInstance"""
+        if os.path.exists(DMI_CHASSIS_ASSET_TAG):
+            chassis_asset_tag = util.load_file(DMI_CHASSIS_ASSET_TAG)
+            if AZURE_CHASSIS_ASSET_TAG == chassis_asset_tag.strip():
+                return True
+        return os.path.exists(AZURE_OVF_ENV_FILE)
