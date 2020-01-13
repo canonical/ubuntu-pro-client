@@ -1,8 +1,47 @@
-ubuntu-advantage-tools (19.7) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (20.1) UNRELEASED; urgency=medium
 
-  * New upstream release
+  * Release 20.1:
+    - azure-pro, support for azure ubuntu pro auto-attach:
+      + add azure auto-attach instance as valid cloud_instance_factory
+      + add azure cloud instance module and tests
+      + generalize request_aws_contract_token for multiple cloud_types
+      + contract: request_auto_attach_contract_token takes an instance param
+    - constraints: add constraint on pyyaml version in trusty
+    - auto-attach: move duplicate invalid cloud_type check out of cli
 
- -- Andreas Hasenack <andreas@canonical.com>  Tue, 22 Oct 2019 17:11:42 -0300
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 13 Jan 2020 15:09:18 -0700
+
+ubuntu-advantage-tools (19.7) xenial; urgency=medium
+
+  * d/postinst: only configure ESM on supported architectures (LP: #1851858)
+      [Andreas Hasenack]
+  * d/postinst: rename existing ubuntu-esm-precise.list file to trusty.
+    This fixes the upgrade path from precise to trusty and to this client
+    while esm is enabled (LP: #1850672)
+  * Release 19.7:
+    - aws: handle missing SYS_HYPERVISOR_PRODUCT_UUID
+    - aws-pro: support for aws ubuntu pro auto-attach
+    - pro: add cloud identity module and fix unit tests
+    - pro: update systemd service and upstart boot scripts to auto-attach
+    - pro: esm do not do apt pin never on disable on xenial or bionic
+    - pro: esm-apps has origin UbuntuESMApps and esm-infra is UbuntuESM
+    - status: dynamic status available now from refreshed machine-token
+    - uaclient: update customer visible messages after UX review
+    - esm-apps: allow unattended security upgrades for esm-apps
+    - systemd: needs WantedBy=multi-user.target to get pulled into boot
+    - cli: update docstring to describe errors raised from auto-attach
+    - keyrings: update ubuntu-advantage-esm-apps.gpg with correct key
+    - repo: match strict repo url in apt-policy to avoid esm substring matches
+    - esm: don't disable_apt_auth_only for ESM entitlements
+    - initial implementation of esm-apps
+    - repo: don't raise exception in application_status if aptURL missing
+    - entitlements: rely solely on contract server for repo_url
+    - cli: exit 0 if already attached
+    - cli: use decorators for action_attach and action_attach_premium
+    - cli: add assert_not_attached decorator
+    - status: custom descriptions for n/a service status
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 29 Nov 2019 11:09:18 -0700
 
 ubuntu-advantage-tools (19.6) focal; urgency=medium
 
