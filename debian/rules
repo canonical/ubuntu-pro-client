@@ -19,7 +19,8 @@ APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
-	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild
+	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild \
+		--no-start
 
 override_dh_auto_build:
 	dh_auto_build
