@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import time
 from typing import Any, List
 
@@ -30,7 +31,10 @@ def launch_lxd_container(
 
 
 def lxc_exec(
-    container_name: str, cmd: List[str], **kwargs: Any
+    container_name: str,
+    cmd: List[str],
+    capture_output: bool = False,
+    **kwargs: Any
 ) -> subprocess.CompletedProcess:
     """Run `lxc exec` in a container.
 
@@ -39,12 +43,30 @@ def lxc_exec(
     :param cmd:
         A list containing the command to be run and its parameters; this will
         be appended to a list that is passed to `subprocess.run`.
+    :param capture_output:
+        If capture_output is true, stdout and stderr will be captured.  (On
+        pre-3.7 Pythons, this will behave as capture_output does for 3.7+.  On
+        3.7+, this is just passed through.)
     :param kwargs:
         These are passed directly to `subprocess.run`.
 
     :return:
         The `subprocess.CompletedProcess` returned by `subprocess.run`.
     """
+    if sys.version_info >= (3, 7):
+        # We have native capture_output support
+        kwargs["capture_output"] = capture_output
+    elif capture_output:
+        if (
+            kwargs.get("stdout") is not None
+            or kwargs.get("stderr") is not None
+        ):
+            raise ValueError(
+                "stdout and stderr arguments may not be used "
+                "with capture_output."
+            )
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.PIPE
     return subprocess.run(
         ["lxc", "exec", "--user", "1000", container_name, "--"] + cmd, **kwargs
     )
