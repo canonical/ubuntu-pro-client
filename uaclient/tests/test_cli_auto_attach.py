@@ -53,6 +53,17 @@ class TestGetContractTokenFromCloudIdentity:
             cloud_type=cloud_type
         ) == str(excinfo.value)
 
+    @pytest.mark.parametrize(
+        "http_msg,http_code,http_response",
+        (
+            ("Server error", 500, {"message": "missing instance information"}),
+            (
+                "Forbidden",
+                403,
+                {"message": "forbidden: cannot verify signing certificate"},
+            ),
+        ),
+    )
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
     )
@@ -63,8 +74,11 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
+        http_msg,
+        http_code,
+        http_response,
     ):
-        """AWS clouds on non-auto-attach images not return a token."""
+        """VMs running on non-auto-attach images do not return a token."""
 
         cloud_instance_factory.side_effect = self.fake_instance_factory
         request_auto_attach_contract_token.side_effect = ContractAPIError(
