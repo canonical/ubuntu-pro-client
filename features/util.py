@@ -73,7 +73,7 @@ def lxc_exec(
             )
         # stdout and stderr will be opened in text mode (by default they are
         # opened in binary mode
-        kwargs["universal_newlines"] = True
+        kwargs["universal_newlines"] = text
         kwargs["stdout"] = subprocess.PIPE
         kwargs["stderr"] = subprocess.PIPE
     return subprocess.run(
