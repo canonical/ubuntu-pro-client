@@ -56,7 +56,7 @@ class TestGetContractTokenFromCloudIdentity:
     @pytest.mark.parametrize(
         "http_msg,http_code,http_response",
         (
-            ("Server error", 500, {"message": "missing instance information"}),
+            ("Not found", 404, {"message": "missing instance information"}),
             (
                 "Forbidden",
                 403,
@@ -83,9 +83,9 @@ class TestGetContractTokenFromCloudIdentity:
         cloud_instance_factory.side_effect = self.fake_instance_factory
         request_auto_attach_contract_token.side_effect = ContractAPIError(
             util.UrlError(
-                "Server error", code=500, url="http://me", headers={}
+                http_msg, code=http_code, url="http://me", headers={}
             ),
-            error_response={"message": "missing instance information"},
+            error_response=http_response,
         )
         with pytest.raises(NonAutoAttachImageError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
