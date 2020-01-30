@@ -1,3 +1,4 @@
+import copy
 import mock
 
 from uaclient.testing.fakes import FakeConfig
@@ -22,6 +23,7 @@ M_PATH = "uaclient.cli."
 # Also used in test_cli_auto_attach.py
 BASIC_MACHINE_TOKEN = {
     "availableResources": [],
+    "machineToken": "non-empty-token",
     "machineTokenInfo": {
         "contractInfo": {
             "name": "mycontract",
@@ -31,6 +33,39 @@ BASIC_MACHINE_TOKEN = {
         "accountInfo": {"id": "acct-1", "name": "accountName"},
     },
 }
+
+ENTITLED_TRUSTY_ESM_RESOURCE = {
+    "obligations": {"enableByDefault": True},
+    "type": "esm-infra",
+    "directives": {
+        "aptKey": "56F7650A24C9E9ECF87C4D8D4067E40313CB4B13",
+        "aptURL": "https://esm.ubuntu.com",
+    },
+    "affordances": {
+        "architectures": [
+            "arm64",
+            "armhf",
+            "i386",
+            "ppc64le",
+            "s390x",
+            "x86_64",
+        ],
+        "series": ["precise", "trusty", "xenial", "bionic"],
+    },
+    "series": {
+        "trusty": {
+            "directives": {
+                "suites": ["trusty-infra-security", "trusty-infra-updates"]
+            }
+        }
+    },
+    "entitled": True,
+}
+
+ENTITLED_MACHINE_TOKEN = copy.deepcopy(BASIC_MACHINE_TOKEN)
+ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
+    "resourceEntitlements"
+] = [ENTITLED_TRUSTY_ESM_RESOURCE]
 
 
 @mock.patch(M_PATH + "os.getuid")
@@ -61,6 +96,26 @@ class TestActionAttach:
         with pytest.raises(UserFacingError) as e:
             action_attach(args, FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
+
+    @mock.patch(M_PATH + "contract.request_updated_contract")
+    def test_status_updated_when_auto_enable_fails(
+        self, request_updated_contract, _m_get_uid, caplog_text
+    ):
+        """If auto-enable of a service fails, attach status is updated."""
+        token = "contract-token"
+        args = mock.MagicMock(token=token)
+        cfg = FakeConfig()
+
+        def fake_request_updated_contract(cfg, contract_token, allow_enable):
+            cfg.write_cache("machine-token", ENTITLED_MACHINE_TOKEN)
+            raise UserFacingError("Unable to attach default services")
+
+        request_updated_contract.side_effect = fake_request_updated_contract
+        ret = action_attach(args, cfg)
+        assert 1 == ret
+        assert cfg.is_attached
+        logs = caplog_text()
+        assert "WARNING  Unable to attach default services" in logs
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"

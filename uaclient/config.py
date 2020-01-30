@@ -115,6 +115,7 @@ class UAConfig:
 
         self._entitlements = {}
         contractInfo = machine_token["machineTokenInfo"]["contractInfo"]
+
         ent_by_name = dict(
             (e["type"], e) for e in contractInfo["resourceEntitlements"]
         )

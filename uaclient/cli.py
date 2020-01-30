@@ -329,9 +329,11 @@ def _attach_with_token(
         with util.disable_log_to_console():
             logging.exception(exc)
         print(ua_status.MESSAGE_ATTACH_FAILURE)
+        cfg.status()  # Persist updated status in the event of partial attach
         return 1
     except exceptions.UserFacingError as exc:
         logging.warning(exc.msg)
+        cfg.status()  # Persist updated status in the event of partial attach
         return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
