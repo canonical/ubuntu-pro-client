@@ -34,6 +34,7 @@ def lxc_exec(
     container_name: str,
     cmd: List[str],
     capture_output: bool = False,
+    text: bool = False,
     **kwargs: Any
 ) -> subprocess.CompletedProcess:
     """Run `lxc exec` in a container.
@@ -47,6 +48,10 @@ def lxc_exec(
         If capture_output is true, stdout and stderr will be captured.  (On
         pre-3.7 Pythons, this will behave as capture_output does for 3.7+.  On
         3.7+, this is just passed through.)
+    :param text:
+        If text (also known as universal_newlines) is true, the file objects
+        stdin, stdout and stderr will be opened in text mode. (On pre-3.7
+        Pythons, this will behave as universal_newlines does).
     :param kwargs:
         These are passed directly to `subprocess.run`.
 
@@ -56,6 +61,7 @@ def lxc_exec(
     if sys.version_info >= (3, 7):
         # We have native capture_output support
         kwargs["capture_output"] = capture_output
+        kwargs["text"] = text
     elif capture_output:
         if (
             kwargs.get("stdout") is not None
@@ -65,6 +71,9 @@ def lxc_exec(
                 "stdout and stderr arguments may not be used "
                 "with capture_output."
             )
+        # stdout and stderr will be opened in text mode (by default they are
+        # opened in binary mode
+        kwargs["universal_newlines"] = text
         kwargs["stdout"] = subprocess.PIPE
         kwargs["stderr"] = subprocess.PIPE
     return subprocess.run(
