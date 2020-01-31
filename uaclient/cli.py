@@ -368,7 +368,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
             instance=instance
         )
     except contract.ContractAPIError as e:
-        if contract.API_ERROR_MISSING_INSTANCE_INFORMATION in e:
+        if e.code and 400 <= e.code < 500:
             raise exceptions.NonAutoAttachImageError(
                 ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
