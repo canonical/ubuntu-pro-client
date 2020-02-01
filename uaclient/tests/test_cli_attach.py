@@ -17,6 +17,7 @@ from uaclient.exceptions import (
     UserFacingError,
 )
 from uaclient import status
+from uaclient.util import UrlError
 
 M_PATH = "uaclient.cli."
 
@@ -97,25 +98,51 @@ class TestActionAttach:
             action_attach(args, FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
 
+    @pytest.mark.parametrize(
+        "error_class, error_str, expected_log",
+        (
+            (UrlError, "Forbidden", "Forbidden\nTraceback"),
+            (
+                UserFacingError,
+                "Unable to attach default services",
+                "WARNING  Unable to attach default services",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
-        self, request_updated_contract, _m_get_uid, caplog_text
+        self,
+        request_updated_contract,
+        _m_get_available_resources,
+        _m_get_uid,
+        error_class,
+        error_str,
+        expected_log,
+        caplog_text,
     ):
         """If auto-enable of a service fails, attach status is updated."""
         token = "contract-token"
         args = mock.MagicMock(token=token)
         cfg = FakeConfig()
+        cfg.status()  # persist unattached status
+        # read persisted status cache from disk
+        orig_unattached_status = cfg.read_cache("status-cache")
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):
             cfg.write_cache("machine-token", ENTITLED_MACHINE_TOKEN)
-            raise UserFacingError("Unable to attach default services")
+            raise error_class(error_str)
 
         request_updated_contract.side_effect = fake_request_updated_contract
         ret = action_attach(args, cfg)
         assert 1 == ret
         assert cfg.is_attached
+        # Assert updated status cache is written to disk
+        assert orig_unattached_status != cfg.read_cache(
+            "status-cache"
+        ), "Did not persist on disk status during attach failure"
         logs = caplog_text()
-        assert "WARNING  Unable to attach default services" in logs
+        assert expected_log in logs
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
