@@ -130,7 +130,8 @@ MESSAGE_ALREADY_DISABLED_TMPL = """\
 MESSAGE_ENABLED_FAILED_TMPL = "Could not enable {title}."
 MESSAGE_ENABLED_TMPL = "{title} enabled"
 MESSAGE_ALREADY_ATTACHED = """\
-This machine is already attached to '{account_name}'"""
+This machine is already attached to '{account_name}'
+To use a different subscription first run: sudo ua detach"""
 MESSAGE_ALREADY_ENABLED_TMPL = """\
 {title} is already enabled.\nSee: sudo ua status"""
 MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
