@@ -1,3 +1,4 @@
+import copy
 import mock
 
 from uaclient.testing.fakes import FakeConfig
@@ -16,12 +17,14 @@ from uaclient.exceptions import (
     UserFacingError,
 )
 from uaclient import status
+from uaclient.util import UrlError
 
 M_PATH = "uaclient.cli."
 
 # Also used in test_cli_auto_attach.py
 BASIC_MACHINE_TOKEN = {
     "availableResources": [],
+    "machineToken": "non-empty-token",
     "machineTokenInfo": {
         "contractInfo": {
             "name": "mycontract",
@@ -31,6 +34,39 @@ BASIC_MACHINE_TOKEN = {
         "accountInfo": {"id": "acct-1", "name": "accountName"},
     },
 }
+
+ENTITLED_TRUSTY_ESM_RESOURCE = {
+    "obligations": {"enableByDefault": True},
+    "type": "esm-infra",
+    "directives": {
+        "aptKey": "56F7650A24C9E9ECF87C4D8D4067E40313CB4B13",
+        "aptURL": "https://esm.ubuntu.com",
+    },
+    "affordances": {
+        "architectures": [
+            "arm64",
+            "armhf",
+            "i386",
+            "ppc64le",
+            "s390x",
+            "x86_64",
+        ],
+        "series": ["precise", "trusty", "xenial", "bionic"],
+    },
+    "series": {
+        "trusty": {
+            "directives": {
+                "suites": ["trusty-infra-security", "trusty-infra-updates"]
+            }
+        }
+    },
+    "entitled": True,
+}
+
+ENTITLED_MACHINE_TOKEN = copy.deepcopy(BASIC_MACHINE_TOKEN)
+ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
+    "resourceEntitlements"
+] = [ENTITLED_TRUSTY_ESM_RESOURCE]
 
 
 @mock.patch(M_PATH + "os.getuid")
@@ -61,6 +97,52 @@ class TestActionAttach:
         with pytest.raises(UserFacingError) as e:
             action_attach(args, FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
+
+    @pytest.mark.parametrize(
+        "error_class, error_str, expected_log",
+        (
+            (UrlError, "Forbidden", "Forbidden\nTraceback"),
+            (
+                UserFacingError,
+                "Unable to attach default services",
+                "WARNING  Unable to attach default services",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch(M_PATH + "contract.request_updated_contract")
+    def test_status_updated_when_auto_enable_fails(
+        self,
+        request_updated_contract,
+        _m_get_available_resources,
+        _m_get_uid,
+        error_class,
+        error_str,
+        expected_log,
+        caplog_text,
+    ):
+        """If auto-enable of a service fails, attach status is updated."""
+        token = "contract-token"
+        args = mock.MagicMock(token=token)
+        cfg = FakeConfig()
+        cfg.status()  # persist unattached status
+        # read persisted status cache from disk
+        orig_unattached_status = cfg.read_cache("status-cache")
+
+        def fake_request_updated_contract(cfg, contract_token, allow_enable):
+            cfg.write_cache("machine-token", ENTITLED_MACHINE_TOKEN)
+            raise error_class(error_str)
+
+        request_updated_contract.side_effect = fake_request_updated_contract
+        ret = action_attach(args, cfg)
+        assert 1 == ret
+        assert cfg.is_attached
+        # Assert updated status cache is written to disk
+        assert orig_unattached_status != cfg.read_cache(
+            "status-cache"
+        ), "Did not persist on disk status during attach failure"
+        logs = caplog_text()
+        assert expected_log in logs
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
