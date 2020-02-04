@@ -56,8 +56,6 @@ matrix:
     - python: 3.6
       env: TOXENV=py3-bionic,flake8-bionic
     - python: 3.7
-      env: TOXENV=py3-disco,flake8-disco
-    - python: 3.7
       env: TOXENV=py3-eoan,flake8-eoan
     - python: 3.8
       env: TOXENV=py3,flake8
