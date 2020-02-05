@@ -589,6 +589,158 @@ class TestRemoveAptConfig:
         assert expected_call == m_unlink.call_args_list
 
 
+class TestSetupAptConfig:
+    def test_missing_aptkey(self, entitlement_factory):
+        # Make aptKey missing
+        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            entitlement.setup_apt_config()
+
+        assert (
+            "Ubuntu Advantage server provided no aptKey directive for"
+            " repotest." in str(excinfo.value)
+        )
+
+    def test_missing_apturl(self, entitlement_factory):
+        # Make aptURL missing
+        entitlement = entitlement_factory(
+            RepoTestEntitlement, directives={"aptKey": "somekey"}
+        )
+
+        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
+            entitlement.setup_apt_config()
+
+        assert "repotest" in str(excinfo.value)
+
+    def test_missing_suites(self, entitlement_factory):
+        # Make aptURL missing
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            directives={"aptKey": "somekey", "aptURL": "someURL"},
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            entitlement.setup_apt_config()
+
+        assert (
+            "Empty repotest apt suites directive from"
+            " https://contracts.canonical.com" == str(excinfo.value)
+        )
+
+    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_install_prerequisite_packages(
+        self, m_run_apt_command, m_add_auth_repo, entitlement
+    ):
+        """Install apt-transport-https and ca-certificates debs if absent.
+
+        Presence is determined based on checking known files from those debs.
+        It avoids a costly round-trip shelling out to call dpkg -l.
+        """
+        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+            m_exists.return_value = False
+            entitlement.setup_apt_config()
+        assert [
+            mock.call("/usr/lib/apt/methods/https"),
+            mock.call("/usr/sbin/update-ca-certificates"),
+        ] == m_exists.call_args_list
+        install_call = mock.call(
+            [
+                "apt-get",
+                "install",
+                "--assume-yes",
+                "apt-transport-https",
+                "ca-certificates",
+            ],
+            "APT install failed.",
+        )
+        assert install_call in m_run_apt_command.call_args_list
+
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_setup_error_with_repo_pin_priority_and_missing_origin(
+        self, m_get_platform_info, entitlement_factory
+    ):
+        """Raise error when repo_pin_priority is set and origin is None."""
+        m_get_platform_info.return_value = {"series": "xenial"}
+        entitlement = entitlement_factory(
+            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
+        )
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            entitlement.setup_apt_config()
+        assert (
+            "Cannot setup apt pin. Empty apt repo origin value 'None'."
+            in str(excinfo.value)
+        )
+
+    @mock.patch(M_PATH + "os.unlink")
+    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_setup_with_repo_pin_priority_never_removes_apt_preferences_file(
+        self,
+        m_get_platform_info,
+        m_run_apt_command,
+        m_add_auth_repo,
+        m_unlink,
+        entitlement_factory,
+    ):
+        """When repo_pin_priority is never, disable repo in apt preferences."""
+        m_get_platform_info.return_value = {"series": "xenial"}
+        entitlement = entitlement_factory(
+            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
+        )
+        entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
+        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+            m_exists.return_value = True
+            entitlement.setup_apt_config()
+        assert [
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial"),
+            mock.call("/usr/lib/apt/methods/https"),
+            mock.call("/usr/sbin/update-ca-certificates"),
+        ] == m_exists.call_args_list
+        assert [
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial")
+        ] == m_unlink.call_args_list
+
+    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.add_ppa_pinning")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
+        self,
+        m_get_platform_info,
+        m_add_ppa_pinning,
+        m_run_apt_command,
+        m_add_auth_repo,
+        entitlement_factory,
+    ):
+        """When repo_pin_priority is an int, set pin in apt preferences."""
+        m_get_platform_info.return_value = {"series": "xenial"}
+        entitlement = entitlement_factory(
+            RepoTestEntitlementRepoPinInt, affordances={"series": ["xenial"]}
+        )
+        entitlement.origin = "RepoTestOrigin"  # don't error on origin = None
+        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+            m_exists.return_value = True  # Skip prerequisite pkg installs
+            entitlement.setup_apt_config()
+        assert [
+            mock.call("/usr/lib/apt/methods/https"),
+            mock.call("/usr/sbin/update-ca-certificates"),
+        ] == m_exists.call_args_list
+        assert [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-repotest-xenial",
+                "http://REPOTEST",
+                "RepoTestOrigin",
+                entitlement.repo_pin_priority,
+            )
+        ] == m_add_ppa_pinning.call_args_list
+        assert [
+            mock.call(["apt-get", "update"], "APT update failed.")
+        ] == m_run_apt_command.call_args_list
+
+
 class TestApplicationStatus:
     # TODO: Write tests for all functionality
 
