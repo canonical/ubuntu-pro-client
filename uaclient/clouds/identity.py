@@ -15,7 +15,7 @@ CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
 
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
-DATASOURCE_TO_CLOUD_ID = {"ec2": "aws"}
+DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws"}
 
 
 def get_cloud_type_from_result_file(

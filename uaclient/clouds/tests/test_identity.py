@@ -21,6 +21,7 @@ class TestGetCloudTypeFromResultFile:
             ("DataSourceSomeTHING", "something"),
             ("DaTaSoUrCeMiNe", "mine"),
             ("DataSourceEc2", "aws"),
+            ("DataSourceAzureNet", "azure"),
             ("DataSourceEc2Lookalike", "ec2lookalike"),
         ),
     )
