@@ -7,6 +7,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        no         Common Criteria EAL2 Provisioning Packages
+            esm-apps      no         UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             fips          no         NIST-certified FIPS modules
             fips-updates  no         Uncertified security updates to FIPS modules
@@ -20,6 +21,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        no         Common Criteria EAL2 Provisioning Packages
+            esm-apps      no         UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             fips          no         NIST-certified FIPS modules
             fips-updates  no         Uncertified security updates to FIPS modules
