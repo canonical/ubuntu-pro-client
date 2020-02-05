@@ -19,6 +19,61 @@ def entitlement(request, entitlement_factory):
     return entitlement_factory(request.param, suites=["trusty"])
 
 
+class TestESMRepoPinPriority:
+    @pytest.mark.parametrize(
+        "esm_class, series, repo_pin_priority",
+        (
+            (ESMInfraEntitlement, "trusty", "never"),
+            (ESMInfraEntitlement, "xenial", None),
+            (ESMInfraEntitlement, "bionic", None),
+            (ESMInfraEntitlement, "focal", None),
+            (ESMAppsEntitlement, "trusty", None),
+            (ESMAppsEntitlement, "xenial", None),
+            (ESMAppsEntitlement, "bionic", None),
+            (ESMAppsEntitlement, "focal", None),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_infra_repo_pin_priority_never_on_trusty(
+        self, m_get_platform_info, esm_class, series, repo_pin_priority
+    ):
+        """Repository pinning priority for ESMInfra will be 'never' on trusty.
+
+        A pin priority of 'never' means we setup and advertize ESM Infra
+        packages without allowing them to be installed until someone attaches
+        the machine to Ubuntu Advantage. This is only done for ESM Infra
+        on Trusty. We won't want/need to advertize ESM packages on Xenial or
+        later. Since we don't advertize ESM Apps on any series,
+        repo_pin_priority is None on all series.
+        """
+        m_get_platform_info.return_value = {"series": series}
+        inst = esm_class({})
+        assert repo_pin_priority == inst.repo_pin_priority
+
+
+class TestESMDisableAptAuthOnly:
+    @pytest.mark.parametrize(
+        "esm_class, series, disable_apt_auth_only",
+        (
+            (ESMInfraEntitlement, "trusty", True),
+            (ESMInfraEntitlement, "xenial", False),
+            (ESMInfraEntitlement, "bionic", False),
+            (ESMInfraEntitlement, "focal", False),
+            (ESMAppsEntitlement, "trusty", False),
+            (ESMAppsEntitlement, "xenial", False),
+            (ESMAppsEntitlement, "bionic", False),
+            (ESMAppsEntitlement, "focal", False),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_infra_disable_apt_auth_only_is_true_on_trusty(
+        self, m_get_platform_info, esm_class, series, disable_apt_auth_only
+    ):
+        m_get_platform_info.return_value = {"series": series}
+        inst = esm_class({})
+        assert disable_apt_auth_only is inst.disable_apt_auth_only
+
+
 class TestESMInfraEntitlementEnable:
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
@@ -208,7 +263,7 @@ class TestESMInfraEntitlementEnable:
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
-class TestESMInfraEntitlementDisable:
+class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=False)

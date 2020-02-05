@@ -35,6 +35,18 @@ class RepoTestEntitlement(RepoEntitlement):
     repo_key_file = "test.gpg"
 
 
+class RepoTestEntitlementDisableAptAuthOnly(RepoTestEntitlement):
+    disable_apt_auth_only = True
+
+
+class RepoTestEntitlementRepoPinInt(RepoTestEntitlement):
+    repo_pin_priority = 1000
+
+
+class RepoTestEntitlementRepoPinNever(RepoTestEntitlement):
+    repo_pin_priority = "never"
+
+
 @pytest.fixture
 def entitlement(entitlement_factory):
     return entitlement_factory(
@@ -433,6 +445,15 @@ class TestRepoEnable:
 
 
 class TestRemoveAptConfig:
+    def test_missing_aptURL(self, entitlement_factory):
+        # Make aptURL missing
+        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+
+        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
+            entitlement.remove_apt_config()
+
+        assert "repotest" in str(excinfo.value)
+
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -444,14 +465,128 @@ class TestRemoveAptConfig:
         expected_call = mock.call(["apt-get", "update"], mock.ANY)
         assert expected_call in m_run_apt_command.call_args_list
 
-    def test_missing_aptURL(self, entitlement_factory):
-        # Make aptURL missing
-        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.remove_apt_list_files")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_disable_apt_auth_only_false_removes_all_apt_config(
+        self,
+        m_get_platform,
+        _m_run_apt_command,
+        m_remove_apt_list_files,
+        m_remove_auth_apt_repo,
+        entitlement,
+    ):
+        """Remove all APT config when disable_apt_auth_only is False"""
+        m_get_platform.return_value = {"series": "xenial"}
+        entitlement.remove_apt_config()
 
-        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
+        # Default RepoEntitlement.disable_apt_auth_only behavior is False
+        assert False is entitlement.disable_apt_auth_only
+
+        assert [
+            mock.call("http://REPOTEST", "xenial")
+        ] == m_remove_apt_list_files.call_args_list
+        assert [
+            mock.call(
+                "/etc/apt/sources.list.d/ubuntu-repotest-xenial.list",
+                "http://REPOTEST",
+                "test.gpg",
+            )
+        ] == m_remove_auth_apt_repo.call_args_list
+
+    @mock.patch(M_PATH + "apt.remove_repo_from_apt_auth_file")
+    @mock.patch(M_PATH + "apt.restore_commented_apt_list_file")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_disable_apt_auth_only_removes_authentication_for_repo(
+        self,
+        m_get_platform,
+        _m_run_apt_command,
+        m_restore_commented_apt_list_file,
+        m_remove_repo_from_apt_auth_file,
+        entitlement_factory,
+    ):
+        """Remove APT authentication for repos with disable_apt_auth_only.
+
+        Any commented APT list entries are restored to uncommented lines.
+        """
+        m_get_platform.return_value = {"series": "xenial"}
+        entitlement = entitlement_factory(
+            RepoTestEntitlementDisableAptAuthOnly,
+            affordances={"series": ["xenial"]},
+        )
+        entitlement.remove_apt_config()
+
+        assert True is entitlement.disable_apt_auth_only
+        assert [
+            mock.call("http://REPOTEST")
+        ] == m_remove_repo_from_apt_auth_file.call_args_list
+        assert [
+            mock.call("/etc/apt/sources.list.d/ubuntu-repotest-xenial.list")
+        ] == m_restore_commented_apt_list_file.call_args_list
+
+    @mock.patch(M_PATH + "apt.add_ppa_pinning")
+    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.remove_apt_list_files")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_repo_pin_priority_never_configures_repo_pinning_on_remove(
+        self,
+        m_get_platform,
+        _m_run_apt_command,
+        _m_remove_apt_list_files,
+        _m_remove_auth_apt_repo,
+        m_add_ppa_pinning,
+        entitlement_factory,
+    ):
+        """Pin the repo 'never' when repo_pin_priority is never."""
+        m_get_platform.return_value = {"series": "xenial"}
+
+        entitlement = entitlement_factory(
+            RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
+        )
+        assert "never" == entitlement.repo_pin_priority
+        entitlement.remove_apt_config()
+        assert [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-repotest-xenial",
+                "http://REPOTEST",
+                None,
+                "never",
+            )
+        ] == m_add_ppa_pinning.call_args_list
+
+    @mock.patch(M_PATH + "os.unlink")
+    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.remove_apt_list_files")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_repo_pin_priority_int_removes_apt_preferences(
+        self,
+        m_get_platform,
+        _m_run_apt_command,
+        _m_remove_apt_list_files,
+        _m_remove_auth_apt_repo,
+        m_unlink,
+        entitlement_factory,
+    ):
+        """Remove apt preferences file when repo_pin_priority is an int."""
+        m_get_platform.return_value = {"series": "xenial"}
+
+        entitlement = entitlement_factory(
+            RepoTestEntitlementRepoPinInt, affordances={"series": ["xenial"]}
+        )
+
+        assert 1000 == entitlement.repo_pin_priority
+        with mock.patch(M_PATH + "os.path.exists") as m_exists:
+            m_exists.return_value = True
             entitlement.remove_apt_config()
-
-        assert "repotest" in str(excinfo.value)
+        expected_call = [
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial")
+        ]
+        assert expected_call == m_exists.call_args_list
+        assert expected_call == m_unlink.call_args_list
 
 
 class TestApplicationStatus:
