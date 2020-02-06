@@ -289,6 +289,14 @@ class TestMain:
         assert "" == out
         assert "{}\n".format(expected_msg) == err
         error_log = caplog_text()
+        # pytest 4.6.x started indenting trailing lines in log messages, which
+        # meant that our matching here stopped working once we introduced
+        # newlines into this log output in #973.  (If focal moves onto pytest
+        # 5.x before release, then we can remove this workaround.)  The
+        # upstream issue is https://github.com/pytest-dev/pytest/issues/5515
+        error_log = "\n".join(
+            [line.strip() for line in error_log.splitlines()]
+        )
         assert expected_msg in error_log
         assert "Traceback (most recent call last):" in error_log
 
