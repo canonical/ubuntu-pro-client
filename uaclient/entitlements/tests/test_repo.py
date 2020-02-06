@@ -39,6 +39,10 @@ class RepoTestEntitlementDisableAptAuthOnly(RepoTestEntitlement):
     disable_apt_auth_only = True
 
 
+class RepoTestEntitlementDisableAptAuthOnlyFalse(RepoTestEntitlement):
+    disable_apt_auth_only = False
+
+
 class RepoTestEntitlementRepoPinInt(RepoTestEntitlement):
     repo_pin_priority = 1000
 
@@ -475,14 +479,16 @@ class TestRemoveAptConfig:
         _m_run_apt_command,
         m_remove_apt_list_files,
         m_remove_auth_apt_repo,
-        entitlement,
+        entitlement_factory,
     ):
         """Remove all APT config when disable_apt_auth_only is False"""
         m_get_platform.return_value = {"series": "xenial"}
-        entitlement.remove_apt_config()
 
-        # Default RepoEntitlement.disable_apt_auth_only behavior is False
-        assert False is entitlement.disable_apt_auth_only
+        entitlement = entitlement_factory(
+            RepoTestEntitlementDisableAptAuthOnlyFalse,
+            affordances={"series": ["xenial"]},
+        )
+        entitlement.remove_apt_config()
 
         assert [
             mock.call("http://REPOTEST", "xenial")
@@ -518,7 +524,6 @@ class TestRemoveAptConfig:
         )
         entitlement.remove_apt_config()
 
-        assert True is entitlement.disable_apt_auth_only
         assert [
             mock.call("http://REPOTEST")
         ] == m_remove_repo_from_apt_auth_file.call_args_list
@@ -546,7 +551,6 @@ class TestRemoveAptConfig:
         entitlement = entitlement_factory(
             RepoTestEntitlementRepoPinNever, affordances={"series": ["xenial"]}
         )
-        assert "never" == entitlement.repo_pin_priority
         entitlement.remove_apt_config()
         assert [
             mock.call(
@@ -590,43 +594,40 @@ class TestRemoveAptConfig:
 
 
 class TestSetupAptConfig:
-    def test_missing_aptkey(self, entitlement_factory):
-        # Make aptKey missing
-        entitlement = entitlement_factory(RepoTestEntitlement, directives={})
+    @pytest.mark.parametrize(
+        "repo_cls,directives,exc_cls,err_msg",
+        (
+            (
+                RepoTestEntitlement,
+                {},
+                exceptions.UserFacingError,
+                "Ubuntu Advantage server provided no aptKey directive for"
+                " repotest.",
+            ),
+            (
+                RepoTestEntitlement,
+                {"aptKey": "somekey"},
+                exceptions.MissingAptURLDirective,
+                "repotest",
+            ),
+            (
+                RepoTestEntitlement,
+                {"aptKey": "somekey", "aptURL": "someURL"},
+                exceptions.UserFacingError,
+                "Empty repotest apt suites directive from"
+                " https://contracts.canonical.com",
+            ),
+        ),
+    )
+    def test_missing_directives(
+        self, repo_cls, directives, exc_cls, err_msg, entitlement_factory
+    ):
+        """Raise an error when missing any required directives."""
+        entitlement = entitlement_factory(repo_cls, directives=directives)
 
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(exc_cls) as excinfo:
             entitlement.setup_apt_config()
-
-        assert (
-            "Ubuntu Advantage server provided no aptKey directive for"
-            " repotest." in str(excinfo.value)
-        )
-
-    def test_missing_apturl(self, entitlement_factory):
-        # Make aptURL missing
-        entitlement = entitlement_factory(
-            RepoTestEntitlement, directives={"aptKey": "somekey"}
-        )
-
-        with pytest.raises(exceptions.MissingAptURLDirective) as excinfo:
-            entitlement.setup_apt_config()
-
-        assert "repotest" in str(excinfo.value)
-
-    def test_missing_suites(self, entitlement_factory):
-        # Make aptURL missing
-        entitlement = entitlement_factory(
-            RepoTestEntitlement,
-            directives={"aptKey": "somekey", "aptURL": "someURL"},
-        )
-
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
-            entitlement.setup_apt_config()
-
-        assert (
-            "Empty repotest apt suites directive from"
-            " https://contracts.canonical.com" == str(excinfo.value)
-        )
+        assert err_msg in str(excinfo.value)
 
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
