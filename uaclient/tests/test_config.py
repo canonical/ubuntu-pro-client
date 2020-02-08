@@ -68,8 +68,8 @@ class TestEntitlements:
         }
         assert expected == cfg.entitlements
 
-    def test_entitlements_use_machine_access_when_present(self, tmpdir):
-        """Return specific machine-access info if present."""
+    def test_entitlements_uses_resource_token_from_machine_token(self, tmpdir):
+        """Include entitlement-specicific resourceTokens from machine_token"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -81,28 +81,20 @@ class TestEntitlements:
                     ]
                 }
             },
+            "resourceTokens": [
+                {"Type": "entitlement1", "Token": "ent1-token"},
+                {"Type": "entitlement2", "Token": "ent2-token"},
+            ],
         }
         cfg.write_cache("machine-token", token)
-        cfg.write_cache(
-            "machine-access-entitlement1",
-            {
-                "entitlement": {
-                    "type": "entitlement1",
-                    "entitled": True,
-                    "more": "data",
-                }
-            },
-        )
         expected = {
             "entitlement1": {
-                "entitlement": {
-                    "entitled": True,
-                    "type": "entitlement1",
-                    "more": "data",
-                }
+                "entitlement": {"entitled": True, "type": "entitlement1"},
+                "resourceToken": "ent1-token",
             },
             "entitlement2": {
-                "entitlement": {"entitled": True, "type": "entitlement2"}
+                "entitlement": {"entitled": True, "type": "entitlement2"},
+                "resourceToken": "ent2-token",
             },
         }
         assert expected == cfg.entitlements

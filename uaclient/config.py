@@ -115,19 +115,19 @@ class UAConfig:
 
         self._entitlements = {}
         contractInfo = machine_token["machineTokenInfo"]["contractInfo"]
-
+        tokens_by_name = dict(
+            (e["Type"], e["Token"])
+            for e in machine_token.get("resourceTokens", [])
+        )
         ent_by_name = dict(
             (e["type"], e) for e in contractInfo["resourceEntitlements"]
         )
         for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = {}
-            if ent_value.get("entitled"):
-                entitlement_cfg = self.read_cache(
-                    "machine-access-{}".format(entitlement_name), silent=True
-                )
-            if not entitlement_cfg:
-                # Fallback to machine-token info on unentitled
-                entitlement_cfg = {"entitlement": ent_value}
+            entitlement_cfg = {"entitlement": ent_value}
+            if entitlement_name in tokens_by_name:
+                entitlement_cfg["resourceToken"] = tokens_by_name[
+                    entitlement_name
+                ]
             util.apply_series_overrides(entitlement_cfg)
             self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
