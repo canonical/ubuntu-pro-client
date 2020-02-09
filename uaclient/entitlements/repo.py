@@ -267,9 +267,7 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series
         )
-        entitlement = self.cfg.read_cache(
-            "machine-access-{}".format(self.name)
-        ).get("entitlement", {})
+        entitlement = self.cfg.entitlements[self.name].get("entitlement", {})
         access_directives = entitlement.get("directives", {})
         repo_url = access_directives.get("aptURL")
         if not repo_url:
