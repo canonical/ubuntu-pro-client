@@ -63,7 +63,7 @@ class TestCISEntitlementEnable:
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cis-audit-xenial.list",
                 "http://CIS-AUDIT",
-                "TOKEN",
+                "%s-token" % entitlement.name,
                 ["xenial"],
                 entitlement.repo_key_file,
             )

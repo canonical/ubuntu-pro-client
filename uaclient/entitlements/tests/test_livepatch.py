@@ -51,9 +51,15 @@ class TestLivepatchContractStatus:
 
     def test_contract_status_unentitled(self, entitlement):
         """The contract_status returns NONE when entitled is False."""
-        entitlement.cfg.write_cache(
-            "machine-access-livepatch", {"entitlement": {"entitled": False}}
+        token = entitlement.cfg.read_cache("machine-token")
+        ent_cfg = entitlement.cfg.entitlements[entitlement.name].get(
+            "entitlement"
         )
+        ent_cfg["entitled"] = False
+        token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"] = [
+            ent_cfg
+        ]
+        entitlement.cfg.write_cache("machine-token", token)
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
@@ -65,13 +71,15 @@ class TestLivepatchUserFacingStatus:
         self, _m_is_container, entitlement
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
-        livepatch_bionic = entitlement.cfg.read_cache(
-            "machine-access-livepatch"
+        token = entitlement.cfg.read_cache("machine-token")
+        ent_cfg = entitlement.cfg.entitlements[entitlement.name].get(
+            "entitlement"
         )
-        livepatch_bionic["entitlement"]["affordances"]["series"] = ["bionic"]
-        entitlement.cfg.write_cache(
-            "machine-access-livepatch", livepatch_bionic
-        )
+        ent_cfg["affordances"]["series"] = ["bionic"]
+        token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"] = [
+            ent_cfg
+        ]
+        entitlement.cfg.write_cache("machine-token", token)
 
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
@@ -416,7 +424,8 @@ class TestLivepatchEntitlementEnable:
         ),
         mock.call(["/snap/bin/canonical-livepatch", "disable"]),
         mock.call(
-            ["/snap/bin/canonical-livepatch", "enable", "TOKEN"], capture=True
+            ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
+            capture=True,
         ),
     ]
 
@@ -584,7 +593,7 @@ class TestLivepatchEntitlementEnable:
                 capture=True,
             ),
             mock.call(
-                ["/snap/bin/canonical-livepatch", "enable", "TOKEN"],
+                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
                 capture=True,
             ),
         ]

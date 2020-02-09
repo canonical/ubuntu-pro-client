@@ -15,7 +15,6 @@ from uaclient.entitlements.fips import (
     FIPSEntitlement,
     FIPSUpdatesEntitlement,
 )
-from uaclient.entitlements.tests.conftest import machine_access
 from uaclient import exceptions
 
 
@@ -88,7 +87,7 @@ class TestFIPSEntitlementEnable:
                     entitlement.name
                 ),
                 repo_url,
-                "TOKEN",
+                "%s-token" % entitlement.name,
                 ["xenial"],
                 entitlement.repo_key_file,
             )
@@ -143,14 +142,15 @@ class TestFIPSEntitlementEnable:
     ):
         """When directives do not contain suites returns false."""
         # Unset suites directive
-        fips_entitled_no_suites = copy.deepcopy(
-            machine_access(entitlement.name)
+        token = entitlement.cfg.read_cache("machine-token")
+        entitlement_cfg = entitlement.cfg.entitlements[entitlement.name].get(
+            "entitlement"
         )
-        fips_entitled_no_suites["entitlement"]["directives"]["suites"] = []
-        entitlement.cfg.write_cache(
-            "machine-access-{}".format(entitlement.name),
-            fips_entitled_no_suites,
-        )
+        entitlement_cfg["directives"]["suites"] = []
+        token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"] = [
+            entitlement_cfg
+        ]
+        entitlement.cfg.write_cache("machine-token", token)
 
         with mock.patch.object(entitlement, "can_enable", return_value=True):
             with pytest.raises(exceptions.UserFacingError) as excinfo:

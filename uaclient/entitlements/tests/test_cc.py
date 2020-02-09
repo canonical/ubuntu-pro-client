@@ -12,36 +12,28 @@ from uaclient import apt
 from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
+from uaclient.entitlements.tests.conftest import machine_token
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
-CC_MACHINE_TOKEN = {
-    "machineToken": "blah",
-    "machineTokenInfo": {
-        "contractInfo": {
-            "resourceEntitlements": [{"type": "cc-eal", "entitled": True}]
-        }
-    },
-}
-
 
 CC_RESOURCE_ENTITLED = {
-    "resourceToken": "TOKEN",
-    "entitlement": {
-        "obligations": {"enableByDefault": False},
-        "type": "cc-eal",
-        "entitled": True,
-        "directives": {
-            "aptURL": "http://CC",
-            "aptKey": "APTKEY",
-            "suites": ["xenial"],
-        },
-        "affordances": {
-            "architectures": ["x86_64", "ppc64le", "s390x"],
-            "series": ["xenial"],
-        },
+    "obligations": {"enableByDefault": False},
+    "type": "cc-eal",
+    "entitled": True,
+    "directives": {
+        "aptURL": "http://CC",
+        "aptKey": "APTKEY",
+        "suites": ["xenial"],
+    },
+    "affordances": {
+        "architectures": ["x86_64", "ppc64le", "s390x"],
+        "series": ["xenial"],
     },
 }
+
+CC_MACHINE_TOKEN = machine_token(**CC_RESOURCE_ENTITLED)
+
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -168,7 +160,7 @@ class TestCommonCriteriaEntitlementEnable:
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list",
                 "http://CC",
-                "TOKEN",
+                "%s-token" % entitlement.name,
                 ["xenial"],
                 entitlement.repo_key_file,
             )
