@@ -295,17 +295,19 @@ def request_updated_contract(
                 allow_enable=allow_enable,
             )
         except exceptions.UserFacingError as e:
-            user_errors.append(e)
+            with util.disable_log_to_console():
+                logging.exception(str(e))
+            user_errors.append(status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES)
         except Exception as e:
             with util.disable_log_to_console():
                 logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                "Unexpected error handling Ubuntu Advantage contract changes"
+            user_errors.append(
+                status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
+                    operation="attach"
+                )
             )
     if user_errors:
-        raise exceptions.UserFacingError(
-            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
-        )
+        raise exceptions.UserFacingError(user_errors[0])
 
 
 def get_available_resources(cfg) -> "List[Dict]":

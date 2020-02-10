@@ -19,7 +19,9 @@ from uaclient import exceptions
 from uaclient import util
 from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_ERROR,
+    MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
     MESSAGE_ATTACH_INVALID_TOKEN,
+    MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL,
 )
 
 from uaclient.testing.fakes import FakeConfig, FakeContractClient
@@ -259,6 +261,80 @@ class TestRequestUpdatedContract:
             request_updated_contract(cfg)
 
         assert "Broken ent1 route" == str(exc.value)
+
+    @pytest.mark.parametrize(
+        "error_instance, ux_error_msg",
+        (
+            (
+                exceptions.UserFacingError(
+                    "Ubuntu Advantage server provided no aptKey directive for"
+                    " esm-infra"
+                ),
+                MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
+            ),
+            (
+                RuntimeError("some APT error"),
+                MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
+                    operation="attach"
+                ),
+            ),
+        ),
+    )
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch(M_PATH + "UAContractClient")
+    def test_user_facing_error_due_to_unexpected_process_entitlement_delta(
+        self,
+        client,
+        get_machine_id,
+        process_entitlement_delta,
+        error_instance,
+        ux_error_msg,
+    ):
+        """Unexpected errors from process_entitlement_delta are raised.
+
+        Remaining entitlements are processed regardless of error and error is
+        raised at the end.
+        """
+        # Fail first and succeed second call to process_entitlement_delta
+        process_entitlement_delta.side_effect = (error_instance, None)
+
+        # resourceEntitlements specifically ordered reverse alphabetically
+        # to ensure proper sorting for process_contract_delta calls below
+        machine_token = {
+            "machineToken": "mToken",
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "id": "cid",
+                    "resourceEntitlements": [
+                        {"entitled": False, "type": "ent2"},
+                        {"entitled": True, "type": "ent1"},
+                    ],
+                }
+            },
+        }
+
+        def fake_contract_client(cfg):
+            client = FakeContractClient(cfg)
+            client._responses = {
+                self.refresh_route: machine_token,
+                self.access_route_ent1: {
+                    "entitlement": {
+                        "entitled": True,
+                        "type": "ent1",
+                        "new": "newval",
+                    }
+                },
+            }
+            return client
+
+        client.side_effect = fake_contract_client
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+
+        with pytest.raises(exceptions.UserFacingError) as exc:
+            assert None is request_updated_contract(cfg)
+        assert 2 == process_entitlement_delta.call_count
+        assert ux_error_msg == str(exc.value)
 
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
