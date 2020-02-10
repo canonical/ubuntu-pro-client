@@ -139,12 +139,12 @@ class TestAssertRoot:
 # Test multiple uids, to be sure that the root checking is absent
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertAttached:
-    def test_assert_attached_when_attached(self, capsys, uid):
+    def test_assert_attached_when_attached(self, capsys, uid, tmpdir):
         @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)
@@ -154,12 +154,12 @@ class TestAssertAttached:
         out, _err = capsys.readouterr()
         assert "" == out.strip()
 
-    def test_assert_attached_when_unattached(self, uid):
+    def test_assert_attached_when_unattached(self, uid, tmpdir):
         @assert_attached()
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(UnattachedError):
@@ -168,23 +168,23 @@ class TestAssertAttached:
 
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertNotAttached:
-    def test_when_attached(self, uid):
+    def test_when_attached(self, uid, tmpdir):
         @assert_not_attached
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(AlreadyAttachedError):
                 test_function(mock.Mock(), cfg)
 
-    def test_when_not_attached(self, capsys, uid):
+    def test_when_not_attached(self, capsys, uid, tmpdir):
         @assert_not_attached
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)

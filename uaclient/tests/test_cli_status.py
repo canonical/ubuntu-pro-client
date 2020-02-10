@@ -50,9 +50,9 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
-    def test_attached(self, m_getuid, m_get_avail_resources, capsys):
+    def test_attached(self, m_getuid, m_get_avail_resources, capsys, tmpdir):
         """Check that root and non-root will emit attached status"""
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         assert 0 == action_status(mock.MagicMock(), cfg)
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
@@ -68,16 +68,18 @@ class TestActionStatus:
             expected_dash = "\u2014"
         assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
 
-    def test_unattached(self, m_getuid, m_get_avail_resources, capsys):
+    def test_unattached(self, m_getuid, m_get_avail_resources, capsys, tmpdir):
         """Check that unattached status is emitted to console"""
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
-    def test_unattached_json(self, m_getuid, m_get_avail_resources, capsys):
+    def test_unattached_json(
+        self, m_getuid, m_get_avail_resources, capsys, tmpdir
+    ):
         """Check that unattached status json output is emitted to console"""
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         args = mock.MagicMock(format="json")
         assert 0 == action_status(args, cfg)
@@ -101,14 +103,14 @@ class TestActionStatus:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
-        self, m_getuid, m_get_avail_resources, capsys
+        self, m_getuid, m_get_avail_resources, capsys, tmpdir
     ):
         """Raise UrlError on connectivity issues"""
         m_get_avail_resources.side_effect = util.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
 
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         with pytest.raises(util.UrlError):
             action_status(mock.MagicMock(), cfg)
@@ -118,7 +120,12 @@ class TestActionStatus:
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
     def test_unicode_dash_replacement_when_unprintable(
-        self, _m_getuid, _m_get_avail_resources, encoding, expected_dash
+        self,
+        _m_getuid,
+        _m_get_avail_resources,
+        encoding,
+        expected_dash,
+        tmpdir,
     ):
         # This test can't use capsys because it doesn't emulate sys.stdout
         # encoding accurately in older versions of pytest
@@ -126,7 +133,10 @@ class TestActionStatus:
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
 
         with mock.patch("sys.stdout", fake_stdout):
-            action_status(mock.MagicMock(), FakeConfig.for_attached_machine())
+            action_status(
+                mock.MagicMock(),
+                FakeConfig.for_attached_machine(tmpdir.strpath),
+            )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
         out = underlying_stdout.getvalue().decode(encoding)
