@@ -19,7 +19,7 @@ M_REPOPATH = "uaclient.entitlements.repo."
 
 CC_RESOURCE_ENTITLED = {
     "obligations": {"enableByDefault": False},
-    "type": "cc-eal",
+    "entitlement_type": "cc-eal",
     "entitled": True,
     "directives": {
         "aptURL": "http://CC",
@@ -78,7 +78,6 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         m_platform_info.return_value = unsupported_info
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
@@ -95,7 +94,6 @@ class TestCommonCriteriaEntitlementCanEnable:
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
@@ -146,7 +144,6 @@ class TestCommonCriteriaEntitlementEnable:
         m_platform_info.side_effect = fake_platform
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
 
         with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
@@ -160,7 +157,7 @@ class TestCommonCriteriaEntitlementEnable:
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list",
                 "http://CC",
-                "%s-token" % entitlement.name,
+                "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
             )

@@ -3,29 +3,34 @@ import pytest
 from uaclient import config
 
 try:
-    from typing import Any, Dict, List, Optional  # noqa
+    from typing import Any, Dict, List  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
 
 def machine_token(
-    type: str,
+    entitlement_type: str,
     *,
     affordances: "Dict[str, Any]" = None,
     directives: "Dict[str, Any]" = None,
-    entitled: "Optional[bool]" = True,
+    entitled: bool = True,
     obligations: "Dict[str, Any]" = None,
     suites: "List[str]" = None
 ) -> "Dict[str, Any]":
     return {
-        "resourceTokens": [{"Type": type, "Token": "%s-token" % type}],
+        "resourceTokens": [
+            {
+                "Type": entitlement_type,
+                "Token": "{}-token".format(entitlement_type),
+            }
+        ],
         "machineToken": "blah",
         "machineTokenInfo": {
             "contractInfo": {
                 "resourceEntitlements": [
                     machine_access(
-                        type,
+                        entitlement_type,
                         affordances=affordances,
                         directives=directives,
                         entitled=entitled,
@@ -39,11 +44,11 @@ def machine_token(
 
 
 def machine_access(
-    type: str,
+    entitlement_type: str,
     *,
     affordances: "Dict[str, Any]" = None,
     directives: "Dict[str, Any]" = None,
-    entitled: "Optional[bool]" = True,
+    entitled: bool = True,
     obligations: "Dict[str, Any]" = None,
     suites: "List[str]" = None
 ) -> "Dict[str, Any]":
@@ -55,14 +60,14 @@ def machine_access(
         obligations = {"enableByDefault": True}
     if directives is None:
         directives = {
-            "aptURL": "http://{}".format(type.upper()),
+            "aptURL": "http://{}".format(entitlement_type.upper()),
             "aptKey": "APTKEY",
             "suites": suites,
         }
     return {
         "obligations": obligations,
-        "type": type,
-        "entitled": True,
+        "type": entitlement_type,
+        "entitled": entitled,
         "directives": directives,
         "affordances": affordances,
     }

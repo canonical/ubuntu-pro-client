@@ -87,7 +87,7 @@ class TestFIPSEntitlementEnable:
                     entitlement.name
                 ),
                 repo_url,
-                "%s-token" % entitlement.name,
+                "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
             )
