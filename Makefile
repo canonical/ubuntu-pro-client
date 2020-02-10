@@ -27,7 +27,7 @@ test:
 	@tox
 
 testdeps:
-	pip install tox
+	pip install -U tox
 
 travis-deb-install:
 	git fetch --unshallow
