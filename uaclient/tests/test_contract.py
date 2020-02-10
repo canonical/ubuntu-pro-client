@@ -37,13 +37,13 @@ class TestUAContractClient:
     @mock.patch("uaclient.contract.util.get_machine_id")
     @mock.patch("uaclient.contract.util.get_platform_info")
     def test_request_machine_token_update_default(
-        self, get_platform_info, get_machine_id, request_url
+        self, get_platform_info, get_machine_id, request_url, tmpdir
     ):
         """POST to ua-contract server and persist response to cache."""
         get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
         get_machine_id.return_value = "machineId"
         request_url.return_value = ("newtoken", {})
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         client = UAContractClient(cfg)
         client.request_machine_token_update("mToken", "cId")
         assert "newtoken" == cfg.read_cache("machine-token")

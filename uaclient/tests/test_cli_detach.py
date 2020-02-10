@@ -64,7 +64,7 @@ class TestActionDetach:
         #                   to be disabled by the action
         m_getuid.return_value = 0
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         fake_client = FakeContractClient(cfg)
         m_client.return_value = fake_client
 
