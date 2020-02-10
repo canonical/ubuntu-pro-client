@@ -27,6 +27,7 @@ test:
 	@tox
 
 testdeps:
+	pip install -U six
 	pip install tox
 
 travis-deb-install:
