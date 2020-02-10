@@ -610,6 +610,7 @@ def main(sys_argv=None):
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)
+    logging.debug("Executed with sys.argv: %r", sys_argv)
     return args.action(args, cfg)
 
 
