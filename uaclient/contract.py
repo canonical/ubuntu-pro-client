@@ -174,8 +174,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         response, headers = self.request_url(url, headers=headers, data=data)
         if headers.get("expires"):
             response["expires"] = headers["expires"]
-        # Clear UAConfig._entitlements cache because we are refreshing
-        self.cfg.delete_cache_key("machine-token")
         self.cfg.write_cache("machine-token", response)
         return response
 
