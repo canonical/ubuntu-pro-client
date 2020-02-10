@@ -1,5 +1,4 @@
 from uaclient.contract import (
-    API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
     UAContractClient,
 )
@@ -31,6 +30,4 @@ class FakeContractClient(UAContractClient):
         response = self._responses.get(path)
         if isinstance(response, Exception):
             raise response
-        if path in (self.refresh_route, API_V1_CONTEXT_MACHINE_TOKEN):
-            self.cfg.write_cache("machine-token", response)
         return response, {"header1": ""}
