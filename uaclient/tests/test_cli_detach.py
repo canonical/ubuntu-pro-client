@@ -3,7 +3,7 @@ from textwrap import dedent
 
 import pytest
 
-from uaclient.cli import action_detach
+from uaclient.cli import action_detach, detach_parser, get_parser
 from uaclient import exceptions
 from uaclient import status
 from uaclient.testing.fakes import FakeConfig
@@ -36,13 +36,32 @@ class TestActionDetach:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
-    @pytest.mark.parametrize("prompt_response", [True, False])
+    @pytest.mark.parametrize(
+        "prompt_response,assume_yes,expect_disable",
+        [(True, False, True), (False, False, False), (None, True, True)],
+    )
     @mock.patch("uaclient.cli.entitlements")
-    def test_entitlements_disabled_if_can_disable_and_prompt_true(
-        self, m_entitlements, m_getuid, m_prompt, prompt_response
+    def test_entitlements_disabled_appropriately(
+        self,
+        m_entitlements,
+        m_getuid,
+        m_prompt,
+        prompt_response,
+        assume_yes,
+        expect_disable,
     ):
+        # The three parameters:
+        #   prompt_response: the user's response to the prompt, or None if no
+        #                    prompt should be displayed
+        #   assume_yes: the value of the --assume-yes flag in the args passed
+        #               to the action
+        #   expect_disable: whether or not the enabled entitlement is expected
+        #                   to be disabled by the action
         m_getuid.return_value = 0
-        m_prompt.return_value = prompt_response
+        if prompt_response is not None:
+            m_prompt.return_value = prompt_response
+        else:
+            m_prompt.side_effect = Exception("SHOULD NOT BE CALLED")
 
         m_entitlements.ENTITLEMENT_CLASSES = [
             entitlement_cls_mock_factory(False),
@@ -50,9 +69,8 @@ class TestActionDetach:
             entitlement_cls_mock_factory(False),
         ]
 
-        return_code = action_detach(
-            mock.MagicMock(), FakeConfig.for_attached_machine()
-        )
+        args = mock.MagicMock(assume_yes=assume_yes)
+        return_code = action_detach(args, FakeConfig.for_attached_machine())
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
@@ -67,7 +85,7 @@ class TestActionDetach:
         ]:
             assert 0 == undisabled_cls.return_value.disable.call_count
         disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
-        if prompt_response:
+        if expect_disable:
             assert [
                 mock.call(silent=True)
             ] == disabled_cls.return_value.disable.call_args_list
@@ -154,3 +172,31 @@ class TestActionDetach:
         out, _err = capsys.readouterr()
 
         assert expected_message in out
+
+
+class TestParser:
+    def test_detach_parser_usage(self):
+        parser = detach_parser(mock.Mock())
+        assert "ua detach [flags]" == parser.usage
+
+    def test_detach_parser_prog(self):
+        parser = detach_parser(mock.Mock())
+        assert "detach" == parser.prog
+
+    def test_detach_parser_optionals_title(self):
+        parser = detach_parser(mock.Mock())
+        assert "Flags" == parser._optionals.title
+
+    def test_detach_parser_accepts_and_stores_assume_yes(self):
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "detach", "--assume-yes"]):
+            args = full_parser.parse_args()
+
+        assert args.assume_yes
+
+    def test_detach_parser_defaults_to_not_assume_yes(self):
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "detach"]):
+            args = full_parser.parse_args()
+
+        assert not args.assume_yes
