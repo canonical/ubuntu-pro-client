@@ -191,13 +191,19 @@ class TestActionAttach:
 
 
 class TestParser:
-    def test_attach_parser_creates_a_parser_when_not_provided(self):
-        """Create a named parser configured for 'attach'."""
-        m_parser = attach_parser(mock.Mock())
-        assert "ua attach <token> [flags]" == m_parser.usage
-        assert "attach" == m_parser.prog
-        assert "Flags" == m_parser._optionals.title
+    def test_attach_parser_usage(self):
+        parser = attach_parser(mock.Mock())
+        assert "ua attach <token> [flags]" == parser.usage
 
+    def test_attach_parser_prog(self):
+        parser = attach_parser(mock.Mock())
+        assert "attach" == parser.prog
+
+    def test_attach_parser_optionals_title(self):
+        parser = attach_parser(mock.Mock())
+        assert "Flags" == parser._optionals.title
+
+    def test_attach_parser_stores_token(self):
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "attach", "token"]):
             args = full_parser.parse_args()
