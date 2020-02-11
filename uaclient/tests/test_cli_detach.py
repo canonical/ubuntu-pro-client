@@ -48,6 +48,10 @@ class TestActionDetach:
         prompt_response,
         expect_disable,
     ):
+        # The two parameters:
+        #   prompt_response: the user's response to the prompt
+        #   expect_disable: whether or not the enabled entitlement is expected
+        #                   to be disabled by the action
         m_getuid.return_value = 0
         m_prompt.return_value = prompt_response
 
