@@ -40,7 +40,7 @@ class TestActionDetach:
         "prompt_response,expect_disable", [(True, True), (False, False)]
     )
     @mock.patch("uaclient.cli.entitlements")
-    def test_entitlements_disabled_if_can_disable_and_prompt_true(
+    def test_entitlements_disabled_appropriately(
         self,
         m_entitlements,
         m_getuid,
