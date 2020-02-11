@@ -284,12 +284,14 @@ class TestGetPlatformInfo:
 
         with mock.patch("uaclient.util.parse_os_release") as m_parse:
             with mock.patch("uaclient.util.os.uname") as m_uname:
-                m_parse.return_value = parse_dict
-                # (sysname, nodename, release, version, machine)
-                m_uname.return_value = posix.uname_result(
-                    ("", "", "kernel-ver", "", "arm64")
-                )
-                assert expected == util.get_platform_info()
+                with mock.patch("uaclient.util.subp") as m_subp:
+                    m_parse.return_value = parse_dict
+                    # (sysname, nodename, release, version, machine)
+                    m_uname.return_value = posix.uname_result(
+                        ("", "", "kernel-ver", "", "aarch64")
+                    )
+                    m_subp.return_value = ("arm64\n", "")
+                    assert expected == util.get_platform_info()
 
 
 class TestApplySeriesOverrides:

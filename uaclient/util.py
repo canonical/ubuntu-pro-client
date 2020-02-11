@@ -333,7 +333,8 @@ def get_platform_info() -> "Dict[str, str]":
 
     uname = os.uname()
     platform_info["kernel"] = uname.release
-    platform_info["arch"] = uname.machine
+    out, _err = subp(["dpkg", "--print-architecture"])
+    platform_info["arch"] = out.strip()
 
     return platform_info
 
