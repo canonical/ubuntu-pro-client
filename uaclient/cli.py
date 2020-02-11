@@ -308,7 +308,7 @@ def action_detach(args, cfg):
         print("Detach will disable the following service{}:".format(suffix))
         for ent in to_disable:
             print("    {}".format(ent.name))
-    if not util.prompt_for_confirmation():
+    if not args.assume_yes and not util.prompt_for_confirmation():
         return 1
     for ent in to_disable:
         ent.disable(silent=True)

@@ -37,7 +37,8 @@ class TestActionDetach:
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
     @pytest.mark.parametrize(
-        "prompt_response,expect_disable", [(True, True), (False, False)]
+        "prompt_response,assume_yes,expect_disable",
+        [(True, False, True), (False, False, False), (None, True, True)],
     )
     @mock.patch("uaclient.cli.entitlements")
     def test_entitlements_disabled_appropriately(
@@ -46,14 +47,21 @@ class TestActionDetach:
         m_getuid,
         m_prompt,
         prompt_response,
+        assume_yes,
         expect_disable,
     ):
-        # The two parameters:
-        #   prompt_response: the user's response to the prompt
+        # The three parameters:
+        #   prompt_response: the user's response to the prompt, or None if no
+        #                    prompt should be displayed
+        #   assume_yes: the value of the --assume-yes flag in the args passed
+        #               to the action
         #   expect_disable: whether or not the enabled entitlement is expected
         #                   to be disabled by the action
         m_getuid.return_value = 0
-        m_prompt.return_value = prompt_response
+        if prompt_response is not None:
+            m_prompt.return_value = prompt_response
+        else:
+            m_prompt.side_effect = Exception("SHOULD NOT BE CALLED")
 
         m_entitlements.ENTITLEMENT_CLASSES = [
             entitlement_cls_mock_factory(False),
@@ -61,9 +69,8 @@ class TestActionDetach:
             entitlement_cls_mock_factory(False),
         ]
 
-        return_code = action_detach(
-            mock.MagicMock(), FakeConfig.for_attached_machine()
-        )
+        args = mock.MagicMock(assume_yes=assume_yes)
+        return_code = action_detach(args, FakeConfig.for_attached_machine())
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
