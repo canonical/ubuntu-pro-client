@@ -336,22 +336,20 @@ class TestRequestUpdatedContract:
             },
         }
 
-        def fake_contract_client(cfg):
-            client = FakeContractClient(cfg)
-            client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: {
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-            }
-            return client
-
-        client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        fake_client = FakeContractClient(cfg)
+        fake_client._responses = {
+            self.refresh_route: machine_token,
+            self.access_route_ent1: {
+                "entitlement": {
+                    "entitled": True,
+                    "type": "ent1",
+                    "new": "newval",
+                }
+            },
+        }
+
+        client.return_value = fake_client
 
         with pytest.raises(exceptions.UserFacingError) as exc:
             assert None is request_updated_contract(cfg)
