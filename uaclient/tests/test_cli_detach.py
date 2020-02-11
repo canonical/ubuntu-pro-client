@@ -36,10 +36,17 @@ class TestActionDetach:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
-    @pytest.mark.parametrize("prompt_response", [True, False])
+    @pytest.mark.parametrize(
+        "prompt_response,expect_disable", [(True, True), (False, False)]
+    )
     @mock.patch("uaclient.cli.entitlements")
     def test_entitlements_disabled_if_can_disable_and_prompt_true(
-        self, m_entitlements, m_getuid, m_prompt, prompt_response
+        self,
+        m_entitlements,
+        m_getuid,
+        m_prompt,
+        prompt_response,
+        expect_disable,
     ):
         m_getuid.return_value = 0
         m_prompt.return_value = prompt_response
@@ -67,7 +74,7 @@ class TestActionDetach:
         ]:
             assert 0 == undisabled_cls.return_value.disable.call_count
         disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
-        if prompt_response:
+        if expect_disable:
             assert [
                 mock.call(silent=True)
             ] == disabled_cls.return_value.disable.call_args_list
