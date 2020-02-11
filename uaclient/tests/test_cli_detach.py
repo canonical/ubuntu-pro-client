@@ -3,7 +3,7 @@ from textwrap import dedent
 
 import pytest
 
-from uaclient.cli import action_detach
+from uaclient.cli import action_detach, detach_parser
 from uaclient import exceptions
 from uaclient import status
 from uaclient.testing.fakes import FakeConfig
@@ -172,3 +172,17 @@ class TestActionDetach:
         out, _err = capsys.readouterr()
 
         assert expected_message in out
+
+
+class TestParser:
+    def test_detach_parser_usage(self):
+        parser = detach_parser(mock.Mock())
+        assert "ua detach [flags]" == parser.usage
+
+    def test_detach_parser_prog(self):
+        parser = detach_parser(mock.Mock())
+        assert "detach" == parser.prog
+
+    def test_detach_parser_optionals_title(self):
+        parser = detach_parser(mock.Mock())
+        assert "Flags" == parser._optionals.title
