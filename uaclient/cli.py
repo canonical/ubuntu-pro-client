@@ -149,6 +149,11 @@ def detach_parser(parser):
     parser.usage = usage
     parser.prog = "detach"
     parser._optionals.title = "Flags"
+    parser.add_argument(
+        "--assume-yes",
+        action="store_true",
+        help="do not prompt for confirmation before performing the detach",
+    )
     return parser
 
 
