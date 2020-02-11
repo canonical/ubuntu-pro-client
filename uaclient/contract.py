@@ -294,13 +294,19 @@ def request_updated_contract(
                 new_access,
                 allow_enable=allow_enable,
             )
-        except exceptions.UserFacingError as e:
+        except exceptions.UserFacingError:
             with util.disable_log_to_console():
-                logging.exception(str(e))
+                logging.exception(
+                    "Failed to process contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_access)
+                )
             user_errors.append(status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES)
-        except Exception as e:
+        except Exception:
             with util.disable_log_to_console():
-                logging.exception(str(e))
+                logging.exception(
+                    "Unexpected error processing contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_access)
+                )
             user_errors.insert(  # Highest priority error comes first
                 0,
                 status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
