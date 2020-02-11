@@ -301,10 +301,11 @@ def request_updated_contract(
         except Exception as e:
             with util.disable_log_to_console():
                 logging.exception(str(e))
-            user_errors.append(
+            user_errors.insert(  # Highest priority error comes first
+                0,
                 status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
                     operation="attach"
-                )
+                ),
             )
     if user_errors:
         raise exceptions.UserFacingError(user_errors[0])

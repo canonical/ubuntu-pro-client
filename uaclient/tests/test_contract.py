@@ -263,17 +263,31 @@ class TestRequestUpdatedContract:
         assert "Broken ent1 route" == str(exc.value)
 
     @pytest.mark.parametrize(
-        "error_instance, ux_error_msg",
+        "first_error, second_error, ux_error_msg",
         (
             (
                 exceptions.UserFacingError(
                     "Ubuntu Advantage server provided no aptKey directive for"
                     " esm-infra"
                 ),
+                None,
                 MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
             (
                 RuntimeError("some APT error"),
+                None,
+                MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
+                    operation="attach"
+                ),
+            ),
+            # Order high-priority RuntimeError as second_error to ensure it
+            # is raised as primary error_msg
+            (
+                exceptions.UserFacingError(
+                    "Ubuntu Advantage server provided no aptKey directive for"
+                    " esm-infra"
+                ),
+                RuntimeError("some APT error"),  # High-priority ordered 2
                 MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
                     operation="attach"
                 ),
@@ -288,16 +302,23 @@ class TestRequestUpdatedContract:
         client,
         get_machine_id,
         process_entitlement_delta,
-        error_instance,
+        first_error,
+        second_error,
         ux_error_msg,
     ):
         """Unexpected errors from process_entitlement_delta are raised.
 
         Remaining entitlements are processed regardless of error and error is
         raised at the end.
+
+        Unexpected exceptions take priority over the handled UserFacingErrors.
         """
         # Fail first and succeed second call to process_entitlement_delta
-        process_entitlement_delta.side_effect = (error_instance, None)
+        process_entitlement_delta.side_effect = (
+            first_error,
+            second_error,
+            None,
+        )
 
         # resourceEntitlements specifically ordered reverse alphabetically
         # to ensure proper sorting for process_contract_delta calls below
@@ -307,6 +328,7 @@ class TestRequestUpdatedContract:
                 "contractInfo": {
                     "id": "cid",
                     "resourceEntitlements": [
+                        {"entitled": False, "type": "ent3"},
                         {"entitled": False, "type": "ent2"},
                         {"entitled": True, "type": "ent1"},
                     ],
@@ -333,7 +355,7 @@ class TestRequestUpdatedContract:
 
         with pytest.raises(exceptions.UserFacingError) as exc:
             assert None is request_updated_contract(cfg)
-        assert 2 == process_entitlement_delta.call_count
+        assert 3 == process_entitlement_delta.call_count
         assert ux_error_msg == str(exc.value)
 
     @mock.patch(M_PATH + "process_entitlement_delta")
