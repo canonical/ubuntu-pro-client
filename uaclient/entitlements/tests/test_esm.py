@@ -155,7 +155,7 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        if entitlement.name == "esm-infra":  # Then remove apt pref pin never
+        if entitlement.name == "esm-infra":  # Remove "never" apt pref pin
             unlink_calls = [
                 mock.call(
                     "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
