@@ -23,12 +23,47 @@ from uaclient.status import (
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
 )
+from uaclient.version import get_version
 
 from uaclient.testing.fakes import FakeContractClient
 
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
+
+
+@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+class TestUAContractClient:
+    @mock.patch("uaclient.contract.util.get_machine_id")
+    @mock.patch("uaclient.contract.util.get_platform_info")
+    def test_request_machine_token_update_default(
+        self, get_platform_info, get_machine_id, request_url
+    ):
+        """POST to ua-contract server and persist response to cache."""
+        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
+        get_machine_id.return_value = "machineId"
+        request_url.return_value = ("newtoken", {})
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        client.request_machine_token_update("mToken", "cId")
+        assert "newtoken" == cfg.read_cache("machine-token")
+        assert [
+            mock.call(
+                "/v1/contracts/cId/context/machines/machineId",
+                headers={
+                    "user-agent": "UA-Client/{}".format(get_version()),
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "Authorization": "Bearer mToken",
+                },
+                method="POST",
+                data={
+                    "machineId": "machineId",
+                    "architecture": "arch",
+                    "os": {"kernel": "kernel"},
+                },
+            )
+        ] == request_url.call_args_list
 
 
 class TestProcessEntitlementDeltas:
