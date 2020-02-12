@@ -6,6 +6,7 @@ import pytest
 from uaclient.cli import action_detach, detach_parser, get_parser
 from uaclient import exceptions
 from uaclient import status
+from uaclient.testing.fakes import FakeContractClient
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
@@ -42,8 +43,10 @@ class TestActionDetach:
         [(True, False, True), (False, False, False), (None, True, True)],
     )
     @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.contract.UAContractClient")
     def test_entitlements_disabled_appropriately(
         self,
+        m_client,
         m_entitlements,
         m_getuid,
         m_prompt,
@@ -60,6 +63,11 @@ class TestActionDetach:
         #   expect_disable: whether or not the enabled entitlement is expected
         #                   to be disabled by the action
         m_getuid.return_value = 0
+
+        cfg = FakeConfig.for_attached_machine()
+        fake_client = FakeContractClient(cfg)
+        m_client.return_value = fake_client
+
         if prompt_response is not None:
             m_prompt.return_value = prompt_response
         else:
@@ -72,7 +80,7 @@ class TestActionDetach:
         ]
 
         args = mock.MagicMock(assume_yes=assume_yes)
-        return_code = action_detach(args, FakeConfig.for_attached_machine())
+        return_code = action_detach(args, cfg)
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
@@ -97,9 +105,16 @@ class TestActionDetach:
             assert 1 == return_code
 
     @mock.patch("uaclient.cli.entitlements")
-    def test_config_cache_deleted(self, m_entitlements, m_getuid, _m_prompt):
+    @mock.patch("uaclient.contract.UAContractClient")
+    def test_config_cache_deleted(
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
+    ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
+
+        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
+        fake_client._responses = {"chad": {}}
+        m_client.return_value = fake_client
 
         cfg = mock.MagicMock()
         action_detach(mock.MagicMock(), cfg)
@@ -107,11 +122,16 @@ class TestActionDetach:
         assert [mock.call()] == cfg.delete_cache.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.contract.UAContractClient")
     def test_correct_message_emitted(
-        self, m_entitlements, m_getuid, _m_prompt, capsys
+        self, m_client, m_entitlements, m_getuid, _m_prompt, capsys, FakeConfig
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
+
+        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
+        fake_client._responses = {"chad": {}}
+        m_client.return_value = fake_client
 
         action_detach(mock.MagicMock(), mock.MagicMock())
 
@@ -120,9 +140,21 @@ class TestActionDetach:
         assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
 
     @mock.patch("uaclient.cli.entitlements")
-    def test_returns_zero(self, m_entitlements, m_getuid, _m_prompt):
+    @mock.patch("uaclient.contract.UAContractClient")
+    def test_returns_zero(
+        self,
+        m_client,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        FakeConfig,
+    ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
+
+        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
+        fake_client._responses = {"chad": {}}
+        m_client.return_value = fake_client
 
         ret = action_detach(mock.MagicMock(), mock.MagicMock())
 
@@ -158,17 +190,25 @@ class TestActionDetach:
         ],
     )
     @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.contract.UAContractClient")
     def test_informational_message_emitted(
         self,
+        m_client,
         m_entitlements,
         m_getuid,
         _m_prompt,
         capsys,
         classes,
         expected_message,
+        FakeConfig,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
+
+        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
+        fake_client._responses = {"chad": {}}
+        m_client.return_value = fake_client
+
         action_detach(mock.MagicMock(), mock.MagicMock())
 
         out, _err = capsys.readouterr()
