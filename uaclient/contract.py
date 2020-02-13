@@ -279,8 +279,8 @@ def request_updated_contract(
             raise exceptions.UserFacingError(
                 status.MESSAGE_CONTRACT_EXPIRED_ERROR
             )
-    delta_error_msg = None
-    unexpected_error_msg = None
+    delta_error = False
+    unexpected_error = False
     for name, entitlement in sorted(cfg.entitlements.items()):
         if entitlement["entitlement"].get("entitled"):
             # Obtain each entitlement's accessContext for this machine
@@ -296,25 +296,29 @@ def request_updated_contract(
                 allow_enable=allow_enable,
             )
         except exceptions.UserFacingError:
-            delta_error_msg = status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
+            delta_error = True
             with util.disable_log_to_console():
                 logging.exception(
                     "Failed to process contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_access)
                 )
         except Exception:
-            unexpected_error_msg = status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
-                operation="attach"
-            )
+            unexpected_error = True
             with util.disable_log_to_console():
                 logging.exception(
                     "Unexpected error processing contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_access)
                 )
-    if unexpected_error_msg:
-        raise exceptions.UserFacingError(unexpected_error_msg)
-    elif delta_error_msg:
-        raise exceptions.UserFacingError(delta_error_msg)
+    if unexpected_error:
+        raise exceptions.UserFacingError(
+            status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
+                operation="attach"
+            )
+        )
+    elif delta_error:
+        raise exceptions.UserFacingError(
+            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
+        )
 
 
 def get_available_resources(cfg) -> "List[Dict]":
