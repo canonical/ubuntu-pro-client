@@ -279,7 +279,8 @@ def request_updated_contract(
             raise exceptions.UserFacingError(
                 status.MESSAGE_CONTRACT_EXPIRED_ERROR
             )
-    user_errors = []
+    delta_error = False
+    unexpected_error = False
     for name, entitlement in sorted(cfg.entitlements.items()):
         if entitlement["entitlement"].get("entitled"):
             # Obtain each entitlement's accessContext for this machine
@@ -294,15 +295,27 @@ def request_updated_contract(
                 new_access,
                 allow_enable=allow_enable,
             )
-        except exceptions.UserFacingError as e:
-            user_errors.append(e)
-        except Exception as e:
+        except exceptions.UserFacingError:
+            delta_error = True
             with util.disable_log_to_console():
-                logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                "Unexpected error handling Ubuntu Advantage contract changes"
+                logging.exception(
+                    "Failed to process contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_access)
+                )
+        except Exception:
+            unexpected_error = True
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Unexpected error processing contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_access)
+                )
+    if unexpected_error:
+        raise exceptions.UserFacingError(
+            status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
+                operation="attach"
             )
-    if user_errors:
+        )
+    elif delta_error:
         raise exceptions.UserFacingError(
             status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
         )
