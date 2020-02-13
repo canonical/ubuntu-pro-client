@@ -1,8 +1,6 @@
 import copy
 import mock
 
-from uaclient.testing.fakes import FakeConfig
-
 import pytest
 
 from uaclient.cli import (
@@ -70,11 +68,11 @@ ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
 
 
 @mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid, tmpdir):
+def test_non_root_users_are_rejected(getuid, FakeConfig):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
-    cfg = FakeConfig(tmpdir.strpath)
+    cfg = FakeConfig()
     with pytest.raises(NonRootUserError):
         action_attach(mock.MagicMock(), cfg)
 
@@ -82,22 +80,20 @@ def test_non_root_users_are_rejected(getuid, tmpdir):
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAttach:
-    def test_already_attached(self, _m_getuid, capsys, tmpdir):
+    def test_already_attached(self, _m_getuid, capsys, FakeConfig):
         """Check that an already-attached machine emits message and exits 0"""
         account_name = "test_account"
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, account_name=account_name
-        )
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
         with pytest.raises(AlreadyAttachedError):
             action_attach(mock.MagicMock(), cfg)
 
-    def test_token_is_a_required_argument(self, _m_getuid, tmpdir):
+    def test_token_is_a_required_argument(self, _m_getuid, FakeConfig):
         """When missing the required token argument, raise a UserFacingError"""
         args = mock.MagicMock()
         args.token = None
         with pytest.raises(UserFacingError) as e:
-            action_attach(args, FakeConfig(tmpdir.strpath))
+            action_attach(args, FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
 
     @pytest.mark.parametrize(
@@ -122,12 +118,12 @@ class TestActionAttach:
         error_str,
         expected_log,
         caplog_text,
-        tmpdir,
+        FakeConfig,
     ):
         """If auto-enable of a service fails, attach status is updated."""
         token = "contract-token"
         args = mock.MagicMock(token=token)
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         cfg.status()  # persist unattached status
         # read persisted status cache from disk
         orig_unattached_status = cfg.read_cache("status-cache")
@@ -152,14 +148,14 @@ class TestActionAttach:
     )
     @mock.patch(M_PATH + "action_status")
     def test_happy_path_with_token_arg(
-        self, action_status, contract_machine_attach, _m_getuid, tmpdir
+        self, action_status, contract_machine_attach, _m_getuid, FakeConfig
     ):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
         token = "contract-token"
         args = mock.MagicMock(token=token)
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         def fake_contract_attach(contract_token):
             cfg.write_cache("machine-token", BASIC_MACHINE_TOKEN)
@@ -177,7 +173,7 @@ class TestActionAttach:
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch("uaclient.contract.get_available_resources")
     def test_auto_enable_passed_through_to_request_updated_contract(
-        self, _m_getuid, _m_get_available_resources, auto_enable, tmpdir
+        self, _m_getuid, _m_get_available_resources, auto_enable, FakeConfig
     ):
         args = mock.MagicMock(auto_enable=auto_enable)
 
@@ -187,7 +183,7 @@ class TestActionAttach:
 
         with mock.patch(M_PATH + "contract.request_updated_contract") as m_ruc:
             m_ruc.side_effect = fake_contract_updates
-            action_attach(args, FakeConfig(tmpdir.strpath))
+            action_attach(args, FakeConfig())
 
         expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
         assert [expected_call] == m_ruc.call_args_list

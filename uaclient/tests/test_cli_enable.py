@@ -5,16 +5,15 @@ import pytest
 from uaclient.cli import _perform_enable, action_enable
 from uaclient import exceptions
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 
 
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionEnable:
-    def test_non_root_users_are_rejected(self, getuid, tmpdir):
+    def test_non_root_users_are_rejected(self, getuid, FakeConfig):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(mock.MagicMock(), cfg)
 
@@ -26,12 +25,12 @@ class TestActionEnable:
         ],
     )
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template, tmpdir
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check that root user gets unattached message."""
 
         m_getuid.return_value = uid
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "esm-infra"
@@ -48,12 +47,12 @@ class TestActionEnable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template, tmpdir
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check invalid service name results in custom error message."""
 
         m_getuid.return_value = uid
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "bogus"

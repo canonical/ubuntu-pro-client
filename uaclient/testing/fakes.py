@@ -1,11 +1,4 @@
-from uaclient.config import UAConfig
 from uaclient.contract import UAContractClient
-
-try:
-    from typing import Any, Dict, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
 
 
 class FakeContractClient(UAContractClient):
@@ -31,32 +24,3 @@ class FakeContractClient(UAContractClient):
         if isinstance(response, Exception):
             raise response
         return response, {"header1": ""}
-
-
-class FakeConfig(UAConfig):
-    def __init__(self, data_dir: str) -> None:
-        super().__init__({"data_dir": data_dir})
-
-    @classmethod
-    def for_attached_machine(
-        cls,
-        data_dir: str,
-        account_name: str = "test_account",
-        machine_token: "Dict[str, Any]" = None,
-    ):
-        if not machine_token:
-            machine_token = {
-                "availableResources": [],
-                "machineToken": "not-null",
-                "machineTokenInfo": {
-                    "accountInfo": {"id": "acct-1", "name": account_name},
-                    "contractInfo": {
-                        "id": "cid",
-                        "name": "test_contract",
-                        "resourceEntitlements": [],
-                    },
-                },
-            }
-        config = cls(data_dir)
-        config.write_cache("machine-token", machine_token)
-        return config

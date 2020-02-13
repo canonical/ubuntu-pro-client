@@ -6,7 +6,6 @@ import sys
 
 import pytest
 
-from uaclient.testing.fakes import FakeConfig
 from uaclient import util
 
 from uaclient.cli import action_status
@@ -50,9 +49,11 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
-    def test_attached(self, m_getuid, m_get_avail_resources, capsys, tmpdir):
+    def test_attached(
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+    ):
         """Check that root and non-root will emit attached status"""
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         assert 0 == action_status(mock.MagicMock(), cfg)
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
@@ -68,18 +69,20 @@ class TestActionStatus:
             expected_dash = "\u2014"
         assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
 
-    def test_unattached(self, m_getuid, m_get_avail_resources, capsys, tmpdir):
+    def test_unattached(
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+    ):
         """Check that unattached status is emitted to console"""
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
     def test_unattached_json(
-        self, m_getuid, m_get_avail_resources, capsys, tmpdir
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Check that unattached status json output is emitted to console"""
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         args = mock.MagicMock(format="json")
         assert 0 == action_status(args, cfg)
@@ -103,14 +106,14 @@ class TestActionStatus:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
-        self, m_getuid, m_get_avail_resources, capsys, tmpdir
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Raise UrlError on connectivity issues"""
         m_get_avail_resources.side_effect = util.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
 
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         with pytest.raises(util.UrlError):
             action_status(mock.MagicMock(), cfg)
@@ -125,7 +128,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         encoding,
         expected_dash,
-        tmpdir,
+        FakeConfig,
     ):
         # This test can't use capsys because it doesn't emulate sys.stdout
         # encoding accurately in older versions of pytest
@@ -133,10 +136,7 @@ class TestActionStatus:
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
 
         with mock.patch("sys.stdout", fake_stdout):
-            action_status(
-                mock.MagicMock(),
-                FakeConfig.for_attached_machine(tmpdir.strpath),
-            )
+            action_status(mock.MagicMock(), FakeConfig.for_attached_machine())
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
         out = underlying_stdout.getvalue().decode(encoding)
