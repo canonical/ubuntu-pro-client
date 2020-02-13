@@ -15,7 +15,6 @@ from uaclient.exceptions import (
     NonAutoAttachImageError,
 )
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 from uaclient.tests.test_cli_attach import BASIC_MACHINE_TOKEN
 from uaclient import util
 
@@ -23,11 +22,11 @@ M_PATH = "uaclient.cli."
 
 
 @mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid, tmpdir):
+def test_non_root_users_are_rejected(getuid, FakeConfig):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
-    cfg = FakeConfig(tmpdir.strpath)
+    cfg = FakeConfig()
     with pytest.raises(NonRootUserError):
         action_auto_attach(mock.MagicMock(), cfg)
 
@@ -43,12 +42,12 @@ class TestGetContractTokenFromCloudIdentity:
     )
     @mock.patch("uaclient.clouds.identity.get_cloud_type")
     def test_non_aws_cloud_type_raises_error(
-        self, m_get_cloud_type, cloud_type, tmpdir
+        self, m_get_cloud_type, cloud_type, FakeConfig
     ):
         """Non-aws clouds will error."""
         m_get_cloud_type.return_value = cloud_type
         with pytest.raises(NonAutoAttachImageError) as excinfo:
-            _get_contract_token_from_cloud_identity(FakeConfig(tmpdir.strpath))
+            _get_contract_token_from_cloud_identity(FakeConfig())
         assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
             cloud_type=cloud_type
         ) == str(excinfo.value)
@@ -77,7 +76,7 @@ class TestGetContractTokenFromCloudIdentity:
         http_msg,
         http_code,
         http_response,
-        tmpdir,
+        FakeConfig,
     ):
         """VMs running on non-auto-attach images do not return a token."""
 
@@ -89,7 +88,7 @@ class TestGetContractTokenFromCloudIdentity:
             error_response=http_response,
         )
         with pytest.raises(NonAutoAttachImageError) as excinfo:
-            _get_contract_token_from_cloud_identity(FakeConfig(tmpdir.strpath))
+            _get_contract_token_from_cloud_identity(FakeConfig())
         assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
@@ -102,7 +101,7 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
-        tmpdir,
+        FakeConfig,
     ):
         """Any unexpected errors will be raised."""
 
@@ -116,7 +115,7 @@ class TestGetContractTokenFromCloudIdentity:
         request_auto_attach_contract_token.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
-            _get_contract_token_from_cloud_identity(FakeConfig(tmpdir.strpath))
+            _get_contract_token_from_cloud_identity(FakeConfig())
         assert unexpected_error == excinfo.value
 
     @mock.patch(
@@ -129,7 +128,7 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
-        tmpdir,
+        FakeConfig,
     ):
         """Return token from the contract server using the identity."""
 
@@ -140,19 +139,17 @@ class TestGetContractTokenFromCloudIdentity:
 
         request_auto_attach_contract_token.side_effect = fake_contract_token
 
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         assert "myPKCS7-token" == _get_contract_token_from_cloud_identity(cfg)
 
 
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
-    def test_already_attached(self, _m_getuid, tmpdir):
+    def test_already_attached(self, _m_getuid, FakeConfig):
         """Check that an attached machine raises AlreadyAttachedError."""
         account_name = "test_account"
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, account_name=account_name
-        )
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
         with pytest.raises(AlreadyAttachedError):
             action_auto_attach(mock.MagicMock(), cfg)
@@ -164,14 +161,14 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
-        tmpdir,
+        FakeConfig,
     ):
         """Noop when _get_contract_token_from_cloud_identity finds no token"""
         exc = NonAutoAttachImageError("msg")
         get_contract_token_from_cloud_identity.side_effect = exc
 
         with pytest.raises(NonAutoAttachImageError):
-            action_auto_attach(mock.MagicMock(), FakeConfig(tmpdir.strpath))
+            action_auto_attach(mock.MagicMock(), FakeConfig())
         assert 0 == request_updated_contract.call_count
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
@@ -183,12 +180,12 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
-        tmpdir,
+        FakeConfig,
     ):
         """A mock-heavy test for the happy path on auto attach AWS"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         get_contract_token_from_cloud_identity.return_value = "myPKCS7-token"
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):

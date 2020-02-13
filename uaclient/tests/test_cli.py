@@ -25,7 +25,6 @@ from uaclient.exceptions import (
     UserFacingError,
     UnattachedError,
 )
-from uaclient.testing.fakes import FakeConfig
 from uaclient import status
 from uaclient import util
 
@@ -139,12 +138,12 @@ class TestAssertRoot:
 # Test multiple uids, to be sure that the root checking is absent
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertAttached:
-    def test_assert_attached_when_attached(self, capsys, uid, tmpdir):
+    def test_assert_attached_when_attached(self, capsys, uid, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)
@@ -154,12 +153,12 @@ class TestAssertAttached:
         out, _err = capsys.readouterr()
         assert "" == out.strip()
 
-    def test_assert_attached_when_unattached(self, uid, tmpdir):
+    def test_assert_attached_when_unattached(self, uid, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(UnattachedError):
@@ -168,23 +167,23 @@ class TestAssertAttached:
 
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertNotAttached:
-    def test_when_attached(self, uid, tmpdir):
+    def test_when_attached(self, uid, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             pass
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             with pytest.raises(AlreadyAttachedError):
                 test_function(mock.Mock(), cfg)
 
-    def test_when_not_attached(self, capsys, uid, tmpdir):
+    def test_when_not_attached(self, capsys, uid, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             return mock.sentinel.success
 
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         with mock.patch("uaclient.cli.os.getuid", return_value=uid):
             ret = test_function(mock.Mock(), cfg)

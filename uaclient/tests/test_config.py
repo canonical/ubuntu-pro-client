@@ -20,7 +20,6 @@ from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
 )
-from uaclient.testing.fakes import FakeConfig
 from uaclient.status import ContractStatus, UserFacingStatus
 
 
@@ -396,10 +395,10 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_root_unattached(
-        self, _m_getuid, m_get_available_resources, tmpdir
+        self, _m_getuid, m_get_available_resources, FakeConfig
     ):
         """Test we get the correct status dict when unattached"""
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
             {"name": "fips", "available": False},
@@ -452,7 +451,7 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
-        tmpdir,
+        FakeConfig,
     ):
         """Test we get the correct status dict when attached with basic conf"""
         resource_names = [resource["name"] for resource in avail_res]
@@ -483,9 +482,7 @@ class TestStatus:
         else:
             m_get_avail_resources.return_value = available_resource_response
 
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, machine_token=token
-        )
+        cfg = FakeConfig.for_attached_machine(machine_token=token)
         expected_services = [
             {
                 "description": cls.description,
@@ -523,13 +520,13 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_unattached_is_same_as_unattached_root(
-        self, m_getuid, m_get_available_resources, tmpdir
+        self, m_getuid, m_get_available_resources, FakeConfig
     ):
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
         m_getuid.return_value = 1000
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         nonroot_status = cfg.status()
 
@@ -541,7 +538,7 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_root_followed_by_nonroot(
-        self, m_getuid, m_get_available_resources, tmpdir
+        self, m_getuid, m_get_available_resources, tmpdir, FakeConfig
     ):
         """Ensure that non-root run after root returns data"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
@@ -552,7 +549,7 @@ class TestStatus:
 
         # Replicate an attach by modifying the underlying config and confirm
         # that we see different status
-        other_cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        other_cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("accounts", {"accounts": other_cfg.accounts})
         cfg.write_cache("machine-token", other_cfg.machine_token)
         assert cfg._attached_status() != before
@@ -602,7 +599,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_getuid,
         entitlements,
-        tmpdir,
+        FakeConfig,
     ):
         """When attached, return contract and service user-facing status."""
         m_repo_contract_status.return_value = status.ContractStatus.ENTITLED
@@ -629,7 +626,7 @@ class TestStatus:
             },
         }
         cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, account_name="accountname", machine_token=token
+            account_name="accountname", machine_token=token
         )
         if not entitlements:
             support_level = status.UserFacingStatus.INAPPLICABLE.value
@@ -670,7 +667,7 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_expires_handled_appropriately(
-        self, m_getuid, _m_get_available_resources, tmpdir
+        self, m_getuid, _m_get_available_resources, FakeConfig
     ):
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -685,7 +682,7 @@ class TestStatus:
             },
         }
         cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, account_name="accountname", machine_token=token
+            account_name="accountname", machine_token=token
         )
 
         # Test that root's status works as expected (including the cache write)
@@ -744,7 +741,7 @@ class TestAttachedServiceStatus:
         uf_status,
         in_inapplicable_resources,
         expected_status,
-        tmpdir,
+        FakeConfig,
     ):
         ent = mock.MagicMock()
         ent.name = "test_entitlement"
@@ -754,9 +751,7 @@ class TestAttachedServiceStatus:
         unavailable_resources = (
             {ent.name: ""} if in_inapplicable_resources else {}
         )
-        ret = FakeConfig(tmpdir.strpath)._attached_service_status(
-            ent, unavailable_resources
-        )
+        ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
 
         assert expected_status == ret["status"]
 

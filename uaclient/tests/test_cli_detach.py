@@ -6,7 +6,6 @@ import pytest
 from uaclient.cli import action_detach, detach_parser, get_parser
 from uaclient import exceptions
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
@@ -19,19 +18,21 @@ def entitlement_cls_mock_factory(can_disable, name=None):
 @mock.patch("uaclient.cli.util.prompt_for_confirmation", return_value=True)
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionDetach:
-    def test_non_root_users_are_rejected(self, m_getuid, _m_prompt, tmpdir):
+    def test_non_root_users_are_rejected(
+        self, m_getuid, _m_prompt, FakeConfig
+    ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         m_getuid.return_value = 1
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
             action_detach(mock.MagicMock(), cfg)
 
-    def test_unattached_error_message(self, m_getuid, _m_prompt, tmpdir):
+    def test_unattached_error_message(self, m_getuid, _m_prompt, FakeConfig):
         """Check that root user gets unattached message."""
 
         m_getuid.return_value = 0
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
@@ -49,7 +50,7 @@ class TestActionDetach:
         prompt_response,
         assume_yes,
         expect_disable,
-        tmpdir,
+        FakeConfig,
     ):
         # The three parameters:
         #   prompt_response: the user's response to the prompt, or None if no
@@ -71,9 +72,7 @@ class TestActionDetach:
         ]
 
         args = mock.MagicMock(assume_yes=assume_yes)
-        return_code = action_detach(
-            args, FakeConfig.for_attached_machine(tmpdir.strpath)
-        )
+        return_code = action_detach(args, FakeConfig.for_attached_machine())
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:

@@ -4,7 +4,6 @@ import pytest
 from uaclient.cli import action_disable
 from uaclient import exceptions
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
@@ -45,12 +44,12 @@ class TestDisable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template, tmpdir
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check invalid service name results in custom error message."""
         m_getuid.return_value = uid
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "bogus"
@@ -68,12 +67,12 @@ class TestDisable:
         ],
     )
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template, tmpdir
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check that root user gets unattached message."""
         m_getuid.return_value = uid
 
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "esm-infra"

@@ -24,7 +24,7 @@ from uaclient.status import (
     MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL,
 )
 
-from uaclient.testing.fakes import FakeConfig, FakeContractClient
+from uaclient.testing.fakes import FakeContractClient
 
 
 M_PATH = "uaclient.contract."
@@ -101,10 +101,10 @@ class TestProcessEntitlementDeltas:
 class TestGetAvailableResources:
     @mock.patch.object(UAContractClient, "request_resources")
     def test_request_resources_error_on_network_disconnected(
-        self, m_request_resources, tmpdir
+        self, m_request_resources, FakeConfig
     ):
         """Raise error get_available_resources can't contact backend"""
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         urlerror = util.UrlError(
             socket.gaierror(-2, "Name or service not known")
@@ -116,9 +116,9 @@ class TestGetAvailableResources:
         assert urlerror == exc.value
 
     @mock.patch(M_PATH + "UAContractClient")
-    def test_request_resources_from_contract_server(self, client, tmpdir):
+    def test_request_resources_from_contract_server(self, client, FakeConfig):
         """Call UAContractClient.request_resources to get updated resources."""
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
 
         platform = util.get_platform_info()
         resource_params = {
@@ -153,7 +153,7 @@ class TestRequestUpdatedContract:
 
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_and_contract_token_runtime_error(
-        self, client, tmpdir
+        self, client, FakeConfig
     ):
         """When attached, error if called with a contract_token."""
 
@@ -161,7 +161,7 @@ class TestRequestUpdatedContract:
             return FakeContractClient(cfg)
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(RuntimeError) as exc:
             request_updated_contract(cfg, contract_token="something")
 
@@ -173,7 +173,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self, client, get_machine_id, tmpdir
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, invalid token errors result in proper user error."""
 
@@ -192,7 +192,7 @@ class TestRequestUpdatedContract:
             return fake_client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig(tmpdir.strpath)
+        cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg, contract_token="yep")
 
@@ -201,7 +201,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_machine_token_refresh_failure(
-        self, client, get_machine_id, tmpdir
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, error on failure to refresh the machine token."""
 
@@ -218,7 +218,7 @@ class TestRequestUpdatedContract:
             return fake_client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
 
@@ -227,7 +227,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_service_token_refresh_failure(
-        self, client, get_machine_id, tmpdir
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, error on any failed specific service refresh."""
 
@@ -258,9 +258,7 @@ class TestRequestUpdatedContract:
             return fake_client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, machine_token=machine_token
-        )
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
 
@@ -309,7 +307,7 @@ class TestRequestUpdatedContract:
         first_error,
         second_error,
         ux_error_msg,
-        tmpdir,
+        FakeConfig,
     ):
         """Unexpected errors from process_entitlement_delta are raised.
 
@@ -341,9 +339,7 @@ class TestRequestUpdatedContract:
             },
         }
 
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, machine_token=machine_token
-        )
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         fake_client = FakeContractClient(cfg)
         fake_client._responses = {
             self.refresh_route: machine_token,
@@ -366,7 +362,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_machine_token_and_services(
-        self, client, get_machine_id, process_entitlement_delta, tmpdir
+        self, client, get_machine_id, process_entitlement_delta, FakeConfig
     ):
         """When attached, refresh machine token and entitled services.
 
@@ -405,9 +401,7 @@ class TestRequestUpdatedContract:
             return client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, machine_token=machine_token
-        )
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         assert None is request_updated_contract(cfg)
         assert machine_token == cfg.read_cache("machine-token")
 
@@ -438,7 +432,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_errors_on_expired_contract(
-        self, client, get_machine_id, process_entitlement_delta, tmpdir
+        self, client, get_machine_id, process_entitlement_delta, FakeConfig
     ):
         """Error when refreshing contract parses an expired contract token."""
 
@@ -472,9 +466,7 @@ class TestRequestUpdatedContract:
             return client
 
         client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine(
-            tmpdir.strpath, machine_token=machine_token
-        )
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
         assert MESSAGE_CONTRACT_EXPIRED_ERROR == str(exc.value)
