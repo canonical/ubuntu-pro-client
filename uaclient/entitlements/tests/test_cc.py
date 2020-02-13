@@ -16,23 +16,20 @@ from uaclient.entitlements.tests.conftest import machine_token
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
-
-CC_RESOURCE_ENTITLED = {
-    "obligations": {"enableByDefault": False},
-    "entitlement_type": "cc-eal",
-    "entitled": True,
-    "directives": {
+CC_MACHINE_TOKEN = machine_token(
+    entitlement_type="cc-eal",
+    obligations={"enableByDefault": False},
+    entitled=True,
+    directives={
         "aptURL": "http://CC",
         "aptKey": "APTKEY",
         "suites": ["xenial"],
     },
-    "affordances": {
+    affordances={
         "architectures": ["x86_64", "ppc64le", "s390x"],
         "series": ["xenial"],
     },
-}
-
-CC_MACHINE_TOKEN = machine_token(**CC_RESOURCE_ENTITLED)
+)
 
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
