@@ -19,17 +19,17 @@ M_PATH = "uaclient.cli."
 
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionRefresh:
-    def test_non_root_users_are_rejected(self, getuid):
+    def test_non_root_users_are_rejected(self, getuid, tmpdir):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg)
 
-    def test_not_attached_errors(self, getuid):
+    def test_not_attached_errors(self, getuid, tmpdir):
         """Check that an unattached machine emits message and exits 1"""
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
 
         with pytest.raises(exceptions.UnattachedError):
             action_refresh(mock.MagicMock(), cfg)
@@ -37,14 +37,14 @@ class TestActionRefresh:
     @mock.patch(M_PATH + "logging.error")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_error_on_failure_to_update_contract(
-        self, request_updated_contract, logging_error, getuid
+        self, request_updated_contract, logging_error, getuid, tmpdir
     ):
         """On failure in request_updates_contract emit an error."""
         request_updated_contract.side_effect = exceptions.UserFacingError(
             "Failure to refresh"
         )
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(), cfg)
@@ -53,12 +53,12 @@ class TestActionRefresh:
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_happy_path(
-        self, request_updated_contract, getuid, capsys
+        self, request_updated_contract, getuid, capsys, tmpdir
     ):
         """On success from request_updates_contract root user can refresh."""
         request_updated_contract.return_value = True
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         ret = action_refresh(mock.MagicMock(), cfg)
 
         assert 0 == ret

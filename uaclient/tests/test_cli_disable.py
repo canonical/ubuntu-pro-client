@@ -45,12 +45,12 @@ class TestDisable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template
+        self, m_getuid, uid, expected_error_template, tmpdir
     ):
         """Check invalid service name results in custom error message."""
         m_getuid.return_value = uid
 
-        cfg = FakeConfig.for_attached_machine()
+        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "bogus"
@@ -68,12 +68,12 @@ class TestDisable:
         ],
     )
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template
+        self, m_getuid, uid, expected_error_template, tmpdir
     ):
         """Check that root user gets unattached message."""
         m_getuid.return_value = uid
 
-        cfg = FakeConfig()
+        cfg = FakeConfig(tmpdir.strpath)
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
             args.name = "esm-infra"
