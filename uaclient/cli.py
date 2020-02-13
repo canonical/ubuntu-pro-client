@@ -596,6 +596,11 @@ def main_error_handler(func):
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
             sys.exit(exc.exit_code)
+        except Exception:
+            with util.disable_log_to_console():
+                logging.exception("Unhandled exception, please file a bug")
+            print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
+            sys.exit(1)
 
     return wrapper
 

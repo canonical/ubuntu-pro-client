@@ -303,11 +303,7 @@ def request_updated_contract(
                     " {delta}".format(name=name, delta=new_entitlement)
                 )
     if unexpected_error:
-        raise exceptions.UserFacingError(
-            status.MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
-                operation="attach"
-            )
-        )
+        raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
     elif delta_error:
         raise exceptions.UserFacingError(
             status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
