@@ -64,7 +64,7 @@ class TestActionDetach:
         #                   to be disabled by the action
         m_getuid.return_value = 0
 
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         fake_client = FakeContractClient(cfg)
         m_client.return_value = fake_client
 
@@ -113,7 +113,6 @@ class TestActionDetach:
         m_entitlements.ENTITLEMENT_CLASSES = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        fake_client._responses = {"chad": {}}
         m_client.return_value = fake_client
 
         cfg = mock.MagicMock()
@@ -130,7 +129,6 @@ class TestActionDetach:
         m_entitlements.ENTITLEMENT_CLASSES = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        fake_client._responses = {"chad": {}}
         m_client.return_value = fake_client
 
         action_detach(mock.MagicMock(), mock.MagicMock())
@@ -153,7 +151,6 @@ class TestActionDetach:
         m_entitlements.ENTITLEMENT_CLASSES = []
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        fake_client._responses = {"chad": {}}
         m_client.return_value = fake_client
 
         ret = action_detach(mock.MagicMock(), mock.MagicMock())
@@ -206,7 +203,6 @@ class TestActionDetach:
         m_entitlements.ENTITLEMENT_CLASSES = classes
 
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        fake_client._responses = {"chad": {}}
         m_client.return_value = fake_client
 
         action_detach(mock.MagicMock(), mock.MagicMock())
