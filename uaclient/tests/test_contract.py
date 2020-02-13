@@ -34,18 +34,34 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 
 @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
 class TestUAContractClient:
+    @pytest.mark.parametrize(
+        "detach,expected_http_method",
+        ((None, "POST"), (False, "POST"), (True, "DELETE")),
+    )
     @mock.patch("uaclient.contract.util.get_machine_id")
     @mock.patch("uaclient.contract.util.get_platform_info")
-    def test_request_machine_token_update_default(
-        self, get_platform_info, get_machine_id, request_url, tmpdir
+    def test_request_machine_token_update(
+        self,
+        get_platform_info,
+        get_machine_id,
+        request_url,
+        detach,
+        expected_http_method,
+        tmpdir,
     ):
-        """POST to ua-contract server and persist response to cache."""
+        """POST or DELETE to ua-contracts and write machine-token cache.
+
+        Setting detach=True will result in a DELETE operation.
+        """
         get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
         get_machine_id.return_value = "machineId"
         request_url.return_value = ("newtoken", {})
         cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
         client = UAContractClient(cfg)
-        client.request_machine_token_update("mToken", "cId")
+        kwargs = {"machine_token": "mToken", "contract_id": "cId"}
+        if detach is not None:
+            kwargs["detach"] = detach
+        client.request_machine_token_update(**kwargs)
         assert "newtoken" == cfg.read_cache("machine-token")
         assert [
             mock.call(
@@ -56,7 +72,7 @@ class TestUAContractClient:
                     "content-type": "application/json",
                     "Authorization": "Bearer mToken",
                 },
-                method="POST",
+                method=expected_http_method,
                 data={
                     "machineId": "machineId",
                     "architecture": "arch",
