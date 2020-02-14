@@ -140,12 +140,7 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_returns_zero(
-        self,
-        m_client,
-        m_entitlements,
-        m_getuid,
-        _m_prompt,
-        FakeConfig,
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []

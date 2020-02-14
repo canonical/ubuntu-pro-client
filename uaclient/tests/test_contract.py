@@ -47,7 +47,7 @@ class TestUAContractClient:
         request_url,
         detach,
         expected_http_method,
-        tmpdir,
+        FakeConfig,
     ):
         """POST or DELETE to ua-contracts and write machine-token cache.
 
@@ -56,7 +56,7 @@ class TestUAContractClient:
         get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
         get_machine_id.return_value = "machineId"
         request_url.return_value = ("newtoken", {})
-        cfg = FakeConfig.for_attached_machine(tmpdir.strpath)
+        cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
         if detach is not None:
