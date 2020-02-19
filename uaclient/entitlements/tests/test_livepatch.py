@@ -5,6 +5,13 @@ import logging
 import mock
 from types import MappingProxyType
 
+try:
+    from typing import Any, Dict, List  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
+
 import pytest
 
 from uaclient import apt
@@ -29,19 +36,41 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType(
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 
+DEFAULT_AFFORDANCES = {
+    "architectures": ["x86_64"],
+    "minKernelVersion": "4.4",
+    "kernelFlavors": ["generic", "lowlatency"],
+    "tier": "stable",
+}
+
 
 @pytest.fixture
-def entitlement(entitlement_factory):
-    affordances = {
-        "architectures": ["x86_64"],
-        "minKernelVersion": "4.4",
-        "kernelFlavors": ["generic", "lowlatency"],
-        "tier": "stable",
-    }
-    directives = {"caCerts": "", "remoteServer": "https://alt.livepatch.com"}
-    return entitlement_factory(
-        LivepatchEntitlement, affordances=affordances, directives=directives
-    )
+def livepatch_entitlement_factory(entitlement_factory):
+    def factory_func(
+        entitled: bool = True,
+        affordances: "Dict[str, Any]" = None,
+        suites: "List[str]" = None,
+    ):
+        if not affordances:
+            affordances = DEFAULT_AFFORDANCES
+        directives = {
+            "caCerts": "",
+            "remoteServer": "https://alt.livepatch.com",
+        }
+        return entitlement_factory(
+            LivepatchEntitlement,
+            affordances=affordances,
+            directives=directives,
+            entitled=entitled,
+            suites=suites,
+        )
+
+    return factory_func
+
+
+@pytest.fixture
+def entitlement(livepatch_entitlement_factory):
+    return livepatch_entitlement_factory()
 
 
 class TestLivepatchContractStatus:
@@ -49,17 +78,9 @@ class TestLivepatchContractStatus:
         """The contract_status returns ENTITLED when entitled is True."""
         assert ContractStatus.ENTITLED == entitlement.contract_status()
 
-    def test_contract_status_unentitled(self, entitlement):
+    def test_contract_status_unentitled(self, livepatch_entitlement_factory):
         """The contract_status returns NONE when entitled is False."""
-        token = entitlement.cfg.read_cache("machine-token")
-        ent_cfg = entitlement.cfg.entitlements[entitlement.name].get(
-            "entitlement"
-        )
-        ent_cfg["entitled"] = False
-        token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"] = [
-            ent_cfg
-        ]
-        entitlement.cfg.write_cache("machine-token", token)
+        entitlement = livepatch_entitlement_factory(entitled=False)
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
@@ -68,18 +89,13 @@ class TestLivepatchUserFacingStatus:
         "uaclient.entitlements.livepatch.util.is_container", return_value=False
     )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
-        self, _m_is_container, entitlement
+        self, _m_is_container, livepatch_entitlement_factory
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
-        token = entitlement.cfg.read_cache("machine-token")
-        ent_cfg = entitlement.cfg.entitlements[entitlement.name].get(
-            "entitlement"
-        )
-        ent_cfg["affordances"]["series"] = ["bionic"]
-        token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"] = [
-            ent_cfg
-        ]
-        entitlement.cfg.write_cache("machine-token", token)
+        affordances = copy.deepcopy(DEFAULT_AFFORDANCES)
+        affordances["series"] = ["bionic"]
+
+        entitlement = livepatch_entitlement_factory(affordances=affordances)
 
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED

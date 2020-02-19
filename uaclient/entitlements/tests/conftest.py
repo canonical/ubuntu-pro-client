@@ -84,7 +84,14 @@ def entitlement_factory(tmpdir):
     entitlement.
     """
 
-    def factory_func(cls, *, affordances=None, directives=None, suites=None):
+    def factory_func(
+        cls,
+        *,
+        affordances: "Dict[str, Any]" = None,
+        directives: "Dict[str, Any]" = None,
+        entitled: bool = True,
+        suites: "List[str]" = None
+    ):
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache(
             "machine-token",
@@ -92,6 +99,7 @@ def entitlement_factory(tmpdir):
                 cls.name,
                 affordances=affordances,
                 directives=directives,
+                entitled=entitled,
                 suites=suites,
             ),
         )
