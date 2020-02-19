@@ -82,8 +82,8 @@ class TestEntitlements:
                 }
             },
             "resourceTokens": [
-                {"Type": "entitlement1", "Token": "ent1-token"},
-                {"Type": "entitlement2", "Token": "ent2-token"},
+                {"type": "entitlement1", "token": "ent1-token"},
+                {"type": "entitlement2", "token": "ent2-token"},
             ],
         }
         cfg.write_cache("machine-token", token)

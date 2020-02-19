@@ -116,9 +116,7 @@ class UAConfig:
         self._entitlements = {}
         contractInfo = machine_token["machineTokenInfo"]["contractInfo"]
         tokens_by_name = dict(
-            # Handle Upper-case and lower-case keys until the following issue
-            # is fixed: ua-contracts #645
-            (e.get("Type", e.get("type")), e.get("Token", e.get("token")))
+            (e["type"], e["token"])
             for e in machine_token.get("resourceTokens", [])
         )
         ent_by_name = dict(

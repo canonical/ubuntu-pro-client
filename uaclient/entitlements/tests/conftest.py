@@ -21,8 +21,8 @@ def machine_token(
     return {
         "resourceTokens": [
             {
-                "Type": entitlement_type,
-                "Token": "{}-token".format(entitlement_type),
+                "type": entitlement_type,
+                "token": "{}-token".format(entitlement_type),
             }
         ],
         "machineToken": "blah",
