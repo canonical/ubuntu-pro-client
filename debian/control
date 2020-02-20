@@ -37,6 +37,9 @@ Description: management tools for Ubuntu Advantage
 
 Package: ubuntu-advantage-pro
 Architecture: any
-Depends: ubuntu-advantage-tools
+Depends: ubuntu-advantage-tools (>=20.2)
+Replaces: ubuntu-advantage-tools (<<20.2)
+Breaks: ubuntu-advantage-tools (<<20.2)
 Description: utilities and services for Ubuntu Pro images
- FIXME
+ The Ubuntu Pro package delivers additional utilities for use on authorised
+ Ubuntu Pro machines.
