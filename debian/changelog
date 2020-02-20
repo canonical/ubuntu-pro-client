@@ -1,3 +1,24 @@
+ubuntu-advantage-tools (20.2) UNRELEASED; urgency=medium
+
+  * d/templates: add a debconf note on upgrade from pre-ubuntu pro package
+  * d/control: create a separate ubuntu-advantage-pro package which
+      delivers the tooling and scripts necessary to auto-attach pro machines
+      This change breaks/replaces ubuntu-advantage-tools <= 20.1
+  * d/maintscript: rm_conffile /etc/init/ua-auto-attach.conf from ua-tools pkg
+  * d/postint: remove stale systemd symlinks which have migrated to ubuntu-pro
+  * d/rules: only install the apt hook on trusty
+  * d/rules: provide --no-start to debhelper to avoid auto-attach on pkg install
+  * Release 20.2:
+    - ubuntu-pro:
+      + azure: fix detection of DatasourceAzureNet as azure on trusty
+      + generalize identity_doc to return dict instead of string
+      + auto-attach: any 4XX errors during auto-attach are the result of non-Pro
+      + auto-attach: handle 403 errors raised by contract server for invalid vms
+    - attach: persist any status config changes after attach failures
+    - output: add messaging using a different subscription if attached
+
+ -- Chad Smith <chad.smith@canonical.com>  Thu, 20 Feb 2020 11:13:15 -0700
+
 ubuntu-advantage-tools (20.1) xenial; urgency=medium
 
   * Release 20.1:
