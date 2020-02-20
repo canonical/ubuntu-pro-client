@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (20.1) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (20.1) xenial; urgency=medium
 
   * Release 20.1:
     - azure-pro, support for azure ubuntu pro auto-attach:
