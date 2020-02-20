@@ -15,6 +15,8 @@ class UAClientBehaveConfig:
     source of truth for test configuration (rather than having environment
     variable handling throughout the test code).
 
+    :param contract_token:
+        A valid contract token to use during attach scenarios
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
@@ -33,7 +35,7 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["image_clean", "destroy_instances"]
-    str_options = ["reuse_image"]
+    str_options = ["contract_token", "reuse_image"]
 
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
@@ -45,8 +47,11 @@ class UAClientBehaveConfig:
         image_clean: bool = True,
         reuse_image: str = None,
         destroy_instances: bool = True
+        contract_token: str = None,
+        reuse_image: str = None
     ) -> None:
         # First, store the values we've detected
+        self.contract_token = contract_token
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
         self.reuse_image = reuse_image
