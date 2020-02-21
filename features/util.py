@@ -23,7 +23,10 @@ def launch_lxd_container(
     subprocess.run(["lxc", "launch", image_name, container_name])
 
     def cleanup_container() -> None:
-        subprocess.run(["lxc", "delete", "-f", container_name])
+        if not context.config.destroy_instances:
+            print("Leaving lxd container running: {}".format(container_name))
+        else:
+            subprocess.run(["lxc", "delete", "-f", container_name])
 
     context.add_cleanup(cleanup_container)
 
