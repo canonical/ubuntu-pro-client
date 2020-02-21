@@ -54,7 +54,9 @@ def then_i_will_see_on_stdout(context):
 @then("stdout will include")
 def then_and_stdout_will_include(context):
     assert_that(context.process.stdout.strip(), contains_string(context.text))
-
++@then("stdout matches regexp")
++def then_stdout_matches_regexp(context):
++    assert_that(context.process.stdout.strip(), matches_regexp(context.text))
 
 @then("I will see the following on stderr")
 def then_i_will_see_on_stderr(context):
