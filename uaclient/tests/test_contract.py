@@ -210,10 +210,7 @@ class TestRequestUpdatedContract:
             fake_client._responses = {
                 self.refresh_route: exceptions.UserFacingError(
                     "Machine token refresh fail"
-                ),
-                self.access_route_ent1: exceptions.UserFacingError(
-                    "Broken ent1 route"
-                ),
+                )
             }
             return fake_client
 
@@ -246,23 +243,20 @@ class TestRequestUpdatedContract:
 
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
-            fake_client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: exceptions.UserFacingError(
-                    "Broken ent1 route"
-                ),
-                self.access_route_ent2: exceptions.UserFacingError(
-                    "Broken ent2 route"
-                ),
-            }
+            fake_client._responses = {self.refresh_route: machine_token}
             return fake_client
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            request_updated_contract(cfg)
+        with mock.patch(M_PATH + "process_entitlement_delta") as m_process:
+            m_process.side_effect = (
+                exceptions.UserFacingError("broken ent1"),
+                exceptions.UserFacingError("broken ent2"),
+            )
+            with pytest.raises(exceptions.UserFacingError) as exc:
+                request_updated_contract(cfg)
 
-        assert "Broken ent1 route" == str(exc.value)
+        assert MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES == str(exc.value)
 
     @pytest.mark.parametrize(
         "first_error, second_error, ux_error_msg",
@@ -384,26 +378,20 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        new_token = copy.deepcopy(machine_token)
+        new_token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["new"] = "newval"
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
-            # Note ent2 access route is not called
-            client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: {
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-            }
+            client._responses = {self.refresh_route: new_token}
             return client
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         assert None is request_updated_contract(cfg)
-        assert machine_token == cfg.read_cache("machine-token")
+        assert new_token == cfg.read_cache("machine-token")
 
         # Deltas are processed in a sorted fashion so that if enableByDefault
         # is true, the order of enablement operations is the same regardless
@@ -449,20 +437,14 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        new_token = copy.deepcopy(machine_token)
+        new_token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["new"] = "newval"
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
-            # Note ent2 access route is not called
-            client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: {
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-            }
+            client._responses = {self.refresh_route: new_token}
             return client
 
         client.side_effect = fake_contract_client
@@ -470,7 +452,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
         assert MESSAGE_CONTRACT_EXPIRED_ERROR == str(exc.value)
-        assert machine_token == cfg.read_cache("machine-token")
+        assert new_token == cfg.read_cache("machine-token")
 
         # No deltas are processed when contract is expired
         assert 0 == process_entitlement_delta.call_count
