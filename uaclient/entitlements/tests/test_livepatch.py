@@ -3,6 +3,7 @@
 import copy
 import logging
 import mock
+from functools import partial
 from types import MappingProxyType
 
 try:
@@ -46,26 +47,13 @@ DEFAULT_AFFORDANCES = {
 
 @pytest.fixture
 def livepatch_entitlement_factory(entitlement_factory):
-    def factory_func(
-        entitled: bool = True,
-        affordances: "Dict[str, Any]" = None,
-        suites: "List[str]" = None,
-    ):
-        if not affordances:
-            affordances = DEFAULT_AFFORDANCES
-        directives = {
-            "caCerts": "",
-            "remoteServer": "https://alt.livepatch.com",
-        }
-        return entitlement_factory(
-            LivepatchEntitlement,
-            affordances=affordances,
-            directives=directives,
-            entitled=entitled,
-            suites=suites,
-        )
-
-    return factory_func
+    directives = {"caCerts": "", "remoteServer": "https://alt.livepatch.com"}
+    return partial(
+        entitlement_factory,
+        LivepatchEntitlement,
+        affordances=DEFAULT_AFFORDANCES,
+        directives=directives,
+    )
 
 
 @pytest.fixture
