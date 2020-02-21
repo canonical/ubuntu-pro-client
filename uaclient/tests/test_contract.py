@@ -21,7 +21,7 @@ from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_ERROR,
     MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
     MESSAGE_ATTACH_INVALID_TOKEN,
-    MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL,
+    MESSAGE_UNEXPECTED_ERROR,
 )
 
 from uaclient.testing.fakes import FakeContractClient
@@ -269,13 +269,7 @@ class TestRequestUpdatedContract:
                 None,
                 MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
-            (
-                RuntimeError("some APT error"),
-                None,
-                MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
-                    operation="attach"
-                ),
-            ),
+            (RuntimeError("some APT error"), None, MESSAGE_UNEXPECTED_ERROR),
             # Order high-priority RuntimeError as second_error to ensure it
             # is raised as primary error_msg
             (
@@ -284,9 +278,7 @@ class TestRequestUpdatedContract:
                     " esm-infra"
                 ),
                 RuntimeError("some APT error"),  # High-priority ordered 2
-                MESSAGE_UNEXPECTED_ERROR_DURING_OP_TMPL.format(
-                    operation="attach"
-                ),
+                MESSAGE_UNEXPECTED_ERROR,
             ),
         ),
     )
