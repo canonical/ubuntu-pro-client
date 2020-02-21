@@ -35,18 +35,18 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["image_clean", "destroy_instances"]
-    str_options = ["contract_token", "reuse_image"]
+    str_options = ["reuse_image"]
+    redact_options = ["contract_token"]
 
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
-    all_options = boolean_options + str_options
+    all_options = boolean_options + str_options + redact_options
 
     def __init__(
         self,
         *,
         image_clean: bool = True,
-        reuse_image: str = None,
-        destroy_instances: bool = True
+        destroy_instances: bool = True,
         contract_token: str = None,
         reuse_image: str = None
     ) -> None:
@@ -66,7 +66,10 @@ class UAClientBehaveConfig:
         # config options, and means they'll be included in test logs in CI.
         print("Config options:")
         for option in self.all_options:
-            print("  {}".format(option), "=", getattr(self, option, "ERROR"))
+            value = getattr(self, option, "ERROR")
+            if option in self.redact_options and value not in (None, "ERROR"):
+                value = "<REDACTED>"
+            print("  {}".format(option), "=", value)
 
     @classmethod
     def from_environ(cls) -> "UAClientBehaveConfig":
