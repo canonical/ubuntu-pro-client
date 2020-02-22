@@ -16,7 +16,7 @@ except ImportError:
 
 API_ERROR_INVALID_TOKEN = "invalid token"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
-API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE = (
+API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
 API_V1_RESOURCES = "/v1/resources"
@@ -162,16 +162,19 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         @return: Dict of the JSON response containing refreshed machine-token
         """
-        method = "DELETE" if detach else "POST"
-        data = self._get_platform_data(machine_id)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+        data = self._get_platform_data(machine_id)
+        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
             contract=contract_id, machine=data["machineId"]
         )
-        response, headers = self.request_url(
-            url, headers=headers, method=method, data=data
-        )
+        kwargs = {"headers": headers}
+        if detach:
+            kwargs["method"] = "DELETE"
+        else:
+            kwargs["method"] = "POST"
+            kwargs["data"] = data
+        response, headers = self.request_url(url, **kwargs)
         if headers.get("expires"):
             response["expires"] = headers["expires"]
         if not detach:

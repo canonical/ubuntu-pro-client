@@ -7,7 +7,7 @@ import urllib
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
     UAContractClient,
@@ -64,22 +64,23 @@ class TestUAContractClient:
         client._request_machine_token_update(**kwargs)
         if not detach:  # Then we have written the updated cache
             assert "newtoken" == cfg.read_cache("machine-token")
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer mToken",
+            },
+            "method": expected_http_method,
+        }
+        if expected_http_method != "DELETE":
+            params["data"] = {
+                "machineId": "machineId",
+                "architecture": "arch",
+                "os": {"kernel": "kernel"},
+            }
         assert [
-            mock.call(
-                "/v1/contracts/cId/context/machines/machineId",
-                headers={
-                    "user-agent": "UA-Client/{}".format(get_version()),
-                    "accept": "application/json",
-                    "content-type": "application/json",
-                    "Authorization": "Bearer mToken",
-                },
-                method=expected_http_method,
-                data={
-                    "machineId": "machineId",
-                    "architecture": "arch",
-                    "os": {"kernel": "kernel"},
-                },
-            )
+            mock.call("/v1/contracts/cId/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
 
@@ -193,7 +194,7 @@ class TestGetAvailableResources:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
         contract="cid", machine="mid"
     )
     access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
