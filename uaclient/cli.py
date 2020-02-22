@@ -320,9 +320,7 @@ def action_detach(args, cfg):
     contract_client = contract.UAContractClient(cfg)
     machine_token = cfg.machine_token["machineToken"]
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
-    contract_client.request_machine_token_update(
-        machine_token, contract_id, detach=True
-    )
+    contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0

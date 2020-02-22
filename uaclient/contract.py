@@ -122,6 +122,28 @@ class UAContractClient(serviceclient.UAServiceClient):
         return response
 
     def request_machine_token_update(
+        self, machine_token: str, contract_id: str, machine_id: str = None
+    ) -> "Dict":
+        """Update existing machine-token for an attached machine."""
+        return self._request_machine_token_update(
+            machine_token=machine_token,
+            contract_id=contract_id,
+            machine_id=machine_id,
+            detach=False,
+        )
+
+    def detach_machine_from_contract(
+        self, machine_token: str, contract_id: str, machine_id: str = None
+    ) -> "Dict":
+        """Report the attached machine should be detached from the contract."""
+        return self._request_machine_token_update(
+            machine_token=machine_token,
+            contract_id=contract_id,
+            machine_id=machine_id,
+            detach=True,
+        )
+
+    def _request_machine_token_update(
         self,
         machine_token: str,
         contract_id: str,
@@ -152,7 +174,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         )
         if headers.get("expires"):
             response["expires"] = headers["expires"]
-        self.cfg.write_cache("machine-token", response)
+        if not detach:
+            self.cfg.write_cache("machine-token", response)
         return response
 
     def _get_platform_data(self, machine_id):

@@ -40,7 +40,7 @@ class TestUAContractClient:
     )
     @mock.patch("uaclient.contract.util.get_machine_id")
     @mock.patch("uaclient.contract.util.get_platform_info")
-    def test_request_machine_token_update(
+    def test__request_machine_token_update(
         self,
         get_platform_info,
         get_machine_id,
@@ -61,8 +61,9 @@ class TestUAContractClient:
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
         if detach is not None:
             kwargs["detach"] = detach
-        client.request_machine_token_update(**kwargs)
-        assert "newtoken" == cfg.read_cache("machine-token")
+        client._request_machine_token_update(**kwargs)
+        if not detach:  # Then we have written the updated cache
+            assert "newtoken" == cfg.read_cache("machine-token")
         assert [
             mock.call(
                 "/v1/contracts/cId/context/machines/machineId",
