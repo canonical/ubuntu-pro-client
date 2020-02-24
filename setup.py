@@ -22,13 +22,15 @@ def _get_version():
 
 def _get_data_files():
     data_files = [
-        ("/etc/apt/apt.conf.d", ["apt.conf.d/51ubuntu-advantage-esm"]),
         ("/etc/ubuntu-advantage", ["uaclient.conf"]),
         ("/usr/share/keyrings", glob.glob("keyrings/*")),
         (defaults.CONFIG_DEFAULTS["data_dir"], []),
     ]
     rel_major, _rel_minor = util.get_platform_info()["release"].split(".", 1)
     if rel_major == "14":
+        data_files.append(
+            ("/etc/apt/apt.conf.d", ["apt.conf.d/51ubuntu-advantage-esm"])
+        )
         data_files.append(("/etc/init", glob.glob("upstart/*")))
     else:
         data_files.append(("/lib/systemd/system", glob.glob("systemd/*")))
