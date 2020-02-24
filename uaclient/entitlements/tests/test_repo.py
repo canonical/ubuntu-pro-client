@@ -87,7 +87,6 @@ class TestUserFacingStatus:
             "resourceEntitlements"
         ].pop()
         entitlement.cfg.write_cache("machine-token", no_entitlements)
-        entitlement.cfg.delete_cache_key("machine-access-repotest")
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
         applicability, _details = entitlement.applicability_status()
         assert status.ApplicabilityStatus.APPLICABLE == applicability
