@@ -78,6 +78,8 @@ case "$1" in
 
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
+      # machine-access cache files no longer present or used since 20.1
+      rm -rf /var/lib/ubuntu-advantage/private/machine-access*json
 
       if [ "14.04" = "$VERSION_ID" ]; then
         if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
