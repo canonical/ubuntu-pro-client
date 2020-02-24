@@ -121,37 +121,6 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache("contract-token", response)
         return response
 
-    def request_resource_machine_access(
-        self,
-        machine_token: str,
-        resource: str,
-        machine_id: "Optional[str]" = None,
-    ) -> "Dict[str, Any]":
-        """Requests machine access context for a given resource
-
-        @param machine_token: The authentication token needed to talk to
-            this contract service endpoint.
-        @param resource: Entitlement name.
-        @param machine_id: Optional unique system machine id. When absent,
-            contents of /etc/machine-id will be used.
-
-        @return: Dict of the JSON response containing entitlement accessInfo.
-        """
-        if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
-        headers = self.headers()
-        headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
-            resource=resource, machine=machine_id
-        )
-        resource_access, headers = self.request_url(url, headers=headers)
-        if headers.get("expires"):
-            resource_access["expires"] = headers["expires"]
-        self.cfg.write_cache(
-            "machine-access-{}".format(resource), resource_access
-        )
-        return resource_access
-
     def request_machine_token_update(
         self, machine_token, contract_id, machine_id=None
     ):

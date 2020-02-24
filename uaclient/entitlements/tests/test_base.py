@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.base module."""
+import logging
 import mock
 
 import pytest
@@ -164,6 +165,30 @@ class TestUaEntitlement:
             expected_stdout = ""
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.contract.request_updated_contract")
+    def test_can_enable_updates_expired_contract(
+        self,
+        m_request_updated_contract,
+        caplog_text,
+        capsys,
+        concrete_entitlement_factory,
+    ):
+        """When entitlement contract is not enabled, can_enable is False."""
+
+        ent = concrete_entitlement_factory(entitled=False)
+
+        with mock.patch.object(ent, "is_access_expired", return_value=True):
+            assert not ent.can_enable()
+
+        assert [
+            mock.call(ent.cfg)
+        ] == m_request_updated_contract.call_args_list
+        assert (
+            "Updating contract on service 'testconcreteentitlement' expiry"
+            in caplog_text()
+        )
 
     @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_false_on_entitlement_active(
