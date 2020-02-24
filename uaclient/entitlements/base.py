@@ -289,10 +289,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         " `ua status`",
                         self.name,
                     )
-            # Clean up former entitled machine-access-<name> response cache
-            # file because uaclient doesn't access machine-access-* routes or
-            # responses on unentitled services.
-            self.cfg.delete_cache_key("machine-access-{}".format(self.name))
             return True
 
         resourceToken = orig_access.get("resourceToken")

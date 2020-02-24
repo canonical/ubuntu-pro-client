@@ -80,8 +80,8 @@ def entitlement_factory(tmpdir):
 
     The function requires an entitlement class as its first argument, and takes
     keyword arguments for affordances, directives and suites which, if given,
-    replace the default values in the machine-access-*.json file for the
-    entitlement.
+    replace the default values in the resourceEntitlements of the
+    machine-token.json file for the entitlement.
     """
 
     def factory_func(
