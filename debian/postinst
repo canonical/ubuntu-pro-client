@@ -4,6 +4,7 @@ set -e
 
 . /etc/os-release  # For VERSION_ID
 
+
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
 
@@ -74,6 +75,18 @@ case "$1" in
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "19.5~"; then
           # Remove all publicly-readable files
           find /var/lib/ubuntu-advantage/ -maxdepth 1 -type f -delete
+      fi
+
+      # Are we upgrading from a previously release Ubuntu Advantage Pro pkg?
+      # We broke package compatibility in 20.2 for any image with 19.7
+      if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "20.2~"; then
+          if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge-nl "19.7~"; then
+              # Use debconf to alert the user to the additional
+              # ubuntu-advantage-pro package that should be installed
+              . /usr/share/debconf/confmodule
+              db_input high ubuntu-advantage-tools/suggest_pro_pkg || true
+              db_go
+          fi
       fi
 
       # CACHE_DIR is no longer present or used since 19.1
