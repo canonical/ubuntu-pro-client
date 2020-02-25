@@ -1,5 +1,5 @@
 from uaclient.contract import (
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     UAContractClient,
 )
 
@@ -9,7 +9,7 @@ class FakeContractClient(UAContractClient):
     _requests = []
     _responses = {}
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
         contract="cid", machine="mid"
     )
 

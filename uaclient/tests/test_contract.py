@@ -7,7 +7,7 @@ import urllib
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
     UAContractClient,
@@ -23,12 +23,65 @@ from uaclient.status import (
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
 )
+from uaclient.version import get_version
 
 from uaclient.testing.fakes import FakeContractClient
 
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
+
+
+@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+class TestUAContractClient:
+    @pytest.mark.parametrize(
+        "detach,expected_http_method",
+        ((None, "POST"), (False, "POST"), (True, "DELETE")),
+    )
+    @mock.patch("uaclient.contract.util.get_machine_id")
+    @mock.patch("uaclient.contract.util.get_platform_info")
+    def test__request_machine_token_update(
+        self,
+        get_platform_info,
+        get_machine_id,
+        request_url,
+        detach,
+        expected_http_method,
+        FakeConfig,
+    ):
+        """POST or DELETE to ua-contracts and write machine-token cache.
+
+        Setting detach=True will result in a DELETE operation.
+        """
+        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
+        get_machine_id.return_value = "machineId"
+        request_url.return_value = ("newtoken", {})
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        kwargs = {"machine_token": "mToken", "contract_id": "cId"}
+        if detach is not None:
+            kwargs["detach"] = detach
+        client._request_machine_token_update(**kwargs)
+        if not detach:  # Then we have written the updated cache
+            assert "newtoken" == cfg.read_cache("machine-token")
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer mToken",
+            },
+            "method": expected_http_method,
+        }
+        if expected_http_method != "DELETE":
+            params["data"] = {
+                "machineId": "machineId",
+                "architecture": "arch",
+                "os": {"kernel": "kernel"},
+            }
+        assert [
+            mock.call("/v1/contracts/cId/context/machines/machineId", **params)
+        ] == request_url.call_args_list
 
 
 class TestProcessEntitlementDeltas:
@@ -141,7 +194,7 @@ class TestGetAvailableResources:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
         contract="cid", machine="mid"
     )
     access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
