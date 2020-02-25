@@ -2,3 +2,4 @@ rm_conffile /etc/update-motd.d/99-esm 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/update-motd.d/80-esm 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/update-motd.d/80-livepatch 19.1~ ubuntu-advantage-tools
 rm_conffile /etc/cron.daily/ubuntu-advantage-tools 19.1~ ubuntu-advantage-tools
+rm_conffile /etc/init/ua-auto-attach.conf 20.2~ ubuntu-advantage-tools
