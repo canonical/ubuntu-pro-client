@@ -34,3 +34,12 @@ Description: management tools for Ubuntu Advantage
  .
  Subscribers to Ubuntu Advantage will find helpful tools for accessing
  services in this package.
+
+Package: ubuntu-advantage-pro
+Architecture: any
+Depends: ubuntu-advantage-tools (>=20.2)
+Replaces: ubuntu-advantage-tools (<<20.2)
+Breaks: ubuntu-advantage-tools (<<20.2)
+Description: utilities and services for Ubuntu Pro images
+ The Ubuntu Pro package delivers additional utilities for use on authorised
+ Ubuntu Pro machines.

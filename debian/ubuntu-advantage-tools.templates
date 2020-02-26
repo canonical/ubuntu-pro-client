@@ -1,0 +1,6 @@
+Template: ubuntu-advantage-tools/suggest_pro_pkg
+Type: note
+Description: Ubuntu Pro support now requires ubuntu-advantage-pro
+ To install run the following:
+ .
+ sudo apt-get install ubuntu-advantage-pro
