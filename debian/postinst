@@ -21,6 +21,11 @@ ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
 MYARCH="$(dpkg --print-architecture)"
 ESM_SUPPORTED_ARCHS="i386 amd64"
 
+SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-auto-attach.service"
+SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
+SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
+
+
 unconfigure_esm() {
     rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
     rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
@@ -81,6 +86,10 @@ case "$1" in
       # We broke package compatibility in 20.2 for any image with 19.7
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "20.2~"; then
           if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge-nl "19.7~"; then
+              # Drop stale symlinks for migrated auto-attach-service
+              rm -f $SYSTEMD_WANTS_AUTO_ATTACH_LINK
+              rm -f $SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH
+              rm -f $SYSTEMD_HELPER_ENABLED_WANTS_LINK
               # Use debconf to alert the user to the additional
               # ubuntu-advantage-pro package that should be installed
               . /usr/share/debconf/confmodule
