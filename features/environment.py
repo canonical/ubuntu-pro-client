@@ -3,6 +3,8 @@ import os
 import subprocess
 from typing import Dict, Union
 
+from behave.model import Scenario
+
 from behave.runner import Context
 
 from features.util import launch_lxd_container, lxc_exec
@@ -15,6 +17,8 @@ class UAClientBehaveConfig:
     source of truth for test configuration (rather than having environment
     variable handling throughout the test code).
 
+    :param contract_token:
+        A valid contract token to use during attach scenarios
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
@@ -33,7 +37,8 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["image_clean", "destroy_instances"]
-    str_options = ["reuse_image"]
+    str_options = ["contract_token", "reuse_image"]
+    redact_options = ["contract_token"]
 
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
@@ -43,10 +48,12 @@ class UAClientBehaveConfig:
         self,
         *,
         image_clean: bool = True,
+        destroy_instances: bool = True,
         reuse_image: str = None,
-        destroy_instances: bool = True
+        contract_token: str = None
     ) -> None:
         # First, store the values we've detected
+        self.contract_token = contract_token
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
         self.reuse_image = reuse_image
@@ -61,7 +68,10 @@ class UAClientBehaveConfig:
         # config options, and means they'll be included in test logs in CI.
         print("Config options:")
         for option in self.all_options:
-            print("  {}".format(option), "=", getattr(self, option, "ERROR"))
+            value = getattr(self, option, "ERROR")
+            if option in self.redact_options and value not in (None, "ERROR"):
+                value = "<REDACTED>"
+            print("  {}".format(option), "=", value)
 
     @classmethod
     def from_environ(cls) -> "UAClientBehaveConfig":
@@ -99,6 +109,21 @@ def before_all(context: Context) -> None:
         create_trusty_uat_lxd_image(context)
     else:
         context.image_name = context.config.reuse_image
+
+
+def before_scenario(context: Context, scenario: Scenario):
+    for tag in scenario.effective_tags:
+        parts = tag.split(".")
+        if parts[0] == "uses":
+            val = context
+            for attr in parts[1:]:
+                val = getattr(val, attr, None)
+                if val is None:
+                    scenario.skip(
+                        reason="Skipped because tag value was None: {}".format(
+                            tag
+                        )
+                    )
 
 
 def _capture_container_as_image(container_name: str, image_name: str) -> None:
