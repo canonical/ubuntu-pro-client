@@ -459,6 +459,7 @@ class TestLivepatchEntitlementEnable:
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("apt_update_success", (True, False))
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.apt.run_apt_command")
     @mock.patch("uaclient.util.which", return_value=False)
@@ -471,6 +472,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_run_apt,
         m_subp,
+        _m_get_platform_info,
         capsys,
         caplog_text,
         entitlement,
@@ -511,6 +513,7 @@ class TestLivepatchEntitlementEnable:
         ]
         assert expected_calls == m_which.call_args_list
 
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp", return_value=("snapd", ""))
     @mock.patch(
         "uaclient.util.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
@@ -518,7 +521,14 @@ class TestLivepatchEntitlementEnable:
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_installs_only_livepatch_snap_when_absent_but_snapd_present(
-        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
+        self,
+        m_can_enable,
+        m_app_status,
+        m_which,
+        m_subp,
+        _m_get_platform_info,
+        capsys,
+        entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
         application_status = status.ApplicationStatus.ENABLED
@@ -562,12 +572,20 @@ class TestLivepatchEntitlementEnable:
         )
         assert expected_msg == excinfo.value.msg
 
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.which", return_value="/found/livepatch")
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_install_livepatch_snap_when_present(
-        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
+        self,
+        m_can_enable,
+        m_app_status,
+        m_which,
+        m_subp,
+        _m_get_platform_info,
+        capsys,
+        entitlement,
     ):
         """Do not attempt to install livepatch snap when it is present."""
         application_status = status.ApplicationStatus.ENABLED
@@ -576,12 +594,20 @@ class TestLivepatchEntitlementEnable:
         assert self.mocks_config == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
 
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.which", return_value="/found/livepatch")
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.can_enable", return_value=True)
     def test_enable_does_not_disable_inactive_livepatch_snap_when_present(
-        self, m_can_enable, m_app_status, m_which, m_subp, capsys, entitlement
+        self,
+        m_can_enable,
+        m_app_status,
+        m_which,
+        m_subp,
+        _m_get_platform_info,
+        capsys,
+        entitlement,
     ):
         """Do not attempt to disable livepatch snap when it is inactive."""
 

@@ -1,4 +1,5 @@
 """Tests related to uaclient.entitlement.base module."""
+import logging
 import mock
 
 import pytest
@@ -75,10 +76,6 @@ def concrete_entitlement_factory(tmpdir):
             },
         }
         cfg.write_cache("machine-token", machineToken)
-        cfg.write_cache(
-            "machine-access-testconcreteentitlement",
-            {"entitlement": {"entitled": entitled}},
-        )
         return ConcreteTestEntitlement(
             cfg,
             applicability_status=applicability_status,
@@ -164,6 +161,30 @@ class TestUaEntitlement:
             expected_stdout = ""
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.contract.request_updated_contract")
+    def test_can_enable_updates_expired_contract(
+        self,
+        m_request_updated_contract,
+        caplog_text,
+        capsys,
+        concrete_entitlement_factory,
+    ):
+        """When entitlement contract is not enabled, can_enable is False."""
+
+        ent = concrete_entitlement_factory(entitled=False)
+
+        with mock.patch.object(ent, "is_access_expired", return_value=True):
+            assert not ent.can_enable()
+
+        assert [
+            mock.call(ent.cfg)
+        ] == m_request_updated_contract.call_args_list
+        assert (
+            "Updating contract on service 'testconcreteentitlement' expiry"
+            in caplog_text()
+        )
 
     @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_false_on_entitlement_active(
@@ -256,15 +277,9 @@ class TestUaEntitlement:
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        expected = {"entitlement": {"entitled": True}}
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
-        entitlement.process_contract_deltas(orig_access, delta)
-        # Cache was not cleaned
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
+        with mock.patch.object(entitlement, "can_disable") as m_can_disable:
+            entitlement.process_contract_deltas(orig_access, delta)
+        assert 0 == m_can_disable.call_count
 
     @pytest.mark.parametrize(
         "orig_access,delta",
@@ -297,15 +312,11 @@ class TestUaEntitlement:
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        expected = {"entitlement": {"entitled": True}}
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
         entitlement.process_contract_deltas(orig_access, delta)
-        # Cache was not cleaned
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
+        assert (
+            status.ApplicationStatus.DISABLED,
+            mock.ANY,
+        ) == entitlement.application_status()
 
     @pytest.mark.parametrize(
         "orig_access,delta",
@@ -330,15 +341,7 @@ class TestUaEntitlement:
             entitled=True,
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        expected = {"entitlement": {"entitled": True}}
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
         entitlement.process_contract_deltas(orig_access, delta)
-        # Cache was cleaned
-        assert None is entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
         # If an entitlement is disabled, we don't need to tell the user
         # anything about it becoming unentitled
         # (FIXME: Something on bionic means that DEBUG log lines are being
@@ -362,23 +365,15 @@ class TestUaEntitlement:
             ),  # transition to unentitled
         ),
     )
-    def test_process_contract_deltas_disable_clean_cache_on_active_unentitled(
+    def test_process_contract_deltas_disable_on_active_unentitled(
         self, concrete_entitlement_factory, orig_access, delta
     ):
-        """Disable and clear cache when transition active to unentitled."""
+        """Disable when deltas transition from active to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
             application_status=(status.ApplicationStatus.ENABLED, ""),
         )
-        expected = {"entitlement": {"entitled": True}}
-        assert expected == entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
         entitlement.process_contract_deltas(orig_access, delta)
-        # Cache was cleaned
-        assert None is entitlement.cfg.read_cache(
-            "machine-access-testconcreteentitlement"
-        )
         assert (
             status.ApplicationStatus.DISABLED,
             mock.ANY,
