@@ -29,7 +29,7 @@ def when_i_run_command(context, command, user_spec):
     context.process = process
 
 
-@when("I attach `{contrac_token}` {user_spec}")
+@when("I attach `{contract_token}` {user_spec}")
 def when_i_attach_token(context, contract_token, user_spec):
     token = context.config.contract_token
     if not token:
