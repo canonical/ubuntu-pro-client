@@ -20,7 +20,6 @@ from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
 )
-from uaclient.testing.fakes import FakeConfig
 from uaclient.status import ContractStatus, UserFacingStatus
 
 
@@ -69,8 +68,8 @@ class TestEntitlements:
         }
         assert expected == cfg.entitlements
 
-    def test_entitlements_use_machine_access_when_present(self, tmpdir):
-        """Return specific machine-access info if present."""
+    def test_entitlements_uses_resource_token_from_machine_token(self, tmpdir):
+        """Include entitlement-specicific resourceTokens from machine_token"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -82,28 +81,20 @@ class TestEntitlements:
                     ]
                 }
             },
+            "resourceTokens": [
+                {"type": "entitlement1", "token": "ent1-token"},
+                {"type": "entitlement2", "token": "ent2-token"},
+            ],
         }
         cfg.write_cache("machine-token", token)
-        cfg.write_cache(
-            "machine-access-entitlement1",
-            {
-                "entitlement": {
-                    "type": "entitlement1",
-                    "entitled": True,
-                    "more": "data",
-                }
-            },
-        )
         expected = {
             "entitlement1": {
-                "entitlement": {
-                    "entitled": True,
-                    "type": "entitlement1",
-                    "more": "data",
-                }
+                "entitlement": {"entitled": True, "type": "entitlement1"},
+                "resourceToken": "ent1-token",
             },
             "entitlement2": {
-                "entitlement": {"entitled": True, "type": "entitlement2"}
+                "entitlement": {"entitled": True, "type": "entitlement2"},
+                "resourceToken": "ent2-token",
             },
         }
         assert expected == cfg.entitlements
@@ -395,9 +386,11 @@ class TestDeleteCache:
 class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
-    def test_root_unattached(self, _m_getuid, m_get_available_resources):
+    def test_root_unattached(
+        self, _m_getuid, m_get_available_resources, FakeConfig
+    ):
         """Test we get the correct status dict when unattached"""
-        cfg = FakeConfig({})
+        cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
             {"name": "fips", "available": False},
@@ -450,6 +443,7 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
+        FakeConfig,
     ):
         """Test we get the correct status dict when attached with basic conf"""
         resource_names = [resource["name"] for resource in avail_res]
@@ -518,7 +512,7 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_unattached_is_same_as_unattached_root(
-        self, m_getuid, m_get_available_resources
+        self, m_getuid, m_get_available_resources, FakeConfig
     ):
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
@@ -536,7 +530,7 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_root_followed_by_nonroot(
-        self, m_getuid, m_get_available_resources, tmpdir
+        self, m_getuid, m_get_available_resources, tmpdir, FakeConfig
     ):
         """Ensure that non-root run after root returns data"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
@@ -597,6 +591,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_getuid,
         entitlements,
+        FakeConfig,
     ):
         """When attached, return contract and service user-facing status."""
         m_repo_contract_status.return_value = status.ContractStatus.ENTITLED
@@ -664,7 +659,7 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_expires_handled_appropriately(
-        self, m_getuid, _m_get_available_resources
+        self, m_getuid, _m_get_available_resources, FakeConfig
     ):
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -738,6 +733,7 @@ class TestAttachedServiceStatus:
         uf_status,
         in_inapplicable_resources,
         expected_status,
+        FakeConfig,
     ):
         ent = mock.MagicMock()
         ent.name = "test_entitlement"

@@ -1,9 +1,15 @@
 from uaclient.entitlements import repo
+from uaclient import util
+
+try:
+    from typing import Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/esm"
-    # TODO: Restore repo_pin_priority = "never" for trusty
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
@@ -20,4 +26,15 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "ESM Infra"
     description = "UA Infra: Extended Security Maintenance"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
-    # TODO: Restore disable_apt_auth_only for trusty
+
+    @property
+    def repo_pin_priority(self) -> "Optional[str]":
+        """Only trusty esm-infra should peform repo pinning"""
+        if "trusty" == util.get_platform_info()["series"]:
+            return "never"
+        return None  # No pinning on >= trusty
+
+    @property
+    def disable_apt_auth_only(self) -> bool:
+        """Only trusty esm-infra should remove apt auth files upon disable"""
+        return bool("trusty" == util.get_platform_info()["series"])

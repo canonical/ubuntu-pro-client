@@ -12,36 +12,25 @@ from uaclient import apt
 from uaclient import config
 from uaclient import status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
+from uaclient.entitlements.tests.conftest import machine_token
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
-CC_MACHINE_TOKEN = {
-    "machineToken": "blah",
-    "machineTokenInfo": {
-        "contractInfo": {
-            "resourceEntitlements": [{"type": "cc-eal", "entitled": True}]
-        }
+CC_MACHINE_TOKEN = machine_token(
+    entitlement_type="cc-eal",
+    obligations={"enableByDefault": False},
+    entitled=True,
+    directives={
+        "aptURL": "http://CC",
+        "aptKey": "APTKEY",
+        "suites": ["xenial"],
     },
-}
-
-
-CC_RESOURCE_ENTITLED = {
-    "resourceToken": "TOKEN",
-    "entitlement": {
-        "obligations": {"enableByDefault": False},
-        "type": "cc-eal",
-        "entitled": True,
-        "directives": {
-            "aptURL": "http://CC",
-            "aptKey": "APTKEY",
-            "suites": ["xenial"],
-        },
-        "affordances": {
-            "architectures": ["x86_64", "ppc64le", "s390x"],
-            "series": ["xenial"],
-        },
+    affordances={
+        "architectures": ["x86_64", "ppc64le", "s390x"],
+        "series": ["xenial"],
     },
-}
+)
+
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -86,7 +75,6 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         m_platform_info.return_value = unsupported_info
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
@@ -103,7 +91,6 @@ class TestCommonCriteriaEntitlementCanEnable:
         m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
@@ -154,7 +141,6 @@ class TestCommonCriteriaEntitlementEnable:
         m_platform_info.side_effect = fake_platform
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache("machine-token", CC_MACHINE_TOKEN)
-        cfg.write_cache("machine-access-cc-eal", CC_RESOURCE_ENTITLED)
         entitlement = CommonCriteriaEntitlement(cfg)
 
         with mock.patch("uaclient.apt.add_auth_apt_repo") as m_add_apt:
@@ -168,7 +154,7 @@ class TestCommonCriteriaEntitlementEnable:
             mock.call(
                 "/etc/apt/sources.list.d/ubuntu-cc-eal-xenial.list",
                 "http://CC",
-                "TOKEN",
+                "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
             )

@@ -5,12 +5,11 @@ import pytest
 from uaclient.cli import _perform_enable, action_enable
 from uaclient import exceptions
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 
 
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionEnable:
-    def test_non_root_users_are_rejected(self, getuid):
+    def test_non_root_users_are_rejected(self, getuid, FakeConfig):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
@@ -26,7 +25,7 @@ class TestActionEnable:
         ],
     )
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check that root user gets unattached message."""
 
@@ -48,7 +47,7 @@ class TestActionEnable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template
+        self, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check invalid service name results in custom error message."""
 

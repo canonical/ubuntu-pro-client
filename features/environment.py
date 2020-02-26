@@ -22,6 +22,9 @@ class UAClientBehaveConfig:
         A string with an image name that should be used instead of building a
         fresh image for this test run.  If specified, image_clean will be set
         to False.
+    :param destroy_instances:
+        This boolean indicates that test containers should be destroyed after
+        the completion. Set to False to leave instances running.
     """
 
     prefix = "UACLIENT_BEHAVE_"
@@ -29,7 +32,7 @@ class UAClientBehaveConfig:
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
     # the test framework
-    boolean_options = ["image_clean"]
+    boolean_options = ["image_clean", "destroy_instances"]
     str_options = ["reuse_image"]
 
     # This variable is used in .from_environ() but also to emit the "Config
@@ -37,10 +40,15 @@ class UAClientBehaveConfig:
     all_options = boolean_options + str_options
 
     def __init__(
-        self, *, image_clean: bool = True, reuse_image: str = None
+        self,
+        *,
+        image_clean: bool = True,
+        reuse_image: str = None,
+        destroy_instances: bool = True
     ) -> None:
         # First, store the values we've detected
         self.image_clean = image_clean
+        self.destroy_instances = destroy_instances
         self.reuse_image = reuse_image
 
         # Next, perform any required validation

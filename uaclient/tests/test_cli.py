@@ -25,7 +25,6 @@ from uaclient.exceptions import (
     UserFacingError,
     UnattachedError,
 )
-from uaclient.testing.fakes import FakeConfig
 from uaclient import status
 from uaclient import util
 
@@ -139,7 +138,7 @@ class TestAssertRoot:
 # Test multiple uids, to be sure that the root checking is absent
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertAttached:
-    def test_assert_attached_when_attached(self, capsys, uid):
+    def test_assert_attached_when_attached(self, capsys, uid, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             return mock.sentinel.success
@@ -154,7 +153,7 @@ class TestAssertAttached:
         out, _err = capsys.readouterr()
         assert "" == out.strip()
 
-    def test_assert_attached_when_unattached(self, uid):
+    def test_assert_attached_when_unattached(self, uid, FakeConfig):
         @assert_attached()
         def test_function(args, cfg):
             pass
@@ -168,7 +167,7 @@ class TestAssertAttached:
 
 @pytest.mark.parametrize("uid", [0, 1000])
 class TestAssertNotAttached:
-    def test_when_attached(self, uid):
+    def test_when_attached(self, uid, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             pass
@@ -179,7 +178,7 @@ class TestAssertNotAttached:
             with pytest.raises(AlreadyAttachedError):
                 test_function(mock.Mock(), cfg)
 
-    def test_when_not_attached(self, capsys, uid):
+    def test_when_not_attached(self, capsys, uid, FakeConfig):
         @assert_not_attached
         def test_function(args, cfg):
             return mock.sentinel.success
@@ -231,30 +230,50 @@ class TestRequireValidEntitlementName:
 
 
 class TestMain:
+    @pytest.mark.parametrize(
+        "exception,expected_error_msg,expected_log",
+        (
+            (
+                KeyboardInterrupt,
+                "Interrupt received; exiting.\n",
+                "KeyboardInterrupt",
+            ),
+            (
+                TypeError("'NoneType' object is not subscriptable"),
+                status.MESSAGE_UNEXPECTED_ERROR + "\n",
+                "Unhandled exception, please file a bug",
+            ),
+        ),
+    )
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
-    def test_keyboard_interrupt_handled_gracefully(
+    def test_errors_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
         capsys,
         logging_sandbox,
         caplog_text,
+        exception,
+        expected_error_msg,
+        expected_log,
     ):
         m_args = m_get_parser.return_value.parse_args.return_value
-        m_args.action.side_effect = KeyboardInterrupt
+        m_args.action.side_effect = exception
 
         with pytest.raises(SystemExit) as excinfo:
-            main(["some", "args"])
+            with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
+                main()
 
         exc = excinfo.value
         assert 1 == exc.code
 
         out, err = capsys.readouterr()
         assert "" == out
-        assert "Interrupt received; exiting.\n" == err
+        assert expected_error_msg == err
         error_log = caplog_text()
         assert "Traceback (most recent call last):" in error_log
+        assert expected_log in error_log
 
     @pytest.mark.parametrize(
         "exception,expected_exit_code",

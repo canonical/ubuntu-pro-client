@@ -7,7 +7,7 @@ import urllib
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
-    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE,
+    API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
     UAContractClient,
@@ -19,14 +19,69 @@ from uaclient import exceptions
 from uaclient import util
 from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_ERROR,
+    MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
     MESSAGE_ATTACH_INVALID_TOKEN,
+    MESSAGE_UNEXPECTED_ERROR,
 )
+from uaclient.version import get_version
 
-from uaclient.testing.fakes import FakeConfig, FakeContractClient
+from uaclient.testing.fakes import FakeContractClient
 
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
+
+
+@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+class TestUAContractClient:
+    @pytest.mark.parametrize(
+        "detach,expected_http_method",
+        ((None, "POST"), (False, "POST"), (True, "DELETE")),
+    )
+    @mock.patch("uaclient.contract.util.get_machine_id")
+    @mock.patch("uaclient.contract.util.get_platform_info")
+    def test__request_machine_token_update(
+        self,
+        get_platform_info,
+        get_machine_id,
+        request_url,
+        detach,
+        expected_http_method,
+        FakeConfig,
+    ):
+        """POST or DELETE to ua-contracts and write machine-token cache.
+
+        Setting detach=True will result in a DELETE operation.
+        """
+        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
+        get_machine_id.return_value = "machineId"
+        request_url.return_value = ("newtoken", {})
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        kwargs = {"machine_token": "mToken", "contract_id": "cId"}
+        if detach is not None:
+            kwargs["detach"] = detach
+        client._request_machine_token_update(**kwargs)
+        if not detach:  # Then we have written the updated cache
+            assert "newtoken" == cfg.read_cache("machine-token")
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer mToken",
+            },
+            "method": expected_http_method,
+        }
+        if expected_http_method != "DELETE":
+            params["data"] = {
+                "machineId": "machineId",
+                "architecture": "arch",
+                "os": {"kernel": "kernel"},
+            }
+        assert [
+            mock.call("/v1/contracts/cId/context/machines/machineId", **params)
+        ] == request_url.call_args_list
 
 
 class TestProcessEntitlementDeltas:
@@ -99,7 +154,7 @@ class TestProcessEntitlementDeltas:
 class TestGetAvailableResources:
     @mock.patch.object(UAContractClient, "request_resources")
     def test_request_resources_error_on_network_disconnected(
-        self, m_request_resources
+        self, m_request_resources, FakeConfig
     ):
         """Raise error get_available_resources can't contact backend"""
         cfg = FakeConfig()
@@ -114,7 +169,7 @@ class TestGetAvailableResources:
         assert urlerror == exc.value
 
     @mock.patch(M_PATH + "UAContractClient")
-    def test_request_resources_from_contract_server(self, client):
+    def test_request_resources_from_contract_server(self, client, FakeConfig):
         """Call UAContractClient.request_resources to get updated resources."""
         cfg = FakeConfig()
 
@@ -139,7 +194,7 @@ class TestGetAvailableResources:
 
 class TestRequestUpdatedContract:
 
-    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+    refresh_route = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
         contract="cid", machine="mid"
     )
     access_route_ent1 = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
@@ -150,7 +205,9 @@ class TestRequestUpdatedContract:
     )
 
     @mock.patch(M_PATH + "UAContractClient")
-    def test_attached_config_and_contract_token_runtime_error(self, client):
+    def test_attached_config_and_contract_token_runtime_error(
+        self, client, FakeConfig
+    ):
         """When attached, error if called with a contract_token."""
 
         def fake_contract_client(cfg):
@@ -169,7 +226,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self, client, get_machine_id
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, invalid token errors result in proper user error."""
 
@@ -197,7 +254,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_machine_token_refresh_failure(
-        self, client, get_machine_id
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, error on failure to refresh the machine token."""
 
@@ -206,10 +263,7 @@ class TestRequestUpdatedContract:
             fake_client._responses = {
                 self.refresh_route: exceptions.UserFacingError(
                     "Machine token refresh fail"
-                ),
-                self.access_route_ent1: exceptions.UserFacingError(
-                    "Broken ent1 route"
-                ),
+                )
             }
             return fake_client
 
@@ -223,7 +277,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_user_facing_error_on_service_token_refresh_failure(
-        self, client, get_machine_id
+        self, client, get_machine_id, FakeConfig
     ):
         """When attaching, error on any failed specific service refresh."""
 
@@ -242,29 +296,112 @@ class TestRequestUpdatedContract:
 
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
-            fake_client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: exceptions.UserFacingError(
-                    "Broken ent1 route"
-                ),
-                self.access_route_ent2: exceptions.UserFacingError(
-                    "Broken ent2 route"
-                ),
-            }
+            fake_client._responses = {self.refresh_route: machine_token}
             return fake_client
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
-        with pytest.raises(exceptions.UserFacingError) as exc:
-            request_updated_contract(cfg)
+        with mock.patch(M_PATH + "process_entitlement_delta") as m_process:
+            m_process.side_effect = (
+                exceptions.UserFacingError("broken ent1"),
+                exceptions.UserFacingError("broken ent2"),
+            )
+            with pytest.raises(exceptions.UserFacingError) as exc:
+                request_updated_contract(cfg)
 
-        assert "Broken ent1 route" == str(exc.value)
+        assert MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES == str(exc.value)
+
+    @pytest.mark.parametrize(
+        "first_error, second_error, ux_error_msg",
+        (
+            (
+                exceptions.UserFacingError(
+                    "Ubuntu Advantage server provided no aptKey directive for"
+                    " esm-infra"
+                ),
+                None,
+                MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
+            ),
+            (RuntimeError("some APT error"), None, MESSAGE_UNEXPECTED_ERROR),
+            # Order high-priority RuntimeError as second_error to ensure it
+            # is raised as primary error_msg
+            (
+                exceptions.UserFacingError(
+                    "Ubuntu Advantage server provided no aptKey directive for"
+                    " esm-infra"
+                ),
+                RuntimeError("some APT error"),  # High-priority ordered 2
+                MESSAGE_UNEXPECTED_ERROR,
+            ),
+        ),
+    )
+    @mock.patch(M_PATH + "process_entitlement_delta")
+    @mock.patch("uaclient.util.get_machine_id", return_value="mid")
+    @mock.patch(M_PATH + "UAContractClient")
+    def test_user_facing_error_due_to_unexpected_process_entitlement_delta(
+        self,
+        client,
+        get_machine_id,
+        process_entitlement_delta,
+        first_error,
+        second_error,
+        ux_error_msg,
+        FakeConfig,
+    ):
+        """Unexpected errors from process_entitlement_delta are raised.
+
+        Remaining entitlements are processed regardless of error and error is
+        raised at the end.
+
+        Unexpected exceptions take priority over the handled UserFacingErrors.
+        """
+        # Fail first and succeed second call to process_entitlement_delta
+        process_entitlement_delta.side_effect = (
+            first_error,
+            second_error,
+            None,
+        )
+
+        # resourceEntitlements specifically ordered reverse alphabetically
+        # to ensure proper sorting for process_contract_delta calls below
+        machine_token = {
+            "machineToken": "mToken",
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "id": "cid",
+                    "resourceEntitlements": [
+                        {"entitled": False, "type": "ent3"},
+                        {"entitled": False, "type": "ent2"},
+                        {"entitled": True, "type": "ent1"},
+                    ],
+                }
+            },
+        }
+
+        cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        fake_client = FakeContractClient(cfg)
+        fake_client._responses = {
+            self.refresh_route: machine_token,
+            self.access_route_ent1: {
+                "entitlement": {
+                    "entitled": True,
+                    "type": "ent1",
+                    "new": "newval",
+                }
+            },
+        }
+
+        client.return_value = fake_client
+        with pytest.raises(exceptions.UserFacingError) as exc:
+            assert None is request_updated_contract(cfg)
+        assert 3 == process_entitlement_delta.call_count
+        assert ux_error_msg == str(exc.value)
 
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_machine_token_and_services(
-        self, client, get_machine_id, process_entitlement_delta
+        self, client, get_machine_id, process_entitlement_delta, FakeConfig
     ):
         """When attached, refresh machine token and entitled services.
 
@@ -286,26 +423,20 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        new_token = copy.deepcopy(machine_token)
+        new_token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["new"] = "newval"
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
-            # Note ent2 access route is not called
-            client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: {
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-            }
+            client._responses = {self.refresh_route: new_token}
             return client
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
         assert None is request_updated_contract(cfg)
-        assert machine_token == cfg.read_cache("machine-token")
+        assert new_token == cfg.read_cache("machine-token")
 
         # Deltas are processed in a sorted fashion so that if enableByDefault
         # is true, the order of enablement operations is the same regardless
@@ -334,7 +465,7 @@ class TestRequestUpdatedContract:
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_attached_config_refresh_errors_on_expired_contract(
-        self, client, get_machine_id, process_entitlement_delta
+        self, client, get_machine_id, process_entitlement_delta, FakeConfig
     ):
         """Error when refreshing contract parses an expired contract token."""
 
@@ -351,20 +482,14 @@ class TestRequestUpdatedContract:
                 }
             },
         }
+        new_token = copy.deepcopy(machine_token)
+        new_token["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["new"] = "newval"
 
         def fake_contract_client(cfg):
             client = FakeContractClient(cfg)
-            # Note ent2 access route is not called
-            client._responses = {
-                self.refresh_route: machine_token,
-                self.access_route_ent1: {
-                    "entitlement": {
-                        "entitled": True,
-                        "type": "ent1",
-                        "new": "newval",
-                    }
-                },
-            }
+            client._responses = {self.refresh_route: new_token}
             return client
 
         client.side_effect = fake_contract_client
@@ -372,7 +497,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg)
         assert MESSAGE_CONTRACT_EXPIRED_ERROR == str(exc.value)
-        assert machine_token == cfg.read_cache("machine-token")
+        assert new_token == cfg.read_cache("machine-token")
 
         # No deltas are processed when contract is expired
         assert 0 == process_entitlement_delta.call_count

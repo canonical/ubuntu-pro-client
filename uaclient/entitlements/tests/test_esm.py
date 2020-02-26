@@ -19,6 +19,61 @@ def entitlement(request, entitlement_factory):
     return entitlement_factory(request.param, suites=["trusty"])
 
 
+class TestESMRepoPinPriority:
+    @pytest.mark.parametrize(
+        "esm_class, series, repo_pin_priority",
+        (
+            (ESMInfraEntitlement, "trusty", "never"),
+            (ESMInfraEntitlement, "xenial", None),
+            (ESMInfraEntitlement, "bionic", None),
+            (ESMInfraEntitlement, "focal", None),
+            (ESMAppsEntitlement, "trusty", None),
+            (ESMAppsEntitlement, "xenial", None),
+            (ESMAppsEntitlement, "bionic", None),
+            (ESMAppsEntitlement, "focal", None),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_infra_repo_pin_priority_never_on_trusty(
+        self, m_get_platform_info, esm_class, series, repo_pin_priority
+    ):
+        """Repository pinning priority for ESMInfra will be 'never' on trusty.
+
+        A pin priority of 'never' means we setup and advertize ESM Infra
+        packages without allowing them to be installed until someone attaches
+        the machine to Ubuntu Advantage. This is only done for ESM Infra
+        on Trusty. We won't want/need to advertize ESM packages on Xenial or
+        later. Since we don't advertize ESM Apps on any series,
+        repo_pin_priority is None on all series.
+        """
+        m_get_platform_info.return_value = {"series": series}
+        inst = esm_class({})
+        assert repo_pin_priority == inst.repo_pin_priority
+
+
+class TestESMDisableAptAuthOnly:
+    @pytest.mark.parametrize(
+        "esm_class, series, disable_apt_auth_only",
+        (
+            (ESMInfraEntitlement, "trusty", True),
+            (ESMInfraEntitlement, "xenial", False),
+            (ESMInfraEntitlement, "bionic", False),
+            (ESMInfraEntitlement, "focal", False),
+            (ESMAppsEntitlement, "trusty", False),
+            (ESMAppsEntitlement, "xenial", False),
+            (ESMAppsEntitlement, "bionic", False),
+            (ESMAppsEntitlement, "focal", False),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_infra_disable_apt_auth_only_is_true_on_trusty(
+        self, m_get_platform_info, esm_class, series, disable_apt_auth_only
+    ):
+        m_get_platform_info.return_value = {"series": series}
+        inst = esm_class({})
+        assert disable_apt_auth_only is inst.disable_apt_auth_only
+
+
 class TestESMInfraEntitlementEnable:
     def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
         """When entitled, configure apt repo auth token, pinning and url."""
@@ -56,6 +111,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
             # Note that this patch uses a PropertyMock and happens on the
             # entitlement's type because packages is a property
             m_packages = mock.PropertyMock(return_value=patched_packages)
@@ -73,7 +131,7 @@ class TestESMInfraEntitlementEnable:
                     entitlement.name
                 ),
                 "http://{}".format(entitlement.name.upper()),
-                "TOKEN",
+                "{}-token".format(entitlement.name),
                 ["trusty"],
                 entitlement.repo_key_file,
             )
@@ -97,6 +155,17 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        if entitlement.name == "esm-infra":  # Remove "never" apt pref pin
+            unlink_calls = [
+                mock.call(
+                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                        entitlement.name
+                    )
+                )
+            ]
+        else:
+            unlink_calls = []  # esm-apps doesn't write an apt pref file
+        assert unlink_calls == m_unlink.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
         self, entitlement, caplog_text
@@ -145,6 +214,9 @@ class TestESMInfraEntitlementEnable:
                     M_REPOPATH + "os.path.exists", side_effect=fake_exists
                 )
             )
+            m_unlink = stack.enter_context(
+                mock.patch("uaclient.apt.os.unlink")
+            )
 
             m_can_enable.return_value = True
 
@@ -157,7 +229,7 @@ class TestESMInfraEntitlementEnable:
                     entitlement.name
                 ),
                 "http://{}".format(entitlement.name.upper()),
-                "TOKEN",
+                "{}-token".format(entitlement.name),
                 ["trusty"],
                 entitlement.repo_key_file,
             )
@@ -176,10 +248,22 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
+        if entitlement.name == "esm-infra":
+            # Enable esm-infra trusty removes apt preferences pin 'never' file
+            unlink_calls = [
+                mock.call(
+                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+                        entitlement.name
+                    )
+                )
+            ]
+        else:
+            unlink_calls = []  # esm-apps there is no apt pref file to remove
+        assert unlink_calls == m_unlink.call_args_list
         assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
-class TestESMInfraEntitlementDisable:
+class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=False)
@@ -194,49 +278,17 @@ class TestESMInfraEntitlementDisable:
         assert [mock.call(silent)] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
-    @mock.patch(M_REPOPATH + "apt.remove_apt_list_files")
-    @mock.patch(M_REPOPATH + "apt.remove_auth_apt_repo")
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "trusty"}
     )
-    def test_disable_removes_apt_config(
-        self,
-        m_platform_info,
-        m_remove_auth_apt_repo,
-        m_remove_apt_list_files,
-        entitlement,
-        tmpdir,
+    def test_disable_on_can_disable_true_removes_apt_config(
+        self, _m_platform_info, entitlement, tmpdir
     ):
         """When can_disable, disable removes apt configuration"""
 
-        with mock.patch.object(
-            entitlement, "can_disable", return_value=True
-        ) as m_can_disable:
-            with mock.patch("uaclient.entitlements.repo.apt.run_apt_command"):
-                with mock.patch("uaclient.util.subp"):
-                    assert entitlement.disable(True)
-
-        assert [mock.call(True)] == m_can_disable.call_args_list
-
-        expected_key_name = "ubuntu-advantage-{}.gpg".format(
-            entitlement.name
-            if isinstance(entitlement, ESMAppsEntitlement)
-            else entitlement.name + "-trusty"
-        )
-        expected_rm_repo_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
-                    entitlement.name
-                ),
-                "http://{}".format(entitlement.name.upper()),
-                expected_key_name,
-            )
-        ]
-        expected_rm_list_files_calls = [
-            mock.call("http://{}".format(entitlement.name.upper()), "trusty")
-        ]
-        assert expected_rm_repo_calls == m_remove_auth_apt_repo.call_args_list
-        assert (
-            expected_rm_list_files_calls
-            == m_remove_apt_list_files.call_args_list
-        )
+        with mock.patch.object(entitlement, "can_disable", return_value=True):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                assert entitlement.disable(True)
+        assert [mock.call()] == m_remove_apt_config.call_args_list

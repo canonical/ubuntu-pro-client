@@ -4,6 +4,7 @@ import contextlib
 import copy
 import itertools
 import mock
+from functools import partial
 
 import pytest
 
@@ -15,7 +16,6 @@ from uaclient.entitlements.fips import (
     FIPSEntitlement,
     FIPSUpdatesEntitlement,
 )
-from uaclient.entitlements.tests.conftest import machine_access
 from uaclient import exceptions
 
 
@@ -25,9 +25,14 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 
 
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
-def entitlement(request, entitlement_factory):
+def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    return entitlement_factory(request.param)
+    return partial(entitlement_factory, request.param)
+
+
+@pytest.fixture
+def entitlement(fips_entitlement_factory):
+    return fips_entitlement_factory()
 
 
 class TestFIPSEntitlementCanEnable:
@@ -88,7 +93,7 @@ class TestFIPSEntitlementEnable:
                     entitlement.name
                 ),
                 repo_url,
-                "TOKEN",
+                "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
             )
@@ -139,18 +144,10 @@ class TestFIPSEntitlementEnable:
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
     def test_enable_returns_false_on_missing_suites_directive(
-        self, m_platform_info, m_add_apt, entitlement
+        self, m_platform_info, m_add_apt, fips_entitlement_factory
     ):
         """When directives do not contain suites returns false."""
-        # Unset suites directive
-        fips_entitled_no_suites = copy.deepcopy(
-            machine_access(entitlement.name)
-        )
-        fips_entitled_no_suites["entitlement"]["directives"]["suites"] = []
-        entitlement.cfg.write_cache(
-            "machine-access-{}".format(entitlement.name),
-            fips_entitled_no_suites,
-        )
+        entitlement = fips_entitlement_factory(suites=[])
 
         with mock.patch.object(entitlement, "can_enable", return_value=True):
             with pytest.raises(exceptions.UserFacingError) as excinfo:

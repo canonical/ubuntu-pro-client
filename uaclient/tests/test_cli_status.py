@@ -6,7 +6,6 @@ import sys
 
 import pytest
 
-from uaclient.testing.fakes import FakeConfig
 from uaclient import util
 
 from uaclient.cli import action_status
@@ -50,7 +49,9 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
-    def test_attached(self, m_getuid, m_get_avail_resources, capsys):
+    def test_attached(
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+    ):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
         assert 0 == action_status(mock.MagicMock(), cfg)
@@ -68,14 +69,18 @@ class TestActionStatus:
             expected_dash = "\u2014"
         assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
 
-    def test_unattached(self, m_getuid, m_get_avail_resources, capsys):
+    def test_unattached(
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+    ):
         """Check that unattached status is emitted to console"""
         cfg = FakeConfig()
 
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
-    def test_unattached_json(self, m_getuid, m_get_avail_resources, capsys):
+    def test_unattached_json(
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+    ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
@@ -101,7 +106,7 @@ class TestActionStatus:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
-        self, m_getuid, m_get_avail_resources, capsys
+        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Raise UrlError on connectivity issues"""
         m_get_avail_resources.side_effect = util.UrlError(
@@ -118,7 +123,12 @@ class TestActionStatus:
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
     def test_unicode_dash_replacement_when_unprintable(
-        self, _m_getuid, _m_get_avail_resources, encoding, expected_dash
+        self,
+        _m_getuid,
+        _m_get_avail_resources,
+        encoding,
+        expected_dash,
+        FakeConfig,
     ):
         # This test can't use capsys because it doesn't emulate sys.stdout
         # encoding accurately in older versions of pytest

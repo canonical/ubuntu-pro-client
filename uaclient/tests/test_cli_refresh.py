@@ -3,7 +3,6 @@ import mock
 import pytest
 
 from uaclient import exceptions
-from uaclient.testing.fakes import FakeConfig
 
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -19,7 +18,7 @@ M_PATH = "uaclient.cli."
 
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionRefresh:
-    def test_non_root_users_are_rejected(self, getuid):
+    def test_non_root_users_are_rejected(self, getuid, FakeConfig):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
@@ -27,7 +26,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg)
 
-    def test_not_attached_errors(self, getuid):
+    def test_not_attached_errors(self, getuid, FakeConfig):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
 
@@ -37,7 +36,7 @@ class TestActionRefresh:
     @mock.patch(M_PATH + "logging.error")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_error_on_failure_to_update_contract(
-        self, request_updated_contract, logging_error, getuid
+        self, request_updated_contract, logging_error, getuid, FakeConfig
     ):
         """On failure in request_updates_contract emit an error."""
         request_updated_contract.side_effect = exceptions.UserFacingError(
@@ -53,7 +52,7 @@ class TestActionRefresh:
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_happy_path(
-        self, request_updated_contract, getuid, capsys
+        self, request_updated_contract, getuid, capsys, FakeConfig
     ):
         """On success from request_updates_contract root user can refresh."""
         request_updated_contract.return_value = True

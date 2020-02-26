@@ -16,7 +16,7 @@ except ImportError:
 
 API_ERROR_INVALID_TOKEN = "invalid token"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
-API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE = (
+API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
 )
 API_V1_RESOURCES = "/v1/resources"
@@ -121,40 +121,35 @@ class UAContractClient(serviceclient.UAServiceClient):
         self.cfg.write_cache("contract-token", response)
         return response
 
-    def request_resource_machine_access(
+    def request_machine_token_update(
+        self, machine_token: str, contract_id: str, machine_id: str = None
+    ) -> "Dict":
+        """Update existing machine-token for an attached machine."""
+        return self._request_machine_token_update(
+            machine_token=machine_token,
+            contract_id=contract_id,
+            machine_id=machine_id,
+            detach=False,
+        )
+
+    def detach_machine_from_contract(
+        self, machine_token: str, contract_id: str, machine_id: str = None
+    ) -> "Dict":
+        """Report the attached machine should be detached from the contract."""
+        return self._request_machine_token_update(
+            machine_token=machine_token,
+            contract_id=contract_id,
+            machine_id=machine_id,
+            detach=True,
+        )
+
+    def _request_machine_token_update(
         self,
         machine_token: str,
-        resource: str,
-        machine_id: "Optional[str]" = None,
-    ) -> "Dict[str, Any]":
-        """Requests machine access context for a given resource
-
-        @param machine_token: The authentication token needed to talk to
-            this contract service endpoint.
-        @param resource: Entitlement name.
-        @param machine_id: Optional unique system machine id. When absent,
-            contents of /etc/machine-id will be used.
-
-        @return: Dict of the JSON response containing entitlement accessInfo.
-        """
-        if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
-        headers = self.headers()
-        headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
-            resource=resource, machine=machine_id
-        )
-        resource_access, headers = self.request_url(url, headers=headers)
-        if headers.get("expires"):
-            resource_access["expires"] = headers["expires"]
-        self.cfg.write_cache(
-            "machine-access-{}".format(resource), resource_access
-        )
-        return resource_access
-
-    def request_machine_token_update(
-        self, machine_token, contract_id, machine_id=None
-    ):
+        contract_id: str,
+        machine_id: str = None,
+        detach: bool = False,
+    ) -> "Dict":
         """Request machine token refresh from contract server.
 
         @param machine_token: The machine token needed to talk to
@@ -162,19 +157,28 @@ class UAContractClient(serviceclient.UAServiceClient):
         @param contract_id: Unique contract id provided by contract service.
         @param machine_id: Optional unique system machine id. When absent,
             contents of /etc/machine-id will be used.
+        @param detach: Boolean set True if detaching this machine from the
+            active contract. Default is False.
 
         @return: Dict of the JSON response containing refreshed machine-token
         """
-        data = self._get_platform_data(machine_id)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
-        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_UPDATE.format(
+        data = self._get_platform_data(machine_id)
+        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
             contract=contract_id, machine=data["machineId"]
         )
-        response, headers = self.request_url(url, headers=headers, data=data)
+        kwargs = {"headers": headers}
+        if detach:
+            kwargs["method"] = "DELETE"
+        else:
+            kwargs["method"] = "POST"
+            kwargs["data"] = data
+        response, headers = self.request_url(url, **kwargs)
         if headers.get("expires"):
             response["expires"] = headers["expires"]
-        self.cfg.write_cache("machine-token", response)
+        if not detach:
+            self.cfg.write_cache("machine-token", response)
         return response
 
     def _get_platform_data(self, machine_id):
@@ -279,30 +283,32 @@ def request_updated_contract(
             raise exceptions.UserFacingError(
                 status.MESSAGE_CONTRACT_EXPIRED_ERROR
             )
-    user_errors = []
-    for name, entitlement in sorted(cfg.entitlements.items()):
-        if entitlement["entitlement"].get("entitled"):
-            # Obtain each entitlement's accessContext for this machine
-            new_access = contract_client.request_resource_machine_access(
-                new_token["machineToken"], name
-            )
-        else:
-            new_access = entitlement
+    delta_error = False
+    unexpected_error = False
+    for name, new_entitlement in sorted(cfg.entitlements.items()):
         try:
             process_entitlement_delta(
                 orig_entitlements.get(name, {}),
-                new_access,
+                new_entitlement,
                 allow_enable=allow_enable,
             )
-        except exceptions.UserFacingError as e:
-            user_errors.append(e)
-        except Exception as e:
+        except exceptions.UserFacingError:
+            delta_error = True
             with util.disable_log_to_console():
-                logging.exception(str(e))
-            raise exceptions.UserFacingError(
-                "Unexpected error handling Ubuntu Advantage contract changes"
-            )
-    if user_errors:
+                logging.exception(
+                    "Failed to process contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_entitlement)
+                )
+        except Exception:
+            unexpected_error = True
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Unexpected error processing contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_entitlement)
+                )
+    if unexpected_error:
+        raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
+    elif delta_error:
         raise exceptions.UserFacingError(
             status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
         )

@@ -317,6 +317,10 @@ def action_detach(args, cfg):
         return 1
     for ent in to_disable:
         ent.disable(silent=True)
+    contract_client = contract.UAContractClient(cfg)
+    machine_token = cfg.machine_token["machineToken"]
+    contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
+    contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
@@ -596,6 +600,11 @@ def main_error_handler(func):
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
             sys.exit(exc.exit_code)
+        except Exception:
+            with util.disable_log_to_console():
+                logging.exception("Unhandled exception, please file a bug")
+            print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
+            sys.exit(1)
 
     return wrapper
 

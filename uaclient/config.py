@@ -41,23 +41,6 @@ DataPath = namedtuple("DataPath", ("filename", "private"))
 class UAConfig:
 
     data_paths = {
-        "machine-access-cc-eal": DataPath("machine-access-cc-eal.json", True),
-        "machine-access-cis-audit": DataPath(
-            "machine-access-cis-audit.json", True
-        ),
-        "machine-access-esm-infra": DataPath(
-            "machine-access-esm-infra.json", True
-        ),
-        "machine-access-fips": DataPath("machine-access-fips.json", True),
-        "machine-access-fips-updates": DataPath(
-            "machine-access-fips-updates.json", True
-        ),
-        "machine-access-livepatch": DataPath(
-            "machine-access-livepatch.json", True
-        ),
-        "machine-access-support": DataPath(
-            "machine-access-support.json", True
-        ),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
         "status-cache": DataPath("status.json", False),
@@ -115,19 +98,19 @@ class UAConfig:
 
         self._entitlements = {}
         contractInfo = machine_token["machineTokenInfo"]["contractInfo"]
-
+        tokens_by_name = dict(
+            (e["type"], e["token"])
+            for e in machine_token.get("resourceTokens", [])
+        )
         ent_by_name = dict(
             (e["type"], e) for e in contractInfo["resourceEntitlements"]
         )
         for entitlement_name, ent_value in ent_by_name.items():
-            entitlement_cfg = {}
-            if ent_value.get("entitled"):
-                entitlement_cfg = self.read_cache(
-                    "machine-access-{}".format(entitlement_name), silent=True
-                )
-            if not entitlement_cfg:
-                # Fallback to machine-token info on unentitled
-                entitlement_cfg = {"entitlement": ent_value}
+            entitlement_cfg = {"entitlement": ent_value}
+            if entitlement_name in tokens_by_name:
+                entitlement_cfg["resourceToken"] = tokens_by_name[
+                    entitlement_name
+                ]
             util.apply_series_overrides(entitlement_cfg)
             self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
@@ -173,7 +156,7 @@ class UAConfig:
             raise RuntimeError(
                 "Invalid or empty key provided to delete_cache_key"
             )
-        if key.startswith("machine-access") or key == "machine-token":
+        if key == "machine-token":
             self._entitlements = None
             self._machine_token = None
         cache_path = self.data_path(key)
@@ -204,7 +187,7 @@ class UAConfig:
             os.makedirs(data_dir)
             if os.path.basename(data_dir) == PRIVATE_SUBDIR:
                 os.chmod(data_dir, 0o700)
-        if key.startswith("machine-access") or key == "machine-token":
+        if key == "machine-token":
             self._machine_token = None
             self._entitlements = None
         if not isinstance(content, str):

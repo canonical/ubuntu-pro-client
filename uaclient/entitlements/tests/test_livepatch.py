@@ -3,7 +3,15 @@
 import copy
 import logging
 import mock
+from functools import partial
 from types import MappingProxyType
+
+try:
+    from typing import Any, Dict, List  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 import pytest
 
@@ -29,19 +37,28 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType(
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 
+DEFAULT_AFFORDANCES = {
+    "architectures": ["x86_64"],
+    "minKernelVersion": "4.4",
+    "kernelFlavors": ["generic", "lowlatency"],
+    "tier": "stable",
+}
+
 
 @pytest.fixture
-def entitlement(entitlement_factory):
-    affordances = {
-        "architectures": ["x86_64"],
-        "minKernelVersion": "4.4",
-        "kernelFlavors": ["generic", "lowlatency"],
-        "tier": "stable",
-    }
+def livepatch_entitlement_factory(entitlement_factory):
     directives = {"caCerts": "", "remoteServer": "https://alt.livepatch.com"}
-    return entitlement_factory(
-        LivepatchEntitlement, affordances=affordances, directives=directives
+    return partial(
+        entitlement_factory,
+        LivepatchEntitlement,
+        affordances=DEFAULT_AFFORDANCES,
+        directives=directives,
     )
+
+
+@pytest.fixture
+def entitlement(livepatch_entitlement_factory):
+    return livepatch_entitlement_factory()
 
 
 class TestLivepatchContractStatus:
@@ -49,11 +66,9 @@ class TestLivepatchContractStatus:
         """The contract_status returns ENTITLED when entitled is True."""
         assert ContractStatus.ENTITLED == entitlement.contract_status()
 
-    def test_contract_status_unentitled(self, entitlement):
+    def test_contract_status_unentitled(self, livepatch_entitlement_factory):
         """The contract_status returns NONE when entitled is False."""
-        entitlement.cfg.write_cache(
-            "machine-access-livepatch", {"entitlement": {"entitled": False}}
-        )
+        entitlement = livepatch_entitlement_factory(entitled=False)
         assert ContractStatus.UNENTITLED == entitlement.contract_status()
 
 
@@ -62,16 +77,13 @@ class TestLivepatchUserFacingStatus:
         "uaclient.entitlements.livepatch.util.is_container", return_value=False
     )
     def test_user_facing_status_inapplicable_on_inapplicable_status(
-        self, _m_is_container, entitlement
+        self, _m_is_container, livepatch_entitlement_factory
     ):
         """The user-facing details INAPPLICABLE applicability_status"""
-        livepatch_bionic = entitlement.cfg.read_cache(
-            "machine-access-livepatch"
-        )
-        livepatch_bionic["entitlement"]["affordances"]["series"] = ["bionic"]
-        entitlement.cfg.write_cache(
-            "machine-access-livepatch", livepatch_bionic
-        )
+        affordances = copy.deepcopy(DEFAULT_AFFORDANCES)
+        affordances["series"] = ["bionic"]
+
+        entitlement = livepatch_entitlement_factory(affordances=affordances)
 
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
@@ -416,7 +428,8 @@ class TestLivepatchEntitlementEnable:
         ),
         mock.call(["/snap/bin/canonical-livepatch", "disable"]),
         mock.call(
-            ["/snap/bin/canonical-livepatch", "enable", "TOKEN"], capture=True
+            ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
+            capture=True,
         ),
     ]
 
@@ -610,7 +623,7 @@ class TestLivepatchEntitlementEnable:
                 capture=True,
             ),
             mock.call(
-                ["/snap/bin/canonical-livepatch", "enable", "TOKEN"],
+                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
                 capture=True,
             ),
         ]

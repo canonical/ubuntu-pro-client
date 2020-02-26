@@ -15,7 +15,6 @@ from uaclient.exceptions import (
     NonAutoAttachImageError,
 )
 from uaclient import status
-from uaclient.testing.fakes import FakeConfig
 from uaclient.tests.test_cli_attach import BASIC_MACHINE_TOKEN
 from uaclient import util
 
@@ -23,7 +22,7 @@ M_PATH = "uaclient.cli."
 
 
 @mock.patch(M_PATH + "os.getuid")
-def test_non_root_users_are_rejected(getuid):
+def test_non_root_users_are_rejected(getuid, FakeConfig):
     """Check that a UID != 0 will receive a message and exit non-zero"""
     getuid.return_value = 1
 
@@ -43,7 +42,7 @@ class TestGetContractTokenFromCloudIdentity:
     )
     @mock.patch("uaclient.clouds.identity.get_cloud_type")
     def test_non_aws_cloud_type_raises_error(
-        self, m_get_cloud_type, cloud_type
+        self, m_get_cloud_type, cloud_type, FakeConfig
     ):
         """Non-aws clouds will error."""
         m_get_cloud_type.return_value = cloud_type
@@ -77,6 +76,7 @@ class TestGetContractTokenFromCloudIdentity:
         http_msg,
         http_code,
         http_response,
+        FakeConfig,
     ):
         """VMs running on non-auto-attach images do not return a token."""
 
@@ -101,6 +101,7 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
+        FakeConfig,
     ):
         """Any unexpected errors will be raised."""
 
@@ -127,6 +128,7 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
+        FakeConfig,
     ):
         """Return token from the contract server using the identity."""
 
@@ -144,7 +146,7 @@ class TestGetContractTokenFromCloudIdentity:
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
-    def test_already_attached(self, _m_getuid):
+    def test_already_attached(self, _m_getuid, FakeConfig):
         """Check that an attached machine raises AlreadyAttachedError."""
         account_name = "test_account"
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
@@ -159,6 +161,7 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
+        FakeConfig,
     ):
         """Noop when _get_contract_token_from_cloud_identity finds no token"""
         exc = NonAutoAttachImageError("msg")
@@ -177,6 +180,7 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
+        FakeConfig,
     ):
         """A mock-heavy test for the happy path on auto attach AWS"""
         # TODO: Improve this test with less general mocking and more

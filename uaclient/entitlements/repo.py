@@ -29,10 +29,14 @@ class RepoEntitlement(base.UAEntitlement):
     origin = None  # type: Optional[str]
 
     # Optional repo pin priority in subclass
-    repo_pin_priority = None  # type: Union[int, str, None]
+    @property
+    def repo_pin_priority(self) -> "Union[int, str, None]":
+        return None
 
     # disable_apt_auth_only (ESM) to only remove apt auth files on disable
-    disable_apt_auth_only = False  # Set True on ESM to only remove apt auth
+    @property
+    def disable_apt_auth_only(self) -> bool:
+        return False  # Set True on ESM to only remove apt auth
 
     # Any custom messages to emit pre or post enable or disable operations;
     # currently post_enable is used in CommonCriteria
@@ -263,17 +267,15 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(
             name=self.name, series=series
         )
-        entitlement = self.cfg.read_cache(
-            "machine-access-{}".format(self.name)
-        ).get("entitlement", {})
+        entitlement = self.cfg.entitlements[self.name].get("entitlement", {})
         access_directives = entitlement.get("directives", {})
         repo_url = access_directives.get("aptURL")
         if not repo_url:
             raise exceptions.MissingAptURLDirective(self.name)
         if self.disable_apt_auth_only:
-            # We only remove the repo from the apt auth file, because ESM
+            # We only remove the repo from the apt auth file, because ESM Infra
             # is a special-case: we want to be able to report on the
-            # available ESM updates even when it's disabled
+            # available ESM Infra updates even when it's disabled
             apt.remove_repo_from_apt_auth_file(repo_url)
             apt.restore_commented_apt_list_file(repo_filename)
         else:

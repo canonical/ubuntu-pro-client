@@ -4,6 +4,14 @@ import mock
 
 import pytest
 
+from uaclient.config import UAConfig
+
+try:
+    from typing import Any, Dict, Optional  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 
 @pytest.fixture
 def caplog_text(request):
@@ -69,3 +77,35 @@ def logging_sandbox():
                 logging.Logger, "manager", logging.Manager(root_logger)
             ):
                 yield
+
+
+@pytest.fixture
+def FakeConfig(tmpdir):
+    class _FakeConfig(UAConfig):
+        def __init__(self) -> None:
+            super().__init__({"data_dir": tmpdir.strpath})
+
+        @classmethod
+        def for_attached_machine(
+            cls,
+            account_name: str = "test_account",
+            machine_token: "Dict[str, Any]" = None,
+        ):
+            if not machine_token:
+                machine_token = {
+                    "availableResources": [],
+                    "machineToken": "not-null",
+                    "machineTokenInfo": {
+                        "accountInfo": {"id": "acct-1", "name": account_name},
+                        "contractInfo": {
+                            "id": "cid",
+                            "name": "test_contract",
+                            "resourceEntitlements": [],
+                        },
+                    },
+                }
+            config = cls()
+            config.write_cache("machine-token", machine_token)
+            return config
+
+    return _FakeConfig

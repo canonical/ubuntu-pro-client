@@ -191,6 +191,10 @@ To obtain a token please visit: https://ubuntu.com/advantage"""
 MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL = """\
 Cannot {operation} '{name}'
 For a list of services see: sudo ua status"""
+MESSAGE_UNEXPECTED_ERROR = """\
+Unexpected error(s) occurred.
+For more details, see the log: /var/log/ubuntu-advantage.log
+To file a bug run: ubuntu-bug ubuntu-advantage-tools"""
 MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL = """\
 To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
