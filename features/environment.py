@@ -120,7 +120,10 @@ def before_scenario(context: Context, scenario: Scenario):
                 val = getattr(val, attr, None)
                 if val is None:
                     scenario.skip(
-                       reason="Skipped because tag value was None: {}".format(tag))
+                        reason="Skipped because tag value was None: {}".format(
+                            tag
+                        )
+                    )
 
 
 def _capture_container_as_image(container_name: str, image_name: str) -> None:
