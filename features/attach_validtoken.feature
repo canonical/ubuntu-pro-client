@@ -1,6 +1,7 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
+    @uses.config.contract_token
     Scenario: Attach command in a trusty lxd container
        Given a trusty lxd container with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

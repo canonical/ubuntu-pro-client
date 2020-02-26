@@ -32,10 +32,6 @@ def when_i_run_command(context, command, user_spec):
 @when("I attach `{contract_token}` {user_spec}")
 def when_i_attach_token(context, contract_token, user_spec):
     token = context.config.contract_token
-    if not token:
-        context.feature.skip(
-            "Skipping test because you didn't provide a token"
-        )
     when_i_run_command(context, "ua attach %s" % token, user_spec)
 
 

@@ -3,6 +3,8 @@ import os
 import subprocess
 from typing import Dict, Union
 
+from behave.model import Scenario
+
 from behave.runner import Context
 
 from features.util import launch_lxd_container, lxc_exec
@@ -107,6 +109,18 @@ def before_all(context: Context) -> None:
         create_trusty_uat_lxd_image(context)
     else:
         context.image_name = context.config.reuse_image
+
+
+def before_scenario(context: Context, scenario: Scenario):
+    for tag in scenario.effective_tags:
+        parts = tag.split(".")
+        if parts[0] == "uses":
+            val = context
+            for attr in parts[1:]:
+                val = getattr(val, attr, None)
+                if val is None:
+                    scenario.skip(
+                       reason="Skipped because tag value was None: {}".format(tag))
 
 
 def _capture_container_as_image(container_name: str, image_name: str) -> None:
