@@ -104,6 +104,8 @@ def before_all(context: Context) -> None:
     then capture an image.  This image is then reused by each feature, reducing
     test execution time.
     """
+    userdata = context.config.userdata
+    context.reuse_container = userdata.get("reuse_container")
     context.config = UAClientBehaveConfig.from_environ()
     if context.config.reuse_image is None:
         create_trusty_uat_lxd_image(context)
@@ -149,13 +151,6 @@ def create_trusty_uat_lxd_image(context: Context) -> None:
     :param context:
         A `behave.runner.Context`; this will have `image_name` set on it.
     """
-    now = datetime.datetime.now()
-    context.image_name = "behave-image-" + now.strftime("%s%f")
-    build_container_name = "behave-image-build-" + now.strftime("%s%f")
-
-    launch_lxd_container(context, "ubuntu:trusty", build_container_name)
-    _install_uat_in_container(build_container_name)
-    _capture_container_as_image(build_container_name, context.image_name)
 
     def image_cleanup() -> None:
         if context.config.image_clean:
@@ -163,7 +158,16 @@ def create_trusty_uat_lxd_image(context: Context) -> None:
         else:
             print("Image cleanup disabled, not deleting:", context.image_name)
 
-    context.add_cleanup(image_cleanup)
+    if context.reuse_container:
+        print(" Reusing the existent container: ", context.reuse_container)
+    else:
+        now = datetime.datetime.now()
+        context.image_name = "behave-image-" + now.strftime("%s%f")
+        build_container_name = "behave-image-build-" + now.strftime("%s%f")
+        launch_lxd_container(context, "ubuntu:trusty", build_container_name)
+        _install_uat_in_container(build_container_name)
+        _capture_container_as_image(build_container_name, context.image_name)
+        context.add_cleanup(image_cleanup)
 
 
 def _install_uat_in_container(container_name: str) -> None:
