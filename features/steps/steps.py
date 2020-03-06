@@ -12,9 +12,14 @@ CONTAINER_PREFIX = "behave-test-"
 
 @given("a trusty lxd container with ubuntu-advantage-tools installed")
 def given_a_trusty_lxd_container(context):
-    now = datetime.datetime.now()
-    context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
-    launch_lxd_container(context, context.image_name, context.container_name)
+    if context.reuse_container:
+        context.container_name = context.reuse_container
+    else:
+        now = datetime.datetime.now()
+        context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
+        launch_lxd_container(
+            context, context.image_name, context.container_name
+        )
 
 
 @when("I run `{command}` {user_spec}")
