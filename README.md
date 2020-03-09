@@ -96,6 +96,14 @@ image build step).
 performed in `features/environment.py`, so don't expect to find
 documentation about it outside of this codebase.)
 
+For development purposes there is `reuse_container` option.
+If you would like to run behave tests in an existing container
+you need to add `-D reuse_container=container_name`:
+
+```sh
+tox -e behave -D reuse_container=container_name
+```
+
 ## Building
 
 The packaging for the UA client package (ubuntu-advantage-tools) is
