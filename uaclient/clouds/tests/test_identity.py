@@ -5,6 +5,7 @@ import pytest
 
 from uaclient.clouds.identity import (
     cloud_instance_factory,
+    get_instance_id,
     get_cloud_type,
     get_cloud_type_from_result_file,
 )
@@ -12,6 +13,32 @@ from uaclient import exceptions
 from uaclient import status
 
 M_PATH = "uaclient.clouds.identity."
+
+
+class TestGetInstanceID:
+    @mock.patch(M_PATH + "util.subp", return_value=("my-iid\n", ""))
+    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
+    def test_use_cloud_init_query_when_cloud_id_available(
+        self, m_which, m_subp
+    ):
+        """Get instance_id from cloud-init query when cloud-id available."""
+        assert "my-iid" == get_instance_id(iid_file="IRRELEVANT")
+        assert [mock.call("cloud-id")] == m_which.call_args_list
+        assert [
+            mock.call(["cloud-init", "query", "instance_id"])
+        ] == m_subp.call_args_list
+
+    @mock.patch(M_PATH + "util.subp", return_value=("mi-iid\n", ""))
+    @mock.patch(M_PATH + "util.which", return_value=None)
+    def test_use_var_lib_cloud_data_instance_id_when_cloud_id_unavailable(
+        self, m_which, m_subp, tmpdir
+    ):
+        """Get instance-id from cloud-init instance-id artifact"""
+        iid_file = tmpdir.join("instance-id")
+        iid_file.write("persisted-iid")
+        assert "persisted-iid" == get_instance_id(iid_file=iid_file.strpath)
+        assert [mock.call("cloud-id")] == m_which.call_args_list
+        assert 0 == m_subp.call_count
 
 
 class TestGetCloudTypeFromResultFile:
