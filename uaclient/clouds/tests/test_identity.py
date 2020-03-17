@@ -16,28 +16,31 @@ M_PATH = "uaclient.clouds.identity."
 
 
 class TestGetInstanceID:
+    @pytest.mark.parametrize("series", ("xenial", "bionic", "eoan", "focal"))
     @mock.patch(M_PATH + "util.subp", return_value=("my-iid\n", ""))
-    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
-    def test_use_cloud_init_query_when_cloud_id_available(
-        self, m_which, m_subp
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_use_cloud_init_query_when_non_trusty(
+        self, m_get_platform_info, m_subp, series
     ):
-        """Get instance_id from cloud-init query when cloud-id available."""
-        assert "my-iid" == get_instance_id(iid_file="IRRELEVANT")
-        assert [mock.call("cloud-id")] == m_which.call_args_list
+        """Get instance_id from cloud-init query when not on trusty."""
+        m_get_platform_info.return_value = {"series": series}
+        assert "my-iid" == get_instance_id(_iid_file="IRRELEVANT")
+        assert 1 == m_get_platform_info.call_count
         assert [
             mock.call(["cloud-init", "query", "instance_id"])
         ] == m_subp.call_args_list
 
     @mock.patch(M_PATH + "util.subp", return_value=("mi-iid\n", ""))
-    @mock.patch(M_PATH + "util.which", return_value=None)
+    @mock.patch(M_PATH + "util.get_platform_info")
     def test_use_var_lib_cloud_data_instance_id_when_cloud_id_unavailable(
-        self, m_which, m_subp, tmpdir
+        self, m_get_platform_info, m_subp, tmpdir
     ):
-        """Get instance-id from cloud-init instance-id artifact"""
+        """Get instance-id from cloud-init instance-id artifact on trusty"""
+        m_get_platform_info.return_value = {"series": "trusty"}
         iid_file = tmpdir.join("instance-id")
         iid_file.write("persisted-iid")
-        assert "persisted-iid" == get_instance_id(iid_file=iid_file.strpath)
-        assert [mock.call("cloud-id")] == m_which.call_args_list
+        assert "persisted-iid" == get_instance_id(_iid_file=iid_file.strpath)
+        assert 1 == m_get_platform_info.call_count
         assert 0 == m_subp.call_count
 
 
