@@ -41,6 +41,7 @@ DataPath = namedtuple("DataPath", ("filename", "private"))
 class UAConfig:
 
     data_paths = {
+        "instance-id": DataPath("instance-id", True),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
         "status-cache": DataPath("status.json", False),

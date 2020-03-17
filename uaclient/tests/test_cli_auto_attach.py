@@ -1,4 +1,5 @@
 import mock
+import os
 
 import pytest
 
@@ -119,6 +120,9 @@ class TestGetContractTokenFromCloudIdentity:
         assert unexpected_error == excinfo.value
 
     @mock.patch(
+        "uaclient.clouds.identity.get_instance_id", return_value="my-iid"
+    )
+    @mock.patch(
         M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
     )
     @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
@@ -128,6 +132,7 @@ class TestGetContractTokenFromCloudIdentity:
         _get_cloud_type,
         cloud_instance_factory,
         request_auto_attach_contract_token,
+        get_instance_id,
         FakeConfig,
     ):
         """Return token from the contract server using the identity."""
@@ -141,6 +146,58 @@ class TestGetContractTokenFromCloudIdentity:
 
         cfg = FakeConfig()
         assert "myPKCS7-token" == _get_contract_token_from_cloud_identity(cfg)
+        # instance-id is persisted for next auto-attach call
+        iid_file = os.path.join(cfg.data_dir, "instance-id")
+        assert 1 == get_instance_id.call_count
+        assert "my-iid" == util.load_file(iid_file)
+
+    @pytest.mark.parametrize(
+        "iid_response,calls_detach", (("old-iid", False), ("new-iid", True))
+    )
+    @mock.patch("uaclient.clouds.identity.get_instance_id")
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
+    )
+    @mock.patch("uaclient.clouds.identity.cloud_instance_factory")
+    @mock.patch("uaclient.clouds.identity.get_cloud_type", return_value="aws")
+    def test_delta_in_instance_id_forces_detach(
+        self,
+        _get_cloud_type,
+        cloud_instance_factory,
+        request_auto_attach_contract_token,
+        get_instance_id,
+        iid_response,
+        calls_detach,
+        FakeConfig,
+    ):
+        """When instance-id changes since last attach, call detach."""
+
+        get_instance_id.return_value = iid_response
+        cloud_instance_factory.side_effect = self.fake_instance_factory
+
+        def fake_contract_token(instance):
+            return {"contractToken": "myPKCS7-token"}
+
+        request_auto_attach_contract_token.side_effect = fake_contract_token
+
+        account_name = "test_account"
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
+        # persist old instance-id value
+        iid_file = os.path.join(cfg.data_dir, "instance-id")
+        util.write_file(iid_file, "old-iid")
+
+        if calls_detach:
+            with mock.patch(M_PATH + "_detach") as m_detach:
+                assert (
+                    "myPKCS7-token"
+                    == _get_contract_token_from_cloud_identity(cfg)
+                )
+            assert [mock.call(cfg, assume_yes=True)] == m_detach.call_args_list
+        else:
+            with pytest.raises(AlreadyAttachedError):
+                _get_contract_token_from_cloud_identity(cfg)
+        # current instance-id is persisted for next auto-attach call
+        assert iid_response == util.load_file(iid_file)
 
 
 # For all of these tests we want to appear as root, so mock on the class
