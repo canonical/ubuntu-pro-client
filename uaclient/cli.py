@@ -299,11 +299,20 @@ def action_enable(args, cfg):
 @assert_root
 @assert_attached()
 def action_detach(args, cfg) -> int:
+    """Perform the detach action for this machine.
+
+    @return: 0 on success, 1 otherwise
+    """
     return _detach(cfg, assume_yes=args.assume_yes)
 
 
 def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
-    """Perform the detach action for this machine.
+    """Detach the machine from the active Ubuntu Advantage subscription,
+
+    :param cfg: a ``config.UAConfig`` instance
+    :param assume_yes: Assume a yes answer to any prompts requested.
+         In this case, it means automatically disable any service during
+         detach.
 
     @return: 0 on success, 1 otherwise
     """
