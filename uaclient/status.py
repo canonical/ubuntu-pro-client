@@ -203,6 +203,7 @@ MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. Run: sudo ua enable {name}"""
 MESSAGE_DETACH_SUCCESS = "This machine is now detached"
+MESSAGE_DETACH_AUTOMATION_FAILURE = "Unable to automatically detach machine"
 
 MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
 MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"

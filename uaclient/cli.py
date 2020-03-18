@@ -298,8 +298,21 @@ def action_enable(args, cfg):
 
 @assert_root
 @assert_attached()
-def action_detach(args, cfg):
+def action_detach(args, cfg) -> int:
     """Perform the detach action for this machine.
+
+    @return: 0 on success, 1 otherwise
+    """
+    return _detach(cfg, assume_yes=args.assume_yes)
+
+
+def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
+    """Detach the machine from the active Ubuntu Advantage subscription,
+
+    :param cfg: a ``config.UAConfig`` instance
+    :param assume_yes: Assume a yes answer to any prompts requested.
+         In this case, it means automatically disable any service during
+         detach.
 
     @return: 0 on success, 1 otherwise
     """
@@ -313,7 +326,7 @@ def action_detach(args, cfg):
         print("Detach will disable the following service{}:".format(suffix))
         for ent in to_disable:
             print("    {}".format(ent.name))
-    if not args.assume_yes and not util.prompt_for_confirmation():
+    if not assume_yes and not util.prompt_for_confirmation():
         return 1
     for ent in to_disable:
         ent.disable(silent=True)
@@ -372,7 +385,24 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
     :return: contract token obtained from identity doc
     """
-    instance = identity.cloud_instance_factory()
+    try:
+        instance = identity.cloud_instance_factory()
+    except exceptions.UserFacingError as e:
+        if cfg.is_attached:
+            # We are attached on non-Pro Image, just report already attached
+            raise exceptions.AlreadyAttachedError(cfg)
+        # Unattached on non-Pro return UserFacing error msg details
+        raise e
+    current_iid = identity.get_instance_id()
+    if cfg.is_attached:
+        prev_iid = cfg.read_cache("instance-id")
+        if current_iid == prev_iid:
+            raise exceptions.AlreadyAttachedError(cfg)
+        print("Re-attaching Ubuntu Advantage subscription on new instance")
+        if _detach(cfg, assume_yes=True) != 0:
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_DETACH_AUTOMATION_FAILURE
+            )
     contract_client = contract.UAContractClient(cfg)
     try:
         tokenResponse = contract_client.request_auto_attach_contract_token(
@@ -384,10 +414,12 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
                 ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
         raise e
+    if current_iid:
+        cfg.write_cache("instance-id", current_iid)
+
     return tokenResponse["contractToken"]
 
 
-@assert_not_attached
 @assert_root
 def action_auto_attach(args, cfg):
     token = _get_contract_token_from_cloud_identity(cfg)
