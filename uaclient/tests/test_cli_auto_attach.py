@@ -180,6 +180,7 @@ class TestGetContractTokenFromCloudIdentity:
 
         if calls_detach:
             with mock.patch(M_PATH + "_detach") as m_detach:
+                m_detach.return_value = 0
                 assert (
                     "myPKCS7-token"
                     == _get_contract_token_from_cloud_identity(cfg)
@@ -190,6 +191,42 @@ class TestGetContractTokenFromCloudIdentity:
                 _get_contract_token_from_cloud_identity(cfg)
         # current instance-id is persisted for next auto-attach call
         assert iid_response == cfg.read_cache("instance-id")
+
+    @mock.patch(M_PATH + "_detach")
+    @mock.patch(M_ID_PATH + "get_instance_id")
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
+    )
+    @mock.patch(M_ID_PATH + "cloud_instance_factory")
+    def test_failed_detach_on_changed_instance_id_raises_errors(
+        self,
+        cloud_instance_factory,
+        request_auto_attach_contract_token,
+        get_instance_id,
+        m_detach,
+        FakeConfig,
+    ):
+        """When instance-id changes since last attach, call detach."""
+
+        get_instance_id.return_value = "new-iid"
+        cloud_instance_factory.side_effect = self.fake_instance_factory
+
+        def fake_contract_token(instance):
+            return {"contractToken": "myPKCS7-token"}
+
+        request_auto_attach_contract_token.side_effect = fake_contract_token
+        m_detach.return_value = 1  # Failure to auto-detach
+
+        account_name = "test_account"
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
+        # persist old instance-id value
+        cfg.write_cache("instance-id", "old-iid")
+
+        with pytest.raises(UserFacingError) as err:
+            assert "myPKCS7-token" == _get_contract_token_from_cloud_identity(
+                cfg
+            )
+        assert status.MESSAGE_DETACH_AUTOMATION_FAILURE == str(err.value)
 
 
 # For all of these tests we want to appear as root, so mock on the class

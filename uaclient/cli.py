@@ -399,8 +399,10 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
         if current_iid == prev_iid:
             raise exceptions.AlreadyAttachedError(cfg)
         print("Re-attaching Ubuntu Advantage subscription on new instance")
-        _detach(cfg, assume_yes=True)
-
+        if _detach(cfg, assume_yes=True) != 0:
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_DETACH_AUTOMATION_FAILURE
+            )
     contract_client = contract.UAContractClient(cfg)
     try:
         tokenResponse = contract_client.request_auto_attach_contract_token(
