@@ -1,10 +1,17 @@
-ubuntu-advantage-tools (20.3) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (20.3) focal; urgency=medium
 
-  * Start development on next release
+  * New upstream release 20.3:
+    - ubuntu-pro: automatically reattach across instance id delta
+      (LP: #1867573)
+    - integration testing:
+      + add behave tests ua subcommands for attached vm
+      + add invalid token tests
+      + add reuse_container test docs
+      + refactor token parameter
 
- -- Joshua Powers <josh.powers@canonical.com>  Wed, 04 Mar 2020 13:18:15 -0800
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 30 Mar 2020 14:49:17 -0600
 
-ubuntu-advantage-tools (20.2) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (20.2) focal; urgency=medium
 
   * d/templates: add a debconf note on upgrade from pre-ubuntu pro package
   * d/control: create a separate ubuntu-advantage-pro package which
