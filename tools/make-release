@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Create a native package release of ubuntu-advantage-tools for a given series
+#
+# Because we are using native packages, we will only apply the target series to
+# the most recent debian/changelog, call build-package and attempt to dput that to
+# a PPA for test because the upstream ua-tools team members do not have the ability 
+# to upload themselves. 
+#
+# This process will change if we change from native package to non-native packaging for
+# each series.
+
+# Release version schemes are based on git describe --long and have the following format:
+# XX.YY-<commit-offset>-g<commitish>: 20.3-0-gb20e0cf
+#
+#   devel-release-versioning:
+#     - upstream release: XX.YY-<commit-offset-count>-g<commitish>~ubuntu1
+#     - bugfix only: XX.YY.Z-<commit-offset-count>-g<commitish>~ubuntu1
+#   stable-release-versioning:
+#     - upstream release: XX.YY-<commit-offset-count>-g<commitish>~ubuntu1~20.04.1
+#   daily PPA recipe: XX.YY-<revtime>-g<commitish>~ubuntu1~20.04.1
+
+CWD=$PWD
+if [ $# -ne 2 ]; then
+  echo "usage $0 <SERIES_NAME> <PPA_URL>"
+  exit 1
+fi
+which build-package
+if [ $? -ne 0 ]; then
+    echo "Missing build-package script."
+    echo "Install with 'git clone git@github.com:CanonicalLtd/uss-tableflip.git'"
+    echo "Modify PATH to include uss-tableflip/scripts"
+    exit 1
+fi
+SERIES=$1
+PPA_URL=$2
+
+
+cd /tmp
+[ -e ubuntu-advantage-client ] && rm -rf ubuntu-advantage-client
+git clone git@github.com:CanonicalLtd/ubuntu-advantage-client.git
+cd ubuntu-advantage-client
+CHANGELOG_VERSION=$(dpkg-parsechangelog -S Version)
+GIT_DESCR_LONG=$(git describe --long)
+RELEASE_NUMBER=$(distro-info --series ${SERIES} -r)
+RELEASE_VERSION_STRING="${GIT_DESCR_LONG}~ubuntu1"
+
+DEVEL_SERIES=$(distro-info --devel)
+if [ "${SERIES}" -ne "${DEVEL_SERIES}" ]; then
+  # Only append ~XX.YY.1 to stable releases
+  RELEASE_VERSION_STRING=${RELEASE_VERSION_STRING}~${RELEASE_NUMBER/ LTS/}.1
+fi
+
+sed -i "s/ubuntu-advantage-tools (${CHANGELOG_VERSION}) [[:alpha:]]\+;/ubuntu-advantage-tools (${RELEASE_VERSION_STRING}) ${SERIES};/" debian/changelog
+cp $CWD/tools/make-tarball tools/
+git add tools
+git commit -am "wip update changelog for release to ${SERIES}"
+build-package
+git reset HEAD~1
+cd $CWD
+
+cat << EOF
+---- To release ${RELEASE_VERSION_STRING} to ${SERIES} ----
+dput $PPA_URL /tmp/out/ubuntu-advantage-tools_${RELEASE_VERSION_STRING}_source.changes
+# To mark that we've released to  ${SERIES}
+git tag ${RELEASE_VERSION_STRING//\~/_}
+git push upstream ${RELEASE_VERSION_STRING//\~/_}
+EOF
