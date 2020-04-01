@@ -10,15 +10,17 @@ from features.util import launch_lxd_container, lxc_exec
 CONTAINER_PREFIX = "behave-test-"
 
 
-@given("a trusty lxd container with ubuntu-advantage-tools installed")
-def given_a_trusty_lxd_container(context):
+@given("a `{series}` lxd container with ubuntu-advantage-tools installed")
+def given_a_lxd_container(context, series):
     if context.reuse_container:
         context.container_name = context.reuse_container
     else:
         now = datetime.datetime.now()
-        context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
+        context.container_name = (
+            CONTAINER_PREFIX + series + now.strftime("-%s%f")
+        )
         launch_lxd_container(
-            context, context.image_name, context.container_name
+            context, context.series_image_name[series], context.container_name
         )
 
 
@@ -48,6 +50,11 @@ def then_i_will_see_on_stdout(context):
 @then("stdout matches regexp")
 def then_stdout_matches_regexp(context):
     assert_that(context.process.stdout.strip(), matches_regexp(context.text))
+
+
+@then("stderr matches regexp")
+def then_stderr_matches_regexp(context):
+    assert_that(context.process.stderr.strip(), matches_regexp(context.text))
 
 
 @then("I will see the following on stderr")

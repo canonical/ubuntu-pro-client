@@ -1,8 +1,9 @@
 Feature: Command behaviour when trying to attach a machine to an Ubuntu
          Advantage subscription using an invalid token
 
+    @series.trusty
     Scenario: Attach command in a trusty lxd container
-       Given a trusty lxd container with ubuntu-advantage-tools installed
+       Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua attach INVALID_TOKEN` with sudo
         Then I will see the following on stderr:
             """

@@ -1,6 +1,8 @@
+import os
 import subprocess
 import sys
 import time
+import yaml
 from typing import Any, List
 
 from behave.runner import Context
@@ -90,7 +92,7 @@ def wait_for_boot(container_name: str) -> None:
     :param container_name:
         The name of the container to wait for.
     """
-    retries = [2] * 5
+    retries = [10] * 5
     for sleep_time in retries:
         process = lxc_exec(
             container_name, ["runlevel"], capture_output=True, text=True
@@ -100,8 +102,58 @@ def wait_for_boot(container_name: str) -> None:
         except ValueError:
             print("Unexpected runlevel output: ", process.stdout.strip())
             runlevel = None
-        if runlevel == "2":
+        if runlevel in ("2", "5"):
             break
         time.sleep(sleep_time)
     else:
         raise Exception("System did not boot in {}s".format(sum(retries)))
+
+
+def lxc_get_series(name: str, image: bool = False):
+    """Check series name of either an image or a container.
+
+    :param name:
+        The name of the container or the image to check its series.
+    :param image:
+        If image==True will check image series
+        If image==False it will check container configuration to get series.
+
+    :return:
+        The series of the container or the image.
+       `None` if it could not detect it (
+           some images don't have this field in properties).
+    """
+
+    if not image:
+        output = subprocess.check_output(
+            ["lxc", "config", "get", name, "image.release"],
+            universal_newlines=True,
+        )
+        series = output.rstrip()
+        return series
+    else:
+        image_output = "image_output.yaml"
+        with open(image_output, "w") as fileoutput:
+            subprocess.run(["lxc", "image", "show", name], stdout=fileoutput)
+        output = subprocess.check_output(
+            ["lxc", "image", "show", name], universal_newlines=True
+        )
+        image_config = yaml.safe_load(output)
+        print(" `lxc image show` output: ", image_config)
+        fileoutput.close()
+        os.remove(image_output)
+        try:
+            series = image_config["properties"]["release"]
+            print(
+                """\n You are providing a {series} image.
+                Make sure you are running this series tests.
+                For instance: --tags=series.{series}""".format(
+                    series=series
+                )
+            )
+            return series
+        except KeyError:
+            print(
+                " Could not detect image series. Add it via `lxc image edit`"
+            )
+    return None
