@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (20.3) focal; urgency=medium
+ubuntu-advantage-tools (20.3) UNRELEASED; urgency=medium
 
   * New upstream release 20.3:
     - ubuntu-pro: automatically reattach across instance id delta
