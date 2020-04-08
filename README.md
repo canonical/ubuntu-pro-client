@@ -103,6 +103,12 @@ you need to add `-D reuse_container=container_name`:
 ```sh
 tox -e behave -D reuse_container=container_name
 ```
+#### Debugging integration tests
+
+To step into pdb shell for each scenario:
+```sh
+tox -e behave -D pdb
+```
 
 ## Building
 

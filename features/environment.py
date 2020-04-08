@@ -1,10 +1,12 @@
 import datetime
+import logging
 import os
 import subprocess
 from typing import Dict, Union
 
-from behave.model import Feature, Scenario
+import ipdb
 
+from behave.model import Feature, Scenario
 from behave.runner import Context
 
 from features.util import launch_lxd_container, lxc_exec, lxc_get_series
@@ -100,8 +102,11 @@ def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     userdata = context.config.userdata
     context.reuse_container = userdata.get("reuse_container")
+    context.pdb = userdata.get("pdb")
     context.series_image_name = {}
     context.series_reuse_image = ""
+    if context.pdb:
+        logging.basicConfig(level=logging.DEBUG)
     context.config = UAClientBehaveConfig.from_environ()
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)
@@ -134,6 +139,8 @@ def before_scenario(context: Context, scenario: Scenario):
     then capture an image. This image is then reused by each scenario, reducing
     test execution time.
     """
+    if context.pdb:
+        ipdb.set_trace()
     for tag in scenario.effective_tags:
         parts = tag.split(".")
         if parts[0] == "series":

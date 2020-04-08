@@ -6,6 +6,7 @@ pycodestyle
 mock
 pytest
 pytest-cov
+ipdb
 
 # Integration testing
 behave
