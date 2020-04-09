@@ -4,7 +4,7 @@ import os
 import subprocess
 from typing import Dict, Union
 
-import ipdb
+import ipdb  # type: ignore
 
 from behave.model import Feature, Scenario
 from behave.runner import Context
