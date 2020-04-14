@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (20.4) UNRELEASED; urgency=medium
+
+  * Open 20.4 release for development
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 30 Mar 2020 15:47:18 -0600
+
 ubuntu-advantage-tools (20.3) focal; urgency=medium
 
   * New upstream release 20.3:
