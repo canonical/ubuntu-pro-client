@@ -1,7 +1,8 @@
 Feature: Command behaviour when unattached
 
+    @series.trusty
     Scenario: Unattached detach in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua detach` as non-root
         Then I will see the following on stderr:
             """
@@ -14,8 +15,9 @@ Feature: Command behaviour when unattached
             See https://ubuntu.com/advantage
             """
 
+    @series.trusty
     Scenario: Unattached refresh in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua refresh` as non-root
         Then I will see the following on stderr:
             """
@@ -28,8 +30,9 @@ Feature: Command behaviour when unattached
             See https://ubuntu.com/advantage
             """
 
+    @series.trusty
     Scenario: Unattached enable of a known service in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua enable livepatch` as non-root
         Then I will see the following on stderr:
             """
@@ -43,8 +46,9 @@ Feature: Command behaviour when unattached
             See https://ubuntu.com/advantage
             """
 
+    @series.trusty
     Scenario: Unattached enable of an unknown service in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua enable foobar` as non-root
         Then I will see the following on stderr:
             """
@@ -57,8 +61,9 @@ Feature: Command behaviour when unattached
             For a list of services see: sudo ua status
             """
 
+    @series.trusty
     Scenario: Unattached disable of a known service in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua disable livepatch` as non-root
         Then I will see the following on stderr:
             """
@@ -72,8 +77,9 @@ Feature: Command behaviour when unattached
             See https://ubuntu.com/advantage
             """
 
+    @series.trusty
     Scenario: Unattached disable of an unknown service in a trusty lxd container
-        Given a trusty lxd container with ubuntu-advantage-tools installed
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I run `ua disable foobar` as non-root
         Then I will see the following on stderr:
             """
