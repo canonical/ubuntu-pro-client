@@ -163,3 +163,6 @@ make demo
 ./demo/run-uaclient --series disco
 ./demo/run-uaclient --series xenial -b multipass
 ```
+
+## Releasing ubuntu-adantage-tools
+see [RELEASES.md](RELEASES.md)

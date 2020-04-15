@@ -35,6 +35,16 @@ def entitlement(fips_entitlement_factory):
     return fips_entitlement_factory()
 
 
+class TestFIPSEntitlementDefaults:
+    def test_default_repo_key_file(self, entitlement):
+        """GPG keyring file is the same for both FIPS and FIPS with Updates"""
+        assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
+
+    def test_default_repo_pinning(self, entitlement):
+        """FIPS and FIPS with Updates repositories are pinned."""
+        assert entitlement.repo_pin_priority == 1001
+
+
 class TestFIPSEntitlementCanEnable:
     def test_can_enable_true_on_entitlement_inactive(
         self, capsys, entitlement
