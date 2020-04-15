@@ -50,7 +50,7 @@ generate_keyrings() {
             $ESM_KEY_ID_BIONIC)
                 service_name="esm-infra-bionic";;
             $FIPS_KEY_ID_XENIAL)
-                service_name="fips-xenial";;
+                service_name="fips";;  # Same FIPS key for any series
             *)
                 echo "Unhandled key id provided: " $key
                 exit 1;

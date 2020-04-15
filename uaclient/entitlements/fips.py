@@ -19,6 +19,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         "openssl": set(),
         "strongswan": {"strongswan-hmac"},
     }  # type: Dict[str, Set[str]]
+    repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
 
     @property
     def packages(self) -> "List[str]":
@@ -63,7 +64,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         "post_enable": ["A reboot is required to complete the install"]
     }
     origin = "UbuntuFIPS"
-    repo_key_file = "ubuntu-fips-keyring.gpg"
     static_affordances = (
         ("Cannot install FIPS on a container", util.is_container, False),
     )
@@ -81,7 +81,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     }
     origin = "UbuntuFIPSUpdates"
     description = "Uncertified security updates to FIPS modules"
-    repo_key_file = "ubuntu-fips-updates-keyring.gpg"
     static_affordances = (
         (
             "Cannot install FIPS Updates on a container",
