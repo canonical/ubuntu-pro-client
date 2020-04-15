@@ -7,7 +7,7 @@ from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
-from uaclient.entitlements.repo import RepoEntitlement
+from uaclient.entitlements.repo import (RepoEntitlement, handle_message_operations)
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import exceptions
 from uaclient import status
@@ -317,6 +317,32 @@ class TestRepoEnable:
 
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
+
+    @pytest.mark.parametrize(
+        "pre_enable_msg, output, setup_apt_call_count", (
+            (['msg1', lambda: False], "msg1\n", 0),
+            (['msg1', lambda: True], "msg1\nRepo Test Class enabled\n", 1),
+    ))
+    @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
+    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=True)
+    def test_enable_can_exit_on_pre_enable_messaging_hooks(
+        self,
+        _can_enable,
+        setup_apt_config,
+        pre_enable_msg,
+        output,
+        setup_apt_call_count,
+        entitlement,
+        capsys,
+    ):
+     
+        messaging = {"pre_enable": pre_enable_msg} 
+        with mock.patch.object(type(entitlement), "messaging", messaging):
+            with mock.patch.object(type(entitlement), "packages", []):
+                entitlement.enable()
+        stdout, _ = capsys.readouterr()
+        assert output == stdout
+        assert setup_apt_call_count ==setup_apt_config.call_count
 
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
@@ -792,3 +818,30 @@ class TestApplicationStatus:
             expected_explanation = "Repo Test Class is not configured"
         assert expected_status == application_status
         assert expected_explanation == explanation
+
+
+
+
+def success_call():
+    print("success")
+    return True
+
+
+def fail_call():
+    print("fail")
+    return False
+
+
+class TestHandleMessageOperations:
+
+    @pytest.mark.parametrize("msg_ops, retval, output", (
+        ([], True, ""),
+        (["msg1", "msg2"], True, "msg1\nmsg2\n"),
+        ([success_call, "msg1", fail_call, "msg2"], False, "success\nmsg1\nfail\n"),
+    ))
+    def test_handle_message_operations_for_strings_and_callables(
+        self, msg_ops, retval, output, capsys
+    ):
+        assert retval is handle_message_operations(msg_ops)
+        out, _err = capsys.readouterr()
+        assert output == out
