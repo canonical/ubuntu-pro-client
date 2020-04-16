@@ -64,9 +64,12 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         "post_enable": ["A reboot is required to complete the install"]
     }
     origin = "UbuntuFIPS"
-    static_affordances = (
-        ("Cannot install FIPS on a container", util.is_container, False),
-    )
+
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        return (
+            ("Cannot install FIPS on a container", util.is_container, False),
+        )
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
@@ -81,10 +84,12 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     }
     origin = "UbuntuFIPSUpdates"
     description = "Uncertified security updates to FIPS modules"
-    static_affordances = (
-        (
-            "Cannot install FIPS Updates on a container",
-            util.is_container,
-            False,
-        ),
-    )
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        return (
+            (
+                "Cannot install FIPS Updates on a container",
+                util.is_container,
+                False,
+            ),
+        )

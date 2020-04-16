@@ -22,8 +22,6 @@ class TestCISEntitlementCanEnable:
         self, capsys, entitlement
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
-        # Unset static affordance container check
-        entitlement.static_affordances = ()
         with mock.patch.object(
             entitlement,
             "application_status",
@@ -49,8 +47,6 @@ class TestCISEntitlementEnable:
 
         m_platform_info.side_effect = fake_platform
         m_subp.return_value = ("fakeout", "")
-        # Unset static affordance container check
-        entitlement.static_affordances = ()
 
         with mock.patch(
             M_REPOPATH + "os.path.exists", mock.Mock(return_value=True)

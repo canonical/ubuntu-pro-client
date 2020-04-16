@@ -1,6 +1,7 @@
 import logging
 
 from uaclient.entitlements import base
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
@@ -9,7 +10,8 @@ SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 
 try:
-    from typing import Any, Dict, Tuple  # noqa: F401
+    from typing import Any, Callable, Dict, Tuple  # noqa: F401
+    StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -27,14 +29,28 @@ class LivepatchEntitlement(base.UAEntitlement):
     title = "Livepatch"
     description = "Canonical Livepatch service"
 
-    # Use a lambda so we can mock util.is_container in tests
-    static_affordances = (
-        (
-            "Cannot install Livepatch on a container",
-            lambda: util.is_container(),
-            False,
-        ),
-    )
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        # Use a lambda so we can mock util.is_container in tests
+        is_fips_enabled = bool(FIPSEntitlement(self.cfg).application_status()[0] == ApplicationStatus.ENABLED)
+        is_fips_updates_enabled = bool(FIPSEntitlement(self.cfg).application_status()[0] == ApplicationStatus.ENABLED)
+        return (
+            (
+                "Cannot install Livepatch on a container",
+                lambda: util.is_container(),
+                False,
+            ),
+            (
+                "Cannot enable Livepatch when FIPS is enabled",
+                lambda: is_fips_enabled,
+                False,
+            ),
+            (
+                "Cannot enable Livepatch when FIPS Updates is enabled",
+                lambda: is_fips_updates_enabled,
+                False,
+            ),
+        )
 
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.

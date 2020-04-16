@@ -50,10 +50,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """A sentence describing this entitlement"""
         pass
 
-    # A tuple of 3-tuples with (failure_message, functor, expected_results)
-    # If any static_affordance does not match expected_results fail with
-    # <failure_message>. Overridden in livepatch and fips
-    static_affordances = ()  # type: Tuple[StaticAffordance, ...]
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        # A tuple of 3-tuples with (failure_message, callable, expected_result)
+        # If any static_affordance does not match expected_result, fail with
+        # <failure_message>. Overridden in livepatch and fips
+        return ()
 
     def __init__(self, cfg: "Optional[config.UAConfig]" = None) -> None:
         """Setup UAEntitlement instance
