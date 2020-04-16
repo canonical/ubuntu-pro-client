@@ -14,6 +14,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
              """
              This command must be run as root (try using sudo)
              """
+
     @series.focal
     Scenario: Attach command in a trusty lxd container
        Given a `focal` lxd container with ubuntu-advantage-tools installed
