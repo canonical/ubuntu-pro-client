@@ -1,6 +1,7 @@
 import datetime
 import os
 import subprocess
+import textwrap
 from typing import Dict, Union
 
 from behave.model import Feature, Scenario
@@ -99,9 +100,9 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     userdata = context.config.userdata
-    context.reuse_container = userdata.get("reuse_container")
     context.series_image_name = {}
     context.series_reuse_image = ""
+    context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ()
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)
@@ -111,6 +112,19 @@ def before_all(context: Context) -> None:
         else:
             print(" Could not check image series. It will not be used. ")
             context.config.reuse_image = None
+
+    if userdata.get("reuse_container"):
+        series = lxc_get_series(userdata.get("reuse_container"))
+        context.reuse_container = {series: userdata.get("reuse_container")}
+        print(
+            textwrap.dedent(
+                """
+            You are providing a {series} container. Make sure you are running
+            this series tests. For instance: --tags=series.{series}""".format(
+                    series=series
+                )
+            )
+        )
 
 
 def before_feature(context: Context, feature: Feature):
@@ -181,21 +195,12 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
        A string representing the series name to create
     """
 
-    if context.reuse_container:
-        container_series = lxc_get_series(context.reuse_container)
-        if container_series == series:
-            print(
-                "\n Reusing the existing container: ", context.reuse_container
-            )
-            print(
-                """\n You are providing a %s container.
-                Make sure you are running this series tests.
-                For instance: --tags=series.{series}""".format(
-                    series=series
-                )
-            )
-            return
-
+    if series in context.reuse_container:
+        print(
+            "\n Reusing the existing container: ",
+            context.reuse_container[series],
+        )
+        return
     now = datetime.datetime.now()
     context.series_image_name[
         series

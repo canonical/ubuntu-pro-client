@@ -12,8 +12,8 @@ CONTAINER_PREFIX = "behave-test-"
 
 @given("a `{series}` lxd container with ubuntu-advantage-tools installed")
 def given_a_lxd_container(context, series):
-    if context.reuse_container:
-        context.container_name = context.reuse_container
+    if series in context.reuse_container:
+        context.container_name = context.reuse_container[series]
     else:
         now = datetime.datetime.now()
         context.container_name = (

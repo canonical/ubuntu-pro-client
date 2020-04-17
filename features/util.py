@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import textwrap
 import time
 import yaml
 from typing import Any, List
@@ -145,10 +146,13 @@ def lxc_get_series(name: str, image: bool = False):
         try:
             series = image_config["properties"]["release"]
             print(
-                """\n You are providing a {series} image.
+                textwrap.dedent(
+                    """
+                You are providing a {series} image.
                 Make sure you are running this series tests.
                 For instance: --tags=series.{series}""".format(
-                    series=series
+                        series=series
+                    )
                 )
             )
             return series
