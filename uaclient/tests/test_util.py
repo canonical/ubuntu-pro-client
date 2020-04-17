@@ -546,7 +546,15 @@ class TestPromptForConfirmation:
         m_input.return_value = user_input
         assert return_value == util.prompt_for_confirmation()
 
-    def test_prompt_text(self, m_input):
-        util.prompt_for_confirmation()
+    @pytest.mark.parametrize(
+        "assume_yes,message,input_calls",
+        [
+            (True, "message ignored on assume_yes=True", []),
+            (False, "", [mock.call("Are you sure? (y/N) ")]),
+            (False, "Custom yep? (y/N) ", [mock.call("Custom yep? (y/N) ")]),
+        ],
+    )
+    def test_prompt_text(self, m_input, assume_yes, message, input_calls):
+        util.prompt_for_confirmation(msg=message, assume_yes=assume_yes)
 
-        assert [mock.call("Are you sure? (y/N) ")] == m_input.call_args_list
+        assert input_calls == m_input.call_args_list
