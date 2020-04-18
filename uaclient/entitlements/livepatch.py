@@ -9,7 +9,9 @@ SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 
 try:
-    from typing import Any, Dict, Tuple  # noqa: F401
+    from typing import Any, Callable, Dict, Tuple  # noqa: F401
+
+    StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -27,14 +29,16 @@ class LivepatchEntitlement(base.UAEntitlement):
     title = "Livepatch"
     description = "Canonical Livepatch service"
 
-    # Use a lambda so we can mock util.is_container in tests
-    static_affordances = (
-        (
-            "Cannot install Livepatch on a container",
-            lambda: util.is_container(),
-            False,
-        ),
-    )
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        # Use a lambda so we can mock util.is_container in tests
+        return (
+            (
+                "Cannot install Livepatch on a container",
+                lambda: util.is_container(),
+                False,
+            ),
+        )
 
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
