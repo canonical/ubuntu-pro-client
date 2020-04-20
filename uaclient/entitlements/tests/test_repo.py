@@ -344,8 +344,11 @@ class TestRepoEnable:
         entitlement,
         capsys,
     ):
-        messaging = {"pre_enable": pre_enable_msg}
-        with mock.patch.object(type(entitlement), "messaging", messaging):
+        with mock.patch(
+            M_PATH + "RepoEntitlement.messaging",
+            new_callable=mock.PropertyMock,
+        ) as m_messaging:
+            m_messaging.return_value = {"pre_enable": pre_enable_msg}
             with mock.patch.object(type(entitlement), "packages", []):
                 entitlement.enable()
         stdout, _ = capsys.readouterr()
@@ -411,8 +414,10 @@ class TestRepoEnable:
 
         pre_install_msgs = ["Some pre-install information", "Some more info"]
         if with_pre_install_msg:
-            messaging_patch = mock.patch.object(
-                entitlement, "messaging", {"pre_install": pre_install_msgs}
+            messaging_patch = mock.patch(
+                M_PATH + "RepoEntitlement.messaging",
+                new_callable=mock.PropertyMock,
+                return_value={"pre_install": pre_install_msgs},
             )
         else:
             messaging_patch = mock.MagicMock()

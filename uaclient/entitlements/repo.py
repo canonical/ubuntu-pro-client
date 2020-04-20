@@ -49,7 +49,11 @@ class RepoEntitlement(base.UAEntitlement):
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
-    messaging = {}  # type: Dict[str, List[Union[str, Tuple[Callable, Dict]]]]
+    @property
+    def messaging(
+        self
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {}
 
     @property
     def packages(self) -> "List[str]":
