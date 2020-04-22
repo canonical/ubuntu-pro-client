@@ -44,6 +44,52 @@ class TestFIPSEntitlementDefaults:
         """FIPS and FIPS with Updates repositories are pinned."""
         assert entitlement.repo_pin_priority == 1001
 
+    @pytest.mark.parametrize("assume_yes", (True, False))
+    def test_messaging_passes_assume_yes(
+        self, assume_yes, fips_entitlement_factory
+    ):
+        """FIPS and FIPS Updates pass assume_yes into messaging args"""
+        entitlement = fips_entitlement_factory(assume_yes=assume_yes)
+        expected_msging = {
+            "fips": {
+                "post_enable": [status.MESSAGE_ENABLE_REBOOT_REQUIRED],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+            },
+            "fips-updates": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                            "assume_yes": assume_yes,
+                        },
+                    )
+                ],
+                "post_enable": [status.MESSAGE_ENABLE_REBOOT_REQUIRED],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+            },
+        }
+        if entitlement.name in expected_msging:
+            assert expected_msging[entitlement.name] == entitlement.messaging
+        else:
+            assert False, "Unknown entitlement {}".format(entitlement.name)
+
 
 class TestFIPSEntitlementCanEnable:
     def test_can_enable_true_on_entitlement_inactive(
@@ -80,6 +126,9 @@ class TestFIPSEntitlementEnable:
             )
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, "can_enable")
+            )
+            stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
             )
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
@@ -146,7 +195,8 @@ class TestFIPSEntitlementEnable:
     ):
         """When can_enable is false enable returns false and noops."""
         with mock.patch.object(entitlement, "can_enable", return_value=False):
-            assert False is entitlement.enable()
+            with mock.patch(M_REPOPATH + "handle_message_operations"):
+                assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
     @mock.patch("uaclient.apt.add_auth_apt_repo")
@@ -160,8 +210,9 @@ class TestFIPSEntitlementEnable:
         entitlement = fips_entitlement_factory(suites=[])
 
         with mock.patch.object(entitlement, "can_enable", return_value=True):
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
-                entitlement.enable()
+            with mock.patch(M_REPOPATH + "handle_message_operations"):
+                with pytest.raises(exceptions.UserFacingError) as excinfo:
+                    entitlement.enable()
         error_msg = "Empty {} apt suites directive from {}".format(
             entitlement.name, defaults.BASE_CONTRACT_URL
         )
@@ -180,6 +231,9 @@ class TestFIPSEntitlementEnable:
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
             stack.enter_context(mock.patch.object(entitlement, "can_enable"))
+            stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
+            )
             m_remove_apt_config = stack.enter_context(
                 mock.patch.object(entitlement, "remove_apt_config")
             )
@@ -212,6 +266,9 @@ class TestFIPSEntitlementEnable:
             )
             stack.enter_context(
                 mock.patch.object(entitlement, "can_enable", return_value=True)
+            )
+            stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
             )
             stack.enter_context(
                 mock.patch.object(

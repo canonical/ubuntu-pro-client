@@ -325,11 +325,7 @@ class TestRepoEnable:
         "pre_enable_msg, output, can_enable_call_count",
         (
             (["msg1", (lambda: False, {}), "msg2"], "msg1\n", 0),
-            (
-                ["msg1", (lambda: True, {}), "msg2"],
-                "msg1\nmsg2\n",
-                1,
-            ),
+            (["msg1", (lambda: True, {}), "msg2"], "msg1\nmsg2\n", 1),
         ),
     )
     @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=False)
