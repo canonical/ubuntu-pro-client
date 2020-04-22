@@ -322,25 +322,23 @@ class TestRepoEnable:
         assert [expected_call] == m_can_enable.call_args_list
 
     @pytest.mark.parametrize(
-        "pre_enable_msg, output, setup_apt_call_count",
+        "pre_enable_msg, output, can_enable_call_count",
         (
             (["msg1", (lambda: False, {}), "msg2"], "msg1\n", 0),
             (
                 ["msg1", (lambda: True, {}), "msg2"],
-                "msg1\nmsg2\nRepo Test Class enabled\n",
+                "msg1\nmsg2\n",
                 1,
             ),
         ),
     )
-    @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
-    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=True)
+    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=False)
     def test_enable_can_exit_on_pre_enable_messaging_hooks(
         self,
-        _can_enable,
-        setup_apt_config,
+        m_can_enable,
         pre_enable_msg,
         output,
-        setup_apt_call_count,
+        can_enable_call_count,
         entitlement,
         capsys,
     ):
@@ -353,7 +351,7 @@ class TestRepoEnable:
                 entitlement.enable()
         stdout, _ = capsys.readouterr()
         assert output == stdout
-        assert setup_apt_call_count == setup_apt_config.call_count
+        assert can_enable_call_count == m_can_enable.call_count
 
     @pytest.mark.parametrize(
         "pre_disable_msg, output, remove_apt_call_count",
