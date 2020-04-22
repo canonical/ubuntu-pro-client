@@ -40,7 +40,7 @@ class TestActionDetach:
 
     @pytest.mark.parametrize(
         "prompt_response,assume_yes,expect_disable",
-        [(True, False, True), (False, False, False), (None, True, True)],
+        [(True, False, True), (False, False, False), (True, True, True)],
     )
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
@@ -56,8 +56,7 @@ class TestActionDetach:
         FakeConfig,
     ):
         # The three parameters:
-        #   prompt_response: the user's response to the prompt, or None if no
-        #                    prompt should be displayed
+        #   prompt_response: the user's response to the prompt
         #   assume_yes: the value of the --assume-yes flag in the args passed
         #               to the action
         #   expect_disable: whether or not the enabled entitlement is expected
@@ -68,10 +67,7 @@ class TestActionDetach:
         fake_client = FakeContractClient(cfg)
         m_client.return_value = fake_client
 
-        if prompt_response is not None:
-            m_prompt.return_value = prompt_response
-        else:
-            m_prompt.side_effect = Exception("SHOULD NOT BE CALLED")
+        m_prompt.return_value = prompt_response
 
         m_entitlements.ENTITLEMENT_CLASSES = [
             entitlement_cls_mock_factory(False),
@@ -103,6 +99,7 @@ class TestActionDetach:
         else:
             assert 0 == disabled_cls.return_value.disable.call_count
             assert 1 == return_code
+        assert [mock.call(assume_yes=assume_yes)] == m_prompt.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")

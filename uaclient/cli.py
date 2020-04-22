@@ -326,7 +326,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         print("Detach will disable the following service{}:".format(suffix))
         for ent in to_disable:
             print("    {}".format(ent.name))
-    if not assume_yes and not util.prompt_for_confirmation():
+    if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
         ent.disable(silent=True)
