@@ -2,6 +2,7 @@ attrs==17.4
 flake8==3.5.0
 py==1.5.2
 pycodestyle==2.3.1
+pyflakes==2.2.0
 pytest==3.3.2
 pytest-cov==2.5.1
 pyyaml==3.12
