@@ -4,7 +4,16 @@ import os
 import re
 
 try:
-    from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
+    from typing import (  # noqa: F401
+        Any,
+        Callable,
+        Dict,
+        List,
+        Optional,
+        Sequence,
+        Tuple,
+        Union,
+    )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -38,9 +47,13 @@ class RepoEntitlement(base.UAEntitlement):
     def disable_apt_auth_only(self) -> bool:
         return False  # Set True on ESM to only remove apt auth
 
-    # Any custom messages to emit pre or post enable or disable operations;
-    # currently post_enable is used in CommonCriteria
-    messaging = {}  # type: Dict[str, List[str]]
+    # Any custom messages to emit to the console or callables which are
+    # handled at pre_enable, pre_disable, pre_install or post_enable stages
+    @property
+    def messaging(
+        self
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {}
 
     @property
     def packages(self) -> "List[str]":
@@ -64,12 +77,16 @@ class RepoEntitlement(base.UAEntitlement):
         """
         if not self.can_enable(silent=silent_if_inapplicable):
             return False
+        msg_ops = self.messaging.get("pre_enable", [])
+        if not handle_message_operations(msg_ops):
+            return False
         self.setup_apt_config()
         if self.packages:
             try:
                 print("Installing {title} packages".format(title=self.title))
-                for msg in self.messaging.get("pre_install", []):
-                    print(msg)
+                msg_ops = self.messaging.get("pre_install", [])
+                if not handle_message_operations(msg_ops):
+                    return False
                 apt.run_apt_command(
                     ["apt-get", "install", "--assume-yes"] + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
@@ -80,12 +97,16 @@ class RepoEntitlement(base.UAEntitlement):
                 self._cleanup()
                 raise
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
-        for msg in self.messaging.get("post_enable", []):
-            print(msg)
+        msg_ops = self.messaging.get("post_enable", [])
+        if not handle_message_operations(msg_ops):
+            return False
         return True
 
     def disable(self, silent=False):
         if not self.can_disable(silent):
+            return False
+        msg_ops = self.messaging.get("pre_disable", [])
+        if not handle_message_operations(msg_ops):
             return False
         self._cleanup()
         return True
@@ -301,3 +322,25 @@ class RepoEntitlement(base.UAEntitlement):
         apt.run_apt_command(
             ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
         )
+
+
+def handle_message_operations(
+    msg_ops: "List[Union[str, Tuple[Callable, Dict]]]"
+) -> bool:
+    """Emit messages to the console for user interaction
+
+    :param msg_op: A list of strings or tuples. Any string items are printed.
+        Any tuples will contain a callable and a dict of args to pass to the
+        callable. Callables are expected to return True on success and
+        False upon failure.
+
+    :return: True upon success, False on failure.
+    """
+    for msg_op in msg_ops:
+        if isinstance(msg_op, str):
+            print(msg_op)
+        else:  # Then we are a callable and dict of args
+            functor, args = msg_op
+            if not functor(**args):
+                return False
+    return True
