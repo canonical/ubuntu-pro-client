@@ -215,7 +215,8 @@ To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
 See https://ubuntu.com/advantage"""
 MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
-MESSAGE_ENABLE_REBOOT_REQUIRED = "A reboot is required to complete install"
+MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL = """\
+A reboot is required to complete {operation}"""
 MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. Run: sudo ua enable {name}"""
 MESSAGE_DETACH_SUCCESS = "This machine is now detached"

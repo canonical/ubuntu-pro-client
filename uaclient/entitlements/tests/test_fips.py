@@ -52,7 +52,11 @@ class TestFIPSEntitlementDefaults:
         entitlement = fips_entitlement_factory(assume_yes=assume_yes)
         expected_msging = {
             "fips": {
-                "post_enable": [status.MESSAGE_ENABLE_REBOOT_REQUIRED],
+                "post_enable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="install"
+                    )
+                ],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -60,6 +64,11 @@ class TestFIPSEntitlementDefaults:
                             "assume_yes": assume_yes,
                             "msg": status.PROMPT_FIPS_PRE_DISABLE,
                         },
+                    )
+                ],
+                "post_disable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="disable operation"
                     )
                 ],
             },
@@ -73,7 +82,11 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_enable": [status.MESSAGE_ENABLE_REBOOT_REQUIRED],
+                "post_enable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="install"
+                    )
+                ],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -81,6 +94,11 @@ class TestFIPSEntitlementDefaults:
                             "assume_yes": assume_yes,
                             "msg": status.PROMPT_FIPS_PRE_DISABLE,
                         },
+                    )
+                ],
+                "post_disable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="disable operation"
                     )
                 ],
             },
