@@ -350,30 +350,61 @@ class TestRepoEnable:
         assert can_enable_call_count == m_can_enable.call_count
 
     @pytest.mark.parametrize(
-        "pre_disable_msg, output, remove_apt_call_count",
+        "pre_disable_msg,post_disable_msg,output,remove_apt_call_count,retval",
         (
-            (["msg1", (lambda: False, {}), "msg2"], "msg1\n", 0),
-            (["msg1", (lambda: True, {}), "msg2"], "msg1\nmsg2\n", 1),
+            (
+                ["pre1", (lambda: False, {}), "pre2"],
+                ["post1"],
+                "pre1\n",
+                0,
+                False,
+            ),
+            (
+                ["pre1", (lambda: True, {}), "pre2"],
+                [],
+                "pre1\npre2\n",
+                1,
+                True,
+            ),
+            (
+                ["pre1", (lambda: True, {}), "pre2"],
+                ["post1", (lambda: False, {}), "post2"],
+                "pre1\npre2\npost1\n",
+                1,
+                False,
+            ),
+            (
+                ["pre1", (lambda: True, {}), "pre2"],
+                ["post1", (lambda: True, {}), "post2"],
+                "pre1\npre2\npost1\npost2\n",
+                1,
+                True,
+            ),
         ),
     )
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(RepoTestEntitlement, "can_disable", return_value=True)
-    def test_enable_can_exit_on_pre_disable_messaging_hooks(
+    def test_enable_can_exit_on_pre_or_post_disable_messaging_hooks(
         self,
         _can_disable,
         remove_apt_config,
         m_subp,
         pre_disable_msg,
+        post_disable_msg,
         output,
         remove_apt_call_count,
+        retval,
         entitlement,
         capsys,
     ):
-        messaging = {"pre_disable": pre_disable_msg}
+        messaging = {
+            "pre_disable": pre_disable_msg,
+            "post_disable": post_disable_msg,
+        }
         with mock.patch.object(type(entitlement), "messaging", messaging):
             with mock.patch.object(type(entitlement), "packages", []):
-                entitlement.disable()
+                assert retval is entitlement.disable()
         stdout, _ = capsys.readouterr()
         assert output == stdout
         assert remove_apt_call_count == remove_apt_config.call_count

@@ -109,6 +109,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not self.can_disable(silent):
             return False
         self._cleanup()
+        msg_ops = self.messaging.get("post_disable", [])
+        if not handle_message_operations(msg_ops):
+            return False
         return True
 
     def _cleanup(self) -> None:
