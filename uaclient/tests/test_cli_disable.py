@@ -8,12 +8,18 @@ from uaclient import status
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
+    @pytest.mark.parametrize("assume_yes", (True, False))
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
     @mock.patch("uaclient.cli.entitlements")
     def test_entitlement_instantiated_and_disabled(
-        self, m_entitlements, _m_getuid, disable_return, return_code
+        self,
+        m_entitlements,
+        _m_getuid,
+        disable_return,
+        return_code,
+        assume_yes,
     ):
         m_entitlement_cls = mock.Mock()
         m_entitlement = m_entitlement_cls.return_value
@@ -25,10 +31,13 @@ class TestDisable:
 
         args_mock = mock.Mock()
         args_mock.name = "testitlement"
+        args_mock.assume_yes = assume_yes
 
         ret = action_disable(args_mock, m_cfg)
 
-        assert [mock.call(m_cfg)] == m_entitlement_cls.call_args_list
+        assert [
+            mock.call(m_cfg, assume_yes=assume_yes)
+        ] == m_entitlement_cls.call_args_list
 
         expected_disable_call = mock.call()
         assert [expected_disable_call] == m_entitlement.disable.call_args_list
