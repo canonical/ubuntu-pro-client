@@ -75,10 +75,10 @@ class RepoEntitlement(base.UAEntitlement):
         @return: True on success, False otherwise.
         @raises: UserFacingError on failure to install suggested packages
         """
-        if not self.can_enable(silent=silent_if_inapplicable):
-            return False
         msg_ops = self.messaging.get("pre_enable", [])
         if not handle_message_operations(msg_ops):
+            return False
+        if not self.can_enable(silent=silent_if_inapplicable):
             return False
         self.setup_apt_config()
         if self.packages:
@@ -103,12 +103,15 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def disable(self, silent=False):
-        if not self.can_disable(silent):
-            return False
         msg_ops = self.messaging.get("pre_disable", [])
         if not handle_message_operations(msg_ops):
             return False
+        if not self.can_disable(silent):
+            return False
         self._cleanup()
+        msg_ops = self.messaging.get("post_disable", [])
+        if not handle_message_operations(msg_ops):
+            return False
         return True
 
     def _cleanup(self) -> None:

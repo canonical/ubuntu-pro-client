@@ -70,7 +70,25 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         self
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
-            "post_enable": ["A reboot is required to complete the install"]
+            "post_enable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="install"
+                )
+            ],
+            "pre_disable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "assume_yes": self.assume_yes,
+                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                    },
+                )
+            ],
+            "post_disable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="disable operation"
+                )
+            ],
         }
 
 
@@ -93,8 +111,32 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
         self
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                        "assume_yes": self.assume_yes,
+                    },
+                )
+            ],
             "post_enable": [
-                "FIPS Updates configured and pending, please reboot to make"
-                " active."
-            ]
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="install"
+                )
+            ],
+            "pre_disable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "assume_yes": self.assume_yes,
+                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                    },
+                )
+            ],
+            "post_disable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="disable operation"
+                )
+            ],
         }
