@@ -10,8 +10,9 @@ from features.util import launch_lxd_container, lxc_exec
 CONTAINER_PREFIX = "behave-test-"
 
 
-@given("a `{series}` lxd container with ubuntu-advantage-tools installed")
-def given_a_lxd_container(context, series):
+@given("a series lxd container with ubuntu-advantage-tools installed")
+def given_a_lxd_container(context):
+    series = context.current_series
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
     else:

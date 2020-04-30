@@ -152,6 +152,7 @@ def before_scenario(context: Context, scenario: Scenario):
         parts = tag.split(".")
         if parts[0] == "series":
             series = parts[1]
+            context.current_series = series
             if series not in context.series_image_name:
                 create_uat_lxd_image(context, series)
 
