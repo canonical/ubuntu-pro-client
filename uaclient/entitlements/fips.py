@@ -70,6 +70,15 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         self
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": status.PROMPT_FIPS_PRE_ENABLE,
+                        "assume_yes": self.assume_yes,
+                    },
+                )
+            ],
             "post_enable": [
                 status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation="install"

@@ -52,6 +52,15 @@ class TestFIPSEntitlementDefaults:
         entitlement = fips_entitlement_factory(assume_yes=assume_yes)
         expected_msging = {
             "fips": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_ENABLE,
+                        },
+                    )
+                ],
                 "post_enable": [
                     status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
                         operation="install"

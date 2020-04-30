@@ -164,6 +164,13 @@ MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
+PROMPT_FIPS_PRE_ENABLE = (
+    """\
+Installation of additional packages are required to make this system FIPS
+compliant.
+"""
+    + PROMPT_YES_NO
+)
 PROMPT_FIPS_UPDATES_PRE_ENABLE = (
     """\
 This system will NOT be considered FIPS certified, but will include security
