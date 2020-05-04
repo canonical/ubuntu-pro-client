@@ -163,6 +163,28 @@ See https://ubuntu.com/advantage"""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 
+PROMPT_YES_NO = """Are you sure? (y/N) """
+PROMPT_FIPS_PRE_ENABLE = (
+    """\
+Installation of additional packages are required to make this system FIPS
+compliant.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_UPDATES_PRE_ENABLE = (
+    """\
+This system will NOT be considered FIPS certified, but will include security
+and bug fixes to the FIPS packages.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_PRE_DISABLE = (
+    """\
+This will disable access to certified FIPS packages.
+"""
+    + PROMPT_YES_NO
+)
+
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
 STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
@@ -200,6 +222,8 @@ To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
 See https://ubuntu.com/advantage"""
 MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
+MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL = """\
+A reboot is required to complete {operation}"""
 MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. Run: sudo ua enable {name}"""
 MESSAGE_DETACH_SUCCESS = "This machine is now detached"

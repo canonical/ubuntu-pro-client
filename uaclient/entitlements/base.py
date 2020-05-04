@@ -32,6 +32,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
+    #  Whether to assume yes to any messaging prompts
+    assume_yes = False
+
     @property
     @abc.abstractmethod
     def name(self) -> str:
@@ -55,7 +58,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # <failure_message>. Overridden in livepatch and fips
     static_affordances = ()  # type: Tuple[StaticAffordance, ...]
 
-    def __init__(self, cfg: "Optional[config.UAConfig]" = None) -> None:
+    def __init__(
+        self, cfg: "Optional[config.UAConfig]" = None, assume_yes: bool = False
+    ) -> None:
         """Setup UAEntitlement instance
 
         @param config: Parsed configuration dictionary
@@ -63,6 +68,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not cfg:
             cfg = config.UAConfig()
         self.cfg = cfg
+        self.assume_yes = assume_yes
 
     @abc.abstractmethod
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:

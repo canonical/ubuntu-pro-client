@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from functools import wraps
 from http.client import HTTPMessage  # noqa: F401
 
+from uaclient import status
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -401,7 +403,7 @@ def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
     if assume_yes:
         return True
     if not msg:
-        msg = "Are you sure? (y/N) "
+        msg = status.PROMPT_YES_NO
     value = input(msg)
     if value.lower().strip() in ["y", "yes"]:
         return True

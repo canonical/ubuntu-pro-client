@@ -225,7 +225,7 @@ def process_entitlement_delta(orig_access, new_access, allow_enable=False):
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             return deltas
-        entitlement = ent_cls()
+        entitlement = ent_cls(assume_yes=allow_enable)
         entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
