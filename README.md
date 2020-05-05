@@ -185,21 +185,43 @@ tox -e behave -D reuse_container=container_name
 
 ## Building
 
-The packaging for the UA client packages (ubuntu-advantage-tools/ubuntu-advantage-pro) is
-in-tree, so you can build the package the way you would normally build
-a Debian package:
+The packaging for the UA client packages ubuntu-advantage-tools and
+ubuntu-advantage-pro) is in-tree in the debian directory. So you can build the
+package the way you would normally build a Debian package:
+
 
 ```shell
-dpkg-buildpackage
+dpkg-buildpackage -us -uc
 ```
 
-or, if you want to build for a target release other than the release
-you're on, [configure sbuild](https://wiki.ubuntu.com/SimpleSbuild) and
+**Note** It will build the package with dependencies for the Ubuntu release on
+which you are building, so it's best to build in a container of kvm for the
+release you are targeting.
+
+OR, if you want to build for a target release other than the release
+you're on:
+
+### using sbuild
+[configure sbuild](https://wiki.ubuntu.com/SimpleSbuild) and
 use that for the build:
+
 
 ```shell
 debuild -S
 sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
+```
+
+### Setting up an lxc development container
+```shell
+lxc launch ubuntu-daily:trusty dev-t -c user.user-data="$(cat tools/ua-dev-cloud-config.yaml)"
+lxc exec dev-t bash
+```
+
+### Setting up a kvm development environment with multipass
+**Note:** There is a sample procedure documented in tools/multipass.md as well.
+```shell
+multipass launch daily:focal  -n dev-f --cloud-init tools/ua-dev-cloud-config.yaml
+multipass connect dev-f
 ```
 
 ## Code Formatting

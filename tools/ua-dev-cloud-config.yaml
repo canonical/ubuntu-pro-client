@@ -1,0 +1,12 @@
+#cloud-config
+# Setup an ubuntu-advantage-tools development environment with cloud-init
+packages:
+ - git
+ - make
+runcmd:
+ - git clone https://github.com/canonical/ubuntu-advantage-client.git /var/tmp/uac
+ - cd /var/tmp/uac/
+ - make deps
+ - dpkg-buildpackage -us -uc
+ - apt-get remove ubuntu-advantage-tools
+ - dpkg -i /var/tmp/ubuntu-advantage-tools_20.4_amd64.deb
