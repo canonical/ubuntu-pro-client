@@ -15,8 +15,80 @@ following entitlements are supported:
 
 ## Obtaining the Client
 
-The client comes pre-installed on all Ubuntu systems. Users can run the
-`ua` command to learn more or view the manpage.
+The client comes pre-installed on all Ubuntu systems in the debian packages
+`ubuntu-advantage-tools` and `ubuntu-advantage-pro`. Users can run the `ua` command to learn more or view
+the manpage.
+
+## Terminology
+ The following vocabulary is used to describe different aspects of the work Ubuntu Advantage Client performs:
+
+| Term | Meaning |
+| -------- | -------- |
+| UA Client | The python command line client represented in this ubuntu-advantage-client repository. It is installed on each Ubuntu machine and is the entry-point to enable any Ubuntu Advantage commercial service on an Ubuntu machine. |
+| Contract Server | The backend service exposing a REST API to which UA Client authenticates in order to obtain contract and commercial service information and manage which support servics are active on a machine.|
+| Entitlement/Service | An Ubuntu Advantage commercial support service such as FIPS, ESM, Livepatch, CIS-Audit to which a Contract may be entitled |
+| Affordance | Service-specific list of applicable architectures and Ubuntu series on which a service can run |
+| Directives | Service-specific configuration values which are applied to a service when enabling that service |
+| Obligations | Service-specific policies that must be instrumented for support of a service. Example: `enableByDefault: true` means that any attached machine **MUST** enable a service on attach |
+
+
+## Architecture
+Ubuntu Advantage client, hereafter "UA client", is python3-based command line utility. It provides a CLI to attach, detach, enable,
+disable and check status of support related services.
+
+The package `ubuntu-advantage-tools` also provides a C++ APT hook which helps advertise ESM service and available packages in MOTD and during various apt commands.
+
+The `ubuntu-advantage-pro` package delivers auto-attach auto-enable functionality via init scripts and systemd services for various cloud platforms.
+
+By default, Ubuntu machines are deployed in an unattached state. A machine can get manually or automatically attached to a specific contract by interacting with the Contract Server REST API to enable a machine. Any change in state of services or machinbe attach results in additional interactions with the Contract Server API to validate such operations. The contract server API is described by the [ua-contracts openapi spec](https://github.com/CanonicalLtd/ua-contracts/blob/develop/docs/contracts.yaml).
+
+### Attaching a machine
+Each Ubuntu SSO account holder has access to one one or more contracts. To attach a machine to an Ubuntu Advantage contract:
+
+* An Ubuntu SSO account holder must obtain a contract token from https://ubuntu.com/advantage.
+* Run `ua attach <contractToken>` on the machine or provide comparable
+* UA Client reads config from /etc/ubuntu-advantage/uaclient.conf nad  a request containing the `<contractToken>` to the Contract Server API @ https://<contract_url>/api/v1/context/machines/token and obtains an unique machine-token JSON response containing credentials, affordances, directives and obligations to allow enabling and disabling any Ubuntu Advantage service
+* UA Client POSTs a request containing the `<contractToken>` to the Contract Server API @ https://contracts.canonical.com/api/v1/context/machines/tokento to obtain an unique machine-token JSON response which contains credentials, affordances, directives and obligations to allow enabling and disabling any Ubuntu Advantage service
+* UA client auto-enables any services described with `obligations:{enableByDefault: true}`
+POST `<contractToken>` to contracts server API @ https://contracts.canonical.com/api/v1/context/machines/token
+* UA client writes the API response to the root-readonly /var/lib/ubuntu-advantage/machine-token.json
+
+### Enabling a service
+Each service controlled by UA client will have a python module in uaclient/entitlements/\*.py which handles setup and teardown of services when enabled or disabled.
+
+If a contract entitles a machine to a service, `root` user can enable the service with `ua enable <service>`.  If a service can be disabled `ua disabled <service>` will be permitted.
+
+The goal of the UA client is to remain simple and flexible and let the
+contracts backend drive dynamic changes in contract offerings and contraints.
+In pursuit of that goal, the UA client obtains most of it's service contraints
+from a machine token that it ob
+
+The UA Client is simple in that it relies on the machine token on the attached
+machine to describe whether a service is applicable for an envronment and what
+configuration is required to properly enable that service.
+
+Any interactions with the Contract server API are defined as UAContractClient class methods in uaclient/contract.py.
+
+## Directory layout
+The following describes the intent of UA client related directories:
+
+
+| File/Directory | Intent |
+| -------- | -------- |
+| ./tools | Helpful scripts used to publish, release or test various aspects of  UA client |
+| .features/ | Behave BDD integration tests for UA Client
+| uaclient/ | collection of python modules which will be packaged into ubuntu-advantage-tools package to deliver the UA Client CLI |
+| uaclient.entitlements | Service-specific \*Entitlement class definitions which perform enable, disable, status, and entitlement operations etc. All classes derive from base.py:UAEntitlement and many derive from repo.py:RepoEntitlement |
+| uaclient.cli | The entry-point for the command-line client
+| uaclient.clouds | Cloud-platform detection logic used in Ubuntu Pro to determine if a given should be auto-attached to a contract |
+| uaclient.contract | Module for interacting with the Contract Server API |
+| ./demo | Various stale developer scripts for setting up one-off demo environemnts. (Not needed often)
+| /etc/ubuntu-advantage/uaclient.conf | Configuration file for the UA client.|
+| apt-hook | the C++ apt-hook delivering MOTD and apt command notifications about UA support services |
+| apt-conf.d | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM  security-related components |
+| /var/lib/ubuntu-advantage/private | `root` read-only directory containing Contract API responses, machine-tokens and service credentials |
+ | /var/log/ubuntu-advantage.log | `root` read-only log of ubuntu-advantage operations |
+
 
 ## Testing
 
@@ -113,7 +185,7 @@ tox -e behave -D reuse_container=container_name
 
 ## Building
 
-The packaging for the UA client package (ubuntu-advantage-tools) is
+The packaging for the UA client packages (ubuntu-advantage-tools/ubuntu-advantage-pro) is
 in-tree, so you can build the package the way you would normally build
 a Debian package:
 
