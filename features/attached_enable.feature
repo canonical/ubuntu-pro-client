@@ -2,20 +2,26 @@
 Feature: Enable command behaviour when attached to an UA subscription
 
     @series.trusty
-    Scenario: Attached enable Livepatch service in a trusty lxd container
+    Scenario Outline:  Attached enable of non-container services in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I attach contract_token with sudo
-        And I run `ua enable livepatch` as non-root
+        And I run `ua enable <service> <flag>` as non-root
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable livepatch` with sudo
+        When I run `ua enable <service> <flag>` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Cannot install Livepatch on a container
+            Cannot install <title> on a container
             """
+
+        Examples: Un-supported services in containers
+           | service      | title        | flag          |
+           | livepatch    | Livepatch    |               |
+           | fips         | FIPS         | --assume-yes  |
+           | fips-updates | FIPS Updates | --assume-yes  |
 
     @series.trusty
     Scenario: Attached enable Common Criteria service in a trusty lxd container
@@ -68,38 +74,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached enable NIST-certified FIPS service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
-        And I run `ua enable fips` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS on a container
-            """
-
-    @series.trusty
-    Scenario: Attached enable Uncertified FIPS service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
-        And I run `ua enable fips-updates` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips-updates` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS Updates on a container
-            """
-
-    @series.trusty
     Scenario: Attached enable of an unknown service in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I attach contract_token with sudo
@@ -133,20 +107,28 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached enable Livepatch service in a focal lxd container
+    Scenario Outline: Attached enable of non-container services in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
         When I attach contract_token with sudo
-        And I run `ua enable livepatch` as non-root
+        And I run `ua enable <service> <flag>` as non-root
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable livepatch` with sudo
+        When I run `ua enable <service> <flag>` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            Cannot install Livepatch on a container
+            Cannot install <title> on a container
             """
+
+        Examples: Un-supported services in containers
+           | service      | title        | flag          |
+           | livepatch    | Livepatch    |               |
+           | fips         | FIPS         | --assume-yes  |
+           | fips-updates | FIPS Updates | --assume-yes  |
+
+
 
     @series.focal
     Scenario: Attached enable Common Criteria service in a focal lxd container
@@ -198,37 +180,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             For more information see: https://ubuntu.com/advantage
             """
 
-    @series.focal
-    Scenario: Attached enable NIST-certified FIPS service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
-        And I run `ua enable fips` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS on a container
-            """
-
-    @series.focal
-    Scenario: Attached enable Uncertified FIPS service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
-        And I run `ua enable fips-updates` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips-updates` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS Updates on a container
-            """
 
     @series.focal
     Scenario: Attached enable of an unknown service in a focal lxd container
