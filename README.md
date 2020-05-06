@@ -55,6 +55,13 @@ tox -e behave features/unattached_commands.feature
 tox -e behave features/unattached_commands.feature:55
 ```
 
+When developing/debugging a new scenario:
+
+ 1. Add a `@wip` tag decorator on the scenario
+ 2. To only run @wip scenarios run: `tox -e behave -- -w`
+ 3. If you want to use a debugger: Use ipdb.set_trace() in the code you
+    wish to debug
+
 (If you're getting started with behave, we recommend at least reading
 through [the behave
 tutorial](https://behave.readthedocs.io/en/latest/tutorial.html) to get

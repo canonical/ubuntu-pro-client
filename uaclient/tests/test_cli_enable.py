@@ -62,6 +62,36 @@ class TestActionEnable:
             == err.value.msg
         )
 
+    @pytest.mark.parametrize("assume_yes", (True, False))
+    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.contract.request_updated_contract")
+    @mock.patch("uaclient.cli.entitlements")
+    def test_assume_yes_passed_to_service_init(
+        self,
+        m_entitlements,
+        m_request_updated_contract,
+        _m_get_available_resources,
+        m_getuid,
+        assume_yes,
+        FakeConfig,
+    ):
+        """assume-yes parameter is passed to entitlement instantiation."""
+        m_getuid.return_value = 0
+
+        m_entitlement_cls = mock.Mock()
+        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
+            "testitlement": m_entitlement_cls
+        }
+
+        cfg = FakeConfig.for_attached_machine()
+        args = mock.MagicMock()
+        args.name = "testitlement"
+        args.assume_yes = assume_yes
+        action_enable(args, cfg)
+        assert [
+            mock.call(cfg, assume_yes=assume_yes)
+        ] == m_entitlement_cls.call_args_list
+
 
 class TestPerformEnable:
     @mock.patch("uaclient.cli.entitlements")
@@ -77,9 +107,13 @@ class TestPerformEnable:
             _perform_enable("entitlement", mock.Mock())
 
     @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
+    @mock.patch("uaclient.contract.get_available_resources", return_value={})
     @mock.patch("uaclient.cli.entitlements")
     def test_entitlement_instantiated_and_enabled(
-        self, m_entitlements, silent_if_inapplicable
+        self,
+        m_entitlements,
+        _m_get_available_resources,
+        silent_if_inapplicable,
     ):
         m_entitlement_cls = mock.Mock()
         m_cfg = mock.Mock()
@@ -92,7 +126,9 @@ class TestPerformEnable:
             kwargs["silent_if_inapplicable"] = silent_if_inapplicable
         ret = _perform_enable("testitlement", m_cfg, **kwargs)
 
-        assert [mock.call(m_cfg)] == m_entitlement_cls.call_args_list
+        assert [
+            mock.call(m_cfg, assume_yes=False)
+        ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value
         if silent_if_inapplicable:

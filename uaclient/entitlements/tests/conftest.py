@@ -3,7 +3,7 @@ import pytest
 from uaclient import config
 
 try:
-    from typing import Any, Dict, List  # noqa
+    from typing import Any, Dict, List, Optional  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -90,6 +90,7 @@ def entitlement_factory(tmpdir):
         affordances: "Dict[str, Any]" = None,
         directives: "Dict[str, Any]" = None,
         entitled: bool = True,
+        assume_yes: "Optional[bool]" = None,
         suites: "List[str]" = None
     ):
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
@@ -103,6 +104,9 @@ def entitlement_factory(tmpdir):
                 suites=suites,
             ),
         )
-        return cls(cfg)
+        args = {}
+        if assume_yes is not None:
+            args["assume_yes"] = assume_yes
+        return cls(cfg, **args)
 
     return factory_func
