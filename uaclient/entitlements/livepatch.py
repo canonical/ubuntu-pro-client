@@ -66,14 +66,14 @@ class LivepatchEntitlement(base.UAEntitlement):
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
                 )
-                util.subp(
-                    [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
-                )
             elif "snapd" not in apt.get_installed_packages():
                 raise exceptions.UserFacingError(
                     "/usr/bin/snap is present but snapd is not installed;"
                     " cannot enable {}".format(self.title)
                 )
+            util.subp(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            )
             print("Installing canonical-livepatch snap")
             try:
                 util.subp(
