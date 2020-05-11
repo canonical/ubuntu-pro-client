@@ -404,10 +404,12 @@ class TestLivepatchEntitlementEnable:
             ["apt-get", "install", "--assume-yes", "snapd"],
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
-        ),
+        )
+    ]
+    mocks_snap_wait_seed = [
         mock.call(
             ["/usr/bin/snap", "wait", "system", "seed.loaded"], capture=True
-        ),
+        )
     ]
     mocks_livepatch_install = [
         mock.call(
@@ -416,7 +418,9 @@ class TestLivepatchEntitlementEnable:
             retry_sleeps=[0.5, 1, 5],
         )
     ]
-    mocks_install = mocks_snapd_install + mocks_livepatch_install
+    mocks_install = (
+        mocks_snapd_install + mocks_snap_wait_seed + mocks_livepatch_install
+    )
     mocks_config = [
         mock.call(
             [
@@ -535,7 +539,9 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert (
-            self.mocks_livepatch_install + self.mocks_config
+            self.mocks_snap_wait_seed
+            + self.mocks_livepatch_install
+            + self.mocks_config
             in m_subp.call_args_list
         )
         msg = (
