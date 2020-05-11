@@ -29,7 +29,7 @@ Ubuntu Advantage Client performs:
 | Term | Meaning |
 | -------- | -------- |
 | UA Client | The python command line client represented in this ubuntu-advantage-client repository. It is installed on each Ubuntu machine and is the entry-point to enable any Ubuntu Advantage commercial service on an Ubuntu machine. |
-| Contract Server | The backend service exposing a REST API to which UA Client authenticates in order to obtain contract and commercial service information and manage which support servics are active on a machine.|
+| Contract Server | The backend service exposing a REST API to which UA Client authenticates in order to obtain contract and commercial service information and manage which support services are active on a machine.|
 | Entitlement/Service | An Ubuntu Advantage commercial support service such as FIPS, ESM, Livepatch, CIS-Audit to which a contract may be entitled |
 | Affordance | Service-specific list of applicable architectures and Ubuntu series on which a service can run |
 | Directives | Service-specific configuration values which are applied to a service when enabling that service |
@@ -67,7 +67,7 @@ https://ubuntu.com/advantage.
 * UA Client reads config from /etc/ubuntu-advantage/uaclient.conf to obtain
   the contract_url (default: https://contracts.canonical.com)
 * UA Client POSTs to the Contract Server API @
-  <contract_url>/api/v1/context/machines/token providing the <contractToken>
+  <contract_url>/api/v1/context/machines/token providing the \<contractToken\>
 * The Contract Server responds with a JSON blob containing an unique machine
   token, service credentials, affordances, directives and obligations to allow
   enabling and disabling Ubuntu Advantage services
@@ -110,7 +110,7 @@ The following describes the intent of UA client related directories:
 | ./uaclient/cli.py | The entry-point for the command-line client
 | ./uaclient/clouds/ | Cloud-platform detection logic used in Ubuntu Pro to determine if a given should be auto-attached to a contract |
 | uaclient.contract | Module for interacting with the Contract Server API |
-| ./demo | Various stale developer scripts for setting up one-off demo environemnts. (Not needed often)
+| ./demo | Various stale developer scripts for setting up one-off demo environments. (Not needed often)
 | ./apt-hook/ | the C++ apt-hook delivering MOTD and apt command notifications about UA support services |
 | ./apt-conf.d/ | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM  security-related components |
 | /etc/ubuntu-advantage/uaclient.conf | Configuration file for the UA client.|
