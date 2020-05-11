@@ -91,7 +91,7 @@ In pursuit of that goal, the UA client obtains most of it's service constraints
 from a machine token that it obtains from the Contract Server API.
 
 The UA Client is simple in that it relies on the machine token on the attached
-machine to describe whether a service is applicable for an envronment and what
+machine to describe whether a service is applicable for an environment and what
 configuration is required to properly enable that service.
 
 Any interactions with the Contract server API are defined as UAContractClient
