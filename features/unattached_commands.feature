@@ -92,6 +92,22 @@ Feature: Command behaviour when unattached
             For a list of services see: sudo ua status
             """
 
+    @series.trusty
+    Scenario: Unattached auto-attach does nothing in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I run `ua auto-attach` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+            """
+            Auto-attach image support is not available on nocloudnet
+            See: https://ubuntu.com/advantage
+            """
+
+
     @series.focal
     Scenario: Unattached detach in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
@@ -182,4 +198,19 @@ Feature: Command behaviour when unattached
             """
             Cannot disable 'foobar'
             For a list of services see: sudo ua status
+            """
+
+    @series.focal
+    Scenario: Unattached auto-attach does nothing in a focal lxd container
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I run `ua auto-attach` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+            """
+            Auto-attach image support is not available on lxd
+            See: https://ubuntu.com/advantage
             """

@@ -110,6 +110,21 @@ Feature: Command behaviour when attached to an UA subscription
           This machine is not attached to a UA subscription.
           """
 
+    @series.trusty
+    Scenario: Attached auto-attach in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I attach contract_token with sudo
+        And I run `ua auto-attach` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+            """
+            This machine is already attached
+            """
+
    @series.focal
    Scenario: Attached refresh in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
@@ -210,3 +225,18 @@ Feature: Command behaviour when attached to an UA subscription
           """
           This machine is not attached to a UA subscription.
           """
+
+    @series.focal
+    Scenario: Attached auto-attach in a focal lxd container
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I attach contract_token with sudo
+        And I run `ua auto-attach` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+            """
+            This machine is already attached
+            """
