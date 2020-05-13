@@ -2,13 +2,17 @@
 set -ex
 #
 # Create a native package release of ubuntu-advantage-tools for a given series
-# This assumes latest debian/changelog entry version is (MM.NN) UNRELEASED.
+# This assumes latest debian/changelog entry version is (XX.YY) UNRELEASED.
 #
-# Release this package version to devel release with the format: YY.N where
-# YY is the 2-digit year and N is a counter of public releases in that year.
-#
-# When releasing to stable series, an ~ubuntu1~XX.YY.1 suffix will be added
-# where XX.YY is the release version 18.04, 16.04 etc.
+# Release this package version to devel release with the format: XX.Y where
+# XX is a major milestone version represented in
+#   https://github.com/canonical/ubuntu-advantage-client/milestones
+# YY is a minor release count relative to the number of releases published
+#   of XX
+# When bugfixing an existing XX.YY release, append a .Z patch counter
+
+# When releasing to stable series, an ~ubuntu1~RR.SS.1 suffix will be added
+# where RR.SS is the release version 18.04, 16.04 etc.
 
 # This scipt temporarily sets the appropriate version and series in the most
 # recent debian/changelog entry, runs build-package, and prints the steps
@@ -86,7 +90,7 @@ else
 fi
 
 if [ "${SERIES}" != "${DEVEL_SERIES}" ]; then
-  # Only append ~XX.YY.1 to stable releases
+  # Only append ~RR.SS.1 to stable releases
   CHANGELOG_VERSION=${CHANGELOG_VERSION}~${RELEASE_NUMBER/ LTS/}.1
 fi
 
