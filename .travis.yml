@@ -17,6 +17,7 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
+          - set -o allexport
           - export TEST_BUILD_PUSH=1
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
