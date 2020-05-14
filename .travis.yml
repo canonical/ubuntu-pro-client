@@ -13,10 +13,11 @@ matrix:
   fast_finish: true
   include:
     - python: 3.7
-      env: TOXENV=behave
+      env: TOXENV=behave TEST_BUILD_ENV=1
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
+          - export TEST_BUILD_PUSH=1
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
