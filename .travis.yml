@@ -30,4 +30,4 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c 'make test'
+          - sg lxd -c 'UACLIENT_BEHAVE_BUILD_DAILY=1 make test'
