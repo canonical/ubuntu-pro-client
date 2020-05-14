@@ -19,9 +19,9 @@ matrix:
           # confusion over versions
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
-          - echo '$TRAVIS_BRANCH' >> /tmp/build.sh
-          - echo 'HOST_WORKDIR=$(pwd)' >> /tmp/build.sh
-          - echo 'TEST_BUILD_TRAVIS=1' >> /tmp/build.sh
+          - echo "$TRAVIS_BRANCH" >> /tmp/build.sh
+          - echo "HOST_WORKDIR=$(pwd)" >> /tmp/build.sh
+          - echo "TEST_BUILD_TRAVIS=1" >> /tmp/build.sh
           - source /tmp/build.sh
           - echo $TEST_BUILD_TRAVIS
           - export TEST_BUILD_PUSH=1
