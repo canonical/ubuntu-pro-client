@@ -106,6 +106,7 @@ def before_all(context: Context) -> None:
     context.config = UAClientBehaveConfig.from_environ()
     print ('\n\ntest build os.env travis env: ', os.environ.get('TEST_BUILD_ENV'))
     print ('test build: ', os.environ.get('TEST_BUILD_PUSH'))
+    print ('test build from sourced script: ', os.environ.get('TEST_BUILD_TRAVIS'))
     print ('\n\n\n')
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)

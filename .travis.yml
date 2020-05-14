@@ -17,7 +17,11 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - set -o allexport
+          - echo $TRAVIS_BRANCH
+          - echo -e 'set -o allexport\nexport TEST_BUILD_TRAVIS=1' > build.sh
+          - echo 'export TEST_BUILD_TRAVIS=1' > build.sh
+          - source build.sh
+          - echo $TEST_BUILD_TRAVIS
           - export TEST_BUILD_PUSH=1
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
