@@ -1,3 +1,5 @@
+import contextlib
+import io
 import mock
 
 import pytest
@@ -33,18 +35,14 @@ class TestActionEnable:
         cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.name = "esm-infra"
+            args.names = ["esm-infra"]
             action_enable(args, cfg)
         assert (
             expected_error_template.format(name="esm-infra") == err.value.msg
         )
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template",
-        [
-            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
-            (1000, status.MESSAGE_NONROOT_USER),
-        ],
+        "uid,expected_error_template", [(1000, status.MESSAGE_NONROOT_USER)]
     )
     def test_invalid_service_error_message(
         self, m_getuid, uid, expected_error_template, FakeConfig
@@ -55,12 +53,32 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.name = "bogus"
+            args.names = ["bogus"]
             action_enable(args, cfg)
         assert (
             expected_error_template.format(operation="enable", name="bogus")
             == err.value.msg
         )
+
+    def test_service_not_found_error_message(self, m_getuid, FakeConfig):
+        """Check invalid service name results in custom error message."""
+        m_getuid.return_value = 0
+        cfg = FakeConfig.for_attached_machine()
+
+        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg += status.action_report(
+            action_name="enabled",
+            entitlements_not_found=["bogus"],
+            entitlements_not_succeeded=[],
+            entitlements_succeeded=[],
+        )
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            args = mock.MagicMock()
+            args.names = ["bogus"]
+            action_enable(args, cfg)
+
+        assert expected_msg == fake_stdout.getvalue()
 
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -85,12 +103,77 @@ class TestActionEnable:
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        args.name = "testitlement"
+        args.names = ["testitlement"]
         args.assume_yes = assume_yes
         action_enable(args, cfg)
         assert [
             mock.call(cfg, assume_yes=assume_yes)
         ] == m_entitlement_cls.call_args_list
+
+    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
+    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.cli.entitlements")
+    def test_entitlements_not_found_disabled_and_enabled(
+        self,
+        m_entitlements,
+        _m_get_available_resources,
+        m_getuid,
+        silent_if_inapplicable,
+        FakeConfig,
+    ):
+        m_getuid.return_value = 0
+        return_code = 1
+
+        m_ent1_cls = mock.Mock()
+        m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj.enable.return_value = False
+
+        m_ent2_cls = mock.Mock()
+        m_ent2_obj = m_ent2_cls.return_value
+        m_ent2_obj.enable.return_value = False
+
+        m_ent3_cls = mock.Mock()
+        m_ent3_obj = m_ent3_cls.return_value
+        m_ent3_obj.enable.return_value = True
+
+        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
+            "ent2": m_ent2_cls,
+            "ent3": m_ent3_cls,
+        }
+
+        cfg = FakeConfig.for_attached_machine()
+        assume_yes = False
+        args_mock = mock.Mock()
+        args_mock.names = ["ent1", "ent2", "ent3"]
+        args_mock.assume_yes = assume_yes
+
+        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg += "Enabling ent2\n\nEnabling ent3\n\n"
+        expected_msg += status.action_report(
+            action_name="enabled",
+            entitlements_not_found=["ent1"],
+            entitlements_not_succeeded=["ent2"],
+            entitlements_succeeded=["ent3"],
+        )
+
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            ret = action_enable(args_mock, cfg)
+
+        assert expected_msg == fake_stdout.getvalue()
+
+        for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
+            assert [
+                mock.call(cfg, assume_yes=assume_yes)
+            ] == m_ent_cls.call_args_list
+
+        expected_enable_call = mock.call(silent_if_inapplicable=False)
+        for m_ent in [m_ent2_obj, m_ent3_obj]:
+            assert [expected_enable_call] == m_ent.enable.call_args_list
+
+        assert 0 == m_ent1_obj.call_count
+
+        assert return_code == ret
 
 
 class TestPerformEnable:

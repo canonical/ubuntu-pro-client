@@ -169,8 +169,9 @@ def enable_parser(parser):
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "name",
+        "names",
         action="store",
+        nargs="+",
         help="the name of the Ubuntu Advantage service to enable",
     )
     parser.add_argument(
@@ -366,11 +367,38 @@ def action_enable(args, cfg, **kwargs):
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
-    if _perform_enable(
-        args.name, cfg, assume_yes=args.assume_yes, allow_beta=args.beta
-    ):
-        return 0
-    return 1
+
+    entitlements_not_found = kwargs.get("entitlements_not_found", [])
+    entitlements_found = kwargs.get("entitlements_found", [])
+    entitlements_not_enabled = []
+    entitlements_enabled = []
+    assume_yes = args.assume_yes
+
+    ret = len(entitlements_not_found) == 0
+
+    for entitlement_name in entitlements_found:
+        print("Enabling {}".format(entitlement_name))
+
+        if _perform_enable(entitlement_name, cfg, assume_yes=assume_yes):
+            ret &= True
+            entitlements_enabled.append(entitlement_name)
+        else:
+            ret = False
+            entitlements_not_enabled.append(entitlement_name)
+
+        print()
+
+    print(
+        ua_status.action_report(
+            action_name="enabled",
+            entitlements_not_found=entitlements_not_found,
+            entitlements_not_succeeded=entitlements_not_enabled,
+            entitlements_succeeded=entitlements_enabled,
+        ),
+        end="",
+    )
+
+    return 0 if ret else 1
 
 
 @assert_root
