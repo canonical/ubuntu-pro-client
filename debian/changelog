@@ -1,8 +1,9 @@
-ubuntu-advantage-tools (24.0) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (24) UNRELEASED; urgency=medium
 
-  * Open 24.0 release for development
+  * Change package versioning scheme which is milestone-based instead
+    of year-based
 
- -- Chad Smith <chad.smith@canonical.com>  Mon, 30 Mar 2020 15:47:18 -0600
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 15 May 2020 15:41:58 -0600
 
 ubuntu-advantage-tools (20.3) focal; urgency=medium
 
