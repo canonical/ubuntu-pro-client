@@ -1,5 +1,5 @@
 language: python
-dist: bionic
+dist: focal
 
 install:
   # Required so `git describe` will definitely find a tag; see
@@ -12,7 +12,7 @@ script:
 matrix:
   fast_finish: true
   include:
-    - python: 3.7
+    - python: 3.8
       env: TOXENV=behave TEST_BUILD_ENV=1
       script:
           # bionic has lxd from deb installed, remove it first to avoid
@@ -25,8 +25,12 @@ matrix:
           - source /tmp/build.sh
           - echo $TEST_BUILD_TRAVIS
           - export TEST_BUILD_PUSH=1
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
+#          - make deps
+ #         - dpkg-buildpackage -us -uc
+          # - dpkg -i /var/tmp/ubuntu-advantage-tools_20.4_amd64.deb #hardcoding, need to check just .deb file
+  #        - cp ubuntu-advantage-tools_20.4_amd64.deb /tmp
+   #       - sudo apt-get remove --yes --purge lxd lxd-client
+    #      - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
