@@ -169,5 +169,6 @@ def lxc_push_files(name: str) -> None:
     :param name:
         The name of the container to push the PR source code.
     """
+    print ('\n\n\nlxc push_files')
     #lxc file push pr_source.tar.gz trusty/home/ubuntu/
     subprocess.run(["lxc", "file", "push", "/tmp/pr_source.tar.gz", name+'/home/ubuntu/'])
