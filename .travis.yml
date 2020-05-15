@@ -13,7 +13,7 @@ matrix:
   fast_finish: true
   include:
     - python: 3.7
-      env: TOXENV=behave TEST_BUILD_ENV=1
+      env: TOXENV=behave
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
@@ -22,6 +22,9 @@ matrix:
           - echo "$TRAVIS_BRANCH" >> /tmp/build.sh
           - echo "HOST_WORKDIR=$(pwd)" >> /tmp/build.sh
           - echo "TEST_BUILD_TRAVIS=1" >> /tmp/build.sh
+          - cd $TRAVIS_BUILD_DIR/..
+          - tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+          - ls -lh
           - source /tmp/build.sh
           - echo $TEST_BUILD_TRAVIS
           - export TEST_BUILD_PUSH=1
