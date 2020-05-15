@@ -25,6 +25,8 @@ matrix:
           - cd $TRAVIS_BUILD_DIR/..
           - tar -zcvf pr_source.tar.gz ubuntu-advantage-client
           - ls -lh
+          - cd $TRAVIS_BUILD_DIR
+          - pwd
           - source /tmp/build.sh
           - echo $TEST_BUILD_TRAVIS
           - export TEST_BUILD_PUSH=1
