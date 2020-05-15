@@ -260,3 +260,4 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
             container_name,
             ["/home/ubuntu/ubuntu-advantage-client/tools/build-from-source.sh"],
         )
+        lxc_exec(container_name, ["ls /home/ubuntu/"])
