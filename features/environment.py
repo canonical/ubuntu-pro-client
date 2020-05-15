@@ -221,20 +221,23 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     )
     ubuntu_series = "ubuntu-daily:%s" % series
     launch_lxd_container(context, ubuntu_series, build_container_name)
-    _install_uat_in_container(build_container_name)
+    _install_uat_in_container(build_container_name, context.build_pr)
     _capture_container_as_image(
         build_container_name, context.series_image_name[series]
     )
 
 
-def _install_uat_in_container(container_name: str) -> None:
+def _install_uat_in_container(container_name: str, build_pr: bool = False) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
+    :param build_pr:
+        if it is False install uac from daily ppa
+        if it is True install from the PR source code
     """
-    if not context.build_pr:
+    if not build_pr:
         lxc_exec(
             container_name,
             [
