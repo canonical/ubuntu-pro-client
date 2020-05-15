@@ -161,3 +161,13 @@ def lxc_get_series(name: str, image: bool = False):
                 " Could not detect image series. Add it via `lxc image edit`"
             )
     return None
+
+
+def lxc_push_files(name: str) -> None:
+    """Copy .tar.gz to the container container.
+
+    :param name:
+        The name of the container to push the PR source code.
+    """
+    #lxc file push pr_source.tar.gz trusty/home/ubuntu/
+    subprocess.run(["lxc", "file", "push", "/tmp/pr_source.tar.gz", name+'/home/ubuntu/'])

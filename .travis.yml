@@ -24,7 +24,8 @@ matrix:
           - echo "TEST_BUILD_TRAVIS=1" >> /tmp/build.sh
           - cd $TRAVIS_BUILD_DIR/..
           - tar -zcvf pr_source.tar.gz ubuntu-advantage-client
-          - ls -lh
+          - cp pr_source.tar.gz /tmp
+          - ls -lh /tmp
           - cd $TRAVIS_BUILD_DIR
           - pwd
           - source /tmp/build.sh

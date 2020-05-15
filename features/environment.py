@@ -8,7 +8,7 @@ from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-from features.util import launch_lxd_container, lxc_exec, lxc_get_series
+from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_push_files
 
 
 class UAClientBehaveConfig:
@@ -234,17 +234,25 @@ def _install_uat_in_container(container_name: str) -> None:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
     """
-    lxc_exec(
-        container_name,
-        [
-            "sudo",
-            "add-apt-repository",
-            "--yes",
-            "ppa:canonical-server/ua-client-daily",
-        ],
-    )
-    lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
-    lxc_exec(
-        container_name,
-        ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
-    )
+    if not build_pr:
+        lxc_exec(
+            container_name,
+            [
+                "sudo",
+                "add-apt-repository",
+                "--yes",
+                "ppa:canonical-server/ua-client-daily",
+            ],
+        )
+        lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
+        lxc_exec(
+            container_name,
+            ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
+        )
+    else:
+        #copy source .tar.gz into the container
+        lxc_push_files(container_name)
+        lxc_exec(
+            container_name,
+            ["/home/ubuntu/ubuntu-advantage-client/tools/build-from-source.sh"],
+        )
