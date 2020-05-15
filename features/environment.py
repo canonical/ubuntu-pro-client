@@ -234,7 +234,7 @@ def _install_uat_in_container(container_name: str) -> None:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
     """
-    if not build_pr:
+    if not context.build_pr:
         lxc_exec(
             container_name,
             [
