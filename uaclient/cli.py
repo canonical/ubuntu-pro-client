@@ -63,16 +63,16 @@ def assert_attached(unattached_msg_tmpl=None):
 
     def wrapper(f):
         @wraps(f)
-        def new_f(args, cfg):
+        def new_f(args, cfg, **kwargs):
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
-                    name = getattr(args, "name", "None")
-                    msg = unattached_msg_tmpl.format(name=name)
+                    names = getattr(args, "names", "None")
+                    msg = unattached_msg_tmpl.format(name=", ".join(names))
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
                 raise exception
-            return f(args, cfg)
+            return f(args, cfg, **kwargs)
 
         return new_f
 
@@ -91,7 +91,7 @@ def assert_not_attached(f):
     return new_f
 
 
-def require_valid_entitlement_name(operation: str):
+def require_valid_entitlement_names(operation: str):
     """Decorator ensuring that args.name is a valid service.
 
     :param operation: the operation name to use in error messages
@@ -99,15 +99,19 @@ def require_valid_entitlement_name(operation: str):
 
     def wrapper(f):
         @wraps(f)
-        def new_f(args, cfg):
-            if hasattr(args, "name"):
-                name = args.name
-                tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-                if name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-                    raise exceptions.UserFacingError(
-                        tmpl.format(operation=operation, name=name)
-                    )
-            return f(args, cfg)
+        def new_f(args, cfg, **kwargs):
+            if hasattr(args, "names"):
+                names = args.names
+                entitlements_not_found = []
+                entitlements_found = []
+                for ent_name in names:
+                    if ent_name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+                        entitlements_not_found.append(ent_name)
+                    else:
+                        entitlements_found.append(ent_name)
+                kwargs["entitlements_found"] = entitlements_found
+                kwargs["entitlements_not_found"] = entitlements_not_found
+            return f(args, cfg, **kwargs)
 
         return new_f
 
@@ -188,9 +192,10 @@ def disable_parser(parser):
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "name",
+        "names",
         action="store",
-        help="the name of the Ubuntu Advantage service to disable",
+        nargs="+",
+        help="the names of the Ubuntu Advantage service to disable",
     )
     parser.add_argument(
         "--assume-yes",
@@ -256,19 +261,58 @@ def status_parser(parser):
     return parser
 
 
-@assert_root
-@require_valid_entitlement_name("disable")
-@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
-def action_disable(args, cfg):
+def _action_disable(name, cfg, assume_yes):
     """Perform the disable action on a named entitlement.
+
+    @return: True on success, False otherwise
+    """
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[name]
+    entitlement = ent_cls(cfg, assume_yes=assume_yes)
+    ret = entitlement.disable()
+    cfg.status()  # Update the status cache
+    return ret
+
+
+@assert_root
+@require_valid_entitlement_names("disable")
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+def action_disable(args, cfg, **kwargs):
+    """Perform the disable action on a list of entitlements.
 
     @return: 0 on success, 1 otherwise
     """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement = ent_cls(cfg, assume_yes=args.assume_yes)
-    ret = 0 if entitlement.disable() else 1
-    cfg.status()  # Update the status cache
-    return ret
+    entitlements_not_found = kwargs.get("entitlements_not_found", [])
+    entitlements_found = kwargs.get("entitlements_found", [])
+    assume_yes = args.assume_yes
+    entitlements_not_disabled = []
+    entitlements_disabled = []
+
+    ret = len(entitlements_not_found) == 0
+
+    for entitlement_name in entitlements_found:
+        print("Disabling {}".format(entitlement_name))
+
+        if _action_disable(entitlement_name, cfg, assume_yes):
+            ret &= True
+            entitlements_disabled.append(entitlement_name)
+            print("Disabled {}".format(entitlement_name))
+        else:
+            ret = False
+            entitlements_not_disabled.append(entitlement_name)
+
+        print()
+
+    print(
+        ua_status.action_report(
+            action_name="disabled",
+            entitlements_not_found=entitlements_not_found,
+            entitlements_not_succeeded=entitlements_not_disabled,
+            entitlements_succeeded=entitlements_disabled,
+        ),
+        end="",
+    )
+
+    return 0 if ret else 1
 
 
 def _perform_enable(
@@ -309,9 +353,9 @@ def _perform_enable(
 
 
 @assert_root
-@require_valid_entitlement_name("enable")
+@require_valid_entitlement_names("enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
-def action_enable(args, cfg):
+def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise

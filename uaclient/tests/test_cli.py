@@ -15,7 +15,7 @@ from uaclient.cli import (
     assert_root,
     get_parser,
     main,
-    require_valid_entitlement_name,
+    require_valid_entitlement_names,
     setup_logging,
 )
 
@@ -195,38 +195,35 @@ class TestAssertNotAttached:
 
 
 class TestRequireValidEntitlementName:
-    # rven used in test names as short hand for require_valid_entitlement_name
+    # rven used in test names as short hand for require_valid_entitlement_names
     def test_rven_without_name(self):
-        @require_valid_entitlement_name("operation")
-        def test_function(args, cfg):
+        @require_valid_entitlement_names("operation")
+        def test_function(args, cfg, **kwargs):
             return mock.sentinel.success
 
         assert mock.sentinel.success == test_function(object(), object())
 
     def test_rven_with_valid_name(self):
-        @require_valid_entitlement_name("operation")
-        def test_function(args, cfg):
+        @require_valid_entitlement_names("operation")
+        def test_function(args, cfg, **kwargs):
             return mock.sentinel.success
 
         m_args = mock.Mock()
-        m_args.name = "esm-infra"
+        m_args.names = ["esm-infra"]
         assert mock.sentinel.success == test_function(m_args, object())
 
     @pytest.mark.parametrize("operation_name", ["operation1", "operation2"])
     def test_rven_with_invalid_name(self, operation_name):
-        @require_valid_entitlement_name(operation_name)
-        def test_function(args, cfg):
-            pass
+        @require_valid_entitlement_names(operation_name)
+        def test_function(args, cfg, **kwargs):
+            return kwargs["entitlements_not_found"]
 
         m_args = mock.Mock()
-        m_args.name = "invalid_entitlement"
-        with pytest.raises(UserFacingError) as excinfo:
-            test_function(m_args, object())
+        names = ["invalid_entitlement"]
+        m_args.names = names
+        ret = test_function(m_args, object())
 
-        assert (
-            "Cannot {} 'invalid_entitlement'".format(operation_name)
-            in excinfo.value.msg
-        )
+        assert ret == names
 
 
 class TestMain:
