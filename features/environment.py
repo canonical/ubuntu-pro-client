@@ -221,7 +221,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     )
     ubuntu_series = "ubuntu-daily:%s" % series
     launch_lxd_container(context, ubuntu_series, build_container_name)
-    _install_uat_in_container(build_container_name, context.build_pr)
+    _install_uat_in_container(build_container_name, context.config.build_pr)
     _capture_container_as_image(
         build_container_name, context.series_image_name[series]
     )
