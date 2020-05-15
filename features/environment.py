@@ -237,6 +237,7 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
         if it is False install uac from daily ppa
         if it is True install from the PR source code
     """
+    print ('@install_uat: build_pr ', build_pr)
     if not build_pr:
         lxc_exec(
             container_name,
