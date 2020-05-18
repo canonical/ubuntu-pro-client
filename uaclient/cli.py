@@ -92,7 +92,8 @@ def assert_not_attached(f):
 
 
 def require_valid_entitlement_names(operation: str):
-    """Decorator ensuring that args.name is a valid service.
+    """Decorator that verifies which of the args.names is a valid
+    service or not.
 
     :param operation: the operation name to use in error messages
     """
@@ -262,12 +263,79 @@ def status_parser(parser):
     return parser
 
 
-def _action_disable(name, cfg, assume_yes):
+def perform_actions_on_service_entitlements(
+    action_name,
+    action_fn,
+    cfg,
+    entitlements_found,
+    entitlements_not_found,
+    **extra_params
+):
+    """Performs multiple actions over entitlements
+    and print a report to the user about the action's result over
+    each entitlement.
+
+    :param action_name: The name of the action to be performed.
+    :param action_fn:
+       A function to apply the action on an entitlement. Every
+       action function must receive only two base parameters:
+
+        * name: The name of the entitlement
+        * cfg: A UAClient config object
+
+      The additional parameters are handled by the extra_params dict.
+
+    :param cfg: An UAClient config object.
+    :param entitlements_found:
+       A list of valid entitlements to apply the action on.
+    :param entitlements_not_found:
+       A list of entitlements that are invalid, meaning that
+       they are not provide by the tool.
+    :param extra_params:
+       A dict containing the additional parameters the action
+       function may require.
+    """
+    entitlements_not_disabled = []
+    entitlements_disabled = []
+
+    ret = len(entitlements_not_found) == 0
+
+    for entitlement_name in entitlements_found:
+        print(entitlement_name)
+
+        if action_fn(entitlement_name, cfg, **extra_params):
+            ret &= True
+            entitlements_disabled.append(entitlement_name)
+        else:
+            ret = False
+            entitlements_not_disabled.append(entitlement_name)
+
+        print()
+
+    print(
+        ua_status.action_report(
+            action_name=action_name,
+            entitlements_not_found=entitlements_not_found,
+            entitlements_not_succeeded=entitlements_not_disabled,
+            entitlements_succeeded=entitlements_disabled,
+        ),
+        end="",
+    )
+
+    return 0 if ret else 1
+
+
+def _perform_disable(entitlement_name, cfg, *, assume_yes):
     """Perform the disable action on a named entitlement.
+
+    :param entitlement_name: the name of the entitlement to enable
+    :param cfg: the UAConfig to pass to the entitlement
+    :param assume_yes:
+        Assume a yes response for any prompts during service enable
 
     @return: True on success, False otherwise
     """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[name]
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
     entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.disable()
     cfg.status()  # Update the status cache
@@ -284,36 +352,17 @@ def action_disable(args, cfg, **kwargs):
     """
     entitlements_not_found = kwargs.get("entitlements_not_found", [])
     entitlements_found = kwargs.get("entitlements_found", [])
-    assume_yes = args.assume_yes
-    entitlements_not_disabled = []
-    entitlements_disabled = []
+    extra_params = {}
+    extra_params["assume_yes"] = args.assume_yes
 
-    ret = len(entitlements_not_found) == 0
-
-    for entitlement_name in entitlements_found:
-        print("Disabling {}".format(entitlement_name))
-
-        if _action_disable(entitlement_name, cfg, assume_yes):
-            ret &= True
-            entitlements_disabled.append(entitlement_name)
-            print("Disabled {}".format(entitlement_name))
-        else:
-            ret = False
-            entitlements_not_disabled.append(entitlement_name)
-
-        print()
-
-    print(
-        ua_status.action_report(
-            action_name="disabled",
-            entitlements_not_found=entitlements_not_found,
-            entitlements_not_succeeded=entitlements_not_disabled,
-            entitlements_succeeded=entitlements_disabled,
-        ),
-        end="",
+    return perform_actions_on_service_entitlements(
+        action_name="disabled",
+        action_fn=_perform_disable,
+        cfg=cfg,
+        entitlements_found=entitlements_found,
+        entitlements_not_found=entitlements_not_found,
+        **extra_params
     )
-
-    return 0 if ret else 1
 
 
 def _perform_enable(
@@ -370,35 +419,17 @@ def action_enable(args, cfg, **kwargs):
 
     entitlements_not_found = kwargs.get("entitlements_not_found", [])
     entitlements_found = kwargs.get("entitlements_found", [])
-    entitlements_not_enabled = []
-    entitlements_enabled = []
-    assume_yes = args.assume_yes
+    extra_params = {}
+    extra_params["assume_yes"] = args.assume_yes
 
-    ret = len(entitlements_not_found) == 0
-
-    for entitlement_name in entitlements_found:
-        print("Enabling {}".format(entitlement_name))
-
-        if _perform_enable(entitlement_name, cfg, assume_yes=assume_yes):
-            ret &= True
-            entitlements_enabled.append(entitlement_name)
-        else:
-            ret = False
-            entitlements_not_enabled.append(entitlement_name)
-
-        print()
-
-    print(
-        ua_status.action_report(
-            action_name="enabled",
-            entitlements_not_found=entitlements_not_found,
-            entitlements_not_succeeded=entitlements_not_enabled,
-            entitlements_succeeded=entitlements_enabled,
-        ),
-        end="",
+    return perform_actions_on_service_entitlements(
+        action_name="enabled",
+        action_fn=_perform_enable,
+        cfg=cfg,
+        entitlements_found=entitlements_found,
+        entitlements_not_found=entitlements_not_found,
+        **extra_params
     )
-
-    return 0 if ret else 1
 
 
 @assert_root

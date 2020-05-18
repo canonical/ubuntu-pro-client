@@ -148,7 +148,7 @@ class TestActionEnable:
         args_mock.assume_yes = assume_yes
 
         expected_msg = "One moment, checking your subscription first\n"
-        expected_msg += "Enabling ent2\n\nEnabling ent3\n\n"
+        expected_msg += "ent2\n\nent3\n\n"
         expected_msg += status.action_report(
             action_name="enabled",
             entitlements_not_found=["ent1"],

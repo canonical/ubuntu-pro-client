@@ -92,7 +92,7 @@ class TestDisable:
         args_mock.names = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        expected_msg = "Disabling ent2\n\nDisabling ent3\nDisabled ent3\n\n"
+        expected_msg = "ent2\n\nent3\n\n"
         expected_msg += status.action_report(
             action_name="disabled",
             entitlements_not_found=["ent1"],
