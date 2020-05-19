@@ -163,13 +163,30 @@ def lxc_get_series(name: str, image: bool = False):
     return None
 
 
-def lxc_push_files(name: str) -> None:
-    """Copy .tar.gz to the container container.
+def lxc_push_source_pull_deb_pkg(name: str) -> None:
+    """
+    Push source PR code .tar.gz to the container.
+    Run tools/build-from-source.sh which will create the .deb
+    Pull .deb from this container to travis-ci instance
 
     :param name:
-        The name of the container to push the PR source code.
+        name of the container to:
+         - push the PR source code;
+         - pull the built .deb package.
+
     """
     print ('\n\n\nlxc push_files')
     subprocess.run(["lxc", "file", "push", "/tmp/pr_source.tar.gz", name+'/tmp/'])
     print ('lxc -xzvf ...')
     subprocess.run(["lxc", "exec", name, "--", "tar", "-xzvf", "/tmp/pr_source.tar.gz", "--directory", "/tmp/"])
+    subprocess.run(
+        [
+            "lxc",
+            "exec",
+            name,
+            "--",
+            "/tmp/ubuntu-advantage-client/tools/build-from-source.sh"
+        ],
+    )
+    print ("\n\nPull .deb from the instance to travis VM")
+    subprocess.run(["lxc", "file", "pull", name+'/tmp/ubuntu-advantage-tools_20.4_amd64.deb', "/tmp/"])

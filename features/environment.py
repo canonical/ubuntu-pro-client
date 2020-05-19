@@ -8,7 +8,7 @@ from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_push_files
+from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_push_source_pull_deb_pkg
 
 
 class UAClientBehaveConfig:
@@ -213,15 +213,32 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         return
     now = datetime.datetime.now()
+    ubuntu_series = "ubuntu-daily:%s" % series
+
+    #if we are building the package from PR, we need a 2nd_base_image
+    #without the durty build dependencies from that 1st_base_image
+
+    if context.config.build_pr:
+        #creating a new image name for debugging purpose
+        build_container_name = "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        launch_lxd_container(context, ubuntu_series, build_container_name)
+        lxc_push_source_pull_deb_pkg(build_container_name)
+        #here it should have the new built .deb @/tmp dir
+        #/tmp/ubuntu-advantage-tools_20.4_amd64.deb
+
+    build_container_name = "behave-image-build-%s-" % series + now.strftime(
+            "%s%f"
+        )
+
+    launch_lxd_container(context, ubuntu_series, build_container_name)
+
+    #if build_pr it will install new built .deb
+    _install_uat_in_container(build_container_name, context.config.build_pr)
+
     context.series_image_name[
         series
     ] = "behave-image-%s-" % series + now.strftime("%s%f")
-    build_container_name = "behave-image-build-%s-" % series + now.strftime(
-        "%s%f"
-    )
-    ubuntu_series = "ubuntu-daily:%s" % series
-    launch_lxd_container(context, ubuntu_series, build_container_name)
-    _install_uat_in_container(build_container_name, context.config.build_pr)
+
     _capture_container_as_image(
         build_container_name, context.series_image_name[series]
     )
@@ -254,14 +271,12 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
             ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
         )
     else:
-        #copy source .tar.gz into the container
-        lxc_push_files(container_name)
-        subprocess.run(
-               [
-                    "lxc",
-                    "exec",
-                    container_name,
-                    "--",
-                    "/tmp/ubuntu-advantage-client/tools/build-from-source.sh"
-               ],
+        subprocess.run(["lxc", "file", "push", "/tmp/ubuntu-advantage-tools_20.4_amd64.deb", container_name+'/tmp/'])
+        lxc_exec(
+            container_name,
+            ["sudo", "dpkg", "-i","/tmp/ubuntu-advantage-tools_20.4_amd64.deb"],
+        )
+        lxc_exec(
+                container_name,
+                ["apt-cache", "policy", "ubuntu-advantage-tools"]
         )
