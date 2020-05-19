@@ -1,14 +1,13 @@
 #!/bin/bash
 set -o xtrace
 apt-get update
-cd /home/ubuntu 
-tar -xzvf pr_source.tar.gz
-cd ubuntu-advantage-client/
+tar -xzvf /tmp/pr_source.tar.gz --directory /tmp
+cd /tmp
 ls -lh
-pwd
 lsb_release -a
+cd /tmp/ubuntu-advantage-client
 git branch
 apt-get install make
-make deps 
+make deps
 dpkg-buildpackage -us -uc
-dpkg -i dpkg -i ubuntu-advantage-tools_20.4_amd64.deb
+dpkg -i /tmp/ubuntu-advantage-tools_20.4_amd64.deb
