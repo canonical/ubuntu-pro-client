@@ -256,8 +256,12 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
     else:
         #copy source .tar.gz into the container
         lxc_push_files(container_name)
-        lxc_exec(
-            container_name,
-            ["/home/ubuntu/ubuntu-advantage-client/tools/build-from-source.sh"],
+        subprocess.run(
+               [
+                    "lxc",
+                    "exec",
+                    container_name,
+                    "--",
+                    "/tmp/ubuntu-advantage-client/tools/build-from-source.sh"
+               ],
         )
-        lxc_exec(container_name, ["ls /home/ubuntu/"])
