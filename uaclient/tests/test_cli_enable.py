@@ -42,7 +42,11 @@ class TestActionEnable:
         )
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template", [(1000, status.MESSAGE_NONROOT_USER)]
+        "uid,expected_error_template",
+        [
+            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
+            (1000, status.MESSAGE_NONROOT_USER),
+        ],
     )
     def test_invalid_service_error_message(
         self, m_getuid, uid, expected_error_template, FakeConfig
@@ -59,26 +63,6 @@ class TestActionEnable:
             expected_error_template.format(operation="enable", name="bogus")
             == err.value.msg
         )
-
-    def test_service_not_found_error_message(self, m_getuid, FakeConfig):
-        """Check invalid service name results in custom error message."""
-        m_getuid.return_value = 0
-        cfg = FakeConfig.for_attached_machine()
-
-        expected_msg = "One moment, checking your subscription first\n"
-        expected_msg += status.action_report(
-            action_name="enabled",
-            entitlements_not_found=["bogus"],
-            entitlements_not_succeeded=[],
-            entitlements_succeeded=[],
-        )
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            args = mock.MagicMock()
-            args.names = ["bogus"]
-            action_enable(args, cfg)
-
-        assert expected_msg == fake_stdout.getvalue()
 
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -100,6 +84,8 @@ class TestActionEnable:
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "testitlement": m_entitlement_cls
         }
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.enable.return_value = True
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -122,7 +108,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        return_code = 1
+        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -149,17 +135,16 @@ class TestActionEnable:
 
         expected_msg = "One moment, checking your subscription first\n"
         expected_msg += "ent2\n\nent3\n\n"
-        expected_msg += status.action_report(
-            action_name="enabled",
-            entitlements_not_found=["ent1"],
-            entitlements_not_succeeded=["ent2"],
-            entitlements_succeeded=["ent3"],
+
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg)
+
+        assert (
+            expected_error_tmpl.format(operation="enable", name="ent1")
+            == err.value.msg
         )
-
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            ret = action_enable(args_mock, cfg)
-
         assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
@@ -173,7 +158,27 @@ class TestActionEnable:
 
         assert 0 == m_ent1_obj.call_count
 
-        assert return_code == ret
+    @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
+    def test_invalid_service_names(self, m_getuid, names, FakeConfig):
+        m_getuid.return_value = 0
+        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_msg = "One moment, checking your subscription first\n"
+
+        cfg = FakeConfig.for_attached_machine()
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                args = mock.MagicMock()
+                args.names = names
+                action_enable(args, cfg)
+
+        assert expected_msg == fake_stdout.getvalue()
+        assert (
+            expected_error_tmpl.format(
+                operation="enable", name=", ".join(sorted(names))
+            )
+            == err.value.msg
+        )
 
 
 class TestPerformEnable:

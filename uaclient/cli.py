@@ -103,15 +103,11 @@ def require_valid_entitlement_names(operation: str):
         def new_f(args, cfg, **kwargs):
             if hasattr(args, "names"):
                 names = args.names
-                entitlements_not_found = []
                 entitlements_found = []
                 for ent_name in names:
-                    if ent_name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-                        entitlements_not_found.append(ent_name)
-                    else:
+                    if ent_name in entitlements.ENTITLEMENT_CLASS_BY_NAME:
                         entitlements_found.append(ent_name)
                 kwargs["entitlements_found"] = entitlements_found
-                kwargs["entitlements_not_found"] = entitlements_not_found
             return f(args, cfg, **kwargs)
 
         return new_f
@@ -164,7 +160,7 @@ def detach_parser(parser):
 
 def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="enable") + " <name>"
+    usage = USAGE_TMPL.format(name=NAME, command="enable") + " []"
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
@@ -188,7 +184,7 @@ def enable_parser(parser):
 
 def disable_parser(parser):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="disable") + " <name>"
+    usage = USAGE_TMPL.format(name=NAME, command="disable") + " []"
     parser.usage = usage
     parser.prog = "disable"
     parser._positionals.title = "Arguments"
@@ -263,68 +259,6 @@ def status_parser(parser):
     return parser
 
 
-def perform_actions_on_service_entitlements(
-    action_name,
-    action_fn,
-    cfg,
-    entitlements_found,
-    entitlements_not_found,
-    **extra_params
-):
-    """Performs multiple actions over entitlements
-    and print a report to the user about the action's result over
-    each entitlement.
-
-    :param action_name: The name of the action to be performed.
-    :param action_fn:
-       A function to apply the action on an entitlement. Every
-       action function must receive only two base parameters:
-
-        * name: The name of the entitlement
-        * cfg: A UAClient config object
-
-      The additional parameters are handled by the extra_params dict.
-
-    :param cfg: An UAClient config object.
-    :param entitlements_found:
-       A list of valid entitlements to apply the action on.
-    :param entitlements_not_found:
-       A list of entitlements that are invalid, meaning that
-       they are not provide by the tool.
-    :param extra_params:
-       A dict containing the additional parameters the action
-       function may require.
-    """
-    entitlements_not_disabled = []
-    entitlements_disabled = []
-
-    ret = len(entitlements_not_found) == 0
-
-    for entitlement_name in entitlements_found:
-        print(entitlement_name)
-
-        if action_fn(entitlement_name, cfg, **extra_params):
-            ret &= True
-            entitlements_disabled.append(entitlement_name)
-        else:
-            ret = False
-            entitlements_not_disabled.append(entitlement_name)
-
-        print()
-
-    print(
-        ua_status.action_report(
-            action_name=action_name,
-            entitlements_not_found=entitlements_not_found,
-            entitlements_not_succeeded=entitlements_not_disabled,
-            entitlements_succeeded=entitlements_disabled,
-        ),
-        end="",
-    )
-
-    return 0 if ret else 1
-
-
 def _perform_disable(entitlement_name, cfg, *, assume_yes):
     """Perform the disable action on a named entitlement.
 
@@ -350,19 +284,24 @@ def action_disable(args, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    entitlements_not_found = kwargs.get("entitlements_not_found", [])
     entitlements_found = kwargs.get("entitlements_found", [])
-    extra_params = {}
-    extra_params["assume_yes"] = args.assume_yes
+    entitlements_not_found = sorted(set(args.names) - set(entitlements_found))
+    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    ret = True
 
-    return perform_actions_on_service_entitlements(
-        action_name="disabled",
-        action_fn=_perform_disable,
-        cfg=cfg,
-        entitlements_found=entitlements_found,
-        entitlements_not_found=entitlements_not_found,
-        **extra_params
-    )
+    for entitlement in entitlements_found:
+        print(entitlement)
+        ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
+        print()
+
+    if entitlements_not_found:
+        raise exceptions.UserFacingError(
+            tmpl.format(
+                operation="disable", name=", ".join(entitlements_not_found)
+            )
+        )
+
+    return 0 if ret else 1
 
 
 def _perform_enable(
@@ -417,19 +356,24 @@ def action_enable(args, cfg, **kwargs):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
 
-    entitlements_not_found = kwargs.get("entitlements_not_found", [])
     entitlements_found = kwargs.get("entitlements_found", [])
-    extra_params = {}
-    extra_params["assume_yes"] = args.assume_yes
+    entitlements_not_found = sorted(set(args.names) - set(entitlements_found))
+    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    ret = True
 
-    return perform_actions_on_service_entitlements(
-        action_name="enabled",
-        action_fn=_perform_enable,
-        cfg=cfg,
-        entitlements_found=entitlements_found,
-        entitlements_not_found=entitlements_not_found,
-        **extra_params
-    )
+    for entitlement in entitlements_found:
+        print(entitlement)
+        ret &= _perform_enable(entitlement, cfg, assume_yes=args.assume_yes)
+        print()
+
+    if entitlements_not_found:
+        raise exceptions.UserFacingError(
+            tmpl.format(
+                operation="enable", name=", ".join(entitlements_not_found)
+            )
+        )
+
+    return 0 if ret else 1
 
 
 @assert_root

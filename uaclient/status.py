@@ -234,38 +234,6 @@ MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 
 
-def action_report(
-    action_name,
-    entitlements_not_found,
-    entitlements_not_succeeded,
-    entitlements_succeeded,
-):
-    msg_tmpl = "{} results:\n{}{}{}\n"
-    not_found_msg = (
-        "Services not found: {}\n".format(", ".join(entitlements_not_found))
-        if len(entitlements_not_found)
-        else ""
-    )
-    fail_to_succeed_msg = (
-        "Services not {}: {}\n".format(
-            action_name, ", ".join(entitlements_not_succeeded)
-        )
-        if len(entitlements_not_succeeded)
-        else ""
-    )
-    succeed_msg = (
-        "Services {}: {}\n".format(
-            action_name, ", ".join(entitlements_succeeded)
-        )
-        if len(entitlements_succeeded)
-        else ""
-    )
-
-    return msg_tmpl.format(
-        action_name, not_found_msg, fail_to_succeed_msg, succeed_msg
-    )
-
-
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
     return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string

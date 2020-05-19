@@ -216,14 +216,14 @@ class TestRequireValidEntitlementName:
     def test_rven_with_invalid_name(self, operation_name):
         @require_valid_entitlement_names(operation_name)
         def test_function(args, cfg, **kwargs):
-            return kwargs["entitlements_not_found"]
+            return kwargs["entitlements_found"]
 
         m_args = mock.Mock()
         names = ["invalid_entitlement"]
         m_args.names = names
         ret = test_function(m_args, object())
 
-        assert ret == names
+        assert ret == []
 
 
 class TestMain:

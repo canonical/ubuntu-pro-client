@@ -67,7 +67,7 @@ class TestDisable:
     def test_entitlements_not_found_disabled_and_enabled(
         self, m_entitlements, _m_getuid, assume_yes
     ):
-        return_code = 1
+        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         num_calls = 2
 
         m_ent1_cls = mock.Mock()
@@ -93,16 +93,16 @@ class TestDisable:
         args_mock.assume_yes = assume_yes
 
         expected_msg = "ent2\n\nent3\n\n"
-        expected_msg += status.action_report(
-            action_name="disabled",
-            entitlements_not_found=["ent1"],
-            entitlements_not_succeeded=["ent2"],
-            entitlements_succeeded=["ent3"],
-        )
 
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            ret = action_disable(args_mock, m_cfg)
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_disable(args_mock, m_cfg)
+
+        assert (
+            expected_error_tmpl.format(operation="disable", name="ent1")
+            == err.value.msg
+        )
 
         assert expected_msg == fake_stdout.getvalue()
 
@@ -116,12 +116,14 @@ class TestDisable:
             assert [expected_disable_call] == m_ent.disable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
-
-        assert return_code == ret
         assert num_calls == m_cfg.status.call_count
 
     @pytest.mark.parametrize(
-        "uid,expected_error_template", [(1000, status.MESSAGE_NONROOT_USER)]
+        "uid,expected_error_template",
+        [
+            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
+            (1000, status.MESSAGE_NONROOT_USER),
+        ],
     )
     def test_invalid_service_error_message(
         self, m_getuid, uid, expected_error_template, FakeConfig
@@ -140,24 +142,24 @@ class TestDisable:
         )
 
     @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
-    def test_invalid_servive_names(self, m_getuid, names, FakeConfig):
+    def test_invalid_service_names(self, m_getuid, names, FakeConfig):
         m_getuid.return_value = 0
+        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
 
         cfg = FakeConfig.for_attached_machine()
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            args = mock.MagicMock()
-            args.names = names
-            action_disable(args, cfg)
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                args = mock.MagicMock()
+                args.names = names
+                action_disable(args, cfg)
 
+        assert "" == fake_stdout.getvalue()
         assert (
-            status.action_report(
-                action_name="disabled",
-                entitlements_not_found=names,
-                entitlements_not_succeeded=[],
-                entitlements_succeeded=[],
+            expected_error_tmpl.format(
+                operation="disable", name=", ".join(sorted(names))
             )
-            == fake_stdout.getvalue()
+            == err.value.msg
         )
 
     @pytest.mark.parametrize(
