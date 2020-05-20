@@ -133,7 +133,7 @@ class TestActionEnable:
         args_mock.names = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg = "One moment, checking your subscription first\n\n"
         expected_msg += "ent2\n\nent3\n\n"
 
         with pytest.raises(exceptions.UserFacingError) as err:
@@ -162,7 +162,7 @@ class TestActionEnable:
     def test_invalid_service_names(self, m_getuid, names, FakeConfig):
         m_getuid.return_value = 0
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-        expected_msg = "One moment, checking your subscription first\n"
+        expected_msg = "One moment, checking your subscription first\n\n"
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:

@@ -349,7 +349,7 @@ def action_enable(args, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    print(ua_status.MESSAGE_REFRESH_ENABLE)
+    print(ua_status.MESSAGE_REFRESH_ENABLE, end="\n\n")
     try:
         contract.request_updated_contract(cfg)
     except (util.UrlError, exceptions.UserFacingError):
