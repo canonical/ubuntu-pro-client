@@ -177,8 +177,7 @@ def lxc_push_source_pull_deb_pkg(name: str) -> None:
     """
     print ('\n\n\nlxc push_files')
     subprocess.run(["lxc", "file", "push", "/tmp/pr_source.tar.gz", name+'/tmp/'])
-    print ('lxc -xzvf ...')
-    subprocess.run(["lxc", "exec", name, "--", "tar", "-xzvf", "/tmp/pr_source.tar.gz", "--directory", "/tmp/"])
+    print ('\n\n\n Run /tools/build-from-source.sh')
     subprocess.run(
         [
             "lxc",
