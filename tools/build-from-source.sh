@@ -6,8 +6,7 @@ cd /tmp
 ls -lh
 lsb_release -a
 cd /tmp/ubuntu-advantage-client
-git branch
 apt-get install make
 make deps
 dpkg-buildpackage -us -uc
-dpkg -i /tmp/ubuntu-advantage-tools_20.4_amd64.deb
+ls /tmp |grep ubuntu-advantage-tools
