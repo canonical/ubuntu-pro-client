@@ -19,6 +19,7 @@ matrix:
           # confusion over versions
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
+          - cd $TRAVIS_BUILD_DIR/..
           - tar -zcvf pr_source.tar.gz ubuntu-advantage-client
           - cp pr_source.tar.gz /tmp
           - ls -lh /tmp
