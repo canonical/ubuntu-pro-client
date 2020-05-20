@@ -107,13 +107,7 @@ def before_all(context: Context) -> None:
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ()
 
-    print ('\n\ntest build os.env travis env: ', os.environ.get('TEST_BUILD_ENV'))
-    print ('test build: ', os.environ.get('TEST_BUILD_PUSH'))
-    print ('test build from sourced script: ', os.environ.get('TEST_BUILD_TRAVIS'))
-    print ('\n\n ***** from travis: ', os.environ.get('UACLIENT_BEHAVE_BUILD_PR'))
-    print ('\n\n\n')
-    test = subprocess.run(["cat", "/tmp/build.sh"], stdout=subprocess.PIPE)
-    print ('test cat build.sh', test.stdout)
+    print ('\n\n ***** build_pr from travis: ', os.environ.get('UACLIENT_BEHAVE_BUILD_PR'))
 
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)
