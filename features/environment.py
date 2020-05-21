@@ -210,7 +210,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     ubuntu_series = "ubuntu-daily:%s" % series
 
     #if we are building the package from PR, we need a 2nd_base_image
-    #without the durty build dependencies from that 1st_base_image
+    #without the dirty build dependencies from that 1st_base_image
 
     if context.config.build_pr:
         #creating a new image name for debugging purpose
