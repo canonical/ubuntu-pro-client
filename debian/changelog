@@ -1,8 +1,11 @@
 ubuntu-advantage-tools (24.1) groovy; urgency=medium
 
   * New bug-fix-only release 24.1:
-      - livepatch: run snap wait system snap.seeded before trying to install
-        (GH: #1049)
+    - livepatch: run snap wait system snap.seeded before trying to install
+      (GH: #1049)
+    - version: return debian/changelog version when git describe fails to
+      match upstream <major>.<minor> tags for git-ubuntu workflow
+      (GH: #1058)
 
  -- Chad Smith <chad.smith@canonical.com>  Mon, 18 May 2020 15:07:17 -0600
 
