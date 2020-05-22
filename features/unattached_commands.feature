@@ -107,6 +107,41 @@ Feature: Command behaviour when unattached
             See: https://ubuntu.com/advantage
             """
 
+    @wip
+    @series.trusty
+    Scenario: Unattached show version in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I run `ua version` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua version` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua --version` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua --version` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua -v` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua -v` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+
 
     @series.focal
     Scenario: Unattached detach in a focal lxd container
@@ -213,4 +248,38 @@ Feature: Command behaviour when unattached
             """
             Auto-attach image support is not available on lxd
             See: https://ubuntu.com/advantage
+            """
+
+    @series.focal
+    Scenario: Unattached show version in a focal lxd container
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I run `ua version` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua version` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua --version` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua --version` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua -v` as non-root
+        Then stdout matches regexp:
+            """
+            20.4
+            """
+        When I run `ua -v` with sudo
+        Then stdout matches regexp:
+            """
+            20.4
             """
