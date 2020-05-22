@@ -129,32 +129,22 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I attach contract_token with sudo
         And I run `ua version` as non-root
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua version` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua --version` as non-root
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua --version` with sudo
-        Then stdout matches regexp:
-            """
-            20.4
-            """
-        When I run `ua -v` as non-root
-        Then stdout matches regexp:
-            """
-            20.4
-            """
-        When I run `ua -v` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
@@ -280,32 +270,22 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `focal` lxd container with ubuntu-advantage-tools installed
         When I attach contract_token with sudo
         And I run `ua version` as non-root
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua version` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua --version` as non-root
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """
         When I run `ua --version` with sudo
-        Then stdout matches regexp:
-            """
-            20.4
-            """
-        When I run `ua -v` as non-root
-        Then stdout matches regexp:
-            """
-            20.4
-            """
-        When I run `ua -v` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
             20.4
             """

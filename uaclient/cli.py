@@ -488,7 +488,6 @@ def get_parser():
         help="show all debug log messages to console",
     )
     parser.add_argument(
-        "-v",
         "--version",
         action="version",
         version=version.get_version(),
