@@ -58,7 +58,20 @@ class RepoEntitlement(base.UAEntitlement):
     @property
     def packages(self) -> "List[str]":
         """debs to install on enablement"""
-        return []
+        packages = []
+
+        if self.cfg:
+            entitlement = self.cfg.entitlements.get(self.name, {}).get(
+                "entitlement", {}
+            )
+
+            if entitlement:
+                directives = entitlement.get("directives", {})
+                additional_packages = directives.get("additionalPackages", [])
+
+                packages = additional_packages
+
+        return packages
 
     @property
     @abc.abstractmethod

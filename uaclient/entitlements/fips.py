@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from uaclient.entitlements import repo
 from uaclient import apt, status, util
 
@@ -25,10 +27,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     def packages(self) -> "List[str]":
         packages = list(self.fips_required_packages)
         installed_packages = apt.get_installed_packages()
-        for pkg_name, extra_pkgs in self.fips_packages.items():
+
+        pkg_groups = groupby(
+            filter(lambda pkg: pkg not in packages, super().packages),
+            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
+        )
+
+        for pkg_name, pkg_list in pkg_groups:
             if pkg_name in installed_packages:
-                packages.append(pkg_name)
-                packages.extend(extra_pkgs)
+                packages += pkg_list
+
         return packages
 
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":

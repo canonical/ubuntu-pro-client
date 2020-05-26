@@ -16,7 +16,8 @@ def machine_token(
     directives: "Dict[str, Any]" = None,
     entitled: bool = True,
     obligations: "Dict[str, Any]" = None,
-    suites: "List[str]" = None
+    suites: "List[str]" = None,
+    additional_packages: "List[str]" = None
 ) -> "Dict[str, Any]":
     return {
         "resourceTokens": [
@@ -36,6 +37,7 @@ def machine_token(
                         entitled=entitled,
                         obligations=obligations,
                         suites=suites,
+                        additional_packages=additional_packages,
                     )
                 ]
             }
@@ -50,7 +52,8 @@ def machine_access(
     directives: "Dict[str, Any]" = None,
     entitled: bool = True,
     obligations: "Dict[str, Any]" = None,
-    suites: "List[str]" = None
+    suites: "List[str]" = None,
+    additional_packages: "List[str]" = None
 ) -> "Dict[str, Any]":
     if affordances is None:
         affordances = {"series": []}  # Will match all series
@@ -64,6 +67,9 @@ def machine_access(
             "aptKey": "APTKEY",
             "suites": suites,
         }
+
+        if additional_packages:
+            directives["additionalPackages"] = additional_packages
     return {
         "obligations": obligations,
         "type": entitlement_type,
@@ -91,7 +97,8 @@ def entitlement_factory(tmpdir):
         directives: "Dict[str, Any]" = None,
         entitled: bool = True,
         assume_yes: "Optional[bool]" = None,
-        suites: "List[str]" = None
+        suites: "List[str]" = None,
+        additional_packages: "List[str]" = None
     ):
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         cfg.write_cache(
@@ -102,6 +109,7 @@ def entitlement_factory(tmpdir):
                 directives=directives,
                 entitled=entitled,
                 suites=suites,
+                additional_packages=additional_packages,
             ),
         )
         args = {}

@@ -11,11 +11,7 @@ import pytest
 from uaclient import apt
 from uaclient import defaults
 from uaclient import status, util
-from uaclient.entitlements.fips import (
-    FIPSCommonEntitlement,
-    FIPSEntitlement,
-    FIPSUpdatesEntitlement,
-)
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient import exceptions
 
 
@@ -27,7 +23,25 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    return partial(entitlement_factory, request.param)
+    additional_packages = [
+        "fips-initramfs",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "linux-fips",
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "openssl",
+        "strongswan",
+        "strongswan-hmac",
+    ]
+
+    return partial(
+        entitlement_factory,
+        request.param,
+        additional_packages=additional_packages,
+    )
 
 
 @pytest.fixture
@@ -318,9 +332,17 @@ class TestFIPSEntitlementEnable:
 
 def _fips_pkg_combinations():
     """Construct all combinations of fips_packages and expected installs"""
+    fips_packages = {
+        "libssl1.0.0": {"libssl1.0.0-hmac"},
+        "openssh-client": {"openssh-client-hmac"},
+        "openssh-server": {"openssh-server-hmac"},
+        "openssl": set(),
+        "strongswan": {"strongswan-hmac"},
+    }
+
     items = [  # These are the items that we will combine together
         (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in FIPSCommonEntitlement.fips_packages.items()
+        for pkg_name, extra_pkgs in fips_packages.items()
     ]
     # This produces combinations in all possible combination lengths
     combinations = itertools.chain.from_iterable(
