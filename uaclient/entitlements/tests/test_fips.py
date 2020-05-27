@@ -389,7 +389,7 @@ class TestFipsEntitlementPackages:
         full_expected_installs = (
             list(entitlement.fips_required_packages) + expected_installs
         )
-        assert full_expected_installs == entitlement.packages
+        assert sorted(full_expected_installs) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_multiple_packages_calls_dont_mutate_state(
