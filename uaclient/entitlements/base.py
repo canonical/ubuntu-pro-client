@@ -35,6 +35,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     #  Whether to assume yes to any messaging prompts
     assume_yes = False
 
+    # Wheter that entitlement is in beta stage
+    is_beta = False
+
     @property
     @abc.abstractmethod
     def name(self) -> str:

@@ -384,10 +384,54 @@ class TestDeleteCache:
 
 
 class TestStatus:
+    esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
+    fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
+
+    def check_beta(self, cls, show_beta):
+        if not show_beta:
+            return cls.is_beta
+
+        return False
+
+    @pytest.mark.parametrize(
+        "show_beta,expected_services",
+        (
+            (
+                True,
+                [
+                    {
+                        "available": "yes",
+                        "name": "esm-infra",
+                        "description": esm_desc,
+                    },
+                    {
+                        "available": "no",
+                        "name": "fips",
+                        "description": fips_desc,
+                    },
+                ],
+            ),
+            (
+                False,
+                [
+                    {
+                        "available": "yes",
+                        "name": "esm-infra",
+                        "description": esm_desc,
+                    }
+                ],
+            ),
+        ),
+    )
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_root_unattached(
-        self, _m_getuid, m_get_available_resources, FakeConfig
+        self,
+        _m_getuid,
+        m_get_available_resources,
+        show_beta,
+        expected_services,
+        FakeConfig,
     ):
         """Test we get the correct status dict when unattached"""
         cfg = FakeConfig()
@@ -395,15 +439,11 @@ class TestStatus:
             {"name": "esm-infra", "available": True},
             {"name": "fips", "available": False},
         ]
-        esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
-        fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
         expected = copy.deepcopy(DEFAULT_STATUS)
-        expected["services"] = [
-            {"available": "yes", "name": "esm-infra", "description": esm_desc},
-            {"available": "no", "name": "fips", "description": fips_desc},
-        ]
-        assert expected == cfg.status()
+        expected["services"] = expected_services
+        assert expected == cfg.status(show_beta=show_beta)
 
+    @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
         (
@@ -443,6 +483,7 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
+        show_beta,
         FakeConfig,
     ):
         """Test we get the correct status dict when attached with basic conf"""
@@ -460,6 +501,7 @@ class TestStatus:
                 },
             },
         }
+
         available_resource_response = [
             {
                 "name": cls.name,
@@ -489,6 +531,7 @@ class TestStatus:
                 "description_override": None,
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
+            if not self.check_beta(cls, show_beta)
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
@@ -501,13 +544,13 @@ class TestStatus:
                 "subscription-id": "cid",
             }
         )
-        assert expected == cfg.status()
+        assert expected == cfg.status(show_beta=show_beta)
         if avail_res:
             assert m_get_avail_resources.call_count == 0
         else:
             assert m_get_avail_resources.call_count == 1
         # cfg.status() idempotent
-        assert expected == cfg.status()
+        assert expected == cfg.status(show_beta=show_beta)
 
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
@@ -565,6 +608,7 @@ class TestStatus:
             os.lstat(cfg.data_path("status-cache")).st_mode
         )
 
+    @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
         "entitlements",
         (
@@ -591,6 +635,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_getuid,
         entitlements,
+        show_beta,
         FakeConfig,
     ):
         """When attached, return contract and service user-facing status."""
@@ -636,6 +681,9 @@ class TestStatus:
             }
         )
         for cls in ENTITLEMENT_CLASSES:
+            if self.check_beta(cls, show_beta):
+                continue
+
             if cls.name == "livepatch":
                 expected_status = status.UserFacingStatus.ACTIVE.value
                 details = "livepatch details"
@@ -652,7 +700,7 @@ class TestStatus:
                     "description_override": None,
                 }
             )
-        assert expected == cfg.status()
+        assert expected == cfg.status(show_beta=show_beta)
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
 

@@ -244,6 +244,11 @@ def status_parser(parser):
             )
         ),
     )
+    parser.add_argument(
+        "--show-beta",
+        action="store_true",
+        help="Allow the visualization of beta services",
+    )
     parser._optionals.title = "Flags"
     return parser
 
@@ -558,7 +563,8 @@ def action_status(args, cfg):
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
-        output = ua_status.format_tabular(cfg.status())
+        show_beta = args.show_beta if args else False
+        output = ua_status.format_tabular(cfg.status(show_beta))
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
         # writing to a utf-8 output; see
         # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859

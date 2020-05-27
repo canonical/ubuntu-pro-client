@@ -15,6 +15,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_pin_priority = 1001
     fips_required_packages = frozenset({"fips-initramfs", "linux-fips"})
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
+    is_beta = True
 
     @property
     def packages(self) -> "List[str]":
