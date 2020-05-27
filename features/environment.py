@@ -8,7 +8,7 @@ from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_push_source_pull_deb_pkg
+from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_build_deb
 
 
 class UAClientBehaveConfig:
@@ -216,7 +216,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         #creating a new image name for debugging purpose
         build_container_name = "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
         launch_lxd_container(context, ubuntu_series, build_container_name)
-        lxc_push_source_pull_deb_pkg(build_container_name)
+        lxc_build_deb(build_container_name)
         #here it should have the new built .deb @/tmp dir
         #/tmp/ubuntu-advantage-tools_20.4_amd64.deb
 
@@ -265,10 +265,10 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
             ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
         )
     else:
-        subprocess.run(["lxc", "file", "push", "/tmp/ubuntu-advantage-tools_20.4_amd64.deb", container_name+'/tmp/'])
+        subprocess.run(["lxc", "file", "push", "/tmp/ubuntu-advantage.deb", container_name+'/tmp/'])
         lxc_exec(
             container_name,
-            ["sudo", "dpkg", "-i","/tmp/ubuntu-advantage-tools_20.4_amd64.deb"],
+            ["sudo", "dpkg", "-i","/tmp/ubuntu-advantage.deb"],
         )
         lxc_exec(
                 container_name,
