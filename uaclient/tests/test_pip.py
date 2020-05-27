@@ -103,9 +103,11 @@ class TestPipConfUpdate:
         file_path = tmpdir / "pip.conf"
 
         if file_content:
-            file_path.write_text(file_content, encoding=None)
+            with file_path.open("w") as f:
+                f.write(file_content)
 
         with mock.patch("uaclient.pip.PIP_CONFIG_FILE", file_path.strpath):
             update_pip_conf(self.test_config_dict())
 
-        assert file_path.read_text(encoding=None).strip() == expected.strip()
+        with file_path.open("r") as f:
+            assert f.read().strip() == expected.strip()
