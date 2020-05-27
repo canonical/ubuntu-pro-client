@@ -110,4 +110,9 @@ class TestPipConfUpdate:
             update_pip_conf(self.test_config_dict())
 
         with file_path.open("r") as f:
-            assert f.read().strip() == expected.strip()
+            """
+            We are sorting the result because we cannot easily allow
+            configparser to write the config in a sorted manner, meaning
+            that the order of the lines may not match if compared directly
+            """
+            assert sorted(f.read().strip()) == sorted(expected.strip())
