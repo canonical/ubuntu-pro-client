@@ -209,4 +209,5 @@ def lxc_build_deb(
         ],
     )
     print ("\n\nPull .deb from the instance to travis VM")
+    subprocess.run(["lxc", "exec", container_name, "--", "ls", "-lh" , "/tmp"])
     subprocess.run(["lxc", "file", "pull", container_name+'/tmp/ubuntu-advantage-tools*.deb', output_deb_file])
