@@ -205,7 +205,7 @@ def lxc_build_deb(
             "exec",
             container_name,
             "--",
-            "/tmp/ubuntu-advantage-client/tools/build-from-source.sh"
+            "/tmp/"+script
         ],
     )
     print ("\n\nPull .deb from the instance to travis VM")
