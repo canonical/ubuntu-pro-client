@@ -4,35 +4,42 @@ import mock
 import pytest
 
 from textwrap import dedent
+from configparser import ConfigParser
 
 from uaclient.pip import update_pip_conf
 
 
 class TestPipConfUpdate:
-    def test_config_dict(self):
+    index_url = "http://bearer:token@python.esm.ubuntu.com/simple"
+
+    def _get_config_dict(self):
         """
         Create a base config dict to be used on tests. This
         config is based on the possible config that will
         be used by the esm-apps-python service.
         """
-        index_url = "http://bearer:token@python.esm.ubuntu.com/simple"
+        index_url = self.index_url
         index = index_url
 
         return {"global": {"index-url": index_url, "index": index}}
 
+    def _cfg_to_dict(self, cfg_file):
+        """Return a ConfigParser dict representation of a config file."""
+        cfg_parser = ConfigParser()
+        cfg_parser.read(cfg_file)
+        cfg_dict = {}
+        for s in cfg_parser.sections():
+            cfg_dict[s] = {}
+
+            for option in cfg_parser[s]:
+                cfg_dict[s][option] = cfg_parser[s][option]
+
+        return cfg_dict
+
     @pytest.mark.parametrize(
         "file_content,expected",
         (
-            (
-                "",
-                dedent(
-                    """\
-                [global]
-                index-url = http://bearer:token@python.esm.ubuntu.com/simple
-                index = http://bearer:token@python.esm.ubuntu.com/simple
-                """
-                ),
-            ),
+            ("", {"global": {"index-url": index_url, "index": index_url}}),
             (
                 dedent(
                     """\
@@ -40,16 +47,10 @@ class TestPipConfUpdate:
                 timeout = 10
                 """
                 ),
-                dedent(
-                    """\
-                [freeze]
-                timeout = 10
-
-                [global]
-                index-url = http://bearer:token@python.esm.ubuntu.com/simple
-                index = http://bearer:token@python.esm.ubuntu.com/simple
-                """
-                ),
+                {
+                    "global": {"index-url": index_url, "index": index_url},
+                    "freeze": {"timeout": "10"},
+                },
             ),
             (
                 dedent(
@@ -58,13 +59,7 @@ class TestPipConfUpdate:
                 index-url = www.mypip.com
                 """
                 ),
-                dedent(
-                    """\
-                [global]
-                index-url = http://bearer:token@python.esm.ubuntu.com/simple
-                index = http://bearer:token@python.esm.ubuntu.com/simple
-                """
-                ),
+                {"global": {"index-url": index_url, "index": index_url}},
             ),
             (
                 dedent(
@@ -76,43 +71,21 @@ class TestPipConfUpdate:
                 timeout = 10
                 """
                 ),
-                dedent(
-                    """\
-                [global]
-                index-url = http://bearer:token@python.esm.ubuntu.com/simple
-                index = http://bearer:token@python.esm.ubuntu.com/simple
-
-                [freeze]
-                timeout = 10
-                """
-                ),
+                {
+                    "global": {"index-url": index_url, "index": index_url},
+                    "freeze": {"timeout": "10"},
+                },
             ),
-            (
-                None,
-                dedent(
-                    """\
-                [global]
-                index-url = http://bearer:token@python.esm.ubuntu.com/simple
-                index = http://bearer:token@python.esm.ubuntu.com/simple
-                """
-                ),
-            ),
+            (None, {"global": {"index-url": index_url, "index": index_url}}),
         ),
     )
     def test_update_pip_conf(self, tmpdir, file_content, expected):
         file_path = tmpdir / "pip.conf"
 
         if file_content:
-            with file_path.open("w") as f:
-                f.write(file_content)
+            file_path.write(file_content)
 
         with mock.patch("uaclient.pip.PIP_CONFIG_FILE", file_path.strpath):
-            update_pip_conf(self.test_config_dict())
+            update_pip_conf(self._get_config_dict())
 
-        with file_path.open("r") as f:
-            """
-            We are sorting the result because we cannot easily allow
-            configparser to write the config in a sorted manner, meaning
-            that the order of the lines may not match if compared directly
-            """
-            assert sorted(f.read().strip()) == sorted(expected.strip())
+        assert self._cfg_to_dict(file_path.strpath) == expected
