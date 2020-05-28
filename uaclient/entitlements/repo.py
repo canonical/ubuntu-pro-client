@@ -60,16 +60,15 @@ class RepoEntitlement(base.UAEntitlement):
         """debs to install on enablement"""
         packages = []
 
-        if self.cfg:
-            entitlement = self.cfg.entitlements.get(self.name, {}).get(
-                "entitlement", {}
-            )
+        entitlement = self.cfg.entitlements.get(self.name, {}).get(
+            "entitlement", {}
+        )
 
-            if entitlement:
-                directives = entitlement.get("directives", {})
-                additional_packages = directives.get("additionalPackages", [])
+        if entitlement:
+            directives = entitlement.get("directives", {})
+            additional_packages = directives.get("additionalPackages", [])
 
-                packages = additional_packages
+            packages = additional_packages
 
         return packages
 
