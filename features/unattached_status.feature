@@ -1,5 +1,6 @@
 Feature: Unattached status
 
+    @wip
     @series.trusty
     Scenario: Unattached status in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
@@ -15,7 +16,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --show-beta` as non-root
+        When I run `ua status --beta` as non-root
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -41,7 +42,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --show-beta` with sudo
+        When I run `ua status --beta` with sudo
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -71,7 +72,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --show-beta` as non-root
+        When I run `ua status --beta` as non-root
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -97,7 +98,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --show-beta` with sudo
+        When I run `ua status --beta` with sudo
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION

@@ -245,7 +245,7 @@ def status_parser(parser):
         ),
     )
     parser.add_argument(
-        "--show-beta",
+        "--beta",
         action="store_true",
         help="Allow the visualization of beta services",
     )
@@ -563,7 +563,7 @@ def action_status(args, cfg):
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
-        show_beta = args.show_beta if args else False
+        show_beta = args.beta if args else False
         output = ua_status.format_tabular(cfg.status(show_beta))
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
         # writing to a utf-8 output; see
