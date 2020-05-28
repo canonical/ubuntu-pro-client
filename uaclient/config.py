@@ -199,7 +199,8 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def _remove_beta_resources(self, response, show_beta):
+    def _remove_beta_resources(self, response, show_beta) -> None:
+        """ Remove beta services from response dict if show_beta is False"""
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         if show_beta:
