@@ -200,15 +200,6 @@ def lxc_build_deb(
     print ('\n\n\n LXC file push script build-from-source')
     subprocess.run(["lxc", "file", "push", script, container_name+'/tmp/'])
     print ('\n\n\n Run build-from-source.sh')
-
-    subprocess.run(
-        [
-            "lxc",
-            "exec",
-            container_name,
-            "--",
-            "/tmp/"+script
-        ],
-    )
+    lxc_exec(container_name, ["sudo", "/tmp/"+script])
     print ("\n\nPull .deb from the instance to travis VM")
     subprocess.run(["lxc", "file", "pull", container_name+'/tmp/ubuntu-advantage.deb', output_deb_file])
