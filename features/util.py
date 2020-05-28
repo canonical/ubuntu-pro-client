@@ -195,6 +195,7 @@ def lxc_build_deb(
             ls -1 /tmp/ubuntu-advantage-tools*.deb | xargs -L1 -I{} cp {} /tmp/ubuntu-advantage.deb
             ls -lh /tmp
          """))
+    os.chmod(script, 0o755)
     subprocess.run(["ls", "-lh", "/tmp"])
     print ('\n\n\n LXC file push script build-from-source')
     subprocess.run(["lxc", "file", "push", script, container_name+'/tmp/'])
