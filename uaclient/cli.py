@@ -174,6 +174,9 @@ def enable_parser(parser):
         action="store_true",
         help="do not prompt for confirmation before performing the enable",
     )
+    parser.add_argument(
+        "--beta", action="store_true", help="allow beta service to be enabled"
+    )
     return parser
 
 
@@ -273,7 +276,8 @@ def _perform_enable(
     cfg: config.UAConfig,
     *,
     assume_yes: bool = False,
-    silent_if_inapplicable: bool = False
+    silent_if_inapplicable: bool = False,
+    allow_beta: bool = False
 ) -> bool:
     """Perform the enable action on a named entitlement.
 
@@ -291,6 +295,12 @@ def _perform_enable(
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    if not allow_beta and ent_cls.is_beta:
+        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        raise exceptions.UserFacingError(
+            tmpl.format(operation="enable", name=entitlement_name)
+        )
+
     entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
     cfg.status()  # Update the status cache
@@ -311,7 +321,9 @@ def action_enable(args, cfg):
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
-    if _perform_enable(args.name, cfg, assume_yes=args.assume_yes):
+    if _perform_enable(
+        args.name, cfg, assume_yes=args.assume_yes, allow_beta=args.beta
+    ):
         return 0
     return 1
 
