@@ -19,12 +19,16 @@ matrix:
           # confusion over versions
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
-          - cd $TRAVIS_BUILD_DIR/..
-          - tar -zcvf pr_source.tar.gz ubuntu-advantage-client
-          - cp pr_source.tar.gz /tmp
-          - ls -lh /tmp
-          - cd $TRAVIS_BUILD_DIR
-          - pwd
+          - BUILD_PR=1
+          - >
+              if [ "$BUILD_PR" -eq "1" ]; then
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+                 pwd
+              fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
