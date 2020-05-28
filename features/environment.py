@@ -2,14 +2,20 @@ import datetime
 import os
 import subprocess
 import textwrap
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-from features.util import launch_lxd_container, lxc_exec, lxc_get_series, lxc_build_deb
+from features.util import (
+    launch_lxd_container,
+    lxc_exec,
+    lxc_get_series,
+    lxc_build_deb,
+)
 
+PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
 
 class UAClientBehaveConfig:
     """Store config options for UA client behave test runs.
@@ -107,7 +113,10 @@ def before_all(context: Context) -> None:
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ()
 
-    print ('\n\n ***** build_pr from travis: ', os.environ.get('UACLIENT_BEHAVE_BUILD_PR'))
+    print(
+        "\n\n ***** build_pr from travis: ",
+        os.environ.get("UACLIENT_BEHAVE_BUILD_PR"),
+    )
 
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)
@@ -208,26 +217,24 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         return
     now = datetime.datetime.now()
     ubuntu_series = "ubuntu-daily:%s" % series
-
-    #if we are building the package from PR, we need a 2nd_base_image
-    #without the dirty build dependencies from that 1st_base_image
-
+    deb_file = None
     if context.config.build_pr:
-        #creating a new image name for debugging purpose
-        build_container_name = "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        # create a dirty development image which installs build depends
+        deb_file = PR_DEB_FILE
+        build_container_name = (
+            "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        )
         launch_lxd_container(context, ubuntu_series, build_container_name)
-        lxc_build_deb(build_container_name)
-        #here it should have the new built .deb @/tmp dir
-        #/tmp/ubuntu-advantage-tools_20.4_amd64.deb
+        lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
     build_container_name = "behave-image-build-%s-" % series + now.strftime(
-            "%s%f"
-        )
+        "%s%f"
+    )
 
     launch_lxd_container(context, ubuntu_series, build_container_name)
 
-    #if build_pr it will install new built .deb
-    _install_uat_in_container(build_container_name, context.config.build_pr)
+    # if build_pr it will install new built .deb
+    _install_uat_in_container(build_container_name, deb_file=deb_file)
 
     context.series_image_name[
         series
@@ -238,18 +245,31 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     )
 
 
-def _install_uat_in_container(container_name: str, build_pr: bool = False) -> None:
+def _install_uat_in_container(
+    container_name: str, deb_file: 'Optional[str]'
+) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
-    :param build_pr:
-        if it is False install uac from daily ppa
-        if it is True install from the PR source code
+    :param deb_file: Optional path to the deb_file we need to install
     """
-    print ('@install_uat: build_pr ', build_pr)
-    if not build_pr:
+    if deb_file:
+        subprocess.run(
+            [
+                "lxc",
+                "file",
+                "push",
+                deb_file,
+                container_name + "/tmp/",
+            ]
+        )
+        lxc_exec(container_name,["sudo", "dpkg", "-i", deb_file])
+        lxc_exec(
+            container_name, ["apt-cache", "policy", "ubuntu-advantage-tools"]
+        )
+    else:
         lxc_exec(
             container_name,
             [
@@ -262,15 +282,12 @@ def _install_uat_in_container(container_name: str, build_pr: bool = False) -> No
         lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
         lxc_exec(
             container_name,
-            ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
-        )
-    else:
-        subprocess.run(["lxc", "file", "push", "/tmp/ubuntu-advantage.deb", container_name+'/tmp/'])
-        lxc_exec(
-            container_name,
-            ["sudo", "dpkg", "-i","/tmp/ubuntu-advantage.deb"],
-        )
-        lxc_exec(
-                container_name,
-                ["apt-cache", "policy", "ubuntu-advantage-tools"]
+            [
+                "sudo",
+                "apt-get",
+                "install",
+                "-qq",
+                "-y",
+                "ubuntu-advantage-tools",
+            ],
         )

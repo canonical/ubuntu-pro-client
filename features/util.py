@@ -8,6 +8,8 @@ from typing import Any, List
 
 from behave.runner import Context
 
+SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+
 
 def launch_lxd_container(
     context: Context, image_name: str, container_name: str
@@ -163,10 +165,7 @@ def lxc_get_series(name: str, image: bool = False):
     return None
 
 
-def lxc_build_deb(
-    container_name: str,
-    output_deb_file: str = "/tmp/ubuntu-advantage.deb"
-) -> None:
+def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
     """
     Push source PR code .tar.gz to the container.
     Run tools/build-from-source.sh which will create the .deb
@@ -178,11 +177,15 @@ def lxc_build_deb(
     :param output_deb_file: the new output .deb from source code
     """
 
-    print ('\n\n\n LXC file push pr_source.tar.gz')
-    subprocess.run(["lxc", "file", "push", "/tmp/pr_source.tar.gz", container_name+'/tmp/'])
+    print("\n\n\n LXC file push {}".format(SOURCE_PR_TGZ))
+    subprocess.run(
+        ["lxc", "file", "push", SOURCE_PR_TGZ, container_name + "/tmp/"]
+    )
     script = "build-from-source.sh"
-    with open(script, 'w') as stream:
-        stream.write(textwrap.dedent("""\
+    with open(script, "w") as stream:
+        stream.write(
+            textwrap.dedent(
+                """\
             #!/bin/bash
             set -o xtrace
             apt-get update
@@ -194,12 +197,22 @@ def lxc_build_deb(
             dpkg-buildpackage -us -uc
             ls -1 /tmp/ubuntu-advantage-tools*.deb | xargs -L1 -I{} cp {} /tmp/ubuntu-advantage.deb
             ls -lh /tmp
-         """))
+         """
+            )
+        )
     os.chmod(script, 0o755)
     subprocess.run(["ls", "-lh", "/tmp"])
-    print ('\n\n\n LXC file push script build-from-source')
-    subprocess.run(["lxc", "file", "push", script, container_name+'/tmp/'])
-    print ('\n\n\n Run build-from-source.sh')
-    lxc_exec(container_name, ["sudo", "/tmp/"+script])
-    print ("\n\nPull .deb from the instance to travis VM")
-    subprocess.run(["lxc", "file", "pull", container_name+'/tmp/ubuntu-advantage.deb', output_deb_file])
+    print("\n\n\n LXC file push script build-from-source")
+    subprocess.run(["lxc", "file", "push", script, container_name + "/tmp/"])
+    print("\n\n\n Run build-from-source.sh")
+    lxc_exec(container_name, ["sudo", "/tmp/" + script])
+    print("\n\nPull {} from the instance to travis VM".format(output_deb_file))
+    subprocess.run(
+        [
+            "lxc",
+            "file",
+            "pull",
+            container_name + "/tmp/ubuntu-advantage.deb",
+            output_deb_file,
+        ]
+    )
