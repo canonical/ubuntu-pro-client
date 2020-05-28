@@ -192,6 +192,8 @@ def lxc_build_deb(
             cd ubuntu-advantage-client
             make deps
             dpkg-buildpackage -us -uc
+            ls -1 /tmp/ubuntu-advantage-tools*.deb | xargs -L1 -I{} cp {} /tmp/ubuntu-advantage.deb
+            ls -lh /tmp
          """))
     os.chmod(script, 0o755)
     subprocess.run(["ls", "-lh", "/tmp"])
@@ -209,5 +211,4 @@ def lxc_build_deb(
         ],
     )
     print ("\n\nPull .deb from the instance to travis VM")
-    subprocess.run(["lxc", "exec", container_name, "--", "ls", "-lh" , "/tmp"])
     subprocess.run(["lxc", "file", "pull", container_name+'/tmp/ubuntu-advantage-tools_20.4_amd64.deb', output_deb_file])
