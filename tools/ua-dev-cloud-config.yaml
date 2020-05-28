@@ -9,4 +9,4 @@ runcmd:
  - make deps
  - dpkg-buildpackage -us -uc
  - apt-get remove ubuntu-advantage-tools
- - dpkg -i /var/tmp/ubuntu-advantage-tools_20.4_amd64.deb
+ - dpkg -i /var/tmp/ubuntu-advantage-tools_25.0_amd64.deb
