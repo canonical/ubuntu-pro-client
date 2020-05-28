@@ -8,7 +8,6 @@ from collections import namedtuple
 
 from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 from uaclient import exceptions
 
 try:
@@ -201,6 +200,8 @@ class UAConfig:
         util.write_file(filepath, content, mode=mode)
 
     def _remove_beta_resources(self, response, show_beta):
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
         if show_beta:
             return
 
