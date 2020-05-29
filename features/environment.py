@@ -17,6 +17,7 @@ from features.util import (
 
 PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
 
+
 class UAClientBehaveConfig:
     """Store config options for UA client behave test runs.
 
@@ -246,7 +247,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
 
 
 def _install_uat_in_container(
-    container_name: str, deb_file: 'Optional[str]'
+    container_name: str, deb_file: "Optional[str]"
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
@@ -257,15 +258,9 @@ def _install_uat_in_container(
     """
     if deb_file:
         subprocess.run(
-            [
-                "lxc",
-                "file",
-                "push",
-                deb_file,
-                container_name + "/tmp/",
-            ]
+            ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
         )
-        lxc_exec(container_name,["sudo", "dpkg", "-i", deb_file])
+        lxc_exec(container_name, ["sudo", "dpkg", "-i", deb_file])
         lxc_exec(
             container_name, ["apt-cache", "policy", "ubuntu-advantage-tools"]
         )
