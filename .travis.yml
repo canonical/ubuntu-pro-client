@@ -20,6 +20,7 @@ matrix:
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
+          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
@@ -81,15 +82,3 @@ matrix:
       env: TOXENV=mypy
     - python: 3.7
       env: TOXENV=black
-  allow_failures:
-    - python: 3.7
-      env: TOXENV=behave
-      script:
-          # bionic has lxd from deb installed, remove it first to avoid
-          # confusion over versions
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - sudo snap install lxd
-          - sudo lxd init --auto
-          - sudo usermod -a -G lxd $USER
-          - sg lxd -c 'make test'
