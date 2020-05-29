@@ -8,6 +8,8 @@ from typing import Any, List
 
 from behave.runner import Context
 
+SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+
 
 def launch_lxd_container(
     context: Context, image_name: str, container_name: str
@@ -161,3 +163,57 @@ def lxc_get_series(name: str, image: bool = False):
                 " Could not detect image series. Add it via `lxc image edit`"
             )
     return None
+
+
+def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
+    """
+    Push source PR code .tar.gz to the container.
+    Run tools/build-from-source.sh which will create the .deb
+    Pull .deb from this container to travis-ci instance
+
+    :param container_name: the name of the container to:
+         - push the PR source code;
+         - pull the built .deb package.
+    :param output_deb_file: the new output .deb from source code
+    """
+
+    print("\n\n\n LXC file push {}".format(SOURCE_PR_TGZ))
+    subprocess.run(
+        ["lxc", "file", "push", SOURCE_PR_TGZ, container_name + "/tmp/"]
+    )
+    script = "build-from-source.sh"
+    with open(script, "w") as stream:
+        stream.write(
+            textwrap.dedent(
+                """\
+            #!/bin/bash
+            set -o xtrace
+            apt-get update
+            apt-get install make
+            cd /tmp
+            tar -zxvf *gz
+            cd ubuntu-advantage-client
+            make deps
+            dpkg-buildpackage -us -uc
+            cp /tmp/ubuntu-advantage-tools*.deb /tmp/ubuntu-advantage-tools.deb
+
+            ls -lh /tmp
+         """
+            )
+        )
+    os.chmod(script, 0o755)
+    subprocess.run(["ls", "-lh", "/tmp"])
+    print("\n\n\n LXC file push script build-from-source")
+    subprocess.run(["lxc", "file", "push", script, container_name + "/tmp/"])
+    print("\n\n\n Run build-from-source.sh")
+    lxc_exec(container_name, ["sudo", "/tmp/" + script])
+    print("\n\nPull {} from the instance to travis VM".format(output_deb_file))
+    subprocess.run(
+        [
+            "lxc",
+            "file",
+            "pull",
+            container_name + "/tmp/ubuntu-advantage-tools.deb",
+            output_deb_file,
+        ]
+    )

@@ -2,13 +2,20 @@ import datetime
 import os
 import subprocess
 import textwrap
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-from features.util import launch_lxd_container, lxc_exec, lxc_get_series
+from features.util import (
+    launch_lxd_container,
+    lxc_exec,
+    lxc_get_series,
+    lxc_build_deb,
+)
+
+PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
 
 
 class UAClientBehaveConfig:
@@ -37,7 +44,7 @@ class UAClientBehaveConfig:
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
     # the test framework
-    boolean_options = ["image_clean", "destroy_instances"]
+    boolean_options = ["build_pr", "image_clean", "destroy_instances"]
     str_options = ["contract_token", "reuse_image"]
     redact_options = ["contract_token"]
 
@@ -48,12 +55,14 @@ class UAClientBehaveConfig:
     def __init__(
         self,
         *,
+        build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
         reuse_image: str = None,
         contract_token: str = None
     ) -> None:
         # First, store the values we've detected
+        self.build_pr = build_pr
         self.contract_token = contract_token
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
@@ -104,6 +113,7 @@ def before_all(context: Context) -> None:
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ()
+
     if context.config.reuse_image:
         series = lxc_get_series(context.config.reuse_image, image=True)
         if series is not None:
@@ -202,38 +212,72 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         return
     now = datetime.datetime.now()
-    context.series_image_name[
-        series
-    ] = "behave-image-%s-" % series + now.strftime("%s%f")
+    ubuntu_series = "ubuntu-daily:%s" % series
+    deb_file = None
+    if context.config.build_pr:
+        # create a dirty development image which installs build depends
+        deb_file = PR_DEB_FILE
+        build_container_name = (
+            "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        )
+        launch_lxd_container(context, ubuntu_series, build_container_name)
+        lxc_build_deb(build_container_name, output_deb_file=deb_file)
+
     build_container_name = "behave-image-build-%s-" % series + now.strftime(
         "%s%f"
     )
-    ubuntu_series = "ubuntu-daily:%s" % series
+
     launch_lxd_container(context, ubuntu_series, build_container_name)
-    _install_uat_in_container(build_container_name)
+
+    # if build_pr it will install new built .deb
+    _install_uat_in_container(build_container_name, deb_file=deb_file)
+
+    context.series_image_name[
+        series
+    ] = "behave-image-%s-" % series + now.strftime("%s%f")
+
     _capture_container_as_image(
         build_container_name, context.series_image_name[series]
     )
 
 
-def _install_uat_in_container(container_name: str) -> None:
+def _install_uat_in_container(
+    container_name: str, deb_file: "Optional[str]"
+) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
+    :param deb_file: Optional path to the deb_file we need to install
     """
-    lxc_exec(
-        container_name,
-        [
-            "sudo",
-            "add-apt-repository",
-            "--yes",
-            "ppa:canonical-server/ua-client-daily",
-        ],
-    )
-    lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
-    lxc_exec(
-        container_name,
-        ["sudo", "apt-get", "install", "-qq", "-y", "ubuntu-advantage-tools"],
-    )
+    if deb_file:
+        subprocess.run(
+            ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
+        )
+        lxc_exec(container_name, ["sudo", "dpkg", "-i", deb_file])
+        lxc_exec(
+            container_name, ["apt-cache", "policy", "ubuntu-advantage-tools"]
+        )
+    else:
+        lxc_exec(
+            container_name,
+            [
+                "sudo",
+                "add-apt-repository",
+                "--yes",
+                "ppa:canonical-server/ua-client-daily",
+            ],
+        )
+        lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
+        lxc_exec(
+            container_name,
+            [
+                "sudo",
+                "apt-get",
+                "install",
+                "-qq",
+                "-y",
+                "ubuntu-advantage-tools",
+            ],
+        )
