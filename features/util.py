@@ -195,8 +195,8 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
             cd ubuntu-advantage-client
             make deps
             dpkg-buildpackage -us -uc
-            ls -1 /tmp/ubuntu-advantage-tools*.deb |
-            xargs -L1 -I{} cp {} /tmp/ubuntu-advantage.deb
+            cp /tmp/ubuntu-advantage-tools*.deb /tmp/ubuntu-advantage-tools.deb
+
             ls -lh /tmp
          """
             )
@@ -213,7 +213,7 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
             "lxc",
             "file",
             "pull",
-            container_name + "/tmp/ubuntu-advantage.deb",
+            container_name + "/tmp/ubuntu-advantage-tools.deb",
             output_deb_file,
         ]
     )
