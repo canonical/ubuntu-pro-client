@@ -124,6 +124,30 @@ Feature: Command behaviour when attached to an UA subscription
             """
             This machine is already attached
             """
+    @series.trusty
+    Scenario: Attached show version in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I attach contract_token with sudo
+        And I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua version` with sudo
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua --version` with sudo
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
 
    @series.focal
    Scenario: Attached refresh in a focal lxd container
@@ -239,4 +263,29 @@ Feature: Command behaviour when attached to an UA subscription
         Then stderr matches regexp:
             """
             This machine is already attached
+            """
+
+    @series.focal
+    Scenario: Attached show version in a focal lxd container
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I attach contract_token with sudo
+        And I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua version` with sudo
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            20.4
+            """
+        When I run `ua --version` with sudo
+        Then I will see the following on stdout:
+            """
+            20.4
             """

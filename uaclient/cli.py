@@ -487,6 +487,12 @@ def get_parser():
         action="store_true",
         help="show all debug log messages to console",
     )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=version.get_version(),
+        help="show version of {}".format(NAME),
+    )
     parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
         title="Available Commands", dest="command", metavar=""
