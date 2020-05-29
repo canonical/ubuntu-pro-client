@@ -20,6 +20,7 @@ matrix:
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
+          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
