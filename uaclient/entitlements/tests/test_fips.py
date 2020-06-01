@@ -11,11 +11,7 @@ import pytest
 from uaclient import apt
 from uaclient import defaults
 from uaclient import status, util
-from uaclient.entitlements.fips import (
-    FIPSCommonEntitlement,
-    FIPSEntitlement,
-    FIPSUpdatesEntitlement,
-)
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient import exceptions
 
 
@@ -27,7 +23,25 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    return partial(entitlement_factory, request.param)
+    additional_packages = [
+        "fips-initramfs",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "linux-fips",
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "openssl",
+        "strongswan",
+        "strongswan-hmac",
+    ]
+
+    return partial(
+        entitlement_factory,
+        request.param,
+        additional_packages=additional_packages,
+    )
 
 
 @pytest.fixture
@@ -318,9 +332,17 @@ class TestFIPSEntitlementEnable:
 
 def _fips_pkg_combinations():
     """Construct all combinations of fips_packages and expected installs"""
+    fips_packages = {
+        "libssl1.0.0": {"libssl1.0.0-hmac"},
+        "openssh-client": {"openssh-client-hmac"},
+        "openssh-server": {"openssh-server-hmac"},
+        "openssl": set(),
+        "strongswan": {"strongswan-hmac"},
+    }
+
     items = [  # These are the items that we will combine together
         (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in FIPSCommonEntitlement.fips_packages.items()
+        for pkg_name, extra_pkgs in fips_packages.items()
     ]
     # This produces combinations in all possible combination lengths
     combinations = itertools.chain.from_iterable(
@@ -367,7 +389,7 @@ class TestFipsEntitlementPackages:
         full_expected_installs = (
             list(entitlement.fips_required_packages) + expected_installs
         )
-        assert full_expected_installs == entitlement.packages
+        assert sorted(full_expected_installs) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_multiple_packages_calls_dont_mutate_state(
@@ -376,17 +398,11 @@ class TestFipsEntitlementPackages:
         # Make it appear like all packages are installed
         m_get_installed_packages.return_value.__contains__.return_value = True
 
-        before = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        before = copy.deepcopy(entitlement.fips_required_packages)
 
         assert entitlement.packages
 
-        after = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        after = copy.deepcopy(entitlement.fips_required_packages)
 
         assert before == after
 

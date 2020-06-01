@@ -16,7 +16,6 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
     repo_key_file = "ubuntu-cc-keyring.gpg"
-    packages = ["ubuntu-commoncriteria"]
 
     @property
     def messaging(
