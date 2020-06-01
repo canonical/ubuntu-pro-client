@@ -5,7 +5,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @series.trusty
     Scenario: Attach command in a trusty lxd container
        Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         ESM Infra enabled
@@ -33,7 +33,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @series.focal
     Scenario: Attach command in a focal lxd container
        Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         ESM Infra enabled

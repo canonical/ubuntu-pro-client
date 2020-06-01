@@ -6,6 +6,8 @@ from hamcrest import assert_that, equal_to, matches_regexp
 
 from features.util import launch_lxd_container, lxc_exec
 
+from uaclient.defaults import DEFAULT_CONFIG_FILE
+
 
 CONTAINER_PREFIX = "behave-test-"
 
@@ -36,9 +38,17 @@ def when_i_run_command(context, command, user_spec):
     context.process = process
 
 
-@when("I attach contract_token {user_spec}")
-def when_i_attach_token(context, user_spec):
-    token = context.config.contract_token
+@when("I attach `{token_type}` {user_spec}")
+def when_i_attach_staging_token(context, token_type, user_spec):
+    token = getattr(context.config, token_type)
+    if token_type == "contract_token_staging":
+        when_i_run_command(
+            context,
+            "sed -i 's/contracts.can/contracts.staging.can/' {}".format(
+                DEFAULT_CONFIG_FILE
+            ),
+            user_spec,
+        )
     when_i_run_command(context, "ua attach %s" % token, user_spec)
 
 
