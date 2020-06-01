@@ -398,17 +398,11 @@ class TestFipsEntitlementPackages:
         # Make it appear like all packages are installed
         m_get_installed_packages.return_value.__contains__.return_value = True
 
-        before = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        before = copy.deepcopy(entitlement.fips_required_packages)
 
         assert entitlement.packages
 
-        after = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        after = copy.deepcopy(entitlement.fips_required_packages)
 
         assert before == after
 
