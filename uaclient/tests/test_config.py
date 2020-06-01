@@ -387,8 +387,18 @@ class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
     fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
 
-    def check_beta(self, cls, show_beta):
+    def check_beta(self, cls, show_beta, uacfg=None):
         if not show_beta:
+            if uacfg:
+                is_beta = (
+                    uacfg.cfg.get("features", {})
+                    .get(cls.name, {})
+                    .get("is_beta", True)
+                )
+
+                if not is_beta:
+                    return False
+
             return cls.is_beta
 
         return False
@@ -445,6 +455,10 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
+        "features_override",
+        ((None), ({"features": {"fips": {"is_beta": False}}})),
+    )
+    @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
         (
             (  # Empty lists means UNENTITLED and UNAVAILABLE
@@ -483,6 +497,7 @@ class TestStatus:
         entitled_res,
         uf_entitled,
         uf_status,
+        features_override,
         show_beta,
         FakeConfig,
     ):
@@ -517,6 +532,9 @@ class TestStatus:
             m_get_avail_resources.return_value = available_resource_response
 
         cfg = FakeConfig.for_attached_machine(machine_token=token)
+        if features_override:
+            cfg.override_features(features_override)
+
         expected_services = [
             {
                 "description": cls.description,
@@ -531,7 +549,7 @@ class TestStatus:
                 "description_override": None,
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
-            if not self.check_beta(cls, show_beta)
+            if not self.check_beta(cls, show_beta, cfg)
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
@@ -610,6 +628,10 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
+        "features_override",
+        ((None), ({"features": {"fips": {"is_beta": False}}})),
+    )
+    @pytest.mark.parametrize(
         "entitlements",
         (
             [],
@@ -635,6 +657,7 @@ class TestStatus:
         m_livepatch_uf_status,
         _m_getuid,
         entitlements,
+        features_override,
         show_beta,
         FakeConfig,
     ):
@@ -665,6 +688,8 @@ class TestStatus:
         cfg = FakeConfig.for_attached_machine(
             account_name="accountname", machine_token=token
         )
+        if features_override:
+            cfg.override_features(features_override)
         if not entitlements:
             support_level = status.UserFacingStatus.INAPPLICABLE.value
         else:
@@ -681,7 +706,7 @@ class TestStatus:
             }
         )
         for cls in ENTITLEMENT_CLASSES:
-            if self.check_beta(cls, show_beta):
+            if self.check_beta(cls, show_beta, cfg):
                 continue
 
             if cls.name == "livepatch":

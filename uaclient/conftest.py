@@ -82,7 +82,7 @@ def logging_sandbox():
 @pytest.fixture
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
-        def __init__(self) -> None:
+        def __init__(self, features_override=None) -> None:
             super().__init__({"data_dir": tmpdir.strpath})
 
         @classmethod
@@ -107,5 +107,8 @@ def FakeConfig(tmpdir):
             config = cls()
             config.write_cache("machine-token", machine_token)
             return config
+
+        def override_features(self, features_override):
+            self.cfg.update(features_override)
 
     return _FakeConfig

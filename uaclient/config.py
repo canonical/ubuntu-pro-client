@@ -210,6 +210,12 @@ class UAConfig:
             resource_name = resource["name"]
             ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
 
+            feat_cfg_beta_override = (
+                self.cfg.get("features", {})
+                .get(resource_name, {})
+                .get("is_beta", True)
+            )
+
             if ent_cls is None:
                 """
                 Here we cannot know the status of a service,
@@ -220,7 +226,7 @@ class UAConfig:
                 released_resources.append(resource)
                 continue
 
-            if not ent_cls.is_beta:
+            if not ent_cls.is_beta or not feat_cfg_beta_override:
                 released_resources.append(resource)
 
         if released_resources:
