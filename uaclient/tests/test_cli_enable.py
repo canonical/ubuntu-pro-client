@@ -356,3 +356,50 @@ class TestPerformEnable:
             _perform_enable("testitlement", m_cfg, **kwargs)
 
         assert 1 == m_is_beta.call_count
+
+    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
+    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.cli.entitlements")
+    def test_beta_entitlement_instantiated_and_enabled_with_config_override(
+        self,
+        m_entitlements,
+        _m_get_available_resources,
+        silent_if_inapplicable,
+    ):
+        ent_name = "testitlement"
+        cfg_dict = {"features": {ent_name: {"is_beta": False}}}
+        m_entitlement_cls = mock.Mock()
+        m_cfg = mock.Mock()
+        m_cfg_dict = mock.PropertyMock(return_value=cfg_dict)
+        type(m_cfg).cfg = m_cfg_dict
+
+        m_is_beta = mock.PropertyMock(return_value=True)
+        type(m_entitlement_cls).is_beta = m_is_beta
+        m_name = mock.PropertyMock(return_value=ent_name)
+        type(m_entitlement_cls).name = m_name
+
+        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
+            ent_name: m_entitlement_cls
+        }
+
+        kwargs = {"allow_beta": False}
+        if silent_if_inapplicable is not None:
+            kwargs["silent_if_inapplicable"] = silent_if_inapplicable
+        ret = _perform_enable(ent_name, m_cfg, **kwargs)
+
+        assert [
+            mock.call(m_cfg, assume_yes=False)
+        ] == m_entitlement_cls.call_args_list
+
+        m_entitlement = m_entitlement_cls.return_value
+        if silent_if_inapplicable:
+            expected_enable_call = mock.call(silent_if_inapplicable=True)
+        else:
+            expected_enable_call = mock.call(silent_if_inapplicable=False)
+        assert [expected_enable_call] == m_entitlement.enable.call_args_list
+        assert ret == m_entitlement.enable.return_value
+
+        assert 1 == m_cfg.status.call_count
+        assert 1 == m_is_beta.call_count
+        assert 1 == m_name.call_count
+        assert 1 == m_cfg_dict.call_count
