@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from uaclient.entitlements import repo
 from uaclient import apt, status, util
 
@@ -12,23 +14,24 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
     fips_required_packages = frozenset({"fips-initramfs", "linux-fips"})
-    fips_packages = {
-        "libssl1.0.0": {"libssl1.0.0-hmac"},
-        "openssh-client": {"openssh-client-hmac"},
-        "openssh-server": {"openssh-server-hmac"},
-        "openssl": set(),
-        "strongswan": {"strongswan-hmac"},
-    }  # type: Dict[str, Set[str]]
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
 
     @property
     def packages(self) -> "List[str]":
-        packages = list(self.fips_required_packages)
+        packages = []  # type: List[str]
         installed_packages = apt.get_installed_packages()
-        for pkg_name, extra_pkgs in self.fips_packages.items():
+
+        pkg_groups = groupby(
+            super().packages,
+            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
+        )
+
+        for pkg_name, pkg_list in pkg_groups:
             if pkg_name in installed_packages:
-                packages.append(pkg_name)
-                packages.extend(extra_pkgs)
+                packages += pkg_list
+            elif pkg_name in self.fips_required_packages:
+                packages += pkg_list
+
         return packages
 
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
