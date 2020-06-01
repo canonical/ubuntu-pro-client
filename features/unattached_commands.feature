@@ -118,7 +118,6 @@ Feature: Command behaviour when unattached
            | disable |
            | enable  |
 
-    @wip
     @series.focal
     Scenario Outline: Unattached command of an unknown service in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
