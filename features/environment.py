@@ -46,7 +46,7 @@ class UAClientBehaveConfig:
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
     # the test framework
-    boolean_options = ["image_clean", "destroy_instances"]
+    boolean_options = ["build_pr", "image_clean", "destroy_instances"]
     str_options = ["contract_token", "contract_token_staging", "reuse_image"]
     redact_options = ["contract_token", "contract_token_staging"]
 
