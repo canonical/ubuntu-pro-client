@@ -1,6 +1,5 @@
 Feature: Unattached status
 
-    @wip
     @series.trusty
     Scenario: Unattached status in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
@@ -8,7 +7,6 @@ Feature: Unattached status
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        no         Common Criteria EAL2 Provisioning Packages
             esm-apps      no         UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
@@ -34,7 +32,6 @@ Feature: Unattached status
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        no         Common Criteria EAL2 Provisioning Packages
             esm-apps      no         UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
@@ -57,6 +54,7 @@ Feature: Unattached status
             See https://ubuntu.com/advantage
             """ 
     
+    @wip
     @series.focal
     Scenario: Unattached status in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
@@ -64,7 +62,6 @@ Feature: Unattached status
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        no         Common Criteria EAL2 Provisioning Packages
             esm-apps      yes        UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
@@ -90,7 +87,6 @@ Feature: Unattached status
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        no         Common Criteria EAL2 Provisioning Packages
             esm-apps      yes        UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
