@@ -8,3 +8,4 @@ class CISEntitlement(repo.RepoEntitlement):
     title = "CIS Audit"
     description = "Center for Internet Security Audit Tools"
     repo_key_file = "ubuntu-securitybenchmarks-keyring.gpg"
+    is_beta = True

@@ -199,34 +199,34 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def _remove_beta_resources(self, response, show_beta) -> None:
-        """ Remove beta services from response dict if show_beta is False"""
+    def _remove_beta_resources(self, response) -> "Dict[str, Any]":
+        """ Remove beta services from response dict"""
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
-        if show_beta:
-            return
+        new_response = copy.deepcopy(response)
 
-        if response.get("services"):
-            released_resources = []
+        released_resources = []
+        for resource in new_response.get("services", {}):
+            resource_name = resource["name"]
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
 
-            for resource in response["services"]:
-                resource_name = resource["name"]
-                ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
+            if ent_cls is None:
+                """
+                Here we cannot know the status of a service,
+                since it is not listed as a valid entitlement.
+                Therefore, we keep this service in the list, since
+                we cannot validate if it is a beta service or not.
+                """
+                released_resources.append(resource)
+                continue
 
-                if ent_cls is None:
-                    """
-                    Here we cannot know the status of a service,
-                    since it is not listed as a valid entitlement.
-                    Therefore, we keep this service in the list, since
-                    we cannot validate if it is a beta service or not.
-                    """
-                    released_resources.append(resource)
-                    continue
+            if not ent_cls.is_beta:
+                released_resources.append(resource)
 
-                if not ent_cls.is_beta:
-                    released_resources.append(resource)
+        if released_resources:
+            new_response["services"] = released_resources
 
-            response["services"] = released_resources
+        return new_response
 
     def _unattached_status(self) -> "Dict[str, Any]":
         """Return unattached status as a dict."""
@@ -348,7 +348,9 @@ class UAConfig:
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
-        self._remove_beta_resources(response, show_beta)
+        if not show_beta:
+            response = self._remove_beta_resources(response)
+
         return response
 
 

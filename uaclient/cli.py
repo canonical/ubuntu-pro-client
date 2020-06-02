@@ -291,6 +291,7 @@ def _perform_enable(
     :param silent_if_inapplicable:
         don't output messages when determining if an entitlement can be
         enabled on this system
+    :param allow_beta: Allow enabling beta services
 
     @return: True on success, False otherwise
     """
