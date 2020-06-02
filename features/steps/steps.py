@@ -52,6 +52,15 @@ def when_i_attach_staging_token(context, token_type, user_spec):
     when_i_run_command(context, "ua attach %s" % token, user_spec)
 
 
+@when("I append the following on uaclient config")
+def when_i_append_to_uaclient_config(context):
+    # command = "echo -e '{}' | sudo tee -a {}".format(
+    #    context.text, DEFAULT_CONFIG_FILE)
+    cmd = "sed -i '$s/$/text/' {}".format(DEFAULT_CONFIG_FILE)
+    print(cmd)
+    when_i_run_command(context, cmd, "with sudo")
+
+
 @then("I will see the following on stdout")
 def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))
