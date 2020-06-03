@@ -65,6 +65,8 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
 
     cloud_instance_map = {
         "aws": aws.UAAutoAttachAWSInstance,
+        "aws-china": aws.UAAutoAttachAWSInstance,
+        "aws-gov": aws.UAAutoAttachAWSInstance,
         "azure": azure.UAAutoAttachAzureInstance,
     }
 

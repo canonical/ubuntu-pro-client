@@ -143,3 +143,27 @@ class TestCloudInstanceFactory:
                 cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
         assert error_msg == str(excinfo.value)
+
+    @pytest.mark.parametrize(
+        "cloud_type", ("aws", "aws-gov", "aws-china", "azure")
+    )
+    def test_return_cloud_instance_on_viable_clouds(
+        self, m_get_cloud_type, cloud_type
+    ):
+        """Return UAAutoAttachInstance when matching cloud_type is viable."""
+        m_get_cloud_type.return_value = cloud_type
+
+        fake_instance = mock.Mock()
+        fake_instance.is_viable = True
+
+        def fake_viable_instance():
+            return fake_instance
+
+        if cloud_type == "azure":
+            M_INSTANCE_PATH = "uaclient.clouds.azure.UAAutoAttachAzureInstance"
+        else:
+            M_INSTANCE_PATH = "uaclient.clouds.aws.UAAutoAttachAWSInstance"
+
+        with mock.patch(M_INSTANCE_PATH) as m_instance:
+            m_instance.side_effect = fake_viable_instance
+            assert fake_instance == cloud_instance_factory()
