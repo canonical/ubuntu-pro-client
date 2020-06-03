@@ -63,7 +63,6 @@ Feature: Unattached status
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        no         Common Criteria EAL2 Provisioning Packages
             esm-apps      no         UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             fips          no         NIST-certified FIPS modules
@@ -121,6 +120,24 @@ Feature: Unattached status
             esm-infra     yes        UA Infra: Extended Security Maintenance
             fips          no         NIST-certified FIPS modules
             fips-updates  no         Uncertified security updates to FIPS modules
+            livepatch     yes        Canonical Livepatch service
+
+            This machine is not attached to a UA subscription.
+            See https://ubuntu.com/advantage
+            """
+        When I append the following on uaclient config:
+            """
+            features:
+              fips:
+                is_beta: false
+            """
+        And I run `ua status` as non-root
+        Then I will see the following on stdout:
+            """
+            SERVICE       AVAILABLE  DESCRIPTION
+            esm-apps      yes        UA Apps: Extended Security Maintenance
+            esm-infra     yes        UA Infra: Extended Security Maintenance
+            fips          no         NIST-certified FIPS modules
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
