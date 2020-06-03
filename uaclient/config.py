@@ -199,6 +199,35 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
+    def _remove_beta_resources(self, response) -> "Dict[str, Any]":
+        """ Remove beta services from response dict"""
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        new_response = copy.deepcopy(response)
+
+        released_resources = []
+        for resource in new_response.get("services", {}):
+            resource_name = resource["name"]
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
+
+            if ent_cls is None:
+                """
+                Here we cannot know the status of a service,
+                since it is not listed as a valid entitlement.
+                Therefore, we keep this service in the list, since
+                we cannot validate if it is a beta service or not.
+                """
+                released_resources.append(resource)
+                continue
+
+            if not ent_cls.is_beta:
+                released_resources.append(resource)
+
+        if released_resources:
+            new_response["services"] = released_resources
+
+        return new_response
+
     def _unattached_status(self) -> "Dict[str, Any]":
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
@@ -206,12 +235,14 @@ class UAConfig:
 
         response = copy.deepcopy(DEFAULT_STATUS)
         resources = get_available_resources(self)
+
         for resource in sorted(resources, key=lambda x: x["name"]):
             if resource["available"]:
                 available = status.UserFacingAvailability.AVAILABLE.value
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
             ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource["name"])
+
             if not ent_cls:
                 LOG.debug(
                     "Ignoring availability of unknown service %s"
@@ -219,6 +250,7 @@ class UAConfig:
                     resource["name"],
                 )
                 continue
+
             response["services"].append(
                 {
                     "name": resource["name"],
@@ -276,6 +308,7 @@ class UAConfig:
         resources = self.machine_token.get("availableResources")
         if not resources:
             resources = get_available_resources(self)
+
         inapplicable_resources = {
             resource["name"]: resource.get("description")
             for resource in sorted(resources, key=lambda x: x["name"])
@@ -295,7 +328,7 @@ class UAConfig:
             response["techSupportLevel"] = supportLevel
         return response
 
-    def status(self) -> "Dict[str, Any]":
+    def status(self, show_beta=False) -> "Dict[str, Any]":
         """Return status as a dict, using a cache for non-root users
 
         When unattached, get available resources from the contract service
@@ -314,6 +347,10 @@ class UAConfig:
             response = self._attached_status()
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
+
+        if not show_beta:
+            response = self._remove_beta_resources(response)
+
         return response
 
 
