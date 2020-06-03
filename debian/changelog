@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (24.2) groovy; urgency=medium
+
+  * New bug-fix-only release 24.2:
+    - uaclient.version bump to 24.2
+    - pro: Add AWS China and GovCloud partitions support (GH #1077)
+
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 03 Jun 2020 16:12:41 -0600
+
 ubuntu-advantage-tools (24.1) groovy; urgency=medium
 
   * New bug-fix-only release 24.1:
