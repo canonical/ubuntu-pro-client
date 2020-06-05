@@ -28,7 +28,6 @@ from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = "-32768"
 
-
 class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}-{series}.list"
@@ -76,7 +75,19 @@ class RepoEntitlement(base.UAEntitlement):
     @abc.abstractmethod
     def repo_key_file(self) -> str:
         pass
-
+    
+    @property 
+    def dpkg_options(self) -> str:
+        """
+        Returns a string of dpkg options to pass to apt
+        """
+        options_list = ['force-confdef', 'force-confold']
+        dpkg_options = ""
+        for dpkg_option in options_list:
+            dpkg_options = '%s -o "Dpkg::Options::=--%s"' \
+                           % (dpkg_options, dpkg_option)
+        return dpkg_options.strip()    
+    
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
 
@@ -100,7 +111,7 @@ class RepoEntitlement(base.UAEntitlement):
                 if not handle_message_operations(msg_ops):
                     return False
                 apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"] + self.packages,
+                    ["apt-get", "install", "--assume-yes"] + self.dpkg_options + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title
                     ),
@@ -130,7 +141,7 @@ class RepoEntitlement(base.UAEntitlement):
         """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config()
         try:
-            util.subp(["apt-get", "remove", "--assume-yes"] + self.packages)
+            util.subp(["apt-get", "remove", "--assume-yes"] + self.dpkg_options + self.packages)
         except util.ProcessExecutionError:
             pass
 
@@ -275,7 +286,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
             try:
                 apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
+                    ["apt-get", "install", "--assume-yes"] + self.dpkg_options + prerequisite_pkgs,
                     status.MESSAGE_APT_INSTALL_FAILED,
                 )
             except exceptions.UserFacingError:
