@@ -77,16 +77,15 @@ class RepoEntitlement(base.UAEntitlement):
         pass
     
     @property 
-    def dpkg_options(self) -> str:
+    def dpkg_options(self) -> "List[str]":
         """
-        Returns a string of dpkg options to pass to apt
+        Returns a list of dpkg options to pass to apt
         """
         options_list = ['force-confdef', 'force-confold']
-        dpkg_options = ""
-        for dpkg_option in options_list:
-            dpkg_options = '%s -o "Dpkg::Options::=--%s"' \
-                           % (dpkg_options, dpkg_option)
-        return dpkg_options.strip()    
+        dpkg_options = []
+        for option in options_list:
+            dpkg_options.append('-o "Dpkg::Options::=--{}".format(option)')
+        return dpkg_options    
     
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
