@@ -84,7 +84,7 @@ class RepoEntitlement(base.UAEntitlement):
         options_list = ['force-confdef', 'force-confold']
         dpkg_options = []
         for option in options_list:
-            dpkg_options.append('-o "Dpkg::Options::=--{}".format(option)')
+            dpkg_options.append('-o "Dpkg::Options::=--{}"'.format(option))
         return dpkg_options    
     
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
