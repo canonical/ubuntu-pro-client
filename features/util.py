@@ -10,6 +10,8 @@ from behave.runner import Context
 
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
 
+VM_PROFILE_NAME = "behave-vm"
+
 
 def launch_lxd_container(
     context: Context, image_name: str, container_name: str, series: str
@@ -89,6 +91,37 @@ def lxc_exec(
     return subprocess.run(
         ["lxc", "exec", "--user", "1000", container_name, "--"] + cmd, **kwargs
     )
+
+
+def lxc_create_vm_profile():
+    """Create a vm profile to enable launching kvm instances"""
+    content = textwrap.dedent(
+        """\
+        config: {}
+        description: Default LXD profile for VMs
+        devices:
+          config:
+            source: cloud-init:config
+            type: disk
+          eth0:
+            name: eth0
+            network: lxdbr0
+            type: nic
+          root:
+            path: /
+            pool: default
+            type: disk
+        name: vm
+    """
+    )
+
+    output = subprocess.check_output(["lxc", "profile", "list"])
+    if " {} ".format(VM_PROFILE_NAME) not in output.decode("utf-8"):
+        subprocess.run(["lxc", "profile", "create", VM_PROFILE_NAME])
+        proc = subprocess.Popen(
+            ["lxc", "profile", "edit", VM_PROFILE_NAME], stdin=subprocess.PIPE
+        )
+        proc.communicate(content.encode())
 
 
 def wait_for_boot(container_name: str, series: str) -> None:
