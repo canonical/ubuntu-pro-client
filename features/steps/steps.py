@@ -22,7 +22,10 @@ def given_a_lxd_container(context, series):
             CONTAINER_PREFIX + series + now.strftime("-%s%f")
         )
         launch_lxd_container(
-            context, context.series_image_name[series], context.container_name
+            context,
+            context.series_image_name[series],
+            context.container_name,
+            series=series,
         )
 
 

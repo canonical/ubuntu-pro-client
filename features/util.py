@@ -12,7 +12,7 @@ SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
 
 
 def launch_lxd_container(
-    context: Context, image_name: str, container_name: str
+    context: Context, image_name: str, container_name: str, series: str
 ) -> None:
     """Launch a container from an image and wait for it to boot
 
@@ -24,6 +24,8 @@ def launch_lxd_container(
 
     :param container_name:
         The name to be used for the launched container.
+
+    :param series: A string representing the series of the vm to create
     """
     subprocess.run(["lxc", "launch", image_name, container_name])
 
@@ -35,7 +37,7 @@ def launch_lxd_container(
 
     context.add_cleanup(cleanup_container)
 
-    wait_for_boot(container_name)
+    wait_for_boot(container_name, series=series)
 
 
 def lxc_exec(
@@ -89,13 +91,35 @@ def lxc_exec(
     )
 
 
-def wait_for_boot(container_name: str) -> None:
+def wait_for_boot(container_name: str, series: str) -> None:
     """Wait for a test container to boot.
 
     :param container_name:
         The name of the container to wait for.
+    :param series:
+        The Ubuntu series we are waiting for.
     """
-    retries = [10] * 5
+    retries = [5, 10, 15, 20, 20, 30]
+    if series != "trusty":
+        retcode = 1
+        for sleep_time in retries:
+            proc = lxc_exec(
+                container_name,
+                ["cloud-init", "status", "--wait", "--long"],
+                capture_output=True,
+                text=True,
+            )
+            retcode = proc.returncode
+            if retcode == 0:
+                break
+            print(
+                "Retrying on unexpected cloud-init status stderr: ",
+                proc.stderr.strip(),
+            )
+            time.sleep(sleep_time)
+        if retcode != 0:
+            raise Exception("System did not boot in {}s".format(sum(retries)))
+        return
     for sleep_time in retries:
         process = lxc_exec(
             container_name, ["runlevel"], capture_output=True, text=True

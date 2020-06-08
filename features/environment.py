@@ -224,14 +224,24 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         build_container_name = (
             "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
         )
-        launch_lxd_container(context, ubuntu_series, build_container_name)
+        launch_lxd_container(
+            context,
+            ubuntu_series,
+            build_container_name,
+            series=series
+        )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
     build_container_name = "behave-image-build-%s-" % series + now.strftime(
         "%s%f"
     )
 
-    launch_lxd_container(context, ubuntu_series, build_container_name)
+    launch_lxd_container(
+        context,
+        ubuntu_series,
+        build_container_name,
+        series=series
+    )
 
     # if build_pr it will install new built .deb
     _install_uat_in_container(build_container_name, deb_file=deb_file)
