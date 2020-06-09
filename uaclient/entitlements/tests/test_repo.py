@@ -468,8 +468,8 @@ class TestRepoEnable:
                             "apt-get",
                             "install",
                             "--assume-yes",
-                            '-o "Dpkg::Options::=--force-confdef"',
-                            '-o "Dpkg::Options::=--force-confold"',
+                            '-o="Dpkg::Options::=--force-confdef"',
+                            '-o="Dpkg::Options::=--force-confold"',
                             " ".join(packages),
                         ],
                         capture=True,
@@ -540,7 +540,7 @@ class TestRepoEnable:
 
         assert "Could not enable Repo Test Class." == excinfo.value.msg
         expected_call = mock.call(
-            ["apt-get", "remove", "--assume-yes", '-o "Dpkg::Options::=--force-confdef"','-o "Dpkg::Options::=--force-confold"',] + packages
+            ["apt-get", "remove", "--assume-yes", '-o="Dpkg::Options::=--force-confdef"','-o =Dpkg::Options::=--force-confold"',] + packages
         )
         assert expected_call in m_subp.call_args_list
         assert 1 == m_rac.call_count
@@ -749,8 +749,8 @@ class TestSetupAptConfig:
                 "apt-get",
                 "install",
                 "--assume-yes",
-                '-o "Dpkg::Options::=--force-confdef"',
-                '-o "Dpkg::Options::=--force-confold"',
+                '-o="Dpkg::Options::=--force-confdef"',
+                '-o="Dpkg::Options::=--force-confold"',
                 "apt-transport-https",
                 "ca-certificates",
             ],

@@ -28,6 +28,7 @@ from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = "-32768"
 
+
 class RepoEntitlement(base.UAEntitlement):
 
     repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}-{series}.list"
@@ -75,8 +76,8 @@ class RepoEntitlement(base.UAEntitlement):
     @abc.abstractmethod
     def repo_key_file(self) -> str:
         pass
-    
-    @property 
+
+    @property
     def dpkg_options(self) -> "List[str]":
         """
         Returns a list of dpkg options to pass to apt
@@ -84,9 +85,9 @@ class RepoEntitlement(base.UAEntitlement):
         options_list = ['force-confdef', 'force-confold']
         dpkg_options = []
         for option in options_list:
-            dpkg_options.append('-o "Dpkg::Options::=--{}"'.format(option))
-        return dpkg_options    
-    
+            dpkg_options.append('-o="Dpkg::Options::=--{}"'.format(option))
+        return dpkg_options
+
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
 
