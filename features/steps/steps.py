@@ -12,7 +12,7 @@ from uaclient.defaults import DEFAULT_CONFIG_FILE
 CONTAINER_PREFIX = "behave-test-"
 
 
-@given("a `{series}` lxd container with ubuntu-advantage-tools installed")
+@given("a `{series}` machine with ubuntu-advantage-tools installed")
 def given_a_machine(context, series):
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
