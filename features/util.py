@@ -8,8 +8,11 @@ from typing import Any, List
 
 from behave.runner import Context
 
+LXC_PROPERTY_MAP = {
+    "image": {"series": "properties.release", "machine_type": "Type"},
+    "container": {"series": "image.release", "machine_type": "image.type"},
+}
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
-
 VM_PROFILE_NAME = "behave-vm"
 
 
@@ -169,57 +172,49 @@ def wait_for_boot(container_name: str, series: str) -> None:
         raise Exception("System did not boot in {}s".format(sum(retries)))
 
 
-def lxc_get_series(name: str, image: bool = False):
+def lxc_get_property(name: str, property_name: str, image: bool = False):
     """Check series name of either an image or a container.
 
     :param name:
         The name of the container or the image to check its series.
+    :param property_name:
+        The name of the property to return.
     :param image:
-        If image==True will check image series
-        If image==False it will check container configuration to get series.
+        If image==True will check image properties
+        If image==False it will check container configuration to get
+        properties.
 
     :return:
-        The series of the container or the image.
+        The value of the container or image property.
        `None` if it could not detect it (
            some images don't have this field in properties).
     """
-
     if not image:
+        property_name = LXC_PROPERTY_MAP["container"][property_name]
         output = subprocess.check_output(
-            ["lxc", "config", "get", name, "image.release"],
+            ["lxc", "config", "get", name, property_name],
             universal_newlines=True,
         )
-        series = output.rstrip()
-        return series
+        return output.rstrip()
     else:
-        image_output = "image_output.yaml"
-        with open(image_output, "w") as fileoutput:
-            subprocess.run(["lxc", "image", "show", name], stdout=fileoutput)
+        property_keys = LXC_PROPERTY_MAP["image"][property_name].split(".")
         output = subprocess.check_output(
             ["lxc", "image", "show", name], universal_newlines=True
         )
         image_config = yaml.safe_load(output)
         print(" `lxc image show` output: ", image_config)
-        fileoutput.close()
-        os.remove(image_output)
-        try:
-            series = image_config["properties"]["release"]
+        value = image_config
+        for key_name in property_keys:
+            value = image_config.get(value, {})
+        if not value:
             print(
-                textwrap.dedent(
-                    """
-                You are providing a {series} image.
-                Make sure you are running this series tests.
-                For instance: --tags=series.{series}""".format(
-                        series=series
-                    )
+                "Could not detect image property {name}."
+                " Add it via `lxc image edit`".format(
+                    name=".".join(property_keys)
                 )
             )
-            return series
-        except KeyError:
-            print(
-                " Could not detect image series. Add it via `lxc image edit`"
-            )
-    return None
+            return None
+        return value
 
 
 def lxc_build_deb(container_name: str, output_deb_file: str) -> None:

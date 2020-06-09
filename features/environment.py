@@ -11,7 +11,7 @@ from behave.runner import Context
 from features.util import (
     launch_lxd_container,
     lxc_exec,
-    lxc_get_series,
+    lxc_get_property,
     lxc_build_deb,
 )
 
@@ -119,7 +119,16 @@ def before_all(context: Context) -> None:
     context.config = UAClientBehaveConfig.from_environ()
 
     if context.config.reuse_image:
-        series = lxc_get_series(context.config.reuse_image, image=True)
+        series = lxc_get_property(
+            context.config.reuse_image, property_name="series", image=True
+        )
+        machine_type = lxc_get_property(
+            context.config.reuse_image,
+            property_name="machine_type",
+            image=True
+        )
+        if machine_type:
+            print("Found machine_type: {vm_type}".format(vm_type=machine_type))
         if series is not None:
             context.series_reuse_image = series
             context.series_image_name[series] = context.config.reuse_image
@@ -128,7 +137,14 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        series = lxc_get_series(userdata.get("reuse_container"))
+        series = lxc_get_property(
+            userdata.get("reuse_container"), property_name="series"
+        )
+        machine_type = lxc_get_property(
+            userdata.get("reuse_container"), property_name="machine_type"
+        )
+        if machine_type:
+            print("Found type: {vm_type}".format(vm_type=machine_type))
         context.reuse_container = {series: userdata.get("reuse_container")}
         print(
             textwrap.dedent(
