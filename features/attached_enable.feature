@@ -169,7 +169,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @wip
     @series.focal
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Attached enable of non-container services in a focal lxd vm
+    Scenario: Attached enable of vm-based services in a focal lxd vm
         Given a `focal` lxd container with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
@@ -177,20 +177,20 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service> <flag>` with sudo
-        Then I will see the following on stdout:
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then stdout matches regexp:6
             """
-            One moment, checking your subscription first
-            <title> is already enabled.
-            See: sudo ua status
+            FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
-
-        Examples: Un-supported services in containers
-           | service | title   | flag          |
-           | fips    | FIPS    | --assume-yes  |
+        When I run `ua enable fips-updates --assume-yes --beta` with sudo
+        Then stdout matches regexp:
+            """
+            FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
+            """
 
     @series.focal
-    Scenario Outline: Attached enable of non-container services in a focal lxd container
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable of vm-based services in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
@@ -212,8 +212,8 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | FIPS Updates | --assume-yes --beta  |
 
     @series.focal
-    Scenario Outline:  Attached enable of non-container beta services in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario:  Attached enable of vm-only beta services in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
         Then I will see the following on stderr:
