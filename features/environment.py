@@ -2,7 +2,7 @@ import datetime
 import os
 import subprocess
 import textwrap
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from behave.model import Feature, Scenario
 
@@ -32,6 +32,8 @@ class UAClientBehaveConfig:
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
+    :param machine_type:
+        The default machine_type to test: lxd.container or lxd.vm
     :param reuse_image:
         A string with an image name that should be used instead of building a
         fresh image for this test run.   If specified, this image will not be
@@ -47,7 +49,12 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["build_pr", "image_clean", "destroy_instances"]
-    str_options = ["contract_token", "contract_token_staging", "reuse_image"]
+    str_options = [
+        "contract_token",
+        "contract_token_staging",
+        "machine_type",
+        "reuse_image"
+    ]
     redact_options = ["contract_token", "contract_token_staging"]
 
     # This variable is used in .from_environ() but also to emit the "Config
@@ -60,6 +67,7 @@ class UAClientBehaveConfig:
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
+        machine_type: str = "lxd.container",
         reuse_image: str = None,
         contract_token: str = None,
         contract_token_staging: str = None
@@ -70,6 +78,7 @@ class UAClientBehaveConfig:
         self.contract_token_staging = contract_token_staging
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
+        self.machine_type = machine_type
         self.reuse_image = reuse_image
 
         # Next, perform any required validation
@@ -157,19 +166,28 @@ def before_all(context: Context) -> None:
         )
 
 
-def before_feature(context: Context, feature: Feature):
-    for tag in feature.tags:
+def _should_skip_tags(context: Context, tags: "List") -> str:
+    """Return a reason if a feature or scenario should be skipped"""
+    for tag in tags:
         parts = tag.split(".")
         if parts[0] == "uses":
             val = context
-            for attr in parts[1:]:
+            for idx, attr in enumerate(parts[1:], 1):
                 val = getattr(val, attr, None)
                 if val is None:
-                    feature.skip(
-                        reason="Skipped because tag value was None: {}".format(
-                            tag
-                        )
+                    return "Skipped because tag value was None: {}".format(tag)
+                if attr == "machine_type":
+                    machine_type = ".".join(parts[idx + 1:])
+                    if val == machine_type:
+                        break
+                    return "Skipped machine_type {} != {}".format(
+                        val, machine_type
                     )
+
+def before_feature(context: Context, feature: Feature):
+    reason = _should_skip_tags(context, feature.tags)
+    if reason:
+        feature.skip(reason=reason)
 
 
 def before_scenario(context: Context, scenario: Scenario):
@@ -178,6 +196,10 @@ def before_scenario(context: Context, scenario: Scenario):
     then capture an image. This image is then reused by each scenario, reducing
     test execution time.
     """
+    reason = _should_skip_tags(context, scenario.effective_tags)
+    if reason:
+        scenario.skip(reason=reason)
+        return
     for tag in scenario.effective_tags:
         parts = tag.split(".")
         if parts[0] == "series":
