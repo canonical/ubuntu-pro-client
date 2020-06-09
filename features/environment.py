@@ -204,6 +204,11 @@ def before_scenario(context: Context, scenario: Scenario):
         parts = tag.split(".")
         if parts[0] == "series":
             series = parts[1]
+            if series == "trusty" and context.config.machine_type == "lxd.vm":
+                scenario.skip(
+                    reason="TODO: cannot test trusty using lxd.vm GH: #1088"
+                )
+                return
             if series not in context.series_image_name:
                 create_uat_lxd_image(context, series)
 
@@ -272,7 +277,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
-    build_container_name = "behave-image-build%s-%s-" % (
+    build_container_name = "behave-image-build%s-%s" % (
         "-vm" if is_vm else "", series + now.strftime("%s%f")
     )
 
