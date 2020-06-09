@@ -234,6 +234,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     now = datetime.datetime.now()
     ubuntu_series = "ubuntu-daily:%s" % series
     deb_file = None
+    is_vm = bool(context.config.machine_type == "lxd.vm")
     if context.config.build_pr:
         # create a dirty development image which installs build depends
         deb_file = PR_DEB_FILE
@@ -244,7 +245,8 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
             context,
             ubuntu_series,
             build_container_name,
-            series=series
+            series=series,
+            is_vm=is_vm,
         )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
@@ -256,7 +258,8 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         context,
         ubuntu_series,
         build_container_name,
-        series=series
+        series=series,
+        is_vm=is_vm,
     )
 
     # if build_pr it will install new built .deb

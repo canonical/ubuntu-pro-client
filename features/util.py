@@ -17,7 +17,11 @@ VM_PROFILE_NAME = "behave-vm"
 
 
 def launch_lxd_container(
-    context: Context, image_name: str, container_name: str, series: str
+    context: Context,
+    image_name: str,
+    container_name: str,
+    series: str,
+    is_vm: bool
 ) -> None:
     """Launch a container from an image and wait for it to boot
 
@@ -26,13 +30,19 @@ def launch_lxd_container(
 
     :param context:
         A `behave.runner.Context`; used only for registering cleanups.
-
+    :param image_name:
+        The name of the lxd image to launch as base image for the container
     :param container_name:
         The name to be used for the launched container.
-
     :param series: A string representing the series of the vm to create
+    :param is_vm:
+        Boolean as to whether or not to launch KVM type container
     """
-    subprocess.run(["lxc", "launch", image_name, container_name])
+    command = ["lxc", "launch", image_name, container_name]
+    if is_vm:
+        lxc_create_vm_profile()
+        command.extend(["--profile", VM_PROFILE_NAME, "--vm"])
+    subprocess.run(command)
 
     def cleanup_container() -> None:
         if not context.config.destroy_instances:

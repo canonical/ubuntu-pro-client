@@ -13,10 +13,11 @@ CONTAINER_PREFIX = "behave-test-"
 
 
 @given("a `{series}` lxd container with ubuntu-advantage-tools installed")
-def given_a_lxd_container(context, series):
+def given_a_machine(context, series):
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
     else:
+        is_vm = bool(context.config.machine_type == "lxd.vm")
         now = datetime.datetime.now()
         context.container_name = (
             CONTAINER_PREFIX + series + now.strftime("-%s%f")
@@ -26,6 +27,7 @@ def given_a_lxd_container(context, series):
             context.series_image_name[series],
             context.container_name,
             series=series,
+            is_vm=is_vm,
         )
 
 
