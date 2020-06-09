@@ -44,9 +44,9 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
         Examples: beta services in containers
-           | service      | flag         |
-           | fips         | --assume-yes |
-           | fips-updates | --assume-yes |
+           | service      | flag                |
+           | fips         | --assume-yes --beta |
+           | fips-updates | --assume-yes --beta |
 
     @series.trusty
     Scenario: Attached enable Common Criteria service in a trusty lxd container
@@ -165,6 +165,29 @@ Feature: Enable command behaviour when attached to an UA subscription
             Cannot enable 'foobar, fips'
             For a list of services see: sudo ua status
             """
+
+    @wip
+    @series.focal
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable of non-container services in a focal lxd vm
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable <service> <flag>` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable <service> <flag>` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            <title> is already enabled.
+            See: sudo ua status
+            """
+
+        Examples: Un-supported services in containers
+           | service | title   | flag          |
+           | fips    | FIPS    | --assume-yes  |
 
     @series.focal
     Scenario Outline: Attached enable of non-container services in a focal lxd container
@@ -325,4 +348,4 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             Cannot enable 'foobar, fips'
             For a list of services see: sudo ua status
-            """
+	    """
