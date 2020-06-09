@@ -272,8 +272,8 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
-    build_container_name = "behave-image-build-%s-" % series + now.strftime(
-        "%s%f"
+    build_container_name = "behave-image-build%s-%s-" % (
+        "-vm" if is_vm else "", series + now.strftime("%s%f")
     )
 
     launch_lxd_container(

@@ -19,8 +19,9 @@ def given_a_machine(context, series):
     else:
         is_vm = bool(context.config.machine_type == "lxd.vm")
         now = datetime.datetime.now()
+        vm_prefix = "vm-" if is_vm else ""
         context.container_name = (
-            CONTAINER_PREFIX + series + now.strftime("-%s%f")
+            CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
         )
         launch_lxd_container(
             context,
