@@ -21,7 +21,7 @@ def launch_lxd_container(
     image_name: str,
     container_name: str,
     series: str,
-    is_vm: bool
+    is_vm: bool,
 ) -> None:
     """Launch a container from an image and wait for it to boot
 

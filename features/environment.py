@@ -53,7 +53,7 @@ class UAClientBehaveConfig:
         "contract_token",
         "contract_token_staging",
         "machine_type",
-        "reuse_image"
+        "reuse_image",
     ]
     redact_options = ["contract_token", "contract_token_staging"]
 
@@ -134,7 +134,7 @@ def before_all(context: Context) -> None:
         machine_type = lxc_get_property(
             context.config.reuse_image,
             property_name="machine_type",
-            image=True
+            image=True,
         )
         if machine_type:
             print("Found machine_type: {vm_type}".format(vm_type=machine_type))
@@ -177,12 +177,14 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
                 if val is None:
                     return "Skipped because tag value was None: {}".format(tag)
                 if attr == "machine_type":
-                    machine_type = ".".join(parts[idx + 1:])
+                    machine_type = ".".join(parts[idx + 1 :])
                     if val == machine_type:
                         break
                     return "Skipped machine_type {} != {}".format(
                         val, machine_type
                     )
+    return ""
+
 
 def before_feature(context: Context, feature: Feature):
     reason = _should_skip_tags(context, feature.tags)
@@ -278,7 +280,8 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
     build_container_name = "behave-image-build%s-%s" % (
-        "-vm" if is_vm else "", series + now.strftime("%s%f")
+        "-vm" if is_vm else "",
+        series + now.strftime("%s%f"),
     )
 
     launch_lxd_container(
