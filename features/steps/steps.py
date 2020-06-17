@@ -6,19 +6,23 @@ from hamcrest import assert_that, equal_to, matches_regexp
 
 from features.util import launch_lxd_container, lxc_exec
 
+from uaclient.defaults import DEFAULT_CONFIG_FILE
+
 
 CONTAINER_PREFIX = "behave-test-"
 
 
-@given("a trusty lxd container with ubuntu-advantage-tools installed")
-def given_a_trusty_lxd_container(context):
-    if context.reuse_container:
-        context.container_name = context.reuse_container
+@given("a `{series}` lxd container with ubuntu-advantage-tools installed")
+def given_a_lxd_container(context, series):
+    if series in context.reuse_container:
+        context.container_name = context.reuse_container[series]
     else:
         now = datetime.datetime.now()
-        context.container_name = CONTAINER_PREFIX + now.strftime("%s%f")
+        context.container_name = (
+            CONTAINER_PREFIX + series + now.strftime("-%s%f")
+        )
         launch_lxd_container(
-            context, context.image_name, context.container_name
+            context, context.series_image_name[series], context.container_name
         )
 
 
@@ -34,9 +38,17 @@ def when_i_run_command(context, command, user_spec):
     context.process = process
 
 
-@when("I attach contract_token {user_spec}")
-def when_i_attach_token(context, user_spec):
-    token = context.config.contract_token
+@when("I attach `{token_type}` {user_spec}")
+def when_i_attach_staging_token(context, token_type, user_spec):
+    token = getattr(context.config, token_type)
+    if token_type == "contract_token_staging":
+        when_i_run_command(
+            context,
+            "sed -i 's/contracts.can/contracts.staging.can/' {}".format(
+                DEFAULT_CONFIG_FILE
+            ),
+            user_spec,
+        )
     when_i_run_command(context, "ua attach %s" % token, user_spec)
 
 
@@ -48,6 +60,11 @@ def then_i_will_see_on_stdout(context):
 @then("stdout matches regexp")
 def then_stdout_matches_regexp(context):
     assert_that(context.process.stdout.strip(), matches_regexp(context.text))
+
+
+@then("stderr matches regexp")
+def then_stderr_matches_regexp(context):
+    assert_that(context.process.stderr.strip(), matches_regexp(context.text))
 
 
 @then("I will see the following on stderr")

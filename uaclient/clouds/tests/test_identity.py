@@ -5,6 +5,7 @@ import pytest
 
 from uaclient.clouds.identity import (
     cloud_instance_factory,
+    get_instance_id,
     get_cloud_type,
     get_cloud_type_from_result_file,
 )
@@ -12,6 +13,35 @@ from uaclient import exceptions
 from uaclient import status
 
 M_PATH = "uaclient.clouds.identity."
+
+
+class TestGetInstanceID:
+    @pytest.mark.parametrize("series", ("xenial", "bionic", "eoan", "focal"))
+    @mock.patch(M_PATH + "util.subp", return_value=("my-iid\n", ""))
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_use_cloud_init_query_when_non_trusty(
+        self, m_get_platform_info, m_subp, series
+    ):
+        """Get instance_id from cloud-init query when not on trusty."""
+        m_get_platform_info.return_value = {"series": series}
+        assert "my-iid" == get_instance_id(_iid_file="IRRELEVANT")
+        assert 1 == m_get_platform_info.call_count
+        assert [
+            mock.call(["cloud-init", "query", "instance_id"])
+        ] == m_subp.call_args_list
+
+    @mock.patch(M_PATH + "util.subp", return_value=("mi-iid\n", ""))
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_use_var_lib_cloud_data_instance_id_when_cloud_id_unavailable(
+        self, m_get_platform_info, m_subp, tmpdir
+    ):
+        """Get instance-id from cloud-init instance-id artifact on trusty"""
+        m_get_platform_info.return_value = {"series": "trusty"}
+        iid_file = tmpdir.join("instance-id")
+        iid_file.write("persisted-iid")
+        assert "persisted-iid" == get_instance_id(_iid_file=iid_file.strpath)
+        assert 1 == m_get_platform_info.call_count
+        assert 0 == m_subp.call_count
 
 
 class TestGetCloudTypeFromResultFile:
@@ -113,3 +143,27 @@ class TestCloudInstanceFactory:
                 cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
         assert error_msg == str(excinfo.value)
+
+    @pytest.mark.parametrize(
+        "cloud_type", ("aws", "aws-gov", "aws-china", "azure")
+    )
+    def test_return_cloud_instance_on_viable_clouds(
+        self, m_get_cloud_type, cloud_type
+    ):
+        """Return UAAutoAttachInstance when matching cloud_type is viable."""
+        m_get_cloud_type.return_value = cloud_type
+
+        fake_instance = mock.Mock()
+        fake_instance.is_viable = True
+
+        def fake_viable_instance():
+            return fake_instance
+
+        if cloud_type == "azure":
+            M_INSTANCE_PATH = "uaclient.clouds.azure.UAAutoAttachAzureInstance"
+        else:
+            M_INSTANCE_PATH = "uaclient.clouds.aws.UAAutoAttachAWSInstance"
+
+        with mock.patch(M_INSTANCE_PATH) as m_instance:
+            m_instance.side_effect = fake_viable_instance
+            assert fake_instance == cloud_instance_factory()

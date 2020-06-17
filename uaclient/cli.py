@@ -169,6 +169,14 @@ def enable_parser(parser):
         action="store",
         help="the name of the Ubuntu Advantage service to enable",
     )
+    parser.add_argument(
+        "--assume-yes",
+        action="store_true",
+        help="do not prompt for confirmation before performing the enable",
+    )
+    parser.add_argument(
+        "--beta", action="store_true", help="allow beta service to be enabled"
+    )
     return parser
 
 
@@ -183,6 +191,11 @@ def disable_parser(parser):
         "name",
         action="store",
         help="the name of the Ubuntu Advantage service to disable",
+    )
+    parser.add_argument(
+        "--assume-yes",
+        action="store_true",
+        help="do not prompt for confirmation before performing the disable",
     )
     return parser
 
@@ -234,6 +247,11 @@ def status_parser(parser):
             )
         ),
     )
+    parser.add_argument(
+        "--beta",
+        action="store_true",
+        help="Allow the visualization of beta services",
+    )
     parser._optionals.title = "Flags"
     return parser
 
@@ -247,7 +265,7 @@ def action_disable(args, cfg):
     @return: 0 on success, 1 otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement = ent_cls(cfg)
+    entitlement = ent_cls(cfg, assume_yes=args.assume_yes)
     ret = 0 if entitlement.disable() else 1
     cfg.status()  # Update the status cache
     return ret
@@ -257,7 +275,9 @@ def _perform_enable(
     entitlement_name: str,
     cfg: config.UAConfig,
     *,
-    silent_if_inapplicable: bool = False
+    assume_yes: bool = False,
+    silent_if_inapplicable: bool = False,
+    allow_beta: bool = False
 ) -> bool:
     """Perform the enable action on a named entitlement.
 
@@ -266,14 +286,23 @@ def _perform_enable(
 
     :param entitlement_name: the name of the entitlement to enable
     :param cfg: the UAConfig to pass to the entitlement
+    :param assume_yes:
+        Assume a yes response for any prompts during service enable
     :param silent_if_inapplicable:
         don't output messages when determining if an entitlement can be
         enabled on this system
+    :param allow_beta: Allow enabling beta services
 
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
-    entitlement = ent_cls(cfg)
+    if not allow_beta and ent_cls.is_beta:
+        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        raise exceptions.UserFacingError(
+            tmpl.format(operation="enable", name=entitlement_name)
+        )
+
+    entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
     cfg.status()  # Update the status cache
     return ret
@@ -293,13 +322,30 @@ def action_enable(args, cfg):
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
-    return 0 if _perform_enable(args.name, cfg) else 1
+    if _perform_enable(
+        args.name, cfg, assume_yes=args.assume_yes, allow_beta=args.beta
+    ):
+        return 0
+    return 1
 
 
 @assert_root
 @assert_attached()
-def action_detach(args, cfg):
+def action_detach(args, cfg) -> int:
     """Perform the detach action for this machine.
+
+    @return: 0 on success, 1 otherwise
+    """
+    return _detach(cfg, assume_yes=args.assume_yes)
+
+
+def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
+    """Detach the machine from the active Ubuntu Advantage subscription,
+
+    :param cfg: a ``config.UAConfig`` instance
+    :param assume_yes: Assume a yes answer to any prompts requested.
+         In this case, it means automatically disable any service during
+         detach.
 
     @return: 0 on success, 1 otherwise
     """
@@ -313,7 +359,7 @@ def action_detach(args, cfg):
         print("Detach will disable the following service{}:".format(suffix))
         for ent in to_disable:
             print("    {}".format(ent.name))
-    if not args.assume_yes and not util.prompt_for_confirmation():
+    if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
         ent.disable(silent=True)
@@ -372,7 +418,24 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
     :return: contract token obtained from identity doc
     """
-    instance = identity.cloud_instance_factory()
+    try:
+        instance = identity.cloud_instance_factory()
+    except exceptions.UserFacingError as e:
+        if cfg.is_attached:
+            # We are attached on non-Pro Image, just report already attached
+            raise exceptions.AlreadyAttachedError(cfg)
+        # Unattached on non-Pro return UserFacing error msg details
+        raise e
+    current_iid = identity.get_instance_id()
+    if cfg.is_attached:
+        prev_iid = cfg.read_cache("instance-id")
+        if current_iid == prev_iid:
+            raise exceptions.AlreadyAttachedError(cfg)
+        print("Re-attaching Ubuntu Advantage subscription on new instance")
+        if _detach(cfg, assume_yes=True) != 0:
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_DETACH_AUTOMATION_FAILURE
+            )
     contract_client = contract.UAContractClient(cfg)
     try:
         tokenResponse = contract_client.request_auto_attach_contract_token(
@@ -384,10 +447,12 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
                 ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
         raise e
+    if current_iid:
+        cfg.write_cache("instance-id", current_iid)
+
     return tokenResponse["contractToken"]
 
 
-@assert_not_attached
 @assert_root
 def action_auto_attach(args, cfg):
     token = _get_contract_token_from_cloud_identity(cfg)
@@ -439,6 +504,12 @@ def get_parser():
         "--debug",
         action="store_true",
         help="show all debug log messages to console",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=version.get_version(),
+        help="show version of {}".format(NAME),
     )
     parser._optionals.title = "Flags"
     subparsers = parser.add_subparsers(
@@ -505,7 +576,8 @@ def action_status(args, cfg):
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
-        output = ua_status.format_tabular(cfg.status())
+        show_beta = args.beta if args else False
+        output = ua_status.format_tabular(cfg.status(show_beta))
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
         # writing to a utf-8 output; see
         # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859

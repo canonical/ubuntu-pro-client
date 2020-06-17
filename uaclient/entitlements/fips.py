@@ -1,8 +1,10 @@
+from itertools import groupby
+
 from uaclient.entitlements import repo
 from uaclient import apt, status, util
 
 try:
-    from typing import Dict, List, Set, Tuple  # noqa
+    from typing import Callable, Dict, List, Set, Tuple, Union  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -12,22 +14,25 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
     fips_required_packages = frozenset({"fips-initramfs", "linux-fips"})
-    fips_packages = {
-        "libssl1.0.0": {"libssl1.0.0-hmac"},
-        "openssh-client": {"openssh-client-hmac"},
-        "openssh-server": {"openssh-server-hmac"},
-        "openssl": set(),
-        "strongswan": {"strongswan-hmac"},
-    }  # type: Dict[str, Set[str]]
+    repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
+    is_beta = True
 
     @property
     def packages(self) -> "List[str]":
-        packages = list(self.fips_required_packages)
+        packages = []  # type: List[str]
         installed_packages = apt.get_installed_packages()
-        for pkg_name, extra_pkgs in self.fips_packages.items():
+
+        pkg_groups = groupby(
+            super().packages,
+            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
+        )
+
+        for pkg_name, pkg_list in pkg_groups:
             if pkg_name in installed_packages:
-                packages.append(pkg_name)
-                packages.extend(extra_pkgs)
+                packages += pkg_list
+            elif pkg_name in self.fips_required_packages:
+                packages += pkg_list
+
         return packages
 
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
@@ -59,29 +64,53 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     name = "fips"
     title = "FIPS"
     description = "NIST-certified FIPS modules"
-    messaging = {
-        "post_enable": ["A reboot is required to complete the install"]
-    }
     origin = "UbuntuFIPS"
-    repo_key_file = "ubuntu-fips-keyring.gpg"
     static_affordances = (
         ("Cannot install FIPS on a container", util.is_container, False),
     )
+
+    @property
+    def messaging(
+        self
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": status.PROMPT_FIPS_PRE_ENABLE,
+                        "assume_yes": self.assume_yes,
+                    },
+                )
+            ],
+            "post_enable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="install"
+                )
+            ],
+            "pre_disable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "assume_yes": self.assume_yes,
+                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                    },
+                )
+            ],
+            "post_disable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="disable operation"
+                )
+            ],
+        }
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     name = "fips-updates"
     title = "FIPS Updates"
-    messaging = {
-        "post_enable": [
-            "FIPS Updates configured and pending, please reboot to make"
-            " active."
-        ]
-    }
     origin = "UbuntuFIPSUpdates"
     description = "Uncertified security updates to FIPS modules"
-    repo_key_file = "ubuntu-fips-updates-keyring.gpg"
     static_affordances = (
         (
             "Cannot install FIPS Updates on a container",
@@ -89,3 +118,38 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             False,
         ),
     )
+
+    @property
+    def messaging(
+        self
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {
+            "pre_enable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                        "assume_yes": self.assume_yes,
+                    },
+                )
+            ],
+            "post_enable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="install"
+                )
+            ],
+            "pre_disable": [
+                (
+                    util.prompt_for_confirmation,
+                    {
+                        "assume_yes": self.assume_yes,
+                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                    },
+                )
+            ],
+            "post_disable": [
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="disable operation"
+                )
+            ],
+        }

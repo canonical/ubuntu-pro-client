@@ -11,11 +11,7 @@ import pytest
 from uaclient import apt
 from uaclient import defaults
 from uaclient import status, util
-from uaclient.entitlements.fips import (
-    FIPSCommonEntitlement,
-    FIPSEntitlement,
-    FIPSUpdatesEntitlement,
-)
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient import exceptions
 
 
@@ -27,12 +23,113 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    return partial(entitlement_factory, request.param)
+    additional_packages = [
+        "fips-initramfs",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "linux-fips",
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "openssl",
+        "strongswan",
+        "strongswan-hmac",
+    ]
+
+    return partial(
+        entitlement_factory,
+        request.param,
+        additional_packages=additional_packages,
+    )
 
 
 @pytest.fixture
 def entitlement(fips_entitlement_factory):
     return fips_entitlement_factory()
+
+
+class TestFIPSEntitlementDefaults:
+    def test_default_repo_key_file(self, entitlement):
+        """GPG keyring file is the same for both FIPS and FIPS with Updates"""
+        assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
+
+    def test_default_repo_pinning(self, entitlement):
+        """FIPS and FIPS with Updates repositories are pinned."""
+        assert entitlement.repo_pin_priority == 1001
+
+    @pytest.mark.parametrize("assume_yes", (True, False))
+    def test_messaging_passes_assume_yes(
+        self, assume_yes, fips_entitlement_factory
+    ):
+        """FIPS and FIPS Updates pass assume_yes into messaging args"""
+        entitlement = fips_entitlement_factory(assume_yes=assume_yes)
+        expected_msging = {
+            "fips": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_ENABLE,
+                        },
+                    )
+                ],
+                "post_enable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="install"
+                    )
+                ],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+                "post_disable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="disable operation"
+                    )
+                ],
+            },
+            "fips-updates": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                            "assume_yes": assume_yes,
+                        },
+                    )
+                ],
+                "post_enable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="install"
+                    )
+                ],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+                "post_disable": [
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="disable operation"
+                    )
+                ],
+            },
+        }
+        if entitlement.name in expected_msging:
+            assert expected_msging[entitlement.name] == entitlement.messaging
+        else:
+            assert False, "Unknown entitlement {}".format(entitlement.name)
 
 
 class TestFIPSEntitlementCanEnable:
@@ -70,6 +167,9 @@ class TestFIPSEntitlementEnable:
             )
             m_can_enable = stack.enter_context(
                 mock.patch.object(entitlement, "can_enable")
+            )
+            stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
             )
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
@@ -136,7 +236,8 @@ class TestFIPSEntitlementEnable:
     ):
         """When can_enable is false enable returns false and noops."""
         with mock.patch.object(entitlement, "can_enable", return_value=False):
-            assert False is entitlement.enable()
+            with mock.patch(M_REPOPATH + "handle_message_operations"):
+                assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
     @mock.patch("uaclient.apt.add_auth_apt_repo")
@@ -150,8 +251,9 @@ class TestFIPSEntitlementEnable:
         entitlement = fips_entitlement_factory(suites=[])
 
         with mock.patch.object(entitlement, "can_enable", return_value=True):
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
-                entitlement.enable()
+            with mock.patch(M_REPOPATH + "handle_message_operations"):
+                with pytest.raises(exceptions.UserFacingError) as excinfo:
+                    entitlement.enable()
         error_msg = "Empty {} apt suites directive from {}".format(
             entitlement.name, defaults.BASE_CONTRACT_URL
         )
@@ -170,6 +272,9 @@ class TestFIPSEntitlementEnable:
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
             stack.enter_context(mock.patch.object(entitlement, "can_enable"))
+            stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
+            )
             m_remove_apt_config = stack.enter_context(
                 mock.patch.object(entitlement, "remove_apt_config")
             )
@@ -204,6 +309,9 @@ class TestFIPSEntitlementEnable:
                 mock.patch.object(entitlement, "can_enable", return_value=True)
             )
             stack.enter_context(
+                mock.patch(M_REPOPATH + "handle_message_operations")
+            )
+            stack.enter_context(
                 mock.patch.object(
                     entitlement, "setup_apt_config", return_value=True
                 )
@@ -224,9 +332,17 @@ class TestFIPSEntitlementEnable:
 
 def _fips_pkg_combinations():
     """Construct all combinations of fips_packages and expected installs"""
+    fips_packages = {
+        "libssl1.0.0": {"libssl1.0.0-hmac"},
+        "openssh-client": {"openssh-client-hmac"},
+        "openssh-server": {"openssh-server-hmac"},
+        "openssl": set(),
+        "strongswan": {"strongswan-hmac"},
+    }
+
     items = [  # These are the items that we will combine together
         (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in FIPSCommonEntitlement.fips_packages.items()
+        for pkg_name, extra_pkgs in fips_packages.items()
     ]
     # This produces combinations in all possible combination lengths
     combinations = itertools.chain.from_iterable(
@@ -273,7 +389,7 @@ class TestFipsEntitlementPackages:
         full_expected_installs = (
             list(entitlement.fips_required_packages) + expected_installs
         )
-        assert full_expected_installs == entitlement.packages
+        assert sorted(full_expected_installs) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
     def test_multiple_packages_calls_dont_mutate_state(
@@ -282,17 +398,11 @@ class TestFipsEntitlementPackages:
         # Make it appear like all packages are installed
         m_get_installed_packages.return_value.__contains__.return_value = True
 
-        before = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        before = copy.deepcopy(entitlement.fips_required_packages)
 
         assert entitlement.packages
 
-        after = (
-            copy.deepcopy(entitlement.fips_required_packages),
-            copy.deepcopy(entitlement.fips_packages),
-        )
+        after = copy.deepcopy(entitlement.fips_required_packages)
 
         assert before == after
 

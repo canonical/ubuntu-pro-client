@@ -1,10 +1,40 @@
-ubuntu-advantage-tools (20.3) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (25.0) UNRELEASED; urgency=medium
 
-  * Start development on next release
+  * Open 25.0 release for active development
 
- -- Joshua Powers <josh.powers@canonical.com>  Wed, 04 Mar 2020 13:18:15 -0800
+ -- Chad Smith <chad.smith@canonical.com>  Tue, 26 May 2020 21:23:29 -0600
 
-ubuntu-advantage-tools (20.2) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (24.1) groovy; urgency=medium
+
+  * New bug-fix-only release 24.1:
+    - livepatch: run snap wait system snap.seeded before trying to install
+      (GH: #1049)
+    - version: return debian/changelog version when git describe fails to
+      match upstream <major>.<minor> tags for git-ubuntu workflow
+      (GH: #1058)
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 18 May 2020 15:07:17 -0600
+
+ubuntu-advantage-tools (24.0) groovy; urgency=medium
+
+  * bump version to 24.0 for new versioninig scheme
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 18 May 2020 15:04:33 -0600
+
+ubuntu-advantage-tools (20.3) focal; urgency=medium
+
+  * New upstream release 20.3:
+    - ubuntu-pro: automatically reattach across instance id delta
+      (LP: #1867573)
+    - integration testing:
+      + add behave tests ua subcommands for attached vm
+      + add invalid token tests
+      + add reuse_container test docs
+      + refactor token parameter
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 30 Mar 2020 14:49:17 -0600
+
+ubuntu-advantage-tools (20.2) focal; urgency=medium
 
   * d/templates: add a debconf note on upgrade from pre-ubuntu pro package
   * d/control: create a separate ubuntu-advantage-pro package which

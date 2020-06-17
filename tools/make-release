@@ -1,0 +1,120 @@
+#!/bin/bash
+set -ex
+#
+# Create a native package release of ubuntu-advantage-tools for a given series
+# This assumes latest debian/changelog entry version is (MM.NN) UNRELEASED.
+#
+# Release this package version to devel release with the format: YY.N where
+# YY is the 2-digit year and N is a counter of public releases in that year.
+#
+# When releasing to stable series, an ~ubuntu1~XX.YY.1 suffix will be added
+# where XX.YY is the release version 18.04, 16.04 etc.
+
+# This scipt temporarily sets the appropriate version and series in the most
+# recent debian/changelog entry, runs build-package, and prints the steps
+# necessary to queue an upload for review.
+
+# Release version schemes are described in RELEASES.md
+
+DEVEL_SERIES=$(distro-info --devel)
+
+Usage() {
+    cat <<EOF
+Usage: ${0##*/} --ppa PPA_URL [options]
+    Create an ubuntu-advantage-tools package release for a given series.
+
+    options:
+      -h | --help               print usage
+      -p | --ppa PPA_URL        URL of the PPA to upload to
+      -s | --series SERIES      named Ubuntu series to release. Default: $DEVEL_SERIES.
+EOF
+}
+
+
+which build-package 2>&1 > /dev/null
+if [ $? -ne 0 ]; then
+    echo "Missing build-package script."
+    echo "Install with 'git clone git@github.com:CanonicalLtd/uss-tableflip.git'"
+    echo "Modify PATH to include uss-tableflip/scripts"
+    exit 1
+fi
+
+CWD=$PWD
+
+short_opts="hp:s:"
+long_opts="help,ppa:,series:"
+getopt_out=$(getopt --name "${0##*/}" \
+    --options "${short_opts}" --long "${long_opts}" -- "$@") &&
+    eval set -- "${getopt_out}" || { Usage 1>&2; exit 1; }
+
+PPA_URL=""
+SERIES=$DEVEL_SERIES
+while [ $# -ne 0 ]; do
+    cur=$1; next=$2
+    case "$cur" in
+        -h|--help) Usage; exit 0;;
+        -p|--ppa) PPA_URL=$next; shift;;
+        -s|--series) SERIES=$next; shift;;
+        --) shift; break;;
+    esac
+    shift;
+done
+
+if [ -z "$PPA_URL" ]; then
+  echo -e "\nMissing --ppa\n"
+  Usage
+  exit 1
+fi
+
+
+cd /tmp
+[ -e ubuntu-advantage-client ] && rm -rf ubuntu-advantage-client
+git clone git@github.com:CanonicalLtd/ubuntu-advantage-client.git
+cd ubuntu-advantage-client
+CHANGELOG_VERSION=$(dpkg-parsechangelog -S Version)
+CHANGELOG_MAJOR=${CHANGELOG_VERSION%.*}
+CHANGELOG_MINOR=${CHANGELOG_VERSION#*.}
+RELEASE_NUMBER=$(distro-info --series ${SERIES} -r)
+
+YEAR=$(date +%y)
+if [ $YEAR == $CHANGELOG_MAJOR ]; then
+  # increment CHANGELOG_MINOR for this year
+  NEW_VERSION=$YEAR.$(($CHANGELOG_MINOR + 1))
+else
+  # First release of the new year
+  NEW_VERSION=$YEAR.1
+fi
+
+if [ "${SERIES}" != "${DEVEL_SERIES}" ]; then
+  # Only append ~XX.YY.1 to stable releases
+  CHANGELOG_VERSION=${CHANGELOG_VERSION}~${RELEASE_NUMBER/ LTS/}.1
+fi
+
+sed -i "s/ubuntu-advantage-tools (${CHANGELOG_VERSION}) [[:alpha:]]\+;/ubuntu-advantage-tools (${CHANGELOG_VERSION}) ${SERIES};/" debian/changelog
+cp $CWD/tools/make-tarball tools/
+git add tools
+git commit -am "update changelog for release to ${SERIES}"
+build-package --verbose
+git reset HEAD~1
+cd $CWD
+
+TAG_EXISTS=$(git tag --list ${CHANGELOG_VERSION})
+if [ -z "${TAG_EXISTS}" ]; then
+  sed -i "s/ubuntu-advantage-tools (${CHANGELOG_VERSION}) [[:alpha:]]\+;/ubuntu-advantage-tools (${CHANGELOG_VERSION}) ${DEVEL_SERIES};/" debian/changelog
+  git commit -am "update changelog for release to ${DEVEL_SERIES}"
+  git tag -a ${CHANGELOG_VERSION}
+fi
+git checkout -b release/dev-${NEW_VERSION}
+sed -i "s/${CHANGELOG_VERSION}/${NEW_VERSION}/" uaclient/version.py
+git commit -am "open $NEW_VERSION for development"
+dch -v ${NEW_VERSION} -m "open $NEW_VERSION for development"
+git commit -am "update changelog"
+
+cat << EOF
+---- To release ${CHANGELOG_VERSION} to ${SERIES} ----
+dput $PPA_URL /tmp/out/ubuntu-advantage-tools_${CHANGELOG_VERSION}_source.changes
+# Push annotated tag upstream to change daily build versions
+git push upstream ${CHANGELOG_VERSION}
+# Open ${NEW_VERSION} version for development by pushing a PR up for review
+git push <YOUR_REMOTE>  release/dev-${NEW_VERSION}
+EOF

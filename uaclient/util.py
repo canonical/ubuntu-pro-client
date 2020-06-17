@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from functools import wraps
 from http.client import HTTPMessage  # noqa: F401
 
+from uaclient import status
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -387,14 +389,22 @@ def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
     return data
 
 
-def prompt_for_confirmation() -> bool:
+def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
     """
     Display a confirmation prompt, returning a bool indicating the response
+
+    :param msg: String custom prompt text to emit from input call.
+    :param assume_yes: Boolean set True to skip confirmation input and return
+        True.
 
     This function will only prompt a single time, and defaults to "no" (i.e. it
     returns False).
     """
-    value = input("Are you sure? (y/N) ")
+    if assume_yes:
+        return True
+    if not msg:
+        msg = status.PROMPT_YES_NO
+    value = input(msg)
     if value.lower().strip() in ["y", "yes"]:
         return True
     return False
