@@ -209,9 +209,17 @@ class TestFIPSEntitlementEnable:
             )
         ]
         install_cmd = mock.call(
-            ["apt-get", "install", "--assume-yes"] + patched_packages,
+            [
+                "apt-get",
+                "install",
+                "--assume-yes",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+            ]
+            + patched_packages,
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
         )
 
         subp_calls = [
@@ -219,6 +227,7 @@ class TestFIPSEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env={},
             ),
             install_cmd,
         ]

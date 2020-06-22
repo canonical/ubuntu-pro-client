@@ -445,6 +445,7 @@ def _subp(
     rcs: "Optional[List[int]]" = None,
     capture: bool = False,
     timeout: "Optional[float]" = None,
+    env: "Optional[Dict[str, str]]" = None,
 ) -> "Tuple[str, str]":
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -454,6 +455,7 @@ def _subp(
     @param capture: Boolean set True to log the command and response.
     @param timeout: Optional float indicating number of seconds to wait for
         subp to return.
+    @param env: Optional dictionary of environment variable to pass to Popen.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -463,11 +465,13 @@ def _subp(
     bytes_args = [
         x if isinstance(x, bytes) else x.encode("utf-8") for x in args
     ]
+    if env:
+        env.update(os.environ)
     if rcs is None:
         rcs = [0]
     try:
         proc = subprocess.Popen(
-            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
         )
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
@@ -503,6 +507,7 @@ def subp(
     capture: bool = False,
     timeout: "Optional[float]" = None,
     retry_sleeps: "Optional[List[float]]" = None,
+    env: "Optional[Dict[str, str]]" = None,
 ) -> "Tuple[str, str]":
     """Run a command and return a tuple of decoded stdout, stderr.
 
@@ -516,6 +521,8 @@ def subp(
         retries. Specifying a list of [0.5, 1] instructs subp to retry twice
         on failure; sleeping half a second before the first retry and 1 second
         before the next retry.
+     @param env: Optional dictionary of environment variables to provide to
+        subp.
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
@@ -525,7 +532,7 @@ def subp(
     retry_sleeps = retry_sleeps.copy() if retry_sleeps is not None else None
     while True:
         try:
-            out, err = _subp(args, rcs, capture, timeout)
+            out, err = _subp(args, rcs, capture, timeout, env=env)
             break
         except ProcessExecutionError as e:
             if capture:
