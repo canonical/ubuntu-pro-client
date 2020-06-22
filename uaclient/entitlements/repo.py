@@ -37,6 +37,9 @@ class RepoEntitlement(base.UAEntitlement):
     # The repo Origin value for setting pinning
     origin = None  # type: Optional[str]
 
+    # GH: #1084 call apt in noninteractive mode
+    apt_noninteractive = False
+
     # Optional repo pin priority in subclass
     @property
     def repo_pin_priority(self) -> "Union[int, str, None]":
@@ -99,11 +102,23 @@ class RepoEntitlement(base.UAEntitlement):
                 msg_ops = self.messaging.get("pre_install", [])
                 if not handle_message_operations(msg_ops):
                     return False
+
+                if self.apt_noninteractive:
+                    env = {"DEBIAN_FRONTEND": "noninteractive"}
+                    apt_options = [
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                    ]
+                else:
+                    env = None
+                    apt_options = []
                 apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"] + self.packages,
+                    ["apt-get", "install", "--assume-yes"] + apt_options
+                    + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title
                     ),
+                    env=env,
                 )
             except exceptions.UserFacingError:
                 self._cleanup()
