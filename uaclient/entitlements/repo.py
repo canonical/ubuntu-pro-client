@@ -110,10 +110,11 @@ class RepoEntitlement(base.UAEntitlement):
                         '-o Dpkg::Options::="--force-confold"',
                     ]
                 else:
-                    env = None
+                    env = {}
                     apt_options = []
                 apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"] + apt_options
+                    ["apt-get", "install", "--assume-yes"]
+                    + apt_options
                     + self.packages,
                     status.MESSAGE_ENABLED_FAILED_TMPL.format(
                         title=self.title

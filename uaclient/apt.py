@@ -11,7 +11,7 @@ from uaclient import status
 from uaclient import util
 
 try:
-    from typing import List  # noqa
+    from typing import Dict, List, Optional  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -85,9 +85,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
 
 
 def run_apt_command(
-    cmd: 'List[str]',
-    error_msg: str,
-    env: "Optional[Dict[str, str]]" = None,
+    cmd: "List[str]", error_msg: str, env: "Optional[Dict[str, str]]" = {}
 ) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
 

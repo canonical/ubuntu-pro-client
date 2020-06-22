@@ -227,7 +227,7 @@ class TestFIPSEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env=None,
+                env={},
             ),
             install_cmd,
         ]
