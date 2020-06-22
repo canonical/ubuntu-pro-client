@@ -465,6 +465,8 @@ def _subp(
     bytes_args = [
         x if isinstance(x, bytes) else x.encode("utf-8") for x in args
     ]
+    if env:
+        env.update(os.environ)
     if rcs is None:
         rcs = [0]
     try:
