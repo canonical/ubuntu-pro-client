@@ -17,6 +17,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
     is_beta = True
 
+    # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
+    # Review this fix to see if we want more general functionality for all
+    # services. And security/CPC signoff on expected conf behavior.
+    apt_noninteractive = True
+
     @property
     def packages(self) -> "List[str]":
         packages = []  # type: List[str]

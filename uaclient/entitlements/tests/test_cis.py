@@ -74,16 +74,19 @@ class TestCISEntitlementEnable:
                 ["apt-cache", "policy"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env=None,
             ),
             mock.call(
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env=None,
             ),
             mock.call(
                 ["apt-get", "install", "--assume-yes"] + entitlement.packages,
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env=None,
             ),
         ]
 

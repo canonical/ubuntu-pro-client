@@ -452,6 +452,7 @@ class TestRepoEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env=None,
             )
         ]
         expected_output = dedent(
@@ -472,6 +473,7 @@ class TestRepoEnable:
                         ],
                         capture=True,
                         retry_sleeps=apt.APT_RETRIES,
+                        env=None,
                     )
                 )
                 expected_output = (
