@@ -26,12 +26,26 @@ SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enab
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
 
-unconfigure_esm() {
-    rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
-    rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
-    rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-    rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_APT_PREF_FILE_TRUSTY
+check_esm_infra_is_installed() {
+    expected_output="enabled"
+    actual_output=$(ua status | grep esm-infra | awk '{print $3}')
+
+    if [ "$expected_output" = "$actual_output" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
+
+unconfigure_esm() {
+    if ! check_esm_infra_is_installed; then
+        rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
+        rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
+        rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
+        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_APT_PREF_FILE_TRUSTY
+    fi
+}
+
 
 configure_esm() {
     rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
