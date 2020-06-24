@@ -15,7 +15,7 @@ from uaclient.cli import (
     assert_root,
     get_parser,
     main,
-    require_valid_entitlement_names,
+    get_valid_entitlement_names,
     setup_logging,
 )
 
@@ -192,38 +192,6 @@ class TestAssertNotAttached:
 
         out, _err = capsys.readouterr()
         assert "" == out.strip()
-
-
-class TestRequireValidEntitlementName:
-    # rven used in test names as short hand for require_valid_entitlement_names
-    def test_rven_without_name(self):
-        @require_valid_entitlement_names("operation")
-        def test_function(args, cfg, **kwargs):
-            return mock.sentinel.success
-
-        assert mock.sentinel.success == test_function(object(), object())
-
-    def test_rven_with_valid_name(self):
-        @require_valid_entitlement_names("operation")
-        def test_function(args, cfg, **kwargs):
-            return mock.sentinel.success
-
-        m_args = mock.Mock()
-        m_args.names = ["esm-infra"]
-        assert mock.sentinel.success == test_function(m_args, object())
-
-    @pytest.mark.parametrize("operation_name", ["operation1", "operation2"])
-    def test_rven_with_invalid_name(self, operation_name):
-        @require_valid_entitlement_names(operation_name)
-        def test_function(args, cfg, **kwargs):
-            return kwargs["entitlements_found"]
-
-        m_args = mock.Mock()
-        names = ["invalid_entitlement"]
-        m_args.names = names
-        ret = test_function(m_args, object())
-
-        assert ret == []
 
 
 class TestMain:
@@ -455,3 +423,24 @@ class TestSetupLogging:
         assert "after setup" in log_content
         if pre_existing:
             assert "existing content" in log_content
+
+
+class TestGetValidEntitlementNames:
+    @mock.patch("uaclient.cli.entitlements")
+    def test_get_valid_entitlements(self, m_entitlements):
+        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
+            "ent1": True,
+            "ent2": True,
+            "ent3": True,
+        }
+
+        names = ["ent1", "ent3", "ent4"]
+        expected_ents_found = ["ent1", "ent3"]
+        expected_ents_not_found = ["ent4"]
+
+        actual_ents_found, actual_ents_not_found = get_valid_entitlement_names(
+            names
+        )
+
+        assert expected_ents_found == actual_ents_found
+        assert expected_ents_not_found == actual_ents_not_found

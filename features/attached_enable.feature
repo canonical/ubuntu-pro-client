@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an UA subscription
 
-    @wip
     @series.trusty
     Scenario Outline:  Attached enable of non-container services in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
@@ -179,7 +178,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips         | FIPS         | --assume-yes --beta  |
            | fips-updates | FIPS Updates | --assume-yes --beta  |
 
-    @wip
     @series.focal
     Scenario Outline:  Attached enable of non-container beta services in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed

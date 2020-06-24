@@ -81,6 +81,8 @@ class TestActionEnable:
         m_getuid.return_value = 0
 
         m_entitlement_cls = mock.MagicMock()
+        m_ent_is_beta = mock.PropertyMock(return_value=False)
+        type(m_entitlement_cls).is_beta = m_ent_is_beta
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "testitlement": m_entitlement_cls
         }
@@ -95,6 +97,7 @@ class TestActionEnable:
         assert [
             mock.call(cfg, assume_yes=assume_yes)
         ] == m_entitlement_cls.call_args_list
+        assert 1 == m_ent_is_beta.call_count
 
     @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -115,10 +118,14 @@ class TestActionEnable:
         m_ent1_obj.enable.return_value = False
 
         m_ent2_cls = mock.Mock()
+        m_ent2_is_beta = mock.PropertyMock(return_value=False)
+        type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
         m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
+        m_ent3_is_beta = mock.PropertyMock(return_value=False)
+        type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = True
 
@@ -133,8 +140,7 @@ class TestActionEnable:
         args_mock.names = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        expected_msg = "One moment, checking your subscription first\n\n"
-        expected_msg += "ent2\n\nent3\n\n"
+        expected_msg = "One moment, checking your subscription first\n"
 
         with pytest.raises(exceptions.UserFacingError) as err:
             fake_stdout = io.StringIO()
@@ -157,12 +163,14 @@ class TestActionEnable:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
+        assert 1 == m_ent2_is_beta.call_count
+        assert 1 == m_ent3_is_beta.call_count
 
     @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
     def test_invalid_service_names(self, m_getuid, names, FakeConfig):
         m_getuid.return_value = 0
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-        expected_msg = "One moment, checking your subscription first\n\n"
+        expected_msg = "One moment, checking your subscription first\n"
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:

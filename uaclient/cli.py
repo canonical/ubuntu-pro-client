@@ -11,6 +11,8 @@ import pathlib
 import sys
 import textwrap
 
+from typing import List
+
 from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
@@ -89,30 +91,6 @@ def assert_not_attached(f):
         return f(args, cfg)
 
     return new_f
-
-
-def require_valid_entitlement_names(operation: str):
-    """Decorator that verifies which of the args.names is a valid
-    service or not.
-
-    :param operation: the operation name to use in error messages
-    """
-
-    def wrapper(f):
-        @wraps(f)
-        def new_f(args, cfg, **kwargs):
-            if hasattr(args, "names"):
-                names = args.names
-                entitlements_found = []
-                for ent_name in names:
-                    if ent_name in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-                        entitlements_found.append(ent_name)
-                kwargs["entitlements_found"] = entitlements_found
-            return f(args, cfg, **kwargs)
-
-        return new_f
-
-    return wrapper
 
 
 def auto_attach_parser(parser):
@@ -276,23 +254,39 @@ def _perform_disable(entitlement_name, cfg, *, assume_yes):
     return ret
 
 
+def get_valid_entitlement_names(names: "List[str]"):
+    """Return a list of valid entitlement names.
+
+    :param names: List of entitlements to validate
+    :return: a tuple of List containing the valid and invalid entitlements
+    """
+    entitlements_found = []
+
+    for ent_name in names:
+        if ent_name in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+            entitlements_found.append(ent_name)
+
+    entitlements_not_found = sorted(set(names) - set(entitlements_found))
+
+    return entitlements_found, entitlements_not_found
+
+
 @assert_root
-@require_valid_entitlement_names("disable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
 
     @return: 0 on success, 1 otherwise
     """
-    entitlements_found = kwargs.get("entitlements_found", [])
-    entitlements_not_found = sorted(set(args.names) - set(entitlements_found))
+    names = getattr(args, "names", [])
+    entitlements_found, entitlements_not_found = get_valid_entitlement_names(
+        names
+    )
     tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
     for entitlement in entitlements_found:
-        print(entitlement)
         ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
-        print()
 
     if entitlements_not_found:
         raise exceptions.UserFacingError(
@@ -342,29 +336,28 @@ def _perform_enable(
 
 
 @assert_root
-@require_valid_entitlement_names("enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    print(ua_status.MESSAGE_REFRESH_ENABLE, end="\n\n")
+    print(ua_status.MESSAGE_REFRESH_ENABLE)
     try:
         contract.request_updated_contract(cfg)
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
 
-    entitlements_found = kwargs.get("entitlements_found", [])
-    entitlements_not_found = sorted(set(args.names) - set(entitlements_found))
+    names = getattr(args, "names", [])
+    entitlements_found, entitlements_not_found = get_valid_entitlement_names(
+        names
+    )
     tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
     for entitlement in entitlements_found:
-        print(entitlement)
         ret &= _perform_enable(entitlement, cfg, assume_yes=args.assume_yes)
-        print()
 
     if entitlements_not_found:
         raise exceptions.UserFacingError(

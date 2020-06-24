@@ -1,5 +1,3 @@
-import contextlib
-import io
 import mock
 import pytest
 
@@ -92,19 +90,13 @@ class TestDisable:
         args_mock.names = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        expected_msg = "ent2\n\nent3\n\n"
-
         with pytest.raises(exceptions.UserFacingError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_disable(args_mock, m_cfg)
+            action_disable(args_mock, m_cfg)
 
         assert (
             expected_error_tmpl.format(operation="disable", name="ent1")
             == err.value.msg
         )
-
-        assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
@@ -148,13 +140,10 @@ class TestDisable:
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                args = mock.MagicMock()
-                args.names = names
-                action_disable(args, cfg)
+            args = mock.MagicMock()
+            args.names = names
+            action_disable(args, cfg)
 
-        assert "" == fake_stdout.getvalue()
         assert (
             expected_error_tmpl.format(
                 operation="disable", name=", ".join(sorted(names))
