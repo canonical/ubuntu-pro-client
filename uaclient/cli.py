@@ -353,13 +353,21 @@ def action_enable(args, cfg, **kwargs):
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
-    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
     for entitlement in entitlements_found:
-        ret &= _perform_enable(entitlement, cfg, assume_yes=args.assume_yes)
+        try:
+            ret &= _perform_enable(
+                entitlement,
+                cfg,
+                assume_yes=args.assume_yes,
+                allow_beta=args.beta,
+            )
+        except exceptions.UserFacingError:
+            entitlements_not_found.append(entitlement)
 
     if entitlements_not_found:
+        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         raise exceptions.UserFacingError(
             tmpl.format(
                 operation="enable", name=", ".join(entitlements_not_found)
