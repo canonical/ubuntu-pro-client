@@ -28,12 +28,8 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable livepatch` with sudo
         Then I will see the following on stdout:
             """
-            livepatch
             Livepatch is not currently enabled
             See: sudo ua status
-
-            disabled results:
-            Services not disabled: livepatch
             """
 
     @series.trusty
@@ -46,16 +42,16 @@ Feature: Command behaviour when attached to an UA subscription
             This command must be run as root (try using sudo)
             """
         When I run `ua disable foobar` with sudo
-        Then I will see the following on stdout:
+        Then I will see the following on stderr:
             """
-            disabled results:
-            Services not found: foobar
+            Cannot disable 'foobar'
+            For a list of services see: sudo ua status
             """
 
     @series.trusty
     Scenario: Attached disable of different services in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         And I run `ua disable esm-infra livepatch foobar` as non-root
         Then I will see the following on stderr:
             """
@@ -64,10 +60,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable esm-infra livepatch foobar` with sudo
         Then I will see the following on stdout:
             """
-            esm-infra
             Updating package lists
-
-            livepatch
             Livepatch is not currently enabled
             See: sudo ua status
             """
@@ -103,7 +96,6 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable esm-infra` with sudo
         Then I will see the following on stdout:
             """
-            esm-infra
             Updating package lists
             """
         When I run `ua status` with sudo
@@ -138,7 +130,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status` as non-root
+       When I run `ua status --beta` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION
@@ -168,6 +160,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             This machine is already attached
             """
+
     @series.trusty
     Scenario: Attached show version in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
@@ -220,16 +213,14 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable livepatch` with sudo
         Then I will see the following on stdout:
             """
-            livepatch
             Livepatch is not currently enabled
             See: sudo ua status
             """
 
-    @wip
     @series.focal
     Scenario: Attached disable of an already disabled, enabled and not found services
         Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         And I run `ua disable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
             """
@@ -238,11 +229,8 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable livepatch esm-infra foobar` with sudo
         Then I will see the following on stdout:
             """
-            livepatch
             Livepatch is not currently enabled
             See: sudo ua status
-
-            esm-infra
             Updating package lists
             """
         And stderr matches regexp:
@@ -285,7 +273,6 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua disable esm-infra` with sudo
         Then I will see the following on stdout:
             """
-            esm-infra
             Updating package lists
             """
         When I run `ua status` with sudo
@@ -311,7 +298,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status` as non-root
+       When I run `ua status --beta` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION
