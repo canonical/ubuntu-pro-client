@@ -14,8 +14,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            <service>
             Cannot install <title> on a container
             """
 
@@ -59,7 +57,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable cc-eal` with sudo
+        When I run `ua enable cc-eal --beta` with sudo
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
@@ -75,7 +73,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service>` with sudo
+        When I run `ua enable <service> --beta` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -121,8 +119,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            esm-infra
             ESM Infra is already enabled.
             See: sudo ua status
             """
@@ -130,7 +126,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @series.trusty
     Scenario: Attached enable a disabled, enable and unknown service in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         And I run `ua enable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
             """
@@ -140,17 +136,33 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            livepatch
             Cannot install Livepatch on a container
-
-            esm-infra
             ESM Infra is already enabled.
             See: sudo ua status
             """
         And I will see the following on stderr:
             """
             Cannot enable 'foobar'
+            For a list of services see: sudo ua status
+            """
+
+    @series.trusty
+    Scenario: Attached enable a disabled beta service and unknown service in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable fips foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable fips foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable 'foobar, fips'
             For a list of services see: sudo ua status
             """
 
@@ -167,8 +179,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            <service>
             Cannot install <title> on a container
             """
 
@@ -212,7 +222,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable cc-eal` with sudo
+        When I run `ua enable cc-eal --beta` with sudo
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
@@ -228,7 +238,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service>` with sudo
+        When I run `ua enable <service> --beta` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -270,16 +280,14 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            esm-infra
             ESM Infra is already enabled.
             See: sudo ua status
             """
 
     @series.focal
-    Scenario: Attached enable a disabled, enable and unknown service in a focal lxd container
+    Scenario: Attached enable a disabled, enabled and unknown service in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I attach contract_token with sudo
+        When I attach `contract_token` with sudo
         And I run `ua enable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
             """
@@ -289,16 +297,32 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-
-            livepatch
             Cannot install Livepatch on a container
-
-            esm-infra
             ESM Infra is already enabled.
             See: sudo ua status
             """
         And stderr matches regexp:
             """
             Cannot enable 'foobar'
+            For a list of services see: sudo ua status
+            """
+
+    @series.focal
+    Scenario: Attached enable a disabled beta service and unknown service in a focal lxd container
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable fips foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable fips foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable 'foobar, fips'
             For a list of services see: sudo ua status
             """
