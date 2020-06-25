@@ -11,7 +11,11 @@ import pathlib
 import sys
 import textwrap
 
-from typing import List
+try:
+    from typing import List  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 from uaclient import config
 from uaclient import contract
