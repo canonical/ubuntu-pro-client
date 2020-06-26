@@ -49,6 +49,42 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
+    Scenario: Attached disable of different services in a trusty lxd container
+        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua disable esm-infra livepatch foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua disable esm-infra livepatch foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            Updating package lists
+            Livepatch is not currently enabled
+            See: sudo ua status
+            """
+        And stderr matches regexp:
+            """
+            Cannot disable 'foobar'
+            For a list of services see: sudo ua status
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            """
+        When I run `apt-cache policy` with sudo
+        Then stdout matches regexp:
+            """
+            -32768 https://esm.ubuntu.com/ubuntu/ trusty-infra-updates/main amd64 Packages
+            """
+        And stdout matches regexp:
+            """
+            -32768 https://esm.ubuntu.com/ubuntu/ trusty-infra-security/main amd64 Packages
+            """
+
+    @series.trusty
     Scenario: Attached disable of an already enabled service in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -94,7 +130,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status` as non-root
+       When I run `ua status --beta` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION
@@ -124,6 +160,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             This machine is already attached
             """
+
     @series.trusty
     Scenario: Attached show version in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed
@@ -181,6 +218,33 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
+    Scenario: Attached disable of an already disabled, enabled and not found services
+        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua disable livepatch esm-infra foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua disable livepatch esm-infra foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            Livepatch is not currently enabled
+            See: sudo ua status
+            Updating package lists
+            """
+        And stderr matches regexp:
+            """
+            Cannot disable 'foobar'
+            For a list of services see: sudo ua status
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            """
+
+    @series.focal
     Scenario: Attached disable of an unknown service in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -234,7 +298,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status` as non-root
+       When I run `ua status --beta` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION

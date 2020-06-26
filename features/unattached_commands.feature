@@ -37,29 +37,9 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ua commands
-           | command |
-           | enable  |
-           | disable |
-
-    @series.trusty
-    Scenario Outline: Unattached command of an unknown service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
-        When I run `ua <command> foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua <command> foobar` with sudo
-        Then I will see the following on stderr:
-            """
-            Cannot <command> 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-        Examples: ua commands
-           | command |
-           | enable  |
-           | disable |
+           | command | service     | message     |
+           | enable  | livepatch   | livepatch   |
+           | disable | foobar foo  | foo, foobar |
 
     @series.trusty
     Scenario: Unattached auto-attach does nothing in a trusty lxd container
@@ -97,6 +77,7 @@ Feature: Command behaviour when unattached
            | refresh |
 
 
+    @wip
     @series.focal
     Scenario Outline: Unattached command of a known service in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
@@ -114,29 +95,9 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ua commands
-           | command |
-           | disable |
-           | enable  |
-
-    @series.focal
-    Scenario Outline: Unattached command of an unknown service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
-        When I run `ua <command> foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua <command> foobar` with sudo
-        Then stderr matches regexp:
-            """
-            Cannot <command> 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-        Examples: ua commands
-           | command |
-           | disable |
-           | enable  |
+           | command | service     | message     |
+           | disable | livepatch   | livepatch   |
+           | enable  | foobar foo  | foo, foobar |
 
     @series.focal
     Scenario: Unattached auto-attach does nothing in a focal lxd container

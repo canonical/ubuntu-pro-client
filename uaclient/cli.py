@@ -11,6 +11,12 @@ import pathlib
 import sys
 import textwrap
 
+try:
+    from typing import List  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
 from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
@@ -63,16 +69,16 @@ def assert_attached(unattached_msg_tmpl=None):
 
     def wrapper(f):
         @wraps(f)
-        def new_f(args, cfg):
+        def new_f(args, cfg, **kwargs):
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
-                    name = getattr(args, "name", "None")
-                    msg = unattached_msg_tmpl.format(name=name)
+                    names = getattr(args, "names", "None")
+                    msg = unattached_msg_tmpl.format(name=", ".join(names))
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
                 raise exception
-            return f(args, cfg)
+            return f(args, cfg, **kwargs)
 
         return new_f
 
@@ -89,29 +95,6 @@ def assert_not_attached(f):
         return f(args, cfg)
 
     return new_f
-
-
-def require_valid_entitlement_name(operation: str):
-    """Decorator ensuring that args.name is a valid service.
-
-    :param operation: the operation name to use in error messages
-    """
-
-    def wrapper(f):
-        @wraps(f)
-        def new_f(args, cfg):
-            if hasattr(args, "name"):
-                name = args.name
-                tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-                if name not in entitlements.ENTITLEMENT_CLASS_BY_NAME:
-                    raise exceptions.UserFacingError(
-                        tmpl.format(operation=operation, name=name)
-                    )
-            return f(args, cfg)
-
-        return new_f
-
-    return wrapper
 
 
 def auto_attach_parser(parser):
@@ -159,14 +142,15 @@ def detach_parser(parser):
 
 def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="enable") + " <name>"
+    usage = USAGE_TMPL.format(name=NAME, command="enable") + " []"
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "name",
+        "names",
         action="store",
+        nargs="+",
         help="the name of the Ubuntu Advantage service to enable",
     )
     parser.add_argument(
@@ -182,15 +166,16 @@ def enable_parser(parser):
 
 def disable_parser(parser):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="disable") + " <name>"
+    usage = USAGE_TMPL.format(name=NAME, command="disable") + " []"
     parser.usage = usage
     parser.prog = "disable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "name",
+        "names",
         action="store",
-        help="the name of the Ubuntu Advantage service to disable",
+        nargs="+",
+        help="the names of the Ubuntu Advantage service to disable",
     )
     parser.add_argument(
         "--assume-yes",
@@ -256,19 +241,65 @@ def status_parser(parser):
     return parser
 
 
-@assert_root
-@require_valid_entitlement_name("disable")
-@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
-def action_disable(args, cfg):
+def _perform_disable(entitlement_name, cfg, *, assume_yes):
     """Perform the disable action on a named entitlement.
+
+    :param entitlement_name: the name of the entitlement to enable
+    :param cfg: the UAConfig to pass to the entitlement
+    :param assume_yes:
+        Assume a yes response for any prompts during service enable
+
+    @return: True on success, False otherwise
+    """
+    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    entitlement = ent_cls(cfg, assume_yes=assume_yes)
+    ret = entitlement.disable()
+    cfg.status()  # Update the status cache
+    return ret
+
+
+def get_valid_entitlement_names(names: "List[str]"):
+    """Return a list of valid entitlement names.
+
+    :param names: List of entitlements to validate
+    :return: a tuple of List containing the valid and invalid entitlements
+    """
+    entitlements_found = []
+
+    for ent_name in names:
+        if ent_name in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+            entitlements_found.append(ent_name)
+
+    entitlements_not_found = sorted(set(names) - set(entitlements_found))
+
+    return entitlements_found, entitlements_not_found
+
+
+@assert_root
+@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+def action_disable(args, cfg, **kwargs):
+    """Perform the disable action on a list of entitlements.
 
     @return: 0 on success, 1 otherwise
     """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[args.name]
-    entitlement = ent_cls(cfg, assume_yes=args.assume_yes)
-    ret = 0 if entitlement.disable() else 1
-    cfg.status()  # Update the status cache
-    return ret
+    names = getattr(args, "names", [])
+    entitlements_found, entitlements_not_found = get_valid_entitlement_names(
+        names
+    )
+    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    ret = True
+
+    for entitlement in entitlements_found:
+        ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
+
+    if entitlements_not_found:
+        raise exceptions.UserFacingError(
+            tmpl.format(
+                operation="disable", name=", ".join(entitlements_not_found)
+            )
+        )
+
+    return 0 if ret else 1
 
 
 def _perform_enable(
@@ -309,9 +340,8 @@ def _perform_enable(
 
 
 @assert_root
-@require_valid_entitlement_name("enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
-def action_enable(args, cfg):
+def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
@@ -322,11 +352,33 @@ def action_enable(args, cfg):
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
-    if _perform_enable(
-        args.name, cfg, assume_yes=args.assume_yes, allow_beta=args.beta
-    ):
-        return 0
-    return 1
+
+    names = getattr(args, "names", [])
+    entitlements_found, entitlements_not_found = get_valid_entitlement_names(
+        names
+    )
+    ret = True
+
+    for entitlement in entitlements_found:
+        try:
+            ret &= _perform_enable(
+                entitlement,
+                cfg,
+                assume_yes=args.assume_yes,
+                allow_beta=args.beta,
+            )
+        except exceptions.UserFacingError:
+            entitlements_not_found.append(entitlement)
+
+    if entitlements_not_found:
+        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        raise exceptions.UserFacingError(
+            tmpl.format(
+                operation="enable", name=", ".join(entitlements_not_found)
+            )
+        )
+
+    return 0 if ret else 1
 
 
 @assert_root
