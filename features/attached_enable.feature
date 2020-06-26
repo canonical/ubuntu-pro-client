@@ -166,19 +166,13 @@ Feature: Enable command behaviour when attached to an UA subscription
             For a list of services see: sudo ua status
             """
 
-    @wip
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario: Attached enable of vm-based services in a focal lxd vm
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <service> <flag>` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
         When I run `ua enable fips --assume-yes --beta` with sudo
-        Then stdout matches regexp:6
+        Then stdout matches regexp:
             """
             FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
@@ -186,6 +180,20 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
+            """
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable of vm-based services in a bionic lxd vm
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
             """
 
     @series.focal

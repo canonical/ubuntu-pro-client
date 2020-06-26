@@ -13,7 +13,33 @@ LXC_PROPERTY_MAP = {
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
-VM_PROFILE_NAME = "behave-vm"
+VM_PROFILE_TMPL = "behave-{}"
+
+# For Xenial and Bionic vendor-data required to setup lxd-agent
+# Additionally xenial needs to launch images:ubuntu/16.04/cloud
+# because it contains the HWE kernel which has vhost-vsock support
+LXC_SETUP_VENDORDATA = textwrap.dedent(
+    """\
+    config:
+      user.vendor-data: |
+        #cloud-config
+        {custom_cfg}
+        write_files:
+        - path: /var/lib/cloud/scripts/per-once/setup-lxc.sh
+          encoding: b64
+          permissions: '0755'
+          owner: root:root
+          content: |
+              IyEvYmluL3NoCmlmICEgZ3JlcCBseGRfY29uZmlnIC9wcm9jL21vdW50czsgdGhlbgogICAgbWtk
+              aXIgLXAgL3J1bi9seGRhZ2VudAogICAgbW91bnQgLXQgOXAgY29uZmlnIC9ydW4vbHhkYWdlbnQK
+              ICAgIFZJUlQ9JChzeXN0ZW1kLWRldGVjdC12aXJ0KQogICAgY2FzZSAkVklSVCBpbgogICAgICAg
+              IHFlbXV8a3ZtKQogICAgICAgICAgICAoY2QgL3J1bi9seGRhZ2VudC8gJiYgLi9pbnN0YWxsLnNo
+              KQogICAgICAgICAgICB1bW91bnQgL3J1bi9seGRhZ2VudAogICAgICAgICAgICBzeXN0ZW1jdGwg
+              c3RhcnQgbHhkLWFnZW50LTlwIGx4ZC1hZ2VudAogICAgICAgICAgICA7OwogICAgICAgICopCiAg
+              ICBlc2FjCmZpCg==
+   """
+)
+
 
 
 def launch_lxd_container(
@@ -37,11 +63,13 @@ def launch_lxd_container(
     :param series: A string representing the series of the vm to create
     :param is_vm:
         Boolean as to whether or not to launch KVM type container
+    :param user_data:
+        Optional str of userdata to pass to the launched image
     """
     command = ["lxc", "launch", image_name, container_name]
     if is_vm:
-        lxc_create_vm_profile()
-        command.extend(["--profile", VM_PROFILE_NAME, "--vm"])
+        lxc_create_vm_profile(series)
+        command.extend(["--profile", VM_PROFILE_TMPL.format(series), "--vm"])
     subprocess.run(command)
 
     def cleanup_container() -> None:
@@ -52,7 +80,7 @@ def launch_lxd_container(
 
     context.add_cleanup(cleanup_container)
 
-    wait_for_boot(container_name, series=series)
+    wait_for_boot(container_name, series=series, is_vm=is_vm)
 
 
 def lxc_exec(
@@ -106,12 +134,13 @@ def lxc_exec(
     )
 
 
-def lxc_create_vm_profile():
+def lxc_create_vm_profile(series: str):
     """Create a vm profile to enable launching kvm instances"""
-    content = textwrap.dedent(
+
+    content_tmpl = textwrap.dedent(
         """\
-        config: {}
-        description: Default LXD profile for VMs
+        {vendordata}
+        description: Default LXD profile for {series} VMs
         devices:
           config:
             source: cloud-init:config
@@ -127,25 +156,53 @@ def lxc_create_vm_profile():
         name: vm
     """
     )
-
+    if series == "xenial":
+        # FIXME: Xenial images from images:ubuntu/16.04/cloud have HWE kernel
+        # but no openssh-server (which fips testing would expect)
+        # Work with CPC to get vhost-vsock support if possible to use
+        # ubuntu-daily:xenial images
+        content = content_tmpl.format(
+            vendordata=LXC_SETUP_VENDORDATA.format(
+                custom_cfg="packages: [openssh-server]"
+            ),
+            series=series,
+        )
+    elif series == "bionic":
+        content = content_tmpl.format(
+            vendordata=LXC_SETUP_VENDORDATA.format(custom_cfg=""),
+            series=series,
+        )
+    elif series == "focal":
+        content = content_tmpl.format(vendordata="config: {}")
+    else:
+        raise RuntimeError(
+            "===No lxc mv support for series {}====".format(series)
+        )
     output = subprocess.check_output(["lxc", "profile", "list"])
-    if " {} ".format(VM_PROFILE_NAME) not in output.decode("utf-8"):
-        subprocess.run(["lxc", "profile", "create", VM_PROFILE_NAME])
+    profile_name = VM_PROFILE_TMPL.format(series)
+    if " {} ".format(profile_name) not in output.decode("utf-8"):
+        subprocess.run(["lxc", "profile", "create", profile_name])
         proc = subprocess.Popen(
-            ["lxc", "profile", "edit", VM_PROFILE_NAME], stdin=subprocess.PIPE
+            ["lxc", "profile", "edit", profile_name], stdin=subprocess.PIPE
         )
         proc.communicate(content.encode())
 
-
-def wait_for_boot(container_name: str, series: str) -> None:
+def wait_for_boot(
+    container_name: str, series: str, is_vm: bool = False
+) -> None:
     """Wait for a test container to boot.
 
     :param container_name:
         The name of the container to wait for.
     :param series:
         The Ubuntu series we are waiting for.
+    :param is_vm:
+        Boolean as to whether or not to launch KVM type container
     """
-    retries = [5, 10, 15, 20, 20, 30]
+    if is_vm:
+        retries = [30, 45, 60, 75, 90, 105]
+    else:
+        retries = [5, 10, 15, 20, 20, 30]
     if series != "trusty":
         retcode = 1
         for sleep_time in retries:

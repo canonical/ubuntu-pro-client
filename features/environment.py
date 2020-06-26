@@ -261,9 +261,14 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         return
     now = datetime.datetime.now()
-    ubuntu_series = "ubuntu-daily:%s" % series
     deb_file = None
     is_vm = bool(context.config.machine_type == "lxd.vm")
+    if is_vm and series == "xenial":
+        # FIXME: use lxd custom cloud images which containt HWE kernel for
+        # vhost-vsock support
+        ubuntu_series = "images:ubuntu/16.04/cloud"
+    else:
+        ubuntu_series = "ubuntu-daily:%s" % series
     if context.config.build_pr:
         # create a dirty development image which installs build depends
         deb_file = PR_DEB_FILE
