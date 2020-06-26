@@ -182,6 +182,21 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
+    @wip
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable of vm-based services in a bionic lxd vm
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
+            """
+
     @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario: Attached enable of vm-based services in a bionic lxd vm
