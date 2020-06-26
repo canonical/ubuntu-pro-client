@@ -41,7 +41,6 @@ LXC_SETUP_VENDORDATA = textwrap.dedent(
 )
 
 
-
 def launch_lxd_container(
     context: Context,
     image_name: str,
@@ -186,6 +185,7 @@ def lxc_create_vm_profile(series: str):
             ["lxc", "profile", "edit", profile_name], stdin=subprocess.PIPE
         )
         proc.communicate(content.encode())
+
 
 def wait_for_boot(
     container_name: str, series: str, is_vm: bool = False
