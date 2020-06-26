@@ -178,6 +178,13 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
     """
 
     print("\n\n\n LXC file push {}".format(SOURCE_PR_TGZ))
+    if not os.environ.get("TRAVIS"):
+        print("\n\n\n Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ))
+        os.chdir("..")
+        subprocess.run(
+            ["tar", "-zcvf", SOURCE_PR_TGZ, "ubuntu-advantage-client"]
+        )
+        os.chdir("ubuntu-advantage-client")
     subprocess.run(
         ["lxc", "file", "push", SOURCE_PR_TGZ, container_name + "/tmp/"]
     )
