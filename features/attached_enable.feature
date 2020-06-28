@@ -2,6 +2,7 @@
 Feature: Enable command behaviour when attached to an UA subscription
 
     @series.trusty
+    @uses.config.machine_type.lxd.container
     Scenario Outline:  Attached enable of non-container services in a trusty lxd container
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -24,7 +25,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | FIPS Updates | --assume-yes --beta  |
 
     @series.trusty
-    Scenario Outline:  Attached enable of non-container beta services in a trusty lxd container
+    Scenario Outline:  Attached enable of non-container beta services in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
@@ -49,7 +50,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | --assume-yes --beta |
 
     @series.trusty
-    Scenario: Attached enable Common Criteria service in a trusty lxd container
+    Scenario: Attached enable Common Criteria service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable cc-eal` as non-root
@@ -65,7 +66,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario Outline: Attached enable not entitled service in a trusty lxd container
+    Scenario Outline: Attached enable not entitled service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service>` as non-root
@@ -87,7 +88,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | esm-apps     | ESM Apps     |
 
     @series.trusty
-    Scenario: Attached enable of an unknown service in a trusty lxd container
+    Scenario: Attached enable of an unknown service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable foobar` as non-root
@@ -107,7 +108,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached enable of a known service already enabled (UA Infra) in a trusty lxd container
+    Scenario: Attached enable of a known service already enabled (UA Infra) in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable esm-infra` as non-root
@@ -124,8 +125,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached enable a disabled, enable and unknown service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached enable a disabled, enable and unknown service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
@@ -147,8 +148,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached enable a disabled beta service and unknown service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached enable a disabled beta service and unknown service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable fips foobar` as non-root
         Then I will see the following on stderr:
@@ -260,7 +261,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | --assume-yes |
 
     @series.focal
-    Scenario: Attached enable Common Criteria service in a focal lxd container
+    Scenario: Attached enable Common Criteria service in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable cc-eal` as non-root
@@ -276,7 +277,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario Outline: Attached enable not entitled service in a focal lxd container
+    Scenario Outline: Attached enable not entitled service in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service>` as non-root
@@ -298,7 +299,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | esm-apps     | ESM Apps     |
 
     @series.focal
-    Scenario: Attached enable of an unknown service in a focal lxd container
+    Scenario: Attached enable of an unknown service in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable foobar` as non-root
@@ -314,7 +315,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached enable of a known service already enabled (UA Infra) in a focal lxd container
+    Scenario: Attached enable of a known service already enabled (UA Infra) in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable esm-infra` as non-root
@@ -331,8 +332,9 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.focal
+    @uses.config.machine_type.lxd.container
     Scenario: Attached enable a disabled, enabled and unknown service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
@@ -354,8 +356,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached enable a disabled beta service and unknown service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached enable a disabled beta service and unknown service in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable fips foobar` as non-root
         Then I will see the following on stderr:
