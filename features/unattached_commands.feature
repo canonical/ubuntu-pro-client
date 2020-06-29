@@ -37,10 +37,10 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ua commands
-           | command |
            | enable  |
            | disable |
 
+    @wip
     @series.trusty
     Scenario Outline: Unattached command of an unknown service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
@@ -52,14 +52,14 @@ Feature: Command behaviour when unattached
         When I run `ua <command> foobar` with sudo
         Then I will see the following on stderr:
             """
-            Cannot <command> 'foobar'
+            Cannot <command> '<service>'
             For a list of services see: sudo ua status
             """
 
         Examples: ua commands
-           | command |
-           | enable  |
-           | disable |
+           | command | service     |
+           | enable  | livepatch   |
+           | disable | foobar foo  |
 
     @series.trusty
     Scenario: Unattached auto-attach does nothing in a trusty machine
