@@ -373,7 +373,7 @@ class TestPerformEnable:
         silent_if_inapplicable,
     ):
         ent_name = "testitlement"
-        cfg_dict = {"features": {"beta": True}}
+        cfg_dict = {"features": {"allow_beta": True}}
         m_entitlement_cls = mock.Mock()
         m_cfg = mock.Mock()
         m_cfg_dict = mock.PropertyMock(return_value=cfg_dict)

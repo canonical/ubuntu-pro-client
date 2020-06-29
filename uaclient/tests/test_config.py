@@ -390,7 +390,9 @@ class TestStatus:
     def check_beta(self, cls, show_beta, uacfg=None):
         if not show_beta:
             if uacfg:
-                allow_beta = uacfg.cfg.get("features", {}).get("beta", False)
+                allow_beta = uacfg.cfg.get("features", {}).get(
+                    "allow_beta", False
+                )
 
                 if allow_beta:
                     return False
@@ -451,7 +453,7 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"features": {"beta": True}}))
+        "features_override", ((None), ({"features": {"allow_beta": True}}))
     )
     @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
@@ -623,7 +625,7 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"features": {"beta": False}}))
+        "features_override", ((None), ({"features": {"allow_beta": False}}))
     )
     @pytest.mark.parametrize(
         "entitlements",
