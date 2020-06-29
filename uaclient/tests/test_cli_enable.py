@@ -307,6 +307,8 @@ class TestPerformEnable:
     ):
         m_entitlement_cls = mock.Mock()
         m_cfg = mock.Mock()
+        m_user_cfg = mock.PropertyMock(return_value={})
+        type(m_cfg).cfg = m_user_cfg
         m_is_beta = mock.PropertyMock(return_value=allow_beta)
         type(m_entitlement_cls).is_beta = m_is_beta
 
@@ -332,6 +334,7 @@ class TestPerformEnable:
         assert ret == m_entitlement.enable.return_value
 
         assert 1 == m_cfg.status.call_count
+        assert 1 == m_user_cfg.call_count
         assert beta_call_count == m_is_beta.call_count
 
     @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
@@ -341,6 +344,8 @@ class TestPerformEnable:
     ):
         m_entitlement_cls = mock.Mock()
         m_cfg = mock.Mock()
+        m_user_cfg = mock.PropertyMock(return_value={})
+        type(m_cfg).cfg = m_user_cfg
         m_is_beta = mock.PropertyMock(return_value=True)
         type(m_entitlement_cls).is_beta = m_is_beta
 
@@ -356,6 +361,7 @@ class TestPerformEnable:
             _perform_enable("testitlement", m_cfg, **kwargs)
 
         assert 1 == m_is_beta.call_count
+        assert 1 == m_user_cfg.call_count
 
     @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -367,7 +373,7 @@ class TestPerformEnable:
         silent_if_inapplicable,
     ):
         ent_name = "testitlement"
-        cfg_dict = {"features": {ent_name: {"is_beta": False}}}
+        cfg_dict = {"features": {"beta": True}}
         m_entitlement_cls = mock.Mock()
         m_cfg = mock.Mock()
         m_cfg_dict = mock.PropertyMock(return_value=cfg_dict)
@@ -375,8 +381,6 @@ class TestPerformEnable:
 
         m_is_beta = mock.PropertyMock(return_value=True)
         type(m_entitlement_cls).is_beta = m_is_beta
-        m_name = mock.PropertyMock(return_value=ent_name)
-        type(m_entitlement_cls).name = m_name
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             ent_name: m_entitlement_cls
@@ -400,6 +404,5 @@ class TestPerformEnable:
         assert ret == m_entitlement.enable.return_value
 
         assert 1 == m_cfg.status.call_count
-        assert 1 == m_is_beta.call_count
-        assert 1 == m_name.call_count
+        assert 0 == m_is_beta.call_count
         assert 1 == m_cfg_dict.call_count

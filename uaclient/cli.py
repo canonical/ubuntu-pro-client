@@ -327,18 +327,12 @@ def _perform_enable(
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    allow_beta |= cfg.cfg.get("features", {}).get("beta", False)
     if not allow_beta and ent_cls.is_beta:
-        cfg_beta_override = (
-            cfg.cfg.get("features", {})
-            .get(ent_cls.name, {})
-            .get("is_beta", True)
+        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        raise exceptions.UserFacingError(
+            tmpl.format(operation="enable", name=entitlement_name)
         )
-
-        if cfg_beta_override:
-            tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-            raise exceptions.UserFacingError(
-                tmpl.format(operation="enable", name=entitlement_name)
-            )
 
     entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)

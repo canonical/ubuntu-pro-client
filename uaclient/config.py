@@ -210,12 +210,6 @@ class UAConfig:
             resource_name = resource["name"]
             ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
 
-            feat_cfg_beta_override = (
-                self.cfg.get("features", {})
-                .get(resource_name, {})
-                .get("is_beta", True)
-            )
-
             if ent_cls is None:
                 """
                 Here we cannot know the status of a service,
@@ -226,7 +220,7 @@ class UAConfig:
                 released_resources.append(resource)
                 continue
 
-            if not ent_cls.is_beta or not feat_cfg_beta_override:
+            if not ent_cls.is_beta:
                 released_resources.append(resource)
 
         if released_resources:
@@ -354,6 +348,7 @@ class UAConfig:
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
+        show_beta |= self.cfg.get("features", {}).get("beta", False)
         if not show_beta:
             response = self._remove_beta_resources(response)
 
