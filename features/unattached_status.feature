@@ -1,6 +1,5 @@
 Feature: Unattached status
 
-    @wip
     @series.trusty
     Scenario: Unattached status in a trusty lxd container
         Given a `trusty` lxd container with ubuntu-advantage-tools installed

@@ -77,7 +77,6 @@ Feature: Command behaviour when unattached
            | refresh |
 
 
-    @wip
     @series.focal
     Scenario Outline: Unattached command of a known service in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
