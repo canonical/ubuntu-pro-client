@@ -13,12 +13,15 @@ matrix:
   fast_finish: true
   include:
     - python: 3.7
-      env: TOXENV=behave
+      env: 
+        - TOXENV=behave
+        - secure: Ar2PYbo2u3f/0jGZf8YPJZIbpGepBHQHQPHmFRXPvhQu8rTidhU6ymd+GasXvftFl2hdJxR8U4TW4WuYSkXwKl0agZjFw8JQ8nSnNKSlggxiYH+XwKwcXeoGbaqPI6fZRa2QKZyyFjysH87ianXfRe/pOyNPLir2KGIaU42zaD9Lx+JaGsG1K/4bYikkI77e9nPAZKx76kaqYT5Fneubj+O5D6egd5lM5+DXVfkiTzLFiEZtSti8YWlaMDtpDNEWViiWSTxVH+qBVpB/n9rRM4nV8rEEU7HuzXtcePTlpvNoZ2zlT7WdybJQ/bEd4Gxtf0IWcodlxD+/+L3z0/rgTPFkYuxs4Xqmf95g3v6n2hd91sSB6PVyjYNo7B0oCI/DCKI5LrTsDIG2xJ3bpXmD4X9FDvkunnWbdNGVCFF7oUSq/LOhwuBLKDJNkCm+gkvlnCLU6HWs78iqxz5P52KxTEG/GAnGTNVg/8ifM6AvVEUFNU93JWuAhxh8rWShGTBLc7ZJmEe4c6saubUXpTEtdWWNTdcS0czoV2HIwknK5rA59mg67gVtADHvfSnq/+OX2Pgmi2amf4zxMVvZixtCRKOXhGu79353dTSm6nGvfDGbdLF9xpYHu63+P3YjRhCVCz4AG2dRBpZK6v2vA/1MPzPabER038vWkXC8EcyYMaE=
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
           - echo $TRAVIS_BRANCH
           - echo $TRAVIS_BUILD_DIR
+          - echo $UACLIENT_BEHAVE_CONTRACT_TOKEN
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
