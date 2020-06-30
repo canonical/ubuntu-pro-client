@@ -558,3 +558,29 @@ class TestPromptForConfirmation:
         util.prompt_for_confirmation(msg=message, assume_yes=assume_yes)
 
         assert input_calls == m_input.call_args_list
+
+
+class TestDepthFirstMergeDict:
+    @pytest.mark.parametrize(
+        "base_dict, other_dict, expected_dict",
+        [
+            ({"a": 1, "b": 2}, {"c": 3}, {"a": 1, "b": 2, "c": 3}),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"a": 1, "b": {"c": 10}},
+                {"a": 1, "b": {"c": 10, "d": 3}},
+            ),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"d": {"f": 20}},
+                {"a": 1, "b": {"c": 2, "d": 3}, "d": {"f": 20}},
+            ),
+            ({"a": 1, "b": 2}, {}, {"a": 1, "b": 2}),
+            ({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+        ],
+    )
+    def test_depth_first_merge_dict(
+        self, base_dict, other_dict, expected_dict
+    ):
+        util.depth_first_merge_dict(base_dict, other_dict)
+        assert expected_dict == base_dict

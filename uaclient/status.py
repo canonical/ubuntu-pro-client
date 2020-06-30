@@ -233,6 +233,11 @@ MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
 MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 
+INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
+Failed to find the machine token overlay file: {file_path}"""
+ERROR_JSON_DECODING_IN_FILE = """\
+Failed to read the following json file: {file_path}"""
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
