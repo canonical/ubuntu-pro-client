@@ -160,7 +160,7 @@ class UAConfig:
             )
 
             return json.loads(machine_token_overlay_content)
-        except json.JSONDecodeError:
+        except ValueError:
             raise exceptions.UserFacingError(
                 status.ERROR_JSON_DECODING_IN_FILE.format(
                     file_path=machine_token_overlay_path
