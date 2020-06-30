@@ -615,3 +615,25 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
                 value=value_str,
             )
         )
+
+
+def depth_first_merge_dict(base_dict, other_dict):
+    """Merge the contents of other dict into base_dict not only on top-level
+    keys, but on all on the depths of the other_dict object. For example,
+    using these values as entries for the function:
+
+    base_dict = {"a": 1, "b": {"c": 2, "d": 3}}
+    other_dict = {"b": {"c": 10}}
+
+    Should update base_dict into:
+
+    {"a": 1, "b": {"c": 10, "d": 3}}
+
+    @param base_dict: The dict to be updated
+    @param other_dict: The dict with information to be added into base_dict
+    """
+    for key, value in other_dict.items():
+        if type(base_dict.get(key)) == dict and type(value) == dict:
+            depth_first_merge_dict(base_dict[key], value)
+        else:
+            base_dict[key] = value

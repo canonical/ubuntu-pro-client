@@ -125,8 +125,47 @@ class UAConfig:
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
         if not self._machine_token:
-            self._machine_token = self.read_cache("machine-token")
+            raw_machine_token = self.read_cache("machine-token")
+
+            machine_token_overlay_path = self.cfg.get("features", {}).get(
+                "machine_token_overlay"
+            )
+
+            if machine_token_overlay_path:
+                machine_token_overlay = self.parse_machine_token_overlay(
+                    machine_token_overlay_path
+                )
+
+                if machine_token_overlay:
+                    util.depth_first_merge_dict(
+                        base_dict=raw_machine_token,
+                        other_dict=machine_token_overlay,
+                    )
+
+            self._machine_token = raw_machine_token
+
         return self._machine_token
+
+    def parse_machine_token_overlay(self, machine_token_overlay_path):
+        if not os.path.exists(machine_token_overlay_path):
+            raise exceptions.UserFacingError(
+                status.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
+                    file_path=machine_token_overlay_path
+                )
+            )
+
+        try:
+            machine_token_overlay_content = util.load_file(
+                machine_token_overlay_path
+            )
+
+            return json.loads(machine_token_overlay_content)
+        except json.JSONDecodeError:
+            raise exceptions.UserFacingError(
+                status.ERROR_JSON_DECODING_IN_FILE.format(
+                    file_path=machine_token_overlay_path
+                )
+            )
 
     def data_path(self, key: "Optional[str]" = None) -> str:
         """Return the file path in the data directory represented by the key"""

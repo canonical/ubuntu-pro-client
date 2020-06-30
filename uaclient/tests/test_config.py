@@ -865,3 +865,82 @@ class TestParseConfig:
                 parse_config()
         expected_msg = "Invalid url in config. contract_url: htp://contract"
         assert expected_msg == excinfo.value.msg
+
+
+class TestMachineTokenOverlay:
+    machine_token_dict = {
+        "type": "livepatch",
+        "affordances": {"series": ["trusty", "focal"], "tier": "stable"},
+        "directives": {
+            "caCerts": "",
+            "remoteServer": "https://livepatch.canonical.com",
+        },
+    }
+
+    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    def test_machine_token_update_with_overlay(
+        self, m_path, m_read_cache, m_load_file
+    ):
+        user_cfg = {
+            "features": {"machine_token_overlay": "machine-token-path"}
+        }
+        m_read_cache.return_value = self.machine_token_dict
+
+        remote_server_overlay = "overlay"
+        json_str = '{"type": "t", "directives": {"remoteServer": "overlay"}}'
+        m_load_file.return_value = json_str
+
+        expected = copy.deepcopy(self.machine_token_dict)
+        expected["directives"]["remoteServer"] = remote_server_overlay
+        expected["type"] = "t"
+
+        cfg = UAConfig(cfg=user_cfg)
+        assert expected == cfg.machine_token
+
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    def test_machine_token_without_overlay(self, m_read_cache):
+        user_cfg = {}
+        m_read_cache.return_value = self.machine_token_dict
+        cfg = UAConfig(cfg=user_cfg)
+        assert self.machine_token_dict == cfg.machine_token
+
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    def test_machine_token_overlay_file_not_found(self, m_path, m_read_cache):
+        invalid_path = "machine-token-path"
+        user_cfg = {"features": {"machine_token_overlay": invalid_path}}
+        m_read_cache.return_value = self.machine_token_dict
+
+        cfg = UAConfig(cfg=user_cfg)
+        expected_msg = status.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
+            file_path=invalid_path
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            cfg.machine_token
+
+        assert expected_msg == str(excinfo.value)
+
+    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    def test_machine_token_overlay_json_decode_error(
+        self, m_path, m_read_cache, m_load_file
+    ):
+        invalid_json_path = "machine-token-path"
+        user_cfg = {"features": {"machine_token_overlay": invalid_json_path}}
+        m_read_cache.return_value = self.machine_token_dict
+
+        json_str = '{"directives": {"remoteServer": "overlay"}'
+        m_load_file.return_value = json_str
+        expected_msg = status.ERROR_JSON_DECODING_IN_FILE.format(
+            file_path=invalid_json_path
+        )
+
+        cfg = UAConfig(cfg=user_cfg)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            cfg.machine_token
+
+        assert expected_msg == str(excinfo.value)
