@@ -130,7 +130,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status --beta` as non-root
+       When I run `ua status --all` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION
@@ -298,7 +298,7 @@ Feature: Command behaviour when attached to an UA subscription
             Updating package lists
             This machine is now detached
             """
-       When I run `ua status --beta` as non-root
+       When I run `ua status --all` as non-root
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION

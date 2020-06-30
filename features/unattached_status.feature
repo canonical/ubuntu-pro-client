@@ -14,7 +14,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --beta` as non-root
+        When I run `ua status --all` as non-root
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -39,7 +39,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --beta` with sudo
+        When I run `ua status --all` with sudo
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -54,7 +54,6 @@ Feature: Unattached status
             See https://ubuntu.com/advantage
             """ 
     
-    @wip
     @series.focal
     Scenario: Unattached status in a focal lxd container
         Given a `focal` lxd container with ubuntu-advantage-tools installed
@@ -69,7 +68,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --beta` as non-root
+        When I run `ua status --all` as non-root
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -94,7 +93,7 @@ Feature: Unattached status
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
             """
-        When I run `ua status --beta` with sudo
+        When I run `ua status --all` with sudo
         Then I will see the following on stdout:
             """
             SERVICE       AVAILABLE  DESCRIPTION
