@@ -9,7 +9,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import cli, util
+from uaclient import cli, util, exceptions, status
 
 PRIVACY_POLICY_URL = (
     "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
@@ -558,3 +558,38 @@ class TestPromptForConfirmation:
         util.prompt_for_confirmation(msg=message, assume_yes=assume_yes)
 
         assert input_calls == m_input.call_args_list
+
+
+class TestGetAllowBetaValueFromConfig:
+    @pytest.mark.parametrize(
+        "config_dict, return_val",
+        [
+            ({}, False),
+            ({"features": {}}, False),
+            ({"features": {"allow_beta": "true"}}, True),
+            ({"features": {"allow_beta": "True"}}, True),
+            ({"features": {"allow_beta": "false"}}, False),
+            ({"features": {"allow_beta": "False"}}, False),
+        ],
+    )
+    def test_get_allow_beta_value_from_config(self, config_dict, return_val):
+        actual_val = util.get_allow_beta_value_from_config(config_dict)
+        assert return_val == actual_val
+
+    @pytest.mark.parametrize(
+        "config_dict, key_val",
+        [
+            ({"features": {"allow_beta": "tru"}}, "tru"),
+            ({"features": {"allow_beta": "Tre"}}, "Tre"),
+            ({"features": {"allow_beta": "flse"}}, "flse"),
+            ({"features": {"allow_beta": "Fale"}}, "Fale"),
+        ],
+    )
+    def test_exception_get_allow_beta_value_from_config(
+        self, config_dict, key_val
+    ):
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            util.get_allow_beta_value_from_config(config_dict)
+
+        expected_msg = status.ERROR_ON_ALLOW_BETA_KEY.format(user_key=key_val)
+        assert expected_msg == str(excinfo.value)

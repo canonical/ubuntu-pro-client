@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from functools import wraps
 from http.client import HTTPMessage  # noqa: F401
 
+from uaclient import exceptions
 from uaclient import status
 
 try:
@@ -576,3 +577,18 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         fh.write(content.encode("utf-8"))
         fh.flush()
     os.chmod(filename, mode)
+
+
+def get_allow_beta_value_from_config(config_dict):
+    allow_beta_str = str(
+        config_dict.get("features", {}).get("allow_beta", False)
+    )
+
+    if allow_beta_str.lower() == "true":
+        return True
+    elif allow_beta_str.lower() == "false":
+        return False
+    else:
+        raise exceptions.UserFacingError(
+            status.ERROR_ON_ALLOW_BETA_KEY.format(user_key=allow_beta_str)
+        )
