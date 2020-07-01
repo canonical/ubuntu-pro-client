@@ -21,45 +21,27 @@ Feature: Command behaviour when unattached
            | refresh |
 
     @series.trusty
-    Scenario Outline: Unattached command of a known service in a trusty machine
+    Scenario Outline: Unattached command known and unknown services in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I run `ua <command> livepatch` as non-root
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua <command> livepatch` with sudo
+        When I run `ua <command> <service>` with sudo
         Then I will see the following on stderr:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription
+            To use '<service>' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
 
         Examples: ua commands
-           | enable  |
-           | disable |
-
-    @wip
-    @series.trusty
-    Scenario Outline: Unattached command of an unknown service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I run `ua <command> foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua <command> foobar` with sudo
-        Then I will see the following on stderr:
-            """
-            Cannot <command> '<service>'
-            For a list of services see: sudo ua status
-            """
-
-        Examples: ua commands
-           | command | service     |
-           | enable  | livepatch   |
-           | disable | foobar foo  |
+           | command  | service   | 
+           | enable   | livepatch |
+           | disable  | livepatch |
+           | enable   | unknown   |
+           | disable  | unknown   |
 
     @series.trusty
     Scenario: Unattached auto-attach does nothing in a trusty machine
@@ -105,38 +87,20 @@ Feature: Command behaviour when unattached
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua <command> livepatch` with sudo
+        When I run `ua <command> <service>` with sudo
         Then stderr matches regexp:
             """
-            To use 'livepatch' you need an Ubuntu Advantage subscription
+            To use '<service>' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
             See https://ubuntu.com/advantage
             """
 
         Examples: ua commands
-           | command |
-           | disable |
-           | enable  |
-
-    @series.focal
-    Scenario Outline: Unattached command of an unknown service in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I run `ua <command> foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua <command> foobar` with sudo
-        Then stderr matches regexp:
-            """
-            Cannot <command> 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-        Examples: ua commands
-           | command |
-           | disable |
-           | enable  |
+           | command | service   |
+           | disable | livepatch |
+           | enable  | livepatch |
+           | disable | unknown   |
+           | enable  | unknown   |
 
     @series.focal
     Scenario: Unattached auto-attach does nothing in a focal machine
