@@ -453,7 +453,7 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"features": {"allow_beta": True}}))
+        "features_override", ((None), ({"allow_beta": True}))
     )
     @pytest.mark.parametrize(
         "avail_res,entitled_res,uf_entitled,uf_status",
@@ -625,7 +625,7 @@ class TestStatus:
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
-        "features_override", ((None), ({"features": {"allow_beta": False}}))
+        "features_override", ((None), ({"allow_beta": False}))
     )
     @pytest.mark.parametrize(
         "entitlements",

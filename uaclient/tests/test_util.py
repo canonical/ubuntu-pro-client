@@ -565,33 +565,39 @@ class TestIsConfigValueTrue:
         "config_dict, return_val",
         [
             ({}, False),
-            ({"features": {}}, False),
-            ({"features": {"allow_beta": "true"}}, True),
-            ({"features": {"allow_beta": "True"}}, True),
-            ({"features": {"allow_beta": "false"}}, False),
-            ({"features": {"allow_beta": "False"}}, False),
+            ({}, False),
+            ({"allow_beta": "true"}, True),
+            ({"allow_beta": "True"}, True),
+            ({"allow_beta": "false"}, False),
+            ({"allow_beta": "False"}, False),
         ],
     )
-    def test_is_config_value_true(self, config_dict, return_val):
+    def test_is_config_value_true(self, config_dict, return_val, FakeConfig):
+        cfg = FakeConfig()
+        cfg.override_features(config_dict)
         actual_val = util.is_config_value_true(
-            config=config_dict, path_to_value="features.allow_beta"
+            config=cfg.cfg, path_to_value="features.allow_beta"
         )
         assert return_val == actual_val
 
     @pytest.mark.parametrize(
         "config_dict, key_val",
         [
-            ({"features": {"allow_beta": "tru"}}, "tru"),
-            ({"features": {"allow_beta": "Tre"}}, "Tre"),
-            ({"features": {"allow_beta": "flse"}}, "flse"),
-            ({"features": {"allow_beta": "Fale"}}, "Fale"),
+            ({"allow_beta": "tru"}, "tru"),
+            ({"allow_beta": "Tre"}, "Tre"),
+            ({"allow_beta": "flse"}, "flse"),
+            ({"allow_beta": "Fale"}, "Fale"),
         ],
     )
-    def test_exception_is_config_value_true(self, config_dict, key_val):
+    def test_exception_is_config_value_true(
+        self, config_dict, key_val, FakeConfig
+    ):
         path_to_value = "features.allow_beta"
+        cfg = FakeConfig()
+        cfg.override_features(config_dict)
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             util.is_config_value_true(
-                config=config_dict, path_to_value=path_to_value
+                config=cfg.cfg, path_to_value=path_to_value
             )
 
         expected_msg = status.ERROR_INVALID_CONFIG_VALUE.format(

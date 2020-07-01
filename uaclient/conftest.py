@@ -109,6 +109,7 @@ def FakeConfig(tmpdir):
             return config
 
         def override_features(self, features_override):
-            self.cfg.update(features_override)
+            if features_override is not None:
+                self.cfg.update({"features": features_override})
 
     return _FakeConfig
