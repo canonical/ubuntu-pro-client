@@ -327,7 +327,9 @@ def _perform_enable(
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
-    config_allow_beta = util.get_allow_beta_value_from_config(cfg.cfg)
+    config_allow_beta = util.is_config_value_true(
+        config=cfg.cfg, path_to_value="features.allow_beta"
+    )
     allow_beta |= config_allow_beta
     if not allow_beta and ent_cls.is_beta:
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL

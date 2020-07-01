@@ -560,7 +560,7 @@ class TestPromptForConfirmation:
         assert input_calls == m_input.call_args_list
 
 
-class TestGetAllowBetaValueFromConfig:
+class TestIsConfigValueTrue:
     @pytest.mark.parametrize(
         "config_dict, return_val",
         [
@@ -572,8 +572,10 @@ class TestGetAllowBetaValueFromConfig:
             ({"features": {"allow_beta": "False"}}, False),
         ],
     )
-    def test_get_allow_beta_value_from_config(self, config_dict, return_val):
-        actual_val = util.get_allow_beta_value_from_config(config_dict)
+    def test_is_config_value_true(self, config_dict, return_val):
+        actual_val = util.is_config_value_true(
+            config=config_dict, path_to_value="features.allow_beta"
+        )
         assert return_val == actual_val
 
     @pytest.mark.parametrize(
@@ -585,11 +587,16 @@ class TestGetAllowBetaValueFromConfig:
             ({"features": {"allow_beta": "Fale"}}, "Fale"),
         ],
     )
-    def test_exception_get_allow_beta_value_from_config(
-        self, config_dict, key_val
-    ):
+    def test_exception_is_config_value_true(self, config_dict, key_val):
+        path_to_value = "features.allow_beta"
         with pytest.raises(exceptions.UserFacingError) as excinfo:
-            util.get_allow_beta_value_from_config(config_dict)
+            util.is_config_value_true(
+                config=config_dict, path_to_value=path_to_value
+            )
 
-        expected_msg = status.ERROR_ON_ALLOW_BETA_KEY.format(user_key=key_val)
+        expected_msg = status.ERROR_INVALID_CONFIG_VALUE.format(
+            path_to_value=path_to_value,
+            expected_value="boolean string: true or false",
+            value=key_val,
+        )
         assert expected_msg == str(excinfo.value)

@@ -579,16 +579,39 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
-def get_allow_beta_value_from_config(config_dict):
-    allow_beta_str = str(
-        config_dict.get("features", {}).get("allow_beta", False)
-    )
+def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
+    """Check if value parameter can be translated into a boolean 'True' value.
 
-    if allow_beta_str.lower() == "true":
+    @param config: A config dict representing
+                   /etc/ubuntu-advantange/uaclient.conf
+    @param path_to_value: The path from where the value parameter was
+                          extracted.
+    @return: A boolean value indicating if the value paramater corresponds
+             to a 'True' boolean value.
+    @raises exceptions.UserFacingError when the value provide by the
+            path_to_value parameter can not be translated into either
+            a 'False' or 'True' boolean value.
+    """
+    value = config
+    default_value = {}  # type: Any
+    paths = path_to_value.split(".")
+    leaf_value = paths[-1]
+    for key in paths:
+        if key == leaf_value:
+            default_value = "false"
+
+        value = value.get(key, default_value)
+
+    value_str = str(value)
+    if value_str.lower() == "true":
         return True
-    elif allow_beta_str.lower() == "false":
+    elif value_str.lower() == "false":
         return False
     else:
         raise exceptions.UserFacingError(
-            status.ERROR_ON_ALLOW_BETA_KEY.format(user_key=allow_beta_str)
+            status.ERROR_INVALID_CONFIG_VALUE.format(
+                path_to_value=path_to_value,
+                expected_value="boolean string: true or false",
+                value=value_str,
+            )
         )
