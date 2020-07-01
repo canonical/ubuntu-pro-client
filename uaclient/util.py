@@ -632,8 +632,20 @@ def depth_first_merge_dict(base_dict, other_dict):
     @param base_dict: The dict to be updated
     @param other_dict: The dict with information to be added into base_dict
     """
+
+    def update_dict_list(base_values, other_values, id_key):
+        for other_value in other_values:
+            for base_value_idx, base_value in enumerate(base_values):
+                if base_value.get(id_key) == other_value.get(id_key):
+                    depth_first_merge_dict(base_value, other_value)
+
     for key, value in other_dict.items():
         if type(base_dict.get(key)) == dict and type(value) == dict:
             depth_first_merge_dict(base_dict[key], value)
+        elif type(base_dict.get(key)) == list and type(value) == list:
+            if key == "availableResources":
+                update_dict_list(base_dict[key], value, id_key="name")
+            elif key == "resourceEntitlements":
+                update_dict_list(base_dict[key], value, id_key="type")
         else:
             base_dict[key] = value

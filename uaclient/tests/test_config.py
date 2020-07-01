@@ -869,11 +869,47 @@ class TestParseConfig:
 
 class TestMachineTokenOverlay:
     machine_token_dict = {
-        "type": "livepatch",
-        "affordances": {"series": ["trusty", "focal"], "tier": "stable"},
-        "directives": {
-            "caCerts": "",
-            "remoteServer": "https://livepatch.canonical.com",
+        "availableResources": [
+            {"available": False, "name": "cc-eal"},
+            {"available": True, "name": "esm-infra"},
+            {"available": False, "name": "fips"},
+        ],
+        "machineTokenInfo": {
+            "resourceEntitlements": [
+                {
+                    "type": "cc-eal",
+                    "entitled": False,
+                    "affordances": {
+                        "architectures": [
+                            "amd64",
+                            "ppc64el",
+                            "ppc64le",
+                            "s390x",
+                            "x86_64",
+                        ],
+                        "series": ["xenial"],
+                    },
+                    "directives": {
+                        "additionalPackages": ["ubuntu-commoncriteria"],
+                        "aptKey": "key",
+                        "aptURL": "https://esm.ubuntu.com/cc",
+                        "suites": ["xenial"],
+                    },
+                },
+                {
+                    "type": "livepatch",
+                    "entitled": True,
+                    "affordances": {
+                        "architectures": ["amd64", "x86_64"],
+                        "tier": "stable",
+                    },
+                    "directives": {
+                        "caCerts": "",
+                        "remoteServer": "https://livepatch.canonical.com",
+                    },
+                    "obligations": {"enableByDefault": True},
+                },
+            ]
         },
     }
 
@@ -889,12 +925,28 @@ class TestMachineTokenOverlay:
         m_read_cache.return_value = self.machine_token_dict
 
         remote_server_overlay = "overlay"
-        json_str = '{"type": "t", "directives": {"remoteServer": "overlay"}}'
+        json_str = json.dumps(
+            {
+                "availableResources": [
+                    {"available": False, "name": "esm-infra"}
+                ],
+                "machineTokenInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "livepatch",
+                            "directives": {"remoteServer": "overlay"},
+                        }
+                    ]
+                },
+            }
+        )
         m_load_file.return_value = json_str
 
         expected = copy.deepcopy(self.machine_token_dict)
-        expected["directives"]["remoteServer"] = remote_server_overlay
-        expected["type"] = "t"
+        expected["machineTokenInfo"]["resourceEntitlements"][1]["directives"][
+            "remoteServer"
+        ] = remote_server_overlay
+        expected["availableResources"][1]["available"] = False
 
         cfg = UAConfig(cfg=user_cfg)
         assert expected == cfg.machine_token
