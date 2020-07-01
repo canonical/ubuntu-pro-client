@@ -934,6 +934,7 @@ class TestMachineTokenOverlay:
                     "resourceEntitlements": [
                         {
                             "type": "livepatch",
+                            "entitled": False,
                             "directives": {"remoteServer": "overlay"},
                         }
                     ]
@@ -946,6 +947,9 @@ class TestMachineTokenOverlay:
         expected["machineTokenInfo"]["resourceEntitlements"][1]["directives"][
             "remoteServer"
         ] = remote_server_overlay
+        expected["machineTokenInfo"]["resourceEntitlements"][1][
+            "entitled"
+        ] = False
         expected["availableResources"][1]["available"] = False
 
         cfg = UAConfig(cfg=user_cfg)
