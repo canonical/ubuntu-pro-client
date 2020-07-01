@@ -348,6 +348,10 @@ class UAConfig:
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
+        config_allow_beta = util.is_config_value_true(
+            config=self.cfg, path_to_value="features.allow_beta"
+        )
+        show_beta |= config_allow_beta
         if not show_beta:
             response = self._remove_beta_resources(response)
 

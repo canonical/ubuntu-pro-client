@@ -233,6 +233,10 @@ MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
 MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 
+ERROR_INVALID_CONFIG_VALUE = """\
+Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
+Expected {expected_value}, found {value}."""
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""

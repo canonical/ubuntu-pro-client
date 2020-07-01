@@ -52,6 +52,17 @@ def when_i_attach_staging_token(context, token_type, user_spec):
     when_i_run_command(context, "ua attach %s" % token, user_spec)
 
 
+@when("I append the following on uaclient config")
+def when_i_append_to_uaclient_config(context):
+    cmd = "printf '{}\n' > /tmp/uaclient.conf".format(context.text)
+    cmd = 'sh -c "{}"'.format(cmd)
+    when_i_run_command(context, cmd, "as non-root")
+
+    cmd = "cat /tmp/uaclient.conf >> {}".format(DEFAULT_CONFIG_FILE)
+    cmd = 'sh -c "{}"'.format(cmd)
+    when_i_run_command(context, cmd, "with sudo")
+
+
 @then("I will see the following on stdout")
 def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))

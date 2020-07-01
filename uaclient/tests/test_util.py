@@ -9,7 +9,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import cli, util
+from uaclient import cli, util, exceptions, status
 
 PRIVACY_POLICY_URL = (
     "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
@@ -558,3 +558,51 @@ class TestPromptForConfirmation:
         util.prompt_for_confirmation(msg=message, assume_yes=assume_yes)
 
         assert input_calls == m_input.call_args_list
+
+
+class TestIsConfigValueTrue:
+    @pytest.mark.parametrize(
+        "config_dict, return_val",
+        [
+            ({}, False),
+            ({}, False),
+            ({"allow_beta": "true"}, True),
+            ({"allow_beta": "True"}, True),
+            ({"allow_beta": "false"}, False),
+            ({"allow_beta": "False"}, False),
+        ],
+    )
+    def test_is_config_value_true(self, config_dict, return_val, FakeConfig):
+        cfg = FakeConfig()
+        cfg.override_features(config_dict)
+        actual_val = util.is_config_value_true(
+            config=cfg.cfg, path_to_value="features.allow_beta"
+        )
+        assert return_val == actual_val
+
+    @pytest.mark.parametrize(
+        "config_dict, key_val",
+        [
+            ({"allow_beta": "tru"}, "tru"),
+            ({"allow_beta": "Tre"}, "Tre"),
+            ({"allow_beta": "flse"}, "flse"),
+            ({"allow_beta": "Fale"}, "Fale"),
+        ],
+    )
+    def test_exception_is_config_value_true(
+        self, config_dict, key_val, FakeConfig
+    ):
+        path_to_value = "features.allow_beta"
+        cfg = FakeConfig()
+        cfg.override_features(config_dict)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            util.is_config_value_true(
+                config=cfg.cfg, path_to_value=path_to_value
+            )
+
+        expected_msg = status.ERROR_INVALID_CONFIG_VALUE.format(
+            path_to_value=path_to_value,
+            expected_value="boolean string: true or false",
+            value=key_val,
+        )
+        assert expected_msg == str(excinfo.value)
