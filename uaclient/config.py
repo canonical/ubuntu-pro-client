@@ -131,7 +131,7 @@ class UAConfig:
                 "machine_token_overlay"
             )
 
-            if machine_token_overlay_path:
+            if raw_machine_token and machine_token_overlay_path:
                 machine_token_overlay = self.parse_machine_token_overlay(
                     machine_token_overlay_path
                 )
