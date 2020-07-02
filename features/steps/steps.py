@@ -12,17 +12,23 @@ from uaclient.defaults import DEFAULT_CONFIG_FILE
 CONTAINER_PREFIX = "behave-test-"
 
 
-@given("a `{series}` lxd container with ubuntu-advantage-tools installed")
-def given_a_lxd_container(context, series):
+@given("a `{series}` machine with ubuntu-advantage-tools installed")
+def given_a_machine(context, series):
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
     else:
+        is_vm = bool(context.config.machine_type == "lxd.vm")
         now = datetime.datetime.now()
+        vm_prefix = "vm-" if is_vm else ""
         context.container_name = (
-            CONTAINER_PREFIX + series + now.strftime("-%s%f")
+            CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
         )
         launch_lxd_container(
-            context, context.series_image_name[series], context.container_name
+            context,
+            context.series_image_name[series],
+            context.container_name,
+            series=series,
+            is_vm=is_vm,
         )
 
 

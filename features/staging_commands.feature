@@ -3,7 +3,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
     @series.xenial
     Scenario: Attached enable CC EAL service in a xenial lxd container
-        Given a `xenial` lxd container with ubuntu-advantage-tools installed
+        Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua enable cc-eal` as non-root
         Then I will see the following on stderr:

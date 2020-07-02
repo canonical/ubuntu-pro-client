@@ -1,8 +1,8 @@
 Feature: Unattached status
 
     @series.trusty
-    Scenario: Unattached status in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Unattached status in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I run `ua status` as non-root
         Then I will see the following on stdout:
             """
@@ -74,8 +74,8 @@ Feature: Unattached status
             """ 
     
     @series.focal
-    Scenario: Unattached status in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Unattached status in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I run `ua status` as non-root
         Then I will see the following on stdout:
             """

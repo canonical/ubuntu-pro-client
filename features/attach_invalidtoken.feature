@@ -2,8 +2,8 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
          Advantage subscription using an invalid token
 
     @series.trusty
-    Scenario: Attach command in a trusty lxd container
-       Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attach command in a trusty machine
+       Given a `trusty` machine with ubuntu-advantage-tools installed
         When I run `ua attach INVALID_TOKEN` with sudo
         Then I will see the following on stderr:
             """
@@ -16,8 +16,8 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
              """
 
     @series.focal
-    Scenario: Attach command in a focal lxd container
-       Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attach command in a focal machine
+       Given a `focal` machine with ubuntu-advantage-tools installed
         When I run `ua attach INVALID_TOKEN` with sudo
         Then stderr matches regexp:
             """

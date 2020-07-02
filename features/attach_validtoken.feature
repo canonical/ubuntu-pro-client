@@ -3,8 +3,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
     @series.trusty
+    @uses.config.machine_type.lxd.container
     Scenario: Attach command in a trusty lxd container
-       Given a `trusty` lxd container with ubuntu-advantage-tools installed
+       Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
@@ -31,8 +32,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
     @series.focal
+    @uses.config.machine_type.lxd.container
     Scenario: Attach command in a focal lxd container
-       Given a `focal` lxd container with ubuntu-advantage-tools installed
+       Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """

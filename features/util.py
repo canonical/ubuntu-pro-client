@@ -8,11 +8,45 @@ from typing import Any, List
 
 from behave.runner import Context
 
+LXC_PROPERTY_MAP = {
+    "image": {"series": "properties.release", "machine_type": "Type"},
+    "container": {"series": "image.release", "machine_type": "image.type"},
+}
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+VM_PROFILE_TMPL = "behave-{}"
+
+# For Xenial and Bionic vendor-data required to setup lxd-agent
+# Additionally xenial needs to launch images:ubuntu/16.04/cloud
+# because it contains the HWE kernel which has vhost-vsock support
+LXC_SETUP_VENDORDATA = textwrap.dedent(
+    """\
+    config:
+      user.vendor-data: |
+        #cloud-config
+        {custom_cfg}
+        write_files:
+        - path: /var/lib/cloud/scripts/per-once/setup-lxc.sh
+          encoding: b64
+          permissions: '0755'
+          owner: root:root
+          content: |
+              IyEvYmluL3NoCmlmICEgZ3JlcCBseGRfY29uZmlnIC9wcm9jL21vdW50czsgdGhlbgogICAgbWtk
+              aXIgLXAgL3J1bi9seGRhZ2VudAogICAgbW91bnQgLXQgOXAgY29uZmlnIC9ydW4vbHhkYWdlbnQK
+              ICAgIFZJUlQ9JChzeXN0ZW1kLWRldGVjdC12aXJ0KQogICAgY2FzZSAkVklSVCBpbgogICAgICAg
+              IHFlbXV8a3ZtKQogICAgICAgICAgICAoY2QgL3J1bi9seGRhZ2VudC8gJiYgLi9pbnN0YWxsLnNo
+              KQogICAgICAgICAgICB1bW91bnQgL3J1bi9seGRhZ2VudAogICAgICAgICAgICBzeXN0ZW1jdGwg
+              c3RhcnQgbHhkLWFnZW50LTlwIGx4ZC1hZ2VudAogICAgICAgICAgICA7OwogICAgICAgICopCiAg
+              ICBlc2FjCmZpCg==
+   """
+)
 
 
 def launch_lxd_container(
-    context: Context, image_name: str, container_name: str
+    context: Context,
+    image_name: str,
+    container_name: str,
+    series: str,
+    is_vm: bool,
 ) -> None:
     """Launch a container from an image and wait for it to boot
 
@@ -21,11 +55,21 @@ def launch_lxd_container(
 
     :param context:
         A `behave.runner.Context`; used only for registering cleanups.
-
+    :param image_name:
+        The name of the lxd image to launch as base image for the container
     :param container_name:
         The name to be used for the launched container.
+    :param series: A string representing the series of the vm to create
+    :param is_vm:
+        Boolean as to whether or not to launch KVM type container
+    :param user_data:
+        Optional str of userdata to pass to the launched image
     """
-    subprocess.run(["lxc", "launch", image_name, container_name])
+    command = ["lxc", "launch", image_name, container_name]
+    if is_vm:
+        lxc_create_vm_profile(series)
+        command.extend(["--profile", VM_PROFILE_TMPL.format(series), "--vm"])
+    subprocess.run(command)
 
     def cleanup_container() -> None:
         if not context.config.destroy_instances:
@@ -35,7 +79,7 @@ def launch_lxd_container(
 
     context.add_cleanup(cleanup_container)
 
-    wait_for_boot(container_name)
+    wait_for_boot(container_name, series=series, is_vm=is_vm)
 
 
 def lxc_exec(
@@ -89,13 +133,96 @@ def lxc_exec(
     )
 
 
-def wait_for_boot(container_name: str) -> None:
+def lxc_create_vm_profile(series: str):
+    """Create a vm profile to enable launching kvm instances"""
+
+    content_tmpl = textwrap.dedent(
+        """\
+        {vendordata}
+        description: Default LXD profile for {series} VMs
+        devices:
+          config:
+            source: cloud-init:config
+            type: disk
+          eth0:
+            name: eth0
+            network: lxdbr0
+            type: nic
+          root:
+            path: /
+            pool: default
+            type: disk
+        name: vm
+    """
+    )
+    if series == "xenial":
+        # FIXME: Xenial images from images:ubuntu/16.04/cloud have HWE kernel
+        # but no openssh-server (which fips testing would expect)
+        # Work with CPC to get vhost-vsock support if possible to use
+        # ubuntu-daily:xenial images
+        content = content_tmpl.format(
+            vendordata=LXC_SETUP_VENDORDATA.format(
+                custom_cfg="packages: [openssh-server]"
+            ),
+            series=series,
+        )
+    elif series == "bionic":
+        content = content_tmpl.format(
+            vendordata=LXC_SETUP_VENDORDATA.format(custom_cfg=""),
+            series=series,
+        )
+    elif series == "focal":
+        content = content_tmpl.format(vendordata="config: {}")
+    else:
+        raise RuntimeError(
+            "===No lxc mv support for series {}====".format(series)
+        )
+    output = subprocess.check_output(["lxc", "profile", "list"])
+    profile_name = VM_PROFILE_TMPL.format(series)
+    if " {} ".format(profile_name) not in output.decode("utf-8"):
+        subprocess.run(["lxc", "profile", "create", profile_name])
+        proc = subprocess.Popen(
+            ["lxc", "profile", "edit", profile_name], stdin=subprocess.PIPE
+        )
+        proc.communicate(content.encode())
+
+
+def wait_for_boot(
+    container_name: str, series: str, is_vm: bool = False
+) -> None:
     """Wait for a test container to boot.
 
     :param container_name:
         The name of the container to wait for.
+    :param series:
+        The Ubuntu series we are waiting for.
+    :param is_vm:
+        Boolean as to whether or not to launch KVM type container
     """
-    retries = [10] * 5
+    if is_vm:
+        retries = [30, 45, 60, 75, 90, 105]
+    else:
+        retries = [5, 10, 15, 20, 20, 30]
+    if series != "trusty":
+        retcode = 1
+        for sleep_time in retries:
+            proc = lxc_exec(
+                container_name,
+                ["cloud-init", "status", "--wait", "--long"],
+                capture_output=True,
+                text=True,
+            )
+            retcode = proc.returncode
+            if retcode == 0:
+                break
+            print(
+                "Retrying on unexpected cloud-init status stderr: ",
+                proc.stderr.strip(),
+            )
+            time.sleep(sleep_time)
+        if retcode != 0:
+            raise Exception("System did not boot in {}s".format(sum(retries)))
+        return
     for sleep_time in retries:
         process = lxc_exec(
             container_name, ["runlevel"], capture_output=True, text=True
@@ -112,57 +239,49 @@ def wait_for_boot(container_name: str) -> None:
         raise Exception("System did not boot in {}s".format(sum(retries)))
 
 
-def lxc_get_series(name: str, image: bool = False):
+def lxc_get_property(name: str, property_name: str, image: bool = False):
     """Check series name of either an image or a container.
 
     :param name:
         The name of the container or the image to check its series.
+    :param property_name:
+        The name of the property to return.
     :param image:
-        If image==True will check image series
-        If image==False it will check container configuration to get series.
+        If image==True will check image properties
+        If image==False it will check container configuration to get
+        properties.
 
     :return:
-        The series of the container or the image.
+        The value of the container or image property.
        `None` if it could not detect it (
            some images don't have this field in properties).
     """
-
     if not image:
+        property_name = LXC_PROPERTY_MAP["container"][property_name]
         output = subprocess.check_output(
-            ["lxc", "config", "get", name, "image.release"],
+            ["lxc", "config", "get", name, property_name],
             universal_newlines=True,
         )
-        series = output.rstrip()
-        return series
+        return output.rstrip()
     else:
-        image_output = "image_output.yaml"
-        with open(image_output, "w") as fileoutput:
-            subprocess.run(["lxc", "image", "show", name], stdout=fileoutput)
+        property_keys = LXC_PROPERTY_MAP["image"][property_name].split(".")
         output = subprocess.check_output(
             ["lxc", "image", "show", name], universal_newlines=True
         )
         image_config = yaml.safe_load(output)
         print(" `lxc image show` output: ", image_config)
-        fileoutput.close()
-        os.remove(image_output)
-        try:
-            series = image_config["properties"]["release"]
+        value = image_config
+        for key_name in property_keys:
+            value = image_config.get(value, {})
+        if not value:
             print(
-                textwrap.dedent(
-                    """
-                You are providing a {series} image.
-                Make sure you are running this series tests.
-                For instance: --tags=series.{series}""".format(
-                        series=series
-                    )
+                "Could not detect image property {name}."
+                " Add it via `lxc image edit`".format(
+                    name=".".join(property_keys)
                 )
             )
-            return series
-        except KeyError:
-            print(
-                " Could not detect image series. Add it via `lxc image edit`"
-            )
-    return None
+            return None
+        return value
 
 
 def lxc_build_deb(container_name: str, output_deb_file: str) -> None:

@@ -2,8 +2,8 @@
 Feature: Command behaviour when attached to an UA subscription
 
     @series.trusty
-    Scenario: Attached refresh in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached refresh in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua refresh` as non-root
         Then I will see the following on stderr:
@@ -17,8 +17,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached disable of an already disabled service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an already disabled service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable livepatch` as non-root
         Then I will see the following on stderr:
@@ -33,8 +33,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached disable of an unknown service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an unknown service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable foobar` as non-root
         Then I will see the following on stderr:
@@ -49,8 +49,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached disable of different services in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of different services in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable esm-infra livepatch foobar` as non-root
         Then I will see the following on stderr:
@@ -85,8 +85,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached disable of an already enabled service in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an already enabled service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable esm-infra` as non-root
         Then I will see the following on stderr:
@@ -114,8 +114,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached detach in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached detach in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua detach` as non-root
         Then I will see the following on stderr:
@@ -147,8 +147,8 @@ Feature: Command behaviour when attached to an UA subscription
           """
 
     @series.trusty
-    Scenario: Attached auto-attach in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached auto-attach in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua auto-attach` as non-root
         Then I will see the following on stderr:
@@ -162,8 +162,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.trusty
-    Scenario: Attached show version in a trusty lxd container
-        Given a `trusty` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached show version in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua version` as non-root
         Then I will see the following on stdout:
@@ -187,8 +187,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
    @series.focal
-   Scenario: Attached refresh in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+   Scenario: Attached refresh in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua refresh` as non-root
         Then I will see the following on stderr:
@@ -202,8 +202,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached disable of an already disabled service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an already disabled service in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable livepatch` as non-root
         Then I will see the following on stderr:
@@ -219,7 +219,7 @@ Feature: Command behaviour when attached to an UA subscription
 
     @series.focal
     Scenario: Attached disable of an already disabled, enabled and not found services
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable livepatch esm-infra foobar` as non-root
         Then I will see the following on stderr:
@@ -245,8 +245,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached disable of an unknown service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an unknown service in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable foobar` as non-root
         Then I will see the following on stderr:
@@ -262,8 +262,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached disable of an already enabled service in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached disable of an already enabled service in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable esm-infra` as non-root
         Then I will see the following on stderr:
@@ -282,8 +282,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached detach in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached detach in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua detach` as non-root
         Then I will see the following on stderr:
@@ -315,8 +315,8 @@ Feature: Command behaviour when attached to an UA subscription
           """
 
     @series.focal
-    Scenario: Attached auto-attach in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached auto-attach in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua auto-attach` as non-root
         Then I will see the following on stderr:
@@ -330,8 +330,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
     @series.focal
-    Scenario: Attached show version in a focal lxd container
-        Given a `focal` lxd container with ubuntu-advantage-tools installed
+    Scenario: Attached show version in a focal machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua version` as non-root
         Then I will see the following on stdout:
