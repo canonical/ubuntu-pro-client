@@ -617,35 +617,50 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
         )
 
 
-def depth_first_merge_dict(base_dict, other_dict):
-    """Merge the contents of other dict into base_dict not only on top-level
-    keys, but on all on the depths of the other_dict object. For example,
+def depth_first_merge_overlay_dict(base_dict, overlay_dict):
+    """Merge the contents of overlay dict into base_dict not only on top-level
+    keys, but on all on the depths of the overlay_dict object. For example,
     using these values as entries for the function:
 
     base_dict = {"a": 1, "b": {"c": 2, "d": 3}}
-    other_dict = {"b": {"c": 10}}
+    overlay_dict = {"b": {"c": 10}}
 
     Should update base_dict into:
 
     {"a": 1, "b": {"c": 10, "d": 3}}
 
     @param base_dict: The dict to be updated
-    @param other_dict: The dict with information to be added into base_dict
+    @param overlay_dict: The dict with information to be added into base_dict
     """
 
-    def update_dict_list(base_values, other_values, id_key):
-        for other_value in other_values:
-            for base_value_idx, base_value in enumerate(base_values):
-                if base_value.get(id_key) == other_value.get(id_key):
-                    depth_first_merge_dict(base_value, other_value)
+    def get_id_key(key):
+        id_map = {"availableResources": "name", "resourceEntitlements": "type"}
 
-    for key, value in other_dict.items():
-        if type(base_dict.get(key)) == dict and type(value) == dict:
-            depth_first_merge_dict(base_dict[key], value)
-        elif type(base_dict.get(key)) == list and type(value) == list:
-            if key == "availableResources":
-                update_dict_list(base_dict[key], value, id_key="name")
-            elif key == "resourceEntitlements":
-                update_dict_list(base_dict[key], value, id_key="type")
+        return id_map.get(key)
+
+    def update_dict_list(base_values, overlay_values, key):
+        values_to_append = []
+        id_key = get_id_key(key)
+        for overlay_value in overlay_values:
+            was_replaced = False
+            for base_value_idx, base_value in enumerate(base_values):
+                if base_value.get(id_key) == overlay_value.get(id_key):
+                    depth_first_merge_overlay_dict(base_value, overlay_value)
+                    was_replaced = True
+
+            if not was_replaced:
+                values_to_append.append(overlay_value)
+
+        base_values.extend(values_to_append)
+
+    for key, value in overlay_dict.items():
+        base_value = base_dict.get(key)
+        if isinstance(base_value, dict) and isinstance(value, dict):
+            depth_first_merge_overlay_dict(base_dict[key], value)
+        elif isinstance(base_value, list) and isinstance(value, list):
+            if len(base_value) and isinstance(base_value[0], dict):
+                update_dict_list(base_dict[key], value, key=key)
+            else:
+                base_value.extend(value)
         else:
             base_dict[key] = value

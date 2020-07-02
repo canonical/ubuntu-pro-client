@@ -928,13 +928,15 @@ class TestMachineTokenOverlay:
         json_str = json.dumps(
             {
                 "availableResources": [
-                    {"available": False, "name": "esm-infra"}
+                    {"available": False, "name": "esm-infra"},
+                    {"available": True, "name": "test-overlay"},
                 ],
                 "machineTokenInfo": {
                     "resourceEntitlements": [
                         {
                             "type": "livepatch",
                             "entitled": False,
+                            "affordances": {"architectures": ["test"]},
                             "directives": {"remoteServer": "overlay"},
                         }
                     ]
@@ -947,12 +949,20 @@ class TestMachineTokenOverlay:
         expected["machineTokenInfo"]["resourceEntitlements"][1]["directives"][
             "remoteServer"
         ] = remote_server_overlay
+        expected["machineTokenInfo"]["resourceEntitlements"][1]["affordances"][
+            "architectures"
+        ].append("test")
         expected["machineTokenInfo"]["resourceEntitlements"][1][
             "entitled"
         ] = False
         expected["availableResources"][1]["available"] = False
+        expected["availableResources"].append(
+            {"available": True, "name": "test-overlay"}
+        )
 
         cfg = UAConfig(cfg=user_cfg)
+        print(expected)
+        print(cfg.machine_token)
         assert expected == cfg.machine_token
 
     @mock.patch("uaclient.config.UAConfig.read_cache")

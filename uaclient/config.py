@@ -137,9 +137,9 @@ class UAConfig:
                 )
 
                 if machine_token_overlay:
-                    util.depth_first_merge_dict(
+                    util.depth_first_merge_overlay_dict(
                         base_dict=raw_machine_token,
-                        other_dict=machine_token_overlay,
+                        overlay_dict=machine_token_overlay,
                     )
 
             self._machine_token = raw_machine_token
