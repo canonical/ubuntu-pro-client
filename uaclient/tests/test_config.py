@@ -875,41 +875,43 @@ class TestMachineTokenOverlay:
             {"available": False, "name": "fips"},
         ],
         "machineTokenInfo": {
-            "resourceEntitlements": [
-                {
-                    "type": "cc-eal",
-                    "entitled": False,
-                    "affordances": {
-                        "architectures": [
-                            "amd64",
-                            "ppc64el",
-                            "ppc64le",
-                            "s390x",
-                            "x86_64",
-                        ],
-                        "series": ["xenial"],
+            "contractInfo": {
+                "resourceEntitlements": [
+                    {
+                        "type": "cc-eal",
+                        "entitled": False,
+                        "affordances": {
+                            "architectures": [
+                                "amd64",
+                                "ppc64el",
+                                "ppc64le",
+                                "s390x",
+                                "x86_64",
+                            ],
+                            "series": ["xenial"],
+                        },
+                        "directives": {
+                            "additionalPackages": ["ubuntu-commoncriteria"],
+                            "aptKey": "key",
+                            "aptURL": "https://esm.ubuntu.com/cc",
+                            "suites": ["xenial"],
+                        },
                     },
-                    "directives": {
-                        "additionalPackages": ["ubuntu-commoncriteria"],
-                        "aptKey": "key",
-                        "aptURL": "https://esm.ubuntu.com/cc",
-                        "suites": ["xenial"],
+                    {
+                        "type": "livepatch",
+                        "entitled": True,
+                        "affordances": {
+                            "architectures": ["amd64", "x86_64"],
+                            "tier": "stable",
+                        },
+                        "directives": {
+                            "caCerts": "",
+                            "remoteServer": "https://livepatch.canonical.com",
+                        },
+                        "obligations": {"enableByDefault": True},
                     },
-                },
-                {
-                    "type": "livepatch",
-                    "entitled": True,
-                    "affordances": {
-                        "architectures": ["amd64", "x86_64"],
-                        "tier": "stable",
-                    },
-                    "directives": {
-                        "caCerts": "",
-                        "remoteServer": "https://livepatch.canonical.com",
-                    },
-                    "obligations": {"enableByDefault": True},
-                },
-            ]
+                ]
+            }
         },
     }
 
@@ -932,29 +934,31 @@ class TestMachineTokenOverlay:
                     {"available": True, "name": "test-overlay"},
                 ],
                 "machineTokenInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "livepatch",
-                            "entitled": False,
-                            "affordances": {"architectures": ["test"]},
-                            "directives": {"remoteServer": "overlay"},
-                        }
-                    ]
+                    "contractInfo": {
+                        "resourceEntitlements": [
+                            {
+                                "type": "livepatch",
+                                "entitled": False,
+                                "affordances": {"architectures": ["test"]},
+                                "directives": {"remoteServer": "overlay"},
+                            }
+                        ]
+                    }
                 },
             }
         )
         m_load_file.return_value = json_str
 
         expected = copy.deepcopy(self.machine_token_dict)
-        expected["machineTokenInfo"]["resourceEntitlements"][1]["directives"][
-            "remoteServer"
-        ] = remote_server_overlay
-        expected["machineTokenInfo"]["resourceEntitlements"][1]["affordances"][
-            "architectures"
-        ].append("test")
-        expected["machineTokenInfo"]["resourceEntitlements"][1][
-            "entitled"
-        ] = False
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["directives"]["remoteServer"] = remote_server_overlay
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["affordances"]["architectures"].append("test")
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["entitled"] = False
         expected["availableResources"][1]["available"] = False
         expected["availableResources"].append(
             {"available": True, "name": "test-overlay"}

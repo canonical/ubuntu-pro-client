@@ -69,6 +69,15 @@ def when_i_append_to_uaclient_config(context):
     when_i_run_command(context, cmd, "with sudo")
 
 
+@when("I create the file `{file_path}` with the following")
+def when_i_create_file_with_content(context, file_path):
+    text = context.text.replace('"', '\\"')
+
+    cmd = "printf '{}\n' > {}".format(text, file_path)
+    cmd = 'sh -c "{}"'.format(cmd)
+    when_i_run_command(context, cmd, "as non-root")
+
+
 @then("I will see the following on stdout")
 def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))
