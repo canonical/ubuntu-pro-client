@@ -1007,7 +1007,8 @@ class TestMachineTokenOverlay:
         json_str = '{"directives": {"remoteServer": "overlay"}'
         m_load_file.return_value = json_str
         expected_msg = status.ERROR_JSON_DECODING_IN_FILE.format(
-            file_path=invalid_json_path
+            error="Expecting ',' delimiter: line 1 column 43 (char 42)",
+            file_path=invalid_json_path,
         )
 
         cfg = UAConfig(cfg=user_cfg)
