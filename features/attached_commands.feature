@@ -216,6 +216,16 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        no
             """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
+        When I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
 
    @series.focal
    Scenario: Attached refresh in a focal machine
@@ -414,4 +424,14 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        no
+            """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
+        When I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
             """
