@@ -606,33 +606,3 @@ class TestIsConfigValueTrue:
             value=key_val,
         )
         assert expected_msg == str(excinfo.value)
-
-
-class TestDepthFirstMergeDict:
-    @pytest.mark.parametrize(
-        "base_dict, overlay_dict, expected_dict",
-        [
-            ({"a": 1, "b": 2}, {"c": 3}, {"a": 1, "b": 2, "c": 3}),
-            (
-                {"a": 1, "b": {"c": 2, "d": 3}},
-                {"a": 1, "b": {"c": 10}},
-                {"a": 1, "b": {"c": 10, "d": 3}},
-            ),
-            (
-                {"a": 1, "b": {"c": 2, "d": 3}},
-                {"d": {"f": 20}},
-                {"a": 1, "b": {"c": 2, "d": 3}, "d": {"f": 20}},
-            ),
-            ({"a": 1, "b": 2}, {}, {"a": 1, "b": 2}),
-            ({"a": 1, "b": 2}, {"a": "test"}, {"a": "test", "b": 2}),
-            ({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
-            ({"a": []}, {"a": [1, 2, 3]}, {"a": [1, 2, 3]}),
-            ({"a": [5, 6]}, {"a": [1, 2, 3]}, {"a": [5, 6, 1, 2, 3]}),
-            ({"a": [{"b": 1}]}, {"a": [{"c": 2}]}, {"a": [{"b": 1, "c": 2}]}),
-        ],
-    )
-    def test_depth_first_merge_dict(
-        self, base_dict, overlay_dict, expected_dict
-    ):
-        util.depth_first_merge_overlay_dict(base_dict, overlay_dict)
-        assert expected_dict == base_dict

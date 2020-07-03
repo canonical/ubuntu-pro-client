@@ -15,6 +15,7 @@ from uaclient.config import (
     PRIVATE_SUBDIR,
     UAConfig,
     parse_config,
+    depth_first_merge_overlay_dict,
 )
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
@@ -955,7 +956,7 @@ class TestMachineTokenOverlay:
         ]["directives"]["remoteServer"] = remote_server_overlay
         expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
             1
-        ]["affordances"]["architectures"].append("test")
+        ]["affordances"]["architectures"] = ["test"]
         expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
             1
         ]["entitled"] = False
@@ -1014,3 +1015,33 @@ class TestMachineTokenOverlay:
             cfg.machine_token
 
         assert expected_msg == str(excinfo.value)
+
+
+class TestDepthFirstMergeOverlayDict:
+    @pytest.mark.parametrize(
+        "base_dict, overlay_dict, expected_dict",
+        [
+            ({"a": 1, "b": 2}, {"c": 3}, {"a": 1, "b": 2, "c": 3}),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"a": 1, "b": {"c": 10}},
+                {"a": 1, "b": {"c": 10, "d": 3}},
+            ),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"d": {"f": 20}},
+                {"a": 1, "b": {"c": 2, "d": 3}, "d": {"f": 20}},
+            ),
+            ({"a": 1, "b": 2}, {}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"a": "test"}, {"a": "test", "b": 2}),
+            ({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+            ({"a": []}, {"a": [1, 2, 3]}, {"a": [1, 2, 3]}),
+            ({"a": [5, 6]}, {"a": [1, 2, 3]}, {"a": [1, 2, 3]}),
+            ({"a": [{"b": 1}]}, {"a": [{"c": 2}]}, {"a": [{"b": 1, "c": 2}]}),
+        ],
+    )
+    def test_depth_first_merge_dict(
+        self, base_dict, overlay_dict, expected_dict
+    ):
+        depth_first_merge_overlay_dict(base_dict, overlay_dict)
+        assert expected_dict == base_dict

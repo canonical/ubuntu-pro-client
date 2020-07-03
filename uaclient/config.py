@@ -31,6 +31,10 @@ DEFAULT_STATUS = {
 LOG = logging.getLogger(__name__)
 
 PRIVATE_SUBDIR = "private"
+MERGE_ID_KEY_MAP = {
+    "availableResources": "name",
+    "resourceEntitlements": "type",
+}
 
 
 # A data path is a filename, and an attribute ("private") indicating whether it
@@ -137,7 +141,7 @@ class UAConfig:
                 )
 
                 if machine_token_overlay:
-                    util.depth_first_merge_overlay_dict(
+                    depth_first_merge_overlay_dict(
                         base_dict=raw_machine_token,
                         overlay_dict=machine_token_overlay,
                     )
@@ -436,3 +440,50 @@ def parse_config(config_path=None):
             )
         )
     return cfg
+
+
+def depth_first_merge_overlay_dict(base_dict, overlay_dict):
+    """Merge the contents of overlay dict into base_dict not only on top-level
+    keys, but on all on the depths of the overlay_dict object. For example,
+    using these values as entries for the function:
+
+    base_dict = {"a": 1, "b": {"c": 2, "d": 3}}
+    overlay_dict = {"b": {"c": 10}}
+
+    Should update base_dict into:
+
+    {"a": 1, "b": {"c": 10, "d": 3}}
+
+    @param base_dict: The dict to be updated
+    @param overlay_dict: The dict with information to be added into base_dict
+    """
+
+    def update_dict_list(base_values, overlay_values, key):
+        values_to_append = []
+        id_key = MERGE_ID_KEY_MAP.get(key)
+        for overlay_value in overlay_values:
+            was_replaced = False
+            for base_value_idx, base_value in enumerate(base_values):
+                if base_value.get(id_key) == overlay_value.get(id_key):
+                    depth_first_merge_overlay_dict(base_value, overlay_value)
+                    was_replaced = True
+
+            if not was_replaced:
+                values_to_append.append(overlay_value)
+
+        base_values.extend(values_to_append)
+
+    for key, value in overlay_dict.items():
+        base_value = base_dict.get(key)
+        if isinstance(base_value, dict) and isinstance(value, dict):
+            depth_first_merge_overlay_dict(base_dict[key], value)
+        elif isinstance(base_value, list) and isinstance(value, list):
+            if len(base_value) and isinstance(base_value[0], dict):
+                update_dict_list(base_dict[key], value, key=key)
+            else:
+                """
+                Most other lists which aren't lists of dicts are lists of
+                strs. Replace that list # with the overlay value."""
+                base_dict[key] = value
+        else:
+            base_dict[key] = value
