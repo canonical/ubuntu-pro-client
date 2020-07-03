@@ -45,9 +45,9 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
         Examples: beta services in containers
-           | service      | flag                |
-           | fips         | --assume-yes --beta |
-           | fips-updates | --assume-yes --beta |
+           | service      | flag         |
+           | fips         | --assume-yes |
+           | fips-updates | --assume-yes |
 
     @series.trusty
     Scenario: Attached enable Common Criteria service in a trusty machine

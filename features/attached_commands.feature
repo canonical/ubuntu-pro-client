@@ -168,22 +168,22 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `ua version` as non-root
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua version` with sudo
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua --version` as non-root
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua --version` with sudo
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
 
     @series.trusty
@@ -377,22 +377,22 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `ua version` as non-root
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua version` with sudo
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua --version` as non-root
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
         When I run `ua --version` with sudo
         Then I will see the following on stdout:
             """
-            20.4
+            25.0
             """
 
     @series.focal
