@@ -186,7 +186,6 @@ Feature: Command behaviour when attached to an UA subscription
             20.4
             """
 
-    @wip
     @series.trusty
     Scenario: Unattached status in a trusty machine with machine token overlay
         Given a `trusty` machine with ubuntu-advantage-tools installed
