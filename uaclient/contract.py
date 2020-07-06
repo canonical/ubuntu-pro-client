@@ -262,7 +262,7 @@ def request_updated_contract(
             )
         except util.UrlError as e:
             if isinstance(e, ContractAPIError):
-                if hasattr(e, "code") and e.code == 401:
+                if hasattr(e, "code") and e.code in (401, 403):
                     raise exceptions.UserFacingError(
                         status.MESSAGE_ATTACH_INVALID_TOKEN
                     )

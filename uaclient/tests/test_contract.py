@@ -223,10 +223,11 @@ class TestRequestUpdatedContract:
         )
         assert expected_msg == str(exc.value)
 
+    @pytest.mark.parametrize("error_code", (401, 403))
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self, client, get_machine_id, FakeConfig
+        self, client, get_machine_id, FakeConfig, error_code
     ):
         """When attaching, invalid token errors result in proper user error."""
 
@@ -235,7 +236,10 @@ class TestRequestUpdatedContract:
             fake_client._responses = {
                 API_V1_CONTEXT_MACHINE_TOKEN: ContractAPIError(
                     util.UrlError(
-                        "Server error", code=401, url="http://me", headers={}
+                        "Server error",
+                        code=error_code,
+                        url="http://me",
+                        headers={}
                     ),
                     error_response={
                         "message": "unauthorized"
