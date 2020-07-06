@@ -16,6 +16,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     fips_required_packages = frozenset({"fips-initramfs", "linux-fips"})
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
     is_beta = True
+    blocking_entitlements = ["livepatch"]
 
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
     # Review this fix to see if we want more general functionality for all

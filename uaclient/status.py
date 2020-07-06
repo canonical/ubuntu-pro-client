@@ -162,6 +162,9 @@ This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
+MESSAGE_BLOCKING_ENTITLEMENT_IS_ENABLED = """\
+Failed to enable {ent_name} because the following services are \
+enabled: {blocking_ents}."""
 
 PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (

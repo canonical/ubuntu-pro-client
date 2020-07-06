@@ -26,6 +26,7 @@ class LivepatchEntitlement(base.UAEntitlement):
     name = "livepatch"
     title = "Livepatch"
     description = "Canonical Livepatch service"
+    blocking_entitlements = ["fips", "fips-update"]
 
     # Use a lambda so we can mock util.is_container in tests
     static_affordances = (

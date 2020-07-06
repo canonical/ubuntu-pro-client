@@ -4,7 +4,7 @@ import logging
 import re
 
 try:
-    from typing import Any, Callable, Dict, Optional, Tuple  # noqa: F401
+    from typing import Any, Callable, Dict, List, Optional, Tuple  # noqa: F401
 
     StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
@@ -32,11 +32,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
-    #  Whether to assume yes to any messaging prompts
+    # Whether to assume yes to any messaging prompts
     assume_yes = False
 
     # Wheter that entitlement is in beta stage
     is_beta = False
+
+    # List of services that if enabled, will block enabling the service
+    blocking_entitlements = []  # type: List[str]
 
     @property
     @abc.abstractmethod
@@ -102,6 +105,32 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
+    def check_for_blocking_entitlements(self):
+        """
+        Check whether a blocking entitlements for the entitlement
+        we are trying to enable is already enable. We will iterate
+        over all blocking entitlements of a service and return all
+        of the ones that are active in the user machine.
+
+        @return: List containing the name of the enabled blocking
+                 entitlements.
+        """
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        enabled_blocking_ents = []
+
+        for ent_name in self.blocking_entitlements:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(ent_name)
+
+            if ent_cls is not None:
+                ent_obj = ent_cls()
+                ent_status, _ = ent_obj.application_status()
+
+                if ent_status == status.ApplicationStatus.ENABLED:
+                    enabled_blocking_ents.append(ent_name)
+
+        return enabled_blocking_ents
+
     def can_enable(self, silent: bool = False) -> bool:
         """
         Report whether or not enabling is possible for the entitlement.
@@ -113,6 +142,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 "Updating contract on service '%s' expiry", self.name
             )
             contract.request_updated_contract(self.cfg)
+        if len(self.blocking_entitlements):
+            enabled_blocking_ents = self.check_for_blocking_entitlements()
+
+            if len(enabled_blocking_ents) > 0:
+                print(
+                    status.MESSAGE_BLOCKING_ENTITLEMENT_IS_ENABLED.format(
+                        ent_name=self.name,
+                        blocking_ents=", ".join(enabled_blocking_ents),
+                    )
+                )
+                return False
         if not self.contract_status() == ContractStatus.ENTITLED:
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))

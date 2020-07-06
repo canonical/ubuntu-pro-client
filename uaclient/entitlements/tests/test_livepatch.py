@@ -1,10 +1,13 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import contextlib
 import copy
+import io
 import logging
 import mock
 from functools import partial
 from types import MappingProxyType
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
 try:
     from typing import Any, Dict, List  # noqa: F401
@@ -635,3 +638,36 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+
+    @pytest.mark.parametrize(
+        "blocking_entitlements", [(["fips"]), (["fips-update"])]
+    )
+    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    def test_enable_fails_when_blocking_service_is_enabled(
+        self, m_handle_message_op, entitlement, blocking_entitlements
+    ):
+        entitlement_return_value = {}
+        for ent_name in blocking_entitlements:
+            m_entitlement_cls = mock.MagicMock()
+            entitlement_return_value[ent_name] = m_entitlement_cls
+            m_entitlement_obj = m_entitlement_cls.return_value
+            m_entitlement_obj.application_status.return_value = (
+                status.ApplicationStatus.ENABLED,
+                "",
+            )
+
+        with mock.patch.dict(
+            ENTITLEMENT_CLASS_BY_NAME, entitlement_return_value, clear=True
+        ):
+            m_handle_message_op.return_value = True
+
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                entitlement.enable()
+
+            msg_tmpl = status.MESSAGE_BLOCKING_ENTITLEMENT_IS_ENABLED
+            expected_msg = msg_tmpl.format(
+                ent_name=entitlement.name,
+                blocking_ents=", ".join(blocking_entitlements),
+            )
+            assert expected_msg.strip() == fake_stdout.getvalue().strip()
