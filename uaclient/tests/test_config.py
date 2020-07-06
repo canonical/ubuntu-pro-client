@@ -15,6 +15,7 @@ from uaclient.config import (
     PRIVATE_SUBDIR,
     UAConfig,
     parse_config,
+    depth_first_merge_overlay_dict,
 )
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
@@ -865,3 +866,183 @@ class TestParseConfig:
                 parse_config()
         expected_msg = "Invalid url in config. contract_url: htp://contract"
         assert expected_msg == excinfo.value.msg
+
+
+class TestMachineTokenOverlay:
+    machine_token_dict = {
+        "availableResources": [
+            {"available": False, "name": "cc-eal"},
+            {"available": True, "name": "esm-infra"},
+            {"available": False, "name": "fips"},
+        ],
+        "machineTokenInfo": {
+            "contractInfo": {
+                "resourceEntitlements": [
+                    {
+                        "type": "cc-eal",
+                        "entitled": False,
+                        "affordances": {
+                            "architectures": [
+                                "amd64",
+                                "ppc64el",
+                                "ppc64le",
+                                "s390x",
+                                "x86_64",
+                            ],
+                            "series": ["xenial"],
+                        },
+                        "directives": {
+                            "additionalPackages": ["ubuntu-commoncriteria"],
+                            "aptKey": "key",
+                            "aptURL": "https://esm.ubuntu.com/cc",
+                            "suites": ["xenial"],
+                        },
+                    },
+                    {
+                        "type": "livepatch",
+                        "entitled": True,
+                        "affordances": {
+                            "architectures": ["amd64", "x86_64"],
+                            "tier": "stable",
+                        },
+                        "directives": {
+                            "caCerts": "",
+                            "remoteServer": "https://livepatch.canonical.com",
+                        },
+                        "obligations": {"enableByDefault": True},
+                    },
+                ]
+            }
+        },
+    }
+
+    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    def test_machine_token_update_with_overlay(
+        self, m_path, m_read_cache, m_load_file
+    ):
+        user_cfg = {
+            "features": {"machine_token_overlay": "machine-token-path"}
+        }
+        m_read_cache.return_value = self.machine_token_dict
+
+        remote_server_overlay = "overlay"
+        json_str = json.dumps(
+            {
+                "availableResources": [
+                    {"available": False, "name": "esm-infra"},
+                    {"available": True, "name": "test-overlay"},
+                ],
+                "machineTokenInfo": {
+                    "contractInfo": {
+                        "resourceEntitlements": [
+                            {
+                                "type": "livepatch",
+                                "entitled": False,
+                                "affordances": {"architectures": ["test"]},
+                                "directives": {"remoteServer": "overlay"},
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+        m_load_file.return_value = json_str
+
+        expected = copy.deepcopy(self.machine_token_dict)
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["directives"]["remoteServer"] = remote_server_overlay
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["affordances"]["architectures"] = ["test"]
+        expected["machineTokenInfo"]["contractInfo"]["resourceEntitlements"][
+            1
+        ]["entitled"] = False
+        expected["availableResources"][1]["available"] = False
+        expected["availableResources"].append(
+            {"available": True, "name": "test-overlay"}
+        )
+
+        cfg = UAConfig(cfg=user_cfg)
+        print(expected)
+        print(cfg.machine_token)
+        assert expected == cfg.machine_token
+
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    def test_machine_token_without_overlay(self, m_read_cache):
+        user_cfg = {}
+        m_read_cache.return_value = self.machine_token_dict
+        cfg = UAConfig(cfg=user_cfg)
+        assert self.machine_token_dict == cfg.machine_token
+
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    def test_machine_token_overlay_file_not_found(self, m_path, m_read_cache):
+        invalid_path = "machine-token-path"
+        user_cfg = {"features": {"machine_token_overlay": invalid_path}}
+        m_read_cache.return_value = self.machine_token_dict
+
+        cfg = UAConfig(cfg=user_cfg)
+        expected_msg = status.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
+            file_path=invalid_path
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            cfg.machine_token
+
+        assert expected_msg == str(excinfo.value)
+
+    @mock.patch("uaclient.util.load_file")
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    def test_machine_token_overlay_json_decode_error(
+        self, m_path, m_read_cache, m_load_file
+    ):
+        invalid_json_path = "machine-token-path"
+        user_cfg = {"features": {"machine_token_overlay": invalid_json_path}}
+        m_read_cache.return_value = self.machine_token_dict
+
+        json_str = '{"directives": {"remoteServer": "overlay"}'
+        m_load_file.return_value = json_str
+        expected_msg = status.ERROR_JSON_DECODING_IN_FILE.format(
+            error="Expecting ',' delimiter: line 1 column 43 (char 42)",
+            file_path=invalid_json_path,
+        )
+
+        cfg = UAConfig(cfg=user_cfg)
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            cfg.machine_token
+
+        assert expected_msg == str(excinfo.value)
+
+
+class TestDepthFirstMergeOverlayDict:
+    @pytest.mark.parametrize(
+        "base_dict, overlay_dict, expected_dict",
+        [
+            ({"a": 1, "b": 2}, {"c": 3}, {"a": 1, "b": 2, "c": 3}),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"a": 1, "b": {"c": 10}},
+                {"a": 1, "b": {"c": 10, "d": 3}},
+            ),
+            (
+                {"a": 1, "b": {"c": 2, "d": 3}},
+                {"d": {"f": 20}},
+                {"a": 1, "b": {"c": 2, "d": 3}, "d": {"f": 20}},
+            ),
+            ({"a": 1, "b": 2}, {}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"a": "test"}, {"a": "test", "b": 2}),
+            ({}, {"a": 1, "b": 2}, {"a": 1, "b": 2}),
+            ({"a": []}, {"a": [1, 2, 3]}, {"a": [1, 2, 3]}),
+            ({"a": [5, 6]}, {"a": [1, 2, 3]}, {"a": [1, 2, 3]}),
+            ({"a": [{"b": 1}]}, {"a": [{"c": 2}]}, {"a": [{"b": 1, "c": 2}]}),
+        ],
+    )
+    def test_depth_first_merge_dict(
+        self, base_dict, overlay_dict, expected_dict
+    ):
+        depth_first_merge_overlay_dict(base_dict, overlay_dict)
+        assert expected_dict == base_dict

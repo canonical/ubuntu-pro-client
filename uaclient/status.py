@@ -238,6 +238,10 @@ MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
+INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
+Failed to find the machine token overlay file: {file_path}"""
+ERROR_JSON_DECODING_IN_FILE = """\
+Found error: {error} when reading json file: {file_path}"""
 
 
 def colorize(string: str) -> str:

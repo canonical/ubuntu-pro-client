@@ -10,9 +10,10 @@ from uaclient import util
 
 __VERSION__ = "25.0"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
+VERSION_TMPL = "{version}{overlay}"
 
 
-def get_version(_args=None):
+def get_version(_args=None, machine_token_overlay_str=""):
     """Return the packaged version as a string
 
          Prefer the binary PACKAGED_VESION set by debian/rules to DEB_VERSION.
@@ -24,7 +25,9 @@ def get_version(_args=None):
               parse the debian/changelog in that case
     """
     if not PACKAGED_VERSION.startswith("@@PACKAGED_VERSION"):
-        return PACKAGED_VERSION
+        return VERSION_TMPL.format(
+            version=PACKAGED_VERSION, overlay=machine_token_overlay_str
+        )
     topdir = os.path.dirname(os.path.dirname(__file__))
     if os.path.exists(os.path.join(topdir, ".git")):
         cmd = ["git", "describe", "--abbrev=8", "--match=[0-9]*", "--long"]
@@ -36,5 +39,9 @@ def get_version(_args=None):
             # packaging repo
             cmd = ["dpkg-parsechangelog", "-S", "version"]
             out, _ = util.subp(cmd)
-            return out.strip()
-    return __VERSION__
+            return VERSION_TMPL.format(
+                version=out.strip(), overlay=machine_token_overlay_str
+            )
+    return VERSION_TMPL.format(
+        version=__VERSION__, overlay=machine_token_overlay_str
+    )

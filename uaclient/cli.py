@@ -564,7 +564,7 @@ def get_parser():
     parser.add_argument(
         "--version",
         action="version",
-        version=version.get_version(),
+        version=get_version(),
         help="show version of {}".format(NAME),
     )
     parser._optionals.title = "Flags"
@@ -646,8 +646,21 @@ def action_status(args, cfg):
     return 0
 
 
+def get_version(_args=None, _cfg=None):
+    if _cfg is None:
+        _cfg = config.UAConfig()
+
+    machine_token_overlay_str = ""
+    if _cfg.cfg.get("features", {}).get("machine_token_overlay") is not None:
+        machine_token_overlay_str = " +machine-token-overlay"
+
+    return version.get_version(
+        machine_token_overlay_str=machine_token_overlay_str
+    )
+
+
 def print_version(_args=None, _cfg=None):
-    print(version.get_version())
+    print(get_version(_args, _cfg))
 
 
 @assert_root

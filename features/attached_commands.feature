@@ -186,6 +186,47 @@ Feature: Command behaviour when attached to an UA subscription
             20.4
             """
 
+    @series.trusty
+    Scenario: Unattached status in a trusty machine with machine token overlay
+        Given a `trusty` machine with ubuntu-advantage-tools installed
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "cc-eal",
+                            "entitled": false
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I attach `contract_token` with sudo
+        And I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        no
+            """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
+        When I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
+
    @series.focal
    Scenario: Attached refresh in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
@@ -352,4 +393,45 @@ Feature: Command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             20.4
+            """
+
+    @series.focal
+    Scenario: Unattached status in a focal machine with machine token overlay
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "cc-eal",
+                            "entitled": false
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I attach `contract_token` with sudo
+        And I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        no
+            """
+        When I run `ua --version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
+            """
+        When I run `ua version` as non-root
+        Then I will see the following on stdout:
+            """
+            25.0 +machine-token-overlay
             """
