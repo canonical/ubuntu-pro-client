@@ -183,7 +183,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
-    @wip
     @series.xenial
     @uses.config.machine_type.lxd.vm
     Scenario: Attached enable of vm-based services in a bionic lxd vm

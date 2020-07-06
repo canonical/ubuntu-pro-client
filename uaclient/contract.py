@@ -14,7 +14,6 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-API_ERROR_INVALID_TOKEN = "invalid token"
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
     "/v1/contracts/{contract}/context/machines/{machine}"
@@ -263,7 +262,7 @@ def request_updated_contract(
             )
         except util.UrlError as e:
             if isinstance(e, ContractAPIError):
-                if API_ERROR_INVALID_TOKEN in e:
+                if hasattr(e, "code") and e.code == 401:
                     raise exceptions.UserFacingError(
                         status.MESSAGE_ATTACH_INVALID_TOKEN
                     )

@@ -235,10 +235,10 @@ class TestRequestUpdatedContract:
             fake_client._responses = {
                 API_V1_CONTEXT_MACHINE_TOKEN: ContractAPIError(
                     util.UrlError(
-                        "Server error", code=500, url="http://me", headers={}
+                        "Server error", code=401, url="http://me", headers={}
                     ),
                     error_response={
-                        "message": "invalid token: checksum error"
+                        "message": "unauthorized"
                     },
                 )
             }
