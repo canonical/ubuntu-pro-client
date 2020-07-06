@@ -194,6 +194,8 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
+MESSAGE_ATTACH_EXPIRED_TOKEN = """\
+Expired token. To obtain a new token visit: https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_INVALID_TOKEN = """\
 Invalid token. See https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_REQUIRES_TOKEN = """\
