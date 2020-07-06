@@ -262,10 +262,15 @@ def request_updated_contract(
             )
         except util.UrlError as e:
             if isinstance(e, ContractAPIError):
-                if hasattr(e, "code") and e.code in (401, 403):
-                    raise exceptions.UserFacingError(
-                        status.MESSAGE_ATTACH_INVALID_TOKEN
-                    )
+                if hasattr(e, "code"):
+                    if e.code == 401:
+                        raise exceptions.UserFacingError(
+                            status.MESSAGE_ATTACH_INVALID_TOKEN
+                        )
+                    elif e.code == 403:
+                        raise exceptions.UserFacingError(
+                            status.MESSAGE_ATTACH_EXPIRED_TOKEN
+                        )
                 raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))

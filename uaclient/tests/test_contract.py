@@ -19,6 +19,7 @@ from uaclient import exceptions
 from uaclient import util
 from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_ERROR,
+    MESSAGE_ATTACH_EXPIRED_TOKEN,
     MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
@@ -223,11 +224,17 @@ class TestRequestUpdatedContract:
         )
         assert expected_msg == str(exc.value)
 
-    @pytest.mark.parametrize("error_code", (401, 403))
+    @pytest.mark.parametrize(
+        "error_code, error_msg",
+        (
+            (401, MESSAGE_ATTACH_INVALID_TOKEN),
+            (403, MESSAGE_ATTACH_EXPIRED_TOKEN),
+        ),
+    )
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self, client, get_machine_id, FakeConfig, error_code
+        self, client, get_machine_id, FakeConfig, error_code, error_msg
     ):
         """When attaching, invalid token errors result in proper user error."""
 
@@ -239,11 +246,9 @@ class TestRequestUpdatedContract:
                         "Server error",
                         code=error_code,
                         url="http://me",
-                        headers={}
+                        headers={},
                     ),
-                    error_response={
-                        "message": "unauthorized"
-                    },
+                    error_response={"message": "unauthorized"},
                 )
             }
             return fake_client
@@ -253,7 +258,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg, contract_token="yep")
 
-        assert MESSAGE_ATTACH_INVALID_TOKEN == str(exc.value)
+        assert error_msg == str(exc.value)
 
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
