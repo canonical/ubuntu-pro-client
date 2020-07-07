@@ -166,25 +166,13 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua version` with sudo
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua --version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua --version` with sudo
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
 
     @series.trusty
     Scenario: Unattached status in a trusty machine with machine token overlay
@@ -217,15 +205,9 @@ Feature: Command behaviour when attached to an UA subscription
             cc-eal        no
             """
         When I run `ua --version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0 +machine-token-overlay
-            """
+        Then I will see the uaclient version on stdout with overlay info
         When I run `ua version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0 +machine-token-overlay
-            """
+        Then I will see the uaclient version on stdout with overlay info
 
    @series.focal
    Scenario: Attached refresh in a focal machine
@@ -375,25 +357,13 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua version` with sudo
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua --version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
         When I run `ua --version` with sudo
-        Then I will see the following on stdout:
-            """
-            25.0
-            """
+        Then I will see the uaclient version on stdout
 
     @series.focal
     Scenario: Unattached status in a focal machine with machine token overlay
@@ -426,12 +396,6 @@ Feature: Command behaviour when attached to an UA subscription
             cc-eal        no
             """
         When I run `ua --version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0 +machine-token-overlay
-            """
+        Then I will see the uaclient version on stdout with overlay info
         When I run `ua version` as non-root
-        Then I will see the following on stdout:
-            """
-            25.0 +machine-token-overlay
-            """
+        Then I will see the uaclient version on stdout with overlay info

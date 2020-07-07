@@ -7,6 +7,7 @@ from hamcrest import assert_that, equal_to, matches_regexp
 from features.util import launch_lxd_container, lxc_exec
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
+from uaclient.version import get_version
 
 
 CONTAINER_PREFIX = "behave-test-"
@@ -96,6 +97,21 @@ def then_stderr_matches_regexp(context):
 @then("I will see the following on stderr")
 def then_i_will_see_on_stderr(context):
     assert_that(context.process.stderr.strip(), equal_to(context.text))
+
+
+@then("I will see the uaclient version on stdout")
+def then_i_will_see_the_uaclient_version_on_stdout(context):
+    assert_that(context.process.stdout.strip(), equal_to(get_version()))
+
+
+@then("I will see the uaclient version on stdout with overlay info")
+def then_i_will_see_the_uaclient_version_with_overlay_info(context):
+    assert_that(
+        context.process.stdout.strip(),
+        equal_to(
+            get_version(machine_token_overlay_str=" +machine_token_overlay")
+        ),
+    )
 
 
 def get_command_prefix_for_user_spec(user_spec):
