@@ -16,6 +16,7 @@ from features.util import (
 )
 
 PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
+ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 
 class UAClientBehaveConfig:
@@ -211,8 +212,14 @@ def before_scenario(context: Context, scenario: Scenario):
                     reason="TODO: cannot test trusty using lxd.vm GH: #1088"
                 )
                 return
-            if series not in context.series_image_name:
-                create_uat_lxd_image(context, series)
+            elif series == "all":
+                series = ALL_SUPPORTED_SERIES
+            else:
+                series = [series]
+
+            for release in series:
+                if release not in context.series_image_name:
+                    create_uat_lxd_image(context, release)
 
 
 def after_all(context):
@@ -244,7 +251,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
-    the image.    The image's name is stored in context.series_image_name for
+    the image. The image's name is stored in context.series_image_name for
     use within step code.
 
     :param context:

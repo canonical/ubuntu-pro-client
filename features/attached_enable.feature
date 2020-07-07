@@ -1,6 +1,137 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an UA subscription
 
+    @series.all
+    Scenario Outline: Attached enable Common Criteria service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable cc-eal` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable cc-eal --beta` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            <msg>
+            """
+
+        Examples: ubuntu release
+           | release | msg                                                            |
+           | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
+           | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
+           | trusty  | CC EAL2 is not available for Ubuntu 14.04 LTS (Trusty Tahr).   |
+
+    @series.all
+    Scenario Outline: Attached enable a disabled beta service and unknown service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable fips foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable fips foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable 'foobar, fips'
+            For a list of services see: sudo ua status
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
+
+    @series.all
+    Scenario Outline: Attached enable of an unknown service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        Then stderr matches regexp:
+            """
+            Cannot enable 'foobar'
+            For a list of services see: sudo ua status
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
+
+    @series.all
+    Scenario Outline: Attached enable of a known service already enabled (UA Infra) in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable esm-infra` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            ESM Infra is already enabled.
+            See: sudo ua status
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable a disabled, enable and unknown service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable livepatch esm-infra foobar` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua enable livepatch esm-infra foobar` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Cannot install Livepatch on a container
+            ESM Infra is already enabled.
+            See: sudo ua status
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable 'foobar'
+            For a list of services see: sudo ua status
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
+
     @series.trusty
     @uses.config.machine_type.lxd.container
     Scenario Outline:  Attached enable of non-container services in a trusty lxd container
@@ -50,22 +181,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | --assume-yes |
 
     @series.trusty
-    Scenario: Attached enable Common Criteria service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable cc-eal` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable cc-eal --beta` with sudo
-        Then I will see the following on stdout
-            """
-            One moment, checking your subscription first
-            CC EAL2 is not available for Ubuntu 14.04 LTS (Trusty Tahr).
-            """
-
-    @series.trusty
     Scenario Outline: Attached enable not entitled service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -86,86 +201,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | service      | title        |
            | cis-audit    | CIS Audit    |
            | esm-apps     | ESM Apps     |
-
-    @series.trusty
-    Scenario: Attached enable of an unknown service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable foobar` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And I will see the following on stderr:
-            """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-    @series.trusty
-    Scenario: Attached enable of a known service already enabled (UA Infra) in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable esm-infra` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-
-    @series.trusty
-    Scenario: Attached enable a disabled, enable and unknown service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable livepatch esm-infra foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable livepatch esm-infra foobar` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install Livepatch on a container
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-        And I will see the following on stderr:
-            """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-    @series.trusty
-    Scenario: Attached enable a disabled beta service and unknown service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable fips foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips foobar` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable 'foobar, fips'
-            For a list of services see: sudo ua status
-            """
 
     @series.focal
     @uses.config.machine_type.lxd.vm
@@ -260,22 +295,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | fips-updates | --assume-yes |
 
     @series.focal
-    Scenario: Attached enable Common Criteria service in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable cc-eal` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable cc-eal --beta` with sudo
-        Then I will see the following on stdout
-            """
-            One moment, checking your subscription first
-            CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).
-            """
-
-    @series.focal
     Scenario Outline: Attached enable not entitled service in a focal machine
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -296,80 +315,3 @@ Feature: Enable command behaviour when attached to an UA subscription
            | service      | title        |
            | cis-audit    | CIS Audit    |
            | esm-apps     | ESM Apps     |
-
-    @series.focal
-    Scenario: Attached enable of an unknown service in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable foobar` with sudo
-        Then stderr matches regexp:
-            """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-    @series.focal
-    Scenario: Attached enable of a known service already enabled (UA Infra) in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable esm-infra` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-
-    @series.focal
-    @uses.config.machine_type.lxd.container
-    Scenario: Attached enable a disabled, enabled and unknown service in a focal lxd container
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable livepatch esm-infra foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable livepatch esm-infra foobar` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install Livepatch on a container
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
-            """
-
-    @series.focal
-    Scenario: Attached enable a disabled beta service and unknown service in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable fips foobar` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable fips foobar` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable 'foobar, fips'
-            For a list of services see: sudo ua status
-	    """
