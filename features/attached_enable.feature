@@ -132,6 +132,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  |
            | xenial  |
 
+
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
@@ -267,6 +268,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS enabled
             A reboot is required to complete install
             """
+<<<<<<< HEAD
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
             """
@@ -315,3 +317,57 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release |
            | xenial  |
            | bionic  |
+=======
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable fips on a machine with livepatch active
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua disable livepatch` with sudo
+        Then I will see the following on stdout:
+            """
+            Removing canonical-livepatch snap
+            """
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
+            """
+        When I run `ua enable livepatch` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Failed to enable livepatch because the following services are enabled: fips.
+            """
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable livepatch on a machine with fips active
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Failed to enable fips because the following services are enabled: livepatch.
+            """
+>>>>>>> Add behave tests
