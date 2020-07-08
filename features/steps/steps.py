@@ -98,6 +98,33 @@ def then_i_will_see_on_stderr(context):
     assert_that(context.process.stderr.strip(), equal_to(context.text))
 
 
+@then("I will see the uaclient version on stdout")
+def then_i_will_see_the_uaclient_version_on_stdout(context, overlay_str=None):
+    python_import = "from uaclient.version import get_version"
+
+    if overlay_str is not None:
+        python_cmd = 'get_version(machine_token_overlay_str="{}")'.format(
+            overlay_str
+        )
+    else:
+        python_cmd = "get_version()"
+
+    cmd = "python3 -c '{}; print({})'".format(python_import, python_cmd)
+
+    actual_version = context.process.stdout.strip()
+    when_i_run_command(context, cmd, "as non-root")
+    expected_version = context.process.stdout.strip()
+
+    assert_that(expected_version, equal_to(actual_version))
+
+
+@then("I will see the uaclient version on stdout with overlay info")
+def then_i_will_see_the_uaclient_version_with_overlay_info(context):
+    then_i_will_see_the_uaclient_version_on_stdout(
+        context, " +machine-token-overlay"
+    )
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
