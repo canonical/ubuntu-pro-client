@@ -349,7 +349,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
-            Failed to enable livepatch because the following services are enabled: fips.
+            Cannot enable Livepatch when FIPS is enabled
             """
 
     @series.bionic
@@ -368,6 +368,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
-            Failed to enable fips because the following services are enabled: livepatch.
+            Cannot enable FIPS when Livepatch is enabled
             """
 >>>>>>> Add behave tests

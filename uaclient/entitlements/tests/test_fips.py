@@ -14,7 +14,6 @@ from uaclient import defaults
 from uaclient import status, util
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 from uaclient import exceptions
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
 
 M_PATH = "uaclient.entitlements.fips."
@@ -340,36 +339,25 @@ class TestFIPSEntitlementEnable:
         for call in m_subp.call_args_list:
             assert "remove" not in call[0][0]
 
-    @pytest.mark.parametrize("blocking_entitlements", [(["livepatch"])])
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     def test_enable_fails_when_blocking_service_is_enabled(
-        self, m_handle_message_op, entitlement, blocking_entitlements
+        self, m_handle_message_op, entitlement
     ):
-        entitlement_return_value = {}
-        for ent_name in blocking_entitlements:
-            m_entitlement_cls = mock.MagicMock()
-            entitlement_return_value[ent_name] = m_entitlement_cls
-            m_entitlement_obj = m_entitlement_cls.return_value
-            m_entitlement_obj.application_status.return_value = (
-                status.ApplicationStatus.ENABLED,
-                "",
-            )
+        m_handle_message_op.return_value = True
+        base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
 
-        with mock.patch.dict(
-            ENTITLEMENT_CLASS_BY_NAME, entitlement_return_value, clear=True
-        ):
-            m_handle_message_op.return_value = True
-
+        with mock.patch(
+            "{}.application_status".format(base_path)
+        ) as m_livepatch:
+            m_livepatch.return_value = (status.ApplicationStatus.ENABLED, "")
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
                 entitlement.enable()
 
-            msg_tmpl = status.MESSAGE_BLOCKING_ENTITLEMENT_IS_ENABLED
-            expected_msg = msg_tmpl.format(
-                ent_name=entitlement.name,
-                blocking_ents=", ".join(blocking_entitlements),
-            )
-            assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        expected_msg = "Cannot enable {} when Livepatch is enabled".format(
+            entitlement.title
+        )
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
 
 def _fips_pkg_combinations():
