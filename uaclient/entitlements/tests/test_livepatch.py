@@ -646,8 +646,14 @@ class TestLivepatchEntitlementEnable:
         ),
     )
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_blocking_service_is_enabled(
-        self, m_handle_message_op, cls_name, cls_title, entitlement
+        self,
+        m_is_container,
+        m_handle_message_op,
+        cls_name,
+        cls_title,
+        entitlement,
     ):
         m_handle_message_op.return_value = True
 

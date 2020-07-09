@@ -340,8 +340,9 @@ class TestFIPSEntitlementEnable:
             assert "remove" not in call[0][0]
 
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_blocking_service_is_enabled(
-        self, m_handle_message_op, entitlement
+        self, m_is_container, m_handle_message_op, entitlement
     ):
         m_handle_message_op.return_value = True
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
