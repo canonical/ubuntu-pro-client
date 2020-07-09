@@ -1,5 +1,27 @@
 Feature: Command behaviour when unattached
 
+    @series.all
+    Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `ua auto-attach` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+            """
+            Auto-attach image support is not available on <data>
+            See: https://ubuntu.com/advantage
+            """
+
+        Examples: ubuntu release
+           | release | data       |
+           | bionic  | lxd        |
+           | focal   | lxd        |
+           | trusty  | nocloudnet |
+           | xenial  | lxd        |
+
     @series.trusty
     Scenario Outline: Unattached commands that requires enabled user in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
@@ -42,21 +64,6 @@ Feature: Command behaviour when unattached
            | disable  | livepatch |
            | enable   | unknown   |
            | disable  | unknown   |
-
-    @series.trusty
-    Scenario: Unattached auto-attach does nothing in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I run `ua auto-attach` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua auto-attach` with sudo
-        Then stderr matches regexp:
-            """
-            Auto-attach image support is not available on nocloudnet
-            See: https://ubuntu.com/advantage
-            """
 
     @series.focal
     Scenario Outline: Unattached commands that requires enabled user in a focal machine
@@ -101,18 +108,3 @@ Feature: Command behaviour when unattached
            | enable  | livepatch |
            | disable | unknown   |
            | enable  | unknown   |
-
-    @series.focal
-    Scenario: Unattached auto-attach does nothing in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I run `ua auto-attach` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua auto-attach` with sudo
-        Then stderr matches regexp:
-            """
-            Auto-attach image support is not available on lxd
-            See: https://ubuntu.com/advantage
-            """
