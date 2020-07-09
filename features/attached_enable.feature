@@ -132,10 +132,10 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  |
            | xenial  |
 
-    @series.trusty
+    @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline:  Attached enable of non-container services in a trusty lxd container
-        Given a `trusty` machine with ubuntu-advantage-tools installed
+    Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
         Then I will see the following on stderr:
@@ -150,14 +150,23 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
         Examples: Un-supported services in containers
-           | service      | title        | flag                 |
-           | livepatch    | Livepatch    |                      |
-           | fips         | FIPS         | --assume-yes --beta  |
-           | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | release | service      | title        | flag                 |
+           | bionic  | livepatch    | Livepatch    |                      |
+           | bionic  | fips         | FIPS         | --assume-yes --beta  |
+           | bionic  | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | focal   | livepatch    | Livepatch    |                      |
+           | focal   | fips         | FIPS         | --assume-yes --beta  |
+           | focal   | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | trusty  | livepatch    | Livepatch    |                      |
+           | trusty  | fips         | FIPS         | --assume-yes --beta  |
+           | trusty  | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | xenial  | livepatch    | Livepatch    |                      |
+           | xenial  | fips         | FIPS         | --assume-yes --beta  |
+           | xenial  | fips-updates | FIPS Updates | --assume-yes --beta  |
 
-    @series.trusty
-    Scenario Outline:  Attached enable of non-container beta services in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
+    @series.all
+    Scenario Outline:  Attached enable of non-container beta services in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service> <flag>` as non-root
         Then I will see the following on stderr:
@@ -169,20 +178,26 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             """
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
             Cannot enable '<service>'
             For a list of services see: sudo ua status
             """
 
         Examples: beta services in containers
-           | service      | flag         |
-           | fips         | --assume-yes |
-           | fips-updates | --assume-yes |
+           | release | service      | flag         |
+           | bionic  | fips         | --assume-yes |
+           | bionic  | fips-updates | --assume-yes |
+           | focal   | fips         | --assume-yes |
+           | focal   | fips-updates | --assume-yes |
+           | trusty  | fips         | --assume-yes |
+           | trusty  | fips-updates | --assume-yes |
+           | xenial  | fips         | --assume-yes |
+           | xenial  | fips-updates | --assume-yes |
 
-    @series.trusty
-    Scenario Outline: Attached enable not entitled service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
+    @series.all
+    Scenario Outline: Attached enable not entitled service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua enable <service>` as non-root
         Then I will see the following on stderr:
@@ -198,9 +213,15 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
         Examples: not entitled services
-           | service      | title        |
-           | cis-audit    | CIS Audit    |
-           | esm-apps     | ESM Apps     |
+           | release | service      | title        |
+           | bionic  | cis-audit    | CIS Audit    |
+           | bionic  | esm-apps     | ESM Apps     |
+           | focal   | cis-audit    | CIS Audit    |
+           | focal   | esm-apps     | ESM Apps     |
+           | trusty  | cis-audit    | CIS Audit    |
+           | trusty  | esm-apps     | ESM Apps     |
+           | xenial  | cis-audit    | CIS Audit    |
+           | xenial  | esm-apps     | ESM Apps     |
 
     @series.focal
     @uses.config.machine_type.lxd.vm
@@ -245,73 +266,3 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS enabled
             A reboot is required to complete install
             """
-
-    @series.focal
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached enable of vm-based services in a focal lxd container
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable <service> <flag>` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable <service> <flag>` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install <title> on a container
-            """
-
-        Examples: Un-supported services in containers
-           | service      | title        | flag                 |
-           | livepatch    | Livepatch    |                      |
-           | fips         | FIPS         | --assume-yes --beta  |
-           | fips-updates | FIPS Updates | --assume-yes --beta  |
-
-    @series.focal
-    Scenario Outline:  Attached enable of vm-only beta services in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable <service> <flag>` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable <service> <flag>` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable '<service>'
-            For a list of services see: sudo ua status
-            """
-
-        Examples: beta services in containers
-           | service      | flag         |
-           | fips         | --assume-yes |
-           | fips-updates | --assume-yes |
-
-    @series.focal
-    Scenario Outline: Attached enable not entitled service in a focal machine
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua enable <service>` as non-root
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        When I run `ua enable <service> --beta` with sudo
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            This subscription is not entitled to <title>.
-            For more information see: https://ubuntu.com/advantage
-            """
-
-        Examples: not entitled services
-           | service      | title        |
-           | cis-audit    | CIS Audit    |
-           | esm-apps     | ESM Apps     |
