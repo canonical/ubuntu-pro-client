@@ -229,13 +229,15 @@ Feature: Enable command behaviour when attached to an UA subscription
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         When I run `ua enable fips --assume-yes --beta` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
+            One moment, checking your subscription first
             FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
         When I run `ua enable fips-updates --assume-yes --beta` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout:
             """
+            One moment, checking your subscription first
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
