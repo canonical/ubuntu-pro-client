@@ -1,5 +1,6 @@
 import datetime
 import os
+import itertools
 import subprocess
 import textwrap
 from typing import Dict, Optional, Union, List
@@ -16,6 +17,7 @@ from features.util import (
 )
 
 PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
+ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 
 class UAClientBehaveConfig:
@@ -70,7 +72,8 @@ class UAClientBehaveConfig:
         machine_type: str = "lxd.container",
         reuse_image: str = None,
         contract_token: str = None,
-        contract_token_staging: str = None
+        contract_token_staging: str = None,
+        cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
         self.build_pr = build_pr
@@ -80,7 +83,14 @@ class UAClientBehaveConfig:
         self.destroy_instances = destroy_instances
         self.machine_type = machine_type
         self.reuse_image = reuse_image
-
+        self.cmdline_tags = cmdline_tags
+        self.filter_series = set(
+            [
+                tag.split(".")[1]
+                for tag in cmdline_tags
+                if tag.startswith("series.")
+            ]
+        )
         # Next, perform any required validation
         if self.reuse_image is not None:
             if self.image_clean:
@@ -96,10 +106,17 @@ class UAClientBehaveConfig:
             print("  {}".format(option), "=", value)
 
     @classmethod
-    def from_environ(cls) -> "UAClientBehaveConfig":
+    def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from os.environ and return a config object"""
         # First, gather all known options
-        kwargs: Dict[str, Union[str, bool]] = {}
+        kwargs: Dict[str, Union[str, bool, "List"]] = {}
+        # Preserve cmdline_tags for reference
+        if not config.tags.ands:
+            kwargs["cmdline_tags"] = []
+        else:
+            kwargs["cmdline_tags"] = list(
+                itertools.chain.from_iterable(config.tags.ands)
+            )
         for key, value in os.environ.items():
             if not key.startswith(cls.prefix):
                 continue
@@ -125,7 +142,7 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.reuse_container = {}
-    context.config = UAClientBehaveConfig.from_environ()
+    context.config = UAClientBehaveConfig.from_environ(context.config)
 
     if context.config.reuse_image:
         series = lxc_get_property(
@@ -202,17 +219,19 @@ def before_scenario(context: Context, scenario: Scenario):
     if reason:
         scenario.skip(reason=reason)
         return
+    releases = set([])
     for tag in scenario.effective_tags:
         parts = tag.split(".")
         if parts[0] == "series":
-            series = parts[1]
-            if series == "trusty" and context.config.machine_type == "lxd.vm":
-                scenario.skip(
-                    reason="TODO: cannot test trusty using lxd.vm GH: #1088"
-                )
-                return
-            if series not in context.series_image_name:
-                create_uat_lxd_image(context, series)
+            if parts[1] == "all":
+                releases.update(ALL_SUPPORTED_SERIES)
+            else:
+                releases.update([parts[1]])
+    if context.config.filter_series:
+        releases = releases.intersection(context.config.filter_series)
+    for release in releases:
+        if release not in context.series_image_name:
+            create_uat_lxd_image(context, release)
 
 
 def after_all(context):
@@ -244,7 +263,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
-    the image.    The image's name is stored in context.series_image_name for
+    the image. The image's name is stored in context.series_image_name for
     use within step code.
 
     :param context:
