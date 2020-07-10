@@ -19,9 +19,9 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release | msg                                                            |
+           | trusty  | CC EAL2 is not available for Ubuntu 14.04 LTS (Trusty Tahr).   |
            | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
            | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
-           | trusty  | CC EAL2 is not available for Ubuntu 14.04 LTS (Trusty Tahr).   |
 
     @series.all
     Scenario Outline: Attached enable a disabled beta service and unknown service in a ubuntu machine
@@ -45,10 +45,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached enable of an unknown service in a ubuntu machine
@@ -72,10 +72,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached enable of a known service already enabled (UA Infra) in a ubuntu machine
@@ -96,10 +96,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -127,10 +127,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -151,18 +151,18 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: Un-supported services in containers
            | release | service      | title        | flag                 |
-           | bionic  | livepatch    | Livepatch    |                      |
-           | bionic  | fips         | FIPS         | --assume-yes --beta  |
-           | bionic  | fips-updates | FIPS Updates | --assume-yes --beta  |
-           | focal   | livepatch    | Livepatch    |                      |
-           | focal   | fips         | FIPS         | --assume-yes --beta  |
-           | focal   | fips-updates | FIPS Updates | --assume-yes --beta  |
            | trusty  | livepatch    | Livepatch    |                      |
            | trusty  | fips         | FIPS         | --assume-yes --beta  |
            | trusty  | fips-updates | FIPS Updates | --assume-yes --beta  |
            | xenial  | livepatch    | Livepatch    |                      |
            | xenial  | fips         | FIPS         | --assume-yes --beta  |
            | xenial  | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | bionic  | livepatch    | Livepatch    |                      |
+           | bionic  | fips         | FIPS         | --assume-yes --beta  |
+           | bionic  | fips-updates | FIPS Updates | --assume-yes --beta  |
+           | focal   | livepatch    | Livepatch    |                      |
+           | focal   | fips         | FIPS         | --assume-yes --beta  |
+           | focal   | fips-updates | FIPS Updates | --assume-yes --beta  |
 
     @series.all
     Scenario Outline:  Attached enable of non-container beta services in a ubuntu machine
@@ -186,14 +186,14 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: beta services in containers
            | release | service      | flag         |
-           | bionic  | fips         | --assume-yes |
-           | bionic  | fips-updates | --assume-yes |
-           | focal   | fips         | --assume-yes |
-           | focal   | fips-updates | --assume-yes |
            | trusty  | fips         | --assume-yes |
            | trusty  | fips-updates | --assume-yes |
            | xenial  | fips         | --assume-yes |
            | xenial  | fips-updates | --assume-yes |
+           | bionic  | fips         | --assume-yes |
+           | bionic  | fips-updates | --assume-yes |
+           | focal   | fips         | --assume-yes |
+           | focal   | fips-updates | --assume-yes |
 
     @series.all
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
@@ -214,14 +214,14 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: not entitled services
            | release | service      | title        |
-           | bionic  | cis-audit    | CIS Audit    |
-           | bionic  | esm-apps     | ESM Apps     |
-           | focal   | cis-audit    | CIS Audit    |
-           | focal   | esm-apps     | ESM Apps     |
            | trusty  | cis-audit    | CIS Audit    |
            | trusty  | esm-apps     | ESM Apps     |
            | xenial  | cis-audit    | CIS Audit    |
            | xenial  | esm-apps     | ESM Apps     |
+           | bionic  | cis-audit    | CIS Audit    |
+           | bionic  | esm-apps     | ESM Apps     |
+           | focal   | cis-audit    | CIS Audit    |
+           | focal   | esm-apps     | ESM Apps     |
 
     @series.focal
     @uses.config.machine_type.lxd.vm

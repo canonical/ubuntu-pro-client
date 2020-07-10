@@ -18,10 +18,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
@@ -41,10 +41,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached disable of an unknown service in a ubuntu machine
@@ -64,10 +64,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached detach in a trusty machine
@@ -104,10 +104,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release | esm-apps | cc-eal | fips | fips-update |
-           | bionic  | yes      | no     | yes  | yes         |
-           | focal   | yes      | no     | no   | no          |
            | trusty  | no       | no     | no   | no          |
            | xenial  | yes      | yes    | yes  | yes         |
+           | bionic  | yes      | no     | yes  | yes         |
+           | focal   | yes      | no     | no   | no          |
 
     @series.all
     Scenario Outline: Attached auto-attach in a ubuntu machine
@@ -126,10 +126,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached show version in a ubuntu machine
@@ -146,10 +146,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Unattached status in a ubuntu machine with machine token overlay
@@ -188,10 +188,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached disable of different services in a ubuntu machine
@@ -222,10 +222,10 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached disable of an already enabled service in a ubuntu machine
@@ -249,7 +249,7 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |

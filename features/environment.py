@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import os
 import subprocess
 import textwrap
@@ -71,7 +72,8 @@ class UAClientBehaveConfig:
         machine_type: str = "lxd.container",
         reuse_image: str = None,
         contract_token: str = None,
-        contract_token_staging: str = None
+        contract_token_staging: str = None,
+        cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
         self.build_pr = build_pr
@@ -96,11 +98,27 @@ class UAClientBehaveConfig:
                 value = "<REDACTED>"
             print("  {}".format(option), "=", value)
 
+        self.cmdline_tags = cmdline_tags
+        self.filter_series = set(
+            [
+                tag.split(".")[1]
+                for tag in cmdline_tags
+                if tag.startswith("series.")
+            ]
+        )
+
     @classmethod
-    def from_environ(cls) -> "UAClientBehaveConfig":
+    def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from os.environ and return a config object"""
         # First, gather all known options
-        kwargs: Dict[str, Union[str, bool]] = {}
+        kwargs: Dict[str, Union[str, bool, "List"]] = {}
+        # Preserve cmdline_tags for reference
+        if not config.tags.ands:
+            kwargs["cmdline_tags"] = []
+        else:
+            kwargs["cmdline_tags"] = list(
+                itertools.chain.from_iterable(config.tags.ands)
+            )
         for key, value in os.environ.items():
             if not key.startswith(cls.prefix):
                 continue
@@ -126,7 +144,7 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.reuse_container = {}
-    context.config = UAClientBehaveConfig.from_environ()
+    context.config = UAClientBehaveConfig.from_environ(context.config)
 
     if context.config.reuse_image:
         series = lxc_get_property(
@@ -203,21 +221,20 @@ def before_scenario(context: Context, scenario: Scenario):
     if reason:
         scenario.skip(reason=reason)
         return
+
+    releases = set([])
     for tag in scenario.effective_tags:
         parts = tag.split(".")
         if parts[0] == "series":
-            series = parts[1]
-            if series == "trusty" and context.config.machine_type == "lxd.vm":
-                scenario.skip(
-                    reason="TODO: cannot test trusty using lxd.vm GH: #1088"
-                )
-                return
-            elif series == "all":
-                series = ALL_SUPPORTED_SERIES
+            if parts[1] == "all":
+                releases.update(ALL_SUPPORTED_SERIES)
             else:
-                series = [series]
+                releases.update([parts[1]])
 
-            for release in series:
+            if context.config.filter_series:
+                releases = releases.intersection(context.config.filter_series)
+
+            for release in releases:
                 if release not in context.series_image_name:
                     create_uat_lxd_image(context, release)
 

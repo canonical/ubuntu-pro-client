@@ -17,7 +17,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |

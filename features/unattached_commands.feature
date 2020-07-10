@@ -17,10 +17,10 @@ Feature: Command behaviour when unattached
 
         Examples: ubuntu release
            | release | data       |
-           | bionic  | lxd        |
-           | focal   | lxd        |
            | trusty  | nocloudnet |
            | xenial  | lxd        |
+           | bionic  | lxd        |
+           | focal   | lxd        |
 
     @series.all
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
@@ -39,14 +39,14 @@ Feature: Command behaviour when unattached
 
         Examples: ua commands
            | release | command |
-           | bionic  | detach  |
-           | bionic  | refresh |
-           | focal   | detach  |
-           | focal   | refresh |
            | trusty  | detach  |
            | trusty  | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
+           | bionic  | detach  |
+           | bionic  | refresh |
+           | focal   | detach  |
+           | focal   | refresh |
 
     @series.all
     Scenario Outline: Unattached command known and unknown services in a ubuntu machine
@@ -66,14 +66,6 @@ Feature: Command behaviour when unattached
 
         Examples: ua commands
            | release | command  | service   |
-           | bionic  | enable   | livepatch |
-           | bionic  | disable  | livepatch |
-           | bionic  | enable   | unknown   |
-           | bionic  | disable  | unknown   |
-           | focal   | enable   | livepatch |
-           | focal   | disable  | livepatch |
-           | focal   | enable   | unknown   |
-           | focal   | disable  | unknown   |
            | trusty  | enable   | livepatch |
            | trusty  | disable  | livepatch |
            | trusty  | enable   | unknown   |
@@ -82,3 +74,11 @@ Feature: Command behaviour when unattached
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
+           | bionic  | enable   | livepatch |
+           | bionic  | disable  | livepatch |
+           | bionic  | enable   | unknown   |
+           | bionic  | disable  | unknown   |
+           | focal   | enable   | livepatch |
+           | focal   | disable  | livepatch |
+           | focal   | enable   | unknown   |
+           | focal   | disable  | unknown   |

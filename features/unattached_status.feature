@@ -75,7 +75,7 @@ Feature: Unattached status
 
         Examples: ubuntu release
            | release | esm-apps | cc-eal | fips | fips-update |
-           | bionic  | yes      | no     | yes  | yes         |
-           | focal   | yes      | no     | no   | no          |
            | trusty  | no       | no     | no   | no          |
            | xenial  | yes      | yes    | yes  | yes         |
+           | bionic  | yes      | no     | yes  | yes         |
+           | focal   | yes      | no     | no   | no          |

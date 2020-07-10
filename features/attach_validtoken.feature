@@ -29,7 +29,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
