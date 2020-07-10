@@ -31,6 +31,7 @@ class UAClientBehaveConfig:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
         A valid staging contract token to use during attach scenarios
+    :param cmdline_tags: Tags used to control which scenarios will be executed
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
