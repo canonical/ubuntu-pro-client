@@ -266,3 +266,30 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS enabled
             A reboot is required to complete install
             """
+
+    @series.bionic
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable livepatch on a machine with fips active
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `canonical-livepatch status` with sudo
+        Then I will see the following on stderr:
+            """
+            sudo: canonical-livepatch: command not found
+            """
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `canonical-livepatch status` with sudo
+        Then stdout matches regexp:
+            """
+            running: true
+            """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
