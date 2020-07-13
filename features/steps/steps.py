@@ -1,10 +1,16 @@
 import datetime
+import subprocess
 import shlex
 
 from behave import given, then, when
 from hamcrest import assert_that, equal_to, matches_regexp
 
-from features.util import launch_lxd_container, lxc_exec, wait_for_boot
+from features.util import (
+    launch_lxd_container,
+    launch_ec2,
+    lxc_exec,
+    wait_for_boot,
+)
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 
@@ -27,6 +33,17 @@ def given_a_machine(context, series):
         return
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
+        if context.config.machine_type == "pro.aws":
+            context.instance = context.config.ec2_api.get_instance(
+                context.container_name
+            )
+    elif context.config.machine_type == "pro.aws":
+        context.instance = launch_ec2(
+            context,
+            series=series,
+            image_name=context.series_image_name[series],
+        )
+        context.container_name = context.instance.id
     else:
         is_vm = bool(context.config.machine_type == "lxd.vm")
         now = datetime.datetime.now()
@@ -36,9 +53,9 @@ def given_a_machine(context, series):
         )
         launch_lxd_container(
             context,
-            context.series_image_name[series],
-            context.container_name,
             series=series,
+            image_name=context.series_image_name[series],
+            container_name=context.container_name,
             is_vm=is_vm,
         )
 
@@ -46,12 +63,19 @@ def given_a_machine(context, series):
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(context, command, user_spec):
     prefix = get_command_prefix_for_user_spec(user_spec)
-    process = lxc_exec(
-        context.container_name,
-        prefix + shlex.split(command),
-        capture_output=True,
-        text=True,
-    )
+    full_cmd = prefix + shlex.split(command)
+    if context.config.machine_type == "pro.aws":
+        result = context.instance.execute(full_cmd)
+        process = subprocess.CompletedProcess(
+            args=full_cmd,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            returncode=result.return_code,
+        )
+    else:
+        process = lxc_exec(
+            context.container_name, full_cmd, capture_output=True, text=True
+        )
     context.process = process
 
 
