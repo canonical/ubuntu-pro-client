@@ -72,7 +72,7 @@ def launch_lxd_container(
     subprocess.run(command)
 
     if is_vm:
-        """ When we publish vm images we end up loosing the image information.
+        """ When we publish vm images we end up losing the image information.
         Since we need at least the release information to reuse the vm instance
         in other tests, we are adding this information back here."""
         subprocess.run(["lxc", "stop", container_name])
