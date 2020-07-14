@@ -146,6 +146,17 @@ def then_i_will_see_the_uaclient_version_with_overlay_info(context):
     )
 
 
+@then("I verify that the `{cmd_name}` command is not found")
+def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
+    cmd = "which {} || echo FAILURE".format(cmd_name)
+    cmd = 'sh -c "{}"'.format(cmd)
+    when_i_run_command(context, cmd, "as non-root")
+
+    expected_return = "FAILURE"
+    actual_return = context.process.stdout.strip()
+    assert_that(expected_return, equal_to(actual_return))
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
