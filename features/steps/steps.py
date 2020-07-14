@@ -4,7 +4,7 @@ import shlex
 from behave import given, then, when
 from hamcrest import assert_that, equal_to, matches_regexp
 
-from features.util import launch_lxd_container, lxc_exec
+from features.util import launch_lxd_container, lxc_exec, wait_for_boot
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 
@@ -87,6 +87,16 @@ def when_i_create_file_with_content(context, file_path):
     cmd = "printf '{}\n' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
     when_i_run_command(context, cmd, "as non-root")
+
+
+@when("I reboot the `{series}` machine")
+def when_i_reboot_the_machine(context, series):
+    when_i_run_command(context, "reboot", "with sudo")
+
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    wait_for_boot(
+        container_name=context.container_name, series=series, is_vm=is_vm
+    )
 
 
 @then("I will see the following on stdout")
