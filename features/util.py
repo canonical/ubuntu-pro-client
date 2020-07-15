@@ -71,6 +71,16 @@ def launch_lxd_container(
         command.extend(["--profile", VM_PROFILE_TMPL.format(series), "--vm"])
     subprocess.run(command)
 
+    if is_vm:
+        """ When we publish vm images we end up losing the image information.
+        Since we need at least the release information to reuse the vm instance
+        in other tests, we are adding this information back here."""
+        subprocess.run(["lxc", "stop", container_name])
+        subprocess.run(
+            ["lxc", "config", "set", container_name, "image.release", series]
+        )
+        subprocess.run(["lxc", "start", container_name])
+
     def cleanup_container() -> None:
         if not context.config.destroy_instances:
             print("Leaving lxd container running: {}".format(container_name))
@@ -172,7 +182,7 @@ def lxc_create_vm_profile(series: str):
             series=series,
         )
     elif series == "focal":
-        content = content_tmpl.format(vendordata="config: {}")
+        content = content_tmpl.format(vendordata="config: {}", series=series)
     else:
         raise RuntimeError(
             "===No lxc mv support for series {}====".format(series)

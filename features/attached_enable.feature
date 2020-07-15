@@ -236,14 +236,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             One moment, checking your subscription first
             FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
-
-    @series.focal
-    @uses.config.machine_type.lxd.vm
-    Scenario: Attached enable of vm-based services in a focal lxd vm
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `ua enable fips-updates --assume-yes --beta` with sudo
+        When I run `ua enable fips-updates --assume-yes --beta` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
