@@ -132,6 +132,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  |
            | xenial  |
 
+
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
@@ -228,14 +229,24 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario: Attached enable of vm-based services in a focal lxd vm
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `ua enable fips --assume-yes --beta` with sudo
-        Then stdout matches regexp:
+        And I run `ua disable livepatch` with sudo
+        And I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout:
             """
+            One moment, checking your subscription first
             FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
-        When I run `ua enable fips-updates --assume-yes --beta` with sudo
-        Then stdout matches regexp:
+
+    @series.focal
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable of vm-based services in a focal lxd vm
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua disable livepatch` with sudo
+        And I run `ua enable fips-updates --assume-yes --beta` with sudo
+        Then I will see the following on stdout:
             """
+            One moment, checking your subscription first
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
@@ -315,3 +326,56 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release |
            | xenial  |
            | bionic  |
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable fips on a machine with livepatch active
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua disable livepatch` with sudo
+        Then I will see the following on stdout:
+            """
+            Removing canonical-livepatch snap
+            """
+        Then I verify that the `canonical-livepatch` command is not found
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
+            """
+        When I run `ua enable livepatch` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Cannot enable Livepatch when FIPS is enabled
+            """
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario: Attached enable livepatch on a machine with fips active
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Cannot enable FIPS when Livepatch is enabled
+            """

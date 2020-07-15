@@ -4,7 +4,7 @@ import logging
 import re
 
 try:
-    from typing import Any, Callable, Dict, Optional, Tuple  # noqa: F401
+    from typing import Any, Callable, Dict, List, Optional, Tuple  # noqa: F401
 
     StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
@@ -32,7 +32,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Optional URL for top-level product service information
     help_doc_url = None  # type: str
 
-    #  Whether to assume yes to any messaging prompts
+    # Whether to assume yes to any messaging prompts
     assume_yes = False
 
     # Wheter that entitlement is in beta stage
@@ -59,7 +59,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with
     # <failure_message>. Overridden in livepatch and fips
-    static_affordances = ()  # type: Tuple[StaticAffordance, ...]
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        return ()
 
     def __init__(
         self, cfg: "Optional[config.UAConfig]" = None, assume_yes: bool = False
