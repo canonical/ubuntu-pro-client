@@ -1,6 +1,8 @@
 """Tests related to uaclient.entitlement.base module."""
 
+import contextlib
 import copy
+import io
 import logging
 import mock
 from functools import partial
@@ -635,3 +637,35 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+
+    @pytest.mark.parametrize(
+        "cls_name, cls_title",
+        (
+            ("FIPSEntitlement", "FIPS"),
+            ("FIPSUpdatesEntitlement", "FIPS Updates"),
+        ),
+    )
+    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.is_container", return_value=False)
+    def test_enable_fails_when_blocking_service_is_enabled(
+        self,
+        m_is_container,
+        m_handle_message_op,
+        cls_name,
+        cls_title,
+        entitlement,
+    ):
+        m_handle_message_op.return_value = True
+
+        fake_stdout = io.StringIO()
+        with mock.patch(
+            "uaclient.entitlements.fips.{}.application_status".format(cls_name)
+        ) as m_fips:
+            m_fips.return_value = (status.ApplicationStatus.ENABLED, "")
+            with contextlib.redirect_stdout(fake_stdout):
+                entitlement.enable()
+
+        expected_msg = "Cannot enable Livepatch when {} is enabled".format(
+            cls_title
+        )
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
