@@ -126,12 +126,17 @@ class UAConfig:
         return bool(self.machine_token)  # machine_token is removed on detach
 
     @property
+    def features(self):
+        """Return a dictionary of any features provided in uaclient.conf."""
+        return self.cfg.get("features", {})
+
+    @property
     def machine_token(self):
         """Return the machine-token if cached in the machine token response."""
         if not self._machine_token:
             raw_machine_token = self.read_cache("machine-token")
 
-            machine_token_overlay_path = self.cfg.get("features", {}).get(
+            machine_token_overlay_path = self.features.get(
                 "machine_token_overlay"
             )
 
