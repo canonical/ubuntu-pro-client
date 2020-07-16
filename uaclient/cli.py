@@ -511,6 +511,13 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
 @assert_root
 def action_auto_attach(args, cfg):
+    disable_auto_attach = util.is_config_value_true(
+        config=cfg.cfg, path_to_value="features.disable_auto_attach"
+    )
+    if disable_auto_attach:
+        msg = "Skipping auto-attach. Config disable_auto_attach is set."
+        logging.debug(msg)
+        return 0
     token = _get_contract_token_from_cloud_identity(cfg)
     return _attach_with_token(cfg, token=token, allow_enable=True)
 
@@ -650,13 +657,7 @@ def get_version(_args=None, _cfg=None):
     if _cfg is None:
         _cfg = config.UAConfig()
 
-    machine_token_overlay_str = ""
-    if _cfg.cfg.get("features", {}).get("machine_token_overlay") is not None:
-        machine_token_overlay_str = " +machine-token-overlay"
-
-    return version.get_version(
-        machine_token_overlay_str=machine_token_overlay_str
-    )
+    return version.get_version(features=_cfg.features)
 
 
 def print_version(_args=None, _cfg=None):

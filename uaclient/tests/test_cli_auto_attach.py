@@ -232,6 +232,7 @@ class TestGetContractTokenFromCloudIdentity:
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
+
     @mock.patch(M_ID_PATH + "cloud_instance_factory")
     def test_already_attached_on_non_ubuntu_pro(
         self, m_cloud_instance_factory, _m_getuid, FakeConfig
@@ -261,6 +262,9 @@ class TestActionAutoAttach:
             action_auto_attach(mock.MagicMock(), FakeConfig())
         assert 0 == request_updated_contract.call_count
 
+    @pytest.mark.parametrize(
+        "features_override", ((None), ({"disable_auto_attach": True}))
+    )
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
     @mock.patch(M_PATH + "action_status")
@@ -270,12 +274,20 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity,
         request_updated_contract,
         _m_getuid,
+        features_override,
         FakeConfig,
     ):
         """A mock-heavy test for the happy path on auto attach AWS"""
         # TODO: Improve this test with less general mocking and more
         # post-conditions
         cfg = FakeConfig()
+        if features_override:
+            cfg.override_features(features_override)
+            expected_calls = []
+        else:
+            expected_calls = [
+                mock.call(cfg, "myPKCS7-token", allow_enable=True)
+        ]
         get_contract_token_from_cloud_identity.return_value = "myPKCS7-token"
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):
@@ -286,7 +298,6 @@ class TestActionAutoAttach:
 
         ret = action_auto_attach(mock.MagicMock(), cfg)
         assert 0 == ret
-        expected_calls = [mock.call(cfg, "myPKCS7-token", allow_enable=True)]
         assert expected_calls == request_updated_contract.call_args_list
 
 
