@@ -232,7 +232,6 @@ class TestGetContractTokenFromCloudIdentity:
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
-
     @mock.patch(M_ID_PATH + "cloud_instance_factory")
     def test_already_attached_on_non_ubuntu_pro(
         self, m_cloud_instance_factory, _m_getuid, FakeConfig
@@ -287,7 +286,7 @@ class TestActionAutoAttach:
         else:
             expected_calls = [
                 mock.call(cfg, "myPKCS7-token", allow_enable=True)
-        ]
+            ]
         get_contract_token_from_cloud_identity.return_value = "myPKCS7-token"
 
         def fake_request_updated_contract(cfg, contract_token, allow_enable):

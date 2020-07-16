@@ -157,7 +157,9 @@ def then_i_will_see_the_uaclient_version_on_stdout(context, feature_str=None):
 
 
 @then("I will see the uaclient version on stdout with features `{features}`")
-def then_i_will_see_the_uaclient_version_with_feature_suffix(context, features):
+def then_i_will_see_the_uaclient_version_with_feature_suffix(
+    context, features
+):
     then_i_will_see_the_uaclient_version_on_stdout(
         context, feature_str=features
     )
