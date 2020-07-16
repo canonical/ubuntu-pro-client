@@ -1,5 +1,7 @@
 import mock
 
+import pytest
+
 import os.path
 
 from uaclient import util
@@ -8,9 +10,16 @@ from uaclient.version import get_version
 
 @mock.patch("uaclient.util.subp")
 class TestGetVersion:
+
+    @pytest.mark.parametrize(
+        "feature_dict,suffix", (({}, ""), ({"on": True}, " +on"))
+    )
     @mock.patch("uaclient.version.PACKAGED_VERSION", "24.1~18.04.1")
-    def test_get_version_returns_packaged_version(self, m_subp):
-        assert "24.1~18.04.1" == get_version()
+    @mock.patch("uaclient.version.os.path.exists", return_value=True)
+    def test_get_version_returns_packaged_version(
+        self, m_exists, m_subp, feature_dict, suffix
+    ):
+        assert "24.1~18.04.1" + suffix == get_version(features=feature_dict)
         assert 0 == m_subp.call_count
 
     @mock.patch("uaclient.version.PACKAGED_VERSION", "@@PACKAGED_VERSION")

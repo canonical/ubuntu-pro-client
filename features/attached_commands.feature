@@ -182,9 +182,9 @@ Feature: Command behaviour when attached to an UA subscription
             cc-eal        no
             """
         When I run `ua --version` as non-root
-        Then I will see the uaclient version on stdout with overlay info
+        Then I will see the uaclient version on stdout with features ` +machine_token_overlay`
         When I run `ua version` as non-root
-        Then I will see the uaclient version on stdout with overlay info
+        Then I will see the uaclient version on stdout with features ` +machine_token_overlay`
 
         Examples: ubuntu release
            | release |

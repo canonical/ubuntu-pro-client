@@ -10,10 +10,10 @@ from uaclient import util
 
 __VERSION__ = "25.0"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
-VERSION_TMPL = "{version}{overlay}"
+VERSION_TMPL = "{version}{feature_suffix}"
 
 
-def get_version(_args=None, machine_token_overlay_str=""):
+def get_version(_args=None, features={}):
     """Return the packaged version as a string
 
          Prefer the binary PACKAGED_VESION set by debian/rules to DEB_VERSION.
@@ -24,9 +24,14 @@ def get_version(_args=None, machine_token_overlay_str=""):
            b. If run in a git-ubuntu pkg repo, upstream tags aren't visible,
               parse the debian/changelog in that case
     """
+    feature_suffix = ""
+    for key, value in sorted(features.items()):
+        feature_suffix += " {enabled}{name}".format(
+            enabled="+" if value else "-", name=key
+        )
     if not PACKAGED_VERSION.startswith("@@PACKAGED_VERSION"):
         return VERSION_TMPL.format(
-            version=PACKAGED_VERSION, overlay=machine_token_overlay_str
+            version=PACKAGED_VERSION, feature_suffix=feature_suffix
         )
     topdir = os.path.dirname(os.path.dirname(__file__))
     if os.path.exists(os.path.join(topdir, ".git")):
@@ -40,8 +45,8 @@ def get_version(_args=None, machine_token_overlay_str=""):
             cmd = ["dpkg-parsechangelog", "-S", "version"]
             out, _ = util.subp(cmd)
             return VERSION_TMPL.format(
-                version=out.strip(), overlay=machine_token_overlay_str
+                version=out.strip(), feature_suffix=feature_suffix
             )
     return VERSION_TMPL.format(
-        version=__VERSION__, overlay=machine_token_overlay_str
+        version=__VERSION__, feature_suffix=feature_suffix
     )
