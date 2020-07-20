@@ -11,7 +11,7 @@ from uaclient import status
 from uaclient import util
 
 try:
-    from typing import List  # noqa
+    from typing import Dict, List, Optional  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -84,14 +84,23 @@ def assert_valid_apt_credentials(repo_url, username, password):
         )
 
 
-def run_apt_command(cmd, error_msg) -> str:
+def run_apt_command(
+    cmd: "List[str]", error_msg: str, env: "Optional[Dict[str, str]]" = {}
+) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
+
+    :param cmd: List containing the apt command to run, passed to subp.
+    :param error_msg: The string to raise as UserFacingError when all retries
+       are exhausted in failure.
+    :param env: Optional dictionary of environment variables to pass to subp.
 
     :return: stdout from successful run of the apt command.
     :raise UserFacingError: on issues running apt-cache policy.
     """
     try:
-        out, _err = util.subp(cmd, capture=True, retry_sleeps=APT_RETRIES)
+        out, _err = util.subp(
+            cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
+        )
     except util.ProcessExecutionError as e:
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             error_msg += " Another process is running APT."

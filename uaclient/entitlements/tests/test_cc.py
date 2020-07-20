@@ -166,6 +166,7 @@ class TestCommonCriteriaEntitlementEnable:
                 ["apt-cache", "policy"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env={},
             )
         ]
 
@@ -184,6 +185,7 @@ class TestCommonCriteriaEntitlementEnable:
                     ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
+                    env={},
                 )
             )
         else:
@@ -195,12 +197,14 @@ class TestCommonCriteriaEntitlementEnable:
                     ["apt-get", "update"],
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
+                    env={},
                 ),
                 mock.call(
                     ["apt-get", "install", "--assume-yes"]
                     + entitlement.packages,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
+                    env={},
                 ),
             ]
         )

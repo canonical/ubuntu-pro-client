@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import io
 import itertools
 import mock
 from functools import partial
@@ -209,9 +210,17 @@ class TestFIPSEntitlementEnable:
             )
         ]
         install_cmd = mock.call(
-            ["apt-get", "install", "--assume-yes"] + patched_packages,
+            [
+                "apt-get",
+                "install",
+                "--assume-yes",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+            ]
+            + patched_packages,
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
         )
 
         subp_calls = [
@@ -219,6 +228,7 @@ class TestFIPSEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env={},
             ),
             install_cmd,
         ]
@@ -328,6 +338,27 @@ class TestFIPSEntitlementEnable:
 
         for call in m_subp.call_args_list:
             assert "remove" not in call[0][0]
+
+    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.is_container", return_value=False)
+    def test_enable_fails_when_blocking_service_is_enabled(
+        self, m_is_container, m_handle_message_op, entitlement
+    ):
+        m_handle_message_op.return_value = True
+        base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
+
+        with mock.patch(
+            "{}.application_status".format(base_path)
+        ) as m_livepatch:
+            m_livepatch.return_value = (status.ApplicationStatus.ENABLED, "")
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                entitlement.enable()
+
+        expected_msg = "Cannot enable {} when Livepatch is enabled".format(
+            entitlement.title
+        )
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
 
 def _fips_pkg_combinations():

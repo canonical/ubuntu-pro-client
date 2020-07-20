@@ -1,8 +1,9 @@
 import datetime
 import os
+import itertools
 import subprocess
 import textwrap
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from behave.model import Feature, Scenario
 
@@ -11,11 +12,12 @@ from behave.runner import Context
 from features.util import (
     launch_lxd_container,
     lxc_exec,
-    lxc_get_series,
+    lxc_get_property,
     lxc_build_deb,
 )
 
 PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
+ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 
 class UAClientBehaveConfig:
@@ -32,6 +34,8 @@ class UAClientBehaveConfig:
     :param image_clean:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
+    :param machine_type:
+        The default machine_type to test: lxd.container or lxd.vm
     :param reuse_image:
         A string with an image name that should be used instead of building a
         fresh image for this test run.   If specified, this image will not be
@@ -47,7 +51,12 @@ class UAClientBehaveConfig:
     # environment variable input to the appropriate Python types for use within
     # the test framework
     boolean_options = ["build_pr", "image_clean", "destroy_instances"]
-    str_options = ["contract_token", "contract_token_staging", "reuse_image"]
+    str_options = [
+        "contract_token",
+        "contract_token_staging",
+        "machine_type",
+        "reuse_image",
+    ]
     redact_options = ["contract_token", "contract_token_staging"]
 
     # This variable is used in .from_environ() but also to emit the "Config
@@ -60,9 +69,11 @@ class UAClientBehaveConfig:
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
+        machine_type: str = "lxd.container",
         reuse_image: str = None,
         contract_token: str = None,
-        contract_token_staging: str = None
+        contract_token_staging: str = None,
+        cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
         self.build_pr = build_pr
@@ -70,8 +81,16 @@ class UAClientBehaveConfig:
         self.contract_token_staging = contract_token_staging
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
+        self.machine_type = machine_type
         self.reuse_image = reuse_image
-
+        self.cmdline_tags = cmdline_tags
+        self.filter_series = set(
+            [
+                tag.split(".")[1]
+                for tag in cmdline_tags
+                if tag.startswith("series.")
+            ]
+        )
         # Next, perform any required validation
         if self.reuse_image is not None:
             if self.image_clean:
@@ -87,10 +106,17 @@ class UAClientBehaveConfig:
             print("  {}".format(option), "=", value)
 
     @classmethod
-    def from_environ(cls) -> "UAClientBehaveConfig":
+    def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from os.environ and return a config object"""
         # First, gather all known options
-        kwargs: Dict[str, Union[str, bool]] = {}
+        kwargs: Dict[str, Union[str, bool, "List"]] = {}
+        # Preserve cmdline_tags for reference
+        if not config.tags.ands:
+            kwargs["cmdline_tags"] = []
+        else:
+            kwargs["cmdline_tags"] = list(
+                itertools.chain.from_iterable(config.tags.ands)
+            )
         for key, value in os.environ.items():
             if not key.startswith(cls.prefix):
                 continue
@@ -116,10 +142,19 @@ def before_all(context: Context) -> None:
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.reuse_container = {}
-    context.config = UAClientBehaveConfig.from_environ()
+    context.config = UAClientBehaveConfig.from_environ(context.config)
 
     if context.config.reuse_image:
-        series = lxc_get_series(context.config.reuse_image, image=True)
+        series = lxc_get_property(
+            context.config.reuse_image, property_name="series", image=True
+        )
+        machine_type = lxc_get_property(
+            context.config.reuse_image,
+            property_name="machine_type",
+            image=True,
+        )
+        if machine_type:
+            print("Found machine_type: {vm_type}".format(vm_type=machine_type))
         if series is not None:
             context.series_reuse_image = series
             context.series_image_name[series] = context.config.reuse_image
@@ -128,7 +163,14 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        series = lxc_get_series(userdata.get("reuse_container"))
+        series = lxc_get_property(
+            userdata.get("reuse_container"), property_name="series"
+        )
+        machine_type = lxc_get_property(
+            userdata.get("reuse_container"), property_name="machine_type"
+        )
+        if machine_type:
+            print("Found type: {vm_type}".format(vm_type=machine_type))
         context.reuse_container = {series: userdata.get("reuse_container")}
         print(
             textwrap.dedent(
@@ -141,19 +183,30 @@ def before_all(context: Context) -> None:
         )
 
 
-def before_feature(context: Context, feature: Feature):
-    for tag in feature.tags:
+def _should_skip_tags(context: Context, tags: "List") -> str:
+    """Return a reason if a feature or scenario should be skipped"""
+    for tag in tags:
         parts = tag.split(".")
         if parts[0] == "uses":
             val = context
-            for attr in parts[1:]:
+            for idx, attr in enumerate(parts[1:], 1):
                 val = getattr(val, attr, None)
                 if val is None:
-                    feature.skip(
-                        reason="Skipped because tag value was None: {}".format(
-                            tag
-                        )
+                    return "Skipped because tag value was None: {}".format(tag)
+                if attr == "machine_type":
+                    machine_type = ".".join(parts[idx + 1 :])
+                    if val == machine_type:
+                        break
+                    return "Skipped machine_type {} != {}".format(
+                        val, machine_type
                     )
+    return ""
+
+
+def before_feature(context: Context, feature: Feature):
+    reason = _should_skip_tags(context, feature.tags)
+    if reason:
+        feature.skip(reason=reason)
 
 
 def before_scenario(context: Context, scenario: Scenario):
@@ -162,12 +215,23 @@ def before_scenario(context: Context, scenario: Scenario):
     then capture an image. This image is then reused by each scenario, reducing
     test execution time.
     """
+    reason = _should_skip_tags(context, scenario.effective_tags)
+    if reason:
+        scenario.skip(reason=reason)
+        return
+    releases = set([])
     for tag in scenario.effective_tags:
         parts = tag.split(".")
         if parts[0] == "series":
-            series = parts[1]
-            if series not in context.series_image_name:
-                create_uat_lxd_image(context, series)
+            if parts[1] == "all":
+                releases.update(ALL_SUPPORTED_SERIES)
+            else:
+                releases.update([parts[1]])
+    if context.config.filter_series:
+        releases = releases.intersection(context.config.filter_series)
+    for release in releases:
+        if release not in context.series_image_name:
+            create_uat_lxd_image(context, release)
 
 
 def after_all(context):
@@ -199,7 +263,7 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
-    the image.    The image's name is stored in context.series_image_name for
+    the image. The image's name is stored in context.series_image_name for
     use within step code.
 
     :param context:
@@ -216,22 +280,41 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         return
     now = datetime.datetime.now()
-    ubuntu_series = "ubuntu-daily:%s" % series
     deb_file = None
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    if is_vm and series == "xenial":
+        # FIXME: use lxd custom cloud images which containt HWE kernel for
+        # vhost-vsock support
+        ubuntu_series = "images:ubuntu/16.04/cloud"
+    else:
+        ubuntu_series = "ubuntu-daily:%s" % series
     if context.config.build_pr:
         # create a dirty development image which installs build depends
         deb_file = PR_DEB_FILE
         build_container_name = (
             "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
         )
-        launch_lxd_container(context, ubuntu_series, build_container_name)
+        launch_lxd_container(
+            context,
+            ubuntu_series,
+            build_container_name,
+            series=series,
+            is_vm=is_vm,
+        )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
-    build_container_name = "behave-image-build-%s-" % series + now.strftime(
-        "%s%f"
+    build_container_name = "behave-image-build%s-%s" % (
+        "-vm" if is_vm else "",
+        series + now.strftime("%s%f"),
     )
 
-    launch_lxd_container(context, ubuntu_series, build_container_name)
+    launch_lxd_container(
+        context,
+        ubuntu_series,
+        build_container_name,
+        series=series,
+        is_vm=is_vm,
+    )
 
     # if build_pr it will install new built .deb
     _install_uat_in_container(build_container_name, deb_file=deb_file)

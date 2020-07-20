@@ -194,6 +194,8 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
+MESSAGE_ATTACH_EXPIRED_TOKEN = """\
+Expired token. To obtain a new token visit: https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_INVALID_TOKEN = """\
 Invalid token. See https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_REQUIRES_TOKEN = """\
@@ -232,6 +234,14 @@ MESSAGE_DETACH_AUTOMATION_FAILURE = "Unable to automatically detach machine"
 MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
 MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
+
+ERROR_INVALID_CONFIG_VALUE = """\
+Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
+Expected {expected_value}, found {value}."""
+INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
+Failed to find the machine token overlay file: {file_path}"""
+ERROR_JSON_DECODING_IN_FILE = """\
+Found error: {error} when reading json file: {file_path}"""
 
 
 def colorize(string: str) -> str:

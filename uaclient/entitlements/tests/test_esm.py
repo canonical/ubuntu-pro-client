@@ -140,6 +140,7 @@ class TestESMInfraEntitlementEnable:
             ["apt-get", "install", "--assume-yes"] + patched_packages,
             capture=True,
             retry_sleeps=apt.APT_RETRIES,
+            env={},
         )
 
         subp_calls = [
@@ -147,6 +148,7 @@ class TestESMInfraEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env={},
             ),
             install_cmd,
         ]
@@ -183,7 +185,7 @@ class TestESMInfraEntitlementEnable:
                 return True
             return original_exists(path)
 
-        def fake_subp(cmd, capture=None, retry_sleeps=None):
+        def fake_subp(cmd, capture=None, retry_sleeps=None, env={}):
             if cmd == ["apt-get", "update"]:
                 raise util.ProcessExecutionError(
                     "Failure", stderr="Could not get lock /var/lib/dpkg/lock"
@@ -239,6 +241,7 @@ class TestESMInfraEntitlementEnable:
                 ["apt-get", "update"],
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
+                env={},
             )
         ]
 
