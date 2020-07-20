@@ -199,8 +199,6 @@ int main(int argc, char *argv[])
    //    assert(ppid == getppid_of("self"));
    // }
    assert(cmdline_eligible(make_cmdline("apt\0update\0")));
-   //assert(cmdline_eligible(make_cmdline("apt-get\0update\0")));
-   //assert(!cmdline_eligible(make_cmdline("apt-get\0install\0")));
    assert(!cmdline_eligible(make_cmdline("apt\0install\0")));
    assert(cmdline_eligible(make_cmdline("aptitude\0upgrade\0")));
    assert(cmdline_eligible(make_cmdline("aptitude\0update\0")));
