@@ -63,7 +63,7 @@ def launch_ec2(
             aws_pro_ids = yaml.safe_load(stream.read())
         image_name = aws_pro_ids[series]
     print("Launching AWS PRO image {}({})".format(image_name, series))
-    vpc = context.config.ec2_api.create_vpc("uaclient-integration")
+    vpc = context.config.ec2_api.get_or_create_vpc(name="uaclient-integration")
     inst = context.config.ec2_api.launch(
         image_name, user_data=user_data, vpc=vpc
     )
