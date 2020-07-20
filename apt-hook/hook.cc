@@ -124,6 +124,7 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
 	 // TODO: Just look at the origin, not pinning.
 	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
 	 {
+            // Xenial and later should not be advertising unauthenticated ESM Infra apt repos
 	    if (policy->GetPriority(pf.File()) == -32768)
 	       res.disabled_esms_i++;
 	    else
@@ -134,6 +135,7 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
 
 	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
 	 {
+            // Xenial and later should not be advertising unauthenticated ESM Apps apt repos
 	    if (policy->GetPriority(pf.File()) == -32768)
 	       res.disabled_esms_a++;
 	    else
