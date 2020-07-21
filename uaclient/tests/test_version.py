@@ -12,14 +12,14 @@ from uaclient.version import get_version
 class TestGetVersion:
 
     @pytest.mark.parametrize(
-        "feature_dict,suffix", (({}, ""), ({"on": True}, " +on"))
+        "features,suffix", (({}, ""), ({"on": True}, " +on"))
     )
-    @mock.patch("uaclient.version.PACKAGED_VERSION", "24.1~18.04.1")
     @mock.patch("uaclient.version.os.path.exists", return_value=True)
     def test_get_version_returns_packaged_version(
-        self, m_exists, m_subp, feature_dict, suffix
+        self, m_exists, m_subp, features, suffix
     ):
-        assert "24.1~18.04.1" + suffix == get_version(features=feature_dict)
+        with mock.patch("uaclient.version.PACKAGED_VERSION", "24.1~18.04.1"):
+            assert "24.1~18.04.1" + suffix == get_version(features=features)
         assert 0 == m_subp.call_count
 
     @mock.patch("uaclient.version.PACKAGED_VERSION", "@@PACKAGED_VERSION")
