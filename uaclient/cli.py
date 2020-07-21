@@ -517,6 +517,7 @@ def action_auto_attach(args, cfg):
     if disable_auto_attach:
         msg = "Skipping auto-attach. Config disable_auto_attach is set."
         logging.debug(msg)
+        print(msg)
         return 0
     token = _get_contract_token_from_cloud_identity(cfg)
     return _attach_with_token(cfg, token=token, allow_enable=True)

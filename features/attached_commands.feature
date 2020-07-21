@@ -152,7 +152,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.all
-    Scenario Outline: Unattached status in a ubuntu machine with machine token overlay
+    Scenario Outline: Unattached status in a ubuntu machine with feature overrides
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/machine-token-overlay.json` with the following:
         """
@@ -173,6 +173,8 @@ Feature: Command behaviour when attached to an UA subscription
         """
         features:
           machine_token_overlay: "/tmp/machine-token-overlay.json"
+          disable_auto_attach: true
+          other: false
         """
         And I attach `contract_token` with sudo
         And I run `ua status --all` with sudo
@@ -182,9 +184,14 @@ Feature: Command behaviour when attached to an UA subscription
             cc-eal        no
             """
         When I run `ua --version` as non-root
-        Then I will see the uaclient version on stdout with features ` +machine_token_overlay`
+        Then I will see the uaclient version on stdout with features ` +disable_auto_attach +machine_token_overlay -other`
         When I run `ua version` as non-root
-        Then I will see the uaclient version on stdout with features ` +machine_token_overlay`
+        Then I will see the uaclient version on stdout with features ` +disable_auto_attach +machine_token_overlay -other`
+        When I run `ua auto-attach` with sudo
+        Then stdout matches regexp:
+        """
+        Skipping auto-attach. Config disable_auto_attach is set.
+        """
 
         Examples: ubuntu release
            | release |
