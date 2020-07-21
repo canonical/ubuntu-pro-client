@@ -10,7 +10,6 @@ from uaclient.version import get_version
 
 @mock.patch("uaclient.util.subp")
 class TestGetVersion:
-
     @pytest.mark.parametrize(
         "features,suffix", (({}, ""), ({"on": True}, " +on"))
     )
