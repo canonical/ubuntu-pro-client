@@ -19,6 +19,7 @@ Feature: Command behaviour when attached to an UA subscription
             livepatch     +yes      +enabled  +Canonical Livepatch service
             """
         Examples: ubuntu release
-           | release | cc-eal | cc-eal-s | fips | fips-s   |
-           | xenial  | yes    | disabled | yes  | disabled |
-           | bionic  | yes    | n/a      | yes  | disabled |
+           | release | cc-eal | cc-eal-s | fips | fips-s |
+           | xenial  | yes    | disabled | yes  | n/a    |
+           | bionic  | yes    | n/a      | yes  | n/a    |
+           | focal   | yes    | n/a      | yes  | n/a    |
