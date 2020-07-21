@@ -33,8 +33,10 @@
 #include <locale.h>
 
 struct result {
-   int enabled_esms;
-   int disabled_esms;
+   int enabled_esms_i;
+   int disabled_esms_i;
+   int enabled_esms_a;
+   int disabled_esms_a;
 };
 
 // Return parent pid of specified pid, using /proc (pid might be self)
@@ -122,10 +124,22 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
 	 // TODO: Just look at the origin, not pinning.
 	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
 	 {
+            // Xenial and later should not be advertising unauthenticated ESM Infra apt repos
 	    if (policy->GetPriority(pf.File()) == -32768)
-	       res.disabled_esms++;
+	       res.disabled_esms_i++;
 	    else
-	       res.enabled_esms++;
+	       res.enabled_esms_i++;
+
+	    return;
+	 }
+
+	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
+	 {
+            // Xenial and later should not be advertising unauthenticated ESM Apps apt repos
+	    if (policy->GetPriority(pf.File()) == -32768)
+	       res.disabled_esms_a++;
+	    else
+	       res.enabled_esms_a++;
 
 	    return;
 	 }
@@ -187,15 +201,16 @@ int main(int argc, char *argv[])
    //    assert(ppid == getppid_of("self"));
    // }
    assert(cmdline_eligible(make_cmdline("apt\0update\0")));
-   assert(cmdline_eligible(make_cmdline("apt-get\0update\0")));
-   assert(!cmdline_eligible(make_cmdline("apt-get\0install\0")));
-   assert(!cmdline_eligible(make_cmdline("apt\0install\0")));
    assert(!cmdline_eligible(make_cmdline("apt\0install\0")));
    assert(cmdline_eligible(make_cmdline("aptitude\0upgrade\0")));
    assert(cmdline_eligible(make_cmdline("aptitude\0update\0")));
    command_used = "";
 
-   result res = {0, 0};
+   result res = {0, 0, 0, 0};
+
+   // useful for testing
+   if (has_arg(argv, "test"))
+      command_used = "update";
 
    if (has_arg(argv, "test") || cmdline_eligible(getcmdline(getppid_of(getppid_of("self")))))
       get_update_count(res);
@@ -205,27 +220,51 @@ int main(int argc, char *argv[])
       return 1;
    }
 
-   if (res.enabled_esms > 0 && (command_used == "update"))
+   if (command_used == "update")
    {
-      ioprintf(std::cout,
-               ngettext("%d of the updates is from UA Infrastructure ESM.",
-                        "%d of the updates are from UA Infrastructure ESM.",
-                        res.enabled_esms),
-               res.enabled_esms);
-      ioprintf(std::cout, "\n");
+      if (res.enabled_esms_i > 0)
+      {
+         ioprintf(std::cout,
+                  ngettext("%d of the updates is from UA Infrastructure ESM.",
+                           "%d of the updates are from UA Infrastructure ESM.",
+                           res.enabled_esms_i),
+                  res.enabled_esms_i);
+         ioprintf(std::cout, "\n");
+      }
+      if (res.enabled_esms_a > 0)
+      {
+         ioprintf(std::cout,
+                  ngettext("%d of the updates is from UA Apps ESM.",
+                           "%d of the updates are from UA Apps ESM.",
+                           res.enabled_esms_a),
+                  res.enabled_esms_a);
+         ioprintf(std::cout, "\n");
+      }
    }
 
-   if (res.disabled_esms > 0)
+   if (res.disabled_esms_i > 0 || res.disabled_esms_a > 0)
    {
       if (command_used != "update")
          std::cout << std::endl;
-      ioprintf(std::cout,
-               ngettext("%d additional update is available with UA Infrastructure ESM.",
-                        "%d additional updates are available with UA Infrastructure ESM.",
-                        res.disabled_esms),
-               res.disabled_esms);
+      if (res.disabled_esms_i > 0)
+      {
+         ioprintf(std::cout,
+                  ngettext("%d additional update is available with UA Infrastructure ESM.",
+                           "%d additional updates are available with UA Infrastructure ESM.",
+                           res.disabled_esms_i),
+                  res.disabled_esms_i);
+         ioprintf(std::cout, "\n");
+      }
+      if (res.disabled_esms_a > 0)
+      {
+         ioprintf(std::cout,
+                  ngettext("%d additional update is available with UA Apps ESM.",
+                           "%d additional updates are available with UA Apps ESM.",
+                           res.disabled_esms_a),
+                  res.disabled_esms_a);
+         ioprintf(std::cout, "\n");
+      }
 
-      ioprintf(std::cout, "\n");
       ioprintf(std::cout, gettext("To see these additional updates run: apt list --upgradable"));
       ioprintf(std::cout, "\n");
       ioprintf(std::cout, gettext("See https://ubuntu.com/advantage or run: sudo ua status"));
