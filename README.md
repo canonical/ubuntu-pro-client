@@ -142,6 +142,17 @@ directory and consist of two parts: `.feature` files that define the
 tests we want to run, and `.py` files which implement the underlying
 logic for those tests.
 
+By default, integration tests will do the folowing on a given cloud platform:
+ * Launch an instance running latest daily image of the target Ubuntu release
+ * Add the Ubuntu advantage client daily build PPA: [ppa:canonical-server/ua-client-daily](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily)
+ * Install the appropriate ubuntu-advantage-tools and ubuntu-advantage-pro deb
+ * Stop the instance and snapshot it creating an updated bootable image for
+   test runs
+ * Launch a fresh instance based on the boot-image created and exercise tests
+
+The testing can be overridden to run using a local copy of the ubuntu-advantage-client source code instead of the daily PPA by providing the following environment variable to the behave test runner.
+```UACLIENT_BEHAVE_BUILD_PR=1```
+
 To run the tests, you can use `tox`:
 
 ```shell
@@ -159,8 +170,9 @@ When developing/debugging a new scenario:
 
  1. Add a `@wip` tag decorator on the scenario
  2. To only run @wip scenarios run: `tox -e behave -- -w`
- 3. If you want to use a debugger: Use ipdb.set_trace() in the code you
-    wish to debug
+ 4. If you want to use a debugger:
+    a. Add ipdb to integration-requirements.txt
+    b. Add ipdb.set_trace() in the code block you wish to debug
 
 (If you're getting started with behave, we recommend at least reading
 through [the behave
@@ -209,6 +221,38 @@ you need to add `-D reuse_container=container_name`:
 
 ```sh
 tox -e behave -D reuse_container=container_name
+```
+
+#### Integration testing on EC2 PRO images
+
+Any ec2 pro image BDD tests are decorated with:
+    @uses.config.machine_type.pro.aws
+
+Providing the environment variable `UACLIENT_BEHAVE_MACHINE_TYPE="pro.aws"`
+will limit test cases executed to AWS Ubuntu PRO only.
+
+By default, the public AMIs for Ubuntu Pro testing used for each Ubuntu
+release are defined in features/aws-ids.yaml. These ami-ids are determined by
+running ./tools
+
+Integration tests will read features/aws-ids.yaml to determine which default
+AMI id to use for each supported Ubuntu release.
+
+To update `features/aws-ids.yaml`, run `./tools/refresh-aws-pro-ids` and put up
+a pull request against this repo to updated that content from the ua-contracts
+marketplace definitions.
+
+* To manually run EC2 integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
+
+```sh
+UACLIENT_BEHAVE_MACHINE_TYPE="pro.aws" UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-18.04
+```
+
+* To manually run EC2 integration tests with a specific AMI Id provide the
+following environment variable to launch your specfic  AMI instead of building
+a daily ubuntu-advantage-tools image.
+```sh
+UACLIENT_BEHAVE_REUSE_IMAGE=ami-your-custom-ami tox -e behave-18.04
 ```
 
 ## Building

@@ -6,7 +6,3 @@ pycodestyle
 mock
 pytest
 pytest-cov
-
-# Integration testing
-behave
-PyHamcrest

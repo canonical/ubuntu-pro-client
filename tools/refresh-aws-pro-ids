@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+
+import glob
+import os
+import re
+import yaml
+
+from uaclient import util
+
+MARKETPLACE_PREFIX = "marketplaceProductCode:"
+
+
+FOOTER_MSG = """
+Please submit a PR to update these default AMIs
+
+git commit -am 'update: AWS Ubuntu PRO marketplace AMIs'
+git push upstream your-branch
+
+Create a new pull request @ https://github.com/canonical/ubuntu-advantage-client/pulls
+"""
+
+
+def main():
+    if not os.path.exists("ua-contracts"):
+        util.subp(
+            ["git", "clone", "git@github.com:CanonicalLtd/ua-contracts.git"]
+        )
+    os.chdir("ua-contracts")
+    util.subp(["git", "pull"])
+    os.chdir("products")
+    aws_ids = {}
+    for aws_listing in glob.glob("listing-aws-premium-*"):
+        m = re.match(
+            r"^listing-aws-premium-(?P<release>\w+).yaml$", aws_listing
+        )
+        if not m:
+            print("Skipping unexpected listing file name: %s", aws_listing)
+            continue
+        listing = yaml.safe_load(open(aws_listing, "r"))
+        import pdb; pdb.set_trace()
+        release = listing['metadata']['series']
+        [marketplace_id] = listing['externalMarketplaceIDs']["IDs"]
+        marketplace_id = marketplace_id.replace(MARKETPLACE_PREFIX, "")
+        out, _err = util.subp(
+            ["aws", "ec2", "describe-images", "--owners", "aws-marketplace",
+             "--filters", "Name=product-code,Values={}".format(marketplace_id),
+             "--query", "sort_by(Images, &CreationDate)[-1].ImageId"]
+        )
+        ami_id = out.strip()
+        aws_ids[release] = ami_id.replace("\"", "")
+
+    os.chdir("../..")
+    with open("features/aws-ids.yaml", "w") as stream:
+        stream.write(yaml.dump(aws_ids))
+
+    print(FOOTER_MSG)
+
+
+if __name__ == "__main__":
+    main()

@@ -3,14 +3,18 @@ import os
 import itertools
 import subprocess
 import textwrap
+import logging
 from typing import Dict, Optional, Union, List
 
 from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
+import pycloudlib  # type: ignore
+
 from features.util import (
     launch_lxd_container,
+    launch_ec2,
     lxc_exec,
     lxc_get_property,
     lxc_build_deb,
@@ -18,6 +22,28 @@ from features.util import (
 
 PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
+
+EC2_KEY_FILE = "uaclient.pem"
+
+DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
+
+USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
+#cloud-config
+write_files:
+  - path: /etc/ubuntu-advantage-client
+    content: |
+      features:
+         disable_auto_attach: true
+    append: true
+apt:
+  sources:
+    ua-tools-daily:
+        source: "deb {daily_ppa} $RELEASE main"
+        keyid: 8A295C4FB8B190B7
+packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
+""".format(
+    daily_ppa=DAILY_PPA
+)
 
 
 class UAClientBehaveConfig:
@@ -35,7 +61,7 @@ class UAClientBehaveConfig:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
     :param machine_type:
-        The default machine_type to test: lxd.container or lxd.vm
+        The default machine_type to test: lxd.container, lxd.vm or pro.aws
     :param reuse_image:
         A string with an image name that should be used instead of building a
         fresh image for this test run.   If specified, this image will not be
@@ -52,20 +78,31 @@ class UAClientBehaveConfig:
     # the test framework
     boolean_options = ["build_pr", "image_clean", "destroy_instances"]
     str_options = [
+        "aws_access_key_id",
+        "aws_secret_access_key",
         "contract_token",
         "contract_token_staging",
         "machine_type",
         "reuse_image",
     ]
-    redact_options = ["contract_token", "contract_token_staging"]
+    redact_options = [
+        "aws_access_key_id",
+        "aws_secret_access_key",
+        "contract_token",
+        "contract_token_staging",
+    ]
 
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
     all_options = boolean_options + str_options
 
+    ec2_api = None  # type: pycloudlib.EC2
+
     def __init__(
         self,
         *,
+        aws_access_key_id: str = None,
+        aws_secret_access_key: str = None,
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
@@ -76,6 +113,8 @@ class UAClientBehaveConfig:
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -104,6 +143,12 @@ class UAClientBehaveConfig:
             if option in self.redact_options and value not in (None, "ERROR"):
                 value = "<REDACTED>"
             print("  {}".format(option), "=", value)
+        has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
+        if has_aws_keys and self.machine_type != "pro.aws":
+            raise RuntimeError(
+                "Must set UACLIENT_BEHAVE_MACHINE_TYPE=pro.aws if providing"
+                " AWS keys"
+            )
 
     @classmethod
     def from_environ(cls, config) -> "UAClientBehaveConfig":
@@ -139,11 +184,37 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     userdata = context.config.userdata
+    if userdata:
+        print("Userdata key / value pairs:")
+        for key, value in context.config.userdata.items():
+            print("   - {} = {}".format(key, value))
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-
+    has_aws_keys = bool(
+        context.config.aws_access_key_id
+        and context.config.aws_secret_access_key
+    )
+    if has_aws_keys:
+        logging.basicConfig(
+            filename="pycloudlib-behave.log", level=logging.DEBUG
+        )
+        context.config.ec2_api = pycloudlib.EC2(
+            tag="ua-testing",
+            access_key_id=context.config.aws_access_key_id,
+            secret_access_key=context.config.aws_secret_access_key,
+        )
+        ec2_api = context.config.ec2_api
+        if "uaclient-integration" in ec2_api.list_keys():
+            ec2_api.delete_key("uaclient-integration")
+        keypair = ec2_api.client.create_key_pair(
+            KeyName="uaclient-integration"
+        )
+        with open(EC2_KEY_FILE, "w") as stream:
+            stream.write(keypair["KeyMaterial"])
+        os.chmod(EC2_KEY_FILE, 0o600)
+        ec2_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -163,14 +234,23 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        series = lxc_get_property(
-            userdata.get("reuse_container"), property_name="series"
-        )
-        machine_type = lxc_get_property(
-            userdata.get("reuse_container"), property_name="machine_type"
-        )
-        if machine_type:
-            print("Found type: {vm_type}".format(vm_type=machine_type))
+        if context.config.ec2_api:
+            inst = context.config.ec2_api.get_instance(
+                userdata.get("reuse_container")
+            )
+            codename = inst.execute(
+                ["grep", "UBUNTU_CODENAME", "/etc/os-release"]
+            ).strip()
+            [_, series] = codename.split("=")
+        else:  # lxd.vm and lxd.container machine_types
+            series = lxc_get_property(
+                userdata.get("reuse_container"), property_name="series"
+            )
+            machine_type = lxc_get_property(
+                userdata.get("reuse_container"), property_name="machine_type"
+            )
+            if machine_type:
+                print("Found type: {vm_type}".format(vm_type=machine_type))
         context.reuse_container = {series: userdata.get("reuse_container")}
         print(
             textwrap.dedent(
@@ -231,7 +311,10 @@ def before_scenario(context: Context, scenario: Scenario):
         releases = releases.intersection(context.config.filter_series)
     for release in releases:
         if release not in context.series_image_name:
-            create_uat_lxd_image(context, release)
+            if context.config.ec2_api:
+                create_uat_ec2_image(context, release)
+            else:
+                create_uat_lxd_image(context, release)
 
 
 def after_all(context):
@@ -257,6 +340,37 @@ def _capture_container_as_image(container_name: str, image_name: str) -> None:
     """
     subprocess.run(["lxc", "stop", container_name])
     subprocess.run(["lxc", "publish", container_name, "--alias", image_name])
+
+
+def create_uat_ec2_image(context: Context, series: str) -> None:
+    """Create an Ubuntu PRO Ec2 instance with latest ubuntu-advantage-tools
+
+    :param context:
+        A `behave.runner.Context` which will have `config.ec2_api` set on it
+    :param series:
+       A string representing the series name to create
+    """
+    if series in context.reuse_container:
+        print(
+            "\n Reusing the existing EC2 instance: {}({}) ".format(
+                context.reuse_container[series], series
+            )
+        )
+        return
+    if context.config.build_pr:
+        raise RuntimeError("Don't yet support ec2 pro build_pr=1")
+
+    # Launch pro image based on series marketplace lookup
+    inst = launch_ec2(
+        context, series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
+    )
+    print("Creating updated AWS PRO AMI from instance: {}".format(inst.id))
+    context.series_image_name[series] = context.config.ec2_api.snapshot(inst)
+    print(
+        "Created updated AWS PRO AMI: {}".format(
+            context.series_image_name[series]
+        )
+    )
 
 
 def create_uat_lxd_image(context: Context, series: str) -> None:
@@ -296,9 +410,9 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         )
         launch_lxd_container(
             context,
-            ubuntu_series,
-            build_container_name,
             series=series,
+            image_name=ubuntu_series,
+            container_name=build_container_name,
             is_vm=is_vm,
         )
         lxc_build_deb(build_container_name, output_deb_file=deb_file)
@@ -310,9 +424,9 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
 
     launch_lxd_container(
         context,
-        ubuntu_series,
-        build_container_name,
         series=series,
+        image_name=ubuntu_series,
+        container_name=build_container_name,
         is_vm=is_vm,
     )
 

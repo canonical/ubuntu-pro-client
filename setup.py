@@ -9,7 +9,24 @@ from uaclient import defaults, util, version
 NAME = "ubuntu-advantage-tools"
 
 INSTALL_REQUIRES = open("requirements.txt").read().rstrip("\n").split("\n")
-TEST_REQUIRES = open("test-requirements.txt").read().rstrip("\n").split("\n")
+
+
+def split_link_deps(reqs_filename):
+    """Read requirements reqs_filename and split into pkgs and links
+
+   :return: list of package defs and link defs
+   """
+    pkgs = []
+    links = []
+    for line in open(reqs_filename).readlines():
+        if line.startswith("git") or line.startswith("http"):
+            links.append(line)
+        else:
+            pkgs.append(line)
+    return pkgs, links
+
+
+TEST_REQUIRES, TEST_LINKS = split_link_deps("test-requirements.txt")
 
 
 def _get_version():
@@ -52,6 +69,7 @@ setuptools.setup(
     ),
     data_files=_get_data_files(),
     install_requires=INSTALL_REQUIRES,
+    dependency_links=TEST_LINKS,
     extras_require=dict(test=TEST_REQUIRES),
     author="Ubuntu Server Team",
     author_email="ubuntu-server@lists.ubuntu.com",

@@ -4,7 +4,9 @@ import sys
 import textwrap
 import time
 import yaml
-from typing import Any, List
+from typing import Any, List, Optional
+
+import pycloudlib  # type: ignore
 
 from behave.runner import Context
 
@@ -14,6 +16,7 @@ LXC_PROPERTY_MAP = {
 }
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
 VM_PROFILE_TMPL = "behave-{}"
+
 
 # For Xenial and Bionic vendor-data required to setup lxd-agent
 # Additionally xenial needs to launch images:ubuntu/16.04/cloud
@@ -41,11 +44,45 @@ LXC_SETUP_VENDORDATA = textwrap.dedent(
 )
 
 
+def launch_ec2(
+    context: Context,
+    series: str,
+    image_name: "Optional[str]" = None,
+    user_data: "Optional[str]" = None,
+) -> pycloudlib.instance:
+    """Launch a container from an AMI and wait for it to boot
+
+    :return: pycloudlib.instance that was launched
+    """
+    if not image_name:
+        if not series:
+            raise ValueError(
+                "Must provide either series or image_name to launch_ec2"
+            )
+        with open("features/aws-ids.yaml", "r") as stream:
+            aws_pro_ids = yaml.safe_load(stream.read())
+        image_name = aws_pro_ids[series]
+    print("Launching AWS PRO image {}({})".format(image_name, series))
+    vpc = context.config.ec2_api.get_or_create_vpc(name="uaclient-integration")
+    inst = context.config.ec2_api.launch(
+        image_name, user_data=user_data, vpc=vpc
+    )
+
+    def cleanup_instance() -> None:
+        if not context.config.destroy_instances:
+            print("Leaving ec2 instance running: {}".format(inst.id))
+        else:
+            inst.delete()
+
+    print("AWS PRO instance launched: {}".format(inst.id))
+    return inst
+
+
 def launch_lxd_container(
     context: Context,
+    series: str,
     image_name: str,
     container_name: str,
-    series: str,
     is_vm: bool,
 ) -> None:
     """Launch a container from an image and wait for it to boot
