@@ -29,6 +29,12 @@ DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
+write_files:
+  - path: /etc/ubuntu-advantage-client
+    content: |
+      features:
+         disable_auto_attach: true
+    append: true
 apt:
   sources:
     ua-tools-daily:
