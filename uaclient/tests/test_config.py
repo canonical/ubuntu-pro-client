@@ -868,6 +868,28 @@ class TestParseConfig:
         assert expected_msg == excinfo.value.msg
 
 
+class TestFeatures:
+    @pytest.mark.parametrize(
+        "cfg_features,expected",
+        (
+            ({}, {}),
+            (None, {}),
+            ({"feature1": "value1"}, {"feature1": "value1"}),
+            (
+                {"feature1": "value1", "feature2": False},
+                {"feature1": "value1", "feature2": False},
+            ),
+        ),
+    )
+    def test_features_are_a_property_of_uaconfig(self, cfg_features, expected):
+        if cfg_features is None:
+            user_cfg = None
+        else:
+            user_cfg = {"features": cfg_features}
+        cfg = UAConfig(cfg=user_cfg)
+        assert expected == cfg.features
+
+
 class TestMachineTokenOverlay:
     machine_token_dict = {
         "availableResources": [

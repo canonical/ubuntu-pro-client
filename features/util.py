@@ -350,9 +350,10 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
                 SOURCE_PR_TGZ
             )
         )
+        subprocess.run(["make", "clean"])
         os.chdir("..")
         subprocess.run(
-            ["tar", "-zcvf", SOURCE_PR_TGZ, "ubuntu-advantage-client"]
+            ["tar", "-zcf", SOURCE_PR_TGZ, "ubuntu-advantage-client"]
         )
         os.chdir("ubuntu-advantage-client")
     subprocess.run(
@@ -368,7 +369,7 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
             apt-get update
             apt-get install make
             cd /tmp
-            tar -zxvf *gz
+            tar -zxf *gz
             cd ubuntu-advantage-client
             make deps
             dpkg-buildpackage -us -uc
