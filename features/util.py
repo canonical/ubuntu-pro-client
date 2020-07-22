@@ -81,8 +81,10 @@ def launch_ec2(
             aws_pro_ids = yaml.safe_load(stream.read())
         image_name = aws_pro_ids[series]
     print("--- Launching AWS PRO image {}({})".format(image_name, series))
-    vpc = context.config.ec2_api.get_or_create_vpc(name="uaclient-integration")
-    inst = context.config.ec2_api.launch(
+    vpc = context.config.cloud_api.get_or_create_vpc(
+        name="uaclient-integration"
+    )
+    inst = context.config.cloud_api.launch(
         image_name, user_data=user_data, vpc=vpc
     )
 
@@ -354,7 +356,7 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
 def build_deb(
     container_name: str,
     output_deb_dir: str,
-    pycloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
+    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
 ) -> None:
     """
     Push source PR code .tar.gz to the container.
@@ -365,7 +367,7 @@ def build_deb(
          - push the PR source code;
          - pull the built .deb package.
     :param output_deb_dir: the target directory in which to copy deb artifacts
-    :param pycloud_api: Optional pycloudlib BaseCloud api if available for the
+    :param cloud_api: Optional pycloudlib BaseCloud api if available for the
         machine_type
     """
     if not os.environ.get("TRAVIS"):
@@ -382,8 +384,8 @@ def build_deb(
     with open(script, "w") as stream:
         stream.write(BUILD_FROM_TGZ)
     os.chmod(script, 0o755)
-    if pycloud_api:
-        instance = pycloud_api.get_instance(instance_id=container_name)
+    if cloud_api:
+        instance = cloud_api.get_instance(instance_id=container_name)
         for filepath in (buildscript, SOURCE_PR_TGZ):
             print("--- Push {} -> {}:/tmp".format(filepath, instance.id))
             instance.push_file(filepath, "/tmp")
@@ -421,7 +423,11 @@ def lxc_build_deb(container_name: str, output_deb_dir: str) -> None:
     subprocess.run(["lxc", "file", "push", script, container_name + "/tmp/"])
     print("--- Run build-from-source.sh")
     lxc_exec(container_name, ["sudo", "/tmp/" + script])
-    print("--- Pull {} from the instance to travis VM".format(output_deb_file))
+    print(
+        "--- Pull {}/tmp/ubuntu-advantage-tools.deb {} ".format(
+            container_name, output_deb_dir
+        )
+    )
     subprocess.run(
         [
             "lxc",

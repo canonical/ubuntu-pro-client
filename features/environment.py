@@ -17,15 +17,25 @@ from features.util import (
     launch_ec2,
     lxc_exec,
     lxc_get_property,
-    lxc_build_deb,
+    build_deb,
 )
 
-PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
+LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 EC2_KEY_FILE = "uaclient.pem"
 
 DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
+
+USERDATA_DISABLE_PRO_AUTO_ATTACH = """\
+#cloud-config
+write_files:
+  - path: /etc/ubuntu-advantage-client
+    content: |
+      features:
+         disable_auto_attach: true
+    append: true
+"""
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
@@ -96,7 +106,7 @@ class UAClientBehaveConfig:
     # options" stanza in __init__
     all_options = boolean_options + str_options
 
-    ec2_api = None  # type: pycloudlib.EC2
+    cloud_api = None  # type: pycloudlib.cloud.BaseCloud
 
     def __init__(
         self,
@@ -200,21 +210,21 @@ def before_all(context: Context) -> None:
         logging.basicConfig(
             filename="pycloudlib-behave.log", level=logging.DEBUG
         )
-        context.config.ec2_api = pycloudlib.EC2(
+        context.config.cloud_api = pycloudlib.EC2(
             tag="ua-testing",
             access_key_id=context.config.aws_access_key_id,
             secret_access_key=context.config.aws_secret_access_key,
         )
-        ec2_api = context.config.ec2_api
-        if "uaclient-integration" in ec2_api.list_keys():
-            ec2_api.delete_key("uaclient-integration")
-        keypair = ec2_api.client.create_key_pair(
+        cloud_api = context.config.cloud_api
+        if "uaclient-integration" in cloud_api.list_keys():
+            cloud_api.delete_key("uaclient-integration")
+        keypair = cloud_api.client.create_key_pair(
             KeyName="uaclient-integration"
         )
         with open(EC2_KEY_FILE, "w") as stream:
             stream.write(keypair["KeyMaterial"])
         os.chmod(EC2_KEY_FILE, 0o600)
-        ec2_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
+        cloud_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -234,8 +244,8 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        if context.config.ec2_api:
-            inst = context.config.ec2_api.get_instance(
+        if context.config.cloud_api:
+            inst = context.config.cloud_api.get_instance(
                 userdata.get("reuse_container")
             )
             codename = inst.execute(
@@ -311,7 +321,7 @@ def before_scenario(context: Context, scenario: Scenario):
         releases = releases.intersection(context.config.filter_series)
     for release in releases:
         if release not in context.series_image_name:
-            if context.config.ec2_api:
+            if context.config.cloud_api:
                 create_uat_ec2_image(context, release)
             else:
                 create_uat_lxd_image(context, release)
@@ -346,7 +356,7 @@ def create_uat_ec2_image(context: Context, series: str) -> None:
     """Create an Ubuntu PRO Ec2 instance with latest ubuntu-advantage-tools
 
     :param context:
-        A `behave.runner.Context` which will have `config.ec2_api` set on it
+        A `behave.runner.Context` which will have `config.cloud_api` set on it
     :param series:
        A string representing the series name to create
     """
@@ -365,7 +375,7 @@ def create_uat_ec2_image(context: Context, series: str) -> None:
         context, series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
     )
     print("Creating updated AWS PRO AMI from instance: {}".format(inst.id))
-    context.series_image_name[series] = context.config.ec2_api.snapshot(inst)
+    context.series_image_name[series] = context.config.cloud_api.snapshot(inst)
     print(
         "Created updated AWS PRO AMI: {}".format(
             context.series_image_name[series]
@@ -404,18 +414,29 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
         ubuntu_series = "ubuntu-daily:%s" % series
     if context.config.build_pr:
         # create a dirty development image which installs build depends
-        deb_file = PR_DEB_FILE
-        build_container_name = (
-            "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        if context.config.cloud_api:
+            inst = launch_ec2(
+                context,
+                series=series,
+                user_data=USERDATA_DISABLE_PRO_AUTO_ATTACH,
+            )
+            build_container_name = inst.id
+        else:
+            build_container_name = (
+                "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+            )
+            launch_lxd_container(
+                context,
+                series=series,
+                image_name=ubuntu_series,
+                container_name=build_container_name,
+                is_vm=is_vm,
+            )
+        build_deb(
+            build_container_name,
+            output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
+            cloud_api=context.config.cloud_api,
         )
-        launch_lxd_container(
-            context,
-            series=series,
-            image_name=ubuntu_series,
-            container_name=build_container_name,
-            is_vm=is_vm,
-        )
-        lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
     build_container_name = "behave-image-build%s-%s" % (
         "-vm" if is_vm else "",
@@ -431,7 +452,12 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
     )
 
     # if build_pr it will install new built .deb
-    _install_uat_in_container(build_container_name, deb_file=deb_file)
+    debs = [BUILD_ARTIFACTS_DIR + "ubuntu-advantage-tools.deb"]
+    if context.config.machine_type.startswith("pro"):
+        debs.append(BUILD_ARTIFACTS_DIR + "ubuntu-advantage-pro.deb")
+    _install_uat_in_container(
+        build_container_name, debs=debs, cloud_api=context.config.cloud_api
+    )
 
     context.series_image_name[
         series
@@ -443,19 +469,25 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
 
 
 def _install_uat_in_container(
-    container_name: str, deb_file: "Optional[str]"
+    container_name: str,
+    debs: "Optional[List[str]]" = [],
+    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
-    :param deb_file: Optional path to the deb_file we need to install
+    :param debs: Optional paths to the deb files we need to install
+    :param cloud_api: Optional pycloud BaseCloud api for applicable
+        machine_types.
     """
-    if deb_file:
-        subprocess.run(
-            ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
-        )
+    cmds = []
+    if debs:
+        for deb_file in debs:
+            subprocess.run(
+                ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
+            )
         lxc_exec(container_name, ["sudo", "dpkg", "-i", deb_file])
         lxc_exec(
             container_name, ["apt-cache", "policy", "ubuntu-advantage-tools"]
