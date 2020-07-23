@@ -144,7 +144,7 @@ def then_i_will_see_on_stderr(context):
 
 
 @then("I will see the uaclient version on stdout")
-def then_i_will_see_the_uaclient_version_on_stdout(context, feature_str=None):
+def then_i_will_see_the_uaclient_version_on_stdout(context, feature_str=""):
     python_import = "from uaclient.version import get_version"
 
     cmd = "python3 -c '{}; print(get_version())'".format(python_import)
