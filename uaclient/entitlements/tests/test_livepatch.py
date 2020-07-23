@@ -37,6 +37,9 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType(
 )
 
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
+M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
+DISABLED_APP_STATUS = (status.ApplicationStatus.DISABLED, "")
+
 M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 
 DEFAULT_AFFORDANCES = {
@@ -174,6 +177,7 @@ class TestLivepatchProcessConfigDirectives:
         assert 0 == m_subp.call_count
 
 
+@mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS)
 @mock.patch(
     "uaclient.entitlements.livepatch.util.is_container", return_value=False
 )
@@ -183,7 +187,12 @@ class TestLivepatchEntitlementCanEnable:
         ("4.4.0-00-generic", "5.0.0-00-generic", "4.19.0-00-generic"),
     )
     def test_can_enable_true_on_entitlement_inactive(
-        self, _m_is_container, supported_kernel_ver, capsys, entitlement
+        self,
+        _m_is_container,
+        _m_livepatch_status,
+        supported_kernel_ver,
+        capsys,
+        entitlement,
     ):
         """When entitlement is INACTIVE, can_enable returns True."""
         supported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -197,7 +206,7 @@ class TestLivepatchEntitlementCanEnable:
         assert [mock.call()] == m_container.call_args_list
 
     def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, _m_is_container, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, capsys, entitlement
     ):
         """"False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -213,7 +222,7 @@ class TestLivepatchEntitlementCanEnable:
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, _m_is_container, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, capsys, entitlement
     ):
         """"When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -241,6 +250,7 @@ class TestLivepatchEntitlementCanEnable:
     def test_can_enable_false_on_unsupported_min_kernel_version(
         self,
         _m_is_container,
+        _m_livepatch_status,
         kernel_version,
         meets_min_version,
         capsys,
@@ -266,7 +276,7 @@ class TestLivepatchEntitlementCanEnable:
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_unsupported_architecture(
-        self, _m_is_container, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, capsys, entitlement
     ):
         """"When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -281,7 +291,7 @@ class TestLivepatchEntitlementCanEnable:
         assert (msg, "") == capsys.readouterr()
 
     def test_can_enable_false_on_containers(
-        self, m_is_container, capsys, entitlement
+        self, m_is_container, _m_livepatch_status, capsys, entitlement
     ):
         """When is_container is True, can_enable returns False."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -658,12 +668,15 @@ class TestLivepatchEntitlementEnable:
         m_handle_message_op.return_value = True
 
         fake_stdout = io.StringIO()
-        with mock.patch(
-            "uaclient.entitlements.fips.{}.application_status".format(cls_name)
-        ) as m_fips:
-            m_fips.return_value = (status.ApplicationStatus.ENABLED, "")
-            with contextlib.redirect_stdout(fake_stdout):
-                entitlement.enable()
+        with mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS):
+            with mock.patch(
+                "uaclient.entitlements.fips.{}.application_status".format(
+                    cls_name
+                )
+            ) as m_fips:
+                m_fips.return_value = (status.ApplicationStatus.ENABLED, "")
+                with contextlib.redirect_stdout(fake_stdout):
+                    entitlement.enable()
 
         expected_msg = "Cannot enable Livepatch when {} is enabled".format(
             cls_title
