@@ -33,7 +33,7 @@ def given_a_machine(context, series):
         return
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
-        if context.config.machine_type == "pro.aws":
+        if "pro" in context.config.machine_type:
             context.instance = context.config.cloud_api.get_instance(
                 context.container_name
             )

@@ -15,6 +15,7 @@ LXC_PROPERTY_MAP = {
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 VM_PROFILE_TMPL = "behave-{}"
 
 
@@ -353,15 +354,16 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
         return value
 
 
-def build_deb(
+def build_debs(
     container_name: str,
     output_deb_dir: str,
     cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
-) -> None:
+) -> "List[str]":
     """
     Push source PR code .tar.gz to the container.
     Run tools/build-from-source.sh which will create the .deb
     Copy built debs from the build container back to the source environment
+    Stop the container.
 
     :param container_name: the name of the container to:
          - push the PR source code;
@@ -369,6 +371,9 @@ def build_deb(
     :param output_deb_dir: the target directory in which to copy deb artifacts
     :param cloud_api: Optional pycloudlib BaseCloud api if available for the
         machine_type
+
+    :return: A list of file paths to debs created by the build.
+
     """
     if not os.environ.get("TRAVIS"):
         print(
@@ -381,59 +386,67 @@ def build_deb(
         )
         os.chdir("ubuntu-advantage-client")
     buildscript = "build-from-source.sh"
-    with open(script, "w") as stream:
+    with open(buildscript, "w") as stream:
         stream.write(BUILD_FROM_TGZ)
-    os.chmod(script, 0o755)
     if cloud_api:
         instance = cloud_api.get_instance(instance_id=container_name)
         for filepath in (buildscript, SOURCE_PR_TGZ):
             print("--- Push {} -> {}:/tmp".format(filepath, instance.id))
-            instance.push_file(filepath, "/tmp")
-        instance.execute(["sudo", "/tmp/" + buildscript])
-        for deb in ("ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"):
+            instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
+        instance.execute(["sudo", "bash", "/tmp/" + buildscript])
+        deb_artifacts = []
+        for deb in UA_DEBS:
+            deb_artifacts.append(output_deb_dir + deb)
             print(
                 "--- Pull {}:/tmp/{} {}".format(
                     instance.id, deb, output_deb_dir
                 )
             )
-            instance.pull_file("/tmp/" + deb, output_deb_dir)
-    else:
-        lxc_build_deb(container_name, output_deb_dir)
+            instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
+        instance.shutdown(wait=False)
+        return deb_artifacts
+    else:  # TODO(drop lxc_build_deb when moving to pycloudlib lxd*)
+        return lxc_build_debs(container_name, output_deb_dir)
 
 
-def lxc_build_deb(container_name: str, output_deb_dir: str) -> None:
+def lxc_build_debs(container_name: str, output_deb_dir: str) -> None:
     """
     Push source PR code .tar.gz to the container.
     Run tools/build-from-source.sh which will create the .deb
     Pull .deb from this container to travis-ci instance
+    Stop the container
 
     :param container_name: the name of the container to:
          - push the PR source code;
          - pull the built .deb package.
     :param output_deb_dir: The directory into which deb artifacts will be
          copied when built from source code
+    :return: List of local deb artifacts built.
     """
-    print("--- Push {} -> {}/tmp/".format(SOURCE_PR_TGZ, container_name))
-    subprocess.run(
-        ["lxc", "file", "push", SOURCE_PR_TGZ, container_name + "/tmp/"]
-    )
-    os.chmod(script, 0o755)
-    subprocess.run(["ls", "-lh", "/tmp"])
-    print("\n\n\n LXC file push script build-from-source")
-    subprocess.run(["lxc", "file", "push", script, container_name + "/tmp/"])
-    print("--- Run build-from-source.sh")
-    lxc_exec(container_name, ["sudo", "/tmp/" + script])
-    print(
-        "--- Pull {}/tmp/ubuntu-advantage-tools.deb {} ".format(
-            container_name, output_deb_dir
+
+    buildscript = "build-from-source.sh"
+    with open(buildscript, "w") as stream:
+        stream.write(BUILD_FROM_TGZ)
+    for push_file in (buildscript, SOURCE_PR_TGZ):
+        print("--- Push {} -> {}/tmp/".format(push_file, container_name))
+        subprocess.run(
+            ["lxc", "file", "push", push_file, contaner_name + "/tmp/"]
         )
-    )
-    subprocess.run(
-        [
-            "lxc",
-            "file",
-            "pull",
-            container_name + "/tmp/ubuntu-advantage-tools.deb",
-            output_deb_file,
-        ]
-    )
+    print("--- Run {}".format(buildscript))
+    lxc_exec(container_name, ["sudo", "bash", "/tmp/" + script])
+    for deb in UA_DEBS:
+        print(
+            "--- Pull {}/tmp/ubuntu-advantage-tools.deb {} ".format(
+                container_name, deb, output_deb_dir
+            )
+        )
+        subprocess.run(
+            [
+                "lxc",
+                "file",
+                "pull",
+                container_name + "/tmp/" + deb,
+                output_deb_dir,
+            ]
+        )
+    subprocess.run(["lxc", "stop", container_name])
