@@ -30,7 +30,14 @@ LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
 write_files:
-  - path: /etc/ubuntu-advantage-client
+  # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
+  - path: /usr/bin/ua
+    content: |
+        #!/bin/bash
+        DATE=`date -u`
+        echo "$DATE: exec ua $@" >> /root/ua-runs
+    permissions: '0755'
+  - path: /etc/ubuntu-advantage/uaclient.conf
     content: |
       features:
          disable_auto_attach: true

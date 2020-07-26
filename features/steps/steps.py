@@ -110,7 +110,7 @@ def when_i_create_file_with_content(context, file_path):
 
     cmd = "printf '{}\n' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
-    when_i_run_command(context, cmd, "as non-root")
+    when_i_run_command(context, cmd, "with sudo")
 
 
 @when("I reboot the `{series}` machine")
