@@ -15,6 +15,7 @@ LXC_PROPERTY_MAP = {
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 VM_PROFILE_TMPL = "behave-{}"
 
 
@@ -44,6 +45,24 @@ LXC_SETUP_VENDORDATA = textwrap.dedent(
 )
 
 
+BUILD_FROM_TGZ = textwrap.dedent(
+    """\
+   #!/bin/bash
+   set -o xtrace
+   apt-get update
+   apt-get install make
+   cd /tmp
+   tar -zxf *gz
+   cd ubuntu-advantage-client
+   make deps
+   dpkg-buildpackage -us -uc
+   # Copy and rename versioned debs to /tmp/ubuntu-advantage-(tools|pro).deb
+   cp /tmp/ubuntu-advantage-tools*.deb /tmp/ubuntu-advantage-tools.deb
+   cp /tmp/ubuntu-advantage-pro*.deb /tmp/ubuntu-advantage-pro.deb
+   """
+)
+
+
 def launch_ec2(
     context: Context,
     series: str,
@@ -62,17 +81,21 @@ def launch_ec2(
         with open("features/aws-ids.yaml", "r") as stream:
             aws_pro_ids = yaml.safe_load(stream.read())
         image_name = aws_pro_ids[series]
-    print("Launching AWS PRO image {}({})".format(image_name, series))
-    vpc = context.config.ec2_api.get_or_create_vpc(name="uaclient-integration")
-    inst = context.config.ec2_api.launch(
+    print("--- Launching AWS PRO image {}({})".format(image_name, series))
+    vpc = context.config.cloud_api.get_or_create_vpc(
+        name="uaclient-integration"
+    )
+    inst = context.config.cloud_api.launch(
         image_name, user_data=user_data, vpc=vpc
     )
 
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
-            print("Leaving ec2 instance running: {}".format(inst.id))
+            print("--- Leaving ec2 instance running: {}".format(inst.id))
         else:
-            inst.delete()
+            inst.delete(wait=False)
+
+    context.add_cleanup(cleanup_instance)
 
     context.add_cleanup(cleanup_instance)
     print("AWS PRO instance launched: {}".format(inst.id))
@@ -121,7 +144,9 @@ def launch_lxd_container(
 
     def cleanup_container() -> None:
         if not context.config.destroy_instances:
-            print("Leaving lxd container running: {}".format(container_name))
+            print(
+                "--- Leaving lxd container running: {}".format(container_name)
+            )
         else:
             subprocess.run(["lxc", "delete", "-f", container_name])
 
@@ -264,7 +289,7 @@ def wait_for_boot(
             if retcode == 0:
                 break
             print(
-                "Retrying on unexpected cloud-init status stderr: ",
+                "--- Retrying on unexpected cloud-init status stderr: ",
                 proc.stderr.strip(),
             )
             time.sleep(sleep_time)
@@ -278,7 +303,7 @@ def wait_for_boot(
         try:
             _, runlevel = process.stdout.strip().split(" ", 2)
         except ValueError:
-            print("Unexpected runlevel output: ", process.stdout.strip())
+            print("--- Unexpected runlevel output: ", process.stdout.strip())
             runlevel = None
         if runlevel in ("2", "5"):
             break
@@ -317,13 +342,13 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
             ["lxc", "image", "show", name], universal_newlines=True
         )
         image_config = yaml.safe_load(output)
-        print(" `lxc image show` output: ", image_config)
+        print("--- `lxc image show` output: ", image_config)
         value = image_config
         for key_name in property_keys:
             value = image_config.get(value, {})
         if not value:
             print(
-                "Could not detect image property {name}."
+                "--- Could not detect image property {name}."
                 " Add it via `lxc image edit`".format(
                     name=".".join(property_keys)
                 )
@@ -332,24 +357,30 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
         return value
 
 
-def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
+def build_debs(
+    container_name: str,
+    output_deb_dir: str,
+    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
+) -> "List[str]":
     """
     Push source PR code .tar.gz to the container.
     Run tools/build-from-source.sh which will create the .deb
-    Pull .deb from this container to travis-ci instance
+    Copy built debs from the build container back to the source environment
+    Stop the container.
 
     :param container_name: the name of the container to:
          - push the PR source code;
          - pull the built .deb package.
-    :param output_deb_file: the new output .deb from source code
-    """
+    :param output_deb_dir: the target directory in which to copy deb artifacts
+    :param cloud_api: Optional pycloudlib BaseCloud api if available for the
+        machine_type
 
-    print("\n\n\n LXC file push {}".format(SOURCE_PR_TGZ))
+    :return: A list of file paths to debs created by the build.
+
+    """
     if not os.environ.get("TRAVIS"):
         print(
-            "\n\n\n Assuming non-travis build. Creating: {}".format(
-                SOURCE_PR_TGZ
-            )
+            "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
         )
         subprocess.run(["make", "clean"])
         os.chdir("..")
@@ -357,42 +388,68 @@ def lxc_build_deb(container_name: str, output_deb_file: str) -> None:
             ["tar", "-zcf", SOURCE_PR_TGZ, "ubuntu-advantage-client"]
         )
         os.chdir("ubuntu-advantage-client")
-    subprocess.run(
-        ["lxc", "file", "push", SOURCE_PR_TGZ, container_name + "/tmp/"]
-    )
-    script = "build-from-source.sh"
-    with open(script, "w") as stream:
-        stream.write(
-            textwrap.dedent(
-                """\
-            #!/bin/bash
-            set -o xtrace
-            apt-get update
-            apt-get install make
-            cd /tmp
-            tar -zxf *gz
-            cd ubuntu-advantage-client
-            make deps
-            dpkg-buildpackage -us -uc
-            cp /tmp/ubuntu-advantage-tools*.deb /tmp/ubuntu-advantage-tools.deb
+    buildscript = "build-from-source.sh"
+    with open(buildscript, "w") as stream:
+        stream.write(BUILD_FROM_TGZ)
+    if cloud_api:
+        instance = cloud_api.get_instance(instance_id=container_name)
+        for filepath in (buildscript, SOURCE_PR_TGZ):
+            print("--- Push {} -> {}:/tmp".format(filepath, instance.id))
+            instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
+        instance.execute(["sudo", "bash", "/tmp/" + buildscript])
+        deb_artifacts = []
+        for deb in UA_DEBS:
+            deb_artifacts.append(output_deb_dir + deb)
+            print(
+                "--- Pull {}:/tmp/{} {}".format(
+                    instance.id, deb, output_deb_dir
+                )
+            )
+            instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
+        instance.delete(wait=False)
+        return deb_artifacts
+    else:  # TODO(drop lxc_build_deb when moving to pycloudlib lxd*)
+        return lxc_build_debs(container_name, output_deb_dir)
 
-            ls -lh /tmp
-         """
+
+def lxc_build_debs(container_name: str, output_deb_dir: str) -> None:
+    """
+    Push source PR code .tar.gz to the container.
+    Run tools/build-from-source.sh which will create the .deb
+    Pull .deb from this container to travis-ci instance
+    Stop the container
+
+    :param container_name: the name of the container to:
+         - push the PR source code;
+         - pull the built .deb package.
+    :param output_deb_dir: The directory into which deb artifacts will be
+         copied when built from source code
+    :return: List of local deb artifacts built.
+    """
+
+    buildscript = "build-from-source.sh"
+    with open(buildscript, "w") as stream:
+        stream.write(BUILD_FROM_TGZ)
+    for push_file in (buildscript, SOURCE_PR_TGZ):
+        print("--- Push {} -> {}/tmp/".format(push_file, container_name))
+        subprocess.run(
+            ["lxc", "file", "push", push_file, contaner_name + "/tmp/"]
+        )
+    print("--- Run {}".format(buildscript))
+    lxc_exec(container_name, ["sudo", "bash", "/tmp/" + script])
+    for deb in UA_DEBS:
+        print(
+            "--- Pull {}/tmp/ubuntu-advantage-tools.deb {} ".format(
+                container_name, deb, output_deb_dir
             )
         )
-    os.chmod(script, 0o755)
-    subprocess.run(["ls", "-lh", "/tmp"])
-    print("\n\n\n LXC file push script build-from-source")
-    subprocess.run(["lxc", "file", "push", script, container_name + "/tmp/"])
-    print("\n\n\n Run build-from-source.sh")
-    lxc_exec(container_name, ["sudo", "/tmp/" + script])
-    print("\n\nPull {} from the instance to travis VM".format(output_deb_file))
-    subprocess.run(
-        [
-            "lxc",
-            "file",
-            "pull",
-            container_name + "/tmp/ubuntu-advantage-tools.deb",
-            output_deb_file,
-        ]
-    )
+        subprocess.run(
+            [
+                "lxc",
+                "file",
+                "pull",
+                container_name + "/tmp/" + deb,
+                output_deb_dir,
+            ]
+        )
+    subprocess.run(["lxc", "stop", container_name])
