@@ -135,6 +135,8 @@ class UAClientBehaveConfig:
                 if tag.startswith("series.")
             ]
         )
+        if "all" in self.filter_series:
+            self.filter_series.update(ALL_SUPPORTED_SERIES)
         # Next, perform any required validation
         if self.reuse_image is not None:
             if self.image_clean:
