@@ -120,6 +120,8 @@ class UAClientBehaveConfig:
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -143,9 +145,15 @@ class UAClientBehaveConfig:
                 print(" Reuse_image specified, it will not be deleted.")
 
         has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
-        if self.machine_type == "pro.aws":
-            self.aws_access_key_id = aws_access_key_id
-            self.aws_secret_access_key = aws_secret_access_key
+        if self.machine_type != "pro.aws":
+            for attr_name in ('aws_access_key_id', 'aws_secret_access_key'):
+                if getattr(self, attr_name):
+                    print(
+                        " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
+                        " is {}".format(attr_name.upper(), self.machine_type)
+                    )
+                    setattr(self, attr_name, None)
+        else:
             # Machine-type precludes use of any contract tokens
             for attr_name in ("contract_token", "contract_token_staging"):
                 if getattr(self, attr_name):
