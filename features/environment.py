@@ -438,16 +438,16 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
             container_name=build_container_name,
             is_vm=bool(context.config.machine_type == "lxd.vm"),
         )
-    debs = build_debs(
+    deb_paths = build_debs(
         build_container_name,
         output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
         cloud_api=context.config.cloud_api,
     )
     if "pro" in context.config.machine_type:
-        return debs
+        return deb_paths
     else:
         # Redact ubuntu-advantage-pro deb as inapplicable
-        [deb for deb in debs if "pro" not in deb]
+        [deb_path for deb_path in deb_paths if "pro" not in deb_path]
 
 
 def create_uat_image(context: Context, series: str) -> None:
@@ -472,9 +472,9 @@ def create_uat_image(context: Context, series: str) -> None:
         return
     time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_file = None
-    debs = []
+    deb_paths = []
     if context.config.build_pr:
-        debs = build_debs_from_dev_instance(context, series)
+        deb_paths = build_debs_from_dev_instance(context, series)
 
     if context.config.cloud_api:
         inst = launch_ec2(
@@ -504,7 +504,9 @@ def create_uat_image(context: Context, series: str) -> None:
         )
 
     _install_uat_in_container(
-        build_container_name, debs=debs, cloud_api=context.config.cloud_api
+        build_container_name,
+        deb_paths=deb_paths,
+        cloud_api=context.config.cloud_api,
     )
 
     image_name = _capture_container_as_image(
@@ -517,7 +519,7 @@ def create_uat_image(context: Context, series: str) -> None:
 
 def _install_uat_in_container(
     container_name: str,
-    debs: "Optional[List[str]]" = [],
+    deb_paths: "Optional[List[str]]" = [],
     cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
@@ -525,13 +527,13 @@ def _install_uat_in_container(
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
-    :param debs: Optional paths to local deb files we need to install
+    :param deb_paths: Optional paths to local deb files we need to install
     :param cloud_api: Optional pycloud BaseCloud api for applicable
         machine_types.
     """
     cmds = []
-    if not debs:
-        debs = " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
+    if not deb_paths:
+        deb_names = " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
         cmds.extend(
             [
                 [
@@ -541,11 +543,11 @@ def _install_uat_in_container(
                     "ppa:canonical-server/ua-client-daily",
                 ],
                 ["sudo", "apt-get", "update", "-qq"],
-                ["sudo", "apt-get", "install", "-qq", "-y", debs],
+                ["sudo", "apt-get", "install", "-qq", "-y", deb_names],
             ]
         )
     else:
-        for deb_file in debs:
+        for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
             cmds.extend(["sudo", "dpkg", "-i", "/tmp/" + deb_name])
             cmds.extend(["apt-cache", "policy", deb_name.rstrip(".deb")])
