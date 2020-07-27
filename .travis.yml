@@ -17,8 +17,6 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
@@ -41,8 +39,6 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
@@ -65,8 +61,6 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
@@ -89,8 +83,6 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
@@ -113,8 +105,6 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
