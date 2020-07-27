@@ -141,7 +141,7 @@ class UAClientBehaveConfig:
                 print(" Reuse_image specified, it will not be deleted.")
 
         has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
-        if "pro" in self.machine_type:
+        if self.machine_type == "pro.aws":
             self.aws_access_key_id = aws_access_key_id
             self.aws_secret_access_key = aws_secret_access_key
             # Machine-type precludes use of any contract tokens
