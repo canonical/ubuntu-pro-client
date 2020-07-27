@@ -120,8 +120,6 @@ class UAClientBehaveConfig:
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -144,14 +142,14 @@ class UAClientBehaveConfig:
 
         has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
         if "pro" in self.machine_type:
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
             # Machine-type precludes use of any contract tokens
             for attr_name in ("contract_token", "contract_token_staging"):
                 if getattr(self, attr_name):
                     print(
                         " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
-                        " is {}".format(
-                            attr_name.upper(), self.machine_type
-                        )
+                        " is {}".format(attr_name.upper(), self.machine_type)
                     )
                     setattr(self, attr_name, None)
             if self.machine_type == "pro.aws":
@@ -204,9 +202,7 @@ class UAClientBehaveConfig:
 
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
-    logging.basicConfig(
-        filename="pycloudlib-behave.log", level=logging.DEBUG
-    )
+    logging.basicConfig(filename="pycloudlib-behave.log", level=logging.DEBUG)
     userdata = context.config.userdata
     if userdata:
         logging.debug("Userdata key / value pairs:")
@@ -218,7 +214,7 @@ def before_all(context: Context) -> None:
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-    if context.config.machine_type == 'pro.aws':
+    if context.config.machine_type == "pro.aws":
         context.config.cloud_api = pycloudlib.EC2(
             tag="ua-testing",
             access_key_id=context.config.aws_access_key_id,
@@ -234,9 +230,7 @@ def before_all(context: Context) -> None:
             with open(EC2_KEY_FILE, "w") as stream:
                 stream.write(keypair["KeyMaterial"])
             os.chmod(EC2_KEY_FILE, 0o600)
-        cloud_api.use_key(
-            EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration"
-        )
+        cloud_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -429,7 +423,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
             series=series,
             image_name=series,
             container_name=build_container_name,
-            is_vm = bool(context.config.machine_type == "lxd.vm"),
+            is_vm=bool(context.config.machine_type == "lxd.vm"),
         )
     debs = build_debs(
         build_container_name,

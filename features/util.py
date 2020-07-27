@@ -93,7 +93,9 @@ def launch_ec2(
         if not context.config.destroy_instances:
             print("--- Leaving ec2 instance running: {}".format(inst.id))
         else:
-            inst.delete()
+            inst.delete(wait=False)
+
+    context.add_cleanup(cleanup_instance)
 
     print("--- AWS PRO instance launched: {}".format(inst.id))
     return inst
@@ -403,7 +405,7 @@ def build_debs(
                 )
             )
             instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
-        instance.shutdown(wait=False)
+        instance.delete(wait=False)
         return deb_artifacts
     else:  # TODO(drop lxc_build_deb when moving to pycloudlib lxd*)
         return lxc_build_debs(container_name, output_deb_dir)

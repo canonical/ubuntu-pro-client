@@ -1,10 +1,8 @@
 @uses.config.machine_type.pro.aws
 Feature: Command behaviour when attached to an UA subscription
 
-    @series.xenial
-    @series.bionic
-    @series.focal
-    Scenario Outline: Attached refresh in a trusty machine
+    @series.all
+    Scenario Outline: Attached refresh in an Ubuntu PRO machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -28,6 +26,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
         Examples: ubuntu release
            | release | cc-eal | cc-eal-s | fips | fips-s |
+           | trusty  | yes    | disabled | yes  | n/a    |
            | xenial  | yes    | disabled | yes  | n/a    |
            | bionic  | yes    | n/a      | yes  | n/a    |
            | focal   | yes    | n/a      | yes  | n/a    |
