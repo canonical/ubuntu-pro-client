@@ -33,8 +33,8 @@ def given_a_machine(context, series):
         return
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
-        if context.config.machine_type == "pro.aws":
-            context.instance = context.config.ec2_api.get_instance(
+        if "pro" in context.config.machine_type:
+            context.instance = context.config.cloud_api.get_instance(
                 context.container_name
             )
     elif context.config.machine_type == "pro.aws":
@@ -110,7 +110,7 @@ def when_i_create_file_with_content(context, file_path):
 
     cmd = "printf '{}\n' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
-    when_i_run_command(context, cmd, "as non-root")
+    when_i_run_command(context, cmd, "with sudo")
 
 
 @when("I reboot the `{series}` machine")
