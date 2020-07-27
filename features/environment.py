@@ -13,24 +13,31 @@ from behave.runner import Context
 import pycloudlib  # type: ignore
 
 from features.util import (
+    UA_DEBS,
     launch_lxd_container,
     launch_ec2,
     lxc_exec,
     lxc_get_property,
-    lxc_build_deb,
+    build_debs,
 )
 
-PR_DEB_FILE = "/tmp/ubuntu-advantage.deb"
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
-EC2_KEY_FILE = "uaclient.pem"
-
 DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
+EC2_KEY_FILE = "uaclient.pem"
+LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
 write_files:
-  - path: /etc/ubuntu-advantage-client
+  # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
+  - path: /usr/bin/ua
+    content: |
+        #!/bin/bash
+        DATE=`date -u`
+        echo "$DATE: exec ua $@" >> /root/ua-runs
+    permissions: '0755'
+  - path: /etc/ubuntu-advantage/uaclient.conf
     content: |
       features:
          disable_auto_attach: true
@@ -96,7 +103,7 @@ class UAClientBehaveConfig:
     # options" stanza in __init__
     all_options = boolean_options + str_options
 
-    ec2_api = None  # type: pycloudlib.EC2
+    cloud_api = None  # type: pycloudlib.cloud.BaseCloud
 
     def __init__(
         self,
@@ -113,8 +120,6 @@ class UAClientBehaveConfig:
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -135,6 +140,26 @@ class UAClientBehaveConfig:
             if self.image_clean:
                 print(" Reuse_image specified, it will not be deleted.")
 
+        has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
+        if "pro" in self.machine_type:
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
+            # Machine-type precludes use of any contract tokens
+            for attr_name in ("contract_token", "contract_token_staging"):
+                if getattr(self, attr_name):
+                    print(
+                        " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
+                        " is {}".format(attr_name.upper(), self.machine_type)
+                    )
+                    setattr(self, attr_name, None)
+            if self.machine_type == "pro.aws":
+                if not has_aws_keys:
+                    logging.warning(
+                        "UACLIENT_BEHAVE_MACHINE_TYPE=pro.aws requires"
+                        " the following env vars:\n"
+                        " - UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID\n"
+                        " - UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY\n"
+                    )
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
         print("Config options:")
@@ -143,12 +168,6 @@ class UAClientBehaveConfig:
             if option in self.redact_options and value not in (None, "ERROR"):
                 value = "<REDACTED>"
             print("  {}".format(option), "=", value)
-        has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
-        if has_aws_keys and self.machine_type != "pro.aws":
-            raise RuntimeError(
-                "Must set UACLIENT_BEHAVE_MACHINE_TYPE=pro.aws if providing"
-                " AWS keys"
-            )
 
     @classmethod
     def from_environ(cls, config) -> "UAClientBehaveConfig":
@@ -184,38 +203,35 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     context.config.setup_logging()
+    logging.basicConfig(filename="pycloudlib-behave.log", level=logging.DEBUG)
     userdata = context.config.userdata
     if userdata:
+        logging.debug("Userdata key / value pairs:")
         print("Userdata key / value pairs:")
-        for key, value in context.config.userdata.items():
+        for key, value in userdata.items():
+            logging.debug("   - {} = {}".format(key, value))
             print("   - {} = {}".format(key, value))
     context.series_image_name = {}
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-    has_aws_keys = bool(
-        context.config.aws_access_key_id
-        and context.config.aws_secret_access_key
-    )
-    if has_aws_keys:
-        logging.basicConfig(
-            filename="pycloudlib-behave.log", level=logging.DEBUG
-        )
-        context.config.ec2_api = pycloudlib.EC2(
-            tag="ua-testing",
+    if context.config.machine_type == "pro.aws":
+        context.config.cloud_api = pycloudlib.EC2(
+            tag="uaclientci",
             access_key_id=context.config.aws_access_key_id,
             secret_access_key=context.config.aws_secret_access_key,
         )
-        ec2_api = context.config.ec2_api
-        if "uaclient-integration" in ec2_api.list_keys():
-            ec2_api.delete_key("uaclient-integration")
-        keypair = ec2_api.client.create_key_pair(
-            KeyName="uaclient-integration"
-        )
-        with open(EC2_KEY_FILE, "w") as stream:
-            stream.write(keypair["KeyMaterial"])
-        os.chmod(EC2_KEY_FILE, 0o600)
-        ec2_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
+        cloud_api = context.config.cloud_api
+        if not os.path.exists(EC2_KEY_FILE):
+            if "uaclient-integration" in cloud_api.list_keys():
+                cloud_api.delete_key("uaclient-integration")
+            keypair = cloud_api.client.create_key_pair(
+                KeyName="uaclient-integration"
+            )
+            with open(EC2_KEY_FILE, "w") as stream:
+                stream.write(keypair["KeyMaterial"])
+            os.chmod(EC2_KEY_FILE, 0o600)
+        cloud_api.use_key(EC2_KEY_FILE, EC2_KEY_FILE, "uaclient-integration")
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -235,8 +251,8 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        if context.config.ec2_api:
-            inst = context.config.ec2_api.get_instance(
+        if context.config.cloud_api:
+            inst = context.config.cloud_api.get_instance(
                 userdata.get("reuse_container")
             )
             codename = inst.execute(
@@ -273,12 +289,23 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
             for idx, attr in enumerate(parts[1:], 1):
                 val = getattr(val, attr, None)
                 if val is None:
-                    return "Skipped because tag value was None: {}".format(tag)
+                    return "Skipped: tag value was None: {}".format(tag)
                 if attr == "machine_type":
                     machine_type = ".".join(parts[idx + 1 :])
                     if val == machine_type:
+                        if val == "aws.pro":  # Ensure we have AWS creds
+                            has_aws_keys = bool(
+                                context.config.aws_access_key_id
+                                    and context.config.aws_secret_access_key
+                            )
+                            if not has_aws_key:
+                                return (
+                                    "Skipped: aws.pro machine_type requires"
+                                    " UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID and"
+                                    " UACLIENT_BEHAVE_AWS_SECRET_KEY"
+                                )
                         break
-                    return "Skipped machine_type {} != {}".format(
+                    return "Skipped: machine_type {} != {}".format(
                         val, machine_type
                     )
     return ""
@@ -312,10 +339,7 @@ def before_scenario(context: Context, scenario: Scenario):
         releases = releases.intersection(context.config.filter_series)
     for release in releases:
         if release not in context.series_image_name:
-            if context.config.ec2_api:
-                create_uat_ec2_image(context, release)
-            else:
-                create_uat_lxd_image(context, release)
+            create_uat_image(context, release)
 
 
 def after_all(context):
@@ -330,24 +354,38 @@ def after_all(context):
                 subprocess.run(["lxc", "image", "delete", image])
 
 
-def _capture_container_as_image(container_name: str, image_name: str) -> None:
-    """Capture a lxd container as an image.
+def _capture_container_as_image(
+    container_name: str,
+    image_name: str,
+    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
+) -> str:
+    """Capture a container as an image.
 
     :param container_name:
         The name of the container to be captured.  Note that this container
         will be stopped.
     :param image_name:
         The name under which the image should be published.
+    :param cloud_api: Optional pycloud BaseCloud api for applicable
+        machine_types.
     """
-    subprocess.run(["lxc", "stop", container_name])
-    subprocess.run(["lxc", "publish", container_name, "--alias", image_name])
+    if cloud_api:
+        inst = cloud_api.get_instance(container_name)
+        return cloud_api.snapshot(instance=inst)
+    else:
+        # TODO(drop this with migration to pycloudlib.lxc)
+        subprocess.run(["lxc", "stop", container_name])
+        subprocess.run(
+            ["lxc", "publish", container_name, "--alias", image_name]
+        )
+        return image_name
 
 
 def create_uat_ec2_image(context: Context, series: str) -> None:
     """Create an Ubuntu PRO Ec2 instance with latest ubuntu-advantage-tools
 
     :param context:
-        A `behave.runner.Context` which will have `config.ec2_api` set on it
+        A `behave.runner.Context` which will have `config.cloud_api` set on it
     :param series:
        A string representing the series name to create
     """
@@ -358,23 +396,60 @@ def create_uat_ec2_image(context: Context, series: str) -> None:
             )
         )
         return
-    if context.config.build_pr:
-        raise RuntimeError("Don't yet support ec2 pro build_pr=1")
 
     # Launch pro image based on series marketplace lookup
     inst = launch_ec2(
         context, series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
     )
-    print("Creating updated AWS PRO AMI from instance: {}".format(inst.id))
-    context.series_image_name[series] = context.config.ec2_api.snapshot(inst)
+    print("--- Creating updated AWS PRO AMI from instance: {}".format(inst.id))
+    context.series_image_name[series] = context.config.cloud_api.snapshot(inst)
     print(
-        "Created updated AWS PRO AMI: {}".format(
+        "--- Created updated AWS PRO AMI: {}".format(
             context.series_image_name[series]
         )
     )
 
 
-def create_uat_lxd_image(context: Context, series: str) -> None:
+def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
+    """Create a development instance, instal build dependencies and build debs
+
+
+    Will stop the development instance after deb build succeeds.
+
+    :return: A list of paths to applicable deb files published.
+    """
+    time_suffix = datetime.datetime.now().strftime("%s%f")
+    if context.config.cloud_api:
+        inst = launch_ec2(
+            context,
+            series=series,
+            user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS,
+        )
+        build_container_name = inst.id
+    else:
+        build_container_name = (
+            "behave-image-pre-build-%s-" % series + time_suffix
+        )
+        launch_lxd_container(
+            context,
+            series=series,
+            image_name=series,
+            container_name=build_container_name,
+            is_vm=bool(context.config.machine_type == "lxd.vm"),
+        )
+    debs = build_debs(
+        build_container_name,
+        output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
+        cloud_api=context.config.cloud_api,
+    )
+    if "pro" in context.config.machine_type:
+        return debs
+    else:
+        # Redact ubuntu-advantage-pro deb as inapplicable
+        [deb for deb in debs if "pro" not in deb]
+
+
+def create_uat_image(context: Context, series: str) -> None:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
@@ -394,92 +469,96 @@ def create_uat_lxd_image(context: Context, series: str) -> None:
             context.reuse_container[series],
         )
         return
-    now = datetime.datetime.now()
+    time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_file = None
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    if is_vm and series == "xenial":
-        # FIXME: use lxd custom cloud images which containt HWE kernel for
-        # vhost-vsock support
-        ubuntu_series = "images:ubuntu/16.04/cloud"
-    else:
-        ubuntu_series = "ubuntu-daily:%s" % series
+    debs = []
     if context.config.build_pr:
-        # create a dirty development image which installs build depends
-        deb_file = PR_DEB_FILE
-        build_container_name = (
-            "behave-image-pre-build-%s-" % series + now.strftime("%s%f")
+        debs = build_debs_from_dev_instance(context, series)
+
+    if context.config.cloud_api:
+        inst = launch_ec2(
+            context,
+            series=series,
+            user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS,
         )
+        build_container_name = inst.id
+    else:
+        is_vm = bool(context.config.machine_type == "lxd.vm")
+        build_container_name = "behave-image-build-%s-%s" % (
+            "-vm" if is_vm else "",
+            series + time_suffix,
+        )
+        if is_vm and series == "xenial":
+            # FIXME: use lxd custom cloud images which containt HWE kernel for
+            # vhost-vsock support
+            lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
+        else:
+            lxc_ubuntu_series = "ubuntu-daily:%s" % series
         launch_lxd_container(
             context,
             series=series,
-            image_name=ubuntu_series,
+            image_name=lxc_ubuntu_series,
             container_name=build_container_name,
             is_vm=is_vm,
         )
-        lxc_build_deb(build_container_name, output_deb_file=deb_file)
 
-    build_container_name = "behave-image-build%s-%s" % (
-        "-vm" if is_vm else "",
-        series + now.strftime("%s%f"),
+    _install_uat_in_container(
+        build_container_name, debs=debs, cloud_api=context.config.cloud_api
     )
 
-    launch_lxd_container(
-        context,
-        series=series,
-        image_name=ubuntu_series,
-        container_name=build_container_name,
-        is_vm=is_vm,
+    image_name = _capture_container_as_image(
+        build_container_name,
+        image_name="behave-image-%s-" % series + time_suffix,
+        cloud_api=context.config.cloud_api,
     )
-
-    # if build_pr it will install new built .deb
-    _install_uat_in_container(build_container_name, deb_file=deb_file)
-
-    context.series_image_name[
-        series
-    ] = "behave-image-%s-" % series + now.strftime("%s%f")
-
-    _capture_container_as_image(
-        build_container_name, context.series_image_name[series]
-    )
+    context.series_image_name[series] = image_name
 
 
 def _install_uat_in_container(
-    container_name: str, deb_file: "Optional[str]"
+    container_name: str,
+    debs: "Optional[List[str]]" = [],
+    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
     :param container_name:
         The name of the container into which ubuntu-advantage-tools should be
         installed.
-    :param deb_file: Optional path to the deb_file we need to install
+    :param debs: Optional paths to local deb files we need to install
+    :param cloud_api: Optional pycloud BaseCloud api for applicable
+        machine_types.
     """
-    if deb_file:
-        subprocess.run(
-            ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
-        )
-        lxc_exec(container_name, ["sudo", "dpkg", "-i", deb_file])
-        lxc_exec(
-            container_name, ["apt-cache", "policy", "ubuntu-advantage-tools"]
+    cmds = []
+    if not debs:
+        debs = " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
+        cmds.extend(
+            [
+                [
+                    "sudo",
+                    "add-apt-repository",
+                    "--yes",
+                    "ppa:canonical-server/ua-client-daily",
+                ],
+                ["sudo", "apt-get", "update", "-qq"],
+                ["sudo", "apt-get", "install", "-qq", "-y", debs],
+            ]
         )
     else:
-        lxc_exec(
-            container_name,
-            [
-                "sudo",
-                "add-apt-repository",
-                "--yes",
-                "ppa:canonical-server/ua-client-daily",
-            ],
-        )
-        lxc_exec(container_name, ["sudo", "apt-get", "update", "-qq"])
-        lxc_exec(
-            container_name,
-            [
-                "sudo",
-                "apt-get",
-                "install",
-                "-qq",
-                "-y",
-                "ubuntu-advantage-tools",
-            ],
-        )
+        for deb_file in debs:
+            deb_name = os.path.basename(deb_file)
+            cmds.extend(["sudo", "dpkg", "-i", "/tmp/" + deb_name])
+            cmds.extend(["apt-cache", "policy", deb_name.rstrip(".deb")])
+            if cloud_api:
+                inst = cloud_api.get_instance(container_name)
+                inst.push_file(deb_file, "/tmp/" + deb_name)
+            else:
+                subprocess.run(
+                    ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
+                )
+    if cloud_api:
+        instance = cloud_api.get_instance(container_name)
+        for cmd in cmds:
+            instance.execute(cmd)
+    else:
+        for cmd in cmds:
+            lxc_exec(container_name, cmd)
