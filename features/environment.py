@@ -166,8 +166,8 @@ class UAClientBehaveConfig:
         # config options, and means they'll be included in test logs in CI.
         print("Config options:")
         for option in self.all_options:
-            value = getattr(self, option, "ERROR")
-            if option in self.redact_options and value not in (None, "ERROR"):
+            value = getattr(self, option, "<UNSET>")
+            if option in self.redact_options and value not in (None, "<UNSET>"):
                 value = "<REDACTED>"
             print("  {}".format(option), "=", value)
 
