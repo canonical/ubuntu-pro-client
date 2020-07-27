@@ -74,6 +74,7 @@ def launch_ec2(
         else:
             inst.delete()
 
+    context.add_cleanup(cleanup_instance)
     print("AWS PRO instance launched: {}".format(inst.id))
     return inst
 
