@@ -220,6 +220,7 @@ def before_all(context: Context) -> None:
             tag="uaclientci",
             access_key_id=context.config.aws_access_key_id,
             secret_access_key=context.config.aws_secret_access_key,
+            region="us-east-2",
         )
         cloud_api = context.config.cloud_api
         if not os.path.exists(EC2_KEY_FILE):
