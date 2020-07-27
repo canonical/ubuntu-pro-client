@@ -297,7 +297,7 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
                         if val == "aws.pro":  # Ensure we have AWS creds
                             has_aws_keys = bool(
                                 context.config.aws_access_key_id
-                                    and context.config.aws_secret_access_key
+                                and context.config.aws_secret_access_key
                             )
                             if not has_aws_key:
                                 return (
@@ -420,7 +420,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     :return: A list of paths to applicable deb files published.
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
-    if context.config.cloud_api:
+    if context.config.machine_type == "pro.aws":
         inst = launch_ec2(
             context,
             series=series,
@@ -533,7 +533,9 @@ def _install_uat_in_container(
     """
     cmds = []
     if not deb_paths:
-        deb_names = " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
+        deb_names = (
+            " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
+        )
         cmds.extend(
             [
                 [
