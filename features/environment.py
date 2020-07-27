@@ -382,35 +382,6 @@ def _capture_container_as_image(
         return image_name
 
 
-def create_uat_ec2_image(context: Context, series: str) -> None:
-    """Create an Ubuntu PRO Ec2 instance with latest ubuntu-advantage-tools
-
-    :param context:
-        A `behave.runner.Context` which will have `config.cloud_api` set on it
-    :param series:
-       A string representing the series name to create
-    """
-    if series in context.reuse_container:
-        print(
-            "\n Reusing the existing EC2 instance: {}({}) ".format(
-                context.reuse_container[series], series
-            )
-        )
-        return
-
-    # Launch pro image based on series marketplace lookup
-    inst = launch_ec2(
-        context, series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
-    )
-    print("--- Creating updated AWS PRO AMI from instance: {}".format(inst.id))
-    context.series_image_name[series] = context.config.cloud_api.snapshot(inst)
-    print(
-        "--- Created updated AWS PRO AMI: {}".format(
-            context.series_image_name[series]
-        )
-    )
-
-
 def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     """Create a development instance, instal build dependencies and build debs
 
