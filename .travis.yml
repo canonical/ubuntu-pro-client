@@ -114,6 +114,7 @@ matrix:
                  cd $TRAVIS_BUILD_DIR
                  pwd
               fi
+          - sudo /usr/sbin/update-ca-certificates
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - env:
         PACKAGE_BUILD_SERIES=trusty
