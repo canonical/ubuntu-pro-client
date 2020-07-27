@@ -216,7 +216,7 @@ def before_all(context: Context) -> None:
     context.config = UAClientBehaveConfig.from_environ(context.config)
     if context.config.machine_type == "pro.aws":
         context.config.cloud_api = pycloudlib.EC2(
-            tag="ua-testing",
+            tag="uaclientci",
             access_key_id=context.config.aws_access_key_id,
             secret_access_key=context.config.aws_secret_access_key,
         )
