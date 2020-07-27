@@ -183,6 +183,7 @@ class UAClientBehaveConfig:
 
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
+    context.config.setup_logging()
     userdata = context.config.userdata
     if userdata:
         print("Userdata key / value pairs:")
