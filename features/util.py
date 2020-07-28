@@ -412,7 +412,7 @@ def build_debs(
         return lxc_build_debs(container_name, output_deb_dir)
 
 
-def lxc_build_debs(container_name: str, output_deb_dir: str) -> None:
+def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
     """
     Push source PR code .tar.gz to the container.
     Run tools/build-from-source.sh which will create the .deb
@@ -433,13 +433,13 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> None:
     for push_file in (buildscript, SOURCE_PR_TGZ):
         print("--- Push {} -> {}/tmp/".format(push_file, container_name))
         subprocess.run(
-            ["lxc", "file", "push", push_file, contaner_name + "/tmp/"]
+            ["lxc", "file", "push", push_file, container_name + "/tmp/"]
         )
     print("--- Run {}".format(buildscript))
-    lxc_exec(container_name, ["sudo", "bash", "/tmp/" + script])
+    lxc_exec(container_name, ["sudo", "bash", "/tmp/" + buildscript])
     for deb in UA_DEBS:
         print(
-            "--- Pull {}/tmp/ubuntu-advantage-tools.deb {} ".format(
+            "--- Pull {}/tmp/{} {} ".format(
                 container_name, deb, output_deb_dir
             )
         )
@@ -453,3 +453,4 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> None:
             ]
         )
     subprocess.run(["lxc", "stop", container_name])
+    return list(UA_DEBS)

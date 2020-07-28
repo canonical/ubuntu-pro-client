@@ -146,7 +146,7 @@ class UAClientBehaveConfig:
 
         has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
         if self.machine_type != "pro.aws":
-            for attr_name in ('aws_access_key_id', 'aws_secret_access_key'):
+            for attr_name in ("aws_access_key_id", "aws_secret_access_key"):
                 if getattr(self, attr_name):
                     print(
                         " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
@@ -175,7 +175,10 @@ class UAClientBehaveConfig:
         print("Config options:")
         for option in self.all_options:
             value = getattr(self, option, "<UNSET>")
-            if option in self.redact_options and value not in (None, "<UNSET>"):
+            if option in self.redact_options and value not in (
+                None,
+                "<UNSET>",
+            ):
                 value = "<REDACTED>"
             print("  {}".format(option), "=", value)
 
@@ -309,7 +312,7 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
                                 context.config.aws_access_key_id
                                 and context.config.aws_secret_access_key
                             )
-                            if not has_aws_key:
+                            if not has_aws_keys:
                                 return (
                                     "Skipped: aws.pro machine_type requires"
                                     " UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID and"
@@ -426,9 +429,8 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     )
     if "pro" in context.config.machine_type:
         return deb_paths
-    else:
-        # Redact ubuntu-advantage-pro deb as inapplicable
-        [deb_path for deb_path in deb_paths if "pro" not in deb_path]
+    # Redact ubuntu-advantage-pro deb as inapplicable
+    return [deb_path for deb_path in deb_paths if "pro" not in deb_path]
 
 
 def create_uat_image(context: Context, series: str) -> None:
@@ -452,7 +454,6 @@ def create_uat_image(context: Context, series: str) -> None:
         )
         return
     time_suffix = datetime.datetime.now().strftime("%s%f")
-    deb_file = None
     deb_paths = []
     if context.config.build_pr:
         deb_paths = build_debs_from_dev_instance(context, series)
@@ -532,8 +533,8 @@ def _install_uat_in_container(
     else:
         for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
-            cmds.extend(["sudo", "dpkg", "-i", "/tmp/" + deb_name])
-            cmds.extend(["apt-cache", "policy", deb_name.rstrip(".deb")])
+            cmds.append(["sudo", "dpkg", "-i", "/tmp/" + deb_name])
+            cmds.append(["apt-cache", "policy", deb_name.rstrip(".deb")])
             if cloud_api:
                 inst = cloud_api.get_instance(container_name)
                 inst.push_file(deb_file, "/tmp/" + deb_name)
