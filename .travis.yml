@@ -96,21 +96,6 @@ matrix:
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
-    - python: 3.7
-      env: TOXENV=behave-pro-aws
-      script:
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
-          - >
-              if [ "$BUILD_PR" -eq "1" ]; then
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo /usr/sbin/update-ca-certificates
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - env:
         PACKAGE_BUILD_SERIES=trusty
       install:
