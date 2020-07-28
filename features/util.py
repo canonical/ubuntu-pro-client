@@ -433,25 +433,25 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
     os.chmod(buildscript, 0o755)
     for push_file in (buildscript, SOURCE_PR_TGZ):
         print("--- Push {} -> {}/tmp/".format(push_file, container_name))
-        subprocess.check_call(
-            ["lxc", "file", "push", push_file, container_name + "/tmp/"]
-        )
+        cmd = ["lxc", "file", "push", push_file, container_name + "/tmp/"]
+        subprocess.check_call(cmd)
     print("--- Run {}".format(buildscript))
     lxc_exec(container_name, ["sudo", "/tmp/" + buildscript])
+    deb_paths = []
     for deb in UA_DEBS:
         print(
             "--- Pull {}/tmp/{} {} ".format(
                 container_name, deb, output_deb_dir
             )
         )
-        subprocess.check_call(
-            [
-                "lxc",
-                "file",
-                "pull",
-                container_name + "/tmp/" + deb,
-                output_deb_dir,
-            ]
-        )
+        deb_paths.append(output_deb_dir + deb)
+        cmd = [
+            "lxc",
+            "file",
+            "pull",
+            container_name + "/tmp/" + deb,
+            deb_paths[-1],
+        ]
+        subprocess.check_call(cmd)
     subprocess.run(["lxc", "stop", container_name])
-    return list(UA_DEBS)
+    return deb_paths

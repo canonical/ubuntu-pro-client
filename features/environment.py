@@ -546,9 +546,10 @@ def _install_uat_in_container(
                 inst = cloud_api.get_instance(container_name)
                 inst.push_file(deb_file, "/tmp/" + deb_name)
             else:
-                subprocess.run(
-                    ["lxc", "file", "push", deb_file, container_name + "/tmp/"]
-                )
+                cmd = [
+                    "lxc", "file", "push", deb_file, container_name + "/tmp/"
+                ]
+                subprocess.check_call(cmd)
     if cloud_api:
         instance = cloud_api.get_instance(container_name)
         for cmd in cmds:
