@@ -430,13 +430,14 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
     buildscript = "build-from-source.sh"
     with open(buildscript, "w") as stream:
         stream.write(BUILD_FROM_TGZ)
+    os.chmod(buildscript, 0o755)
     for push_file in (buildscript, SOURCE_PR_TGZ):
         print("--- Push {} -> {}/tmp/".format(push_file, container_name))
         subprocess.run(
             ["lxc", "file", "push", push_file, container_name + "/tmp/"]
         )
     print("--- Run {}".format(buildscript))
-    lxc_exec(container_name, ["sudo", "bash", "/tmp/" + buildscript])
+    lxc_exec(container_name, ["sudo", "/tmp/" + buildscript])
     for deb in UA_DEBS:
         print(
             "--- Pull {}/tmp/{} {} ".format(
