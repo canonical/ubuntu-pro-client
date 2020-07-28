@@ -433,7 +433,7 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
     os.chmod(buildscript, 0o755)
     for push_file in (buildscript, SOURCE_PR_TGZ):
         print("--- Push {} -> {}/tmp/".format(push_file, container_name))
-        subprocess.run(
+        subprocess.check_call(
             ["lxc", "file", "push", push_file, container_name + "/tmp/"]
         )
     print("--- Run {}".format(buildscript))
@@ -444,7 +444,7 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
                 container_name, deb, output_deb_dir
             )
         )
-        subprocess.run(
+        subprocess.check_call(
             [
                 "lxc",
                 "file",
