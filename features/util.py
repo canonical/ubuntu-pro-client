@@ -130,7 +130,7 @@ def launch_lxd_container(
     if is_vm:
         lxc_create_vm_profile(series)
         command.extend(["--profile", VM_PROFILE_TMPL.format(series), "--vm"])
-    subprocess.run(command)
+    subprocess.check_call(command)
 
     if is_vm:
         """ When we publish vm images we end up losing the image information.

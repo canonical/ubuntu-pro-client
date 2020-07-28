@@ -415,12 +415,19 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         build_container_name = (
             "behave-image-pre-build-%s-" % series + time_suffix
         )
+        is_vm = bool(context.config.machine_type == "lxd.vm")
+        if is_vm and series == "xenial":
+            # FIXME: use lxd custom cloud images which containt HWE kernel for
+            # vhost-vsock support
+            lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
+        else:
+            lxc_ubuntu_series = "ubuntu-daily:%s" % series
         launch_lxd_container(
             context,
             series=series,
-            image_name=series,
+            image_name=lxc_ubuntu_series,
             container_name=build_container_name,
-            is_vm=bool(context.config.machine_type == "lxd.vm"),
+            is_vm=is_vm,
         )
     deb_paths = build_debs(
         build_container_name,
