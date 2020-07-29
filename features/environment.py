@@ -135,10 +135,9 @@ class UAClientBehaveConfig:
                 tag.split(".")[1]
                 for tag in cmdline_tags
                 if tag.startswith("series.")
+                    and "series.all" not in tag
             ]
         )
-        if "all" in self.filter_series:
-            self.filter_series.update(ALL_SUPPORTED_SERIES)
         # Next, perform any required validation
         if self.reuse_image is not None:
             if self.image_clean:
