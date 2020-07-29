@@ -4,9 +4,17 @@ Feature: Command behaviour when attached to an UA subscription
     @series.xenial
     @series.bionic
     @series.focal
-    Scenario Outline: Attached refresh in a trusty machine
+    Scenario Outline: Attached refresh in an Ubuntu PRO machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua status --all` as non-root
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION

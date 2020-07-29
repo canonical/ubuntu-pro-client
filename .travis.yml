@@ -17,18 +17,15 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
-                 tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
-                 pwd
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
@@ -41,18 +38,15 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
-                 tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
-                 pwd
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
@@ -65,18 +59,15 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
-                 tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
-                 pwd
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
@@ -89,18 +80,15 @@ matrix:
       script:
           # bionic has lxd from deb installed, remove it first to avoid
           # confusion over versions
-          - echo $TRAVIS_BRANCH
-          - echo $TRAVIS_BUILD_DIR
           - BUILD_PR=1
           - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
               if [ "$BUILD_PR" -eq "1" ]; then
                  cd $TRAVIS_BUILD_DIR/..
-                 tar -zcvf pr_source.tar.gz ubuntu-advantage-client
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
-                 pwd
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
