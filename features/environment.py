@@ -134,8 +134,7 @@ class UAClientBehaveConfig:
             [
                 tag.split(".")[1]
                 for tag in cmdline_tags
-                if tag.startswith("series.")
-                    and "series.all" not in tag
+                if tag.startswith("series.") and "series.all" not in tag
             ]
         )
         # Next, perform any required validation
@@ -546,7 +545,11 @@ def _install_uat_in_container(
                 inst.push_file(deb_file, "/tmp/" + deb_name)
             else:
                 cmd = [
-                    "lxc", "file", "push", deb_file, container_name + "/tmp/"
+                    "lxc",
+                    "file",
+                    "push",
+                    deb_file,
+                    container_name + "/tmp/",
                 ]
                 subprocess.check_call(cmd)
     if cloud_api:
