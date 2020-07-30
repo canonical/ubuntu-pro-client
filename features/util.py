@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import os
+import multiprocessing
 import subprocess
 import sys
 import textwrap
@@ -393,7 +395,7 @@ def build_debs(
     :return: A list of file paths to debs created by the build.
 
     """
-    if not os.environ.get("TRAVIS"):
+    if os.environ.get("TRAVIS") != "true":
         print(
             "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
         )
@@ -476,3 +478,42 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
         subprocess.check_call(cmd)
     subprocess.run(["lxc", "stop", container_name])
     return deb_paths
+
+
+def spinning_cursor():
+    while True:
+        for cursor in "|/-\\":
+            yield cursor
+
+
+@contextmanager
+def emit_spinner_on_travis():
+    """
+    A context manager that emits a spinner updating 5 seconds if running on
+    Travis.
+
+    Travis will kill jobs that don't emit output for a certain amount of time.
+    This context manager spins up a background process which will emit a char
+    to stdout every 10 seconds to avoid being killed.
+
+    It should be wrapped selectively around operations that are known to take a
+    long time
+    """
+    if os.environ.get("TRAVIS") != "true":
+        # If we aren't on Travis, don't do anything.
+        yield
+        return
+
+    def emit_spinner():
+        spinner = spinning_cursor()
+        while True:
+            time.sleep(5)
+            print("\b%s" % next(spinner), end="", flush=True)
+
+    dot_process = multiprocessing.Process(target=emit_spinner)
+    dot_process.start()
+    try:
+        yield
+    finally:
+        print()
+        dot_process.terminate()
