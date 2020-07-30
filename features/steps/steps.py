@@ -5,7 +5,9 @@ import shlex
 from behave import given, then, when
 from hamcrest import assert_that, equal_to, matches_regexp
 
+from features.environment import create_uat_image
 from features.util import (
+    emit_spinner_on_travis,
     launch_lxd_container,
     launch_ec2,
     lxc_exec,
@@ -37,7 +39,13 @@ def given_a_machine(context, series):
             context.instance = context.config.cloud_api.get_instance(
                 context.container_name
             )
-    elif context.config.machine_type == "pro.aws":
+        return
+
+    if series not in context.series_image_name:
+        with emit_spinner_on_travis():
+            create_uat_image(context, series)
+
+    if context.config.machine_type == "pro.aws":
         context.instance = launch_ec2(
             context,
             series=series,

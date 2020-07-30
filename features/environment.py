@@ -14,7 +14,6 @@ import pycloudlib  # type: ignore
 
 from features.util import (
     UA_DEBS,
-    emit_spinner_on_travis,
     launch_lxd_container,
     launch_ec2,
     lxc_exec,
@@ -357,21 +356,6 @@ def before_scenario(context: Context, scenario: Scenario):
     reason = _should_skip_tags(context, scenario.effective_tags)
     if reason:
         scenario.skip(reason=reason)
-        return
-    releases = set([])
-    for tag in scenario.effective_tags:
-        parts = tag.split(".")
-        if parts[0] == "series":
-            if parts[1] == "all":
-                releases.update(ALL_SUPPORTED_SERIES)
-            else:
-                releases.update([parts[1]])
-    if context.config.filter_series:
-        releases = releases.intersection(context.config.filter_series)
-    for release in releases:
-        if release not in context.series_image_name:
-            with emit_spinner_on_travis():
-                create_uat_image(context, release)
 
 
 def after_all(context):
