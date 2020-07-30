@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import os
+import multiprocessing
 import subprocess
 import sys
 import textwrap
@@ -85,9 +87,26 @@ def launch_ec2(
     vpc = context.config.cloud_api.get_or_create_vpc(
         name="uaclient-integration"
     )
-    inst = context.config.cloud_api.launch(
-        image_name, user_data=user_data, vpc=vpc
+    try:
+        inst = context.config.cloud_api.launch(
+            image_name, user_data=user_data, vpc=vpc
+        )
+    except Exception as e:
+        print(str(e))
+        raise
+
+    print(
+        "--- AWS PRO instance launched: {}. Waiting for ssh access".format(
+            inst.id
+        )
     )
+    time.sleep(15)
+    for sleep in (5, 10, 15):
+        try:
+            inst.wait()
+            break
+        except Exception as e:
+            print("--- Retrying instance.wait on {}".format(str(e)))
 
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
@@ -97,8 +116,6 @@ def launch_ec2(
 
     context.add_cleanup(cleanup_instance)
 
-    context.add_cleanup(cleanup_instance)
-    print("AWS PRO instance launched: {}".format(inst.id))
     return inst
 
 
@@ -378,14 +395,20 @@ def build_debs(
     :return: A list of file paths to debs created by the build.
 
     """
-    if not os.environ.get("TRAVIS"):
+    if os.environ.get("TRAVIS") != "true":
         print(
             "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
         )
-        subprocess.run(["make", "clean"])
         os.chdir("..")
         subprocess.run(
-            ["tar", "-zcf", SOURCE_PR_TGZ, "ubuntu-advantage-client"]
+            [
+                "tar",
+                "-zcf",
+                SOURCE_PR_TGZ,
+                "--exclude-vcs",
+                "--exclude-vcs-ignores",
+                "ubuntu-advantage-client",
+            ]
         )
         os.chdir("ubuntu-advantage-client")
     buildscript = "build-from-source.sh"
@@ -455,3 +478,42 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
         subprocess.check_call(cmd)
     subprocess.run(["lxc", "stop", container_name])
     return deb_paths
+
+
+def spinning_cursor():
+    while True:
+        for cursor in "|/-\\":
+            yield cursor
+
+
+@contextmanager
+def emit_spinner_on_travis():
+    """
+    A context manager that emits a spinner updating 5 seconds if running on
+    Travis.
+
+    Travis will kill jobs that don't emit output for a certain amount of time.
+    This context manager spins up a background process which will emit a char
+    to stdout every 10 seconds to avoid being killed.
+
+    It should be wrapped selectively around operations that are known to take a
+    long time
+    """
+    if os.environ.get("TRAVIS") != "true":
+        # If we aren't on Travis, don't do anything.
+        yield
+        return
+
+    def emit_spinner():
+        spinner = spinning_cursor()
+        while True:
+            time.sleep(5)
+            print("\b%s" % next(spinner), end="", flush=True)
+
+    dot_process = multiprocessing.Process(target=emit_spinner)
+    dot_process.start()
+    try:
+        yield
+    finally:
+        print()
+        dot_process.terminate()
