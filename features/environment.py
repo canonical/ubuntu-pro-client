@@ -14,6 +14,7 @@ import pycloudlib  # type: ignore
 
 from features.util import (
     UA_DEBS,
+    emit_spinner_on_travis,
     launch_lxd_container,
     launch_ec2,
     lxc_exec,
@@ -260,9 +261,7 @@ def before_all(context: Context) -> None:
                 stream.write(keypair["KeyMaterial"])
             os.chmod(private_key_file, 0o600)
         cloud_api.use_key(
-            private_key_file,
-            private_key_file,
-            context.config.private_key_name
+            private_key_file, private_key_file, context.config.private_key_name
         )
     if context.config.reuse_image:
         series = lxc_get_property(
@@ -371,7 +370,8 @@ def before_scenario(context: Context, scenario: Scenario):
         releases = releases.intersection(context.config.filter_series)
     for release in releases:
         if release not in context.series_image_name:
-            create_uat_image(context, release)
+            with emit_spinner_on_travis():
+                create_uat_image(context, release)
 
 
 def after_all(context):
@@ -425,9 +425,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     :return: A list of paths to applicable deb files published.
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
-    print(
-        "--- Launching vm to build ubuntu-advantage*debs from local source"
-    )
+    print("--- Launching vm to build ubuntu-advantage*debs from local source")
     if context.config.machine_type == "pro.aws":
         inst = launch_ec2(
             context,
