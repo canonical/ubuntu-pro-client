@@ -4,18 +4,18 @@ import itertools
 import subprocess
 import textwrap
 import logging
+import pycloudlib  # type: ignore
 from typing import Dict, Optional, Union, List
 
 from behave.model import Feature, Scenario
 
 from behave.runner import Context
 
-import pycloudlib  # type: ignore
+import features.cloud as cloud
 
 from features.util import (
     UA_DEBS,
     launch_lxd_container,
-    launch_ec2,
     lxc_exec,
     lxc_get_property,
     build_debs,
@@ -93,6 +93,10 @@ class UAClientBehaveConfig:
     str_options = [
         "aws_access_key_id",
         "aws_secret_access_key",
+        "az_client_id",
+        "az_client_secret",
+        "az_tenant_id",
+        "az_subscription_id",
         "contract_token",
         "contract_token_staging",
         "machine_type",
@@ -103,6 +107,10 @@ class UAClientBehaveConfig:
     redact_options = [
         "aws_access_key_id",
         "aws_secret_access_key",
+        "az_client_id",
+        "az_client_secret",
+        "az_tenant_id",
+        "az_subscription_id",
         "contract_token",
         "contract_token_staging",
     ]
@@ -110,14 +118,18 @@ class UAClientBehaveConfig:
     # This variable is used in .from_environ() but also to emit the "Config
     # options" stanza in __init__
     all_options = boolean_options + str_options
-
     cloud_api = None  # type: pycloudlib.cloud.BaseCloud
+    cloud_manager = None  # type: cloud.Cloud
 
     def __init__(
         self,
         *,
         aws_access_key_id: str = None,
         aws_secret_access_key: str = None,
+        az_client_id: str = None,
+        az_client_secret: str = None,
+        az_tenant_id: str = None,
+        az_subscription_id: str = None,
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
@@ -154,9 +166,16 @@ class UAClientBehaveConfig:
             if self.image_clean:
                 print(" Reuse_image specified, it will not be deleted.")
 
-        has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
-        if self.machine_type != "pro.aws":
-            for attr_name in ("aws_access_key_id", "aws_secret_access_key"):
+        if not self.machine_type.startswith("pro"):
+            pro_attrs = (
+                "aws_access_key_id",
+                "aws_secret_access_key",
+                "az_client_id",
+                "ax_client_secret",
+                "az_tenant_id",
+                "az_subscription_id",
+            )
+            for attr_name in pro_attrs:
                 if getattr(self, attr_name):
                     print(
                         " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
@@ -173,13 +192,19 @@ class UAClientBehaveConfig:
                     )
                     setattr(self, attr_name, None)
             if self.machine_type == "pro.aws":
-                if not has_aws_keys:
-                    logging.warning(
-                        "UACLIENT_BEHAVE_MACHINE_TYPE=pro.aws requires"
-                        " the following env vars:\n"
-                        " - UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID\n"
-                        " - UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY\n"
-                    )
+                self.cloud_manager = cloud.EC2(
+                    aws_access_key_id,
+                    aws_secret_access_key,
+                    region="us-east-2",
+                )
+            elif self.machine_type == "pro.azure":
+                self.cloud_manager = cloud.Azure(
+                    az_client_id,
+                    az_client_secret,
+                    az_tenant_id,
+                    az_subscription_id,
+                )
+
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
         print("Config options:")
@@ -245,10 +270,6 @@ def before_all(context: Context) -> None:
             secret_access_key=context.config.aws_secret_access_key,
             region="us-east-2",
         )
-        if context.config.private_key_file:
-            private_key_file = context.config.private_key_file
-        else:
-            private_key_file = DEFAULT_PRIVATE_KEY_FILE
         cloud_api = context.config.cloud_api
         if not os.path.exists(private_key_file):
             if "uaclient-integration" in cloud_api.list_keys():
@@ -262,6 +283,9 @@ def before_all(context: Context) -> None:
         cloud_api.use_key(
             private_key_file, private_key_file, context.config.private_key_name
         )
+    if context.config.machine_type.startswith("pro"):
+        context.config.cloud_manager.menage_ssh_keys()
+        context.config.cloud_api = context.config.cloud_manager.api
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -410,13 +434,20 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
     print("--- Launching vm to build ubuntu-advantage*debs from local source")
-    if context.config.machine_type == "pro.aws":
-        inst = launch_ec2(
-            context,
-            series=series,
-            user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS,
+    if context.config.machine_type.startswith("pro"):
+        inst = context.config.cloud_manager.launch(
+            series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
         )
-        build_container_name = inst.id
+
+        def cleanup_instance() -> None:
+            if not context.config.destroy_instances:
+                print("--- Leaving instance running: {}".format(inst.id))
+            else:
+                inst.delete(wait=False)
+
+        build_container_name = context.config.cloud_manager.get_instance_id(
+            inst
+        )
     else:
         build_container_name = (
             "behave-image-pre-build-%s-" % series + time_suffix
@@ -474,13 +505,13 @@ def create_uat_image(context: Context, series: str) -> None:
     print(
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
-    if context.config.cloud_api:
-        inst = launch_ec2(
-            context,
-            series=series,
-            user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS,
+    if context.config.cloud_manager:
+        inst = context.config.cloud_manager.launch(
+            series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
         )
-        build_container_name = inst.id
+        build_container_name = context.config.cloud_manager.get_instance_id(
+            inst
+        )
     else:
         is_vm = bool(context.config.machine_type == "lxd.vm")
         build_container_name = "behave-image-build-%s-%s" % (
