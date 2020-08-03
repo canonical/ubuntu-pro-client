@@ -14,9 +14,15 @@ class Cloud:
         A tag to be used when creating the resources on the cloud provider
     """
 
+    name = ""
+
     def __init__(self, tag):
         self.tag = tag
         self._api = None
+
+    def has_keys(self):
+        """Check if cloud has necessary keys to launch instance."""
+        raise NotImplementedError
 
     def get_instance_id(self, instance):
         """Return the instance identifier.
@@ -52,7 +58,7 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
-        :param image_name: 
+        :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
@@ -74,7 +80,7 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
-        :param image_name: 
+        :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
@@ -113,7 +119,7 @@ class EC2(Cloud):
     """
 
     EC2_KEY_FILE = "uaclient.pem"
-    name = "AWS"
+    name = "aws"
 
     def __init__(
         self,
@@ -122,27 +128,27 @@ class EC2(Cloud):
         region,
         tag="uaclientci",
     ):
-        self.aws_access_key_id = None
-        self.aws_access_key_id = None
+        self.aws_access_key_id = aws_access_key_id
+        self.aws_secret_access_key = aws_secret_access_key
         logging.basicConfig(
             filename="pycloudlib-behave.log", level=logging.DEBUG
         )
 
-        has_aws_keys = bool(aws_access_key_id and aws_secret_access_key)
-        if not has_aws_keys:
+        if not self.has_keys():
             logging.warning(
                 "UACLIENT_BEHAVE_MACHINE_TYPE=pro.aws requires"
                 " the following env vars:\n"
                 " - UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID\n"
                 " - UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY\n"
             )
-        else:
-            self.aws_access_key_id = aws_access_key_id
-            self.aws_secret_access_key = aws_secret_access_key
 
         self.region = region
 
         super().__init__(tag)
+
+    def has_keys(self):
+        """Check if cloud has necessary keys to launch instance."""
+        return bool(self.aws_access_key_id and self.aws_secret_access_key)
 
     @property
     def api(self):
@@ -157,7 +163,7 @@ class EC2(Cloud):
 
         return self._api
 
-    def menage_ssh_keys(self, private_key_path):
+    def menage_ssh_keys(self, private_key_path=None):
         """Create and manage ssh key pairs to be used in the cloud provider.
 
         :param private_key_path:
@@ -167,19 +173,19 @@ class EC2(Cloud):
         if not private_key_path:
             private_key_path = self.EC2_KEY_FILE
 
-        if not os.path.exists(private_key_file):
+        if not os.path.exists(private_key_path):
             if "uaclient-integration" in self.api.list_keys():
                 self.api.delete_key("uaclient-integration")
             keypair = self.api.client.create_key_pair(
                 KeyName="uaclient-integration"
             )
 
-            with open(private_key_file, "w") as stream:
+            with open(private_key_path, "w") as stream:
                 stream.write(keypair["KeyMaterial"])
-            os.chmod(self.EC2_KEY_FILE, 0o600)
+            os.chmod(private_key_path, 0o600)
 
         self.api.use_key(
-            private_key_file, private_key_file, "uaclient-integration"
+            private_key_path, private_key_path, "uaclient-integration"
         )
 
     def _create_instance(
@@ -194,7 +200,7 @@ class EC2(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
-        :param image_name: 
+        :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
@@ -250,15 +256,12 @@ class Azure(Cloud):
         az_subscription_id,
         tag="uaclientci",
     ):
-        self.az_client_id = None
-        self.az_client_secret = None
-        self.az_tenant_id = None
-        self.az_subscription_id = None
+        self.az_client_id = az_client_id
+        self.az_client_secret = az_client_secret
+        self.az_tenant_id = az_tenant_id
+        self.az_subscription_id = az_subscription_id
 
-        has_az_keys = all(
-            [az_client_id, az_client_secret, az_tenant_id, az_subscription_id]
-        )
-        if not has_az_keys:
+        if not self.has_keys():
             logging.warning(
                 "UACLIENT_BEHAVE_MACHINE_TYPE=pro.azure requires"
                 " the following env vars:\n"
@@ -267,13 +270,19 @@ class Azure(Cloud):
                 " - UACLIENT_BEHAVE_AZ_TENANT_ID\n"
                 " - UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID\n"
             )
-        else:
-            self.az_client_id = az_client_id
-            self.az_client_secret = az_client_secret
-            self.az_tenant_id = az_tenant_id
-            self.az_subscription_id = az_subscription_id
 
         super().__init__(tag)
+
+    def has_keys(self):
+        """Check if cloud has necessary keys to launch instance."""
+        return all(
+            [
+                self.az_client_id,
+                self.az_client_secret,
+                self.az_tenant_id,
+                self.az_subscription_id,
+            ]
+        )
 
     @property
     def api(self):
@@ -340,7 +349,7 @@ class Azure(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
-        :param image_name: 
+        :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
@@ -354,8 +363,8 @@ class Azure(Cloud):
                     "Must provide either series or image_name to launch azure"
                 )
             with open("features/azure-ids.yaml", "r") as stream:
-                aws_pro_ids = yaml.safe_load(stream.read())
-            image_name = aws_pro_ids[series]
+                azure_pro_ids = yaml.safe_load(stream.read())
+            image_name = azure_pro_ids[series]
 
         print(
             "--- Launching Azure PRO image {}({})".format(image_name, series)

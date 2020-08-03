@@ -263,26 +263,6 @@ def before_all(context: Context) -> None:
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-    if context.config.machine_type == "pro.aws":
-        context.config.cloud_api = pycloudlib.EC2(
-            tag="uaclientci",
-            access_key_id=context.config.aws_access_key_id,
-            secret_access_key=context.config.aws_secret_access_key,
-            region="us-east-2",
-        )
-        cloud_api = context.config.cloud_api
-        if not os.path.exists(private_key_file):
-            if "uaclient-integration" in cloud_api.list_keys():
-                cloud_api.delete_key("uaclient-integration")
-            keypair = cloud_api.client.create_key_pair(
-                KeyName="uaclient-integration"
-            )
-            with open(private_key_file, "w") as stream:
-                stream.write(keypair["KeyMaterial"])
-            os.chmod(private_key_file, 0o600)
-        cloud_api.use_key(
-            private_key_file, private_key_file, context.config.private_key_name
-        )
     if context.config.machine_type.startswith("pro"):
         context.config.cloud_manager.menage_ssh_keys()
         context.config.cloud_api = context.config.cloud_manager.api
@@ -336,32 +316,43 @@ def before_all(context: Context) -> None:
 
 def _should_skip_tags(context: Context, tags: "List") -> str:
     """Return a reason if a feature or scenario should be skipped"""
+    has_machine_type = False
+    found_machine_type = False
+    machine_type = getattr(context.config, "machine_type", "")
+    machine_types = []
+
     for tag in tags:
         parts = tag.split(".")
         if parts[0] == "uses":
-            val = context
-            for idx, attr in enumerate(parts[1:], 1):
-                val = getattr(val, attr, None)
-                if val is None:
-                    return "Skipped: tag value was None: {}".format(tag)
-                if attr == "machine_type":
-                    machine_type = ".".join(parts[idx + 1 :])
-                    if val == machine_type:
-                        if val == "aws.pro":  # Ensure we have AWS creds
-                            has_aws_keys = bool(
-                                context.config.aws_access_key_id
-                                and context.config.aws_secret_access_key
-                            )
-                            if not has_aws_keys:
-                                return (
-                                    "Skipped: aws.pro machine_type requires"
-                                    " UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID and"
-                                    " UACLIENT_BEHAVE_AWS_SECRET_KEY"
-                                )
-                        break
-                    return "Skipped: machine_type {} != {}".format(
-                        val, machine_type
-                    )
+            has_machine_type = True
+            machine_types.append(tag)
+            if machine_type in tag:
+                found_machine_type = True
+                if machine_type == "aws.pro":  # Ensure we have AWS creds
+                    if not context.config.cloud_manager.has_keys():
+                        return (
+                            "Skipped: aws.pro machine_type requires"
+                            " UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID and"
+                            " UACLIENT_BEHAVE_AWS_SECRET_KEY"
+                        )
+
+                if machine_type == "azure.pro":  # Ensure we have Azure creds
+                    if not context.config.cloud_manager.has_keys():
+                        return (
+                            "Skipped: azure.pro machine_type requires"
+                            " - UACLIENT_BEHAVE_AZ_CLIENT_ID\n"
+                            " - UACLIENT_BEHAVE_AZ_CLIENT_SECRET\n"
+                            " - UACLIENT_BEHAVE_AZ_TENANT_ID\n"
+                            " - UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID\n"
+                        )
+
+                break
+
+    if has_machine_type and not found_machine_type:
+        return "Skipped: machine type {} was not found in tags:\n {}".format(
+            machine_type, ", ".join(machine_types)
+        )
+
     return ""
 
 
