@@ -144,6 +144,10 @@ class UAClientBehaveConfig:
         # First, store the values we've detected
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
+        self.az_client_id = az_client_id
+        self.az_client_secret = az_client_secret
+        self.az_tenant_id = az_tenant_id
+        self.az_subscription_id = az_subscription_id
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -167,19 +171,13 @@ class UAClientBehaveConfig:
                 print(" Reuse_image specified, it will not be deleted.")
 
         if not self.machine_type.startswith("pro"):
-            pro_attrs = (
-                "aws_access_key_id",
-                "aws_secret_access_key",
-                "az_client_id",
-                "ax_client_secret",
-                "az_tenant_id",
-                "az_subscription_id",
-            )
-            for attr_name in pro_attrs:
+            pro_envs = cloud.Azure.env_vars + cloud.EC2.env_vars
+            for env_name in pro_envs:
+                attr_name = env_name.replace("UACLIENT_BEHAVE_", "").lower()
                 if getattr(self, attr_name):
                     print(
                         " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
-                        " is {}".format(attr_name.upper(), self.machine_type)
+                        " is {}".format(env_name, self.machine_type)
                     )
                     setattr(self, attr_name, None)
         else:
@@ -193,16 +191,18 @@ class UAClientBehaveConfig:
                     setattr(self, attr_name, None)
             if self.machine_type == "pro.aws":
                 self.cloud_manager = cloud.EC2(
-                    aws_access_key_id,
-                    aws_secret_access_key,
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
                     region="us-east-2",
+                    machine_type=self.machine_type,
                 )
             elif self.machine_type == "pro.azure":
                 self.cloud_manager = cloud.Azure(
-                    az_client_id,
-                    az_client_secret,
-                    az_tenant_id,
-                    az_subscription_id,
+                    az_client_id=az_client_id,
+                    az_client_secret=az_client_secret,
+                    az_tenant_id=az_tenant_id,
+                    az_subscription_id=az_subscription_id,
+                    machine_type=self.machine_type,
                 )
 
         # Finally, print the config options.  This helps users debug the use of
@@ -264,7 +264,7 @@ def before_all(context: Context) -> None:
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
     if context.config.machine_type.startswith("pro"):
-        context.config.cloud_manager.menage_ssh_keys()
+        context.config.cloud_manager.manage_ssh_key()
         context.config.cloud_api = context.config.cloud_manager.api
     if context.config.reuse_image:
         series = lxc_get_property(
@@ -323,29 +323,24 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
 
     for tag in tags:
         parts = tag.split(".")
-        if parts[0] == "uses":
+        if "machine_type" in parts:
             has_machine_type = True
             machine_types.append(tag)
             if machine_type in tag:
                 found_machine_type = True
-                if machine_type == "aws.pro":  # Ensure we have AWS creds
-                    if not context.config.cloud_manager.has_keys():
-                        return (
-                            "Skipped: aws.pro machine_type requires"
-                            " UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID and"
-                            " UACLIENT_BEHAVE_AWS_SECRET_KEY"
+                cloud_manager = context.config.cloud_manager
+                missing_env_vars = cloud_manager.missing_env_vars()
+                if missing_env_vars:
+                    return "".join(
+                        (
+                            "Skipped: {} machine_type requires:\n".format(
+                                machine_type
+                            ),
+                            *cloud_manager.format_missing_env_vars(
+                                missing_env_vars
+                            ),
                         )
-
-                if machine_type == "azure.pro":  # Ensure we have Azure creds
-                    if not context.config.cloud_manager.has_keys():
-                        return (
-                            "Skipped: azure.pro machine_type requires"
-                            " - UACLIENT_BEHAVE_AZ_CLIENT_ID\n"
-                            " - UACLIENT_BEHAVE_AZ_CLIENT_SECRET\n"
-                            " - UACLIENT_BEHAVE_AZ_TENANT_ID\n"
-                            " - UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID\n"
-                        )
-
+                    )
                 break
 
     if has_machine_type and not found_machine_type:
