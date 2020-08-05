@@ -156,20 +156,31 @@ The testing can be overridden to run using a local copy of the ubuntu-advantage-
 To run the tests, you can use `tox`:
 
 ```shell
-tox -e behave
+tox -e behave-20.04
 ```
 
 or, if you just want to run a specific file, or a test within a file:
 
 ```shell
-tox -e behave features/unattached_commands.feature
-tox -e behave features/unattached_commands.feature:55
+tox -e behave-20.04 features/unattached_commands.feature
+tox -e behave-20.04 features/unattached_commands.feature:55
 ```
 
-When developing/debugging a new scenario:
+As can be seen, this will run behave tests only for release 20.04 (Focal Fossa). We are currently
+supporting 4 distinct releases:
+
+* 20.04 (Focal Fossa)
+* 18.04 (Bionic Beaver)
+* 16.04 (Xenial Xerus)
+* 14.04 (Trusty Tahr)
+
+Therefore, to change which release to run the behave tests against, just change the release version
+on the behave command.
+
+Furthermore, when developing/debugging a new scenario:
 
  1. Add a `@wip` tag decorator on the scenario
- 2. To only run @wip scenarios run: `tox -e behave -- -w`
+ 2. To only run @wip scenarios run: `tox -e behave-20.04 -- -w`
  4. If you want to use a debugger:
     a. Add ipdb to integration-requirements.txt
     b. Add ipdb.set_trace() in the code block you wish to debug
