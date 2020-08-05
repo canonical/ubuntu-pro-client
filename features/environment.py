@@ -326,11 +326,13 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
         val = context
         for idx, attr in enumerate(parts[1:], 1):
             val = getattr(val, attr, None)
-            if val is None:
-                return "Skipped: tag value was None: {}".format(tag)
             if attr == "machine_type":
-                machine_types.append(".".join(parts[idx + 1 :]))
-                if val == machine_type:
+                curr_machine_type = ".".join(parts[idx + 1 :])
+                machine_types.append(curr_machine_type)
+                if curr_machine_type == machine_type:
+                    if machine_type.startswith("lxd"):
+                        return ""
+
                     cloud_manager = context.config.cloud_manager
                     if cloud_manager and cloud_manager.missing_env_vars():
                         return "".join(
@@ -344,6 +346,9 @@ def _should_skip_tags(context: Context, tags: "List") -> str:
                             )
                         )
                     return ""
+                break
+            if val is None:
+                return "Skipped: tag value was None: {}".format(tag)
 
     if machine_types:
         return "Skipped: machine type {} was not found in tags:\n {}".format(
