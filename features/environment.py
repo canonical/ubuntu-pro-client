@@ -316,34 +316,36 @@ def before_all(context: Context) -> None:
 
 def _should_skip_tags(context: Context, tags: "List") -> str:
     """Return a reason if a feature or scenario should be skipped"""
-    has_machine_type = False
-    found_machine_type = False
     machine_type = getattr(context.config, "machine_type", "")
     machine_types = []
 
     for tag in tags:
         parts = tag.split(".")
-        if "machine_type" in parts:
-            has_machine_type = True
-            machine_types.append(tag)
-            if machine_type in tag:
-                found_machine_type = True
-                cloud_manager = context.config.cloud_manager
-                missing_env_vars = cloud_manager.missing_env_vars()
-                if missing_env_vars:
-                    return "".join(
-                        (
-                            "Skipped: {} machine_type requires:\n".format(
-                                machine_type
-                            ),
-                            *cloud_manager.format_missing_env_vars(
-                                missing_env_vars
-                            ),
+        if parts[0] != "uses":
+            continue  # Only process @uses.* tags for skipping:
+        val = context
+        for idx, attr in enumerate(parts[1:], 1):
+            val = getattr(val, attr, None)
+            if val is None:
+                return "Skipped: tag value was None: {}".format(tag)
+            if attr == "machine_type":
+                machine_types.append(".".join(parts[idx + 1 :]))
+                if val == machine_type:
+                    cloud_manager = context.config.cloud_manager
+                    if cloud_manager and cloud_manager.missing_env_vars():
+                        return "".join(
+                            (
+                                "Skipped: {} machine_type requires:\n".format(
+                                    machine_type
+                                ),
+                                *cloud_manager.format_missing_env_vars(
+                                    cloud_manager.missing_env_vars()
+                                ),
+                            )
                         )
-                    )
-                break
+                    return ""
 
-    if has_machine_type and not found_machine_type:
+    if machine_types:
         return "Skipped: machine type {} was not found in tags:\n {}".format(
             machine_type, ", ".join(machine_types)
         )
