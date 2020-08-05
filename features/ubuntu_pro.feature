@@ -1,3 +1,4 @@
+@uses.config.machine_type.pro.azure
 @uses.config.machine_type.pro.aws
 Feature: Command behaviour when attached to an UA subscription
 
