@@ -9,7 +9,6 @@ from features.environment import create_uat_image
 from features.util import (
     emit_spinner_on_travis,
     launch_lxd_container,
-    launch_ec2,
     lxc_exec,
     wait_for_boot,
 )
@@ -45,13 +44,13 @@ def given_a_machine(context, series):
         with emit_spinner_on_travis():
             create_uat_image(context, series)
 
-    if context.config.machine_type == "pro.aws":
-        context.instance = launch_ec2(
-            context,
-            series=series,
-            image_name=context.series_image_name[series],
+    if context.config.machine_type.startswith("pro"):
+        context.instance = context.config.cloud_manager.launch(
+            series=series, image_name=context.series_image_name[series]
         )
-        context.container_name = context.instance.id
+        context.container_name = context.config.cloud_manager.get_instance_id(
+            context.instance
+        )
     else:
         is_vm = bool(context.config.machine_type == "lxd.vm")
         now = datetime.datetime.now()
@@ -72,7 +71,7 @@ def given_a_machine(context, series):
 def when_i_run_command(context, command, user_spec):
     prefix = get_command_prefix_for_user_spec(user_spec)
     full_cmd = prefix + shlex.split(command)
-    if context.config.machine_type == "pro.aws":
+    if context.config.machine_type.startswith("pro"):
         result = context.instance.execute(full_cmd)
         process = subprocess.CompletedProcess(
             args=full_cmd,

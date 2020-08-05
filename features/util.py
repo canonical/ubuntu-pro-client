@@ -65,60 +65,6 @@ BUILD_FROM_TGZ = textwrap.dedent(
 )
 
 
-def launch_ec2(
-    context: Context,
-    series: str,
-    image_name: "Optional[str]" = None,
-    user_data: "Optional[str]" = None,
-) -> pycloudlib.instance:
-    """Launch a container from an AMI and wait for it to boot
-
-    :return: pycloudlib.instance that was launched
-    """
-    if not image_name:
-        if not series:
-            raise ValueError(
-                "Must provide either series or image_name to launch_ec2"
-            )
-        with open("features/aws-ids.yaml", "r") as stream:
-            aws_pro_ids = yaml.safe_load(stream.read())
-        image_name = aws_pro_ids[series]
-    print("--- Launching AWS PRO image {}({})".format(image_name, series))
-    vpc = context.config.cloud_api.get_or_create_vpc(
-        name="uaclient-integration"
-    )
-    try:
-        inst = context.config.cloud_api.launch(
-            image_name, user_data=user_data, vpc=vpc
-        )
-    except Exception as e:
-        print(str(e))
-        raise
-
-    print(
-        "--- AWS PRO instance launched: {}. Waiting for ssh access".format(
-            inst.id
-        )
-    )
-    time.sleep(15)
-    for sleep in (5, 10, 15):
-        try:
-            inst.wait()
-            break
-        except Exception as e:
-            print("--- Retrying instance.wait on {}".format(str(e)))
-
-    def cleanup_instance() -> None:
-        if not context.config.destroy_instances:
-            print("--- Leaving ec2 instance running: {}".format(inst.id))
-        else:
-            inst.delete(wait=False)
-
-    context.add_cleanup(cleanup_instance)
-
-    return inst
-
-
 def launch_lxd_container(
     context: Context,
     series: str,
