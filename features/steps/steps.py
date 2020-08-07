@@ -183,6 +183,16 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
     assert_that(expected_return, equal_to(actual_return))
 
 
+@then("I verify that running `{cmd_name}` as `{spec}` succeeds")
+def then_i_verify_that_running_cmd_with_spec_succeeds(context, cmd_name, spec):
+    spec = "with sudo" if spec == "sudo" else "as non-root"
+    when_i_run_command(context, cmd_name, spec)
+
+    expected_return = "0"
+    actual_return = str(context.process.returncode)
+    assert_that(actual_return, equal_to(expected_return))
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":

@@ -27,8 +27,46 @@ Feature: Command behaviour when attached to an UA subscription
             fips-updates  +<fips> +<fips-s> +Uncertified security updates to FIPS modules
             livepatch     +yes      +enabled  +Canonical Livepatch service
             """
+        When I run `apt-cache policy` with sudo
+        Then stdout matches regexp:
+        """
+        https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
+        """
+        And stdout matches regexp:
+        """
+        https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
+        """
+        And stdout matches regexp:
+        """
+        https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
+        """
+        And stdout matches regexp:
+        """
+        https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        """
+        And I verify that running `apt update` as `sudo` succeeds
+        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo
+        And I run `apt-cache policy <infra-pkg>` as non-root
+        Then stdout matches regexp:
+        """
+        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
+        \s*500 https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
+        """
+        And stdout matches regexp:
+        """
+        Installed: .*[~+]esm
+        """
+        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo
+        And I run `apt-cache policy <apps-pkg>` as non-root
+        Then stdout matches regexp:
+        """
+        Version table:
+        \s*\*\*\* .* 500
+        \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        """
+
         Examples: ubuntu release
-           | release | cc-eal | cc-eal-s | fips | fips-s |
-           | xenial  | yes    | disabled | yes  | n/a    |
-           | bionic  | yes    | n/a      | yes  | n/a    |
-           | focal   | yes    | n/a      | yes  | n/a    |
+           | release | cc-eal | cc-eal-s | fips | fips-s | infra-pkg    | apps-pkg |
+           | xenial  | yes    | disabled | yes  | n/a    | libkrad0     | jq       |
+           | bionic  | yes    | n/a      | yes  | n/a    | libkrad0     | bundler  |
+           | focal   | yes    | n/a      | yes  | n/a    | hello        | ant      |
