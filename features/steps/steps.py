@@ -183,6 +183,24 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
     assert_that(expected_return, equal_to(actual_return))
 
 
+@then("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
+def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+    context, cmd_name, spec, exit_codes
+):
+    when_i_run_command(context, cmd_name, spec)
+
+    expected_codes = exit_codes.split(",")
+    assert str(context.process.returncode) in expected_codes
+
+
+@then("apt-cache policy for the following url has permission `{perm_id}`")
+def then_apt_cache_policy_for_the_following_url_has_permission_perm_id(
+    context, perm_id
+):
+    full_url = "{} {}".format(perm_id, context.text)
+    assert_that(context.process.stdout.strip(), matches_regexp(full_url))
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
