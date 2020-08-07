@@ -28,23 +28,23 @@ Feature: Command behaviour when attached to an UA subscription
             livepatch     +yes      +enabled  +Canonical Livepatch service
             """
         When I run `apt-cache policy` with sudo
-        Then stdout matches regexp:
+        Then apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-updates/main amd64 Packages
         """
-        And stdout matches regexp:
+        And apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/infra/ubuntu <release>-infra-security/main amd64 Packages
         """
-        And stdout matches regexp:
+        And apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-updates/main amd64 Packages
         """
-        And stdout matches regexp:
+        And apt-cache policy for the following url has permission `500`
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        And I verify that running `apt update` as `sudo` succeeds
+        And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
