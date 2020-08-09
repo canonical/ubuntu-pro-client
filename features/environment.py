@@ -5,7 +5,12 @@ import subprocess
 import textwrap
 import logging
 import pycloudlib  # type: ignore
-from typing import Dict, Optional, Union, List
+
+try:
+    from typing import Dict, Optional, Union, List, Tuple  # noqa: F401
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
 
 from behave.model import Feature, Scenario
 
@@ -15,6 +20,7 @@ import features.cloud as cloud
 
 from features.util import (
     UA_DEBS,
+    emit_spinner_on_travis,
     launch_lxd_container,
     lxc_exec,
     lxc_get_property,
@@ -42,6 +48,9 @@ write_files:
       features:
          disable_auto_attach: true
     append: true
+apt_sources:  # for trusty
+  - source: deb {daily_ppa} trusty main
+    keyid: 8A295C4FB8B190B7
 apt:
   sources:
     ua-tools-daily:
@@ -68,7 +77,8 @@ class UAClientBehaveConfig:
         This indicates whether the image created for this test run should be
         cleaned up when all tests are complete.
     :param machine_type:
-        The default machine_type to test: lxd.container, lxd.vm or pro.aws
+        The default machine_type to test: lxd.container, lxd.vm, azure.pro,
+            azure.generic, aws.pro or aws.generic
     :param private_key_file:
         Optional path to pre-existing private key file to use when connecting
         launched VMs via ssh.
@@ -170,40 +180,42 @@ class UAClientBehaveConfig:
             if self.image_clean:
                 print(" Reuse_image specified, it will not be deleted.")
 
-        if not self.machine_type.startswith("pro"):
-            pro_envs = cloud.Azure.env_vars + cloud.EC2.env_vars
-            for env_name in pro_envs:
-                attr_name = env_name.replace("UACLIENT_BEHAVE_", "").lower()
-                if getattr(self, attr_name):
-                    print(
-                        " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
-                        " is {}".format(env_name, self.machine_type)
+        ignore_vars = ()  # type: Tuple[str, ...]
+        if "aws" not in self.machine_type:
+            ignore_vars += cloud.EC2.env_vars
+        if "azure" not in self.machine_type:
+            ignore_vars += cloud.Azure.env_vars
+        if "pro" in self.machine_type:
+            ignore_vars += (
+                "UACLIENT_BEHAVE_CONTRACT_TOKEN",
+                "UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING",
+            )
+        for env_name in ignore_vars:
+            attr_name = env_name.replace("UACLIENT_BEHAVE_", "").lower()
+            if getattr(self, attr_name):
+                print(
+                    " --- Ignoring {} because machine_type is {}".format(
+                        env_name, self.machine_type
                     )
-                    setattr(self, attr_name, None)
-        else:
-            # Machine-type precludes use of any contract tokens
-            for attr_name in ("contract_token", "contract_token_staging"):
-                if getattr(self, attr_name):
-                    print(
-                        " --- Ignoring UACLIENT_BEHAVE_{} because machine_type"
-                        " is {}".format(attr_name.upper(), self.machine_type)
-                    )
-                    setattr(self, attr_name, None)
-            if self.machine_type == "pro.aws":
-                self.cloud_manager = cloud.EC2(
-                    aws_access_key_id=aws_access_key_id,
-                    aws_secret_access_key=aws_secret_access_key,
-                    region="us-east-2",
-                    machine_type=self.machine_type,
                 )
-            elif self.machine_type == "pro.azure":
-                self.cloud_manager = cloud.Azure(
-                    az_client_id=az_client_id,
-                    az_client_secret=az_client_secret,
-                    az_tenant_id=az_tenant_id,
-                    az_subscription_id=az_subscription_id,
-                    machine_type=self.machine_type,
-                )
+                setattr(self, attr_name, None)
+        if "aws" in self.machine_type:
+            self.cloud_manager = cloud.EC2(
+                aws_access_key_id,
+                aws_secret_access_key,
+                region="us-east-2",
+                machine_type=self.machine_type,
+            )
+            self.cloud_api = self.cloud_manager.api
+        elif "azure" in self.machine_type:
+            self.cloud_manager = cloud.Azure(
+                az_client_id=az_client_id,
+                az_client_secret=az_client_secret,
+                az_tenant_id=az_tenant_id,
+                az_subscription_id=az_subscription_id,
+                machine_type=self.machine_type,
+            )
+            self.cloud_api = self.cloud_manager.api
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
@@ -251,7 +263,6 @@ class UAClientBehaveConfig:
 def before_all(context: Context) -> None:
     """behave will invoke this before anything else happens."""
     context.config.setup_logging()
-    logging.basicConfig(filename="pycloudlib-behave.log", level=logging.DEBUG)
     userdata = context.config.userdata
     if userdata:
         logging.debug("Userdata key / value pairs:")
@@ -263,9 +274,8 @@ def before_all(context: Context) -> None:
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-    if context.config.machine_type.startswith("pro"):
+    if context.config.cloud_api:
         context.config.cloud_manager.manage_ssh_key()
-        context.config.cloud_api = context.config.cloud_manager.api
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -384,7 +394,10 @@ def after_all(context):
                     context.series_image_name[key],
                 )
             else:
-                subprocess.run(["lxc", "image", "delete", image])
+                if context.config.cloud_api:
+                    context.config.cloud_api.delete_image(image)
+                else:
+                    subprocess.run(["lxc", "image", "delete", image])
 
 
 def _capture_container_as_image(
@@ -427,7 +440,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
     print("--- Launching vm to build ubuntu-advantage*debs from local source")
-    if context.config.machine_type.startswith("pro"):
+    if context.config.cloud_manager:
         inst = context.config.cloud_manager.launch(
             series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
         )
@@ -459,11 +472,12 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
             container_name=build_container_name,
             is_vm=is_vm,
         )
-    deb_paths = build_debs(
-        build_container_name,
-        output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
-        cloud_api=context.config.cloud_api,
-    )
+    with emit_spinner_on_travis("Building debs from local source... "):
+        deb_paths = build_debs(
+            build_container_name,
+            output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
+            cloud_api=context.config.cloud_api,
+        )
     if "pro" in context.config.machine_type:
         return deb_paths
     # Redact ubuntu-advantage-pro deb as inapplicable
