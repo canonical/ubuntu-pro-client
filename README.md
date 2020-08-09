@@ -234,17 +234,29 @@ you need to add `-D reuse_container=container_name`:
 tox -e behave -D reuse_container=container_name
 ```
 
-#### Integration testing on EC2 PRO images
+#### Integration testing on EC2
+The following tox environments allow for testing on EC2:
 
-Any ec2 pro image BDD tests are decorated with:
-    @uses.config.machine_type.pro.aws
+```
+  # To test ubuntu-pro-images on EC2
+  tox -e behave-aws-pro
+  # To test Canonical cloud images (non-ubuntu-pro) on EC2
+  tox -e behave-aws
+```
 
-Providing the environment variable `UACLIENT_BEHAVE_MACHINE_TYPE="pro.aws"`
-will limit test cases executed to AWS Ubuntu PRO only.
+In order to run EC2 tests the following environment variables are required:
+  - UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID
+  - UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY
+
+
+To specifically run non-ubuntu pro tests using canonical cloud-images an
+additional token obtained from https://ubuntu.com/advantage needs to be set:
+  - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
+
 
 By default, the public AMIs for Ubuntu Pro testing used for each Ubuntu
 release are defined in features/aws-ids.yaml. These ami-ids are determined by
-running ./tools
+running `./tools/refresh-aws-pro-ids`.
 
 Integration tests will read features/aws-ids.yaml to determine which default
 AMI id to use for each supported Ubuntu release.
@@ -256,14 +268,14 @@ marketplace definitions.
 * To manually run EC2 integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
 
 ```sh
-UACLIENT_BEHAVE_MACHINE_TYPE="pro.aws" UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-18.04
+UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-aws-pro
 ```
 
 * To manually run EC2 integration tests with a specific AMI Id provide the
 following environment variable to launch your specfic  AMI instead of building
 a daily ubuntu-advantage-tools image.
 ```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=ami-your-custom-ami tox -e behave-18.04
+UACLIENT_BEHAVE_REUSE_IMAGE=ami-your-custom-ami tox -e behave-aws-pro
 ```
 
 ## Building
