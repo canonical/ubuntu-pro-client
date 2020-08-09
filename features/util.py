@@ -433,7 +433,7 @@ def spinning_cursor():
 
 
 @contextmanager
-def emit_spinner_on_travis():
+def emit_spinner_on_travis(msg: str = " "):
     """
     A context manager that emits a spinner updating 5 seconds if running on
     Travis.
@@ -451,6 +451,7 @@ def emit_spinner_on_travis():
         return
 
     def emit_spinner():
+        print(msg, end="", flush=True)
         spinner = spinning_cursor()
         while True:
             time.sleep(5)
