@@ -5,7 +5,7 @@ import time
 import yaml
 
 try:
-    from typing import Tuple, List, Union, Optional  # noqa
+    from typing import Tuple, List, Optional  # noqa
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -30,20 +30,24 @@ class Cloud:
         self,
         machine_type: str,
         region: "Optional[str]" = None,
-        tag: "Optional[str]" = "uaclientci",
+        tag: "Optional[str]" = None,
     ) -> None:
-        self.tag = tag
+        if tag:
+            self.tag = tag
+        else:
+            self.tag = "uaclient-ci"
         self.machine_type = machine_type
         self.region = region
         self._api = None
+        self.key_name = pycloudlib.util.get_timestamped_tag("uaclient-ci")
 
         missing_env_vars = self.missing_env_vars()
         if missing_env_vars:
             logging.warning(
                 "".join(
                     [
-                        "UACLIENT_BEHAVE_MACHINE_TYPE=pro.{} requires".format(
-                            self.name
+                        "UACLIENT_BEHAVE_MACHINE_TYPE={} requires".format(
+                            self.machine_type
                         ),
                         " the following env vars:\n",
                         *self.format_missing_env_vars(missing_env_vars),
@@ -198,7 +202,6 @@ class EC2(Cloud):
         A tag to be used when creating the resources on the cloud provider
     """
 
-    EC2_KEY_FILE = "uaclient.pem"
     name = "aws"
     env_vars: "Tuple[str, ...]" = (
         "aws_access_key_id",
@@ -219,7 +222,6 @@ class EC2(Cloud):
         logging.basicConfig(
             filename="pycloudlib-behave.log", level=logging.DEBUG
         )
-
         super().__init__(region=region, machine_type=machine_type, tag=tag)
 
     @property
@@ -235,30 +237,39 @@ class EC2(Cloud):
 
         return self._api
 
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+    def manage_ssh_key(
+        self,
+        private_key_path: "Optional[str]" = None,
+        key_name: "Optional[str]" = None,
+    ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
         :param private_key_path:
             Location of the private key path to use. If None, the location
             will be a default location.
+        :param key_name:
+            Optional key_name to use when uploading to the cloud. Default is
+            uaclient-ci-<timestamp>
         """
+        if key_name:
+            self.key_name = key_name
         if not private_key_path:
-            private_key_path = self.EC2_KEY_FILE
+            if self.key_name in self.api.list_keys():
+                self.api.delete_key(self.key_name)
 
-        if not os.path.exists(private_key_path):
-            if "uaclient-integration" in self.api.list_keys():
-                self.api.delete_key("uaclient-integration")
-            keypair = self.api.client.create_key_pair(
-                KeyName="uaclient-integration"
+            private_key_path = "ec2-{}.pem".format(self.key_name)
+            print(
+                "--- Creating local keyfile {} for EC2".format(
+                    private_key_path
+                )
             )
+            keypair = self.api.client.create_key_pair(KeyName=self.key_name)
 
             with open(private_key_path, "w") as stream:
                 stream.write(keypair["KeyMaterial"])
             os.chmod(private_key_path, 0o600)
 
-        self.api.use_key(
-            private_key_path, private_key_path, "uaclient-integration"
-        )
+        self.api.use_key(private_key_path, private_key_path, self.key_name)
 
     def _create_instance(
         self,
@@ -379,10 +390,8 @@ class Azure(Cloud):
             will be a default location.
         """
         if not os.path.exists(self.AZURE_PUB_KEY_FILE):
-            if "uaclient-integration" in self.api.list_keys():
-                self.api.delete_key("uaclient-integration")
             pub_key, priv_key = self.api.create_key_pair(
-                key_name="uaclient-integration"
+                key_name=self.key_name
             )
 
             with open(self.AZURE_PUB_KEY_FILE, "w") as stream:
@@ -395,9 +404,7 @@ class Azure(Cloud):
             os.chmod(self.AZURE_PRIV_KEY_FILE, 0o600)
 
         self.api.use_key(
-            self.AZURE_PUB_KEY_FILE,
-            self.AZURE_PRIV_KEY_FILE,
-            "uaclient-integration",
+            self.AZURE_PUB_KEY_FILE, self.AZURE_PRIV_KEY_FILE, self.key_name
         )
 
     def _create_instance(
