@@ -12,9 +12,9 @@ script:
 matrix:
   fast_finish: true
   include:
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
-      env: TOXENV=behave-pro-azure
+      env: TOXENV=behave-aws
       script:
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
@@ -26,100 +26,146 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+      python: 3.7
+      env: TOXENV=behave-azure-pro
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      env: TOXENV=behave-azure
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
-      env: TOXENV=behave-pro-aws
+      env: TOXENV=behave-aws-pro
       script:
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
-              if [ "$BUILD_PR" -eq "1" ]; then
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-    - python: 3.7
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
       env: TOXENV=behave-14.04
       script:
-          # bionic has lxd from deb installed, remove it first to avoid
-          # confusion over versions
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
-              if [ "$BUILD_PR" -eq "1" ]; then
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          # Because we are using dist:bionic for the travis host, we need
+          # to remove the lxd deb-installed package to avoid
+          # confusion over lxd versions
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
-    - python: 3.7
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
       env: TOXENV=behave-16.04
       script:
-          # bionic has lxd from deb installed, remove it first to avoid
-          # confusion over versions
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
-              if [ "$BUILD_PR" -eq "1" ]; then
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          # Because we are using dist:bionic for the travis host, we need
+          # to remove the lxd deb-installed package to avoid
+          # confusion over lxd versions
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
-    - python: 3.7
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
       env: TOXENV=behave-18.04
       script:
-          # bionic has lxd from deb installed, remove it first to avoid
-          # confusion over versions
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
-              if [ "$BUILD_PR" -eq "1" ]; then
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          # Because we are using dist:bionic for the travis host, we need
+          # to remove the lxd deb-installed package to avoid
+          # confusion over lxd versions
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
-    - python: 3.7
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
       env: TOXENV=behave-20.04
       script:
-          # bionic has lxd from deb installed, remove it first to avoid
-          # confusion over versions
-          - BUILD_PR=1
-          - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then BUILD_PR=0; fi
           - >
-              if [ "$BUILD_PR" -eq "1" ]; then
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
                  cp pr_source.tar.gz /tmp
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          # Because we are using dist:bionic for the travis host, we need
+          # to remove the lxd deb-installed package to avoid
+          # confusion over lxd versions
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
