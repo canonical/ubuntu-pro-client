@@ -43,8 +43,7 @@ def given_a_machine(context, series):
     if series not in context.series_image_name:
         with emit_spinner_on_travis():
             create_uat_image(context, series)
-
-    if context.config.machine_type.startswith("pro"):
+    if context.config.cloud_manager:
         context.instance = context.config.cloud_manager.launch(
             series=series, image_name=context.series_image_name[series]
         )
@@ -71,7 +70,7 @@ def given_a_machine(context, series):
 def when_i_run_command(context, command, user_spec):
     prefix = get_command_prefix_for_user_spec(user_spec)
     full_cmd = prefix + shlex.split(command)
-    if context.config.machine_type.startswith("pro"):
+    if context.config.cloud_manager:
         result = context.instance.execute(full_cmd)
         process = subprocess.CompletedProcess(
             args=full_cmd,

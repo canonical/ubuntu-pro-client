@@ -1,5 +1,5 @@
-@uses.config.machine_type.pro.azure
-@uses.config.machine_type.pro.aws
+@uses.config.machine_type.azure.pro
+@uses.config.machine_type.aws.pro
 Feature: Command behaviour when attached to an UA subscription
 
     @series.xenial
@@ -19,13 +19,13 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +<cc-eal> +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis-audit     +no       +—    +Center for Internet Security Audit Tools
-            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance
+            esm-apps      +yes +<esm-a-s> +UA Apps: Extended Security Maintenance
             esm-infra     +yes     +enabled +UA Infra: Extended Security Maintenance
-            fips          +<fips> +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +<fips> +<fips-s> +Uncertified security updates to FIPS modules
-            livepatch     +yes      +enabled  +Canonical Livepatch service
+            fips          +yes +<fips-s> +NIST-certified FIPS modules
+            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            livepatch     +yes      +<lp-s>  +<lp-d>
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -66,7 +66,61 @@ Feature: Command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release | cc-eal | cc-eal-s | fips | fips-s | infra-pkg    | apps-pkg |
-           | xenial  | yes    | disabled | yes  | n/a    | libkrad0     | jq       |
-           | bionic  | yes    | n/a      | yes  | n/a    | libkrad0     | bundler  |
-           | focal   | yes    | n/a      | yes  | n/a    | hello        | ant      |
+           | release | cc-eal-s | esm-a-s | infra-pkg | apps-pkg | fips-s | lp-s    | lp-d                          |
+           | xenial  | disabled | enabled | libkrad0  | jq       | n/a    | enabled | Canonical Livepatch service |
+           | bionic  | n/a      | enabled | libkrad0  | bundler  | n/a    | enabled | Canonical Livepatch service |
+           | focal   | n/a      | enabled | hello     | ant      | n/a    | enabled | Canonical Livepatch service |
+
+    @series.trusty
+    Scenario Outline: Attached refresh in a Trusty Ubuntu PRO machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        And I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `-32768`
+        """
+        https://esm.ubuntu.com/ubuntu/ <release>-infra-updates/main amd64 Packages
+        """
+        When I run `ua auto-attach` with sudo
+        And I run `ua status --all` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance
+            esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance
+            fips          +yes      +n/a   +NIST-certified FIPS modules
+            fips-updates  +yes      +n/a   +Uncertified security updates to FIPS modules
+            livepatch     +yes      +n/a   +Available with the HWE kernel
+            """
+        When I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `500`
+        """
+        https://esm.ubuntu.com/ubuntu/ <release>-infra-updates/main amd64 Packages
+        """
+        And apt-cache policy for the following url has permission `500`
+        """
+        https://esm.ubuntu.com/ubuntu/ <release>-infra-security/main amd64 Packages
+        """
+        And I verify that running `apt update` `with sudo` exits `0`
+        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo
+        And I run `apt-cache policy <infra-pkg>` as non-root
+        Then stdout matches regexp:
+        """
+        \s*500 https://esm.ubuntu.com/ubuntu/ <release>-infra-security/main amd64 Packages
+        \s*500 https://esm.ubuntu.com/ubuntu/ <release>-infra-updates/main amd64 Packages
+        """
+        And stdout matches regexp:
+        """
+        Installed: .*[~+]esm
+        """
+
+        Examples: ubuntu release
+           | release | infra-pkg   |
+           | trusty  | libgit2-dbg |
