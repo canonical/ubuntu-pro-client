@@ -93,13 +93,26 @@ Feature: Enable command behaviour when attached to an UA subscription
             ESM Infra is already enabled.
             See: sudo ua status
             """
+        When I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `500`
+        """
+        <esm-infra-url> <release>-infra-updates/main amd64 Packages
+        """
+        And I verify that running `apt update` `with sudo` exits `0`
+        When I run `apt install -y <infra-pkg>` with sudo
+        And I run `apt-cache policy <infra-pkg>` as non-root
+        Then stdout matches regexp:
+        """
+        \s*500 <esm-infra-url> <release>-infra-security/main amd64 Packages
+        \s*500 <esm-infra-url> <release>-infra-updates/main amd64 Packages
+        """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | trusty  |
-           | xenial  |
+           | release | infra-pkg | esm-infra-url                       |
+           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
+           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu |
+           | trusty  | libgit2-0 | https://esm.ubuntu.com/ubuntu/      |
+           | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
     @series.all
     @uses.config.machine_type.lxd.container
