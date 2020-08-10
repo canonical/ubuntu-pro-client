@@ -101,8 +101,9 @@ Feature: Command behaviour when attached to an UA subscription
           """
           This machine is not attached to a UA subscription.
           """
+       And I verify that running `apt update` `with sudo` exits `0`
 
-        Examples: ubuntu release
+       Examples: ubuntu release
            | release | esm-apps | cc-eal | fips | fips-update |
            | bionic  | yes      | no     | yes  | yes         |
            | focal   | yes      | no     | no   | no          |
@@ -234,7 +235,9 @@ Feature: Command behaviour when attached to an UA subscription
            | trusty  |
            | xenial  |
 
-    @series.all
+    @series.xenial
+    @series.bionic
+    @series.focal
     Scenario Outline: Attached disable of an already enabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -258,5 +261,34 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
+
+    @series.trusty
+    Scenario: Attached disable of an already enabled service in a trusty machine
+        Given a `trusty` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua disable esm-infra` as non-root
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo)
+            """
+        When I run `ua disable esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            Updating package lists
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        When I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `-32768`
+        """
+        https://esm.ubuntu.com/ubuntu/ trusty-infra-security/main amd64 Packages
+        """
+        And apt-cache policy for the following url has permission `-32768`
+        """
+        https://esm.ubuntu.com/ubuntu/ trusty-infra-updates/main amd64 Packages
+        """
