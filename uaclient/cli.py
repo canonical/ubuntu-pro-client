@@ -140,6 +140,22 @@ def detach_parser(parser):
     return parser
 
 
+def help_parser(parser):
+    """Build or extend an arg parser for help subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command="help")
+    parser.usage = usage
+    parser.prog = "enable"
+    parser._positionals.title = "Arguments"
+    parser.add_argument(
+        "name",
+        action="store",
+        nargs="*",
+        default="",
+        help="the name of the Ubuntu Advantage service to get help info",
+    )
+    return parser
+
+
 def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="enable") + " []"
@@ -629,6 +645,7 @@ def get_parser():
     parser_help = subparsers.add_parser(
         "help", help="show this help message and exit"
     )
+    help_parser(parser_help)
     parser_help.set_defaults(action=action_help)
     return parser
 
@@ -680,8 +697,20 @@ def action_refresh(args, cfg):
     return 0
 
 
-def action_help(_args, _cfg):
-    get_parser().print_help()
+def action_help(args, cfg):
+    name = args.name
+    if name == "":
+        get_parser().print_help()
+        return 0
+
+    if not cfg:
+        cfg = config.UAConfig()
+
+    help_response = cfg.help(name)
+
+    for key, value in help_response.items():
+        print("{}: {}".format(key, value))
+
     return 0
 
 

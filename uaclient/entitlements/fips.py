@@ -24,6 +24,13 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
+    help_info = """
+    FIPS is a specific certified kernel. You can view details about what is
+    involved in FIPS certification <here> and be aware this might have side
+    effects there. For additional details on what FIPS enablement does for
+    you and the costs/etc see a marketing page <there>.
+    """
+
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests

@@ -38,6 +38,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Wheter that entitlement is in beta stage
     is_beta = False
 
+    # Help information for the service
+    help_info = None  # type: str
+
     @property
     @abc.abstractmethod
     def name(self) -> str:

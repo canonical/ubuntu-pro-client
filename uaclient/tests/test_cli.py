@@ -1,3 +1,4 @@
+import contextlib
 import io
 import logging
 import mock
@@ -10,6 +11,7 @@ import textwrap
 import pytest
 
 from uaclient.cli import (
+    action_help,
     assert_attached,
     assert_not_attached,
     assert_root,
@@ -107,6 +109,96 @@ class TestCLIParser:
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
         assert SERVICES_WRAPPED_HELP in get_help()
+
+    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
+    )
+    def test_help_command_when_unnatached(
+        self, m_attached, m_available_resources
+    ):
+        """Test help command when a service is provided."""
+        import uaclient.entitlements as ent
+
+        m_args = mock.MagicMock()
+        m_name = mock.PropertyMock(return_value="test")
+        type(m_args).name = m_name
+
+        m_entitlement_cls = mock.MagicMock()
+        m_ent_help_info = mock.PropertyMock(return_value="Test service")
+        type(m_entitlement_cls).help_info = m_ent_help_info
+
+        m_attached.return_value = False
+
+        m_available_resources.return_value = [
+            {"name": "test", "available": True}
+        ]
+
+        expected_msg = "\n".join(
+            ["name: test", "available: yes", "help: Test service"]
+        )
+
+        fake_stdout = io.StringIO()
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            with contextlib.redirect_stdout(fake_stdout):
+                action_help(m_args, None)
+
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+
+    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
+    )
+    def test_help_command_when_attached(
+        self, m_attached, m_available_resources
+    ):
+        """Test help command when a service is provided."""
+        import uaclient.entitlements as ent
+
+        m_args = mock.MagicMock()
+        m_name = mock.PropertyMock(return_value="test")
+        type(m_args).name = m_name
+
+        m_entitlement_cls = mock.MagicMock()
+        m_ent_help_info = mock.PropertyMock(return_value="Test service")
+        type(m_entitlement_cls).help_info = m_ent_help_info
+        m_entitlement_obj = m_entitlement_cls.return_value
+
+        status_ret = status.ContractStatus.ENTITLED
+        m_entitlement_obj.contract_status.return_value = status_ret
+        m_entitlement_obj.user_facing_status.return_value = (
+            status.UserFacingStatus.ACTIVE,
+            "active",
+        )
+        m_ent_name = mock.PropertyMock(return_value="test")
+        type(m_entitlement_obj).name = m_ent_name
+        m_ent_desc = mock.PropertyMock(return_value="description")
+        type(m_entitlement_obj).description = m_ent_desc
+
+        m_attached.return_value = True
+        m_available_resources.return_value = [
+            {"name": "test", "available": True}
+        ]
+
+        expected_msg = "\n".join(
+            [
+                "name: test",
+                "entitled: yes",
+                "status: enabled",
+                "help: Test service",
+            ]
+        )
+
+        fake_stdout = io.StringIO()
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            with contextlib.redirect_stdout(fake_stdout):
+                action_help(m_args, None)
+
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
 
 class TestAssertRoot:

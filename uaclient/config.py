@@ -405,6 +405,47 @@ class UAConfig:
 
         return response
 
+    def help(self, name):
+        """Return help information from an uaclient service as a dict."""
+        from uaclient.contract import get_available_resources
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        resources = get_available_resources(self)
+        help_resource = None
+
+        for resource in resources:
+            if resource["name"] == name:
+                help_resource = resource
+                help_ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(name)
+                break
+
+        if help_resource is None:
+            return {"name": "could not find service: {}".format(name)}
+
+        if self.is_attached:
+            ent = help_ent_cls(self)
+            service_status = self._attached_service_status(ent, {})
+
+            response = {
+                "name": service_status["name"],
+                "entitled": service_status["entitled"],
+                "status": service_status["status"],
+                "help": help_ent_cls.help_info,
+            }
+        else:
+            if help_resource["available"]:
+                available = status.UserFacingAvailability.AVAILABLE.value
+            else:
+                available = status.UserFacingAvailability.UNAVAILABLE.value
+
+            response = {
+                "name": help_resource["name"],
+                "available": available,
+                "help": help_ent_cls.help_info,
+            }
+
+        return response
+
 
 def parse_config(config_path=None):
     """Parse known UA config file
