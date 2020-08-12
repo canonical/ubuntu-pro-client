@@ -10,9 +10,10 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable cc-eal` with sudo
-        Then I will see the following on stderr:
+        When I run `ua enable cc-eal --beta` with sudo
+        Then I will see the following on stdout:
             """
+            One moment, checking your subscription first
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found
             """
 

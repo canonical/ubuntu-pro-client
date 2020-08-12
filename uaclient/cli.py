@@ -333,7 +333,7 @@ def _perform_enable(
     allow_beta |= config_allow_beta
     if not allow_beta and ent_cls.is_beta:
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-        raise exceptions.UserFacingError(
+        raise exceptions.BetaServiceError(
             tmpl.format(operation="enable", name=entitlement_name)
         )
 
@@ -371,8 +371,10 @@ def action_enable(args, cfg, **kwargs):
                 assume_yes=args.assume_yes,
                 allow_beta=args.beta,
             )
-        except exceptions.UserFacingError:
+        except exceptions.BetaServiceError:
             entitlements_not_found.append(entitlement)
+        except exceptions.UserFacingError as e:
+            print(e)
 
     if entitlements_not_found:
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL

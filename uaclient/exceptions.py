@@ -16,6 +16,19 @@ class UserFacingError(Exception):
         self.msg = msg
 
 
+class BetaServiceError(UserFacingError):
+    """
+    An exception to be raised trying to interact with beta service
+    without the right parameters.
+
+    :param msg:
+        Takes a single parameter, which is the beta service error message that
+        should be emitted before exiting non-zero.
+    """
+
+    pass
+
+
 class NonAutoAttachImageError(UserFacingError):
     """Raised when machine isn't running an auto-attach enabled image"""
 
