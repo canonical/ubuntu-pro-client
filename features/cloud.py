@@ -113,7 +113,7 @@ class Cloud:
         """
         inst = self._create_instance(series, image_name, user_data)
         print(
-            "--- {} PRO instance launched: {}. Waiting for ssh access".format(
+            "--- {} instance launched: {}. Waiting for ssh access".format(
                 self.name, inst.id
             )
         )
@@ -294,7 +294,7 @@ class EC2(Cloud):
         if not image_name:
             image_name = self.locate_image_name(series)
 
-        print("--- Launching AWS PRO image {}({})".format(image_name, series))
+        print("--- Launching AWS image {}({})".format(image_name, series))
         vpc = self.api.get_or_create_vpc(name="uaclient-integration")
 
         try:
@@ -325,8 +325,6 @@ class Azure(Cloud):
         The region to create the resources on
     """
 
-    AZURE_PUB_KEY_FILE = "ua_az_pub_key.txt"
-    AZURE_PRIV_KEY_FILE = "ua_az_priv_key.txt"
     name = "Azure"
     env_vars: "Tuple[str, ...]" = (
         "az_client_id",
@@ -389,23 +387,29 @@ class Azure(Cloud):
             Location of the private key path to use. If None, the location
             will be a default location.
         """
-        if not os.path.exists(self.AZURE_PUB_KEY_FILE):
+        if not private_key_path:
+            private_key_path = "azure-priv-{}.pem".format(self.key_name)
+            pub_key_path = "azure-pub-{}.txt".format(self.key_name)
+            print(
+                "--- Creating local keyfile {} for Azure".format(
+                    private_key_path
+                )
+            )
+        if not os.path.exists(private_key_path):
             pub_key, priv_key = self.api.create_key_pair(
                 key_name=self.key_name
             )
 
-            with open(self.AZURE_PUB_KEY_FILE, "w") as stream:
+            with open(pub_key_path, "w") as stream:
                 stream.write(pub_key)
 
-            with open(self.AZURE_PRIV_KEY_FILE, "w") as stream:
+            with open(private_key_path, "w") as stream:
                 stream.write(priv_key)
 
-            os.chmod(self.AZURE_PUB_KEY_FILE, 0o600)
-            os.chmod(self.AZURE_PRIV_KEY_FILE, 0o600)
+            os.chmod(pub_key_path, 0o600)
+            os.chmod(private_key_path, 0o600)
 
-        self.api.use_key(
-            self.AZURE_PUB_KEY_FILE, self.AZURE_PRIV_KEY_FILE, self.key_name
-        )
+        self.api.use_key(pub_key_path, private_key_path, self.key_name)
 
     def _create_instance(
         self,
@@ -430,8 +434,6 @@ class Azure(Cloud):
         if not image_name:
             image_name = self.locate_image_name(series)
 
-        print(
-            "--- Launching Azure PRO image {}({})".format(image_name, series)
-        )
+        print("--- Launching Azure image {}({})".format(image_name, series))
         inst = self.api.launch(image_id=image_name, user_data=user_data)
         return inst
