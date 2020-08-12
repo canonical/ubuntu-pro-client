@@ -357,7 +357,7 @@ class TestPerformEnable:
         if silent_if_inapplicable is not None:
             kwargs["silent_if_inapplicable"] = silent_if_inapplicable
 
-        with pytest.raises(exceptions.UserFacingError):
+        with pytest.raises(exceptions.BetaServiceError):
             _perform_enable("testitlement", m_cfg, **kwargs)
 
         assert 1 == m_is_beta.call_count
