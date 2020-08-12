@@ -13,6 +13,9 @@ install:
   - make testdeps
 script:
   - make test
+stages:
+  - build and style
+  - test
 
 matrix:
   fast_finish: true
@@ -20,13 +23,22 @@ matrix:
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-aws
       workspaces:
         use:
           - trusty
           - xenial
           - bionic
           - focal
+      env:
+          - TOXENV=behave-aws
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - mkdir deb-artifacts
           - >
@@ -58,11 +70,18 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-azure-pro
+      env: 
+          - TOXENV=behave-azure-pro
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
@@ -100,11 +119,14 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
       python: 3.7
       stage: integration
-      env: TOXENV=behave-azure
+      env:
+          - TOXENV=behave-azure
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
@@ -153,6 +175,16 @@ matrix:
           - xenial
           - bionic
           - focal
+      env:
+          - TOXENV=behave-aws-pro
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - mkdir deb-artifacts
           - >
@@ -184,8 +216,14 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
       python: 3.7
       stage: integration
       env: TOXENV=behave-14.04
@@ -218,6 +256,7 @@ matrix:
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
       python: 3.7
       stage: integration
       env: TOXENV=behave-16.04
@@ -247,6 +286,7 @@ matrix:
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
       python: 3.7
       stage: integration
       env: TOXENV=behave-18.04
@@ -276,6 +316,7 @@ matrix:
           - sudo usermod -a -G lxd $USER
           - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
       python: 3.7
       stage: integration
       env: TOXENV=behave-20.04
