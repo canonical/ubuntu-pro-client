@@ -21,7 +21,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Enable UA Infrastructure ESM to receive \d+ additional security updates.
         See https://ubuntu.com/advantage or run: sudo ua status
         """
-        Then if `<release>` in `xenial||bionic` and stdout matches regexp:
+        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
         \d+ packages can be updated.
         \d+ updates are security updates.
@@ -62,7 +62,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         \d+ of these updates are security updates.
         To see these additional updates run: apt list --upgradable
         """
-        Then if `<release>` in `xenial||bionic` and stdout matches regexp:
+        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
         \d+ packages can be updated.
         \d+ updates are security updates.
