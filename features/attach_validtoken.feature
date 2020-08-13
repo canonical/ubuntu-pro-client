@@ -6,7 +6,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
+        When I run `apt-get install -y <downrev_pkg>` with sudo
+        And I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
 
         Then if `<release>` in `trusty` and stdout matches regexp:
         """
@@ -74,12 +75,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         \d+ of these updates are security updates.
         To see these additional updates run: apt list --upgradable
         """
-        Examples: ubuntu release
-           | release |
-           | trusty  |
-           | xenial  |
-           | bionic  |
-           | focal   |
+        Examples: ubuntu release packages
+           | release | downrev_pkg                     |
+           | trusty  | libgit2-0=0.19.0-2ubuntu0.4     |
+           | xenial  | libkrad0=1.13.2+dfsg-5ubuntu2.1 |
+           | bionic  | libkrad0=1.16-2ubuntu0.1        |
+           | focal   | hello=2.10-2ubuntu2             |
 
     @series.all
     @uses.config.machine_type.aws.generic
