@@ -45,9 +45,7 @@ override_dh_gencontrol:
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
 	flist=$$(find $(CURDIR)/debian/ -type f -name version.py) && sed -i 's,@@PACKAGED_VERSION@@,$(DEB_VERSION),' $${flist:-did-not-find-version-py-for-replacement}
-ifeq (${VERSION_ID},"14.04")
 	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install
-endif
 
 ifeq (${VERSION_ID},"14.04")
 	# Move ua-auto-attach.conf to ubuntu-advantage-pro
