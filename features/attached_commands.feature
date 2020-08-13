@@ -292,3 +292,29 @@ Feature: Command behaviour when attached to an UA subscription
         """
         https://esm.ubuntu.com/ubuntu/ trusty-infra-updates/main amd64 Packages
         """
+
+    @series.all
+    Scenario Outline: Help command on an attached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua help esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            name: esm-infra
+            entitled: yes
+            status: enabled
+            help: esm-infra help
+            """
+        When I run `ua help invalid-service` with sudo
+        Then I will see the following on stdout:
+            """
+            name: invalid-service
+            error: could not find service: invalid-service
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |

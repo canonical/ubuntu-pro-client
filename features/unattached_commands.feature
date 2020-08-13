@@ -82,3 +82,28 @@ Feature: Command behaviour when unattached
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
+
+    @wip
+    @series.all
+    Scenario Outline: Help command on an anattached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `ua help esm-infra` as non-root
+        Then I will see the following on stdout:
+            """
+            name: esm-infra
+            available: yes
+            help: esm-infra help
+            """
+        When I run `ua help invalid-service` with sudo
+        Then I will see the following on stdout:
+            """
+            name: invalid-service
+            error: could not find service: invalid-service
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
