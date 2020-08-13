@@ -706,6 +706,10 @@ def action_help(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
 
+    if type(name) == list:
+        # Right now, we are only supporting one service per help command
+        name = name[0]
+
     help_response = cfg.help(name)
 
     for key, value in help_response.items():

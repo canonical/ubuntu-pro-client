@@ -26,6 +26,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     title = "ESM Infra"
     description = "UA Infra: Extended Security Maintenance"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
+    help_info = "esm-infra help"
 
     @property
     def repo_pin_priority(self) -> "Optional[str]":

@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import yaml
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
@@ -412,6 +412,8 @@ class UAConfig:
 
         resources = get_available_resources(self)
         help_resource = None
+        response_dict = OrderedDict()
+        response_dict["name"] = name
 
         for resource in resources:
             if resource["name"] == name:
@@ -420,31 +422,25 @@ class UAConfig:
                 break
 
         if help_resource is None:
-            return {"name": "could not find service: {}".format(name)}
+            response_dict["error"] = "could not find service: {}".format(name)
+            return response_dict
 
         if self.is_attached:
             ent = help_ent_cls(self)
             service_status = self._attached_service_status(ent, {})
 
-            response = {
-                "name": service_status["name"],
-                "entitled": service_status["entitled"],
-                "status": service_status["status"],
-                "help": help_ent_cls.help_info,
-            }
+            response_dict["entitled"] = service_status["entitled"]
+            response_dict["status"] = service_status["status"]
         else:
             if help_resource["available"]:
                 available = status.UserFacingAvailability.AVAILABLE.value
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
 
-            response = {
-                "name": help_resource["name"],
-                "available": available,
-                "help": help_ent_cls.help_info,
-            }
+            response_dict["available"] = available
 
-        return response
+        response_dict["help"] = help_ent_cls.help_info
+        return response_dict
 
 
 def parse_config(config_path=None):

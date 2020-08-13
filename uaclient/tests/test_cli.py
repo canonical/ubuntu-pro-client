@@ -117,11 +117,11 @@ class TestCLIParser:
     def test_help_command_when_unnatached(
         self, m_attached, m_available_resources
     ):
-        """Test help command when a service is provided."""
+        """Test help command for a valid service in an unnatached ua client."""
         import uaclient.entitlements as ent
 
         m_args = mock.MagicMock()
-        m_name = mock.PropertyMock(return_value="test")
+        m_name = mock.PropertyMock(return_value=["test"])
         type(m_args).name = m_name
 
         m_entitlement_cls = mock.MagicMock()
@@ -146,19 +146,30 @@ class TestCLIParser:
                 action_help(m_args, None)
 
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert 1 == m_name.call_count
+        assert 1 == m_ent_help_info.call_count
+        assert 1 == m_available_resources.call_count
+        assert 1 == m_attached.call_count
 
+    @pytest.mark.parametrize(
+        "ent_status, ent_msg",
+        (
+            (status.ContractStatus.ENTITLED, "yes"),
+            (status.ContractStatus.UNENTITLED, "no"),
+        ),
+    )
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch(
         "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
     )
     def test_help_command_when_attached(
-        self, m_attached, m_available_resources
+        self, m_attached, m_available_resources, ent_status, ent_msg
     ):
-        """Test help command when a service is provided."""
+        """Test help command for a valid service in an attached ua client."""
         import uaclient.entitlements as ent
 
         m_args = mock.MagicMock()
-        m_name = mock.PropertyMock(return_value="test")
+        m_name = mock.PropertyMock(return_value=["test"])
         type(m_args).name = m_name
 
         m_entitlement_cls = mock.MagicMock()
@@ -166,8 +177,7 @@ class TestCLIParser:
         type(m_entitlement_cls).help_info = m_ent_help_info
         m_entitlement_obj = m_entitlement_cls.return_value
 
-        status_ret = status.ContractStatus.ENTITLED
-        m_entitlement_obj.contract_status.return_value = status_ret
+        m_entitlement_obj.contract_status.return_value = ent_status
         m_entitlement_obj.user_facing_status.return_value = (
             status.UserFacingStatus.ACTIVE,
             "active",
@@ -182,11 +192,15 @@ class TestCLIParser:
             {"name": "test", "available": True}
         ]
 
+        status_msg = "enabled" if ent_msg == "yes" else "—"
+        ufs_call_count = 1 if ent_msg == "yes" else 0
+        ent_name_call_count = 2 if ent_msg == "yes" else 1
+
         expected_msg = "\n".join(
             [
                 "name: test",
-                "entitled: yes",
-                "status: enabled",
+                "entitled: {}".format(ent_msg),
+                "status: {}".format(status_msg),
                 "help: Test service",
             ]
         )
@@ -199,6 +213,39 @@ class TestCLIParser:
                 action_help(m_args, None)
 
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert 1 == m_name.call_count
+        assert 1 == m_ent_help_info.call_count
+        assert 1 == m_available_resources.call_count
+        assert 1 == m_attached.call_count
+        assert 1 == m_ent_desc.call_count
+        assert ent_name_call_count == m_ent_name.call_count
+        assert 1 == m_entitlement_obj.contract_status.call_count
+        assert (
+            ufs_call_count == m_entitlement_obj.user_facing_status.call_count
+        )
+
+    @mock.patch("uaclient.contract.get_available_resources")
+    def test_help_command_for_invalid_service(self, m_available_resources):
+        """Test help command when an invalid service is provided."""
+        m_args = mock.MagicMock()
+        m_name = mock.PropertyMock(return_value=["test"])
+        type(m_args).name = m_name
+
+        m_available_resources.return_value = [
+            {"name": "ent1", "available": True}
+        ]
+
+        expected_msg = "\n".join(
+            ["name: test", "error: could not find service: test"]
+        )
+
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            action_help(m_args, None)
+
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert 1 == m_name.call_count
+        assert 1 == m_available_resources.call_count
 
 
 class TestAssertRoot:
