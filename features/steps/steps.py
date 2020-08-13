@@ -134,6 +134,15 @@ def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))
 
 
+@then("if `{value1}` in `{value2}` and stdout matches regexp")
+def then_conditional_stdout_matches_regexp(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split("||"):
+        assert_that(
+            context.process.stdout.strip(), matches_regexp(context.text)
+        )
+
+
 @then("stdout matches regexp")
 def then_stdout_matches_regexp(context):
     assert_that(context.process.stdout.strip(), matches_regexp(context.text))

@@ -6,6 +6,31 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
+
+        Then if `<release>` in `trusty` and stdout matches regexp:
+        """
+        UA Infrastructure Extended Security Maintenance \(ESM\) is not enabled.
+
+        \d+ updates can be installed immediately.
+        \d+ of these updates are provided through UA Infrastructure ESM.
+        \d+ of these updates are security updates.
+        To see these additional updates run: apt list --upgradable
+
+        Enable UA Infrastructure ESM to receive \d+ additional security updates.
+        See https://ubuntu.com/advantage or run: sudo ua status
+        """
+        Then if `<release>` in `xenial||bionic` and stdout matches regexp:
+        """
+        \d+ packages can be updated.
+        \d+ updates are security updates.
+        """
+        Then if `<release>` in `focal` and stdout matches regexp:
+        """
+        \d+ updates can be installed immediately.
+        \d+ of these updates are security updates.
+        To see these additional updates run: apt list --upgradable
+        """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
@@ -26,13 +51,35 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
+        When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
+        Then if `<release>` in `trusty` and stdout matches regexp:
+        """
+        UA Infrastructure Extended Security Maintenance \(ESM\) is enabled.
 
+        \d+ updates can be installed immediately.
+        \d+ of these updates are provided through UA Infrastructure ESM.
+        \d+ of these updates are security updates.
+        To see these additional updates run: apt list --upgradable
+        """
+        Then if `<release>` in `xenial||bionic` and stdout matches regexp:
+        """
+        \d+ packages can be updated.
+        \d+ updates are security updates.
+        """
+        Then if `<release>` in `focal` and stdout matches regexp:
+        """
+        UA Infrastructure Extended Security Maintenance \(ESM\) is enabled.
+
+        \d+ updates can be installed immediately.
+        \d+ of these updates are security updates.
+        To see these additional updates run: apt list --upgradable
+        """
         Examples: ubuntu release
            | release |
-           | bionic  |
-           | focal   |
            | trusty  |
            | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     @uses.config.machine_type.aws.generic
