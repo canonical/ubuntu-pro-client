@@ -83,22 +83,28 @@ Feature: Command behaviour when unattached
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
 
-    @wip
     @series.all
-    Scenario Outline: Help command on an anattached machine
+    Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua help esm-infra` as non-root
         Then I will see the following on stdout:
             """
             name: esm-infra
             available: yes
-            help: esm-infra help
+            help:
+            esm-infra help
+            Information about esm-infra
+            """
+        When I run `ua help esm-infra --format json` with sudo
+        Then I will see the following on stdout:
+            """
+            {"name": "esm-infra", "available": "yes", "help": "esm-infra help\nInformation about esm-infra"}
             """
         When I run `ua help invalid-service` with sudo
         Then I will see the following on stdout:
             """
             name: invalid-service
-            error: could not find service: invalid-service
+            help: No help available for service "invalid-service"
             """
 
         Examples: ubuntu release

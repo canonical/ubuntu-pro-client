@@ -303,13 +303,20 @@ Feature: Command behaviour when attached to an UA subscription
             name: esm-infra
             entitled: yes
             status: enabled
-            help: esm-infra help
+            help:
+            esm-infra help
+            Information about esm-infra
+            """
+        When I run `ua help esm-infra --format json` with sudo
+        Then I will see the following on stdout:
+            """
+            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra help\nInformation about esm-infra"}
             """
         When I run `ua help invalid-service` with sudo
         Then I will see the following on stdout:
             """
             name: invalid-service
-            error: could not find service: invalid-service
+            help: No help available for service "invalid-service"
             """
 
         Examples: ubuntu release

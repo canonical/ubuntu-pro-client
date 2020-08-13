@@ -1,7 +1,9 @@
+import os
 import abc
 from datetime import datetime
 import logging
 import re
+import yaml
 
 try:
     from typing import Any, Callable, Dict, List, Optional, Tuple  # noqa: F401
@@ -20,6 +22,7 @@ from uaclient.status import (
     ContractStatus,
     UserFacingStatus,
 )
+from uaclient.defaults import DEFAULT_HELP_FILE, DEFAULT_HELP
 
 RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
@@ -38,8 +41,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Wheter that entitlement is in beta stage
     is_beta = False
 
-    # Help information for the service
-    help_info = None  # type: str
+    # Help info message for the entitlement
+    _help_info = None  # type: str
 
     @property
     @abc.abstractmethod
@@ -58,6 +61,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def description(self) -> str:
         """A sentence describing this entitlement"""
         pass
+
+    @property
+    def help_info(self) -> str:
+        """Help information for the entitlement"""
+        if self._help_info is None:
+            if os.path.exists(DEFAULT_HELP_FILE):
+                with open(DEFAULT_HELP_FILE, "r") as f:
+                    help_dict = yaml.load(f, Loader=yaml.FullLoader)
+            else:
+                help_dict = DEFAULT_HELP
+
+            self._help_info = help_dict.get(self.name, {}).get("help", "")
+
+        return self._help_info
 
     # A tuple of 3-tuples with (failure_message, functor, expected_results)
     # If any static_affordance does not match expected_results fail with

@@ -412,6 +412,10 @@ class UAConfig:
 
         resources = get_available_resources(self)
         help_resource = None
+
+        # We are using an OrderedDict here to guarantee
+        # that if we need to print the result of this
+        # dict, the order of insertion will always be respected
         response_dict = OrderedDict()
         response_dict["name"] = name
 
@@ -419,18 +423,25 @@ class UAConfig:
             if resource["name"] == name:
                 help_resource = resource
                 help_ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(name)
+                help_ent = help_ent_cls(self)
                 break
 
         if help_resource is None:
-            response_dict["error"] = "could not find service: {}".format(name)
+            response_dict[
+                "help"
+            ] = 'No help available for service "{}"'.format(name)
             return response_dict
 
         if self.is_attached:
-            ent = help_ent_cls(self)
-            service_status = self._attached_service_status(ent, {})
+            service_status = self._attached_service_status(help_ent, {})
+            status_msg = service_status["status"]
 
             response_dict["entitled"] = service_status["entitled"]
-            response_dict["status"] = service_status["status"]
+            response_dict["status"] = status_msg
+
+            if status_msg == "enabled" and help_ent_cls.is_beta:
+                response_dict["beta"] = True
+
         else:
             if help_resource["available"]:
                 available = status.UserFacingAvailability.AVAILABLE.value
@@ -439,7 +450,7 @@ class UAConfig:
 
             response_dict["available"] = available
 
-        response_dict["help"] = help_ent_cls.help_info
+        response_dict["help"] = help_ent.help_info
         return response_dict
 
 

@@ -114,7 +114,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  | libgit2-0 | https://esm.ubuntu.com/ubuntu/      |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
-    @wip
     @series.xenial
     @series.bionic
     @series.focal
