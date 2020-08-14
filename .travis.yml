@@ -30,7 +30,100 @@ matrix:
           - bionic
           - focal
       env:
-          - TOXENV=behave-aws
+          - TOXENV=behave-awsgeneric-14.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awsgeneric-16.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awsgeneric-18.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awsgeneric-20.04
           - AWS_DEFAULT_REGION=us-east-2
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
@@ -125,7 +218,7 @@ matrix:
       python: 3.7
       stage: integration
       env:
-          - TOXENV=behave-azure
+          - TOXENV=behave-azuregeneric
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
@@ -176,8 +269,101 @@ matrix:
           - bionic
           - focal
       env:
-          - TOXENV=behave-aws-pro
-          - AWS_DEFAULT_REGION=us-east-2
+          - TOXENV=behave-awspro-14.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-16.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-18.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: test
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-20.04
+          - AWS_DEFAULT_REGION=us-east-1
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
@@ -226,7 +412,7 @@ matrix:
       stage: test
       python: 3.7
       stage: integration
-      env: TOXENV=behave-14.04
+      env: TOXENV=behave-lxd-14.04
       workspaces:
         use:
           - trusty
@@ -259,7 +445,7 @@ matrix:
       stage: test
       python: 3.7
       stage: integration
-      env: TOXENV=behave-16.04
+      env: TOXENV=behave-lxd-16.04
       workspaces:
         use:
           - xenial
@@ -289,7 +475,7 @@ matrix:
       stage: test
       python: 3.7
       stage: integration
-      env: TOXENV=behave-18.04
+      env: TOXENV=behave-lxd-18.04
       workspaces:
         use:
           - bionic
@@ -319,7 +505,7 @@ matrix:
       stage: test
       python: 3.7
       stage: integration
-      env: TOXENV=behave-20.04
+      env: TOXENV=behave-lxd-20.04
       workspaces:
         use:
           - focal
