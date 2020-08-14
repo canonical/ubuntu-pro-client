@@ -28,7 +28,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         \d+ updates can be installed immediately.
         \d+ of these updates are security updates.
-        To see these additional updates run: apt list --upgradable
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -71,7 +70,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ updates can be installed immediately.
         \d+ of these updates are security updates.
-        To see these additional updates run: apt list --upgradable
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                     |
