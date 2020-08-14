@@ -3,7 +3,7 @@ import subprocess
 import shlex
 
 from behave import given, then, when
-from hamcrest import assert_that, equal_to, matches_regexp
+from hamcrest import assert_that, equal_to, matches_regexp, not_
 
 from features.environment import create_uat_image
 from features.util import (
@@ -137,6 +137,13 @@ def then_i_will_see_on_stdout(context):
 @then("stdout matches regexp")
 def then_stdout_matches_regexp(context):
     assert_that(context.process.stdout.strip(), matches_regexp(context.text))
+
+
+@then("stdout does not match regexp")
+def then_stdout_does_not_match_regexp(context):
+    assert_that(
+        context.process.stdout.strip(), not_(matches_regexp(context.text))
+    )
 
 
 @then("stderr matches regexp")
