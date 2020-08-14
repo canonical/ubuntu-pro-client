@@ -14,9 +14,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         UA Infrastructure Extended Security Maintenance \(ESM\) is not enabled.
 
         \d+ updates can be installed immediately.
-        \d+ of these updates are provided through UA Infrastructure ESM.
         \d+ of these updates are security updates.
-        To see these additional updates run: apt list --upgradable
 
         Enable UA Infrastructure ESM to receive \d+ additional security updates.
         See https://ubuntu.com/advantage or run: sudo ua status
