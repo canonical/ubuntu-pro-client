@@ -39,7 +39,7 @@ class Cloud:
         self.machine_type = machine_type
         self.region = region
         self._api = None
-        self.key_name = pycloudlib.util.get_timestamped_tag("uaclient-ci")
+        self.key_name = pycloudlib.util.get_timestamped_tag(self.tag)
 
         missing_env_vars = self.missing_env_vars()
         if missing_env_vars:
