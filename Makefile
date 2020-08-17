@@ -48,6 +48,8 @@ travis-deb-script:
 	# Use this to get a new shell where we're in the sbuild group
 	sudo -E su ${USER} -c 'mk-sbuild ${PACKAGE_BUILD_SERIES}'
 	sudo -E su ${USER} -c 'sbuild --nolog --verbose --dist=${PACKAGE_BUILD_SERIES} ../ubuntu-advantage-tools*.dsc'
+	cp ./ubuntu-advantage-tools*.deb ubuntu-advantage-tools-${PACKAGE_BUILD_SERIES}.deb
+	cp ./ubuntu-advantage-pro*.deb ubuntu-advantage-tools-${PACKAGE_BUILD_SERIES}.deb
 
 
 .PHONY: build clean test testdeps demo
