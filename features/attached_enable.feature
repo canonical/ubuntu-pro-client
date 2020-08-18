@@ -114,6 +114,39 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  | libgit2-0 | https://esm.ubuntu.com/ubuntu/      |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
+    @wip
+    @series.xenial
+    @series.bionic
+    @series.focal
+    Scenario Outline: Attached enable of a know service shows update in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua enable esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            ESM Infra is already enabled.
+            See: sudo ua status
+            """
+        When I run `apt install -y <pkg-version>` with sudo
+        And I run `apt update` with sudo
+        Then stdout matches regexp
+        """
+        \d+ of the updates (is|are) from UA Infrastructure ESM
+        """
+        When I run `ua disable esm-infra` with sudo
+        And I run `apt update` with sudo
+        Then stdout does not match regexp
+        """
+        \d+ of the updates (is|are) from UA Infrastructure ESM
+        """
+
+        Examples: ubuntu release
+           | release | pkg-version                |
+           | bionic  | libkrad0=1.16-2ubuntu0.1   |
+           | focal   | hello=2.10-2ubuntu2        |
+           | xenial  | libkrad0=1.16-2ubuntu0.1   |
+
     @series.all
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable a disabled, enable and unknown service in a ubuntu machine
