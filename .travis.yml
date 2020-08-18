@@ -51,7 +51,7 @@ matrix:
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0 UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
             for key_name in `ls *pem`; do
                 K=${key_name/ec2-/};
@@ -290,7 +290,7 @@ matrix:
               fi
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0 UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
             for key_name in `ls *pem`; do
                 K=${key_name/ec2-/};

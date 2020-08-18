@@ -35,6 +35,7 @@ LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
+ssh_import_id: [chad.smith]
 write_files:
   # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
   - path: /usr/bin/ua
