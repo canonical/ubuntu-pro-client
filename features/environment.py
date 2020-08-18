@@ -92,6 +92,18 @@ class UAClientBehaveConfig:
     :param destroy_instances:
         This boolean indicates that test containers should be destroyed after
         the completion. Set to False to leave instances running.
+    :param trusty_deb_paths:
+        Location of the debs to be used when lauching a trusty integration
+        test. If that path is None, we will build those debs locally.
+    :param xenial_deb_paths:
+        Location of the debs to be used when lauching a xenial integration
+        test. If that path is None, we will build those debs locally.
+    :param bionic_deb_paths:
+        Location of the debs to be used when lauching a bionic integration
+        test. If that path is None, we will build those debs locally.
+    :param focal_deb_paths:
+        Location of the debs to be used when lauching a focal integration
+        test. If that path is None, we will build those debs locally.
     """
 
     prefix = "UACLIENT_BEHAVE_"
@@ -113,6 +125,10 @@ class UAClientBehaveConfig:
         "private_key_file",
         "private_key_name",
         "reuse_image",
+        "trusty_debs_path",
+        "xenial_debs_path",
+        "bionic_debs_path",
+        "focal_debs_path",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -149,6 +165,10 @@ class UAClientBehaveConfig:
         reuse_image: str = None,
         contract_token: str = None,
         contract_token_staging: str = None,
+        trusty_debs_path: str = None,
+        xenial_debs_path: str = None,
+        bionic_debs_path: str = None,
+        focal_debs_path: str = None,
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
@@ -168,6 +188,10 @@ class UAClientBehaveConfig:
         self.private_key_name = private_key_name
         self.reuse_image = reuse_image
         self.cmdline_tags = cmdline_tags
+        self.trusty_debs_path = trusty_debs_path
+        self.xenial_debs_path = xenial_debs_path
+        self.bionic_debs_path = bionic_debs_path
+        self.focal_debs_path = focal_debs_path
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -430,6 +454,15 @@ def _capture_container_as_image(
         return image_name
 
 
+def get_debs_path_from_series(series: str, context: Context) -> "str":
+    """Return a the debs path for that series if it exists.
+
+    :return: A string representing the deb path to be reused or
+             None if that path does not exist.
+    """
+    return getattr(context.config, "{}_debs_path".format(series), None)
+
+
 def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     """Create a development instance, instal build dependencies and build debs
 
@@ -439,45 +472,58 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     :return: A list of paths to applicable deb files published.
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
-    print("--- Launching vm to build ubuntu-advantage*debs from local source")
-    if context.config.cloud_manager:
-        inst = context.config.cloud_manager.launch(
-            series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
-        )
-
-        def cleanup_instance() -> None:
-            if not context.config.destroy_instances:
-                print("--- Leaving instance running: {}".format(inst.id))
-            else:
-                inst.delete(wait=False)
-
-        build_container_name = context.config.cloud_manager.get_instance_id(
-            inst
-        )
+    debs_path = get_debs_path_from_series(series, context)
+    print("--- Checking if debs can be reused")
+    print("--- Found debs path: {} for series: {}".format(debs_path, series))
+    if debs_path:
+        if os.path.isdir(debs_path):
+            print("--- Reusing debs")
+            deb_paths = [
+                os.path.join(debs_path, deb_file)
+                for deb_file in os.listdir(debs_path)
+            ]
     else:
-        build_container_name = (
-            "behave-image-pre-build-%s-" % series + time_suffix
+        print(
+            "--- Launching vm to build ubuntu-advantage*debs from local source"
         )
-        is_vm = bool(context.config.machine_type == "lxd.vm")
-        if is_vm and series == "xenial":
-            # FIXME: use lxd custom cloud images which containt HWE kernel for
-            # vhost-vsock support
-            lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
+        if context.config.cloud_manager:
+            cloud_manager = context.config.cloud_manager
+            inst = cloud_manager.launch(
+                series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
+            )
+
+            def cleanup_instance() -> None:
+                if not context.config.destroy_instances:
+                    print("--- Leaving instance running: {}".format(inst.id))
+                else:
+                    inst.delete(wait=False)
+
+            build_container_name = cloud_manager.get_instance_id(inst)
         else:
-            lxc_ubuntu_series = "ubuntu-daily:%s" % series
-        launch_lxd_container(
-            context,
-            series=series,
-            image_name=lxc_ubuntu_series,
-            container_name=build_container_name,
-            is_vm=is_vm,
-        )
-    with emit_spinner_on_travis("Building debs from local source... "):
-        deb_paths = build_debs(
-            build_container_name,
-            output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
-            cloud_api=context.config.cloud_api,
-        )
+            build_container_name = (
+                "behave-image-pre-build-%s-" % series + time_suffix
+            )
+            is_vm = bool(context.config.machine_type == "lxd.vm")
+            if is_vm and series == "xenial":
+                # FIXME: use lxd custom cloud images which containt HWE kernel
+                # for vhost-vsock support
+                lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
+            else:
+                lxc_ubuntu_series = "ubuntu-daily:%s" % series
+            launch_lxd_container(
+                context,
+                series=series,
+                image_name=lxc_ubuntu_series,
+                container_name=build_container_name,
+                is_vm=is_vm,
+            )
+        with emit_spinner_on_travis("Building debs from local source... "):
+            deb_paths = build_debs(
+                build_container_name,
+                output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
+                cloud_api=context.config.cloud_api,
+            )
+
     if "pro" in context.config.machine_type:
         return deb_paths
     # Redact ubuntu-advantage-pro deb as inapplicable
