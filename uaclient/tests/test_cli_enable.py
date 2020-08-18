@@ -10,8 +10,9 @@ from uaclient import status
 
 
 @mock.patch("uaclient.cli.os.getuid")
+@mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
-    def test_non_root_users_are_rejected(self, getuid, FakeConfig):
+    def test_non_root_users_are_rejected(self, _request_updated_contract, getuid, FakeConfig):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
 
@@ -27,7 +28,7 @@ class TestActionEnable:
         ],
     )
     def test_unattached_error_message(
-        self, m_getuid, uid, expected_error_template, FakeConfig
+        self, _request_updated_contract, m_getuid, uid, expected_error_template, FakeConfig
     ):
         """Check that root user gets unattached message."""
 
@@ -49,7 +50,12 @@ class TestActionEnable:
         ],
     )
     def test_invalid_service_error_message(
-        self, m_getuid, uid, expected_error_template, FakeConfig
+        self,
+        _request_updated_contract,
+        m_getuid,
+        uid,
+        expected_error_template,
+        FakeConfig,
     ):
         """Check invalid service name results in custom error message."""
 
@@ -67,13 +73,12 @@ class TestActionEnable:
     @pytest.mark.parametrize("beta_flag, beta_count", ((False, 1), (True, 0)))
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
-    @mock.patch("uaclient.contract.request_updated_contract")
     @mock.patch("uaclient.cli.entitlements")
     def test_assume_yes_passed_to_service_init(
         self,
         m_entitlements,
-        m_request_updated_contract,
         _m_get_available_resources,
+        m_request_updated_contract,
         m_getuid,
         assume_yes,
         beta_flag,
@@ -111,6 +116,7 @@ class TestActionEnable:
         self,
         m_entitlements,
         _m_get_available_resources,
+        _m_request_updated_contract,
         m_getuid,
         silent_if_inapplicable,
         beta_flag,
@@ -182,6 +188,7 @@ class TestActionEnable:
         self,
         m_entitlements,
         _m_get_available_resources,
+        _m_request_updated_contract,
         m_getuid,
         silent_if_inapplicable,
         beta_flag,
@@ -256,7 +263,7 @@ class TestActionEnable:
         assert beta_count == m_ent3_is_beta.call_count
 
     @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
-    def test_invalid_service_names(self, m_getuid, names, FakeConfig):
+    def test_invalid_service_names(self, _m_request_updated_contract, m_getuid, names, FakeConfig):
         m_getuid.return_value = 0
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         expected_msg = "One moment, checking your subscription first\n"
