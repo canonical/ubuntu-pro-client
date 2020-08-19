@@ -140,9 +140,39 @@ def detach_parser(parser):
     return parser
 
 
+def help_parser(parser):
+    """Build or extend an arg parser for help subcommand."""
+    usage = USAGE_TMPL.format(name=NAME, command="help [service_name]")
+    parser.usage = usage
+    parser.prog = "help"
+    parser._positionals.title = "Arguments"
+    parser.add_argument(
+        "service_name",
+        action="store",
+        nargs="?",
+        default="",
+        help="a service to view help output for",
+    )
+
+    parser.add_argument(
+        "--format",
+        action="store",
+        choices=STATUS_FORMATS,
+        default=STATUS_FORMATS[0],
+        help=(
+            "output help in the specified format (default: {})".format(
+                STATUS_FORMATS[0]
+            )
+        ),
+    )
+    return parser
+
+
 def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="enable") + " []"
+    usage = USAGE_TMPL.format(
+        name=NAME, command="enable <service_name> [<service_name>]"
+    )
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
@@ -629,6 +659,7 @@ def get_parser():
     parser_help = subparsers.add_parser(
         "help", help="show this help message and exit"
     )
+    help_parser(parser_help)
     parser_help.set_defaults(action=action_help)
     return parser
 
@@ -680,8 +711,27 @@ def action_refresh(args, cfg):
     return 0
 
 
-def action_help(_args, _cfg):
-    get_parser().print_help()
+def action_help(args, cfg):
+    service_name = args.service_name
+
+    if not service_name:
+        get_parser().print_help()
+        return 0
+
+    if not cfg:
+        cfg = config.UAConfig()
+
+    help_response = cfg.help(service_name)
+
+    if args.format == "json":
+        print(json.dumps(help_response))
+    else:
+        for key, value in help_response.items():
+            if "\n" in str(value):
+                print("{}:\n{}".format(key, value))
+            elif value:
+                print("{}: {}".format(key, value))
+
     return 0
 
 

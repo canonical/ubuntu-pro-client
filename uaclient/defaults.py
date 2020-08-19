@@ -6,6 +6,7 @@ any of our dependencies installed.
 """
 
 DEFAULT_CONFIG_FILE = "/etc/ubuntu-advantage/uaclient.conf"
+DEFAULT_HELP_FILE = "/etc/ubuntu-advantage/help_data.yaml"
 BASE_CONTRACT_URL = "https://contracts.canonical.com"
 
 CONFIG_DEFAULTS = {
@@ -13,4 +14,8 @@ CONFIG_DEFAULTS = {
     "data_dir": "/var/lib/ubuntu-advantage",
     "log_level": "INFO",
     "log_file": "/var/log/ubuntu-advantage.log",
+}
+
+DEFAULT_HELP = {
+    "esm-infra": {"help": "esm-infra help\nInformation about esm-infra"}
 }

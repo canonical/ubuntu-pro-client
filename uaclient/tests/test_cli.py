@@ -1,4 +1,6 @@
+import contextlib
 import io
+import json
 import logging
 import mock
 import os
@@ -10,6 +12,7 @@ import textwrap
 import pytest
 
 from uaclient.cli import (
+    action_help,
     assert_attached,
     assert_not_attached,
     assert_root,
@@ -107,6 +110,173 @@ class TestCLIParser:
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
         assert SERVICES_WRAPPED_HELP in get_help()
+
+    @pytest.mark.parametrize(
+        "out_format, expected_return",
+        (
+            (
+                "tabular",
+                "\n".join(
+                    ["name: test", "available: yes", "help: Test service"]
+                ),
+            ),
+            (
+                "json",
+                {"name": "test", "available": "yes", "help": "Test service"},
+            ),
+        ),
+    )
+    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
+    )
+    def test_help_command_when_unnatached(
+        self, m_attached, m_available_resources, out_format, expected_return
+    ):
+        """Test help command for a valid service in an unnatached ua client."""
+        import uaclient.entitlements as ent
+
+        m_args = mock.MagicMock()
+        m_service_name = mock.PropertyMock(return_value="test")
+        type(m_args).service_name = m_service_name
+        m_format = mock.PropertyMock(return_value=out_format)
+        type(m_args).format = m_format
+
+        m_entitlement_cls = mock.MagicMock()
+        m_ent_help_info = mock.PropertyMock(return_value="Test service")
+        m_entitlement_obj = m_entitlement_cls.return_value
+        type(m_entitlement_obj).help_info = m_ent_help_info
+
+        m_attached.return_value = False
+
+        m_available_resources.return_value = [
+            {"name": "test", "available": True}
+        ]
+
+        fake_stdout = io.StringIO()
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            with contextlib.redirect_stdout(fake_stdout):
+                action_help(m_args, None)
+
+        if out_format == "tabular":
+            assert expected_return.strip() == fake_stdout.getvalue().strip()
+        else:
+            assert expected_return == json.loads(fake_stdout.getvalue())
+
+        assert 1 == m_service_name.call_count
+        assert 1 == m_ent_help_info.call_count
+        assert 1 == m_available_resources.call_count
+        assert 1 == m_attached.call_count
+        assert 1 == m_format.call_count
+
+    @pytest.mark.parametrize(
+        "ent_status, ent_msg",
+        (
+            (status.ContractStatus.ENTITLED, "yes"),
+            (status.ContractStatus.UNENTITLED, "no"),
+        ),
+    )
+    @pytest.mark.parametrize("is_beta", (True, False))
+    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
+    )
+    def test_help_command_when_attached(
+        self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
+    ):
+        """Test help command for a valid service in an attached ua client."""
+        import uaclient.entitlements as ent
+
+        m_args = mock.MagicMock()
+        m_service_name = mock.PropertyMock(return_value="test")
+        type(m_args).service_name = m_service_name
+
+        m_entitlement_cls = mock.MagicMock()
+        m_ent_help_info = mock.PropertyMock(
+            return_value="Test service\nService is being tested"
+        )
+        m_is_beta = mock.PropertyMock(return_value=is_beta)
+        type(m_entitlement_cls).is_beta = m_is_beta
+        m_entitlement_obj = m_entitlement_cls.return_value
+        type(m_entitlement_obj).help_info = m_ent_help_info
+
+        m_entitlement_obj.contract_status.return_value = ent_status
+        m_entitlement_obj.user_facing_status.return_value = (
+            status.UserFacingStatus.ACTIVE,
+            "active",
+        )
+        m_ent_name = mock.PropertyMock(return_value="test")
+        type(m_entitlement_obj).name = m_ent_name
+        m_ent_desc = mock.PropertyMock(return_value="description")
+        type(m_entitlement_obj).description = m_ent_desc
+
+        m_attached.return_value = True
+        m_available_resources.return_value = [
+            {"name": "test", "available": True}
+        ]
+
+        status_msg = "enabled" if ent_msg == "yes" else "—"
+        ufs_call_count = 1 if ent_msg == "yes" else 0
+        ent_name_call_count = 2 if ent_msg == "yes" else 1
+        is_beta_call_count = 1 if status_msg == "enabled" else 0
+
+        expected_msgs = [
+            "name: test",
+            "entitled: {}".format(ent_msg),
+            "status: {}".format(status_msg),
+        ]
+
+        if is_beta and status_msg == "enabled":
+            expected_msgs.append("beta: True")
+
+        expected_msgs.append("help:\nTest service\nService is being tested")
+
+        expected_msg = "\n".join(expected_msgs)
+
+        fake_stdout = io.StringIO()
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            with contextlib.redirect_stdout(fake_stdout):
+                action_help(m_args, None)
+
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert 1 == m_service_name.call_count
+        assert 1 == m_ent_help_info.call_count
+        assert 1 == m_available_resources.call_count
+        assert 1 == m_attached.call_count
+        assert 1 == m_ent_desc.call_count
+        assert is_beta_call_count == m_is_beta.call_count
+        assert ent_name_call_count == m_ent_name.call_count
+        assert 1 == m_entitlement_obj.contract_status.call_count
+        assert (
+            ufs_call_count == m_entitlement_obj.user_facing_status.call_count
+        )
+
+    @mock.patch("uaclient.contract.get_available_resources")
+    def test_help_command_for_invalid_service(self, m_available_resources):
+        """Test help command when an invalid service is provided."""
+        m_args = mock.MagicMock()
+        m_service_name = mock.PropertyMock(return_value="test")
+        type(m_args).service_name = m_service_name
+
+        m_available_resources.return_value = [
+            {"name": "ent1", "available": True}
+        ]
+
+        expected_msg = "\n".join(
+            ["name: test", 'help: No help available for service "test"']
+        )
+
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            action_help(m_args, None)
+
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert 1 == m_service_name.call_count
+        assert 1 == m_available_resources.call_count
 
 
 class TestAssertRoot:

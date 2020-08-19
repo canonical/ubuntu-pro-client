@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import yaml
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
@@ -404,6 +404,54 @@ class UAConfig:
             response = self._remove_beta_resources(response)
 
         return response
+
+    def help(self, name):
+        """Return help information from an uaclient service as a dict."""
+        from uaclient.contract import get_available_resources
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        resources = get_available_resources(self)
+        help_resource = None
+
+        # We are using an OrderedDict here to guarantee
+        # that if we need to print the result of this
+        # dict, the order of insertion will always be respected
+        response_dict = OrderedDict()
+        response_dict["name"] = name
+
+        for resource in resources:
+            if resource["name"] == name:
+                help_resource = resource
+                help_ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(name)
+                help_ent = help_ent_cls(self)
+                break
+
+        if help_resource is None:
+            response_dict[
+                "help"
+            ] = 'No help available for service "{}"'.format(name)
+            return response_dict
+
+        if self.is_attached:
+            service_status = self._attached_service_status(help_ent, {})
+            status_msg = service_status["status"]
+
+            response_dict["entitled"] = service_status["entitled"]
+            response_dict["status"] = status_msg
+
+            if status_msg == "enabled" and help_ent_cls.is_beta:
+                response_dict["beta"] = True
+
+        else:
+            if help_resource["available"]:
+                available = status.UserFacingAvailability.AVAILABLE.value
+            else:
+                available = status.UserFacingAvailability.UNAVAILABLE.value
+
+            response_dict["available"] = available
+
+        response_dict["help"] = help_ent.help_info
+        return response_dict
 
 
 def parse_config(config_path=None):
