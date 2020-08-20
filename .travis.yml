@@ -28,21 +28,22 @@ matrix:
           - bionic
           - focal
       script:
+          - mkdir deb-artifacts
           - >
               if [ -d "trusty-debs" ]; then
-                 TRUSTY_DEBS_PATH=trusty-debs
+                 cp -r trusty-debs/* deb-artifacts
               fi
           - >
               if [ -d "bionic-debs" ]; then
-                 BIONIC_DEBS_PATH=bionic-debs
+                 cp -r bionic-debs/* deb-artifacts
               fi
           - >
               if [ -d "xenial-debs" ]; then
-                 XENIAL_DEBS_PATH=xenial-debs
+                 cp -r xenial-debs/* deb-artifacts
               fi
           - >
               if [ -d "focal-debs" ]; then
-                 FOCAL_DEBS_PATH=focal-debs
+                 cp -r focal-debs/* deb-artifacts
               fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
@@ -54,9 +55,10 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_TRUSTY_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_XENIAL_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BIONIC_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_FOCAL_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -68,21 +70,22 @@ matrix:
           - bionic
           - focal
       script:
+          - mkdir deb-artifacts
           - >
               if [ -d "trusty-debs" ]; then
-                 TRUSTY_DEBS_PATH=trusty-debs
+                 cp -r trusty-debs/* deb-artifacts
               fi
           - >
               if [ -d "bionic-debs" ]; then
-                 BIONIC_DEBS_PATH=bionic-debs
+                 cp -r bionic-debs/* deb-artifacts
               fi
           - >
               if [ -d "xenial-debs" ]; then
-                 XENIAL_DEBS_PATH=xenial-debs
+                 cp -r xenial-debs/* deb-artifacts
               fi
           - >
               if [ -d "focal-debs" ]; then
-                 FOCAL_DEBS_PATH=focal-debs
+                 cp -r focal-debs/* deb-artifacts
               fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
@@ -94,9 +97,10 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_TRUSTY_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_XENIAL_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BIONIC_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_FOCAL_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -108,21 +112,22 @@ matrix:
           - bionic
           - focal
       script:
+          - mkdir deb-artifacts
           - >
               if [ -d "trusty-debs" ]; then
-                 TRUSTY_DEBS_PATH=trusty-debs
+                 cp -r trusty-debs/* deb-artifacts
               fi
           - >
               if [ -d "bionic-debs" ]; then
-                 BIONIC_DEBS_PATH=bionic-debs
+                 cp -r bionic-debs/* deb-artifacts
               fi
           - >
               if [ -d "xenial-debs" ]; then
-                 XENIAL_DEBS_PATH=xenial-debs
+                 cp -r xenial-debs/* deb-artifacts
               fi
           - >
               if [ -d "focal-debs" ]; then
-                 FOCAL_DEBS_PATH=focal-debs
+                 cp -r focal-debs/* deb-artifacts
               fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
@@ -134,9 +139,10 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_TRUSTY_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_XENIAL_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BIONIC_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_FOCAL_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
       stage: integration
@@ -148,21 +154,22 @@ matrix:
           - bionic
           - focal
       script:
+          - mkdir deb-artifacts
           - >
               if [ -d "trusty-debs" ]; then
-                 TRUSTY_DEBS_PATH=trusty-debs
+                 cp -r trusty-debs/* deb-artifacts
               fi
           - >
               if [ -d "bionic-debs" ]; then
-                 BIONIC_DEBS_PATH=bionic-debs
+                 cp -r bionic-debs/* deb-artifacts
               fi
           - >
               if [ -d "xenial-debs" ]; then
-                 XENIAL_DEBS_PATH=xenial-debs
+                 cp -r xenial-debs/* deb-artifacts
               fi
           - >
               if [ -d "focal-debs" ]; then
-                 FOCAL_DEBS_PATH=focal-debs
+                 cp -r focal-debs/* deb-artifacts
               fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
@@ -174,9 +181,10 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_TRUSTY_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_XENIAL_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BIONIC_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_FOCAL_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -208,7 +216,7 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_TRUSTY_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -237,7 +245,7 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_XENIAL_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -266,7 +274,7 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_BIONIC_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -295,7 +303,7 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_FOCAL_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - env:
         PACKAGE_BUILD_SERIES=trusty
       stage: build

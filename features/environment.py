@@ -92,16 +92,7 @@ class UAClientBehaveConfig:
     :param destroy_instances:
         This boolean indicates that test containers should be destroyed after
         the completion. Set to False to leave instances running.
-    :param trusty_deb_paths:
-        Location of the debs to be used when lauching a trusty integration
-        test. If that path is None, we will build those debs locally.
-    :param xenial_deb_paths:
-        Location of the debs to be used when lauching a xenial integration
-        test. If that path is None, we will build those debs locally.
-    :param bionic_deb_paths:
-        Location of the debs to be used when lauching a bionic integration
-        test. If that path is None, we will build those debs locally.
-    :param focal_deb_paths:
+    :param debs_path:
         Location of the debs to be used when lauching a focal integration
         test. If that path is None, we will build those debs locally.
     """
@@ -125,10 +116,7 @@ class UAClientBehaveConfig:
         "private_key_file",
         "private_key_name",
         "reuse_image",
-        "trusty_debs_path",
-        "xenial_debs_path",
-        "bionic_debs_path",
-        "focal_debs_path",
+        "debs_path",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -165,10 +153,7 @@ class UAClientBehaveConfig:
         reuse_image: str = None,
         contract_token: str = None,
         contract_token_staging: str = None,
-        trusty_debs_path: str = None,
-        xenial_debs_path: str = None,
-        bionic_debs_path: str = None,
-        focal_debs_path: str = None,
+        debs_path: str = None,
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
@@ -188,10 +173,7 @@ class UAClientBehaveConfig:
         self.private_key_name = private_key_name
         self.reuse_image = reuse_image
         self.cmdline_tags = cmdline_tags
-        self.trusty_debs_path = trusty_debs_path
-        self.xenial_debs_path = xenial_debs_path
-        self.bionic_debs_path = bionic_debs_path
-        self.focal_debs_path = focal_debs_path
+        self.debs_path = debs_path
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -454,15 +436,6 @@ def _capture_container_as_image(
         return image_name
 
 
-def get_debs_path_from_series(series: str, context: Context) -> "str":
-    """Return a the debs path for that series if it exists.
-
-    :return: A string representing the deb path to be reused or
-             None if that path does not exist.
-    """
-    return getattr(context.config, "{}_debs_path".format(series), None)
-
-
 def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     """Create a development instance, instal build dependencies and build debs
 
@@ -472,17 +445,22 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     :return: A list of paths to applicable deb files published.
     """
     time_suffix = datetime.datetime.now().strftime("%s%f")
-    debs_path = get_debs_path_from_series(series, context)
+    deb_paths = []
+
     print("--- Checking if debs can be reused")
-    print("--- Found debs path: {} for series: {}".format(debs_path, series))
-    if debs_path:
+    if context.config.debs_path:
+        debs_path = context.config.debs_path
         if os.path.isdir(debs_path):
-            print("--- Reusing debs")
             deb_paths = [
                 os.path.join(debs_path, deb_file)
                 for deb_file in os.listdir(debs_path)
+                if series in deb_file
             ]
+
+    if len(deb_paths):
+        print("--- Reusing debs")
     else:
+        print("--- Could not find any debs to reuse. Building it locally")
         print(
             "--- Launching vm to build ubuntu-advantage*debs from local source"
         )
