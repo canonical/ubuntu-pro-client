@@ -1,6 +1,11 @@
 language: python
 dist: bionic
 
+stages:
+  - flake
+  - build
+  - integration
+
 install:
   # Required so `git describe` will definitely find a tag; see
   # https://github.com/travis-ci/travis-ci/issues/7422
@@ -14,8 +19,32 @@ matrix:
   include:
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-aws
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
       script:
+          - mkdir deb-artifacts
+          - >
+              if [ -d "trusty-debs" ]; then
+                 cp -r trusty-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "bionic-debs" ]; then
+                 cp -r bionic-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "xenial-debs" ]; then
+                 cp -r xenial-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "focal-debs" ]; then
+                 cp -r focal-debs/* deb-artifacts
+              fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -26,13 +55,38 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-azure-pro
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
       script:
+          - mkdir deb-artifacts
+          - >
+              if [ -d "trusty-debs" ]; then
+                 cp -r trusty-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "bionic-debs" ]; then
+                 cp -r bionic-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "xenial-debs" ]; then
+                 cp -r xenial-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "focal-debs" ]; then
+                 cp -r focal-debs/* deb-artifacts
+              fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -43,13 +97,38 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-azure
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
       script:
+          - mkdir deb-artifacts
+          - >
+              if [ -d "trusty-debs" ]; then
+                 cp -r trusty-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "bionic-debs" ]; then
+                 cp -r bionic-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "xenial-debs" ]; then
+                 cp -r xenial-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "focal-debs" ]; then
+                 cp -r focal-debs/* deb-artifacts
+              fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -60,13 +139,38 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-aws-pro
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
       script:
+          - mkdir deb-artifacts
+          - >
+              if [ -d "trusty-debs" ]; then
+                 cp -r trusty-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "bionic-debs" ]; then
+                 cp -r bionic-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "xenial-debs" ]; then
+                 cp -r xenial-debs/* deb-artifacts
+              fi
+          - >
+              if [ -d "focal-debs" ]; then
+                 cp -r focal-debs/* deb-artifacts
+              fi
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -77,16 +181,23 @@ matrix:
                  ls -lh /tmp
                  cd $TRAVIS_BUILD_DIR
               fi
+          - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-14.04
+      workspaces:
+        use:
+          - trusty
       script:
           - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
+              if [ -d "trusty-debs" ]; then
+                 TRUSTY_DEBS_PATH=trusty-debs
+              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                 BUILD_PR=0
               else
                  cd $TRAVIS_BUILD_DIR/..
                  tar -zcf pr_source.tar.gz ubuntu-advantage-client
@@ -97,18 +208,27 @@ matrix:
           # Because we are using dist:bionic for the travis host, we need
           # to remove the lxd deb-installed package to avoid
           # confusion over lxd versions
+          - echo $BUILD_PR
+          - echo $TRUSTY_DEBS_PATH 
+          - ls trusty-debs
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-16.04
+      workspaces:
+        use:
+          - xenial
       script:
           - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+              if [ -d "xenial-debs" ]; then
+                 XENIAL_DEBS_PATH=xenial-debs
+              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
               else
                  cd $TRAVIS_BUILD_DIR/..
@@ -125,13 +245,19 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-18.04
+      workspaces:
+        use:
+          - bionic
       script:
           - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+              if [ -d "bionic-debs" ]; then
+                 BIONIC_DEBS_PATH=bionic-debs
+              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
               else
                  cd $TRAVIS_BUILD_DIR/..
@@ -148,13 +274,19 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
+      stage: integration
       env: TOXENV=behave-20.04
+      workspaces:
+        use:
+          - focal
       script:
           - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+              if [ -d "focal-debs" ]; then
+                 FOCAL_DEBS_PATH=focal-debs
+              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
               else
                  cd $TRAVIS_BUILD_DIR/..
@@ -171,50 +303,107 @@ matrix:
           - sudo snap install lxd
           - sudo lxd init --auto
           - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
     - env:
         PACKAGE_BUILD_SERIES=trusty
+      stage: build
       install:
         - make travis-deb-install
+      workspaces:
+        create:
+          name: trusty
+          paths:
+            - trusty-debs
       script:
         - make travis-deb-script
+        - mkdir trusty-debs
+        - cp ubuntu-advantage-tools-trusty.deb trusty-debs
+        - cp ubuntu-advantage-tools-pro-trusty.deb trusty-debs
+        - ls trusty-debs
     - env:
         PACKAGE_BUILD_SERIES=xenial
+      stage: build
+      workspaces:
+        create:
+          name: xenial
+          paths:
+            - xenial-debs
       install:
         - make travis-deb-install
       script:
         - make travis-deb-script
+        - mkdir xenial-debs
+        - cp ubuntu-advantage-tools-xenial.deb xenial-debs
+        - cp ubuntu-advantage-tools-pro-xenial.deb xenial-debs
+        - ls xenial-debs
     - env:
         PACKAGE_BUILD_SERIES=bionic
+      stage: build
+      workspaces:
+        create:
+          name: bionic
+          paths:
+            - bionic-debs
       install:
         - make travis-deb-install
       script:
         - make travis-deb-script
+        - mkdir bionic-debs
+        - cp ubuntu-advantage-tools-bionic.deb bionic-debs
+        - cp ubuntu-advantage-tools-pro-bionic.deb bionic-debs
+        - ls bionic-debs
     - env:
         PACKAGE_BUILD_SERIES=eoan
+      stage: build
+      workspaces:
+        create:
+          name: eoan
+          paths:
+            - eoan-debs
       install:
         - make travis-deb-install
       script:
         - make travis-deb-script
+        - mkdir eoan-debs
+        - cp ubuntu-advantage-tools-eoan.deb eoan-debs
+        - cp ubuntu-advantage-tools-pro-eoan.deb eoan-debs
+        - ls eoan-debs
     - env:
         PACKAGE_BUILD_SERIES=focal
+      stage: build
+      workspaces:
+        create:
+          name: focal
+          paths:
+            - focal-debs
       install:
         - make travis-deb-install
       script:
         - make travis-deb-script
+        - mkdir focal-debs
+        - cp ubuntu-advantage-tools-focal.deb focal-debs
+        - cp ubuntu-advantage-tools-pro-focal.deb focal-debs
+        - ls focal-debs
     - python: 3.4
+      stage: flake
       env: TOXENV=py3-trusty,flake8-trusty
       dist: trusty
     - python: 3.5
+      stage: flake
       env: TOXENV=py3-xenial,flake8-xenial
       dist: xenial
     - python: 3.6
+      stage: flake
       env: TOXENV=py3-bionic,flake8-bionic
     - python: 3.7
+      stage: flake
       env: TOXENV=py3-eoan,flake8-eoan
     - python: 3.8
+      stage: flake
       env: TOXENV=py3,flake8
     - python: 3.7
+      stage: flake
       env: TOXENV=mypy
     - python: 3.7
+      stage: flake
       env: TOXENV=black
