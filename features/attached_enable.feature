@@ -293,7 +293,8 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario: Attached enable of vm-based services in a bionic lxd vm
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        When I run `ua enable fips --assume-yes --beta` with sudo
+        When I run `ua disable livepatch` with sudo
+        And I run `ua enable fips --assume-yes --beta` with sudo
         Then stdout matches regexp:
             """
             Updating package lists

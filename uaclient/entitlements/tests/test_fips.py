@@ -65,6 +65,7 @@ class TestFIPSEntitlementDefaults:
     ):
         """FIPS and FIPS Updates pass assume_yes into messaging args"""
         entitlement = fips_entitlement_factory(assume_yes=assume_yes)
+
         expected_msging = {
             "fips": {
                 "pre_enable": [
@@ -76,11 +77,6 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_enable": [
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                        operation="install"
-                    )
-                ],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -88,11 +84,6 @@ class TestFIPSEntitlementDefaults:
                             "assume_yes": assume_yes,
                             "msg": status.PROMPT_FIPS_PRE_DISABLE,
                         },
-                    )
-                ],
-                "post_disable": [
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                        operation="disable operation"
                     )
                 ],
             },
@@ -106,11 +97,6 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_enable": [
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                        operation="install"
-                    )
-                ],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -120,13 +106,9 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_disable": [
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                        operation="disable operation"
-                    )
-                ],
             },
         }
+
         if entitlement.name in expected_msging:
             assert expected_msging[entitlement.name] == entitlement.messaging
         else:
