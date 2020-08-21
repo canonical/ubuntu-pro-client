@@ -16,6 +16,10 @@ from http.client import HTTPMessage  # noqa: F401
 from uaclient import exceptions
 from uaclient import status
 
+
+REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
+
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -615,3 +619,8 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
                 value=value_str,
             )
         )
+
+
+def should_reboot() -> bool:
+    """Check if the system needs to be rebooted."""
+    return os.path.exists(REBOOT_FILE_CHECK_PATH)

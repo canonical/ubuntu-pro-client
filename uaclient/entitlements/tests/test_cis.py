@@ -33,10 +33,11 @@ class TestCISEntitlementCanEnable:
 
 
 class TestCISEntitlementEnable:
+    @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.get_platform_info")
     def test_enable_configures_apt_sources_and_auth_files(
-        self, m_platform_info, m_subp, capsys, entitlement
+        self, m_platform_info, m_subp, m_should_reboot, capsys, entitlement
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
 
@@ -48,6 +49,7 @@ class TestCISEntitlementEnable:
 
         m_platform_info.side_effect = fake_platform
         m_subp.return_value = ("fakeout", "")
+        m_should_reboot.return_value = False
 
         with mock.patch(
             M_REPOPATH + "os.path.exists", mock.Mock(return_value=True)
@@ -91,6 +93,7 @@ class TestCISEntitlementEnable:
         # No apt pinning for cis-audit
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
+        assert 1 == m_should_reboot.call_count
         expected_stdout = (
             "Updating package lists\n"
             "Installing CIS Audit packages\n"

@@ -114,11 +114,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                     },
                 )
             ],
-            "post_enable": [
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="install"
-                )
-            ],
             "pre_disable": [
                 (
                     util.prompt_for_confirmation,
@@ -126,11 +121,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                         "assume_yes": self.assume_yes,
                         "msg": status.PROMPT_FIPS_PRE_DISABLE,
                     },
-                )
-            ],
-            "post_disable": [
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="disable operation"
                 )
             ],
         }
@@ -157,11 +147,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                     },
                 )
             ],
-            "post_enable": [
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="install"
-                )
-            ],
             "pre_disable": [
                 (
                     util.prompt_for_confirmation,
@@ -169,11 +154,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                         "assume_yes": self.assume_yes,
                         "msg": status.PROMPT_FIPS_PRE_DISABLE,
                     },
-                )
-            ],
-            "post_disable": [
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="disable operation"
                 )
             ],
         }
