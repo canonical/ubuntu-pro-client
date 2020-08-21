@@ -35,6 +35,7 @@ LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
+ssh_import_id: [chad.smith]
 write_files:
   # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
   - path: /usr/bin/ua
@@ -205,12 +206,16 @@ class UAClientBehaveConfig:
                     )
                 )
                 setattr(self, attr_name, None)
+        timed_job_tag = datetime.datetime.utcnow().strftime(
+            "uaclient-ci-%m%d-"
+        ) + os.environ.get("TRAVIS_JOB_NUMBER", "dev")
         if "aws" in self.machine_type:
             self.cloud_manager = cloud.EC2(
                 aws_access_key_id,
                 aws_secret_access_key,
-                region="us-east-2",
+                region=os.environ.get("AWS_DEFAULT_REGION", "us-east-2"),
                 machine_type=self.machine_type,
+                tag=timed_job_tag,
             )
             self.cloud_api = self.cloud_manager.api
         elif "azure" in self.machine_type:
@@ -220,6 +225,7 @@ class UAClientBehaveConfig:
                 az_tenant_id=az_tenant_id,
                 az_subscription_id=az_subscription_id,
                 machine_type=self.machine_type,
+                tag=timed_job_tag,
             )
             self.cloud_api = self.cloud_manager.api
 

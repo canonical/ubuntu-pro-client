@@ -20,31 +20,146 @@ matrix:
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-aws
+      env:
+          - TOXENV=behave-awsgeneric-14.04
+          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
           - xenial
           - bionic
           - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
-              if [ -d "trusty-debs" ]; then
-                 cp -r trusty-debs/* deb-artifacts
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
-              if [ -d "bionic-debs" ]; then
-                 cp -r bionic-debs/* deb-artifacts
-              fi
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-awsgeneric-16.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
-              if [ -d "xenial-debs" ]; then
-                 cp -r xenial-debs/* deb-artifacts
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
-              if [ -d "focal-debs" ]; then
-                 cp -r focal-debs/* deb-artifacts
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-awsgeneric-18.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-awsgeneric-20.04
+          - AWS_DEFAULT_REGION=us-east-2
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -58,11 +173,18 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-azure-pro
+      env: 
+          - TOXENV=behave-azure-pro
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
@@ -71,22 +193,7 @@ matrix:
           - focal
       script:
           - mkdir deb-artifacts
-          - >
-              if [ -d "trusty-debs" ]; then
-                 cp -r trusty-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "bionic-debs" ]; then
-                 cp -r bionic-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "xenial-debs" ]; then
-                 cp -r xenial-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "focal-debs" ]; then
-                 cp -r focal-debs/* deb-artifacts
-              fi
+          - cp *-debs/* deb-artifacts
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -100,11 +207,13 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-azure
+      env:
+          - TOXENV=behave-azuregeneric
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
@@ -113,22 +222,7 @@ matrix:
           - focal
       script:
           - mkdir deb-artifacts
-          - >
-              if [ -d "trusty-debs" ]; then
-                 cp -r trusty-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "bionic-debs" ]; then
-                 cp -r bionic-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "xenial-debs" ]; then
-                 cp -r xenial-debs/* deb-artifacts
-              fi
-          - >
-              if [ -d "focal-debs" ]; then
-                 cp -r focal-debs/* deb-artifacts
-              fi
+          - cp *-debs/* deb-artifacts
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -146,31 +240,146 @@ matrix:
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-aws-pro
+      env:
+          - TOXENV=behave-awspro-14.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
           - xenial
           - bionic
           - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
-              if [ -d "trusty-debs" ]; then
-                 cp -r trusty-debs/* deb-artifacts
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
-              if [ -d "bionic-debs" ]; then
-                 cp -r bionic-debs/* deb-artifacts
-              fi
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: integration
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-16.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
-              if [ -d "xenial-debs" ]; then
-                 cp -r xenial-debs/* deb-artifacts
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
           - >
-              if [ -d "focal-debs" ]; then
-                 cp -r focal-debs/* deb-artifacts
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: integration
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-18.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
               fi
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: integration
+      python: 3.7
+      env:
+          - TOXENV=behave-awspro-20.04
+          - AWS_DEFAULT_REGION=us-east-1
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+          - xenial
+          - bionic
+          - focal
+      install:
+          - make testdeps
+          - pip install boto3
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
           - >
               if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
                   BUILD_PR=0
@@ -184,11 +393,16 @@ matrix:
           - ls deb-artifacts
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - >
+            for key_name in `ls *pem`; do
+                K=${key_name/ec2-/};
+                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
+            done;
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-14.04
+      env: TOXENV=behave-lxd-14.04
       workspaces:
         use:
           - trusty
@@ -220,7 +434,7 @@ matrix:
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-16.04
+      env: TOXENV=behave-lxd-16.04
       workspaces:
         use:
           - xenial
@@ -249,7 +463,7 @@ matrix:
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-18.04
+      env: TOXENV=behave-lxd-18.04
       workspaces:
         use:
           - bionic
@@ -278,7 +492,7 @@ matrix:
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-20.04
+      env: TOXENV=behave-lxd-20.04
       workspaces:
         use:
           - focal
