@@ -1,5 +1,4 @@
 import copy
-from textwrap import dedent
 
 import mock
 import pytest
@@ -318,8 +317,10 @@ class TestRepoEnable:
         expected_call = mock.call(silent=bool(silent_if_inapplicable))
         assert [expected_call] == m_can_enable.call_args_list
 
+    @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
+    @mock.patch(M_PATH + "util.should_reboot")
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "os.path.exists", return_value=True)
@@ -332,15 +333,18 @@ class TestRepoEnable:
         m_exists,
         m_apt_add,
         m_subp,
+        m_should_reboot,
         entitlement,
         capsys,
         caplog_text,
         tmpdir,
         packages,
         with_pre_install_msg,
+        should_reboot,
     ):
         """On enable add authenticated apt repo and refresh package lists."""
         m_platform.return_value = {"series": "xenial"}
+        m_should_reboot.return_value = should_reboot
 
         pre_install_msgs = ["Some pre-install information", "Some more info"]
         if with_pre_install_msg:
@@ -357,11 +361,13 @@ class TestRepoEnable:
                 retry_sleeps=apt.APT_RETRIES,
             )
         ]
-        expected_output = dedent(
-            """\
-        Updating package lists
-        Repo Test Class enabled
-        """
+        reboot_msg = "A reboot is required to complete install"
+        expected_output = (
+            "\n".join(
+                ["Updating package lists", "Repo Test Class enabled"]
+                + ([reboot_msg] if should_reboot else [])
+            )
+            + "\n"
         )
         if packages is not None:
             if len(packages) > 0:
@@ -385,6 +391,7 @@ class TestRepoEnable:
                         ]
                         + (pre_install_msgs if with_pre_install_msg else [])
                         + ["Repo Test Class enabled"]
+                        + ([reboot_msg] if should_reboot else [])
                     )
                     + "\n"
                 )
@@ -412,6 +419,7 @@ class TestRepoEnable:
             )
         ]
         assert add_apt_calls == m_apt_add.call_args_list
+        assert 1 == m_should_reboot.call_count
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 

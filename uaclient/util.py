@@ -13,6 +13,9 @@ from contextlib import contextmanager
 from functools import wraps
 from http.client import HTTPMessage  # noqa: F401
 
+REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
+
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -559,3 +562,8 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
         fh.write(content.encode("utf-8"))
         fh.flush()
     os.chmod(filename, mode)
+
+
+def should_reboot() -> bool:
+    """Check if the system needs to be rebooted."""
+    return os.path.exists(REBOOT_FILE_CHECK_PATH)

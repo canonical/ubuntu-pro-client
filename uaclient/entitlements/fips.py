@@ -60,9 +60,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     name = "fips"
     title = "FIPS"
     description = "NIST-certified FIPS modules"
-    messaging = {
-        "post_enable": ["A reboot is required to complete the install"]
-    }
     origin = "UbuntuFIPS"
     static_affordances = (
         ("Cannot install FIPS on a container", util.is_container, False),
@@ -73,12 +70,6 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     name = "fips-updates"
     title = "FIPS Updates"
-    messaging = {
-        "post_enable": [
-            "FIPS Updates configured and pending, please reboot to make"
-            " active."
-        ]
-    }
     origin = "UbuntuFIPSUpdates"
     description = "Uncertified security updates to FIPS modules"
     static_affordances = (
