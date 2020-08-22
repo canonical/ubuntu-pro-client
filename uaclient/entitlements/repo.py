@@ -52,6 +52,18 @@ class RepoEntitlement(base.UAEntitlement):
     def repo_key_file(self) -> str:
         pass
 
+    def check_for_reboot_msg(self, operation: str) -> None:
+        """Check if user should be alerted that a reboot must be performed.
+
+        @param operation: The operation being executed.
+        """
+        if util.should_reboot():
+            print(
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation=operation
+                )
+            )
+
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
 
@@ -82,11 +94,13 @@ class RepoEntitlement(base.UAEntitlement):
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         for msg in self.messaging.get("post_enable", []):
             print(msg)
+        self.check_for_reboot_msg(operation="install")
         return True
 
     def disable(self, silent=False):
         if not self.can_disable(silent):
             return False
+        self.check_for_reboot_msg(operation="disable operation")
         self._cleanup()
         return True
 
