@@ -2,6 +2,8 @@ ubuntu-advantage-tools (24.3) groovy; urgency=medium
 
   * New bug-fix-only release 24.3:
     - uaclient.version bump to 24.3
+    - fips: add conditional reboot message only if /var/run/reboot-required is
+      present
     - fips: add apt repo key for FIPS and FIPS updates (GH #1026)
 
  -- Chad Smith <chad.smith@canonical.com>  Thu, 20 Aug 2020 14:50:17 -0600
