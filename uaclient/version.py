@@ -8,7 +8,7 @@ import os.path
 from uaclient import util
 
 
-__VERSION__ = "24.2"
+__VERSION__ = "24.3"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 
 
