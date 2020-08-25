@@ -599,9 +599,12 @@ def _install_uat_in_container(
     """
     cmds = []
     if not deb_paths:
-        deb_names = (
-            " ".join(UA_DEBS) if cloud_api else "ubuntu-advantage-tools"
+        pkg_names = (
+            [deb.replace(".deb", "") for deb in UA_DEBS]
+            if cloud_api
+            else ["ubuntu-advantage-tools"]
         )
+
         cmds.extend(
             [
                 [
@@ -611,7 +614,7 @@ def _install_uat_in_container(
                     "ppa:canonical-server/ua-client-daily",
                 ],
                 ["sudo", "apt-get", "update", "-qq"],
-                ["sudo", "apt-get", "install", "-qq", "-y", deb_names],
+                ["sudo", "apt-get", "install", "-qq", "-y"] + pkg_names,
             ]
         )
     else:
