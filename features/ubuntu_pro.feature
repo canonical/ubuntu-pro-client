@@ -65,15 +65,11 @@ Feature: Command behaviour when attached to an UA subscription
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
 
-        # focal livepatch status is displayed was disabled because livepatch
-        # currently fails to apply the kernel patches on the aws focal pro kernel version.
-        # We are changing the status to disabled just to unlock the build, but we
-        # need a better fix for that issue.
         Examples: ubuntu release
            | release | cc-eal-s | esm-a-s | infra-pkg | apps-pkg | fips-s | lp-s     | lp-d                          |
            | xenial  | disabled | enabled | libkrad0  | jq       | n/a    | enabled  | Canonical Livepatch service |
            | bionic  | n/a      | enabled | libkrad0  | bundler  | n/a    | enabled  | Canonical Livepatch service |
-           | focal   | n/a      | enabled | hello     | ant      | n/a    | disabled | Canonical Livepatch service |
+           | focal   | n/a      | enabled | hello     | ant      | n/a    | enabled  | Canonical Livepatch service |
 
     @series.trusty
     Scenario Outline: Attached refresh in a Trusty Ubuntu PRO machine
