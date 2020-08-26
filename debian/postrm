@@ -19,7 +19,6 @@ remove_logs(){
 remove_esm(){
     # config files created in postinst, need explicit handling on purge
     rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg
-    rm -f /etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list
     rm -f /etc/apt/preferences.d/ubuntu-esm-infra-trusty
 }
 
