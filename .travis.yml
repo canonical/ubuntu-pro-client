@@ -30,9 +30,6 @@ matrix:
       workspaces:
         use:
           - trusty
-          - xenial
-          - bionic
-          - focal
       install:
           - make testdeps
           - pip install boto3
@@ -69,10 +66,7 @@ matrix:
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
-          - trusty
           - xenial
-          - bionic
-          - focal
       install:
           - make testdeps
           - pip install boto3
@@ -109,10 +103,7 @@ matrix:
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
-          - trusty
-          - xenial
           - bionic
-          - focal
       install:
           - make testdeps
           - pip install boto3
@@ -149,9 +140,6 @@ matrix:
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
-          - trusty
-          - xenial
-          - bionic
           - focal
       install:
           - make testdeps
