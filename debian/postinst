@@ -118,9 +118,6 @@ case "$1" in
           # 14.04 and unsupported arch
           unconfigure_esm
         fi
-      else
-        # not 14.04, regardless of arch
-        unconfigure_esm
       fi
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
