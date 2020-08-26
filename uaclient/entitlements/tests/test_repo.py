@@ -288,15 +288,13 @@ class TestProcessContractDeltas:
         assert [mock.call()] == m_setup_apt_config.call_args_list
         apt_auth_remove_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest-trusty.list",
-                "http://old",
+                "/etc/apt/sources.list.d/ubuntu-repotest.list", "http://old"
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
         apt_auth_remove_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest-trusty.list",
-                "http://old",
+                "/etc/apt/sources.list.d/ubuntu-repotest.list", "http://old"
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
@@ -382,12 +380,14 @@ class TestRepoEnable:
         ),
     )
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
+    @mock.patch(M_PATH + "util.should_reboot")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(RepoTestEntitlement, "can_disable", return_value=True)
     def test_enable_can_exit_on_pre_or_post_disable_messaging_hooks(
         self,
         _can_disable,
         remove_apt_config,
+        m_should_reboot,
         m_subp,
         pre_disable_msg,
         post_disable_msg,
@@ -401,6 +401,7 @@ class TestRepoEnable:
             "pre_disable": pre_disable_msg,
             "post_disable": post_disable_msg,
         }
+        m_should_reboot.return_value = False
         with mock.patch.object(type(entitlement), "messaging", messaging):
             with mock.patch.object(type(entitlement), "packages", []):
                 assert retval is entitlement.disable()
@@ -512,7 +513,7 @@ class TestRepoEnable:
         assert expected_apt_calls == m_subp.call_args_list
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest-xenial.list",
+                "/etc/apt/sources.list.d/ubuntu-repotest.list",
                 "http://REPOTEST",
                 "repotest-token",
                 ["xenial"],
@@ -603,7 +604,7 @@ class TestRemoveAptConfig:
         ] == m_remove_apt_list_files.call_args_list
         assert [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest-xenial.list",
+                "/etc/apt/sources.list.d/ubuntu-repotest.list",
                 "http://REPOTEST",
                 "test.gpg",
             )
@@ -636,7 +637,7 @@ class TestRemoveAptConfig:
             mock.call("http://REPOTEST")
         ] == m_remove_repo_from_apt_auth_file.call_args_list
         assert [
-            mock.call("/etc/apt/sources.list.d/ubuntu-repotest-xenial.list")
+            mock.call("/etc/apt/sources.list.d/ubuntu-repotest.list")
         ] == m_restore_commented_apt_list_file.call_args_list
 
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
@@ -662,7 +663,7 @@ class TestRemoveAptConfig:
         entitlement.remove_apt_config()
         assert [
             mock.call(
-                "/etc/apt/preferences.d/ubuntu-repotest-xenial",
+                "/etc/apt/preferences.d/ubuntu-repotest",
                 "http://REPOTEST",
                 None,
                 "never",
@@ -694,9 +695,7 @@ class TestRemoveAptConfig:
         with mock.patch(M_PATH + "os.path.exists") as m_exists:
             m_exists.return_value = True
             entitlement.remove_apt_config()
-        expected_call = [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial")
-        ]
+        expected_call = [mock.call("/etc/apt/preferences.d/ubuntu-repotest")]
         assert expected_call == m_exists.call_args_list
         assert expected_call == m_unlink.call_args_list
 
@@ -804,12 +803,12 @@ class TestSetupAptConfig:
             m_exists.return_value = True
             entitlement.setup_apt_config()
         assert [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial"),
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest"),
             mock.call("/usr/lib/apt/methods/https"),
             mock.call("/usr/sbin/update-ca-certificates"),
         ] == m_exists.call_args_list
         assert [
-            mock.call("/etc/apt/preferences.d/ubuntu-repotest-xenial")
+            mock.call("/etc/apt/preferences.d/ubuntu-repotest")
         ] == m_unlink.call_args_list
 
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
@@ -839,7 +838,7 @@ class TestSetupAptConfig:
         ] == m_exists.call_args_list
         assert [
             mock.call(
-                "/etc/apt/preferences.d/ubuntu-repotest-xenial",
+                "/etc/apt/preferences.d/ubuntu-repotest",
                 "http://REPOTEST",
                 "RepoTestOrigin",
                 entitlement.repo_pin_priority,

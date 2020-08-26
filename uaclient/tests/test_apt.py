@@ -16,7 +16,7 @@ from uaclient.apt import (
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
-    clean_apt_sources,
+    clean_apt_files,
     find_apt_list_files,
     get_installed_packages,
     remove_apt_list_files,
@@ -541,22 +541,29 @@ class TestAddAptAuthConfEntry:
         assert expected_content == util.load_file(auth_file)
 
 
-class TestCleanAptSources:
+class TestCleanAptFiles:
     @pytest.fixture
     def mock_apt_entitlement(self, tmpdir):
         # Set up our tmpdir with some fake list files
         entitlement_name = "test_ent"
-        file_tmpl = tmpdir.join("{name}-{series}").strpath
+        repo_tmpl = tmpdir.join("source-{name}").strpath
+        pref_tmpl = tmpdir.join("pref-{name}").strpath
         for series in ["acidic", "base"]:
-            file_name = file_tmpl.format(name=entitlement_name, series=series)
-            with open(file_name, "w") as f:
+            source_name = repo_tmpl.format(name=entitlement_name)
+            pref_name = pref_tmpl.format(name=entitlement_name)
+
+            with open(source_name, "w") as f:
+                f.write("")
+
+            with open(pref_name, "w") as f:
                 f.write("")
 
         m_entitlement = mock.Mock(spec=ConcreteTestEntitlement)
         m_entitlement.configure_mock(
             name=entitlement_name,
             repo_url="some url",
-            repo_list_file_tmpl=file_tmpl,
+            repo_list_file_tmpl=repo_tmpl,
+            repo_pref_file_tmpl=pref_tmpl,
         )
         return m_entitlement
 
@@ -565,7 +572,7 @@ class TestCleanAptSources:
         m_entitlements = mock.Mock()
         m_entitlements.ENTITLEMENT_CLASSES = [ConcreteTestEntitlement]
 
-        clean_apt_sources(_entitlements=m_entitlements)
+        clean_apt_files(_entitlements=m_entitlements)
 
         assert 0 == m_os_unlink.call_count
 
@@ -573,7 +580,7 @@ class TestCleanAptSources:
         m_entitlements = mock.Mock()
         m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
 
-        clean_apt_sources(_entitlements=m_entitlements)
+        clean_apt_files(_entitlements=m_entitlements)
 
         assert [] == tmpdir.listdir()
 
@@ -584,7 +591,7 @@ class TestCleanAptSources:
         m_entitlements = mock.Mock()
         m_entitlements.ENTITLEMENT_CLASSES = [mock_apt_entitlement]
 
-        clean_apt_sources(_entitlements=m_entitlements)
+        clean_apt_files(_entitlements=m_entitlements)
 
         assert [tmpdir.join(other_filename)] == tmpdir.listdir()
 

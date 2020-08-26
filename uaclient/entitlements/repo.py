@@ -31,8 +31,8 @@ APT_DISABLED_PIN = "-32768"
 
 class RepoEntitlement(base.UAEntitlement):
 
-    repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}-{series}.list"
-    repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}-{series}"
+    repo_list_file_tmpl = "/etc/apt/sources.list.d/ubuntu-{name}.list"
+    repo_pref_file_tmpl = "/etc/apt/preferences.d/ubuntu-{name}"
 
     # The repo Origin value for setting pinning
     origin = None  # type: Optional[str]
@@ -223,10 +223,7 @@ class RepoEntitlement(base.UAEntitlement):
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
                 # Remove original aptURL and auth and rewrite
-                series = util.get_platform_info()["series"]
-                repo_filename = self.repo_list_file_tmpl.format(
-                    name=self.name, series=series
-                )
+                repo_filename = self.repo_list_file_tmpl.format(name=self.name)
                 apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
         self.setup_apt_config()
@@ -238,10 +235,7 @@ class RepoEntitlement(base.UAEntitlement):
         :raise UserFacingError: on failure to setup any aspect of this apt
            configuration
         """
-        series = util.get_platform_info()["series"]
-        repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series
-        )
+        repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         resource_cfg = self.cfg.entitlements.get(self.name)
         directives = resource_cfg["entitlement"].get("directives", {})
         token = resource_cfg.get("resourceToken")
@@ -279,9 +273,7 @@ class RepoEntitlement(base.UAEntitlement):
                         ),
                     )
                 )
-            repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series
-            )
+            repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
             if self.repo_pin_priority != "never":
                 apt.add_ppa_pinning(
                     repo_pref_file,
@@ -331,9 +323,7 @@ class RepoEntitlement(base.UAEntitlement):
     def remove_apt_config(self):
         """Remove any repository apt configuration files."""
         series = util.get_platform_info()["series"]
-        repo_filename = self.repo_list_file_tmpl.format(
-            name=self.name, series=series
-        )
+        repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         entitlement = self.cfg.entitlements[self.name].get("entitlement", {})
         access_directives = entitlement.get("directives", {})
         repo_url = access_directives.get("aptURL")
@@ -351,9 +341,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
             apt.remove_apt_list_files(repo_url, series)
         if self.repo_pin_priority:
-            repo_pref_file = self.repo_pref_file_tmpl.format(
-                name=self.name, series=series
-            )
+            repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
             if self.repo_pin_priority == "never":
                 # Disable the repo with a pinning file
                 apt.add_ppa_pinning(

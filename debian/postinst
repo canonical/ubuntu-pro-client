@@ -5,12 +5,14 @@ set -e
 . /etc/os-release  # For VERSION_ID
 
 
+MYRELEASE=$(lsb_release -sc)
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
 
 ESM_INFRA_KEY_TRUSTY="ubuntu-advantage-esm-infra-trusty.gpg"
 
 APT_SRC_DIR="/etc/apt/sources.list.d"
+APT_PREFERENCES_DIR="/etc/apt/preferences.d"
 ESM_APT_SOURCE_FILE_PRECISE="$APT_SRC_DIR/ubuntu-esm-precise.list"
 ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
 ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
@@ -25,6 +27,40 @@ SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-a
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
+
+UA_SERVICES="$(ua status | awk '/SERVICE/{flag=1;next}/Enable/{flag=0}flag {if(NF) {printf $1 " "}}')"
+
+# Rename apt config files for ua services removing ubuntu release names
+redact_ubuntu_release_from_ua_apt_filenames() {
+    DIR=$1
+    for file in `ls $DIR`; do
+        release_name=""
+        case "$file" in
+            *-trusty*)
+                release_name=trusty;;
+            *-xenial*)
+                release_name=xenial;;
+            *-bionic*)
+                release_name=bionic;;
+            *-focal*)
+                release_name=focal;;
+            *-groovy*)
+                release_name=groovy;;
+            *) release_name="";;
+         esac
+         if [ "$release_name" ]; then
+             # We have a ubuntu release name in the apt config.
+             # Remove $release_name from original $file.
+             new_file=${file%-${release_name}*}${file#*${release_name}}
+             for service in ${UA_SERVICES}; do
+                 if [ "${file#*$service}" != "$file" ]; then
+                      # Valid apt cfg file for an ubuntu-advantage service
+                      mv $DIR/$file $DIR/$new_file
+                 fi
+             done
+         fi
+    done
+}
 
 check_esm_infra_is_enabled() {
     ua status | egrep -q 'esm-infra.*enabled' && return 0 || return 1
@@ -119,6 +155,12 @@ case "$1" in
           unconfigure_esm
         fi
       fi
+
+     # UA service PPAs support all ubuntu releases, no need to
+     # specialize apt config filenames per ubuntu release.
+     redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
+     redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
+
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
       fi

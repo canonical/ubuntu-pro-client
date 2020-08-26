@@ -81,7 +81,7 @@ class TestESMInfraEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            prefs_path = "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+            prefs_path = "/etc/apt/preferences.d/ubuntu-{}".format(
                 entitlement.name
             )
             if path == prefs_path:
@@ -127,7 +127,7 @@ class TestESMInfraEntitlementEnable:
 
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
+                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
                     entitlement.name
                 ),
                 "http://{}".format(entitlement.name.upper()),
@@ -160,9 +160,7 @@ class TestESMInfraEntitlementEnable:
         if entitlement.name == "esm-infra":  # Remove "never" apt pref pin
             unlink_calls = [
                 mock.call(
-                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
-                        entitlement.name
-                    )
+                    "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
                 )
             ]
         else:
@@ -176,7 +174,7 @@ class TestESMInfraEntitlementEnable:
         original_exists = os.path.exists
 
         def fake_exists(path):
-            prefs_path = "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
+            prefs_path = "/etc/apt/preferences.d/ubuntu-{}".format(
                 entitlement.name
             )
             if path == prefs_path:
@@ -227,7 +225,7 @@ class TestESMInfraEntitlementEnable:
 
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}-trusty.list".format(
+                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
                     entitlement.name
                 ),
                 "http://{}".format(entitlement.name.upper()),
@@ -255,9 +253,7 @@ class TestESMInfraEntitlementEnable:
             # Enable esm-infra trusty removes apt preferences pin 'never' file
             unlink_calls = [
                 mock.call(
-                    "/etc/apt/preferences.d/ubuntu-{}-trusty".format(
-                        entitlement.name
-                    )
+                    "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
                 )
             ]
         else:
