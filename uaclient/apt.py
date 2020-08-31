@@ -314,11 +314,13 @@ def clean_apt_files(*, _entitlements=None):
         uaclient.entitlements. (This is only present for testing, because the
         import happens within the function to avoid circular imports.)
     """
+    from uaclient.entitlements.repo import RepoEntitlement
+
     if _entitlements is None:
         from uaclient import entitlements as _entitlements
 
     for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
-        if not hasattr(ent_cls, "repo_url"):
+        if not isinstance(ent_cls, RepoEntitlement):
             continue
         repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
         pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
