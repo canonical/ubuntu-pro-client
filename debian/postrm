@@ -16,9 +16,11 @@ remove_logs(){
     rm -f /var/log/ubuntu-advantage.log*
 }
 
-remove_esm(){
+remove_postinst_created_files(){
     # config files created in postinst, need explicit handling on purge
     rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg
+    rm -f /etc/apt/sources.list.d/ubuntu-esm-infra-trusty.list
+    rm -f /etc/apt/preferences.d/ubuntu-esm-infra-trusty
 }
 
 case "$1" in

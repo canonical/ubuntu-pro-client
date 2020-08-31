@@ -25,7 +25,7 @@ from uaclient.apt import (
     assert_valid_apt_credentials,
 )
 from uaclient import apt, exceptions, util
-from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
+from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
@@ -558,10 +558,9 @@ class TestCleanAptFiles:
             with open(pref_name, "w") as f:
                 f.write("")
 
-        m_entitlement = mock.Mock(spec=ConcreteTestEntitlement)
+        m_entitlement = mock.Mock(spec=RepoTestEntitlement)
         m_entitlement.configure_mock(
             name=entitlement_name,
-            repo_url="some url",
             repo_list_file_tmpl=repo_tmpl,
             repo_pref_file_tmpl=pref_tmpl,
         )
@@ -570,7 +569,7 @@ class TestCleanAptFiles:
     @mock.patch("uaclient.apt.os.unlink")
     def test_no_removals_for_no_repo_entitlements(self, m_os_unlink):
         m_entitlements = mock.Mock()
-        m_entitlements.ENTITLEMENT_CLASSES = [ConcreteTestEntitlement]
+        m_entitlements.ENTITLEMENT_CLASSES = [RepoTestEntitlement]
 
         clean_apt_files(_entitlements=m_entitlements)
 
