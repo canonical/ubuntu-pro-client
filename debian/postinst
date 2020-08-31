@@ -27,12 +27,49 @@ SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-a
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
+update_files_based_on_contract_delta() {
+  prev_release=$1
+  curr_release=$2
 
-UA_SERVICES="$(ua status | awk '/SERVICE/{flag=1;next}/Enable/{flag=0}flag {if(NF) {printf $1 " "}}')"
+    python3 -c "
+import logging
+
+from uaclient.cli import setup_logging
+from uaclient.config import UAConfig
+from uaclient.contract import process_entitlements_delta
+
+setup_logging(logging.INFO, logging.DEBUG)
+
+past_entitlements=UAConfig(series='$prev_release').entitlements
+new_entitlements=UAConfig(series='$curr_release').entitlements
+
+process_entitlements_delta(
+   past_entitlements=past_entitlements,
+   new_entitlements=new_entitlements,
+   allow_enable=True,
+   series_overrides=False
+)
+"
+}
+
+get_release_from_pkg_version(){
+    pkg_version=$1
+	case "$pkg_version" in
+	  *14.04*) echo trusty;;
+	  *16.04*) echo xenial;;
+	  *18.04*) echo bionic;;
+	  *20.04*) echo focal;;
+	  *) echo "unknown-previous-release";;
+	esac
+}
+
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
+    #UA_SERVICES="$(ua status | awk '/SERVICE/{flag=1;next}/Enable/{flag=0}flag {if(NF) {printf $1 " "}}')"
+    UA_SERVICES="esm-apps esm-infra livepatch"
+
     for file in `ls $DIR`; do
         release_name=""
         case "$file" in
@@ -141,6 +178,25 @@ case "$1" in
           fi
       fi
 
+      # UA service PPAs support all ubuntu releases, no need to
+      # specialize apt config filenames per ubuntu release.
+      redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
+      redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
+
+      echo "MY PACKAGE VERSION"
+      echo $PREVIOUS_PKG_VER
+      echo $VERSION_ID
+      sleep 10
+      if [ "${PREVIOUS_PKG_VER#*${VERSION_ID}}" = "$PREVIOUS_PKG_VER" ]; then
+        prev_release=$(get_release_from_pkg_version $PREVIOUS_PKG_VER)
+        next_release=$(get_release_from_pkg_version $VERSION_ID)
+        echo "ENTERED ON UPGRADE PATH"
+        echo $prev_release
+        echo $next_release
+        sleep 10
+        update_files_based_on_contract_delta $prev_release $next_release
+      fi
+
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
       # machine-access cache files no longer present or used since 20.1
@@ -155,11 +211,6 @@ case "$1" in
           unconfigure_esm
         fi
       fi
-
-     # UA service PPAs support all ubuntu releases, no need to
-     # specialize apt config filenames per ubuntu release.
-     redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
-     redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
 
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log

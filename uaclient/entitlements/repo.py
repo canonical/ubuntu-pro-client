@@ -211,19 +211,40 @@ class RepoEntitlement(base.UAEntitlement):
         if super().process_contract_deltas(orig_access, deltas, allow_enable):
             return True  # Already processed parent class deltas
 
-        application_status, _ = self.application_status()
-        if application_status == status.ApplicationStatus.DISABLED:
-            return True
+        delta_entitlement = deltas.get("entitlement", {})
+        delta_apt_url = delta_entitlement.get("directives", {}).get("aptURL")
+
+        if delta_apt_url:
+            status_cache = self.cfg.read_cache("status-cache")
+
+            if status_cache:
+                services_status_list = status_cache.get("services", [])
+
+                for service in services_status_list:
+                    if service.get("name") == self.name:
+                        if service.get("status") == "disabled":
+                            return True
+                        else:
+                            break
+
+        else:
+            application_status, _ = self.application_status()
+            if application_status == status.ApplicationStatus.DISABLED:
+                return True
+
         logging.info(
             "Updating '%s' apt sources list on changed directives.", self.name
         )
-        delta_entitlement = deltas.get("entitlement", {})
-        if delta_entitlement.get("directives", {}).get("aptURL"):
+
+        if delta_apt_url:
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
                 # Remove original aptURL and auth and rewrite
                 repo_filename = self.repo_list_file_tmpl.format(name=self.name)
+                print(repo_filename)
+                print("Removing old apt repo with content")
+                print("My series: ", util.get_platform_info()["series"])
                 apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
         self.setup_apt_config()

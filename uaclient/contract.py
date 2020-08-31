@@ -189,23 +189,83 @@ class UAContractClient(serviceclient.UAServiceClient):
         return {"machineId": machine_id, "architecture": arch, "os": platform}
 
 
-def process_entitlement_delta(orig_access, new_access, allow_enable=False):
+def process_entitlements_delta(
+    past_entitlements: "Dict[str, Any]",
+    new_entitlements: "Dict[str, Any]",
+    allow_enable: bool,
+    series_overrides: bool = True,
+) -> None:
+    """Iterate over all entitlements in new_entitlement and apply any delta
+    found according to past_entitlements.
+
+    :param past_entitlements: dict containing the last valid information
+        regarding service entitlements.
+    :param new_entitlements: dict containing the current information regarding
+        service entitlements.
+    :param allow_enable: Boolean set True if allowed to perform the enable
+        operation. When False, a message will be logged to inform the user
+        about the recommended enabled service.
+    :param series_overrides: Boolean set True if series overrides should be
+        applied to the new_access dict.
+    """
+    delta_error = False
+    unexpected_error = False
+    for name, new_entitlement in sorted(new_entitlements.items()):
+        try:
+            process_entitlement_delta(
+                past_entitlements.get(name, {}),
+                new_entitlement,
+                allow_enable=allow_enable,
+                series_overrides=series_overrides,
+            )
+        except exceptions.UserFacingError:
+            delta_error = True
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Failed to process contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_entitlement)
+                )
+        except Exception:
+            unexpected_error = True
+            with util.disable_log_to_console():
+                logging.exception(
+                    "Unexpected error processing contract delta for {name}:"
+                    " {delta}".format(name=name, delta=new_entitlement)
+                )
+    if unexpected_error:
+        raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
+    elif delta_error:
+        raise exceptions.UserFacingError(
+            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
+        )
+
+
+def process_entitlement_delta(
+    orig_access: "Dict[str, Any]",
+    new_access: "Dict[str, Any]",
+    allow_enable: bool = False,
+    series_overrides: bool = True,
+) -> "Dict":
     """Process a entitlement access dictionary deltas if they exist.
 
     :param orig_access: Dict with original entitlement access details before
         contract refresh deltas
-    :param orig_access: Dict with updated entitlement access details after
+    :param new_access: Dict with updated entitlement access details after
         contract refresh
     :param allow_enable: Boolean set True if allowed to perform the enable
         operation. When False, a message will be logged to inform the user
         about the recommended enabled service.
+    :param series_overrides: Boolean set True if series overrides should be
+        applied to the new_access dict.
 
     :raise UserFacingError: on failure to process deltas.
     :return: Dict of processed deltas
     """
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
-    util.apply_series_overrides(new_access)
+    if series_overrides:
+        util.apply_series_overrides(new_access)
+
     deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:
         name = orig_access.get("entitlement", {}).get("type")
@@ -287,35 +347,10 @@ def request_updated_contract(
             raise exceptions.UserFacingError(
                 status.MESSAGE_CONTRACT_EXPIRED_ERROR
             )
-    delta_error = False
-    unexpected_error = False
-    for name, new_entitlement in sorted(cfg.entitlements.items()):
-        try:
-            process_entitlement_delta(
-                orig_entitlements.get(name, {}),
-                new_entitlement,
-                allow_enable=allow_enable,
-            )
-        except exceptions.UserFacingError:
-            delta_error = True
-            with util.disable_log_to_console():
-                logging.exception(
-                    "Failed to process contract delta for {name}:"
-                    " {delta}".format(name=name, delta=new_entitlement)
-                )
-        except Exception:
-            unexpected_error = True
-            with util.disable_log_to_console():
-                logging.exception(
-                    "Unexpected error processing contract delta for {name}:"
-                    " {delta}".format(name=name, delta=new_entitlement)
-                )
-    if unexpected_error:
-        raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
-    elif delta_error:
-        raise exceptions.UserFacingError(
-            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
-        )
+
+    process_entitlements_delta(
+        orig_entitlements, cfg.entitlements, allow_enable
+    )
 
 
 def get_available_resources(cfg) -> "List[Dict]":
