@@ -305,29 +305,33 @@ def remove_apt_list_files(repo_url, series):
             os.unlink(path)
 
 
-def clean_apt_sources(*, _entitlements=None):
+def clean_apt_files(*, _entitlements=None):
     """
-    Clean apt sources list files written by uaclient
+    Clean apt files written by uaclient
 
     :param _entitlements:
         The uaclient.entitlements module to use, defaults to
         uaclient.entitlements. (This is only present for testing, because the
         import happens within the function to avoid circular imports.)
     """
+    from uaclient.entitlements.repo import RepoEntitlement
+
     if _entitlements is None:
         from uaclient import entitlements as _entitlements
 
     for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
-        if not hasattr(ent_cls, "repo_url"):
+        if not isinstance(ent_cls, RepoEntitlement):
             continue
-        repo_list_glob = ent_cls.repo_list_file_tmpl.format(
-            name=ent_cls.name, series="*"
-        )
+        repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
+        pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)
 
-        # Remove list files
-        for path in glob.glob(repo_list_glob):
-            logging.info("Removing apt source file: %s", path)
-            os.unlink(path)
+        if os.path.exists(repo_file):
+            logging.info("Removing apt source file: %s", repo_file)
+            os.unlink(repo_file)
+
+        if os.path.exists(pref_file):
+            logging.info("Removing apt preferences file: %s", pref_file)
+            os.unlink(pref_file)
 
 
 def get_installed_packages() -> "List[str]":

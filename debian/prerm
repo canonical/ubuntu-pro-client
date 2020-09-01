@@ -5,9 +5,9 @@ set -e
 
 remove_apt_files() {
     python3 -c '
-from uaclient.apt import clean_apt_sources
+from uaclient.apt import clean_apt_files
 
-clean_apt_sources()
+clean_apt_files()
 '
 
 }

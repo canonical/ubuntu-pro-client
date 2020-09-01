@@ -172,7 +172,7 @@ class TestFIPSEntitlementEnable:
         repo_url = "http://{}".format(entitlement.name.upper())
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-{}-xenial.list".format(
+                "/etc/apt/sources.list.d/ubuntu-{}.list".format(
                     entitlement.name
                 ),
                 repo_url,
@@ -183,9 +183,7 @@ class TestFIPSEntitlementEnable:
         ]
         apt_pinning_calls = [
             mock.call(
-                "/etc/apt/preferences.d/ubuntu-{}-xenial".format(
-                    entitlement.name
-                ),
+                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name),
                 repo_url,
                 entitlement.origin,
                 1001,
