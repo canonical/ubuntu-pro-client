@@ -24,6 +24,7 @@ CC_MACHINE_TOKEN = machine_token(
         "aptURL": "http://CC",
         "aptKey": "APTKEY",
         "suites": ["xenial"],
+        "additionalPackages": ["ubuntu-commoncriteria"],
     },
     affordances={
         "architectures": ["x86_64", "ppc64le", "s390x"],

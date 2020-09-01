@@ -10,7 +10,6 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
     repo_key_file = "ubuntu-cc-keyring.gpg"
-    packages = ["ubuntu-commoncriteria"]
     messaging = {
         "pre_install": [
             "(This will download more than 500MB of packages, so may take some"
