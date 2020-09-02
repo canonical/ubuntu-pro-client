@@ -41,6 +41,10 @@ def _get_data_files():
     data_files = [
         ("/etc/ubuntu-advantage", ["uaclient.conf"]),
         ("/usr/share/keyrings", glob.glob("keyrings/*")),
+        (
+            "/etc/update-manager/release-upgrades.d/",
+            ["release-upgrades.d/ubuntu-advantage-upgrades.cfg"],
+        ),
         (defaults.CONFIG_DEFAULTS["data_dir"], []),
     ]
     rel_major, _rel_minor = util.get_platform_info()["release"].split(".", 1)
