@@ -216,6 +216,7 @@ class UAClientBehaveConfig:
                 region=os.environ.get("AWS_DEFAULT_REGION", "us-east-2"),
                 machine_type=self.machine_type,
                 tag=timed_job_tag,
+                timestamp_suffix=False,
             )
             self.cloud_api = self.cloud_manager.api
         elif "azure" in self.machine_type:
@@ -226,6 +227,7 @@ class UAClientBehaveConfig:
                 az_subscription_id=az_subscription_id,
                 machine_type=self.machine_type,
                 tag=timed_job_tag,
+                timestamp_suffix=False,
             )
             self.cloud_api = self.cloud_manager.api
 
