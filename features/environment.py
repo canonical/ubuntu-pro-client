@@ -209,6 +209,7 @@ class UAClientBehaveConfig:
         timed_job_tag = datetime.datetime.utcnow().strftime(
             "uaclient-ci-%m%d-"
         ) + os.environ.get("TRAVIS_JOB_NUMBER", "dev")
+        timed_job_tag = timed_job_tag.replace(".", "-")
         if "aws" in self.machine_type:
             self.cloud_manager = cloud.EC2(
                 aws_access_key_id,
