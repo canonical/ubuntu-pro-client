@@ -14,12 +14,15 @@ except ImportError:
 class Cloud:
     """Base class for cloud providers that should be tested through behave.
 
-    :param tag:
-        A tag to be used when creating the resources on the cloud provider
-    :region:
-        The region to create the cloud resources on
     :machine_type:
         A string representing the type of machine to launch (pro or generic)
+    :region:
+        The region to create the cloud resources on
+    :param tag:
+        A tag to be used when creating the resources on the cloud provider
+    :timestamp_suffix:
+        Boolean set true to direct pycloudlib to append a timestamp to the end
+        of the provided tag.
     """
 
     name = ""
@@ -31,6 +34,7 @@ class Cloud:
         machine_type: str,
         region: "Optional[str]" = None,
         tag: "Optional[str]" = None,
+        timestamp_suffix: bool = True,
     ) -> None:
         if tag:
             self.tag = tag
@@ -40,6 +44,7 @@ class Cloud:
         self.region = region
         self._api = None
         self.key_name = pycloudlib.util.get_timestamped_tag(self.tag)
+        self.timestamp_suffix = timestamp_suffix
 
         missing_env_vars = self.missing_env_vars()
         if missing_env_vars:
@@ -200,6 +205,9 @@ class EC2(Cloud):
         A string representing the type of machine to launch (pro or generic)
     :tag:
         A tag to be used when creating the resources on the cloud provider
+    :timestamp_suffix:
+        Boolean set true to direct pycloudlib to append a timestamp to the end
+        of the provided tag.
     """
 
     name = "aws"
@@ -216,13 +224,19 @@ class EC2(Cloud):
         machine_type: str,
         region: "Optional[str]" = "us-east-2",
         tag: "Optional[str]" = None,
+        timestamp_suffix: bool = True,
     ) -> None:
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         logging.basicConfig(
             filename="pycloudlib-behave.log", level=logging.DEBUG
         )
-        super().__init__(region=region, machine_type=machine_type, tag=tag)
+        super().__init__(
+            region=region,
+            machine_type=machine_type,
+            tag=tag,
+            timestamp_suffix=timestamp_suffix,
+        )
 
     @property
     def api(self) -> pycloudlib.cloud.BaseCloud:
@@ -233,6 +247,7 @@ class EC2(Cloud):
                 access_key_id=self.aws_access_key_id,
                 secret_access_key=self.aws_secret_access_key,
                 region=self.region,
+                timestamp_suffix=self.timestamp_suffix,
             )
 
         return self._api
@@ -319,10 +334,13 @@ class Azure(Cloud):
         The Azure subscription id
     :machine_type:
         A string representing the type of machine to launch (pro or generic)
-    :tag:
-        A tag to be used when creating the resources on the cloud provider
     :region:
         The region to create the resources on
+    :tag:
+        A tag to be used when creating the resources on the cloud provider
+    :timestamp_suffix:
+        Boolean set true to direct pycloudlib to append a timestamp to the end
+        of the provided tag.
     """
 
     name = "Azure"
@@ -339,6 +357,7 @@ class Azure(Cloud):
         machine_type: str,
         region: "Optional[str]" = "centralus",
         tag: "Optional[str]" = None,
+        timestamp_suffix: bool = True,
         az_client_id: "Optional[str]" = None,
         az_client_secret: "Optional[str]" = None,
         az_tenant_id: "Optional[str]" = None,
@@ -349,7 +368,12 @@ class Azure(Cloud):
         self.az_tenant_id = az_tenant_id
         self.az_subscription_id = az_subscription_id
 
-        super().__init__(machine_type=machine_type, region=region, tag=tag)
+        super().__init__(
+            machine_type=machine_type,
+            region=region,
+            tag=tag,
+            timestamp_suffix=timestamp_suffix,
+        )
 
     @property
     def api(self) -> pycloudlib.cloud.BaseCloud:
@@ -361,6 +385,7 @@ class Azure(Cloud):
                 client_secret=self.az_client_secret,
                 tenant_id=self.az_tenant_id,
                 subscription_id=self.az_subscription_id,
+                timestamp_suffix=self.timestamp_suffix,
             )
 
         return self._api

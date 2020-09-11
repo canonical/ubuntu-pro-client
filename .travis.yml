@@ -555,22 +555,6 @@ matrix:
         - cp ubuntu-advantage-tools-pro-bionic.deb bionic-debs
         - ls bionic-debs
     - env:
-        PACKAGE_BUILD_SERIES=eoan
-      stage: build
-      workspaces:
-        create:
-          name: eoan
-          paths:
-            - eoan-debs
-      install:
-        - make travis-deb-install
-      script:
-        - make travis-deb-script
-        - mkdir eoan-debs
-        - cp ubuntu-advantage-tools-eoan.deb eoan-debs
-        - cp ubuntu-advantage-tools-pro-eoan.deb eoan-debs
-        - ls eoan-debs
-    - env:
         PACKAGE_BUILD_SERIES=focal
       stage: build
       workspaces:
@@ -597,9 +581,6 @@ matrix:
     - python: 3.6
       stage: flake
       env: TOXENV=py3-bionic,flake8-bionic
-    - python: 3.7
-      stage: flake
-      env: TOXENV=py3-eoan,flake8-eoan
     - python: 3.8
       stage: flake
       env: TOXENV=py3,flake8

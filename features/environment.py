@@ -35,7 +35,6 @@ LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
 USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
 #cloud-config
-ssh_import_id: [chad.smith]
 write_files:
   # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
   - path: /usr/bin/ua
@@ -49,15 +48,24 @@ write_files:
       features:
          disable_auto_attach: true
     append: true
+{apt_source}
+packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
+"""
+
+USERDATA_APT_SOURCE_DAILY_TRUSTY = """\
 apt_sources:  # for trusty
-  - source: deb {daily_ppa} trusty main
+  - source: deb {daily_ppa} $RELEASE main
     keyid: 8A295C4FB8B190B7
+""".format(
+    daily_ppa=DAILY_PPA
+)
+
+USERDATA_APT_SOURCE_DAILY = """\
 apt:
   sources:
     ua-tools-daily:
-        source: "deb {daily_ppa} $RELEASE main"
+        source: deb {daily_ppa} $RELEASE main
         keyid: 8A295C4FB8B190B7
-packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
 """.format(
     daily_ppa=DAILY_PPA
 )
@@ -209,6 +217,7 @@ class UAClientBehaveConfig:
         timed_job_tag = datetime.datetime.utcnow().strftime(
             "uaclient-ci-%m%d-"
         ) + os.environ.get("TRAVIS_JOB_NUMBER", "dev")
+        timed_job_tag = timed_job_tag.replace(".", "-")
         if "aws" in self.machine_type:
             self.cloud_manager = cloud.EC2(
                 aws_access_key_id,
@@ -216,6 +225,7 @@ class UAClientBehaveConfig:
                 region=os.environ.get("AWS_DEFAULT_REGION", "us-east-2"),
                 machine_type=self.machine_type,
                 tag=timed_job_tag,
+                timestamp_suffix=False,
             )
             self.cloud_api = self.cloud_manager.api
         elif "azure" in self.machine_type:
@@ -226,6 +236,7 @@ class UAClientBehaveConfig:
                 az_subscription_id=az_subscription_id,
                 machine_type=self.machine_type,
                 tag=timed_job_tag,
+                timestamp_suffix=False,
             )
             self.cloud_api = self.cloud_manager.api
 
@@ -472,9 +483,14 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         )
         if context.config.cloud_manager:
             cloud_manager = context.config.cloud_manager
-            inst = cloud_manager.launch(
-                series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
+            if series == "trusty":
+                apt_source = USERDATA_APT_SOURCE_DAILY_TRUSTY
+            else:
+                apt_source = USERDATA_APT_SOURCE_DAILY
+            user_data = USERDATA_INSTALL_DAILY_PRO_UATOOLS.format(
+                apt_source=apt_source
             )
+            inst = cloud_manager.launch(series=series, user_data=user_data)
 
             def cleanup_instance() -> None:
                 if not context.config.destroy_instances:
@@ -543,8 +559,15 @@ def create_uat_image(context: Context, series: str) -> None:
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
     if context.config.cloud_manager:
+        if series == "trusty":
+            apt_source = USERDATA_APT_SOURCE_DAILY_TRUSTY
+        else:
+            apt_source = USERDATA_APT_SOURCE_DAILY
+        user_data = USERDATA_INSTALL_DAILY_PRO_UATOOLS.format(
+            apt_source=apt_source
+        )
         inst = context.config.cloud_manager.launch(
-            series=series, user_data=USERDATA_INSTALL_DAILY_PRO_UATOOLS
+            series=series, user_data=user_data
         )
         build_container_name = context.config.cloud_manager.get_instance_id(
             inst
