@@ -235,13 +235,20 @@ tox -e behave -D reuse_container=container_name
 ```
 
 #### Integration testing on EC2
-The following tox environments allow for testing on EC2:
+The following tox environments allow for testing focal on EC2:
 
 ```
   # To test ubuntu-pro-images on EC2
-  tox -e behave-aws-pro
+  tox -e behave-awspro-20.04
   # To test Canonical cloud images (non-ubuntu-pro) on EC2
-  tox -e behave-aws
+  tox -e behave-awsgeneric-20.04
+```
+
+To run the test for a different release, just update the release version string. For example,
+to run AWS pro xenial tests, you can run:
+
+```
+tox -e behave-awspro-16.04
 ```
 
 In order to run EC2 tests the following environment variables are required:
@@ -252,7 +259,6 @@ In order to run EC2 tests the following environment variables are required:
 To specifically run non-ubuntu pro tests using canonical cloud-images an
 additional token obtained from https://ubuntu.com/advantage needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
-
 
 By default, the public AMIs for Ubuntu Pro testing used for each Ubuntu
 release are defined in features/aws-ids.yaml. These ami-ids are determined by
@@ -268,14 +274,55 @@ marketplace definitions.
 * To manually run EC2 integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
 
 ```sh
-UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-aws-pro
+UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-awspro-20.04
 ```
 
 * To manually run EC2 integration tests with a specific AMI Id provide the
 following environment variable to launch your specfic  AMI instead of building
 a daily ubuntu-advantage-tools image.
 ```sh
-UACLIENT_BEHAVE_REUSE_IMAGE=ami-your-custom-ami tox -e behave-aws-pro
+UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-ami tox -e behave-awspro-20.04
+```
+
+#### Integration testing on Azure
+The following tox environments allow for testing focal on Azure:
+
+```
+  # To test ubuntu-pro-images on EC2
+  tox -e behave-azurepro-20.04
+  # To test Canonical cloud images (non-ubuntu-pro) on EC2
+  tox -e behave-azuregeneric-20.04
+```
+
+To run the test for a different release, just update the release version string. For example,
+to run AWS pro xenial tests, you can run:
+
+```
+tox -e behave-azurepro-16.04
+```
+
+In order to run EC2 tests the following environment variables are required:
+  - UACLIENT_BEHAVE_AZ_CLIENT_ID
+  - UACLIENT_BEHAVE_AZ_CLIENT_SECRET
+  - UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID
+  - UACLIENT_BEHAVE_AZ_TENANT_ID
+
+
+To specifically run non-ubuntu pro tests using canonical cloud-images an
+additional token obtained from https://ubuntu.com/advantage needs to be set:
+  - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
+
+* To manually run Azure integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
+
+```sh
+UACLIENT_BEHAVE_AZ_CLIENT_ID=<blah> UACLIENT_BEHAVE_AZ_CLIENT_SECRET=<blah2> UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID=<blah3> UACLIENT_BEHAVE_AZ_TENANT_ID=<blah4> tox -e behave-azurepro-20.04
+```
+
+* To manually run Azure integration tests with a specific Image Id provide the
+following environment variable to launch your specfic Image Id instead of building
+a daily ubuntu-advantage-tools image.
+```sh
+UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave-awspro-20.04
 ```
 
 ## Building

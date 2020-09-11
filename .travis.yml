@@ -171,13 +171,88 @@ matrix:
       python: 3.7
       stage: integration
       env: 
-          - TOXENV=behave-azure-pro
+          - TOXENV=behave-azurepro-14.04
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+      python: 3.7
+      stage: integration
+      env: 
+          - TOXENV=behave-azurepro-16.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - xenial
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+      python: 3.7
+      stage: integration
+      env: 
+          - TOXENV=behave-azurepro-18.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - bionic
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+      python: 3.7
+      stage: integration
+      env: 
+          - TOXENV=behave-azurepro-20.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - focal
       script:
           - mkdir deb-artifacts
@@ -200,13 +275,88 @@ matrix:
       python: 3.7
       stage: integration
       env:
-          - TOXENV=behave-azuregeneric
+          - TOXENV=behave-azuregeneric-14.04
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-16.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - xenial
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-18.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - bionic
+      script:
+          - mkdir deb-artifacts
+          - cp *-debs/* deb-artifacts
+          - >
+              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+                  BUILD_PR=0
+              else
+                 cd $TRAVIS_BUILD_DIR/..
+                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
+                 cp pr_source.tar.gz /tmp
+                 ls -lh /tmp
+                 cd $TRAVIS_BUILD_DIR
+              fi
+          - ls deb-artifacts
+          - sudo apt-get remove --yes --purge lxd lxd-client
+          - sudo rm -Rf /var/lib/lxd
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-20.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
           - focal
       script:
           - mkdir deb-artifacts
