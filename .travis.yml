@@ -176,6 +176,14 @@ matrix:
       workspaces:
         use:
           - trusty
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -193,6 +201,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -202,6 +212,14 @@ matrix:
       workspaces:
         use:
           - xenial
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -219,6 +237,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -228,6 +248,14 @@ matrix:
       workspaces:
         use:
           - bionic
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -245,6 +273,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -254,6 +284,14 @@ matrix:
       workspaces:
         use:
           - focal
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -271,6 +309,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -280,6 +320,14 @@ matrix:
       workspaces:
         use:
           - trusty
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -297,6 +345,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -306,6 +356,14 @@ matrix:
       workspaces:
         use:
           - xenial
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -323,6 +381,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -332,6 +392,14 @@ matrix:
       workspaces:
         use:
           - bionic
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -349,6 +417,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -358,6 +428,14 @@ matrix:
       workspaces:
         use:
           - focal
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
       script:
           - mkdir deb-artifacts
           - cp *-debs/* deb-artifacts
@@ -375,6 +453,8 @@ matrix:
           - sudo apt-get remove --yes --purge lxd lxd-client
           - sudo rm -Rf /var/lib/lxd
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
+          - echo $TRAVIS_JOB_NUMBER
+          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
       stage: integration

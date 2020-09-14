@@ -132,6 +132,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Examples: ubuntu release livepatch status
            | release | lp_status | lp_desc                       |
            | trusty  | disabled  | Canonical Livepatch service   |
-           | xenial  | enabled   | Canonical Livepatch service   |
-           | bionic  | enabled   | Canonical Livepatch service   |
-           | focal   | enabled   | Canonical Livepatch service   |
+           | xenial  | n/a       | Canonical Livepatch service   |
+           | bionic  | n/a       | Canonical Livepatch service   |
+           | focal   | n/a       | Canonical Livepatch service   |
