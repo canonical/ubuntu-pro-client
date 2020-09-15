@@ -220,7 +220,7 @@ class RepoEntitlement(base.UAEntitlement):
 
             for service in services_status_list:
                 if service.get("name") == self.name:
-                    if service.get("status") == "disabled":
+                    if service.get("status") != "enabled":
                         return True
                     else:
                         break
