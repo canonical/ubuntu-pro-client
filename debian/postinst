@@ -15,10 +15,12 @@ APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
 ESM_APT_SOURCE_FILE_PRECISE="$APT_SRC_DIR/ubuntu-esm-precise.list"
 ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
-ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
+ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
+ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra.list"
 
 ESM_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-trusty"
-ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
+ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
+ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra"
 
 MYARCH="$(dpkg --print-architecture)"
 ESM_SUPPORTED_ARCHS="i386 amd64"
@@ -26,18 +28,6 @@ ESM_SUPPORTED_ARCHS="i386 amd64"
 SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-auto-attach.service"
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
-
-get_release_from_pkg_version(){
-    pkg_version=$1
-	case "$pkg_version" in
-	  *14.04*) echo trusty;;
-	  *16.04*) echo xenial;;
-	  *18.04*) echo bionic;;
-	  *20.04*) echo focal;;
-	  *) echo "unknown-previous-release";;
-	esac
-}
-
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
@@ -83,7 +73,9 @@ unconfigure_esm() {
         rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
         rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
         rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_APT_PREF_FILE_TRUSTY
+        rm -f $ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY
+        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY
+        rm -f $ESM_INFRA_APT_PREF_FILE_TRUSTY
     fi
 }
 
