@@ -6,6 +6,7 @@ import re
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.contract import process_entitlements_delta
+from uaclient.util import parse_os_release
 
 version_to_codename = {
     "14.04": "trusty",
@@ -21,15 +22,10 @@ current_codename_to_past_codename = {
 }
 
 
-def find_current_release():
-    version_pattern = 'VERSION_ID="(.*)"'
-    with open("/etc/os-release", "r") as f:
-        return re.search(version_pattern, f.read()).group(1)
-
-
 setup_logging(logging.INFO, logging.DEBUG)
+os_release = parse_os_release()
 
-current_version = find_current_release()
+current_version = os_release["VERSION_ID"]
 current_release = version_to_codename[current_version]
 past_release = current_codename_to_past_codename[current_release]
 
