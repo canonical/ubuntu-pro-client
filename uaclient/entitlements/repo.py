@@ -213,19 +213,17 @@ class RepoEntitlement(base.UAEntitlement):
 
         delta_entitlement = deltas.get("entitlement", {})
         delta_apt_url = delta_entitlement.get("directives", {}).get("aptURL")
+        status_cache = self.cfg.read_cache("status-cache")
 
-        if delta_apt_url:
-            status_cache = self.cfg.read_cache("status-cache")
+        if delta_apt_url and status_cache:
+            services_status_list = status_cache.get("services", [])
 
-            if status_cache:
-                services_status_list = status_cache.get("services", [])
-
-                for service in services_status_list:
-                    if service.get("name") == self.name:
-                        if service.get("status") == "disabled":
-                            return True
-                        else:
-                            break
+            for service in services_status_list:
+                if service.get("name") == self.name:
+                    if service.get("status") == "disabled":
+                        return True
+                    else:
+                        break
 
         else:
             application_status, _ = self.application_status()
