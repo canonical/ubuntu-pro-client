@@ -5,9 +5,9 @@ import logging
 import re
 
 try:
-  from daemon import DaemonContext
+    from daemon import DaemonContext
 except ImportError:
-  DaemonContext = contextlib.suppress()
+    DaemonContext = contextlib.suppress()
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
@@ -30,7 +30,7 @@ current_codename_to_past_codename = {
 
 def process_contract_delta_after_apt_lock():
     setup_logging(logging.INFO, logging.DEBUG)
-    out, _err = subp(["lsof", "/var/lib/apt/lists/lock"])
+    out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."
     if out:
         mgs += " Retrying every 10 seconds waiting on released apt lock"
@@ -47,12 +47,12 @@ def process_contract_delta_after_apt_lock():
     retry_count = 0
     while out:
         time.sleep(10)
-        out, _err = subp(["lsof", "/var/lib/apt/lists/lock"])
+        out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
         retry_count += 1
     logging.debug(
         "upgrade-lts-contract processing contract deltas: %s -> %s",
-         past_release,
-         current_release,
+        past_release,
+        current_release,
     )
 
     process_entitlements_delta(
@@ -62,9 +62,9 @@ def process_contract_delta_after_apt_lock():
         series_overrides=False,
     )
     logging.debug(
-        "upgrade-lts-contract succeeded after %d retries",
-        retry_count
+        "upgrade-lts-contract succeeded after %d retries", retry_count
     )
+
 
 if __name__ == "__main__":
     with DaemonContext():
