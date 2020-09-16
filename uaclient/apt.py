@@ -102,12 +102,8 @@ def run_apt_command(
             cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
         )
     except util.ProcessExecutionError as e:
-        print(e)
-        print(e.stderr)
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             error_msg += " Another process is running APT."
-        if "Could not get lock /var/lib/apt/lists/lock" in str(e.stderr):
-            return ""
         raise exceptions.UserFacingError(error_msg)
     return out
 
@@ -124,7 +120,6 @@ def add_auth_apt_repo(
     @raises: InvalidAPTCredentialsError when the token provided can't access
         the repo PPA.
     """
-    print("ADD AUTH APT REPO")
     try:
         username, password = credentials.split(":")
     except ValueError:  # Then we have a bearer token
@@ -169,8 +164,6 @@ def add_auth_apt_repo(
                 maybe_comment=maybe_comment, url=repo_url, suite=suite
             )
         )
-    print("MY CONTENT")
-    print("content: ", content)
     util.write_file(repo_filename, content)
     add_apt_auth_conf_entry(repo_url, username, password)
     source_keyring_file = os.path.join(KEYRINGS_DIR, keyring_file)

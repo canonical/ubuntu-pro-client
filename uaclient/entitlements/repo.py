@@ -240,9 +240,6 @@ class RepoEntitlement(base.UAEntitlement):
             if old_url:
                 # Remove original aptURL and auth and rewrite
                 repo_filename = self.repo_list_file_tmpl.format(name=self.name)
-                print(repo_filename)
-                print("Removing old apt repo with content")
-                print("My series: ", util.get_platform_info()["series"])
                 apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
         self.setup_apt_config()
