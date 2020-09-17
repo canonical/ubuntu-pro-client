@@ -32,8 +32,10 @@ SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/m
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
-    #UA_SERVICES="$(ua status | awk '/SERVICE/{flag=1;next}/Enable/{flag=0}flag {if(NF) {printf $1 " "}}')"
-    UA_SERVICES="esm-apps esm-infra livepatch"
+    UA_SERVICES=$(python3 -c "
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
+")
 
     for file in `ls $DIR`; do
         release_name=""
@@ -163,6 +165,10 @@ case "$1" in
           # 14.04 and unsupported arch
           unconfigure_esm
         fi
+      else
+          # We are creating this file to request for a upgrade-lts-contract
+          # script to be run
+          touch /etc/ubuntu-advantage/request-update-contract
       fi
 
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
