@@ -1,0 +1,12 @@
+[Unit]
+Description=Ubuntu Advantage auto attach
+After=cloud-final.target
+ConditionPathExists=/etc/ubuntu-advantage/request-update-contract
+
+[Service]
+Type=oneshot
+ExecStart=/var/lib/ubuntu-advantage/upgrade-lts-contract.py --no-deamon
+TimeoutSec=0
+
+[Install]
+WantedBy=multi-user.target
