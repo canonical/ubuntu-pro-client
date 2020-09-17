@@ -3,6 +3,7 @@
 import argparse
 import contextlib
 import logging
+import os
 
 try:
     from daemon import DaemonContext
@@ -75,6 +76,8 @@ def process_contract_delta_after_apt_lock():
     logging.debug(
         "upgrade-lts-contract succeeded after %d retries", retry_count
     )
+
+    os.remove("/etc/ubuntu-advantage/request-update-contract")
 
 
 if __name__ == "__main__":
