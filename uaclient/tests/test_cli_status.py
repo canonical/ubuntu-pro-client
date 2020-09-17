@@ -9,6 +9,7 @@ import pytest
 from uaclient import util
 
 from uaclient.cli import action_status
+from uaclient import exceptions
 
 M_PATH = "uaclient.cli."
 
@@ -49,10 +50,12 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
+    @mock.patch(M_PATH + "daemon_file_exists")
     def test_attached(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self, m_daemon, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Check that root and non-root will emit attached status"""
+        m_daemon.return_value = False
         cfg = FakeConfig.for_attached_machine()
         assert 0 == action_status(mock.MagicMock(), cfg)
         # capsys already converts colorized non-printable chars to space
@@ -69,19 +72,23 @@ class TestActionStatus:
             expected_dash = "\u2014"
         assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
 
+    @mock.patch(M_PATH + "daemon_file_exists")
     def test_unattached(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self, m_daemon, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Check that unattached status is emitted to console"""
+        m_daemon.return_value = False
         cfg = FakeConfig()
 
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @mock.patch(M_PATH + "daemon_file_exists")
     def test_unattached_json(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self, m_daemon, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Check that unattached status json output is emitted to console"""
+        m_daemon.return_value = False
         cfg = FakeConfig()
 
         args = mock.MagicMock(format="json")
@@ -105,10 +112,12 @@ class TestActionStatus:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @mock.patch(M_PATH + "daemon_file_exists")
     def test_error_on_connectivity_errors(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self, m_daemon, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
         """Raise UrlError on connectivity issues"""
+        m_daemon.return_value = False
         m_get_avail_resources.side_effect = util.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
@@ -122,8 +131,10 @@ class TestActionStatus:
         "encoding,expected_dash",
         (("utf-8", "\u2014"), ("UTF-8", "\u2014"), ("ascii", "-")),
     )
+    @mock.patch(M_PATH + "daemon_file_exists")
     def test_unicode_dash_replacement_when_unprintable(
         self,
+        _m_daemon,
         _m_getuid,
         _m_get_avail_resources,
         encoding,
@@ -132,6 +143,7 @@ class TestActionStatus:
     ):
         # This test can't use capsys because it doesn't emulate sys.stdout
         # encoding accurately in older versions of pytest
+        _m_daemon.return_value = False
         underlying_stdout = io.BytesIO()
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
 
@@ -147,3 +159,35 @@ class TestActionStatus:
 
         expected_out = ATTACHED_STATUS.format(dash=expected_dash)
         assert expected_out == out
+
+    @pytest.mark.parametrize(
+        "running_services,expected_msg",
+        (
+            (
+                "11:00 0:00 upgrade-lts-contract.py",
+                "daemon upgrade-lts-contract is still running",
+            ),
+            (
+                "11:00 0:00 unattended-upgrades",
+                "error processing upgrade-lts-contract script",
+            ),
+        ),
+    )
+    @mock.patch(M_PATH + "daemon_file_exists")
+    @mock.patch(M_PATH + "get_running_services")
+    def test_raise_exception_when_daemon_file_exists(
+        self,
+        m_services,
+        m_daemon,
+        m_getuid,
+        m_get_avail_resources,
+        running_services,
+        expected_msg,
+    ):
+        m_daemon.return_value = True
+        m_services.return_value = running_services
+
+        with pytest.raises(exceptions.UserFacingError) as e:
+            action_status(mock.MagicMock(), mock.MagicMock())
+
+        assert e.value.args[0] == expected_msg
