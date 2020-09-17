@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import contextlib
 import logging
-import re
 
 try:
     from daemon import DaemonContext
@@ -26,6 +26,17 @@ current_codename_to_past_codename = {
     "bionic": "xenial",
     "focal": "bionic",
 }
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--no-daemon",
+        action="store_true",
+        help=("Sets the script to not run on daemon mode"),
+    )
+
+    return parser.parse_args()
 
 
 def process_contract_delta_after_apt_lock():
@@ -67,5 +78,10 @@ def process_contract_delta_after_apt_lock():
 
 
 if __name__ == "__main__":
-    with DaemonContext():
+    args = parse_args()
+
+    if args.no_daemon:
         process_contract_delta_after_apt_lock()
+    else:
+        with DaemonContext():
+            process_contract_delta_after_apt_lock()
