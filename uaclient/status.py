@@ -162,7 +162,9 @@ This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
-
+MESSAGE_LOCK_HELD_ERROR = """\
+Unable to perform: {operation}.
+Operation in progress: {lock_holder} (pid:{pid})"""
 PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (
     """\

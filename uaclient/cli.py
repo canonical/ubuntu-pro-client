@@ -48,6 +48,61 @@ DEFAULT_LOG_FORMAT = (
 STATUS_FORMATS = ["tabular", "json"]
 
 
+# Set a module-level variable here so we don't have to reinstantiate
+# UAConfig in order to determine dynamic data_path exception handling of
+# main_error_handler
+_LOCK_FILE = None
+
+
+def assert_lock_file(lock_holder=None):
+    """Decorator asserting exclusive access to lock file
+
+    Create a lock file if absent. The lock file will contain a pid of the
+        running process, and a customer-visible description of the lock holder.
+
+    :param lock_holder: String with the service name or command which is
+        holding the lock.
+
+        This lock_holder string will be customer visible in status.json.
+
+    :raises: LockHeldError if lock is held.
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg, **kwargs):
+            global _LOCK_FILE
+            lock_file = cfg.data_path("lock")
+            if os.path.exists(lock_file):
+                lock_content = util.load_file(lock_file)
+                [lock_pid, cur_lock_holder] = lock_content.split(":")
+                try:
+                    util.subp(["ps", lock_pid])
+                    raise exceptions.LockHeldError(
+                        lock_request=lock_holder,
+                        lock_holder=cur_lock_holder,
+                        pid=int(lock_pid),
+                    )
+                except util.ProcessExecutionError:
+                    # lock_pid no longer exists, so replace stale lock file
+                    logging.warning(
+                        "Replacing stale lock file previously held by %s:%s",
+                        lock_pid,
+                        cur_lock_holder,
+                    )
+            util.write_file(
+                lock_file, "{}:{}".format(os.getpid(), lock_holder)
+            )
+            _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
+            retval = f(args, cfg, **kwargs)
+            os.unlink(lock_file)  # Successful completion of operation
+            return retval
+
+        return new_f
+
+    return wrapper
+
+
 def assert_root(f):
     """Decorator asserting root user"""
 
@@ -779,6 +834,8 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
+            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                os.unlink(_LOCK_FILE)
             sys.exit(1)
         except util.UrlError as exc:
             with util.disable_log_to_console():
@@ -794,10 +851,14 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
+            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                os.unlink(_LOCK_FILE)
             sys.exit(exc.exit_code)
         except Exception:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
+            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                os.unlink(_LOCK_FILE)
             print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
             sys.exit(1)
 

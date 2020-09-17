@@ -48,6 +48,25 @@ class AlreadyAttachedError(UserFacingError):
         )
 
 
+class LockHeldError(UserFacingError):
+    """An exception for when another ua operation is in progress
+
+    :param lock_request: String of the command requesting the lock
+    :param lock_holder: String of the command that currently holds the lock
+    :param pid: Integer of the process id of the lock_holder
+    """
+
+    def __init__(self, lock_request: str, lock_holder: str, pid: int):
+        lock_request = lock_request
+        lock_holder = lock_holder
+        pid = pid
+        super().__init__(
+            status.MESSAGE_LOCK_HELD_ERROR.format(
+                operation=lock_request, pid=pid, lock_holder=lock_holder
+            )
+        )
+
+
 class MissingAptURLDirective(UserFacingError):
     """An exception for when the contract server doesn't include aptURL"""
 
