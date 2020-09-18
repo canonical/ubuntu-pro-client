@@ -370,8 +370,8 @@ def get_valid_entitlement_names(names: "List[str]"):
     return entitlements_found, entitlements_not_found
 
 
-@assert_lock_file("ua disable")
 @assert_root
+@assert_lock_file("ua disable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
@@ -439,8 +439,8 @@ def _perform_enable(
     return ret
 
 
-@assert_lock_file("ua enable")
 @assert_root
+@assert_lock_file("ua enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
@@ -484,8 +484,8 @@ def action_enable(args, cfg, **kwargs):
     return 0 if ret else 1
 
 
-@assert_lock_file("ua detach")
 @assert_root
+@assert_lock_file("ua detach")
 @assert_attached()
 def action_detach(args, cfg) -> int:
     """Perform the detach action for this machine.
@@ -609,8 +609,8 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     return tokenResponse["contractToken"]
 
 
-@assert_lock_file("ua auto-attach")
 @assert_root
+@assert_lock_file("ua auto-attach")
 def action_auto_attach(args, cfg):
     disable_auto_attach = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
@@ -624,9 +624,9 @@ def action_auto_attach(args, cfg):
     return _attach_with_token(cfg, token=token, allow_enable=True)
 
 
-@assert_lock_file("ua attach")
 @assert_not_attached
 @assert_root
+@assert_lock_file("ua attach")
 def action_attach(args, cfg):
     if not args.token:
         raise exceptions.UserFacingError(
@@ -737,8 +737,16 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
+    status = cfg.status()
+    active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
+    config_active = bool(status["configStatus"] == active_value)
+    if args and args.wait and config_active:
+        while status["configStatus"] == active_value:
+            print(".", end="")
+            time.sleep(1)
+            status = cfg.status()
+        print("")
     if args and args.format == "json":
-        status = cfg.status()
         if status["expires"] != ua_status.UserFacingStatus.INAPPLICABLE.value:
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
@@ -768,9 +776,9 @@ def print_version(_args=None, _cfg=None):
     print(get_version(_args, _cfg))
 
 
-@assert_lock_file("ua refresh")
 @assert_root
 @assert_attached()
+@assert_lock_file("ua refresh")
 def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)

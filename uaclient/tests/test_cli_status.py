@@ -1,6 +1,5 @@
 import io
 import json
-import os
 import mock
 import socket
 import sys
