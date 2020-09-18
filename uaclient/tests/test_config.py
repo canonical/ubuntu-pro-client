@@ -21,12 +21,21 @@ from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
 )
-from uaclient.status import ContractStatus, UserFacingStatus
+from uaclient.status import (
+    ContractStatus,
+    UserFacingStatus,
+    UserFacingConfigStatus,
+    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
+)
 
 
 KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
 M_PATH = "uaclient.entitlements."
 
+DEFAULT_CFG_STATUS = {
+    "configStatus": DEFAULT_STATUS["configStatus"],
+    "configStatusDetails": DEFAULT_STATUS["configStatusDetails"],
+}
 
 ALL_RESOURCES_AVAILABLE = [
     {"name": name, "available": True} for name in ENTITLEMENT_CLASS_BY_NAME
@@ -450,7 +459,11 @@ class TestStatus:
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["services"] = expected_services
-        assert expected == cfg.status(show_beta=show_beta)
+        with mock.patch(
+            "uaclient.config.UAConfig._get_config_status"
+        ) as m_get_cfg_status:
+            m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            assert expected == cfg.status(show_beta=show_beta)
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
@@ -560,13 +573,21 @@ class TestStatus:
                 "subscription-id": "cid",
             }
         )
-        assert expected == cfg.status(show_beta=show_beta)
+        with mock.patch(
+            "uaclient.config.UAConfig._get_config_status"
+        ) as m_get_cfg_status:
+            m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            assert expected == cfg.status(show_beta=show_beta)
         if avail_res:
             assert m_get_avail_resources.call_count == 0
         else:
             assert m_get_avail_resources.call_count == 1
         # cfg.status() idempotent
-        assert expected == cfg.status(show_beta=show_beta)
+        with mock.patch(
+            "uaclient.config.UAConfig._get_config_status"
+        ) as m_get_cfg_status:
+            m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            assert expected == cfg.status(show_beta=show_beta)
 
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
@@ -722,7 +743,11 @@ class TestStatus:
                     "description_override": None,
                 }
             )
-        assert expected == cfg.status(show_beta=show_beta)
+        with mock.patch(
+            "uaclient.config.UAConfig._get_config_status"
+        ) as m_get_cfg_status:
+            m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
+            assert expected == cfg.status(show_beta=show_beta)
         assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
 
@@ -757,14 +782,26 @@ class TestStatus:
         m_getuid.return_value = 1000
         assert expected_dt == cfg.status()["expires"]
 
+    @mock.patch("uaclient.config.util.should_reboot", return_value=True)
     @mock.patch("uaclient.config.os.getuid")
-    def test_nonroot_user_uses_cache_if_available(self, m_getuid, tmpdir):
+    def test_nonroot_user_uses_cache_and_updates_if_available(
+        self, m_getuid, tmpdir
+    ):
         m_getuid.return_value = 1000
 
         status = {"pass": True}
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         cfg.write_cache("status-cache", status)
 
+        # Even non-root users can update configStatus details
+        status.update(
+            {
+                "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
+                "configStatusDetails": MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="configuration changes"
+                ),
+            }
+        )
         assert status == cfg.status()
 
 

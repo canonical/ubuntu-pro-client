@@ -39,8 +39,9 @@ class TestActionDetach:
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
     @mock.patch("uaclient.cli.util.subp")
-    def test_lock_file_exists(self, m_subp, _m_getuid, m_prompt, FakeConfig):
+    def test_lock_file_exists(self, m_subp, m_getuid, m_prompt, FakeConfig):
         """Check when an operation holds a lock file, detach cannot run."""
+        m_getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
         with open(cfg.data_path("lock"), "w") as stream:
             stream.write("123:ua enable")
