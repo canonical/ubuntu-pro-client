@@ -104,7 +104,7 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_config_cache_deleted(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -112,15 +112,23 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        cfg = mock.MagicMock()
-        action_detach(mock.MagicMock(), cfg)
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        action_detach(mock.MagicMock(), m_cfg)
 
-        assert [mock.call()] == cfg.delete_cache.call_args_list
+        assert [mock.call()] == m_cfg.delete_cache.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_correct_message_emitted(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, capsys, FakeConfig
+        self,
+        m_client,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        capsys,
+        FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -128,7 +136,9 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
 
@@ -137,7 +147,7 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_returns_zero(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -145,7 +155,9 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        ret = action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
 
@@ -190,6 +202,7 @@ class TestActionDetach:
         classes,
         expected_message,
         FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
@@ -197,7 +210,10 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+
+        action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
 

@@ -10,6 +10,7 @@ import os
 import pathlib
 import sys
 import textwrap
+import time
 
 try:
     from typing import List  # noqa
@@ -93,9 +94,12 @@ def assert_lock_file(lock_holder=None):
             util.write_file(
                 lock_file, "{}:{}".format(os.getpid(), lock_holder)
             )
+            os.chmod(lock_file, 0o666)
             _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
             retval = f(args, cfg, **kwargs)
-            os.unlink(lock_file)  # Successful completion of operation
+            if os.path.exists(lock_file):
+                logging.debug("Removing file: %s", lock_file)
+                os.unlink(lock_file)  # Successful completion of operation
             return retval
 
         return new_f
@@ -307,6 +311,12 @@ def status_parser(parser):
     )
 
     parser.add_argument(
+        "--wait",
+        action="store_true",
+        default=False,
+        help="Block waiting on ua to complete",
+    )
+    parser.add_argument(
         "--format",
         action="store",
         choices=STATUS_FORMATS,
@@ -360,6 +370,7 @@ def get_valid_entitlement_names(names: "List[str]"):
     return entitlements_found, entitlements_not_found
 
 
+@assert_lock_file("ua disable")
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_disable(args, cfg, **kwargs):
@@ -428,6 +439,7 @@ def _perform_enable(
     return ret
 
 
+@assert_lock_file("ua enable")
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 def action_enable(args, cfg, **kwargs):
@@ -472,6 +484,7 @@ def action_enable(args, cfg, **kwargs):
     return 0 if ret else 1
 
 
+@assert_lock_file("ua detach")
 @assert_root
 @assert_attached()
 def action_detach(args, cfg) -> int:
@@ -596,6 +609,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     return tokenResponse["contractToken"]
 
 
+@assert_lock_file("ua auto-attach")
 @assert_root
 def action_auto_attach(args, cfg):
     disable_auto_attach = util.is_config_value_true(
@@ -610,6 +624,7 @@ def action_auto_attach(args, cfg):
     return _attach_with_token(cfg, token=token, allow_enable=True)
 
 
+@assert_lock_file("ua attach")
 @assert_not_attached
 @assert_root
 def action_attach(args, cfg):
@@ -753,6 +768,7 @@ def print_version(_args=None, _cfg=None):
     print(get_version(_args, _cfg))
 
 
+@assert_lock_file("ua refresh")
 @assert_root
 @assert_attached()
 def action_refresh(args, cfg):
@@ -835,6 +851,7 @@ def main_error_handler(func):
                 logging.exception("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
             if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                logging.debug("Removing file: %s", _LOCK_FILE)
                 os.unlink(_LOCK_FILE)
             sys.exit(1)
         except util.UrlError as exc:
@@ -852,12 +869,14 @@ def main_error_handler(func):
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
             if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                logging.debug("Removing file: %s", _LOCK_FILE)
                 os.unlink(_LOCK_FILE)
             sys.exit(exc.exit_code)
         except Exception:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
             if _LOCK_FILE and os.path.exists(_LOCK_FILE):
+                logging.debug("Removing file: %s", _LOCK_FILE)
                 os.unlink(_LOCK_FILE)
             print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
             sys.exit(1)

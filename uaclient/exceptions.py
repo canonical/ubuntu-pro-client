@@ -60,11 +60,13 @@ class LockHeldError(UserFacingError):
         lock_request = lock_request
         lock_holder = lock_holder
         pid = pid
-        super().__init__(
-            status.MESSAGE_LOCK_HELD_ERROR.format(
-                operation=lock_request, pid=pid, lock_holder=lock_holder
-            )
+        msg = "Unable to perform: {lock_request}.\n".format(
+            lock_request=lock_request
         )
+        msg += status.MESSAGE_LOCK_HELD.format(
+            pid=pid, lock_holder=lock_holder
+        )
+        super().__init__(msg)
 
 
 class MissingAptURLDirective(UserFacingError):

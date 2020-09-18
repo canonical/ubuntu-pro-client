@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import mock
 import socket
 import sys
@@ -9,6 +10,7 @@ import pytest
 from uaclient import util
 
 from uaclient.cli import action_status
+from uaclient import status
 
 M_PATH = "uaclient.cli."
 
@@ -78,19 +80,28 @@ class TestActionStatus:
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @mock.patch(M_PATH + "util.should_reboot", return_value=False)
     def test_unattached_json(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        m_should_reboot,
+        capsys,
+        FakeConfig,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
         args = mock.MagicMock(format="json")
         assert 0 == action_status(args, cfg)
+
         expected = {
             "_doc": (
                 "Content provided in json response is currently "
                 "considered Experimental and may change"
             ),
+            "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
+            "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": False,
             "expires": "n/a",
             "origin": None,

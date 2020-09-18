@@ -25,6 +25,8 @@ DEFAULT_STATUS = {
     "expires": status.UserFacingStatus.INAPPLICABLE.value,
     "origin": None,
     "services": [],
+    "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
+    "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
     "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
@@ -277,12 +279,47 @@ class UAConfig:
 
         return new_response
 
+    def _get_config_status(self) -> "Dict[str, str]":
+        """Return a dict with configStatus and configStatusDetails keys.
+
+            Values for configStatus will be one of UserFacingConfigStatus enum:
+                inactive, active, reboot-required
+            configStatusDescription will provide more details about that state.
+        """
+        userStatus = status.UserFacingConfigStatus
+        status_val = userStatus.INACTIVE.value
+        status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
+        if os.path.exists(self.data_path("lock")):
+            lock_file = self.data_path("lock")
+            lock_content = util.load_file(lock_file)
+            [lock_pid, lock_holder] = lock_content.split(":")
+            try:
+                util.subp(["ps", lock_pid])
+                status_val = userStatus.ACTIVE.value
+                status_desc = status.MESSAGE_LOCK_HELD.format(
+                    pid=lock_pid, lock_holder=lock_holder
+                )
+            except util.ProcessExecutionError:
+                logging.warning(
+                    "Removing stale lock file previously held by %s:%s",
+                    lock_pid,
+                    lock_holder,
+                )
+                os.unlink(lock_file)
+        elif util.should_reboot():
+            status_val = userStatus.REBOOTREQUIRED.value
+            status_desc = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                operation="configuration changes"
+            )
+        return {"configStatus": status_val, "configStatusDetails": status_desc}
+
     def _unattached_status(self) -> "Dict[str, Any]":
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         response = copy.deepcopy(DEFAULT_STATUS)
+        response.update(self._get_config_status())
         resources = get_available_resources(self)
 
         for resource in sorted(resources, key=lambda x: x["name"]):
@@ -338,6 +375,7 @@ class UAConfig:
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
         response = copy.deepcopy(DEFAULT_STATUS)
+        response.update(self._get_config_status())
         contractInfo = self.machine_token["machineTokenInfo"]["contractInfo"]
         response.update(
             {

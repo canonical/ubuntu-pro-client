@@ -22,6 +22,7 @@ class TestDisable:
         return_code,
         assume_yes,
         names,
+        tmpdir,
     ):
         entitlements_cls = []
         entitlements_obj = []
@@ -40,6 +41,8 @@ class TestDisable:
             entitlements_cls.append(m_entitlement_cls)
 
         m_cfg = mock.Mock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+
         args_mock = mock.Mock()
         args_mock.names = names
         args_mock.assume_yes = assume_yes
@@ -63,7 +66,7 @@ class TestDisable:
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.cli.entitlements")
     def test_entitlements_not_found_disabled_and_enabled(
-        self, m_entitlements, _m_getuid, assume_yes
+        self, m_entitlements, _m_getuid, assume_yes, tmpdir
     ):
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         num_calls = 2
@@ -86,6 +89,7 @@ class TestDisable:
         }
 
         m_cfg = mock.Mock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         args_mock = mock.Mock()
         args_mock.names = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
