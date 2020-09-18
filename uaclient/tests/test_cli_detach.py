@@ -38,6 +38,20 @@ class TestActionDetach:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(self, m_subp, _m_getuid, m_prompt, FakeConfig):
+        """Check when an operation holds a lock file, detach cannot run."""
+        cfg = FakeConfig.for_attached_machine()
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua enable")
+        with pytest.raises(exceptions.LockHeldError) as err:
+            action_detach(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua detach.\n"
+            "Operation in progress: ua enable (pid:123)"
+        ) == err.value.msg
+
     @pytest.mark.parametrize(
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],

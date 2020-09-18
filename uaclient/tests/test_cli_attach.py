@@ -11,6 +11,7 @@ from uaclient.cli import (
 )
 from uaclient.exceptions import (
     AlreadyAttachedError,
+    LockHeldError,
     NonRootUserError,
     UserFacingError,
 )
@@ -87,6 +88,21 @@ class TestActionAttach:
 
         with pytest.raises(AlreadyAttachedError):
             action_attach(mock.MagicMock(), cfg)
+
+    @mock.patch(M_PATH + "util.subp")
+    def test_lock_file_exists(self, m_subp, _m_getuid, capsys, FakeConfig):
+        """Check when an operation holds a lock file, attach cannot run."""
+        cfg = FakeConfig()
+
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua disable")
+        with pytest.raises(LockHeldError) as exc_info:
+            action_attach(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua attach.\n"
+            "Operation in progress: ua disable (pid:123)"
+        ) == exc_info.value.msg
 
     def test_token_is_a_required_argument(self, _m_getuid, FakeConfig):
         """When missing the required token argument, raise a UserFacingError"""

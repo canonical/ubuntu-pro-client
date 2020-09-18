@@ -176,3 +176,20 @@ class TestDisable:
         assert (
             expected_error_template.format(name="esm-infra") == err.value.msg
         )
+
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(self, m_subp, m_getuid, FakeConfig):
+        """Check inability to disable if operation in progress holds lock."""
+
+        cfg = FakeConfig().for_attached_machine()
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua enable")
+        with pytest.raises(exceptions.LockHeldError) as err:
+            args = mock.MagicMock()
+            args.names = ["esm-infra"]
+            action_disable(args, cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua disable.\n"
+            "Operation in progress: ua enable (pid:123)"
+        ) == err.value.msg

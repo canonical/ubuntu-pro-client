@@ -33,6 +33,20 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UnattachedError):
             action_refresh(mock.MagicMock(), cfg)
 
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(self, _getuid, FakeConfig):
+        """Check inability to refresh if operation holds lock file."""
+        cfg = FakeConfig().for_attached_machine()
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua disable")
+        with pytest.raises(exceptions.LockHeldError) as err:
+            action_refresh(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua refresh.\n"
+            "Operation in progress: ua disable (pid:123)"
+        ) == err.value.msg
+
     @mock.patch(M_PATH + "logging.error")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_refresh_contract_error_on_failure_to_update_contract(

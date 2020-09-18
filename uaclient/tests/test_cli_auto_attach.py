@@ -11,6 +11,7 @@ from uaclient.cli import (
 from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
+    LockHeldError,
     NonRootUserError,
     NonAutoAttachImageError,
     UserFacingError,
@@ -243,6 +244,20 @@ class TestActionAutoAttach:
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
         with pytest.raises(AlreadyAttachedError):
             action_auto_attach(mock.MagicMock(), cfg)
+
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
+        """Check inability to auto-attach if operation holds lock file."""
+        cfg = FakeConfig()
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua disable")
+        with pytest.raises(LockHeldError) as err:
+            action_auto_attach(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua auto-attach.\n"
+            "Operation in progress: ua disable (pid:123)"
+        ) == err.value.msg
 
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
