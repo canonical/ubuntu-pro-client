@@ -785,7 +785,7 @@ class TestStatus:
     @mock.patch("uaclient.config.util.should_reboot", return_value=True)
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, m_getuid, tmpdir
+        self, _m_should_reboot, m_getuid, tmpdir
     ):
         m_getuid.return_value = 1000
 
@@ -794,12 +794,13 @@ class TestStatus:
         cfg.write_cache("status-cache", status)
 
         # Even non-root users can update configStatus details
+        details = MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+            operation="configuration changes"
+        )
         status.update(
             {
                 "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
-                "configStatusDetails": MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="configuration changes"
-                ),
+                "configStatusDetails": details,
             }
         )
         assert status == cfg.status()

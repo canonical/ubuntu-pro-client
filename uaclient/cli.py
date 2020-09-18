@@ -74,27 +74,16 @@ def assert_lock_file(lock_holder=None):
         def new_f(args, cfg, **kwargs):
             global _LOCK_FILE
             lock_file = cfg.data_path("lock")
-            if os.path.exists(lock_file):
-                lock_content = util.load_file(lock_file)
-                [lock_pid, cur_lock_holder] = lock_content.split(":")
-                try:
-                    util.subp(["ps", lock_pid])
-                    raise exceptions.LockHeldError(
-                        lock_request=lock_holder,
-                        lock_holder=cur_lock_holder,
-                        pid=int(lock_pid),
-                    )
-                except util.ProcessExecutionError:
-                    # lock_pid no longer exists, so replace stale lock file
-                    logging.warning(
-                        "Replacing stale lock file previously held by %s:%s",
-                        lock_pid,
-                        cur_lock_holder,
-                    )
+            (lock_pid, cur_lock_holder) = util.check_lock_info(lock_file)
+            if lock_pid > 0:
+                raise exceptions.LockHeldError(
+                    lock_request=lock_holder,
+                    lock_holder=cur_lock_holder,
+                    pid=lock_pid,
+                )
             util.write_file(
                 lock_file, "{}:{}".format(os.getpid(), lock_holder)
             )
-            os.chmod(lock_file, 0o666)
             _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
             retval = f(args, cfg, **kwargs)
             if os.path.exists(lock_file):

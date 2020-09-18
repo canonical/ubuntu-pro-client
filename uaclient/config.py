@@ -289,23 +289,12 @@ class UAConfig:
         userStatus = status.UserFacingConfigStatus
         status_val = userStatus.INACTIVE.value
         status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
-        if os.path.exists(self.data_path("lock")):
-            lock_file = self.data_path("lock")
-            lock_content = util.load_file(lock_file)
-            [lock_pid, lock_holder] = lock_content.split(":")
-            try:
-                util.subp(["ps", lock_pid])
-                status_val = userStatus.ACTIVE.value
-                status_desc = status.MESSAGE_LOCK_HELD.format(
-                    pid=lock_pid, lock_holder=lock_holder
-                )
-            except util.ProcessExecutionError:
-                logging.warning(
-                    "Removing stale lock file previously held by %s:%s",
-                    lock_pid,
-                    lock_holder,
-                )
-                os.unlink(lock_file)
+        (lock_pid, lock_holder) = util.check_lock_info(self.data_path("lock"))
+        if lock_pid > 0:
+            status_val = userStatus.ACTIVE.value
+            status_desc = status.MESSAGE_LOCK_HELD.format(
+                pid=lock_pid, lock_holder=lock_holder
+            )
         elif util.should_reboot():
             status_val = userStatus.REBOOTREQUIRED.value
             status_desc = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
