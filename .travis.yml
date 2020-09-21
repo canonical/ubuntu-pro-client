@@ -24,7 +24,6 @@ matrix:
       stage: integration
       env:
           - TOXENV=behave-awsgeneric-14.04
-          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
           - AWS_DEFAULT_REGION=us-east-2
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
@@ -464,7 +463,6 @@ matrix:
       env:
           - TOXENV=behave-awspro-14.04
           - AWS_DEFAULT_REGION=us-east-1
-          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
