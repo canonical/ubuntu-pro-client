@@ -558,7 +558,8 @@ class TestCleanAptFiles:
             with open(pref_name, "w") as f:
                 f.write("")
 
-        m_entitlement = mock.Mock(spec=RepoTestEntitlement)
+        m_entitlement = mock.Mock()
+        m_entitlement.return_value = mock.Mock(spec=RepoTestEntitlement)
         m_entitlement.configure_mock(
             name=entitlement_name,
             repo_list_file_tmpl=repo_tmpl,

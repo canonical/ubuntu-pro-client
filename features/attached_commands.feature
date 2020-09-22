@@ -325,3 +325,33 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | trusty  |
            | xenial  |
+
+    @series.all
+    Scenario Outline: Purge package after attaching it to a machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
+        Then I verify that running `test -f /var/log/ubuntu-advantage.log` `with sudo` exits `0`
+        And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `0`
+        And I verify that running `test -f /etc/apt/auth.conf.d/90ubuntu-advantage` `with sudo` exits `0`
+        And I verify that running `test -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg` `with sudo` exits `0`
+        And I verify that running `test -f /etc/apt/sources.list.d/ubuntu-esm-infra.list` `with sudo` exits `0`
+        And I verify that running `test -f /etc/apt/preferences.d/ubuntu-esm-infra` `with sudo` exits `0`
+        When I run `apt-get purge ubuntu-advantage-tools -y` with sudo
+        Then stdout matches regexp:
+        """
+        Purging configuration files for ubuntu-advantage-tools
+        """
+        And I verify that running `test -f /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `1`
+        And I verify that running `test -f /etc/apt/auth.conf.d/90ubuntu-advantage` `with sudo` exits `1`
+        And I verify that running `test -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg` `with sudo` exits `1`
+        And I verify that running `test -f /etc/apt/sources.list.d/ubuntu-esm-infra.list` `with sudo` exits `1`
+        And I verify that running `test -f /etc/apt/preferences.d/ubuntu-esm-infra` `with sudo` exits `1`
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
