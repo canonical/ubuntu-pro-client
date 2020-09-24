@@ -9,13 +9,13 @@ include /etc/os-release
 ifeq (${VERSION_ID},"14.04")
 APT_PKG_DEPS="apt (>= 1.0.1ubuntu2.23), apt-transport-https (>= 1.0.1ubuntu2.23), apt-utils (>= 1.0.1ubuntu2.23), libapt-inst1.5 (>= 1.0.1ubuntu2.23), libapt-pkg4.12 (>= 1.0.1ubuntu2.23) "
 else ifeq (${VERSION_ID},"16.04")
-APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32), python3-daemon"
+APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32)"
 else ifeq (${VERSION_ID},"18.04")
-APT_PKG_DEPS="apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11), python3-daemon"
+APT_PKG_DEPS="apt (>= 1.6.11), apt-utils (>= 1.6.11), libapt-inst2.0 (>= 1.6.11), libapt-pkg5.0 (>= 1.6.11)"
 else ifeq (${VERSION_ID},"19.04")
-APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-inst2.0 (>= 1.8.1), libapt-pkg5.0 (>= 1.8.1), python3-daemon"
+APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-inst2.0 (>= 1.8.1), libapt-pkg5.0 (>= 1.8.1)"
 else ifeq (${VERSION_ID},"19.10")
-APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1), python3-daemon"
+APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
@@ -51,10 +51,12 @@ ifeq (${VERSION_ID},"14.04")
 	# Move ua-auto-attach.conf out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/etc/init
 	mv debian/ubuntu-advantage-tools/etc/init/ua-auto-attach.conf debian/ubuntu-advantage-pro/etc/init/
+	rmdir debian/ubuntu-advantage-tools/etc/init
 else
 	# Move ua-auto-attach.service out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/lib/systemd/system
 	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.service debian/ubuntu-advantage-pro/lib/systemd/system
+	cd debian/ubuntu-advantage-tools && rmdir -p lib/systemd/system
 endif
 
 override_dh_auto_clean:

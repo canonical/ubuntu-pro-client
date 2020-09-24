@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
 
-import argparse
+"""
+This script should be used after running do-release-upgrade in a machine.
+It will detect any contract deltas between the release before
+do-release-upgrade and the current release. If we find any differences in
+the uaclient contract between those releases, we will apply that difference
+in the upgraded release.
+
+For example, suppose we are on Trusty and we are upgrading to Xenial. We found
+that the apt url for esm services on trusty:
+
+https://esm.ubuntu.com/ubuntu
+
+While on Xenial, the apt url is:
+
+https://esm.ubuntu.com/infra/ubuntu 
+
+This script will detect differences like that and update the Xenial system
+to reflect them.
+"""
+
 import contextlib
 import logging
 import os
-
-try:
-    from daemon import DaemonContext
-except ImportError:
-    DaemonContext = contextlib.suppress()
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
@@ -29,17 +43,6 @@ current_codename_to_past_codename = {
 }
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--no-daemon",
-        action="store_true",
-        help=("Sets the script to not run on daemon mode"),
-    )
-
-    return parser.parse_args()
-
-
 def process_contract_delta_after_apt_lock():
     setup_logging(logging.INFO, logging.DEBUG)
     out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
@@ -53,11 +56,19 @@ def process_contract_delta_after_apt_lock():
     current_release = version_to_codename[current_version]
     past_release = current_codename_to_past_codename[current_release]
 
+    if current_release == "trusty":
+        msg = "Unable to execute upgrade-lts-contract.py on trusty"
+        print(msg)
+        logging.warning(msg)
+        sys.exit(1)
+
     past_entitlements = UAConfig(series=past_release).entitlements
     new_entitlements = UAConfig(series=current_release).entitlements
 
     retry_count = 0
     while out:
+        # Loop until that apt hold is released (at the end of the do-release-upgrade operation
+        # when a reboot is suggested)
         time.sleep(10)
         out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
         retry_count += 1
@@ -77,14 +88,6 @@ def process_contract_delta_after_apt_lock():
         "upgrade-lts-contract succeeded after %d retries", retry_count
     )
 
-    os.remove("/etc/ubuntu-advantage/request-update-contract")
-
 
 if __name__ == "__main__":
-    args = parse_args()
-
-    if args.no_daemon:
-        process_contract_delta_after_apt_lock()
-    else:
-        with DaemonContext():
-            process_contract_delta_after_apt_lock()
+    process_contract_delta_after_apt_lock()

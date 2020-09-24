@@ -165,10 +165,6 @@ case "$1" in
           # 14.04 and unsupported arch
           unconfigure_esm
         fi
-      else
-          # We are creating this file to request for a upgrade-lts-contract
-          # script to be run
-          touch /etc/ubuntu-advantage/request-update-contract
       fi
 
       if [ ! -f /var/log/ubuntu-advantage.log ]; then

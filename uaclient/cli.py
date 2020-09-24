@@ -19,7 +19,6 @@ except ImportError:
 
 from uaclient import config
 from uaclient import contract
-from uaclient import defaults
 from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status as ua_status
@@ -93,38 +92,6 @@ def assert_not_attached(f):
     def new_f(args, cfg):
         if cfg.is_attached:
             raise exceptions.AlreadyAttachedError(cfg)
-        return f(args, cfg)
-
-    return new_f
-
-
-def daemon_file_exists():
-    return os.path.exists(defaults.DEFAULT_UPGRADE_CONTRACT_FLAG_FILE)
-
-
-def get_running_services():
-    running_services, _ = util.subp(["ps", "-aux"])
-    return running_services
-
-
-def assert_contract_upgrade_not_running(f):
-    """Decorator asserting contract upgrade is not running."""
-
-    @wraps(f)
-    def new_f(args, cfg):
-        if daemon_file_exists():
-            running_services = get_running_services()
-            daemon_name = defaults.DAEMON_UPGRADE_CONTRACT_NAME
-
-            if running_services.find(daemon_name) == -1:
-                raise exceptions.UserFacingError(
-                    "error processing upgrade-lts-contract script"
-                )
-            else:
-                raise exceptions.UserFacingError(
-                    "daemon upgrade-lts-contract is still running"
-                )
-
         return f(args, cfg)
 
     return new_f
@@ -697,7 +664,6 @@ def get_parser():
     return parser
 
 
-@assert_contract_upgrade_not_running
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
