@@ -321,7 +321,7 @@ def clean_apt_files(*, _entitlements=None):
         from uaclient import entitlements as _entitlements
 
     for ent_cls in _entitlements.ENTITLEMENT_CLASSES:
-        if not isinstance(ent_cls(), RepoEntitlement):
+        if not issubclass(ent_cls, RepoEntitlement):
             continue
         repo_file = ent_cls.repo_list_file_tmpl.format(name=ent_cls.name)
         pref_file = ent_cls.repo_pref_file_tmpl.format(name=ent_cls.name)

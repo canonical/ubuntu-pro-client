@@ -26,6 +26,8 @@ from uaclient.apt import (
 )
 from uaclient import apt, exceptions, util
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
+from uaclient.entitlements.repo import RepoEntitlement
+from uaclient.entitlements.base import UAEntitlement
 
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
@@ -542,12 +544,19 @@ class TestAddAptAuthConfEntry:
 
 
 class TestCleanAptFiles:
-    @pytest.fixture
-    def mock_apt_entitlement(self, tmpdir):
+    @pytest.fixture(params=[RepoEntitlement, UAEntitlement])
+    def mock_apt_entitlement(self, request, tmpdir):
         # Set up our tmpdir with some fake list files
         entitlement_name = "test_ent"
         repo_tmpl = tmpdir.join("source-{name}").strpath
         pref_tmpl = tmpdir.join("pref-{name}").strpath
+
+        class DummyRepo(request.param):
+            name = entitlement_name
+            repo_list_file_tmpl = repo_tmpl
+            repo_pref_file_tmpl = pref_tmpl
+            is_repo = request.param == RepoEntitlement
+
         for series in ["acidic", "base"]:
             source_name = repo_tmpl.format(name=entitlement_name)
             pref_name = pref_tmpl.format(name=entitlement_name)
@@ -558,14 +567,7 @@ class TestCleanAptFiles:
             with open(pref_name, "w") as f:
                 f.write("")
 
-        m_entitlement = mock.Mock()
-        m_entitlement.return_value = mock.Mock(spec=RepoTestEntitlement)
-        m_entitlement.configure_mock(
-            name=entitlement_name,
-            repo_list_file_tmpl=repo_tmpl,
-            repo_pref_file_tmpl=pref_tmpl,
-        )
-        return m_entitlement
+        return DummyRepo
 
     @mock.patch("uaclient.apt.os.unlink")
     def test_no_removals_for_no_repo_entitlements(self, m_os_unlink):
@@ -582,7 +584,12 @@ class TestCleanAptFiles:
 
         clean_apt_files(_entitlements=m_entitlements)
 
-        assert [] == tmpdir.listdir()
+        if mock_apt_entitlement.is_repo:
+            assert [] == tmpdir.listdir()
+        else:
+            assert sorted(
+                [tmpdir.join("source-test_ent"), tmpdir.join("pref-test_ent")]
+            ) == sorted(tmpdir.listdir())
 
     def test_other_files_not_removed(self, mock_apt_entitlement, tmpdir):
         other_filename = "other_file-acidic"
@@ -593,7 +600,16 @@ class TestCleanAptFiles:
 
         clean_apt_files(_entitlements=m_entitlements)
 
-        assert [tmpdir.join(other_filename)] == tmpdir.listdir()
+        if mock_apt_entitlement.is_repo:
+            assert [tmpdir.join(other_filename)] == tmpdir.listdir()
+        else:
+            assert sorted(
+                [
+                    tmpdir.join("source-test_ent"),
+                    tmpdir.join("pref-test_ent"),
+                    tmpdir.join(other_filename),
+                ]
+            ) == sorted(tmpdir.listdir())
 
 
 @pytest.fixture(params=(mock.sentinel.default, None, "some_string"))
