@@ -22,6 +22,22 @@ class TestActionEnable:
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(mock.MagicMock(), cfg)
 
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(
+        self, m_subp, _request_updated_contract, getuid, FakeConfig
+    ):
+        """Check inability to enable if operation holds lock file."""
+        getuid.return_value = 0
+        cfg = FakeConfig.for_attached_machine()
+        cfg.write_cache("lock", "123:ua disable")
+        with pytest.raises(exceptions.LockHeldError) as err:
+            action_enable(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua enable.\n"
+            "Operation in progress: ua disable (pid:123)"
+        ) == err.value.msg
+
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [

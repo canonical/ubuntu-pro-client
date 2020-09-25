@@ -583,6 +583,13 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
+def remove_file(file_path: str) -> None:
+    """Remove a file if it exists, logging a message about removal."""
+    if os.path.exists(file_path):
+        logging.debug("Removing file: %s", file_path)
+        os.unlink(file_path)
+
+
 def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
     """Check if value parameter can be translated into a boolean 'True' value.
 
@@ -624,3 +631,39 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
 def should_reboot() -> bool:
     """Check if the system needs to be rebooted."""
     return os.path.exists(REBOOT_FILE_CHECK_PATH)
+
+
+def check_lock_info(lock_path: str) -> "Tuple[int, str]":
+    """Return lock info if config lock file is present the lock is active.
+
+    If process claiming the lock is no longer present, remove the lock file
+    and log a warning.
+
+    :param lock_path: Full path to the lock file.
+
+    :return: A tuple (pid, string describing lock holder)
+        If no active lock, pid will be -1.
+    """
+    no_lock = (-1, "")
+    if not os.path.exists(lock_path):
+        return no_lock
+    lock_content = load_file(lock_path)
+    [lock_pid, lock_holder] = lock_content.split(":")
+    try:
+        subp(["ps", lock_pid])
+        return (int(lock_pid), lock_holder)
+    except ProcessExecutionError:
+        if os.getuid() != 0:
+            logging.debug(
+                "Found stale lock file previously held by %s:%s",
+                lock_pid,
+                lock_holder,
+            )
+            return (int(lock_pid), lock_holder)
+        logging.warning(
+            "Removing stale lock file previously held by %s:%s",
+            lock_pid,
+            lock_holder,
+        )
+        os.unlink(lock_path)
+        return no_lock

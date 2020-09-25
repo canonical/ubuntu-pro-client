@@ -19,12 +19,44 @@ matrix:
   allow_failures:
     -name: azurepro-16.04
   include:
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+      stage: build
+      name: cleanup-stale-aws-vms
+      env:
+          - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
+          - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
+      install:
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
+      script:
+          - DATE=`date +%D`
+          - >
+            for region in us-east-1 us-east-2; do
+                AWS_DEFAULT_REGION=${region} python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -b ${DATE} || true
+            done;
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+      stage: build
+      name: cleanup-stale-azure-vms
+      install:
+          - git clone https://github.com/canonical/server-test-scripts.git
+          - git clone https://github.com/canonical/pycloudlib.git
+          - cd pycloudlib
+          - pip install -r requirements.txt
+          - pip install -e .
+          - cd ..
+      script:
+          - DATE=`date +%D`
+          - >
+            python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
       env:
           - TOXENV=behave-awsgeneric-14.04
-          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
           - AWS_DEFAULT_REGION=us-east-2
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
@@ -464,7 +496,6 @@ matrix:
       env:
           - TOXENV=behave-awspro-14.04
           - AWS_DEFAULT_REGION=us-east-1
-          - UACLIENT_BEHAVE_DESTROY_INSTANCES=0
           - AWS_ACCESS_KEY_ID=${UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID}
           - AWS_SECRET_ACCESS_KEY=${UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY}
           - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts

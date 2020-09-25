@@ -15,6 +15,7 @@ Feature: Command behaviour when attached to an UA subscription
         log_file: /var/log/ubuntu-advantage.log
         """
         And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
         And I run `ua status --all` as non-root
         Then stdout matches regexp:
             """

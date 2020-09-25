@@ -25,6 +25,8 @@ DEFAULT_STATUS = {
     "expires": status.UserFacingStatus.INAPPLICABLE.value,
     "origin": None,
     "services": [],
+    "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
+    "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
     "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
@@ -48,6 +50,7 @@ class UAConfig:
         "instance-id": DataPath("instance-id", True),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
+        "lock": DataPath("lock", True),
         "status-cache": DataPath("status.json", False),
     }  # type: Dict[str, DataPath]
 
@@ -276,6 +279,29 @@ class UAConfig:
 
         return new_response
 
+    def _get_config_status(self) -> "Dict[str, str]":
+        """Return a dict with configStatus and configStatusDetails keys.
+
+            Values for configStatus will be one of UserFacingConfigStatus enum:
+                inactive, active, reboot-required
+            configStatusDescription will provide more details about that state.
+        """
+        userStatus = status.UserFacingConfigStatus
+        status_val = userStatus.INACTIVE.value
+        status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
+        (lock_pid, lock_holder) = util.check_lock_info(self.data_path("lock"))
+        if lock_pid > 0:
+            status_val = userStatus.ACTIVE.value
+            status_desc = status.MESSAGE_LOCK_HELD.format(
+                pid=lock_pid, lock_holder=lock_holder
+            )
+        elif util.should_reboot():
+            status_val = userStatus.REBOOTREQUIRED.value
+            status_desc = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                operation="configuration changes"
+            )
+        return {"configStatus": status_val, "configStatusDetails": status_desc}
+
     def _unattached_status(self) -> "Dict[str, Any]":
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
@@ -393,6 +419,7 @@ class UAConfig:
             response = self._unattached_status()
         else:
             response = self._attached_status()
+        response.update(self._get_config_status())
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
