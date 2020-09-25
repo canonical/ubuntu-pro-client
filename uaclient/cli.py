@@ -86,9 +86,7 @@ def assert_lock_file(lock_holder=None):
             )
             _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
             retval = f(args, cfg, **kwargs)
-            if os.path.exists(lock_file):
-                logging.debug("Removing file: %s", lock_file)
-                os.unlink(lock_file)  # Successful completion of operation
+            util.remove_file(lock_file)
             return retval
 
         return new_f
@@ -847,9 +845,8 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
-            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
-                logging.debug("Removing file: %s", _LOCK_FILE)
-                os.unlink(_LOCK_FILE)
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             sys.exit(1)
         except util.UrlError as exc:
             with util.disable_log_to_console():
@@ -865,16 +862,14 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
-            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
-                logging.debug("Removing file: %s", _LOCK_FILE)
-                os.unlink(_LOCK_FILE)
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             sys.exit(exc.exit_code)
         except Exception:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
-            if _LOCK_FILE and os.path.exists(_LOCK_FILE):
-                logging.debug("Removing file: %s", _LOCK_FILE)
-                os.unlink(_LOCK_FILE)
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
             sys.exit(1)
 

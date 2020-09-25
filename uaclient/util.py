@@ -583,6 +583,13 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     os.chmod(filename, mode)
 
 
+def remove_file(file_path: str) -> None:
+    """Remove a file if it exists, logging a message about removal."""
+    if os.path.exists(file_path):
+        logging.debug("Removing file: %s", file_path)
+        os.unlink(file_path)
+
+
 def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
     """Check if value parameter can be translated into a boolean 'True' value.
 
