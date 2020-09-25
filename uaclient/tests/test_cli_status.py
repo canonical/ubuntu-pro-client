@@ -1,6 +1,7 @@
 import io
 import json
 import mock
+import os
 import socket
 import sys
 
@@ -9,6 +10,7 @@ import pytest
 from uaclient import util
 
 from uaclient.cli import action_status
+from uaclient import status
 
 M_PATH = "uaclient.cli."
 
@@ -78,19 +80,54 @@ class TestActionStatus:
         assert 0 == action_status(mock.MagicMock(), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @mock.patch("uaclient.util.subp")
+    @mock.patch(M_PATH + "time.sleep")
+    def test_wait_blocks_until_lock_released(
+        self,
+        m_sleep,
+        m_subp,
+        m_getuid,
+        m_get_avail_resources,
+        capsys,
+        FakeConfig,
+    ):
+        """Check that --wait will will block and poll until lock released."""
+        cfg = FakeConfig()
+        lock_file = cfg.data_path("lock")
+        cfg.write_cache("lock", "123:ua auto-attach")
+
+        def fake_sleep(seconds):
+            if m_sleep.call_count == 3:
+                os.unlink(lock_file)
+
+        m_sleep.side_effect = fake_sleep
+
+        assert 0 == action_status(mock.MagicMock(), cfg)
+        assert [mock.call(1)] * 3 == m_sleep.call_args_list
+        assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
+
+    @mock.patch(M_PATH + "util.should_reboot", return_value=False)
     def test_unattached_json(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        m_should_reboot,
+        capsys,
+        FakeConfig,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
         args = mock.MagicMock(format="json")
         assert 0 == action_status(args, cfg)
+
         expected = {
             "_doc": (
                 "Content provided in json response is currently "
                 "considered Experimental and may change"
             ),
+            "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
+            "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": False,
             "expires": "n/a",
             "origin": None,

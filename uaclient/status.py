@@ -66,6 +66,19 @@ class UserFacingAvailability(enum.Enum):
 
 
 @enum.unique
+class UserFacingConfigStatus(enum.Enum):
+    """
+    An enum representing the user-visible config status of UA system.
+
+    This enum will be used in display code and will be written to status.json
+    """
+
+    INACTIVE = "inactive"  # No UA config commands/daemons
+    ACTIVE = "active"  # UA command is running
+    REBOOTREQUIRED = "reboot-required"  # System Reboot required
+
+
+@enum.unique
 class UserFacingStatus(enum.Enum):
     """
     An enum representing the states we will display in status output.
@@ -162,7 +175,8 @@ This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage"""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
-
+MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
+MESSAGE_LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (
     """\

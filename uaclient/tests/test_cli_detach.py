@@ -38,6 +38,21 @@ class TestActionDetach:
             action_detach(mock.MagicMock(), cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
+    @mock.patch("uaclient.cli.util.subp")
+    def test_lock_file_exists(self, m_subp, m_getuid, m_prompt, FakeConfig):
+        """Check when an operation holds a lock file, detach cannot run."""
+        m_getuid.return_value = 0
+        cfg = FakeConfig.for_attached_machine()
+        with open(cfg.data_path("lock"), "w") as stream:
+            stream.write("123:ua enable")
+        with pytest.raises(exceptions.LockHeldError) as err:
+            action_detach(mock.MagicMock(), cfg)
+        assert [mock.call(["ps", "123"])] == m_subp.call_args_list
+        assert (
+            "Unable to perform: ua detach.\n"
+            "Operation in progress: ua enable (pid:123)"
+        ) == err.value.msg
+
     @pytest.mark.parametrize(
         "prompt_response,assume_yes,expect_disable",
         [(True, False, True), (False, False, False), (True, True, True)],
@@ -104,7 +119,7 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_config_cache_deleted(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -112,15 +127,23 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        cfg = mock.MagicMock()
-        action_detach(mock.MagicMock(), cfg)
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        action_detach(mock.MagicMock(), m_cfg)
 
-        assert [mock.call()] == cfg.delete_cache.call_args_list
+        assert [mock.call()] == m_cfg.delete_cache.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_correct_message_emitted(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, capsys, FakeConfig
+        self,
+        m_client,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        capsys,
+        FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -128,7 +151,9 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
 
@@ -137,7 +162,7 @@ class TestActionDetach:
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_returns_zero(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig
+        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -145,7 +170,9 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        ret = action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
 
@@ -190,6 +217,7 @@ class TestActionDetach:
         classes,
         expected_message,
         FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
@@ -197,7 +225,10 @@ class TestActionDetach:
         fake_client = FakeContractClient(FakeConfig.for_attached_machine())
         m_client.return_value = fake_client
 
-        action_detach(mock.MagicMock(), mock.MagicMock())
+        m_cfg = mock.MagicMock()
+        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+
+        action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
 

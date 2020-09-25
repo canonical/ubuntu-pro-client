@@ -10,6 +10,7 @@ import os
 import pathlib
 import sys
 import textwrap
+import time
 
 try:
     from typing import List  # noqa
@@ -46,6 +47,49 @@ DEFAULT_LOG_FORMAT = (
 )
 
 STATUS_FORMATS = ["tabular", "json"]
+
+
+# Set a module-level variable here so we don't have to reinstantiate
+# UAConfig in order to determine dynamic data_path exception handling of
+# main_error_handler
+_LOCK_FILE = None
+
+
+def assert_lock_file(lock_holder=None):
+    """Decorator asserting exclusive access to lock file
+
+    Create a lock file if absent. The lock file will contain a pid of the
+        running process, and a customer-visible description of the lock holder.
+
+    :param lock_holder: String with the service name or command which is
+        holding the lock.
+
+        This lock_holder string will be customer visible in status.json.
+
+    :raises: LockHeldError if lock is held.
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f(args, cfg, **kwargs):
+            global _LOCK_FILE
+            lock_file = cfg.data_path("lock")
+            (lock_pid, cur_lock_holder) = util.check_lock_info(lock_file)
+            if lock_pid > 0:
+                raise exceptions.LockHeldError(
+                    lock_request=lock_holder,
+                    lock_holder=cur_lock_holder,
+                    pid=lock_pid,
+                )
+            cfg.write_cache("lock", "{}:{}".format(os.getpid(), lock_holder))
+            _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
+            retval = f(args, cfg, **kwargs)
+            util.remove_file(lock_file)
+            return retval
+
+        return new_f
+
+    return wrapper
 
 
 def assert_root(f):
@@ -252,6 +296,12 @@ def status_parser(parser):
     )
 
     parser.add_argument(
+        "--wait",
+        action="store_true",
+        default=False,
+        help="Block waiting on ua to complete",
+    )
+    parser.add_argument(
         "--format",
         action="store",
         choices=STATUS_FORMATS,
@@ -307,6 +357,7 @@ def get_valid_entitlement_names(names: "List[str]"):
 
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_lock_file("ua disable")
 def action_disable(args, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
 
@@ -375,6 +426,7 @@ def _perform_enable(
 
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_lock_file("ua enable")
 def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
@@ -419,6 +471,7 @@ def action_enable(args, cfg, **kwargs):
 
 @assert_root
 @assert_attached()
+@assert_lock_file("ua detach")
 def action_detach(args, cfg) -> int:
     """Perform the detach action for this machine.
 
@@ -542,6 +595,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
 
 @assert_root
+@assert_lock_file("ua auto-attach")
 def action_auto_attach(args, cfg):
     disable_auto_attach = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
@@ -557,6 +611,7 @@ def action_auto_attach(args, cfg):
 
 @assert_not_attached
 @assert_root
+@assert_lock_file("ua attach")
 def action_attach(args, cfg):
     if not args.token:
         raise exceptions.UserFacingError(
@@ -667,8 +722,16 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
+    status = cfg.status()
+    active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
+    config_active = bool(status["configStatus"] == active_value)
+    if args and args.wait and config_active:
+        while status["configStatus"] == active_value:
+            print(".", end="")
+            time.sleep(1)
+            status = cfg.status()
+        print("")
     if args and args.format == "json":
-        status = cfg.status()
         if status["expires"] != ua_status.UserFacingStatus.INAPPLICABLE.value:
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
@@ -700,6 +763,7 @@ def print_version(_args=None, _cfg=None):
 
 @assert_root
 @assert_attached()
+@assert_lock_file("ua refresh")
 def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)
@@ -779,6 +843,8 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             sys.exit(1)
         except util.UrlError as exc:
             with util.disable_log_to_console():
@@ -794,10 +860,14 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.exception(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             sys.exit(exc.exit_code)
         except Exception:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
+            if _LOCK_FILE:
+                util.remove_file(_LOCK_FILE)
             print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
             sys.exit(1)
 
