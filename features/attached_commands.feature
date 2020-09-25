@@ -331,23 +331,23 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
-        Then I verify that running `test -f /var/log/ubuntu-advantage.log` `with sudo` exits `0`
+        Then I verify that files exist matching `/var/log/ubuntu-advantage.log`
         And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `0`
-        And I verify that running `test -f /etc/apt/auth.conf.d/90ubuntu-advantage` `with sudo` exits `0`
-        And I verify that running `test -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg` `with sudo` exits `0`
-        And I verify that running `test -f /etc/apt/sources.list.d/ubuntu-esm-infra.list` `with sudo` exits `0`
-        And I verify that running `test -f /etc/apt/preferences.d/ubuntu-esm-infra` `with sudo` exits `0`
+        And I verify that files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
+        And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg`
+        And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
+        And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
         When I run `apt-get purge ubuntu-advantage-tools -y` with sudo
         Then stdout matches regexp:
         """
         Purging configuration files for ubuntu-advantage-tools
         """
-        And I verify that running `test -f /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-        And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `1`
-        And I verify that running `test -f /etc/apt/auth.conf.d/90ubuntu-advantage` `with sudo` exits `1`
-        And I verify that running `test -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg` `with sudo` exits `1`
-        And I verify that running `test -f /etc/apt/sources.list.d/ubuntu-esm-infra.list` `with sudo` exits `1`
-        And I verify that running `test -f /etc/apt/preferences.d/ubuntu-esm-infra` `with sudo` exits `1`
+        And I verify that no files exist matching `/var/log/ubuntu-advantage.log`
+        And I verify that no files exist matching `/var/lib/ubuntu-advantage`
+        And I verify that no files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
+        And I verify that no files exist matching `/etc/apt/sources.list.d/ubuntu-*`
+        And I verify that no files exist matching `/etc/apt/trusted.gpg.d/ubuntu-advantage-*`
+        And I verify that no files exist matching `/etc/apt/preferences.d/ubuntu-*`
 
         Examples: ubuntu release
            | release |
