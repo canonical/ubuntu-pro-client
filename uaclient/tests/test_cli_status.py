@@ -94,7 +94,7 @@ class TestActionStatus:
         """Check that --wait will will block and poll until lock released."""
         cfg = FakeConfig()
         lock_file = cfg.data_path("lock")
-        util.write_file(lock_file, "123:ua auto-attach")
+        cfg.write_cache("lock", "123:ua auto-attach")
 
         def fake_sleep(seconds):
             if m_sleep.call_count == 3:

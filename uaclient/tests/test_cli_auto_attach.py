@@ -249,8 +249,7 @@ class TestActionAutoAttach:
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
         """Check inability to auto-attach if operation holds lock file."""
         cfg = FakeConfig()
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua disable")
+        cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(LockHeldError) as err:
             action_auto_attach(mock.MagicMock(), cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list

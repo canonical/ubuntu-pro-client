@@ -94,8 +94,7 @@ class TestActionAttach:
         """Check when an operation holds a lock file, attach cannot run."""
         cfg = FakeConfig()
 
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua disable")
+        cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(LockHeldError) as exc_info:
             action_attach(mock.MagicMock(), cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list

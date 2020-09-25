@@ -81,9 +81,7 @@ def assert_lock_file(lock_holder=None):
                     lock_holder=cur_lock_holder,
                     pid=lock_pid,
                 )
-            util.write_file(
-                lock_file, "{}:{}".format(os.getpid(), lock_holder)
-            )
+            cfg.write_cache("lock", "{}:{}".format(os.getpid(), lock_holder))
             _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
             retval = f(args, cfg, **kwargs)
             util.remove_file(lock_file)
@@ -358,8 +356,8 @@ def get_valid_entitlement_names(names: "List[str]"):
 
 
 @assert_root
-@assert_lock_file("ua disable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_lock_file("ua disable")
 def action_disable(args, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
 
@@ -427,8 +425,8 @@ def _perform_enable(
 
 
 @assert_root
-@assert_lock_file("ua enable")
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_lock_file("ua enable")
 def action_enable(args, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
@@ -472,8 +470,8 @@ def action_enable(args, cfg, **kwargs):
 
 
 @assert_root
-@assert_lock_file("ua detach")
 @assert_attached()
+@assert_lock_file("ua detach")
 def action_detach(args, cfg) -> int:
     """Perform the detach action for this machine.
 

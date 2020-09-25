@@ -29,8 +29,7 @@ class TestActionEnable:
         """Check inability to enable if operation holds lock file."""
         getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
-        with open(cfg.data_path("lock"), "w") as stream:
-            stream.write("123:ua disable")
+        cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(exceptions.LockHeldError) as err:
             action_enable(mock.MagicMock(), cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
