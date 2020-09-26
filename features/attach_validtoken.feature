@@ -26,7 +26,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
-        \d+ updates can be installed immediately.
+        \d+ update(s)? can be installed immediately.
         \d+ of these updates (is a|are) security update(s)?.
         """
         When I attach `contract_token` with sudo
@@ -54,7 +54,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         UA Infrastructure Extended Security Maintenance \(ESM\) is enabled.
 
-        \d+ updates can be installed immediately.
+        \d+ update(s)? can be installed immediately.
         \d+ of these updates (is|are) provided through UA Infrastructure ESM.
         \d+ of these updates (is a|are) security update(s)?.
         To see these additional updates run: apt list --upgradable
