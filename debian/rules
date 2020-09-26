@@ -39,7 +39,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	[ -z '$(APT_PKG_DEPS)' ] || echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
+	echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
 	dh_gencontrol
 
 override_dh_auto_install:
