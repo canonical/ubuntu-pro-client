@@ -15,10 +15,12 @@ APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
 ESM_APT_SOURCE_FILE_PRECISE="$APT_SRC_DIR/ubuntu-esm-precise.list"
 ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
-ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
+ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
+ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra.list"
 
 ESM_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-trusty"
-ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
+ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
+ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra"
 
 MYARCH="$(dpkg --print-architecture)"
 ESM_SUPPORTED_ARCHS="i386 amd64"
@@ -27,12 +29,14 @@ SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-a
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
-
-UA_SERVICES="$(ua status | awk '/SERVICE/{flag=1;next}/Enable/{flag=0}flag {if(NF) {printf $1 " "}}')"
-
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
+    UA_SERVICES=$(python3 -c "
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
+")
+
     for file in `ls $DIR`; do
         release_name=""
         case "$file" in
@@ -71,7 +75,9 @@ unconfigure_esm() {
         rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
         rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
         rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_APT_PREF_FILE_TRUSTY
+        rm -f $ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY
+        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY
+        rm -f $ESM_INFRA_APT_PREF_FILE_TRUSTY
     fi
 }
 
@@ -141,6 +147,11 @@ case "$1" in
           fi
       fi
 
+      # UA service PPAs support all ubuntu releases, no need to
+      # specialize apt config filenames per ubuntu release.
+      redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
+      redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
+
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
       # machine-access cache files no longer present or used since 20.1
@@ -155,11 +166,6 @@ case "$1" in
           unconfigure_esm
         fi
       fi
-
-     # UA service PPAs support all ubuntu releases, no need to
-     # specialize apt config filenames per ubuntu release.
-     redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
-     redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
 
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log

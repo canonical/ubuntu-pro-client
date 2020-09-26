@@ -243,9 +243,10 @@ def remove_auth_apt_repo(
 
 def restore_commented_apt_list_file(filename: str) -> None:
     """Uncomment commented deb lines in the given file."""
-    file_content = util.load_file(filename)
-    file_content = file_content.replace("# deb ", "deb ")
-    util.write_file(filename, file_content)
+    if os.path.exists(filename):
+        file_content = util.load_file(filename)
+        file_content = file_content.replace("# deb ", "deb ")
+        util.write_file(filename, file_content)
 
 
 def add_ppa_pinning(apt_preference_file, repo_url, origin, priority):

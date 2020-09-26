@@ -28,7 +28,6 @@ case "$1" in
         remove_apt_auth
         remove_cache_dir
         remove_logs
-        remove_esm
         ;;
 esac
 

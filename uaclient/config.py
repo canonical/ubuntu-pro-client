@@ -57,12 +57,16 @@ class UAConfig:
     _entitlements = None  # caching to avoid repetitive file reads
     _machine_token = None  # caching to avoid repetitive file reading
 
-    def __init__(self, cfg: "Dict[str, Any]" = None) -> None:
+    def __init__(
+        self, cfg: "Dict[str, Any]" = None, series: str = None
+    ) -> None:
         """"""
         if cfg:
             self.cfg = cfg
         else:
             self.cfg = parse_config()
+
+        self.series = series
 
     @property
     def accounts(self):
@@ -119,7 +123,7 @@ class UAConfig:
                 entitlement_cfg["resourceToken"] = tokens_by_name[
                     entitlement_name
                 ]
-            util.apply_series_overrides(entitlement_cfg)
+            util.apply_series_overrides(entitlement_cfg, self.series)
             self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
 

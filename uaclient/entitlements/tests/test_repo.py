@@ -251,24 +251,30 @@ class TestProcessContractDeltas:
         assert [] == m_remove_auth_apt_repo.call_args_list
 
     @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
+    )
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch(
         M_PATH + "util.get_platform_info", return_value={"series": "trusty"}
     )
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
-    @mock.patch.object(RepoTestEntitlement, "application_status")
     def test_remove_old_auth_apt_repo_when_active_and_apt_url_delta(
         self,
-        m_application_status,
         m_remove_apt_config,
         m_setup_apt_config,
         m_remove_auth_apt_repo,
         m_platform_info,
+        m_read_cache,
+        m_process_contract_deltas,
         entitlement,
     ):
         """Remove old apt url when aptURL delta occurs on active service."""
-        application_status = status.ApplicationStatus.ENABLED
-        m_application_status.return_value = (application_status, "")
+        m_process_contract_deltas.return_value = False
+        m_read_cache.return_value = {
+            "services": [{"name": "entitlement", "status": "enabled"}]
+        }
         assert entitlement.process_contract_deltas(
             {
                 "entitlement": {
@@ -298,6 +304,8 @@ class TestProcessContractDeltas:
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
+        assert [mock.call("status-cache")] == m_read_cache.call_args_list
+        assert 1 == m_process_contract_deltas.call_count
 
 
 class TestRepoEnable:

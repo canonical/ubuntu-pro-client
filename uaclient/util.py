@@ -142,7 +142,9 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         return o
 
 
-def apply_series_overrides(orig_access: "Dict[str, Any]") -> None:
+def apply_series_overrides(
+    orig_access: "Dict[str, Any]", series: str = None
+) -> None:
     """Apply series-specific overrides to an entitlement dict.
 
     This function mutates orig_access dict by applying any series-overrides to
@@ -162,7 +164,7 @@ def apply_series_overrides(orig_access: "Dict[str, Any]") -> None:
             'Expected entitlement access dict. Missing "entitlement" key:'
             " {}".format(orig_access)
         )
-    series_name = get_platform_info()["series"]
+    series_name = get_platform_info()["series"] if series is None else series
     orig_entitlement = orig_access.get("entitlement", {})
     overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
     for key, value in overrides.items():

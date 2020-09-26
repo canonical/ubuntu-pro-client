@@ -461,11 +461,13 @@ class TestRequestUpdatedContract:
                     }
                 },
                 allow_enable=False,
+                series_overrides=True,
             ),
             mock.call(
                 {"entitlement": {"entitled": False, "type": "ent2"}},
                 {"entitlement": {"entitled": False, "type": "ent2"}},
                 allow_enable=False,
+                series_overrides=True,
             ),
         ]
         assert process_calls == process_entitlement_delta.call_args_list

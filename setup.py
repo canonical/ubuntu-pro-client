@@ -40,6 +40,7 @@ def _get_version():
 def _get_data_files():
     data_files = [
         ("/etc/ubuntu-advantage", ["uaclient.conf"]),
+        ("/usr/lib/ubuntu-advantage", ["upgrade-lts-contract.py"]),
         ("/usr/share/keyrings", glob.glob("keyrings/*")),
         (
             "/etc/update-manager/release-upgrades.d/",

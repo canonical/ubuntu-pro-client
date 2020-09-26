@@ -48,12 +48,12 @@ override_dh_auto_install:
 	make -C apt-hook DESTDIR=$(CURDIR)/debian/ubuntu-advantage-tools install
 
 ifeq (${VERSION_ID},"14.04")
-	# Move ua-auto-attach.conf to ubuntu-advantage-pro
+	# Move ua-auto-attach.conf out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/etc/init
 	mv debian/ubuntu-advantage-tools/etc/init/ua-auto-attach.conf debian/ubuntu-advantage-pro/etc/init/
 	rmdir debian/ubuntu-advantage-tools/etc/init
 else
-	# Move ua-auto-attach.service to ubuntu-advantage-pro
+	# Move ua-auto-attach.service out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/lib/systemd/system
 	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.service debian/ubuntu-advantage-pro/lib/systemd/system
 	cd debian/ubuntu-advantage-tools && rmdir -p lib/systemd/system
