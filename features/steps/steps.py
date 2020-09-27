@@ -214,6 +214,22 @@ def then_apt_cache_policy_for_the_following_url_has_permission_perm_id(
     assert_that(context.process.stdout.strip(), matches_regexp(full_url))
 
 
+@then("I verify that files exist matching `{path_regex}`")
+def there_should_be_files_matching_regex(context, path_regex):
+    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    if context.process.returncode != 0:
+        raise AssertionError("Missing expected files: {}".format(path_regex))
+
+
+@then("I verify that no files exist matching `{path_regex}`")
+def there_should_be_no_files_matching_regex(context, path_regex):
+    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    if context.process.returncode == 0:
+        raise AssertionError(
+            "Unexpected files found: {}".format(context.process.stdout.strip())
+        )
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
