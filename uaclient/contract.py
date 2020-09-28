@@ -299,7 +299,7 @@ def request_updated_contract(
     Compare original token to new token and react to entitlement deltas.
 
     :param cfg: Instance of UAConfig for this machine.
-    :param contract_token: String contraining an optional contract token.
+    :param contract_token: String containing an optional contract token.
     :param allow_enable: Boolean set True if allowed to perform the enable
         operation. When False, a message will be logged to inform the user
         about the recommended enabled service.
@@ -310,11 +310,8 @@ def request_updated_contract(
     """
     orig_token = cfg.machine_token
     orig_entitlements = cfg.entitlements
-    if orig_token and contract_token:
-        raise RuntimeError(
-            "Got unexpected contract_token on an already attached machine"
-        )
     contract_client = UAContractClient(cfg)
+
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
         try:
             new_token = contract_client.request_contract_machine_attach(

@@ -205,25 +205,6 @@ class TestRequestUpdatedContract:
         resource="ent2", machine="mid"
     )
 
-    @mock.patch(M_PATH + "UAContractClient")
-    def test_attached_config_and_contract_token_runtime_error(
-        self, client, FakeConfig
-    ):
-        """When attached, error if called with a contract_token."""
-
-        def fake_contract_client(cfg):
-            return FakeContractClient(cfg)
-
-        client.side_effect = fake_contract_client
-        cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(RuntimeError) as exc:
-            request_updated_contract(cfg, contract_token="something")
-
-        expected_msg = (
-            "Got unexpected contract_token on an already attached machine"
-        )
-        assert expected_msg == str(exc.value)
-
     @pytest.mark.parametrize(
         "error_code, error_msg",
         (

@@ -149,6 +149,7 @@ class TestActionAttach:
 
         request_updated_contract.side_effect = fake_request_updated_contract
         ret = action_attach(args, cfg)
+        print(cfg.is_attached)
         assert 1 == ret
         assert cfg.is_attached
         # Assert updated status cache is written to disk

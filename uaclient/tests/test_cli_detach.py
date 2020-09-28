@@ -1,5 +1,6 @@
 import mock
-from textwrap import dedent
+
+# from textwrap import dedent
 
 import pytest
 
@@ -53,69 +54,6 @@ class TestActionDetach:
             "Operation in progress: ua enable (pid:123)"
         ) == err.value.msg
 
-    @pytest.mark.parametrize(
-        "prompt_response,assume_yes,expect_disable",
-        [(True, False, True), (False, False, False), (True, True, True)],
-    )
-    @mock.patch("uaclient.cli.entitlements")
-    @mock.patch("uaclient.contract.UAContractClient")
-    def test_entitlements_disabled_appropriately(
-        self,
-        m_client,
-        m_entitlements,
-        m_getuid,
-        m_prompt,
-        prompt_response,
-        assume_yes,
-        expect_disable,
-        FakeConfig,
-    ):
-        # The three parameters:
-        #   prompt_response: the user's response to the prompt
-        #   assume_yes: the value of the --assume-yes flag in the args passed
-        #               to the action
-        #   expect_disable: whether or not the enabled entitlement is expected
-        #                   to be disabled by the action
-        m_getuid.return_value = 0
-
-        cfg = FakeConfig.for_attached_machine()
-        fake_client = FakeContractClient(cfg)
-        m_client.return_value = fake_client
-
-        m_prompt.return_value = prompt_response
-
-        m_entitlements.ENTITLEMENT_CLASSES = [
-            entitlement_cls_mock_factory(False),
-            entitlement_cls_mock_factory(True),
-            entitlement_cls_mock_factory(False),
-        ]
-
-        args = mock.MagicMock(assume_yes=assume_yes)
-        return_code = action_detach(args, cfg)
-
-        # Check that can_disable is called correctly
-        for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
-            assert [
-                mock.call(silent=True)
-            ] == ent_cls.return_value.can_disable.call_args_list
-
-        # Check that disable is only called when can_disable is true
-        for undisabled_cls in [
-            m_entitlements.ENTITLEMENT_CLASSES[0],
-            m_entitlements.ENTITLEMENT_CLASSES[2],
-        ]:
-            assert 0 == undisabled_cls.return_value.disable.call_count
-        disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
-        if expect_disable:
-            assert [
-                mock.call(silent=True)
-            ] == disabled_cls.return_value.disable.call_args_list
-            assert 0 == return_code
-        else:
-            assert 0 == disabled_cls.return_value.disable.call_count
-            assert 1 == return_code
-        assert [mock.call(assume_yes=assume_yes)] == m_prompt.call_args_list
-
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
     def test_config_cache_deleted(
@@ -129,9 +67,16 @@ class TestActionDetach:
 
         m_cfg = mock.MagicMock()
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        m_cfg.read_cache.return_value = ""
+        m_cfg.write_cache.return_value = True
         action_detach(mock.MagicMock(), m_cfg)
 
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
+        assert [mock.call("machine-token")] == m_cfg.read_cache.call_args_list
+        assert (
+            mock.call("machine-token-saved", "")
+            == m_cfg.write_cache.call_args_list[-1]
+        )
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
@@ -153,11 +98,18 @@ class TestActionDetach:
 
         m_cfg = mock.MagicMock()
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        m_cfg.read_cache.return_value = ""
+        m_cfg.write_cache.return_value = True
         action_detach(mock.MagicMock(), m_cfg)
 
         out, _err = capsys.readouterr()
 
         assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
+        assert [mock.call("machine-token")] == m_cfg.read_cache.call_args_list
+        assert (
+            mock.call("machine-token-saved", "")
+            == m_cfg.write_cache.call_args_list[-1]
+        )
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
@@ -172,67 +124,16 @@ class TestActionDetach:
 
         m_cfg = mock.MagicMock()
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        m_cfg.read_cache.return_value = ""
+        m_cfg.write_cache.return_value = True
         ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
-
-    @pytest.mark.parametrize(
-        "classes,expected_message",
-        [
-            (
-                [
-                    entitlement_cls_mock_factory(True, name="ent1"),
-                    entitlement_cls_mock_factory(False, name="ent2"),
-                    entitlement_cls_mock_factory(True, name="ent3"),
-                ],
-                dedent(
-                    """\
-                    Detach will disable the following services:
-                        ent1
-                        ent3"""
-                ),
-            ),
-            (
-                [
-                    entitlement_cls_mock_factory(True, name="ent1"),
-                    entitlement_cls_mock_factory(False, name="ent2"),
-                ],
-                dedent(
-                    """\
-                    Detach will disable the following service:
-                        ent1"""
-                ),
-            ),
-        ],
-    )
-    @mock.patch("uaclient.cli.entitlements")
-    @mock.patch("uaclient.contract.UAContractClient")
-    def test_informational_message_emitted(
-        self,
-        m_client,
-        m_entitlements,
-        m_getuid,
-        _m_prompt,
-        capsys,
-        classes,
-        expected_message,
-        FakeConfig,
-        tmpdir,
-    ):
-        m_getuid.return_value = 0
-        m_entitlements.ENTITLEMENT_CLASSES = classes
-
-        fake_client = FakeContractClient(FakeConfig.for_attached_machine())
-        m_client.return_value = fake_client
-
-        m_cfg = mock.MagicMock()
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
-
-        action_detach(mock.MagicMock(), m_cfg)
-
-        out, _err = capsys.readouterr()
-
-        assert expected_message in out
+        assert [mock.call("machine-token")] == m_cfg.read_cache.call_args_list
+        assert (
+            mock.call("machine-token-saved", "")
+            == m_cfg.write_cache.call_args_list[-1]
+        )
 
 
 class TestParser:

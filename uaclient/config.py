@@ -50,6 +50,7 @@ class UAConfig:
         "instance-id": DataPath("instance-id", True),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
+        "machine-token-saved": DataPath("machine-token.json.save", True),
         "lock": DataPath("lock", True),
         "status-cache": DataPath("status.json", False),
     }  # type: Dict[str, DataPath]

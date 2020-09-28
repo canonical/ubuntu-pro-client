@@ -70,7 +70,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.all
-    Scenario Outline: Attached detach in a trusty machine
+    Scenario Outline: Attached detach in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua detach` as non-root
@@ -81,9 +81,6 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua detach --assume-yes` with sudo
         Then I will see the following on stdout:
             """
-            Detach will disable the following service:
-                esm-infra
-            Updating package lists
             This machine is now detached
             """
        When I run `ua status --all` as non-root
@@ -102,6 +99,7 @@ Feature: Command behaviour when attached to an UA subscription
           This machine is not attached to a UA subscription.
           """
        And I verify that running `apt update` `with sudo` exits `0`
+       And I verify that files exist matching `/var/lib/ubuntu-advantage/private/machine-token.json.save`
 
        Examples: ubuntu release
            | release | esm-apps | cc-eal | fips | fips-update |
@@ -109,6 +107,49 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   | yes      | no     | no   | no          |
            | trusty  | no       | no     | no   | no          |
            | xenial  | yes      | yes    | yes  | yes         |
+
+    @series.all
+    Scenario Outline: Detach then attach exercises contract deltas in a ubuntu machine
+       Given a `<release>` machine with ubuntu-advantage-tools installed
+       When I attach `contract_token` with sudo
+       When I run `ua detach --assume-yes` with sudo
+       Then I will see the following on stdout:
+           """
+           This machine is now detached
+           """
+       When I run `ua status --all` as non-root
+       Then stdout matches regexp:
+           """
+           SERVICE       AVAILABLE  DESCRIPTION
+           cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
+           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance
+           esm-infra     +yes        +UA Infra: Extended Security Maintenance
+           fips          +<fips>     +NIST-certified FIPS modules
+           fips-updates  +<fips>     +Uncertified security updates to FIPS modules
+           livepatch     +yes        +Canonical Livepatch service
+           """
+       And stdout matches regexp:
+          """
+          This machine is not attached to a UA subscription.
+          """
+       And I verify that running `apt update` `with sudo` exits `0`
+       And I verify that files exist matching `/var/lib/ubuntu-advantage/private/machine-token.json.save`
+       And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
+       When I attach `contract_token_staging` with sudo
+       Then stdout matches regexp:
+       """
+       esm-apps      yes                <esm-apps-staging> +UA Apps: Extended Security Maintenance
+       esm-infra     no                 —                  UA Infra: Extended Security Maintenance
+       livepatch     yes                n/a                Canonical Livepatch service
+       """
+       And I verify that no files exist matching `/var/lib/ubuntu-advantage/private/machine-token.json.save`
+
+       Examples: ubuntu release
+           | release | esm-apps | cc-eal | fips | fips-update | esm-apps-staging |
+           | bionic  | yes      | no     | yes  | yes         | enabled          |
+           | focal   | yes      | no     | no   | no          | enabled          |
+           | trusty  | no       | no     | no   | no          | n/a              |
+           | xenial  | yes      | yes    | yes  | yes         | enabled          |
 
     @series.all
     Scenario Outline: Attached auto-attach in a ubuntu machine

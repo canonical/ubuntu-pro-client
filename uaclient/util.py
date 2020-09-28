@@ -16,7 +16,6 @@ from http.client import HTTPMessage  # noqa: F401
 from uaclient import exceptions
 from uaclient import status
 
-
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 
 
