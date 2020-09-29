@@ -1,8 +1,10 @@
 ubuntu-advantage-tools (25.0) UNRELEASED; urgency=medium
 
+  * d/control: lint warning update debhelper version 9->10 avoid deprecation
+  * d/rules: set fix lintian warning extra:Depends even if empty
   * Open 25.0 release for active development
 
- -- Chad Smith <chad.smith@canonical.com>  Tue, 26 May 2020 21:23:29 -0600
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 28 Sep 2020 21:11:54 -0600
 
 ubuntu-advantage-tools (24.1) groovy; urgency=medium
 
