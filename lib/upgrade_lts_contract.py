@@ -20,9 +20,11 @@ This script will detect differences like that and update the Xenial system
 to reflect them.
 """
 
+import time
 import contextlib
 import logging
 import os
+import sys
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
@@ -43,18 +45,17 @@ current_codename_to_past_codename = {
 }
 
 
-def process_contract_delta_after_apt_lock():
+def process_contract_delta_after_apt_lock() -> None:
     setup_logging(logging.INFO, logging.DEBUG)
     out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."
     if out:
-        mgs += " Retrying every 10 seconds waiting on released apt lock"
+        msg += " Retrying every 10 seconds waiting on released apt lock"
     print(msg)
     logging.debug(msg)
 
     current_version = parse_os_release()["VERSION_ID"]
     current_release = version_to_codename[current_version]
-    past_release = current_codename_to_past_codename[current_release]
 
     if current_release == "trusty":
         msg = "Unable to execute upgrade-lts-contract.py on trusty"
@@ -62,6 +63,7 @@ def process_contract_delta_after_apt_lock():
         logging.warning(msg)
         sys.exit(1)
 
+    past_release = current_codename_to_past_codename[current_release]
     past_entitlements = UAConfig(series=past_release).entitlements
     new_entitlements = UAConfig(series=current_release).entitlements
 
@@ -72,11 +74,12 @@ def process_contract_delta_after_apt_lock():
         time.sleep(10)
         out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
         retry_count += 1
-    logging.debug(
-        "upgrade-lts-contract processing contract deltas: %s -> %s",
-        past_release,
-        current_release,
+
+    msg = "upgrade-lts-contract processing contract deltas: {} -> {}".format(
+        past_release, current_release
     )
+    print(msg)
+    logging.debug(msg)
 
     process_entitlements_delta(
         past_entitlements=past_entitlements,
@@ -84,9 +87,9 @@ def process_contract_delta_after_apt_lock():
         allow_enable=True,
         series_overrides=False,
     )
-    logging.debug(
-        "upgrade-lts-contract succeeded after %d retries", retry_count
-    )
+    msg = "upgrade-lts-contract succeeded after {} retries".format(retry_count)
+    print(msg)
+    logging.debug(msg)
 
 
 if __name__ == "__main__":
