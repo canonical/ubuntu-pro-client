@@ -29,6 +29,7 @@ test:
 testdeps:
 	echo pip install -U six
 ifneq (,$(findstring trusty,$(TOXENV)))
+	echo pin virtualenv
 	pip install virtualenv==20.0.31
 endif
 	pip install tox
