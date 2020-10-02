@@ -17,7 +17,7 @@ script:
 matrix:
   fast_finish: true
   allow_failures:
-    -name: azurepro-16.04
+    name: trusty-flake8
   include:
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       stage: build
@@ -238,7 +238,6 @@ matrix:
           - echo $TRAVIS_JOB_NUMBER
           - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
-      name: azurepro-16.04
       python: 3.7
       stage: integration
       env: 
@@ -835,6 +834,7 @@ matrix:
         - cp ubuntu-advantage-tools-pro-focal.deb focal-debs
         - ls focal-debs
     - python: 3.4
+      name: trusty-flake8
       stage: flake
       env: TOXENV=py3-trusty,flake8-trusty
       dist: trusty

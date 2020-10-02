@@ -289,23 +289,9 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.xenial
-    @uses.config.machine_type.lxd.vm
-    Scenario: Attached enable of vm-based services in a bionic lxd vm
-        Given a `xenial` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        When I run `ua disable livepatch` with sudo
-        And I run `ua enable fips --assume-yes --beta` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Installing FIPS packages
-            FIPS enabled
-            A reboot is required to complete install
-            """
-
     @series.bionic
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Attached enable of vm-based services in a bionic lxd vm
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable livepatch` with sudo
@@ -328,6 +314,39 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             fips
             """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+
+    @series.bionic
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable of vm-based services in a bionic lxd vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        livepatch    +yes      +enabled  +Canonical Livepatch service
+        """
+        When I run `ua disable livepatch` with sudo
+        And I run `canonical-livepatch status` with sudo
+        Then stdout matches regexp:
+        """
+        Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
+        token obtained from https://ubuntu.com/livepatch.
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        livepatch    +yes      +disabled +Canonical Livepatch service
+        """
 
         Examples: ubuntu release
            | release |
