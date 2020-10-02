@@ -1,6 +1,8 @@
 ubuntu-advantage-tools (25.0) UNRELEASED; urgency=medium
 
   * d/control: lint warning update debhelper version 9->10 avoid deprecation
+    - add po-debconf dependency and fix lintian not-using-po-debconf and
+      untranslatable-debconf-templates
   * d/rules: set fix lintian warning extra:Depends even if empty
   * Open 25.0 release for active development
 
