@@ -27,7 +27,10 @@ test:
 	@tox
 
 testdeps:
-	pip install -U six
+	echo pip install -U six
+ifneq (,$(findstring trusty,$(TOXENV)))
+	pip install virtualenv==20.0.31
+endif
 	pip install tox
 
 travis-deb-install:
