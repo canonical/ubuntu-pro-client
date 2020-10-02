@@ -160,10 +160,6 @@ class RepoEntitlement(base.UAEntitlement):
     def _cleanup(self) -> None:
         """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config()
-        try:
-            util.subp(["apt-get", "remove", "--assume-yes"] + self.packages)
-        except util.ProcessExecutionError:
-            pass
 
     def application_status(self) -> "Tuple[ApplicationStatus, str]":
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})

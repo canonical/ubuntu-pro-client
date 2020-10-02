@@ -187,10 +187,6 @@ class LivepatchEntitlement(base.UAEntitlement):
         if not util.which("/snap/bin/canonical-livepatch"):
             return True
         util.subp(["/snap/bin/canonical-livepatch", "disable"], capture=True)
-        logging.debug("Removing canonical-livepatch snap")
-        if not silent:
-            print("Removing canonical-livepatch snap")
-        util.subp([SNAP_CMD, "remove", "canonical-livepatch"], capture=True)
         return True
 
     def application_status(self) -> "Tuple[ApplicationStatus, str]":

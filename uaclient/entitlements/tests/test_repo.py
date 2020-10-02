@@ -355,34 +355,25 @@ class TestRepoEnable:
         assert can_enable_call_count == m_can_enable.call_count
 
     @pytest.mark.parametrize(
-        "pre_disable_msg,post_disable_msg,output,remove_apt_call_count,retval",
+        "pre_disable_msg,post_disable_msg,output,retval",
         (
             (
                 ["pre1", (lambda: False, {}), "pre2"],
                 ["post1"],
                 "pre1\n",
-                0,
                 False,
             ),
-            (
-                ["pre1", (lambda: True, {}), "pre2"],
-                [],
-                "pre1\npre2\n",
-                1,
-                True,
-            ),
+            (["pre1", (lambda: True, {}), "pre2"], [], "pre1\npre2\n", True),
             (
                 ["pre1", (lambda: True, {}), "pre2"],
                 ["post1", (lambda: False, {}), "post2"],
                 "pre1\npre2\npost1\n",
-                1,
                 False,
             ),
             (
                 ["pre1", (lambda: True, {}), "pre2"],
                 ["post1", (lambda: True, {}), "post2"],
                 "pre1\npre2\npost1\npost2\n",
-                1,
                 True,
             ),
         ),
@@ -400,7 +391,6 @@ class TestRepoEnable:
         pre_disable_msg,
         post_disable_msg,
         output,
-        remove_apt_call_count,
         retval,
         entitlement,
         capsys,
@@ -415,11 +405,6 @@ class TestRepoEnable:
                 assert retval is entitlement.disable()
         stdout, _ = capsys.readouterr()
         assert output == stdout
-        assert remove_apt_call_count == remove_apt_config.call_count
-        if remove_apt_call_count > 0:
-            assert [
-                mock.call(["apt-get", "remove", "--assume-yes"])
-            ] == m_subp.call_args_list
 
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
@@ -558,10 +543,6 @@ class TestRepoEnable:
                             entitlement.enable()
 
         assert "Could not enable Repo Test Class." == excinfo.value.msg
-        expected_call = mock.call(
-            ["apt-get", "remove", "--assume-yes"] + packages
-        )
-        assert expected_call in m_subp.call_args_list
         assert 1 == m_rac.call_count
 
 
