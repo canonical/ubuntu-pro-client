@@ -21,8 +21,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
-        \d+ packages can be updated.
-        \d+ updates are security updates.
+        \d+ package(s)? can be updated.
+        \d+ update(s)? (is a|are) security update(s)?.
         """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
@@ -61,8 +61,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
-        \d+ packages can be updated.
-        \d+ updates are security updates.
+        \d+ package(s)? can be updated.
+        \d+ update(s)? (is a|are) security update(s)?.
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                     |
