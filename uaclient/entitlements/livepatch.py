@@ -24,7 +24,7 @@ ERROR_MSG_MAP = {
 
 class LivepatchEntitlement(base.UAEntitlement):
 
-    help_doc_url = "https://ubuntu.com/livepatch"
+    help_doc_url = "https://ubuntu.com/security/livepatch"
     name = "livepatch"
     title = "Livepatch"
     description = "Canonical Livepatch service"

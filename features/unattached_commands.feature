@@ -89,22 +89,33 @@ Feature: Command behaviour when unattached
         When I run `ua help esm-infra` as non-root
         Then I will see the following on stdout:
             """
-            name: esm-infra
-            available: yes
-            help:
-            esm-infra help
-            Information about esm-infra
+            Name:
+            esm-infra
+
+            Available:
+            yes
+
+            Help:
+            UA Infra: Extended Security Maintenance is enabled by default on entitled
+            workloads. It provides access to a private PPA which includes available
+            high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
+            repository between the end of the standard (free) Ubuntu LTS security
+            maintenance and its end of life. You can find out more about the esm
+            service at https://ubuntu.com/security/esm.
             """
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "available": "yes", "help": "esm-infra help\nInformation about esm-infra"}
+            {"name": "esm-infra", "available": "yes", "help": "UA Infra: Extended Security Maintenance is enabled by default on entitled\nworkloads. It provides access to a private PPA which includes available\nhigh and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard (free) Ubuntu LTS security\nmaintenance and its end of life. You can find out more about the esm\nservice at https://ubuntu.com/security/esm.\n"}
             """
         When I run `ua help invalid-service` with sudo
         Then I will see the following on stdout:
             """
-            name: invalid-service
-            help: No help available for service "invalid-service"
+            Name:
+            invalid-service
+
+            Help:
+            No help available for "invalid-service"
             """
 
         Examples: ubuntu release

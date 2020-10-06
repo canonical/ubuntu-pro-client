@@ -42,12 +42,16 @@ Client to manage Ubuntu Advantage services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
-   (https://ubuntu.com/cis-audit)
- - esm-apps: UA Apps: Extended Security Maintenance (https://ubuntu.com/esm)
- - esm-infra: UA Infra: Extended Security Maintenance (https://ubuntu.com/esm)
- - fips: NIST-certified FIPS modules (https://ubuntu.com/fips)
+   (https://ubuntu.com/security/hardening)
+ - esm-apps: UA Apps: Extended Security Maintenance
+   (https://ubuntu.com/security/esm)
+ - esm-infra: UA Infra: Extended Security Maintenance
+   (https://ubuntu.com/security/esm)
+ - fips: NIST-certified FIPS modules (https://ubuntu.com/security/fips)
  - fips-updates: Uncertified security updates to FIPS modules
- - livepatch: Canonical Livepatch service (https://ubuntu.com/livepatch)
+   (https://ubuntu.com/security/fips)
+ - livepatch: Canonical Livepatch service
+   (https://ubuntu.com/security/livepatch)
 """
 )
 
@@ -116,14 +120,11 @@ class TestCLIParser:
         (
             (
                 "tabular",
-                "\n".join(
-                    ["name: test", "available: yes", "help: Test service"]
+                "\n\n".join(
+                    ["Name:\ntest", "Available:\nyes", "Help:\nTest\n\n"]
                 ),
             ),
-            (
-                "json",
-                {"name": "test", "available": "yes", "help": "Test service"},
-            ),
+            ("json", {"name": "test", "available": "yes", "help": "Test"}),
         ),
     )
     @mock.patch("uaclient.contract.get_available_resources")
@@ -143,7 +144,7 @@ class TestCLIParser:
         type(m_args).format = m_format
 
         m_entitlement_cls = mock.MagicMock()
-        m_ent_help_info = mock.PropertyMock(return_value="Test service")
+        m_ent_help_info = mock.PropertyMock(return_value="Test")
         m_entitlement_obj = m_entitlement_cls.return_value
         type(m_entitlement_obj).help_info = m_ent_help_info
 
@@ -223,17 +224,19 @@ class TestCLIParser:
         is_beta_call_count = 1 if status_msg == "enabled" else 0
 
         expected_msgs = [
-            "name: test",
-            "entitled: {}".format(ent_msg),
-            "status: {}".format(status_msg),
+            "Name:\ntest",
+            "Entitled:\n{}".format(ent_msg),
+            "Status:\n{}".format(status_msg),
         ]
 
         if is_beta and status_msg == "enabled":
-            expected_msgs.append("beta: True")
+            expected_msgs.append("Beta:\nTrue")
 
-        expected_msgs.append("help:\nTest service\nService is being tested")
+        expected_msgs.append(
+            "Help:\nTest service\nService is being tested\n\n"
+        )
 
-        expected_msg = "\n".join(expected_msgs)
+        expected_msg = "\n\n".join(expected_msgs)
 
         fake_stdout = io.StringIO()
         with mock.patch.object(
@@ -266,8 +269,8 @@ class TestCLIParser:
             {"name": "ent1", "available": True}
         ]
 
-        expected_msg = "\n".join(
-            ["name: test", 'help: No help available for service "test"']
+        expected_msg = "\n\n".join(
+            ["Name:\ntest", 'Help:\nNo help available for "test"\n\n']
         )
 
         fake_stdout = io.StringIO()

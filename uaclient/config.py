@@ -451,16 +451,14 @@ class UAConfig:
         response_dict["name"] = name
 
         for resource in resources:
-            if resource["name"] == name:
+            if resource["name"] == name and name in ENTITLEMENT_CLASS_BY_NAME:
                 help_resource = resource
                 help_ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(name)
                 help_ent = help_ent_cls(self)
                 break
 
         if help_resource is None:
-            response_dict[
-                "help"
-            ] = 'No help available for service "{}"'.format(name)
+            response_dict["help"] = 'No help available for "{}"'.format(name)
             return response_dict
 
         if self.is_attached:

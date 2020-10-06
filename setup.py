@@ -39,7 +39,7 @@ def _get_version():
 
 def _get_data_files():
     data_files = [
-        ("/etc/ubuntu-advantage", ["uaclient.conf"]),
+        ("/etc/ubuntu-advantage", ["uaclient.conf", "help_data.yaml"]),
         ("/usr/lib/ubuntu-advantage", glob.glob("lib/[!_]*")),
         ("/usr/share/keyrings", glob.glob("keyrings/*")),
         (

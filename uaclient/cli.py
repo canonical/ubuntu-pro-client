@@ -791,10 +791,7 @@ def action_help(args, cfg):
         print(json.dumps(help_response))
     else:
         for key, value in help_response.items():
-            if "\n" in str(value):
-                print("{}:\n{}".format(key, value))
-            elif value:
-                print("{}: {}".format(key, value))
+            print("{}:\n{}\n".format(key.title(), value))
 
     return 0
 

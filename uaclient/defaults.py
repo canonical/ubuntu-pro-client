@@ -17,7 +17,3 @@ CONFIG_DEFAULTS = {
     "log_level": "INFO",
     "log_file": "/var/log/ubuntu-advantage.log",
 }
-
-DEFAULT_HELP = {
-    "esm-infra": {"help": "esm-infra help\nInformation about esm-infra"}
-}
