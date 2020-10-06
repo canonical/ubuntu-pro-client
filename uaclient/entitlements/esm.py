@@ -9,7 +9,7 @@ except ImportError:
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
-    help_doc_url = "https://ubuntu.com/esm"
+    help_doc_url = "https://ubuntu.com/security/esm"
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):

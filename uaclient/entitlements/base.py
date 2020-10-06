@@ -22,7 +22,7 @@ from uaclient.status import (
     ContractStatus,
     UserFacingStatus,
 )
-from uaclient.defaults import DEFAULT_HELP_FILE, DEFAULT_HELP
+from uaclient.defaults import DEFAULT_HELP_FILE
 
 RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
@@ -66,11 +66,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     def help_info(self) -> str:
         """Help information for the entitlement"""
         if self._help_info is None:
+            help_dict = {}
+
             if os.path.exists(DEFAULT_HELP_FILE):
                 with open(DEFAULT_HELP_FILE, "r") as f:
-                    help_dict = yaml.load(f, Loader=yaml.FullLoader)
-            else:
-                help_dict = DEFAULT_HELP
+                    help_dict = yaml.safe_load(f)
 
             self._help_info = help_dict.get(self.name, {}).get("help", "")
 

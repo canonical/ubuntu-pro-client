@@ -3,7 +3,7 @@ from uaclient.entitlements import repo
 
 class CISEntitlement(repo.RepoEntitlement):
 
-    help_doc_url = "https://ubuntu.com/cis-audit"
+    help_doc_url = "https://ubuntu.com/security/hardening"
     name = "cis-audit"
     title = "CIS Audit"
     description = "Center for Internet Security Audit Tools"

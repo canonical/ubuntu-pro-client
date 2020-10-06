@@ -1,8 +1,0 @@
-esm-infra:
-   help: |
-     esm-infra help
-     Information about esm-infra
-esm-apps:
-    help: |
-      esm-apps help
-      Information about esm-apps

@@ -24,6 +24,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
+    help_doc_url = "https://ubuntu.com/security/fips"
+
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests
@@ -94,7 +96,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 
-    help_doc_url = "https://ubuntu.com/fips"
     name = "fips"
     title = "FIPS"
     description = "NIST-certified FIPS modules"
