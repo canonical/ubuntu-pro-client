@@ -19,7 +19,7 @@ APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
-	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild \
+	dh $@ --with python3,bash-completion --buildsystem=pybuild \
 		--no-start
 
 override_dh_auto_build:
@@ -39,7 +39,7 @@ endif
 endif
 
 override_dh_gencontrol:
-	[ -z '$(APT_PKG_DEPS)' ] || echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
+	echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
 	dh_gencontrol
 
 override_dh_auto_install:

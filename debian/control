@@ -8,13 +8,13 @@ Build-Depends: bash-completion,
                gettext,
                git,
                libapt-pkg-dev,
+               po-debconf,
                python3 (>= 3.4),
                python3-flake8,
                python3-mock,
                python3-pytest,
                python3-setuptools,
-               python3-yaml,
-               dh-systemd
+               python3-yaml
 Standards-Version: 4.3.0
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
@@ -37,7 +37,7 @@ Description: management tools for Ubuntu Advantage
 
 Package: ubuntu-advantage-pro
 Architecture: any
-Depends: ubuntu-advantage-tools (>=20.2)
+Depends: ${misc:Depends}, ubuntu-advantage-tools (>=20.2)
 Replaces: ubuntu-advantage-tools (<<20.2)
 Breaks: ubuntu-advantage-tools (<<20.2)
 Description: utilities and services for Ubuntu Pro images
