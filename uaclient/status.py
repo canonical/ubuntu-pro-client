@@ -227,8 +227,8 @@ MESSAGE_CONTRACT_EXPIRED_ERROR = """\
 Subscription has expired
 To obtain a token please visit: https://ubuntu.com/advantage"""
 MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL = """\
-Cannot {operation} '{name}'
-For a list of services see: sudo ua status"""
+Cannot {operation} unknown service '{name}'.
+{service_msg}"""
 MESSAGE_UNEXPECTED_ERROR = """\
 Unexpected error(s) occurred.
 For more details, see the log: /var/log/ubuntu-advantage.log

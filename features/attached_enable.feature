@@ -39,8 +39,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
         And stderr matches regexp:
             """
-            Cannot enable 'foobar, fips'
-            For a list of services see: sudo ua status
+            Cannot enable unknown service 'foobar, fips'.
+            Try esm-apps, esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -66,8 +66,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
         Then stderr matches regexp:
             """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
+            Cannot enable unknown service 'foobar'.
+            Try esm-apps, esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -166,8 +166,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
         And stderr matches regexp:
             """
-            Cannot enable 'foobar'
-            For a list of services see: sudo ua status
+            Cannot enable unknown service 'foobar'.
+            Try esm-apps, esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -226,8 +226,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
         And stderr matches regexp:
             """
-            Cannot enable '<service>'
-            For a list of services see: sudo ua status
+            Cannot enable unknown service '<service>'.
+            Try esm-apps, esm-infra, livepatch
             """
 
         Examples: beta services in containers

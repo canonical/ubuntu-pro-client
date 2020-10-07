@@ -109,13 +109,9 @@ Feature: Command behaviour when unattached
             {"name": "esm-infra", "available": "yes", "help": "UA Infra: Extended Security Maintenance is enabled by default on entitled\nworkloads. It provides access to a private PPA which includes available\nhigh and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard (free) Ubuntu LTS security\nmaintenance and its end of life. You can find out more about the esm\nservice at https://ubuntu.com/security/esm.\n"}
             """
         When I run `ua help invalid-service` with sudo
-        Then I will see the following on stdout:
+        Then I will see the following on stderr:
             """
-            Name:
-            invalid-service
-
-            Help:
-            No help available for "invalid-service"
+            No help available for 'invalid-service'
             """
 
         Examples: ubuntu release

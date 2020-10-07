@@ -1,10 +1,12 @@
 import contextlib
 import io
 import mock
+import textwrap
 
 import pytest
 
 from uaclient.cli import _perform_enable, action_enable
+from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status
 
@@ -59,7 +61,7 @@ class TestActionEnable:
         cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.names = ["esm-infra"]
+            args.service = ["esm-infra"]
             action_enable(args, cfg)
         assert (
             expected_error_template.format(name="esm-infra") == err.value.msg
@@ -86,10 +88,19 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.names = ["bogus"]
+            args.service = ["bogus"]
             action_enable(args, cfg)
+        service_msg = "\n".join(
+            textwrap.wrap(
+                "Try " + entitlements.ALL_ENTITLEMENTS_STR,
+                width=80,
+                break_long_words=False,
+            )
+        )
         assert (
-            expected_error_template.format(operation="enable", name="bogus")
+            expected_error_template.format(
+                operation="enable", name="bogus", service_msg=service_msg
+            )
             == err.value.msg
         )
 
@@ -122,7 +133,7 @@ class TestActionEnable:
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        args.names = ["testitlement"]
+        args.service = ["testitlement"]
         args.assume_yes = assume_yes
         args.beta = beta_flag
         action_enable(args, cfg)
@@ -169,11 +180,13 @@ class TestActionEnable:
             "ent2": m_ent2_cls,
             "ent3": m_ent3_cls,
         }
+        m_entitlements.ALL_ENTITLEMENTS_STR = "ent2, ent3"
+        m_entitlements.RELEASED_ENTITLEMENTS_STR = "ent2, ent3"
 
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
         args_mock = mock.Mock()
-        args_mock.names = ["ent1", "ent2", "ent3"]
+        args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
@@ -185,7 +198,11 @@ class TestActionEnable:
                 action_enable(args_mock, cfg)
 
         assert (
-            expected_error_tmpl.format(operation="enable", name="ent1")
+            expected_error_tmpl.format(
+                operation="enable",
+                name="ent1",
+                service_msg="Try " + m_entitlements.ALL_ENTITLEMENTS_STR,
+            )
             == err.value.msg
         )
         assert expected_msg == fake_stdout.getvalue()
@@ -245,29 +262,39 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
         args_mock = mock.Mock()
-        args_mock.names = ["ent1", "ent2", "ent3"]
+        args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
         expected_msg = "One moment, checking your subscription first\n"
-
-        with pytest.raises(exceptions.UserFacingError) as err:
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                action_enable(args_mock, cfg)
-
+        m_entitlements.RELEASED_ENTITLEMENTS_STR = "ent1, ent3"
+        m_entitlements.ALL_ENTITLEMENTS_STR = "ent1, ent2, ent3"
         not_found_name = "ent1"
         mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
 
         if not beta_flag:
             not_found_name += ", ent2"
+            ent_str = "Try " + m_entitlements.RELEASED_ENTITLEMENTS_STR
         else:
+            ent_str = "Try " + m_entitlements.ALL_ENTITLEMENTS_STR
             mock_ent_list.append(m_ent2_cls)
             mock_obj_list.append(m_ent3_obj)
+        service_msg = "\n".join(
+            textwrap.wrap(ent_str, width=80, break_long_words=False)
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg)
 
         assert (
-            expected_error_tmpl.format(operation="enable", name=not_found_name)
+            expected_error_tmpl.format(
+                operation="enable",
+                name=not_found_name,
+                service_msg=service_msg,
+            )
             == err.value.msg
         )
         assert expected_msg == fake_stdout.getvalue()
@@ -285,9 +312,12 @@ class TestActionEnable:
         assert beta_count == m_ent2_is_beta.call_count
         assert beta_count == m_ent3_is_beta.call_count
 
-    @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
+    @pytest.mark.parametrize(
+        "service, beta",
+        ((["bogus"], False), (["bogus"], True), (["bogus1", "bogus2"], False)),
+    )
     def test_invalid_service_names(
-        self, _m_request_updated_contract, m_getuid, names, FakeConfig
+        self, _m_request_updated_contract, m_getuid, service, beta, FakeConfig
     ):
         m_getuid.return_value = 0
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
@@ -298,13 +328,23 @@ class TestActionEnable:
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
                 args = mock.MagicMock()
-                args.names = names
+                args.service = service
+                args.beta = beta
                 action_enable(args, cfg)
 
         assert expected_msg == fake_stdout.getvalue()
+        if beta:
+            ent_str = "Try " + entitlements.ALL_ENTITLEMENTS_STR
+        else:
+            ent_str = "Try " + entitlements.RELEASED_ENTITLEMENTS_STR
+        service_msg = "\n".join(
+            textwrap.wrap(ent_str, width=80, break_long_words=False)
+        )
         assert (
             expected_error_tmpl.format(
-                operation="enable", name=", ".join(sorted(names))
+                operation="enable",
+                name=", ".join(sorted(service)),
+                service_msg=service_msg,
             )
             == err.value.msg
         )
