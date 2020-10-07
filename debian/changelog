@@ -1,12 +1,48 @@
-ubuntu-advantage-tools (25.0) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (25.0~beta) UNRELEASED; urgency=medium
 
-  * d/control: lint warning update debhelper version 9->10 avoid deprecation
+  * d/control:
     - add po-debconf dependency and fix lintian not-using-po-debconf and
       untranslatable-debconf-templates
     - add ${misc:Depends} dep to ubuntu-advantage-pro to fix lintian
-      debhelper-but-no-misc-depends
-  * d/rules: set fix lintian warning extra:Depends even if empty
-  * Open 25.0 release for active development
+      debhelper-but-no-misc-depends (GH: #1024)
+  * d/rules:
+    - drop --with systemd fix build-depends-on-obsolete-package
+    - set fix lintian warning extra:Depends even if empty
+  * d/postrm
+    - Add more gpg keys to be deleted in postrm for Xenial+ support
+  * d/postinst:
+    - do not unconfigure non-trusty esm. no series in apt filenames (GH: #1170)
+    - check if esm is already enabled (GH: #1095)
+  * New upstream release 25.0:
+    - Do not uninstall additionalPackages or livepatch when disabling services
+    - check for issubclass on clean_apt_files
+    - Add do-release-upgrade support for esm-infra and apps suites (GH: #1169)
+    - Apply contract deltas during do-release-upgrade operations
+    - cli: add ua help command
+    - cli: status add blocking --wait param and lock files for config change
+    - Fix livepatch behaviour on aws pro focal machine
+    - travis: drop inapplicable workspaces from specific awsgeneric release
+      jobs
+    - Add possible reboot text after enabling/disabling services
+    - apt-hook: package apt-hook and apt configuration files on all releases
+      (GH: #1150)
+    - Fix enable fail bug
+    - Add uaclient.conf override mechanism for auto-attach, beta services and
+      machine-token
+    - Support ESM Apps [Brian Murray] (GH: #930)
+    - Do not enable services if blocking services is active (GH: #1029)
+    - contract: handle 401 on invalid token, 403 on expired
+    - Hide beta services from default status output and enable/disable
+      operations (GH: #1079) (GH: #1091)
+    - fips: force apt noninteractive prompts during package installs
+      (GH: #1084)
+    - tests: add unit tests for aws-gov/aws-china cloud detection
+    - Add AWS China and GovCloud partitions [Robert Jennings]
+    - Disable beta services to be show/enabled without flag
+    - Add missing build_pr command to environment
+    - Use additionalPackages from service payload
+    - Add integration testing for Travis runs [patriciadomin] (GH: #856)
+      (GH: #857)  (GH: #853)
 
  -- Chad Smith <chad.smith@canonical.com>  Mon, 28 Sep 2020 21:11:54 -0600
 
