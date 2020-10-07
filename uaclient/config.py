@@ -437,7 +437,12 @@ class UAConfig:
         return response
 
     def help(self, name):
-        """Return help information from an uaclient service as a dict."""
+        """Return help information from an uaclient service as a dict
+
+        :param name: Name of the service for which to return help data.
+
+        :raises: UserFacingError when no help is available.
+        """
         from uaclient.contract import get_available_resources
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -458,8 +463,9 @@ class UAConfig:
                 break
 
         if help_resource is None:
-            response_dict["help"] = 'No help available for "{}"'.format(name)
-            return response_dict
+            raise exceptions.UserFacingError(
+                "No help available for '{}'".format(name)
+            )
 
         if self.is_attached:
             service_status = self._attached_service_status(help_ent, {})

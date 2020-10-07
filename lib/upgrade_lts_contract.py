@@ -36,12 +36,14 @@ version_to_codename = {
     "16.04": "xenial",
     "18.04": "bionic",
     "20.04": "focal",
+    "20.10": "groovy",
 }
 
 current_codename_to_past_codename = {
     "xenial": "trusty",
     "bionic": "xenial",
     "focal": "bionic",
+    "groovy": "focal",
 }
 
 

@@ -1,14 +1,24 @@
 import mock
 import pytest
+import textwrap
 
 from uaclient.cli import action_disable
+from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status
+
+ALL_SERVICE_MSG = "\n".join(
+    textwrap.wrap(
+        "Try " + entitlements.ALL_ENTITLEMENTS_STR,
+        width=80,
+        break_long_words=False,
+    )
+)
 
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
-    @pytest.mark.parametrize("names", [["testitlement"], ["ent1", "ent2"]])
+    @pytest.mark.parametrize("service", [["testitlement"], ["ent1", "ent2"]])
     @pytest.mark.parametrize("assume_yes", (True, False))
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
@@ -21,13 +31,13 @@ class TestDisable:
         disable_return,
         return_code,
         assume_yes,
-        names,
+        service,
         tmpdir,
     ):
         entitlements_cls = []
         entitlements_obj = []
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {}
-        for entitlement_name in names:
+        for entitlement_name in service:
             m_entitlement_cls = mock.Mock()
 
             m_entitlement = m_entitlement_cls.return_value
@@ -44,7 +54,7 @@ class TestDisable:
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
 
         args_mock = mock.Mock()
-        args_mock.names = names
+        args_mock.service = service
         args_mock.assume_yes = assume_yes
 
         ret = action_disable(args_mock, m_cfg)
@@ -87,18 +97,22 @@ class TestDisable:
             "ent2": m_ent2_cls,
             "ent3": m_ent3_cls,
         }
+        m_entitlements.ALL_ENTITLEMENTS_STR = "ent2, ent3"
+        m_entitlements.RELEASED_ENTITLEMENTS_STR = "ent2, ent3"
 
         m_cfg = mock.Mock()
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         args_mock = mock.Mock()
-        args_mock.names = ["ent1", "ent2", "ent3"]
+        args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
         with pytest.raises(exceptions.UserFacingError) as err:
             action_disable(args_mock, m_cfg)
 
         assert (
-            expected_error_tmpl.format(operation="disable", name="ent1")
+            expected_error_tmpl.format(
+                operation="disable", name="ent1", service_msg="Try ent2, ent3"
+            )
             == err.value.msg
         )
 
@@ -130,27 +144,31 @@ class TestDisable:
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.names = ["bogus"]
+            args.service = ["bogus"]
             action_disable(args, cfg)
         assert (
-            expected_error_template.format(operation="disable", name="bogus")
+            expected_error_template.format(
+                operation="disable", name="bogus", service_msg=ALL_SERVICE_MSG
+            )
             == err.value.msg
         )
 
-    @pytest.mark.parametrize("names", [["bogus"], ["bogus1", "bogus2"]])
-    def test_invalid_service_names(self, m_getuid, names, FakeConfig):
+    @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
+    def test_invalid_service_names(self, m_getuid, service, FakeConfig):
         m_getuid.return_value = 0
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.names = names
+            args.service = service
             action_disable(args, cfg)
 
         assert (
             expected_error_tmpl.format(
-                operation="disable", name=", ".join(sorted(names))
+                operation="disable",
+                name=", ".join(sorted(service)),
+                service_msg=ALL_SERVICE_MSG,
             )
             == err.value.msg
         )
@@ -171,7 +189,7 @@ class TestDisable:
         cfg = FakeConfig()
         with pytest.raises(exceptions.UserFacingError) as err:
             args = mock.MagicMock()
-            args.names = ["esm-infra"]
+            args.service = ["esm-infra"]
             action_disable(args, cfg)
         assert (
             expected_error_template.format(name="esm-infra") == err.value.msg
@@ -186,7 +204,7 @@ class TestDisable:
             stream.write("123:ua enable")
         with pytest.raises(exceptions.LockHeldError) as err:
             args = mock.MagicMock()
-            args.names = ["esm-infra"]
+            args.service = ["esm-infra"]
             action_disable(args, cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (

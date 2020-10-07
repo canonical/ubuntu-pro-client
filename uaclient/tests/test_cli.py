@@ -139,7 +139,7 @@ class TestCLIParser:
 
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
-        type(m_args).service_name = m_service_name
+        type(m_args).service = m_service_name
         m_format = mock.PropertyMock(return_value=out_format)
         type(m_args).format = m_format
 
@@ -192,7 +192,7 @@ class TestCLIParser:
 
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
-        type(m_args).service_name = m_service_name
+        type(m_args).service = m_service_name
 
         m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(
@@ -263,21 +263,18 @@ class TestCLIParser:
         """Test help command when an invalid service is provided."""
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
-        type(m_args).service_name = m_service_name
+        type(m_args).service = m_service_name
 
         m_available_resources.return_value = [
             {"name": "ent1", "available": True}
         ]
 
-        expected_msg = "\n\n".join(
-            ["Name:\ntest", 'Help:\nNo help available for "test"\n\n']
-        )
-
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
-            action_help(m_args, None)
+            with pytest.raises(UserFacingError) as excinfo:
+                action_help(m_args, None)
 
-        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert "No help available for 'test'" == str(excinfo.value)
         assert 1 == m_service_name.call_count
         assert 1 == m_available_resources.call_count
 
@@ -607,12 +604,12 @@ class TestGetValidEntitlementNames:
             "ent3": True,
         }
 
-        names = ["ent1", "ent3", "ent4"]
+        service = ["ent1", "ent3", "ent4"]
         expected_ents_found = ["ent1", "ent3"]
         expected_ents_not_found = ["ent4"]
 
         actual_ents_found, actual_ents_not_found = get_valid_entitlement_names(
-            names
+            service
         )
 
         assert expected_ents_found == actual_ents_found

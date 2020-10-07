@@ -27,3 +27,13 @@ ENTITLEMENT_CLASSES = [
 ENTITLEMENT_CLASS_BY_NAME = dict(
     (cast(str, cls.name), cls) for cls in ENTITLEMENT_CLASSES
 )  # type: Dict[str, Type[UAEntitlement]]
+
+
+ALL_ENTITLEMENTS_STR = ", ".join(sorted(ENTITLEMENT_CLASS_BY_NAME.keys()))
+RELEASED_ENTITLEMENTS_STR = ", ".join(
+    [
+        k
+        for k, cls in sorted(ENTITLEMENT_CLASS_BY_NAME.items())
+        if not cls.is_beta
+    ]
+)  # type: str

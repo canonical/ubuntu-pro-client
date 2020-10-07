@@ -18,6 +18,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+
 from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
@@ -53,6 +54,12 @@ STATUS_FORMATS = ["tabular", "json"]
 # UAConfig in order to determine dynamic data_path exception handling of
 # main_error_handler
 _LOCK_FILE = None
+
+
+class UAArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.print_usage(sys.stderr)
+        self.exit(2, message)
 
 
 def assert_lock_file(lock_holder=None):
@@ -116,7 +123,7 @@ def assert_attached(unattached_msg_tmpl=None):
         def new_f(args, cfg, **kwargs):
             if not cfg.is_attached:
                 if unattached_msg_tmpl:
-                    names = getattr(args, "names", "None")
+                    names = getattr(args, "service", "None")
                     msg = unattached_msg_tmpl.format(name=", ".join(names))
                     exception = exceptions.UnattachedError(msg)
                 else:
@@ -186,16 +193,17 @@ def detach_parser(parser):
 
 def help_parser(parser):
     """Build or extend an arg parser for help subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="help [service_name]")
+    usage = USAGE_TMPL.format(name=NAME, command="help [service]")
     parser.usage = usage
     parser.prog = "help"
     parser._positionals.title = "Arguments"
     parser.add_argument(
-        "service_name",
+        "service",
         action="store",
         nargs="?",
-        default="",
-        help="a service to view help output for",
+        help="a service to view help output for. One of: {}".format(
+            entitlements.RELEASED_ENTITLEMENTS_STR
+        ),
     )
 
     parser.add_argument(
@@ -215,17 +223,20 @@ def help_parser(parser):
 def enable_parser(parser):
     """Build or extend an arg parser for enable subcommand."""
     usage = USAGE_TMPL.format(
-        name=NAME, command="enable <service_name> [<service_name>]"
+        name=NAME, command="enable <service> [<service>]"
     )
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "names",
+        "service",
         action="store",
         nargs="+",
-        help="the name of the Ubuntu Advantage service to enable",
+        help=(
+            "the name(s) of the Ubuntu Advantage services to enable."
+            " One of: {}".format(entitlements.RELEASED_ENTITLEMENTS_STR),
+        ),
     )
     parser.add_argument(
         "--assume-yes",
@@ -240,16 +251,21 @@ def enable_parser(parser):
 
 def disable_parser(parser):
     """Build or extend an arg parser for disable subcommand."""
-    usage = USAGE_TMPL.format(name=NAME, command="disable") + " []"
+    usage = USAGE_TMPL.format(
+        name=NAME, command="disable <service> [<service>]"
+    )
     parser.usage = usage
     parser.prog = "disable"
     parser._positionals.title = "Arguments"
     parser._optionals.title = "Flags"
     parser.add_argument(
-        "names",
+        "service",
         action="store",
         nargs="+",
-        help="the names of the Ubuntu Advantage service to disable",
+        help=(
+            "the name(s) of the Ubuntu Advantage services to disable"
+            " One of: {}".format(entitlements.RELEASED_ENTITLEMENTS_STR)
+        ),
     )
     parser.add_argument(
         "--assume-yes",
@@ -363,7 +379,7 @@ def action_disable(args, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    names = getattr(args, "names", [])
+    names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
@@ -374,9 +390,15 @@ def action_disable(args, cfg, **kwargs):
         ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
 
     if entitlements_not_found:
+        valid_names = "Try " + entitlements.ALL_ENTITLEMENTS_STR
+        service_msg = "\n".join(
+            textwrap.wrap(valid_names, width=80, break_long_words=False)
+        )
         raise exceptions.UserFacingError(
             tmpl.format(
-                operation="disable", name=", ".join(entitlements_not_found)
+                operation="disable",
+                name=", ".join(entitlements_not_found),
+                service_msg=service_msg,
             )
         )
 
@@ -415,7 +437,11 @@ def _perform_enable(
     if not allow_beta and ent_cls.is_beta:
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         raise exceptions.BetaServiceError(
-            tmpl.format(operation="enable", name=entitlement_name)
+            tmpl.format(
+                operation="enable",
+                name=entitlement_name,
+                service_msg="Beta services enabled with --beta param",
+            )
         )
 
     entitlement = ent_cls(cfg, assume_yes=assume_yes)
@@ -439,7 +465,7 @@ def action_enable(args, cfg, **kwargs):
         # Inability to refresh is not a critical issue during enable
         logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
 
-    names = getattr(args, "names", [])
+    names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
@@ -459,10 +485,21 @@ def action_enable(args, cfg, **kwargs):
             print(e)
 
     if entitlements_not_found:
+        if args.beta:
+            valid_names = entitlements.ALL_ENTITLEMENTS_STR
+        else:
+            valid_names = entitlements.RELEASED_ENTITLEMENTS_STR
+        service_msg = "\n".join(
+            textwrap.wrap(
+                "Try " + valid_names, width=80, break_long_words=False
+            )
+        )
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         raise exceptions.UserFacingError(
             tmpl.format(
-                operation="enable", name=", ".join(entitlements_not_found)
+                operation="enable",
+                name=", ".join(entitlements_not_found),
+                service_msg=service_msg,
             )
         )
 
@@ -644,7 +681,7 @@ def get_parser():
                 wrapped_words.insert(0, wrapped_word)
             description_lines.extend([line, "   " + " ".join(wrapped_words)])
 
-    parser = argparse.ArgumentParser(
+    parser = UAArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="\n".join(description_lines),
@@ -776,16 +813,16 @@ def action_refresh(args, cfg):
 
 
 def action_help(args, cfg):
-    service_name = args.service_name
+    service = args.service
 
-    if not service_name:
+    if not service:
         get_parser().print_help()
         return 0
 
     if not cfg:
         cfg = config.UAConfig()
 
-    help_response = cfg.help(service_name)
+    help_response = cfg.help(service)
 
     if args.format == "json":
         print(json.dumps(help_response))
