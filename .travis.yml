@@ -67,26 +67,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -104,26 +85,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -141,26 +103,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -178,27 +121,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -217,24 +140,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -253,24 +159,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -289,24 +178,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
       python: 3.7
       stage: integration
@@ -325,24 +197,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -361,24 +216,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -397,24 +235,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -433,24 +254,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
@@ -469,24 +273,7 @@ matrix:
           - pip install -e .
           - cd ..
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - echo $TRAVIS_JOB_NUMBER
-          - python3 server-test-scripts/ubuntu-advantage-client/azure_cleanup.py --suffix-tag ${TRAVIS_JOB_NUMBER/./-} --client-id ${UACLIENT_BEHAVE_AZ_CLIENT_ID} --client-secret ${UACLIENT_BEHAVE_AZ_CLIENT_SECRET} --subscription-id ${UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID} --tenant-id ${UACLIENT_BEHAVE_AZ_TENANT_ID} || true
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       python: 3.7
       stage: integration
@@ -507,26 +294,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       stage: integration
       python: 3.7
@@ -547,26 +315,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       stage: integration
       python: 3.7
@@ -587,26 +336,7 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
       stage: integration
       python: 3.7
@@ -627,146 +357,51 @@ matrix:
           - pip install boto3
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
-          - mkdir deb-artifacts
-          - cp *-debs/* deb-artifacts
-          - >
-              if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          - ls deb-artifacts
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
-          - >
-            for key_name in `ls *pem`; do
-                K=${key_name/ec2-/};
-                python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
-            done;
+          - ./tools/run_aws_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-lxd-14.04
+      env:
+          - TOXENV=behave-lxd-14.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - trusty
       script:
-          - >
-              if [ -d "trusty-debs" ]; then
-                 TRUSTY_DEBS_PATH=trusty-debs
-              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                 BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          # Because we are using dist:bionic for the travis host, we need
-          # to remove the lxd deb-installed package to avoid
-          # confusion over lxd versions
-          - echo $BUILD_PR
-          - echo $TRUSTY_DEBS_PATH 
-          - ls trusty-debs
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - sudo snap install lxd
-          - sudo lxd init --auto
-          - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${TRUSTY_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - ./tools/run_lxd_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-lxd-16.04
+      env:
+          - TOXENV=behave-lxd-16.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - xenial
       script:
-          - >
-              if [ -d "xenial-debs" ]; then
-                 XENIAL_DEBS_PATH=xenial-debs
-              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          # Because we are using dist:bionic for the travis host, we need
-          # to remove the lxd deb-installed package to avoid
-          # confusion over lxd versions
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - sudo snap install lxd
-          - sudo lxd init --auto
-          - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${XENIAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - ./tools/run_lxd_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-lxd-18.04
+      env:
+          - TOXENV=behave-lxd-18.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - bionic
       script:
-          - >
-              if [ -d "bionic-debs" ]; then
-                 BIONIC_DEBS_PATH=bionic-debs
-              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          # Because we are using dist:bionic for the travis host, we need
-          # to remove the lxd deb-installed package to avoid
-          # confusion over lxd versions
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - sudo snap install lxd
-          - sudo lxd init --auto
-          - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${BIONIC_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - ./tools/run_lxd_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
-      env: TOXENV=behave-lxd-20.04
+      env:
+          - TOXENV=behave-lxd-20.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
       workspaces:
         use:
           - focal
       script:
-          - >
-              if [ -d "focal-debs" ]; then
-                 FOCAL_DEBS_PATH=focal-debs
-              elif [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-                  BUILD_PR=0
-              else
-                 cd $TRAVIS_BUILD_DIR/..
-                 tar -zcf pr_source.tar.gz ubuntu-advantage-client
-                 cp pr_source.tar.gz /tmp
-                 ls -lh /tmp
-                 cd $TRAVIS_BUILD_DIR
-              fi
-          # Because we are using dist:bionic for the travis host, we need
-          # to remove the lxd deb-installed package to avoid
-          # confusion over lxd versions
-          - sudo apt-get remove --yes --purge lxd lxd-client
-          - sudo rm -Rf /var/lib/lxd
-          - sudo snap install lxd
-          - sudo lxd init --auto
-          - sudo usermod -a -G lxd $USER
-          - sg lxd -c "UACLIENT_BEHAVE_DEBS_PATH=${FOCAL_DEBS_PATH} UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test"
+          - ./tools/run_lxd_travis_integration_tests.sh
     - env:
         PACKAGE_BUILD_SERIES=trusty
       stage: build
