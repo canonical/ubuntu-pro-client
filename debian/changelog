@@ -46,6 +46,33 @@ ubuntu-advantage-tools (25.0~beta) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Mon, 28 Sep 2020 21:11:54 -0600
 
+ubuntu-advantage-tools (24.4) groovy; urgency=medium
+
+  * New bug-fix-only release 24.4:
+     - uaclient.version bump to 24.4
+     - fips: honor additionalPackage directive from contract for bionic
+       (GH #1173)
+
+ -- Chad Smith <chad.smith@canonical.com>  Tue, 01 Sep 2020 11:14:39 -0600
+
+ubuntu-advantage-tools (24.3) groovy; urgency=medium
+
+  * New bug-fix-only release 24.3:
+    - uaclient.version bump to 24.3
+    - fips: add conditional reboot message only if /var/run/reboot-required is
+      present
+    - fips: add apt repo key for FIPS and FIPS updates (GH #1026)
+
+ -- Chad Smith <chad.smith@canonical.com>  Thu, 20 Aug 2020 14:50:17 -0600
+
+ubuntu-advantage-tools (24.2) groovy; urgency=medium
+
+  * New bug-fix-only release 24.2:
+    - uaclient.version bump to 24.2
+    - pro: Add AWS China and GovCloud partitions support (GH #1077)
+
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 03 Jun 2020 16:12:41 -0600
+
 ubuntu-advantage-tools (24.1) groovy; urgency=medium
 
   * New bug-fix-only release 24.1:
