@@ -1,4 +1,10 @@
-ubuntu-advantage-tools (25.0~beta) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (26.0) UNRELEASED; urgency=medium
+
+  * Open 26.0 for active development
+
+ -- Chad Smith <chad.smith@canonical.com>  Thu, 08 Oct 2020 15:29:13 -0600
+
+ubuntu-advantage-tools (25.0~beta) groovy; urgency=medium
 
   * d/control:
     - add po-debconf dependency and fix lintian not-using-po-debconf and
