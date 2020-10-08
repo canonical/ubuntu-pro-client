@@ -271,6 +271,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
+    def _check_application_status_on_cache(self) -> "status.ApplicationStatus":
+        """Check on the state of application on the status cache."""
+        status_cache = self.cfg.read_cache("status-cache")
+
+        if status_cache is None:
+            return status.ApplicationStatus.DISABLED
+
+        services_status_list = status_cache.get("services", [])
+
+        for service in services_status_list:
+            if service.get("name") == self.name:
+                service_status = service.get("status")
+
+                if service_status == "enabled":
+                    return status.ApplicationStatus.ENABLED
+                else:
+                    return status.ApplicationStatus.DISABLED
+
+        return status.ApplicationStatus.DISABLED
+
     def process_contract_deltas(
         self,
         orig_access: "Dict[str, Any]",
@@ -294,6 +314,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return True  # We processed all deltas that needed processing
 
         delta_entitlement = deltas.get("entitlement", {})
+        delta_directives = delta_entitlement.get("directives", {})
+        status_cache = self.cfg.read_cache("status-cache")
+
         transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
         if not transition_to_unentitled:
             if delta_entitlement:
@@ -305,7 +328,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     util.DROPPED_KEY,
                 )
         if transition_to_unentitled:
-            application_status, _ = self.application_status()
+            if delta_directives and status_cache:
+                application_status = self._check_application_status_on_cache()
+            else:
+                application_status, _ = self.application_status()
+
             if application_status != status.ApplicationStatus.DISABLED:
                 if self.can_disable(silent=True):
                     self.disable()

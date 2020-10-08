@@ -273,7 +273,7 @@ class TestProcessContractDeltas:
         """Remove old apt url when aptURL delta occurs on active service."""
         m_process_contract_deltas.return_value = False
         m_read_cache.return_value = {
-            "services": [{"name": "entitlement", "status": "enabled"}]
+            "services": [{"name": "repotest", "status": "enabled"}]
         }
         assert entitlement.process_contract_deltas(
             {
@@ -304,7 +304,10 @@ class TestProcessContractDeltas:
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
-        assert [mock.call("status-cache")] == m_read_cache.call_args_list
+        assert [
+            mock.call("status-cache"),
+            mock.call("status-cache"),
+        ] == m_read_cache.call_args_list
         assert 1 == m_process_contract_deltas.call_count
 
 

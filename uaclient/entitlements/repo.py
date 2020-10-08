@@ -208,23 +208,17 @@ class RepoEntitlement(base.UAEntitlement):
             return True  # Already processed parent class deltas
 
         delta_entitlement = deltas.get("entitlement", {})
-        delta_apt_url = delta_entitlement.get("directives", {}).get("aptURL")
+        delta_directives = delta_entitlement.get("directives", {})
+        delta_apt_url = delta_directives.get("aptURL")
         status_cache = self.cfg.read_cache("status-cache")
 
-        if delta_apt_url and status_cache:
-            services_status_list = status_cache.get("services", [])
-
-            for service in services_status_list:
-                if service.get("name") == self.name:
-                    if service.get("status") != "enabled":
-                        return True
-                    else:
-                        break
-
+        if delta_directives and status_cache:
+            application_status = self._check_application_status_on_cache()
         else:
             application_status, _ = self.application_status()
-            if application_status == status.ApplicationStatus.DISABLED:
-                return True
+
+        if application_status == status.ApplicationStatus.DISABLED:
+            return True
 
         logging.info(
             "Updating '%s' apt sources list on changed directives.", self.name

@@ -5,6 +5,7 @@ stages:
   - flake
   - build
   - integration
+  - upgrade
 
 install:
   # Required so `git describe` will definitely find a tag; see
@@ -400,6 +401,39 @@ matrix:
       workspaces:
         use:
           - focal
+      script:
+          - ./tools/run_lxd_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: upgrade
+      env:
+          - TOXENV=behave-upgrade-14.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+      script:
+          - ./tools/run_lxd_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: upgrade
+      env:
+          - TOXENV=behave-upgrade-16.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - xenial
+      script:
+          - ./tools/run_lxd_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+      python: 3.7
+      stage: upgrade
+      env:
+          - TOXENV=behave-upgrade-18.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - bionic
       script:
           - ./tools/run_lxd_travis_integration_tests.sh
     - env:
