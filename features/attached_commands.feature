@@ -364,33 +364,3 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | trusty  |
            | xenial  |
-
-   @wip
-   @series.all
-   @uses.config.machine_type.lxd.container
-   Scenario Outline: Attached upgrade across LTS releases
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `apt-get dist-upgrade --assume-yes` with sudo
-        And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
-        """
-        [Sources]
-        AllowThirdParty=True
-        """
-        And I run `wget http://archive.ubuntu.com/ubuntu/dists/focal-updates/main/dist-upgrader-all/current/focal.tar.gz -P /tmp/` with sudo
-        When I run `tar zxvf /tmp/focal.tar.gz -C /tmp/` with sudo
-        And I run `echo https://esm.ubuntu.com/infra/ubuntu >> /tmp/mirrors.cfg` with sudo
-        Then I verify that running `/tmp/focal <devel_flag> -q -f DistUpgradeViewNonInteractive` `with sudo` exits `0`
-        When I reboot the `<release>` machine
-        And I run `egrep "<release>|disabled" /etc/apt/sources.list.d/*` as non-root
-        Then I will see the following on stdout:
-            """
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-        """
-        esm-infra         +yes               +enabled
-        """
-        Examples: ubuntu release
-        | release | devel_flag |
-        | bionic  | -d         |
