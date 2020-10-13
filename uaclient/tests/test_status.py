@@ -164,4 +164,7 @@ class TestFormatTabular:
                 "description_override": description_override,
             }
         ]
+        if not description_override:
+            # Remove key to test upgrade path from older ua-tools
+            status_dict_attached["services"][0].pop("description_override")
         assert uf_descr in format_tabular(status_dict_attached)

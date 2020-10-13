@@ -281,7 +281,7 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     content = [STATUS_HEADER]
     for service_status in status["services"]:
         entitled = service_status["entitled"]
-        descr_override = service_status["description_override"]
+        descr_override = service_status.get("description_override")
         description = (
             descr_override if descr_override else service_status["description"]
         )
