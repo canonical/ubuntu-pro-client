@@ -1,4 +1,14 @@
-ubuntu-advantage-tools (25.0~beta) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (25.0~20.10.1~beta1) groovy; urgency=medium
+
+  * Beta bug fix release
+    - status: fix missing description_override key after upgrade from
+      trusty (GH: #1201)
+    - During contract delta processing use _check_application_status_on_cache
+      instead of live service status
+
+ -- Chad Smith <chad.smith@canonical.com>  Sat, 10 Oct 2020 21:47:21 -0600
+
+ubuntu-advantage-tools (25.0~20.10.1~beta) groovy; urgency=medium
 
   * d/control:
     - add po-debconf dependency and fix lintian not-using-po-debconf and
