@@ -84,6 +84,50 @@ def assert_valid_apt_credentials(repo_url, username, password):
         )
 
 
+def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
+    """Parse apt update errors for invalid apt config in user machine.
+
+    This functions parses apt update errors regarding the presence of
+    invalid apt config in the system, for example, a ppa that cannot be
+    reached, for example.
+
+    In that scenario, apt will output a message in the following formats:
+
+    The repository 'ppa 404 Release' ...
+    Failed to fetch ppa 404 ...
+
+    On some releases, both of these errors will be present in the apt error
+    message.
+
+    :param apt_error: The apt error string
+    :return: a string containing the parsed error message.
+    """
+    error_msg = ""
+    failed_repos = set()
+
+    for line in apt_error.strip().split("\n"):
+        if line:
+            pattern_match = re.search(
+                r"(Failed to fetch |The repository .)(?P<url>[^\s]+)", line
+            )
+
+            if pattern_match:
+                repo_url_match = (
+                    "- " + pattern_match.groupdict()["url"].split("/dists")[0]
+                )
+
+                failed_repos.add(repo_url_match)
+
+    if failed_repos:
+        error_msg += "\n"
+        error_msg += status.MESSAGE_APT_UPDATE_INVALID_URL_CONFIG.format(
+            "s" if len(failed_repos) > 1 else "",
+            "\n".join(sorted(failed_repos)),
+        )
+
+    return error_msg
+
+
 def run_apt_command(
     cmd: "List[str]", error_msg: str, env: "Optional[Dict[str, str]]" = {}
 ) -> str:
@@ -104,6 +148,14 @@ def run_apt_command(
     except util.ProcessExecutionError as e:
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             error_msg += " Another process is running APT."
+        else:
+            """
+            Treat errors where one of the APT repositories
+            is invalid or unreachable. In that situation, we alert
+            which repository is causing the error
+            """
+            error_msg += _parse_apt_update_for_invalid_apt_config(e.stderr)
+
         raise exceptions.UserFacingError(error_msg)
     return out
 
