@@ -288,7 +288,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
-    @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
@@ -398,12 +397,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Canonical livepatch enabled
             """
         When I run `ua disable livepatch` with sudo
-        Then I will see the following on stdout:
-            """
-            Removing canonical-livepatch snap
-            """
-        Then I verify that the `canonical-livepatch` command is not found
-        When I run `ua enable fips --assume-yes --beta` with sudo
+        And I run `ua enable fips --assume-yes --beta` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
