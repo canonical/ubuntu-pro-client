@@ -7,9 +7,11 @@ from hamcrest import assert_that, equal_to, matches_regexp, not_
 
 from features.environment import create_uat_image
 from features.util import (
+    SLOW_CMDS,
     emit_spinner_on_travis,
     launch_lxd_container,
     lxc_exec,
+    nullcontext,
     wait_for_boot,
 )
 
@@ -69,9 +71,16 @@ def given_a_machine(context, series):
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(context, command, user_spec):
     prefix = get_command_prefix_for_user_spec(user_spec)
+    slow_cmd_spinner = nullcontext
+    for slow_cmd in SLOW_CMDS:
+        if slow_cmd in command:
+            slow_cmd_spinner = emit_spinner_on_travis
+            break
+
     full_cmd = prefix + shlex.split(command)
     if context.config.cloud_manager:
-        result = context.instance.execute(full_cmd)
+        with slow_cmd_spinner():
+            result = context.instance.execute(full_cmd)
         process = subprocess.CompletedProcess(
             args=full_cmd,
             stdout=result.stdout,
@@ -79,9 +88,13 @@ def when_i_run_command(context, command, user_spec):
             returncode=result.return_code,
         )
     else:
-        process = lxc_exec(
-            context.container_name, full_cmd, capture_output=True, text=True
-        )
+        with slow_cmd_spinner():
+            process = lxc_exec(
+                context.container_name,
+                full_cmd,
+                capture_output=True,
+                text=True,
+            )
     context.process = process
 
 
