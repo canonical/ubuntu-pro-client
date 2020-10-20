@@ -358,8 +358,9 @@ Feature: Command behaviour when attached to an UA subscription
          - esm-infra: UA Infra: Extended Security Maintenance
            \(https://ubuntu.com/security/esm\)
          - fips-updates: Uncertified security updates to FIPS modules
-           \(https://ubuntu.com/security/fips\)
-         - fips: NIST-certified FIPS modules \(https://ubuntu.com/security/fips\)
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified FIPS modules
+           \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
