@@ -17,7 +17,7 @@ cis:
       to do a scan of the system. The tool provides options to generate a
       report in XML or a html format. The report shows compliance for all the
       rules against the profile selected during the scan. You can find out
-      more at https://ubuntu.com/security/hardening
+      more at https://ubuntu.com/security/certifications#cis
 
 esm-apps:
     help: |

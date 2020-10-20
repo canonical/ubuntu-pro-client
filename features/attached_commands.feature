@@ -352,8 +352,8 @@ Feature: Command behaviour when attached to an UA subscription
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
          - cis-audit: Center for Internet Security Audit Tools
-           \(https://ubuntu.com/security/hardening\)
-         - esm-apps: UA Apps: Extended Security Maintenance
+           \(https://ubuntu.com/security/certifications#cis\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance
            \(https://ubuntu.com/security/esm\)
