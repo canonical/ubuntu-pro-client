@@ -47,11 +47,10 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/security/esm)
  - esm-infra: UA Infra: Extended Security Maintenance
    (https://ubuntu.com/security/esm)
+ - fips: NIST-certified FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
  - fips-updates: Uncertified security updates to FIPS modules
-   (https://ubuntu.com/security/fips)
- - fips: NIST-certified FIPS modules (https://ubuntu.com/security/fips)
- - livepatch: Canonical Livepatch service
-   (https://ubuntu.com/security/livepatch)
+   (https://ubuntu.com/security/certifications#fips)
 """
 )
 
@@ -60,6 +59,10 @@ SERVICES_WRAPPED_HELP = textwrap.dedent(
 Client to manage Ubuntu Advantage services on a machine.
  - esm-infra: UA Infra: Extended Security Maintenance
    (https://ubuntu.com/security/esm)
+ - fips: NIST-certified FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
+ - fips-updates: Uncertified security updates to FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
 """

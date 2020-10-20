@@ -46,13 +46,14 @@ fips:
       certified modules with security patches please refer to FIPS Updates.
       The modules are certified on Intel x86_64 and IBM Z hardware platforms
       for Ubuntu 18.04 and Intel x86_64, IBM Power8 and IBM Z hardware platforms
-      for Ubuntu 16.04. You can find out more at https://ubuntu.com/security/fips.
+      for Ubuntu 16.04. You can find out more at
+      https://ubuntu.com/security/certifications#fips.
 
 fips-updates:
     help: |
-      FIPS Updates installs FIPS updates modules including all security patches
+      fips-updates installs fips modules including all security patches
       for those modules that have been provided since their certification date.
-      You can find out more at ubuntu.com/security/fips
+      You can find out more at https://ubuntu.com/security/certifications#fips.
 
 livepatch:
     help: |
