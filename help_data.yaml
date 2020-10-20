@@ -42,12 +42,13 @@ fips:
       FIPS 140-2 is a set of publicly announced cryptographic standards
       developed by the National Institute of Standards and Technology
       applicable for FedRAMP, HIPAA, PCI and ISO compliance use cases.
-      Note that ‘FIPS’ does not provide security patching. For FIPS
-      certified modules with security patches please refer to FIPS Updates.
-      The modules are certified on Intel x86_64 and IBM Z hardware platforms
-      for Ubuntu 18.04 and Intel x86_64, IBM Power8 and IBM Z hardware platforms
-      for Ubuntu 16.04. You can find out more at
-      https://ubuntu.com/security/certifications#fips.
+      Note that ‘fips’ does not provide security patching. For fips certified
+      modules with security patches please refer to fips-updates. The modules
+      are certified on Intel x86_64 and IBM Z hardware platforms for Ubuntu
+      18.04 and Intel x86_64, IBM Power8 and IBM Z hardware platforms for
+      Ubuntu 16.04. Below is the list of fips certified components per an
+      Ubuntu Version. You can find out more at
+      https://ubuntu.com/security/certifications#fips
 
 fips-updates:
     help: |
@@ -60,7 +61,7 @@ livepatch:
       Livepatch provides selected high and critical kernel CVE fixes and other
       non-security bug fixes as kernel livepatches. Livepatches are applied
       without rebooting a machine which drastically limits the need for
-      unscheduled system reboots. Due to the nature of FIPS compliance,
-      livepatches cannot be enabled on FIPS-enabled systems. You can find out
+      unscheduled system reboots. Due to the nature of fips compliance,
+      livepatches cannot be enabled on fips-enabled systems. You can find out
       more about Ubuntu Kernel Livepatch service at
       https://ubuntu.com/security/livepatch
