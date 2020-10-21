@@ -91,8 +91,8 @@ Feature: Command behaviour when attached to an UA subscription
            """
            SERVICE       AVAILABLE  DESCRIPTION
            cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance (ESM)
-           esm-infra     +yes        +UA Infra: Extended Security Maintenance (ESM)
+           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
+           esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
            fips          +<fips>     +NIST-certified FIPS modules
            fips-updates  +<fips>     +Uncertified security updates to FIPS modules
            livepatch     +yes        +Canonical Livepatch service
@@ -225,7 +225,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
             """
 
         Examples: ubuntu release
@@ -254,7 +254,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
             """
 
         Examples: ubuntu release
@@ -280,7 +280,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
             """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` with sudo
@@ -310,17 +310,18 @@ Feature: Command behaviour when attached to an UA subscription
             enabled
 
             Help:
-            UA Infra: Extended Security Maintenance is enabled by default on entitled
-            workloads. It provides access to a private PPA which includes available
-            high and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
-            repository between the end of the standard (free) Ubuntu LTS security
-            maintenance and its end of life. You can find out more about the esm
-            service at https://ubuntu.com/security/esm.
+            esm-infra provides access to a private ppa which includes available high
+            and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
+            repository between the end of the standard Ubuntu LTS security
+            maintenance and its end of life. It is enabled by default with
+            Extended Security Maintenance (ESM) for UA Apps and UA Infra.
+            You can find our more about the esm service at
+            https://ubuntu.com/security/esm
             """
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "UA Infra: Extended Security Maintenance is enabled by default on entitled\nworkloads. It provides access to a private PPA which includes available\nhigh and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard (free) Ubuntu LTS security\nmaintenance and its end of life. You can find out more about the esm\nservice at https://ubuntu.com/security/esm.\n"}
+            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
             """
         When I run `ua help invalid-service` with sudo
         Then I will see the following on stderr:
@@ -331,7 +332,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
-         - esm-infra: UA Infra: Extended Security Maintenance
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
@@ -340,7 +341,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
-         - esm-infra: UA Infra: Extended Security Maintenance
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
@@ -355,7 +356,7 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#cis\)
          - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
-         - esm-infra: UA Infra: Extended Security Maintenance
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - fips-updates: Uncertified security updates to FIPS modules
            \(https://ubuntu.com/security/certifications#fips\)
