@@ -43,26 +43,24 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
    (https://ubuntu.com/security/certifications#cis)
- - esm-apps: UA Apps: Extended Security Maintenance
+ - esm-apps: UA Apps: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
- - esm-infra: UA Infra: Extended Security Maintenance
+ - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
- - fips: NIST-certified FIPS modules
-   (https://ubuntu.com/security/certifications#fips)
  - fips-updates: Uncertified security updates to FIPS modules
    (https://ubuntu.com/security/certifications#fips)
+ - fips: NIST-certified FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
+ - livepatch: Canonical Livepatch service
+   (https://ubuntu.com/security/livepatch)
 """
 )
 
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
- - esm-infra: UA Infra: Extended Security Maintenance
+ - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
- - fips: NIST-certified FIPS modules
-   (https://ubuntu.com/security/certifications#fips)
- - fips-updates: Uncertified security updates to FIPS modules
-   (https://ubuntu.com/security/certifications#fips)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
 """
