@@ -131,13 +131,13 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `apt update` with sudo
         Then stdout matches regexp
         """
-        \d+ of the updates (is|are) from UA Infrastructure ESM
+        \d+ of the updates (is|are) from UA Infra: ESM
         """
         When I run `ua disable esm-infra` with sudo
         And I run `apt update` with sudo
         Then stdout does not match regexp
         """
-        \d+ of the updates (is|are) from UA Infrastructure ESM
+        \d+ of the updates (is|are) from UA Infra: ESM
         """
 
         Examples: ubuntu release
@@ -328,8 +328,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance (ESM)
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance (ESM)
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
@@ -342,8 +342,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance (ESM)
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance (ESM)
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +disabled +Canonical Livepatch service
         """
 
