@@ -40,7 +40,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar, fips'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -67,7 +67,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -167,7 +167,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -227,7 +227,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service '<service>'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: beta services in containers
