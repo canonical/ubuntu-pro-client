@@ -91,8 +91,8 @@ Feature: Command behaviour when attached to an UA subscription
            """
            SERVICE       AVAILABLE  DESCRIPTION
            cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance
-           esm-infra     +yes        +UA Infra: Extended Security Maintenance
+           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance (ESM)
+           esm-infra     +yes        +UA Infra: Extended Security Maintenance (ESM)
            fips          +<fips>     +NIST-certified FIPS modules
            fips-updates  +<fips>     +Uncertified security updates to FIPS modules
            livepatch     +yes        +Canonical Livepatch service
@@ -225,7 +225,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
             """
 
         Examples: ubuntu release
@@ -254,7 +254,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
             """
 
         Examples: ubuntu release
@@ -280,7 +280,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance (ESM)
             """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` with sudo
