@@ -69,7 +69,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -87,7 +87,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -105,7 +105,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -123,7 +123,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env: 
@@ -161,7 +161,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env: 
@@ -180,7 +180,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env: 
@@ -199,7 +199,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -218,7 +218,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -237,7 +237,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -256,7 +256,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -275,7 +275,7 @@ matrix:
           - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: integration
       env:
@@ -296,7 +296,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(TRAVIS_EVENT_TYPE) = "cron"
       stage: integration
       python: 3.7
       env:
@@ -317,7 +317,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(TRAVIS_EVENT_TYPE) = "cron"
       stage: integration
       python: 3.7
       env:
@@ -338,7 +338,7 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY)
+    - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND env(TRAVIS_EVENT_TYPE) = "cron"
       stage: integration
       python: 3.7
       env:
@@ -403,7 +403,7 @@ matrix:
           - focal
       script:
           - ./tools/run_lxd_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: upgrade
       env:
@@ -414,7 +414,7 @@ matrix:
           - trusty
       script:
           - ./tools/run_lxd_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: upgrade
       env:
@@ -425,7 +425,7 @@ matrix:
           - xenial
       script:
           - ./tools/run_lxd_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
+    - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND env(TRAVIS_EVENT_TYPE) = "cron"
       python: 3.7
       stage: upgrade
       env:
@@ -495,6 +495,7 @@ matrix:
       install:
         - make travis-deb-install
       script:
+        - echo $TRAVIS_PULL_REQUEST
         - make travis-deb-script
         - mkdir focal-debs
         - cp ubuntu-advantage-tools-focal.deb focal-debs
