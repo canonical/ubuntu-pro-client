@@ -51,7 +51,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
         Then if `<release>` in `trusty or focal` and stdout matches regexp:
         """
-        UA Infrastructure Extended Security Maintenance (ESM) is enabled.
+        UA Infrastructure Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ update(s)? can be installed immediately.
         \d+ of these updates (is|are) provided through UA Infrastructure ESM.
