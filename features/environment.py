@@ -33,7 +33,7 @@ DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
 DEFAULT_PRIVATE_KEY_FILE = "/tmp/uaclient.pem"
 LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
-USERDATA_INSTALL_DAILY_PRO_UATOOLS = """\
+USERDATA_BLOCK_AUTO_ATTACH = """\
 #cloud-config
 write_files:
   # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
@@ -48,14 +48,13 @@ write_files:
       features:
          disable_auto_attach: true
     append: true
-{apt_source}
-packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
 """
 
 USERDATA_APT_SOURCE_DAILY_TRUSTY = """\
 apt_sources:  # for trusty
   - source: deb {daily_ppa} $RELEASE main
     keyid: 8A295C4FB8B190B7
+packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
 """.format(
     daily_ppa=DAILY_PPA
 )
@@ -66,6 +65,7 @@ apt:
     ua-tools-daily:
         source: deb {daily_ppa} $RELEASE main
         keyid: 8A295C4FB8B190B7
+packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
 """.format(
     daily_ppa=DAILY_PPA
 )
@@ -483,13 +483,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         )
         if context.config.cloud_manager:
             cloud_manager = context.config.cloud_manager
-            if series == "trusty":
-                apt_source = USERDATA_APT_SOURCE_DAILY_TRUSTY
-            else:
-                apt_source = USERDATA_APT_SOURCE_DAILY
-            user_data = USERDATA_INSTALL_DAILY_PRO_UATOOLS.format(
-                apt_source=apt_source
-            )
+            user_data = USERDATA_BLOCK_AUTO_ATTACH
             inst = cloud_manager.launch(series=series, user_data=user_data)
 
             def cleanup_instance() -> None:
@@ -559,13 +553,15 @@ def create_uat_image(context: Context, series: str) -> None:
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
     if context.config.cloud_manager:
-        if series == "trusty":
-            apt_source = USERDATA_APT_SOURCE_DAILY_TRUSTY
+        if "pro" in context.config.machine_type:
+            user_data = USERDATA_BLOCK_AUTO_ATTACH
         else:
-            apt_source = USERDATA_APT_SOURCE_DAILY
-        user_data = USERDATA_INSTALL_DAILY_PRO_UATOOLS.format(
-            apt_source=apt_source
-        )
+            user_data = ""
+        if not deb_paths:
+            if series == "trusty":
+                user_data += USERDATA_APT_SOURCE_DAILY_TRUSTY
+            else:
+                user_data += USERDATA_APT_SOURCE_DAILY
         inst = context.config.cloud_manager.launch(
             series=series, user_data=user_data
         )
@@ -595,8 +591,8 @@ def create_uat_image(context: Context, series: str) -> None:
     _install_uat_in_container(
         build_container_name,
         series=series,
+        config=context.config,
         deb_paths=deb_paths,
-        cloud_api=context.config.cloud_api,
     )
 
     image_name = _capture_container_as_image(
@@ -610,8 +606,8 @@ def create_uat_image(context: Context, series: str) -> None:
 def _install_uat_in_container(
     container_name: str,
     series: str,
+    config: UAClientBehaveConfig,
     deb_paths: "Optional[List[str]]" = [],
-    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
@@ -619,43 +615,37 @@ def _install_uat_in_container(
         The name of the container into which ubuntu-advantage-tools should be
         installed.
     :param series: The name of the series that is being used
+    :param config: UAClientBehaveConfig
     :param deb_paths: Optional paths to local deb files we need to install
-    :param cloud_api: Optional pycloud BaseCloud api for applicable
-        machine_types.
     """
     cmds = []
     if not deb_paths:
-        pkg_names = (
-            [deb.replace(".deb", "") for deb in UA_DEBS]
-            if cloud_api
-            else ["ubuntu-advantage-tools"]
-        )
-
-        cmds.extend(
-            [
-                [
-                    "sudo",
-                    "add-apt-repository",
-                    "--yes",
-                    "ppa:canonical-server/ua-client-daily",
-                ],
-                ["sudo", "apt-get", "update", "-qq"],
-                ["sudo", "apt-get", "install", "-qq", "-y"] + pkg_names,
+        if not config.cloud_api:
+            pkg_names = [
+                deb.replace(".deb", "")
+                for deb in UA_DEBS
+                if "pro" in config.machine_type or "pro" not in deb
             ]
-        )
+            cmds.extend(
+                [
+                    [
+                        "sudo",
+                        "add-apt-repository",
+                        "--yes",
+                        "ppa:canonical-server/ua-client-daily",
+                    ],
+                    ["sudo", "apt-get", "update", "-qq"],
+                    ["sudo", "apt-get", "install", "-qq", "-y"] + pkg_names,
+                ]
+            )
     else:
         cmds.append(["sudo", "apt-get", "update", "-qqy"])
+        deb_files = []
         for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
-            if series == "trusty":
-                cmds.append(["sudo", "dpkg", "-i", "/tmp/" + deb_name])
-            else:
-                cmds.append(
-                    ["sudo", "apt-get", "install", "-y", "./tmp/" + deb_name]
-                )
-            cmds.append(["apt-cache", "policy", deb_name.rstrip(".deb")])
-            if cloud_api:
-                inst = cloud_api.get_instance(container_name)
+            deb_files.append(os.path.join("/tmp", deb_name))
+            if config.cloud_api:
+                inst = config.cloud_api.get_instance(container_name)
                 inst.push_file(deb_file, "/tmp/" + deb_name)
             else:
                 cmd = [
@@ -665,11 +655,27 @@ def _install_uat_in_container(
                     deb_file,
                     container_name + "/tmp/",
                 ]
+                print(
+                    "--- Push {} -> {}/tmp/".format(deb_file, container_name)
+                )
                 subprocess.check_call(cmd)
-    if cloud_api:
-        instance = cloud_api.get_instance(container_name)
+        if series == "trusty":
+            cmds.append(["sudo", "dpkg", "-i"] + deb_files)
+        else:
+            cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
+    cmds.append(["ua", "version"])
+    if config.cloud_api:
+        instance = config.cloud_api.get_instance(container_name)
         for cmd in cmds:
-            instance.execute(cmd)
+            result = instance.execute(cmd)
+            if result.failed:
+                print(
+                    "--- Failed {}: out {} err {}".format(
+                        result.return_code, result.stdout, result.stderr
+                    )
+                )
+            elif "version" in cmd:
+                print("--- " + result)
     else:
         for cmd in cmds:
-            lxc_exec(container_name, cmd)
+            print(lxc_exec(container_name, cmd))
