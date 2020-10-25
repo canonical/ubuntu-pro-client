@@ -59,13 +59,13 @@ _LOCK_FILE = None
 class UAArgumentParser(argparse.ArgumentParser):
     def __init__(
         self,
-        base_desc: str = None,
-        non_beta_services_desc: "List[str]" = None,
-        beta_services_desc: "List[str]" = None,
         prog=None,
         usage=None,
         epilog=None,
         formatter_class=argparse.HelpFormatter,
+        base_desc: str = None,
+        non_beta_services_desc: "List[str]" = None,
+        beta_services_desc: "List[str]" = None,
     ):
         super().__init__(
             prog=prog,
@@ -738,13 +738,13 @@ def get_parser():
             non_beta_services_desc.extend(service_info)
 
     parser = UAArgumentParser(
-        base_desc=base_desc,
-        non_beta_services_desc=non_beta_services_desc,
-        beta_services_desc=beta_services_desc,
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE_TMPL.format(name=NAME, command="[command]"),
         epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
+        base_desc=base_desc,
+        non_beta_services_desc=non_beta_services_desc,
+        beta_services_desc=beta_services_desc,
     )
     parser.add_argument(
         "--debug",

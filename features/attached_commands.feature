@@ -293,7 +293,6 @@ Feature: Command behaviour when attached to an UA subscription
         https://esm.ubuntu.com/ubuntu/ trusty-infra-updates/main amd64 Packages
         """
 
-    @wip
     @series.all
     Scenario Outline: Help command on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
