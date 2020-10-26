@@ -24,7 +24,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
-    help_doc_url = "https://ubuntu.com/security/fips"
+    help_doc_url = "https://ubuntu.com/security/certifications#fips"
 
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":

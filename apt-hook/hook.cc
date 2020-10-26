@@ -225,8 +225,8 @@ int main(int argc, char *argv[])
       if (res.enabled_esms_i > 0)
       {
          ioprintf(std::cout,
-                  ngettext("%d of the updates is from UA Infrastructure ESM.",
-                           "%d of the updates are from UA Infrastructure ESM.",
+                  ngettext("%d of the updates is from UA Infra: ESM.",
+                           "%d of the updates are from UA Infra: ESM.",
                            res.enabled_esms_i),
                   res.enabled_esms_i);
          ioprintf(std::cout, "\n");
@@ -234,8 +234,8 @@ int main(int argc, char *argv[])
       if (res.enabled_esms_a > 0)
       {
          ioprintf(std::cout,
-                  ngettext("%d of the updates is from UA Apps ESM.",
-                           "%d of the updates are from UA Apps ESM.",
+                  ngettext("%d of the updates is from UA Apps: ESM.",
+                           "%d of the updates are from UA Apps: ESM.",
                            res.enabled_esms_a),
                   res.enabled_esms_a);
          ioprintf(std::cout, "\n");
@@ -249,8 +249,8 @@ int main(int argc, char *argv[])
       if (res.disabled_esms_i > 0)
       {
          ioprintf(std::cout,
-                  ngettext("%d additional update is available with UA Infrastructure ESM.",
-                           "%d additional updates are available with UA Infrastructure ESM.",
+                  ngettext("%d additional update is available with UA Infra: ESM.",
+                           "%d additional updates are available with UA Infra: ESM.",
                            res.disabled_esms_i),
                   res.disabled_esms_i);
          ioprintf(std::cout, "\n");
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
       if (res.disabled_esms_a > 0)
       {
          ioprintf(std::cout,
-                  ngettext("%d additional update is available with UA Apps ESM.",
+                  ngettext("%d additional update is available with UA Apps: ESM.",
                            "%d additional updates are available with UA Apps ESM.",
                            res.disabled_esms_a),
                   res.disabled_esms_a);

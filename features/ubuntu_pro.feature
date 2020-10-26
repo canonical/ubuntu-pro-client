@@ -22,8 +22,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis-audit     +no       +—    +Center for Internet Security Audit Tools
-            esm-apps      +yes +<esm-a-s> +UA Apps: Extended Security Maintenance
-            esm-infra     +yes     +enabled +UA Infra: Extended Security Maintenance
+            esm-apps      +yes +<esm-a-s> +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes     +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified FIPS modules
             fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
             livepatch     +yes      +<lp-s>  +<lp-d>
@@ -95,8 +95,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis-audit     +no       +—    +Center for Internet Security Audit Tools
-            esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance
-            esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance
+            esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules
             fips-updates  +yes      +n/a   +Uncertified security updates to FIPS modules
             livepatch     +yes      +n/a   +Available with the HWE kernel
@@ -150,8 +150,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis-audit     +no       +—    +Center for Internet Security Audit Tools
-            esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance
-            esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance
+            esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules
             fips-updates  +yes      +n/a   +Uncertified security updates to FIPS modules
             livepatch     +yes      +disabled   +Canonical Livepatch service

@@ -26,7 +26,9 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance
+        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     no                 —                  UA Infra: Extended Security Maintenance \(ESM\)
+        livepatch     yes                n/a                Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
         Then I verify that running `apt update` `with sudo` exits `0`
