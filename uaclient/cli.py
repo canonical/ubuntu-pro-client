@@ -57,9 +57,51 @@ _LOCK_FILE = None
 
 
 class UAArgumentParser(argparse.ArgumentParser):
+    def __init__(
+        self,
+        prog=None,
+        usage=None,
+        epilog=None,
+        formatter_class=argparse.HelpFormatter,
+        base_desc: str = None,
+        non_beta_services_desc: "List[str]" = None,
+        beta_services_desc: "List[str]" = None,
+    ):
+        super().__init__(
+            prog=prog,
+            usage=usage,
+            epilog=epilog,
+            formatter_class=formatter_class,
+        )
+
+        self.base_desc = base_desc
+        self.non_beta_services_desc = non_beta_services_desc
+        self.beta_services_desc = beta_services_desc
+
     def error(self, message):
         self.print_usage(sys.stderr)
         self.exit(2, message)
+
+    def print_help(self, file=None, show_all=False):
+        desc_vars = [
+            self.base_desc,
+            self.non_beta_services_desc,
+            self.beta_services_desc,
+        ]
+
+        if all([desc_var is None for desc_var in desc_vars]):
+            super().print_help(file=file)
+        elif show_all:
+            self.description = "\n".join(
+                [self.base_desc]
+                + sorted(self.non_beta_services_desc + self.beta_services_desc)
+            )
+        else:
+            self.description = "\n".join(
+                [self.base_desc] + self.non_beta_services_desc
+            )
+
+        super().print_help(file=file)
 
 
 def assert_lock_file(lock_holder=None):
@@ -217,6 +259,13 @@ def help_parser(parser):
             )
         ),
     )
+
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Allow the visualization of beta services",
+    )
+
     return parser
 
 
@@ -661,7 +710,9 @@ def action_attach(args, cfg):
 
 def get_parser():
     service_line_tmpl = " - {name}: {description}{url}"
-    description_lines = [__doc__]
+    base_desc = __doc__
+    non_beta_services_desc = []
+    beta_services_desc = []
     sorted_classes = sorted(entitlements.ENTITLEMENT_CLASS_BY_NAME.items())
     for name, ent_cls in sorted_classes:
         if ent_cls.help_doc_url:
@@ -672,21 +723,28 @@ def get_parser():
             name=name, description=ent_cls.description, url=url
         )
         if len(service_line) <= 80:
-            description_lines.append(service_line)
+            service_info = [service_line]
         else:
             wrapped_words = []
             line = service_line
             while len(line) > 80:
                 [line, wrapped_word] = line.rsplit(" ", 1)
                 wrapped_words.insert(0, wrapped_word)
-            description_lines.extend([line, "   " + " ".join(wrapped_words)])
+            service_info = [line + "\n   " + " ".join(wrapped_words)]
+
+        if ent_cls.is_beta:
+            beta_services_desc.extend(service_info)
+        else:
+            non_beta_services_desc.extend(service_info)
 
     parser = UAArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description="\n".join(description_lines),
         usage=USAGE_TMPL.format(name=NAME, command="[command]"),
         epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
+        base_desc=base_desc,
+        non_beta_services_desc=non_beta_services_desc,
+        beta_services_desc=beta_services_desc,
     )
     parser.add_argument(
         "--debug",
@@ -753,6 +811,7 @@ def get_parser():
     )
     help_parser(parser_help)
     parser_help.set_defaults(action=action_help)
+
     return parser
 
 
@@ -814,9 +873,10 @@ def action_refresh(args, cfg):
 
 def action_help(args, cfg):
     service = args.service
+    show_all = args.all
 
     if not service:
-        get_parser().print_help()
+        get_parser().print_help(show_all=show_all)
         return 0
 
     if not cfg:

@@ -7,7 +7,6 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
 
@@ -32,7 +31,6 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
             esm-infra     yes        UA Infra: Extended Security Maintenance
             livepatch     yes        Canonical Livepatch service
 
