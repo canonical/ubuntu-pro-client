@@ -23,8 +23,9 @@ from uaclient.apt import (
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
     assert_valid_apt_credentials,
+    run_apt_command,
 )
-from uaclient import apt, exceptions, util
+from uaclient import apt, exceptions, util, status
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.base import UAEntitlement
@@ -843,3 +844,70 @@ class TestGetInstalledPackages:
     @mock.patch("uaclient.apt.util.subp", return_value=("a\nb", ""))
     def test_assert_missing_eof_newline_works(self, m_subp):
         assert ["a", "b"] == get_installed_packages()
+
+
+class TestRunAptCommand:
+    @pytest.mark.parametrize(
+        "error_list, output_list",
+        (
+            (
+                [
+                    "E: The repository 't1 404' does not have a Release.",
+                    "W: Failed to fetch t1/dists/ 404 Not found.",
+                    "E: The repository 't2 404' does not have a Release.\n",
+                ],
+                (
+                    "APT update failed.",
+                    (
+                        "APT update failed to read APT config "
+                        "for the following URLs:"
+                    ),
+                    "- t1",
+                    "- t2",
+                ),
+            ),
+            (
+                ["E: The repository 't1 404' does not have a Release file."],
+                (
+                    "APT update failed.",
+                    (
+                        "APT update failed to read APT config "
+                        "for the following URL:"
+                    ),
+                    "- t1",
+                ),
+            ),
+            (
+                [
+                    "W: Failed to fetch t1/dists Not Found [IP: 127.0.0.1]\n",
+                    "E: Some index files failed to download.\n",
+                ],
+                (
+                    "APT update failed.",
+                    (
+                        "APT update failed to read APT config "
+                        "for the following URL:"
+                    ),
+                    "- t1",
+                ),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.apt.util.subp")
+    def test_run_apt_command_with_invalid_repositories(
+        self, m_subp, error_list, output_list
+    ):
+        error_msg = "\n".join(error_list)
+
+        m_subp.side_effect = util.ProcessExecutionError(
+            cmd="apt update", stderr=error_msg
+        )
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            run_apt_command(
+                cmd=["apt", "update"],
+                error_msg=status.MESSAGE_APT_UPDATE_FAILED,
+            )
+
+        expected_message = "\n".join(output_list)
+        assert expected_message == excinfo.value.msg

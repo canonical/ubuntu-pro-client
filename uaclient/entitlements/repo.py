@@ -323,11 +323,15 @@ class RepoEntitlement(base.UAEntitlement):
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
             )
         except exceptions.UserFacingError:
-            self.remove_apt_config()
+            self.remove_apt_config(run_apt_update=False)
             raise
 
-    def remove_apt_config(self):
-        """Remove any repository apt configuration files."""
+    def remove_apt_config(self, run_apt_update=True):
+        """Remove any repository apt configuration files.
+
+        :param run_apt_update: If after removing the apt update
+            command after removing the apt files.
+        """
         series = util.get_platform_info()["series"]
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         entitlement = self.cfg.entitlements[self.name].get("entitlement", {})
@@ -358,10 +362,12 @@ class RepoEntitlement(base.UAEntitlement):
                 )
             elif os.path.exists(repo_pref_file):
                 os.unlink(repo_pref_file)
-        print(status.MESSAGE_APT_UPDATING_LISTS)
-        apt.run_apt_command(
-            ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
-        )
+
+        if run_apt_update:
+            print(status.MESSAGE_APT_UPDATING_LISTS)
+            apt.run_apt_command(
+                ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+            )
 
 
 def handle_message_operations(
