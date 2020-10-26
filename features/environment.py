@@ -483,7 +483,10 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         )
         if context.config.cloud_manager:
             cloud_manager = context.config.cloud_manager
-            user_data = USERDATA_BLOCK_AUTO_ATTACH
+            if "pro" in context.config.machine_type:
+                user_data = USERDATA_BLOCK_AUTO_ATTACH
+            else:
+                user_data = ""
             inst = cloud_manager.launch(series=series, user_data=user_data)
 
             def cleanup_instance() -> None:
@@ -553,11 +556,12 @@ def create_uat_image(context: Context, series: str) -> None:
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
     if context.config.cloud_manager:
+        user_data = ""
         if "pro" in context.config.machine_type:
             user_data = USERDATA_BLOCK_AUTO_ATTACH
-        else:
-            user_data = ""
         if not deb_paths:
+            if not user_data:
+                user_data = "#cloud-config\n"
             if series == "trusty":
                 user_data += USERDATA_APT_SOURCE_DAILY_TRUSTY
             else:
