@@ -327,6 +327,42 @@ Feature: Command behaviour when attached to an UA subscription
             """
             No help available for 'invalid-service'
             """
+        When I run `ua --help` as non-root
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - esm-infra: UA Infra: Extended Security Maintenance
+           \(https://ubuntu.com/security/esm\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+        """
+        When I run `ua help` as non-root
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - esm-infra: UA Infra: Extended Security Maintenance
+           \(https://ubuntu.com/security/esm\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+        """
+        When I run `ua help --all` as non-root
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
+         - cis-audit: Center for Internet Security Audit Tools
+           \(https://ubuntu.com/security/hardening\)
+         - esm-apps: UA Apps: Extended Security Maintenance
+           \(https://ubuntu.com/security/esm\)
+         - esm-infra: UA Infra: Extended Security Maintenance
+           \(https://ubuntu.com/security/esm\)
+         - fips-updates: Uncertified security updates to FIPS modules
+           \(https://ubuntu.com/security/fips\)
+         - fips: NIST-certified FIPS modules \(https://ubuntu.com/security/fips\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+        """
 
         Examples: ubuntu release
            | release |
