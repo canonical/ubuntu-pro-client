@@ -3,7 +3,7 @@ source tools/base_travis_integration_tests.sh
 
 copy_deb_packages
 
-if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && ["$TRAVIS_BRANCH" = "master"]; then
   BUILD_PR=0
 else
   create_pr_tar_file
