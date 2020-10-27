@@ -1,3 +1,20 @@
+ubuntu-advantage-tools (25.0~20.10.1~beta2) groovy; urgency=medium
+
+  * New upstream release 25.0~beta2:
+    - help: update esm-infra help text (GH: #1212)
+    - apt-hook: update apt cli messaging for UA Infra: ESM and UA Apps: ESM
+      product names
+    - help: update fips help docs (GH: #1213)
+    - help: revert CIS help doc URL (GH: #1211)
+    - help: add new fips help URLs to CLI help docs (GH: #1210)
+    - Show error when enabling service with invalid repo [Lucas Moura]
+      (GH: #954)
+    - Update beta info for services (#1220) [Lucas Moura] (GH: #1216)
+    - Do not enable fips when fips-updates is active [Lucas Moura] (GH: #1209)
+    - Add vm test commands in tox.ini (#1204) [Lucas Moura]
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 26 Oct 2020 20:01:21 -0600
+
 ubuntu-advantage-tools (25.0~20.10.1~beta1) groovy; urgency=medium
 
   * Beta bug fix release
