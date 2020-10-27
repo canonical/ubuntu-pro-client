@@ -23,11 +23,11 @@ Feature: Enable command behaviour when attached to an UA staging subscription
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I run `ua status` as non-root
+        And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance
-        esm-infra     no                 —                  UA Infra: Extended Security Maintenance
+        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     no                 —                  UA Infra: Extended Security Maintenance \(ESM\)
         livepatch     yes                n/a                Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo

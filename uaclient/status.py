@@ -128,6 +128,9 @@ STATUS_COLOR = {
 
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
+MESSAGE_APT_UPDATE_INVALID_URL_CONFIG = (
+    "APT update failed to read APT config for the following URL{}:\n{}"
+)
 MESSAGE_APT_POLICY_FAILED = "Failure checking APT policy."
 MESSAGE_APT_UPDATING_LISTS = "Updating package lists"
 MESSAGE_CONNECTIVITY_ERROR = """\

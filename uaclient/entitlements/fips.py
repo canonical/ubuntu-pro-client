@@ -24,7 +24,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     # services. And security/CPC signoff on expected conf behavior.
     apt_noninteractive = True
 
-    help_doc_url = "https://ubuntu.com/security/fips"
+    help_doc_url = "https://ubuntu.com/security/certifications#fips"
 
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
@@ -100,6 +100,26 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     title = "FIPS"
     description = "NIST-certified FIPS modules"
     origin = "UbuntuFIPS"
+
+    @property
+    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+        static_affordances = super().static_affordances
+
+        fips_update = FIPSUpdatesEntitlement(self.cfg)
+        enabled_status = status.ApplicationStatus.ENABLED
+        is_fips_update_enabled = bool(
+            fips_update.application_status()[0] == enabled_status
+        )
+
+        return static_affordances + (
+            (
+                "Cannot enable {} when {} is enabled".format(
+                    self.title, fips_update.title
+                ),
+                lambda: is_fips_update_enabled,
+                False,
+            ),
+        )
 
     @property
     def messaging(

@@ -16,6 +16,7 @@ LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
+SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
 SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
 UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 VM_PROFILE_TMPL = "behave-{}"
@@ -424,6 +425,12 @@ def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
         subprocess.check_call(cmd)
     subprocess.run(["lxc", "stop", container_name])
     return deb_paths
+
+
+# Support for python 3.6 or earlier
+@contextmanager
+def nullcontext(enter_result=None):
+    yield enter_result
 
 
 def spinning_cursor():

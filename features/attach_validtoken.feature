@@ -41,8 +41,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +n/a      +Canonical Livepatch service
         """
         And stderr matches regexp:
@@ -88,8 +87,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +<lp_status>  +<lp_desc>
         """
         And stderr matches regexp:
@@ -120,8 +118,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +<lp_status>  +<lp_desc>
         """
         And stderr matches regexp:

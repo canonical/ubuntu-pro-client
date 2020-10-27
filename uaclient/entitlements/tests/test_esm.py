@@ -259,7 +259,9 @@ class TestESMInfraEntitlementEnable:
         else:
             unlink_calls = []  # esm-apps there is no apt pref file to remove
         assert unlink_calls == m_unlink.call_args_list
-        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [
+            mock.call(run_apt_update=False)
+        ] == m_remove_apt_config.call_args_list
 
 
 class TestESMEntitlementDisable:

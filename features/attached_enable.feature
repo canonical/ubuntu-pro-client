@@ -40,7 +40,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar, fips'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -67,7 +67,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -131,13 +131,13 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `apt update` with sudo
         Then stdout matches regexp
         """
-        \d+ of the updates (is|are) from UA Infrastructure ESM
+        \d+ of the updates (is|are) from UA Infra: ESM
         """
         When I run `ua disable esm-infra` with sudo
         And I run `apt update` with sudo
         Then stdout does not match regexp
         """
-        \d+ of the updates (is|are) from UA Infrastructure ESM
+        \d+ of the updates (is|are) from UA Infra: ESM
         """
 
         Examples: ubuntu release
@@ -167,7 +167,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: ubuntu release
@@ -227,7 +227,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service '<service>'.
-            Try esm-apps, esm-infra, livepatch
+            Try esm-infra, livepatch
             """
 
         Examples: beta services in containers
@@ -288,7 +288,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
 
-    @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
@@ -329,8 +328,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
@@ -343,8 +342,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance
-        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance
+        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +disabled +Canonical Livepatch service
         """
 
@@ -398,12 +397,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Canonical livepatch enabled
             """
         When I run `ua disable livepatch` with sudo
-        Then I will see the following on stdout:
-            """
-            Removing canonical-livepatch snap
-            """
-        Then I verify that the `canonical-livepatch` command is not found
-        When I run `ua enable fips --assume-yes --beta` with sudo
+        And I run `ua enable fips --assume-yes --beta` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -437,3 +431,36 @@ Feature: Enable command behaviour when attached to an UA subscription
             One moment, checking your subscription first
             Cannot enable FIPS when Livepatch is enabled
             """
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable fips on a machine with fips-updates active
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua disable livepatch` with sudo
+        And I run `ua enable fips-updates --assume-yes --beta` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing FIPS Updates packages
+            FIPS Updates enabled
+            A reboot is required to complete install
+            """
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Cannot enable FIPS when FIPS Updates is enabled
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |

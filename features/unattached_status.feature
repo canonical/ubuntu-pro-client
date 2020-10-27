@@ -7,8 +7,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
-            esm-infra     yes        UA Infra: Extended Security Maintenance
+            esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -19,8 +18,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
-            esm-infra     yes        UA Infra: Extended Security Maintenance
+            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
             fips-updates  <fips>      +Uncertified security updates to FIPS modules
             livepatch     yes        Canonical Livepatch service
@@ -32,8 +31,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
-            esm-infra     yes        UA Infra: Extended Security Maintenance
+            esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -44,8 +42,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
-            esm-infra     yes        UA Infra: Extended Security Maintenance
+            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
             fips-updates  <fips>      +Uncertified security updates to FIPS modules
             livepatch     yes        Canonical Livepatch service
@@ -63,8 +61,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance
-            esm-infra     yes        UA Infra: Extended Security Maintenance
+            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
             fips-updates  <fips>      +Uncertified security updates to FIPS modules
             livepatch     yes        Canonical Livepatch service

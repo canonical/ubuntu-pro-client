@@ -36,27 +36,38 @@ BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10
 
 
-SERVICES_WRAPPED_HELP = textwrap.dedent(
+ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
  - cis-audit: Center for Internet Security Audit Tools
-   (https://ubuntu.com/security/hardening)
- - esm-apps: UA Apps: Extended Security Maintenance
+   (https://ubuntu.com/security/certifications#cis)
+ - esm-apps: UA Apps: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
- - esm-infra: UA Infra: Extended Security Maintenance
+ - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
- - fips: NIST-certified FIPS modules (https://ubuntu.com/security/fips)
  - fips-updates: Uncertified security updates to FIPS modules
-   (https://ubuntu.com/security/fips)
+   (https://ubuntu.com/security/certifications#fips)
+ - fips: NIST-certified FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
+ - livepatch: Canonical Livepatch service
+   (https://ubuntu.com/security/livepatch)
+"""
+)
+
+SERVICES_WRAPPED_HELP = textwrap.dedent(
+    """
+Client to manage Ubuntu Advantage services on a machine.
+ - esm-infra: UA Infra: Extended Security Maintenance (ESM)
+   (https://ubuntu.com/security/esm)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
 """
 )
 
 
-@pytest.fixture(params=["direct", "--help", "ua help"])
+@pytest.fixture(params=["direct", "--help", "ua help", "ua help --all"])
 def get_help(request, capsys):
     if request.param == "direct":
 
@@ -64,7 +75,7 @@ def get_help(request, capsys):
             parser = get_parser()
             help_file = io.StringIO()
             parser.print_help(file=help_file)
-            return help_file.getvalue()
+            return (help_file.getvalue(), "base")
 
     elif request.param == "--help":
 
@@ -74,15 +85,19 @@ def get_help(request, capsys):
                 with pytest.raises(SystemExit):
                     parser.parse_args()
             out, _err = capsys.readouterr()
-            return out
+            return (out, "base")
 
-    elif request.param == "ua help":
+    elif "help" in request.param:
 
         def _get_help_output():
-            with mock.patch("sys.argv", ["ua", "help"]):
+            with mock.patch("sys.argv", request.param.split(" ")):
                 main()
             out, _err = capsys.readouterr()
-            return out
+
+            if "--all" in request.param:
+                return (out, "all")
+
+            return (out, "base")
 
     else:
         raise NotImplementedError("Unknown help source: {}", request.param)
@@ -99,7 +114,7 @@ class TestCLIParser:
         """Help lines are wrapped at 80 chars"""
 
         def cls_mock_factory(desc, url):
-            return mock.Mock(description=desc, help_doc_url=url)
+            return mock.Mock(description=desc, help_doc_url=url, is_beta=False)
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "test": cls_mock_factory(BIG_DESC, BIG_URL)
@@ -109,11 +124,17 @@ class TestCLIParser:
             " - test: " + " ".join(["123456789"] * 7),
             "   next line ({url})".format(url=BIG_URL),
         ]
-        assert "\n".join(lines) in get_help()
+        out, _ = get_help()
+        assert "\n".join(lines) in out
 
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
-        assert SERVICES_WRAPPED_HELP in get_help()
+        out, type_request = get_help()
+
+        if type_request == "base":
+            assert SERVICES_WRAPPED_HELP in out
+        else:
+            assert ALL_SERVICES_WRAPPED_HELP in out
 
     @pytest.mark.parametrize(
         "out_format, expected_return",
@@ -142,6 +163,8 @@ class TestCLIParser:
         type(m_args).service = m_service_name
         m_format = mock.PropertyMock(return_value=out_format)
         type(m_args).format = m_format
+        m_all = mock.PropertyMock(return_value=True)
+        type(m_args).all = m_all
 
         m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(return_value="Test")
@@ -193,6 +216,8 @@ class TestCLIParser:
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
+        m_all = mock.PropertyMock(return_value=True)
+        type(m_args).all = m_all
 
         m_entitlement_cls = mock.MagicMock()
         m_ent_help_info = mock.PropertyMock(
@@ -264,6 +289,8 @@ class TestCLIParser:
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
+        m_all = mock.PropertyMock(return_value=True)
+        type(m_args).all = m_all
 
         m_available_resources.return_value = [
             {"name": "ent1", "available": True}

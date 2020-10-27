@@ -16,15 +16,16 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESMApps"
     name = "esm-apps"
     title = "ESM Apps"
-    description = "UA Apps: Extended Security Maintenance"
+    description = "UA Apps: Extended Security Maintenance (ESM)"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
+    is_beta = True
 
 
 class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
     origin = "UbuntuESM"
     title = "ESM Infra"
-    description = "UA Infra: Extended Security Maintenance"
+    description = "UA Infra: Extended Security Maintenance (ESM)"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
 
     @property
