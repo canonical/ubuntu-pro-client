@@ -289,37 +289,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.bionic
-    @uses.config.machine_type.lxd.vm
-    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        When I run `ua enable fips --assume-yes --beta` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Installing FIPS packages
-            FIPS enabled
-            A reboot is required to complete install
-            """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            fips          yes                enabled
-            """
-        When I reboot the `<release>` machine
-        And  I run `uname -r` as non-root
-        Then stdout matches regexp:
-            """
-            fips
-            """
-
-        Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
-
-    @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of vm-based services in a bionic lxd vm
