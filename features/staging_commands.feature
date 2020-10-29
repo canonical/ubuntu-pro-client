@@ -55,3 +55,41 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | focal   | ant      |
            | trusty  | ant      |
            | xenial  | jq       |
+
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I run `ua disable livepatch` with sudo
+        When I run `ua enable fips --assume-yes --beta` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            fips          yes                enabled
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            fips
+            """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |

@@ -1,9 +1,7 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import contextlib
-import copy
 import io
-import itertools
 import mock
 from functools import partial
 
@@ -24,19 +22,7 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    additional_packages = [
-        "fips-initramfs",
-        "libssl1.0.0",
-        "libssl1.0.0-hmac",
-        "linux-fips",
-        "openssh-client",
-        "openssh-client-hmac",
-        "openssh-server",
-        "openssh-server-hmac",
-        "openssl",
-        "strongswan",
-        "strongswan-hmac",
-    ]
+    additional_packages = ["ubuntu-fips"]
 
     return partial(
         entitlement_factory,
@@ -359,83 +345,6 @@ class TestFIPSEntitlementEnable:
 
         expected_msg = "Cannot enable FIPS when FIPS Updates is enabled"
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
-
-
-def _fips_pkg_combinations():
-    """Construct all combinations of fips_packages and expected installs"""
-    fips_packages = {
-        "libssl1.0.0": {"libssl1.0.0-hmac"},
-        "openssh-client": {"openssh-client-hmac"},
-        "openssh-server": {"openssh-server-hmac"},
-        "openssl": set(),
-        "strongswan": {"strongswan-hmac"},
-    }
-
-    items = [  # These are the items that we will combine together
-        (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in fips_packages.items()
-    ]
-    # This produces combinations in all possible combination lengths
-    combinations = itertools.chain.from_iterable(
-        itertools.combinations(items, n) for n in range(1, len(items))
-    )
-    ret = []
-    # This for loop flattens each combination together in to a single
-    # (installed_packages, expected_installs) item
-    for combination in combinations:
-        installed_packages, expected_installs = [], []
-        for pkg, installs in combination:
-            installed_packages.append(pkg)
-            expected_installs.extend(installs)
-        ret.append((installed_packages, expected_installs))
-    return ret
-
-
-class TestFipsEntitlementPackages:
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_packages_is_list(self, _mock, entitlement):
-        """RepoEntitlement.enable will fail if it isn't"""
-        assert isinstance(entitlement.packages, list)
-
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_fips_required_packages_included(self, _mock, entitlement):
-        """The fips_required_packages should always be in .packages"""
-        assert entitlement.fips_required_packages.issubset(
-            entitlement.packages
-        )
-
-    @pytest.mark.parametrize(
-        "installed_packages,expected_installs", _fips_pkg_combinations()
-    )
-    @mock.patch(M_PATH + "apt.get_installed_packages")
-    def test_currently_installed_packages_are_included_in_packages(
-        self,
-        m_get_installed_packages,
-        entitlement,
-        installed_packages,
-        expected_installs,
-    ):
-        """If FIPS packages are already installed, upgrade them"""
-        m_get_installed_packages.return_value = list(installed_packages)
-        full_expected_installs = (
-            list(entitlement.fips_required_packages) + expected_installs
-        )
-        assert sorted(full_expected_installs) == sorted(entitlement.packages)
-
-    @mock.patch(M_PATH + "apt.get_installed_packages")
-    def test_multiple_packages_calls_dont_mutate_state(
-        self, m_get_installed_packages, entitlement
-    ):
-        # Make it appear like all packages are installed
-        m_get_installed_packages.return_value.__contains__.return_value = True
-
-        before = copy.deepcopy(entitlement.fips_required_packages)
-
-        assert entitlement.packages
-
-        after = copy.deepcopy(entitlement.fips_required_packages)
-
-        assert before == after
 
 
 class TestFIPSEntitlementDisable:
