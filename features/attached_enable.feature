@@ -297,7 +297,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
@@ -311,7 +310,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-apps     +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         livepatch    +yes      +disabled +Canonical Livepatch service
         """
