@@ -88,7 +88,18 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         1
         """
-
+        When I run `ua disable fips --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            A reboot is required to complete disable operation
+            """
+        When I reboot the `<release>` machine
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        0
+        """
         Examples: ubuntu release
            | release |
            | xenial  |
