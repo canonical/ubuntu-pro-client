@@ -541,6 +541,23 @@ class TestMain:
 
         assert "['some', 'args']" in log
 
+    def test_argparse_errors_well_formatted(self, capsys):
+        parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "enable"]):
+            with pytest.raises(SystemExit) as excinfo:
+                parser.parse_args()
+        assert 2 == excinfo.value.code
+        _, err = capsys.readouterr()
+        assert (
+            textwrap.dedent(
+                """\
+            usage: ua enable <service> [<service>] [flags]
+            the following arguments are required: service
+        """
+            )
+            == str(err)
+        )
+
 
 class TestSetupLogging:
     @pytest.mark.parametrize("level", (logging.INFO, logging.ERROR))
