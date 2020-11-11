@@ -264,7 +264,7 @@ def process_entitlement_delta(
     from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
     if series_overrides:
-        util.apply_series_overrides(new_access)
+        util.apply_contract_overrides(new_access)
 
     deltas = util.get_dict_deltas(orig_access, new_access)
     if deltas:

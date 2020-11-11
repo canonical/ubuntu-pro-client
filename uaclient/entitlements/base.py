@@ -320,7 +320,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         transition_to_unentitled = bool(delta_entitlement == util.DROPPED_KEY)
         if not transition_to_unentitled:
             if delta_entitlement:
-                util.apply_series_overrides(deltas)
+                util.apply_contract_overrides(deltas)
                 delta_entitlement = deltas["entitlement"]
             if orig_access and "entitled" in delta_entitlement:
                 transition_to_unentitled = delta_entitlement["entitled"] in (

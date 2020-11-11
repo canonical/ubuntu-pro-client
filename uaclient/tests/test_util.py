@@ -294,42 +294,124 @@ class TestGetPlatformInfo:
                     assert expected == util.get_platform_info()
 
 
-class TestApplySeriesOverrides:
+class TestApplyContractOverrides:
     def test_error_on_non_entitlement_dict(self):
         """Raise a runtime error when seeing invalid dict type."""
         with pytest.raises(RuntimeError) as exc:
-            util.apply_series_overrides({"some": "dict"})
+            util.apply_contract_overrides({"some": "dict"})
         error = (
             'Expected entitlement access dict. Missing "entitlement" key:'
             " {'some': 'dict'}"
         )
         assert error == str(exc.value)
 
-    @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
-    )
-    def test_mutates_orig_access_dict(self, _):
-        """Mutate orig_access dict when called."""
-        orig_access = {
-            "entitlement": {
-                "a": {"a1": "av1", "a2": {"aa2": "aav2"}},
-                "b": "b1",
-                "c": "c1",
-                "series": {
-                    "trusty": {"a": "t1"},
-                    "xenial": {"a": {"a2": {"aa2": "xxv2"}}, "b": "bx1"},
+    @pytest.mark.parametrize(
+        "series,client_ver,series_overrides,client_overrides,expected",
+        (
+            (  # No series or client overrides
+                "xenial",
+                "26.0",
+                None,
+                None,
+                {"a": {"a1": "a1"}, "b": "b", "c": ["c"]},
+            ),
+            (  # No applicable series overrides
+                "bionic",
+                "26.0",
+                {"trusty": {"a": "t1"}, "xenial": {"a": ["x1", "x2"]}},
+                None,  # No client overides
+                {"a": {"a1": "a1"}, "b": "b", "c": ["c"]},
+            ),
+            (  # One applicable series override with type difference
+                "xenial",
+                "26.0",
+                {"trusty": {"a": "t1"}, "xenial": {"a": ["x1", "x2"]}},
+                None,  # No client overides
+                {"a": ["x1", "x2"], "b": "b", "c": ["c"]},
+            ),
+            (  # One applicable series override with dict extension
+                "xenial",
+                "26.0",
+                {"trusty": {"a": "t1"}, "xenial": {"a": {"x1": "x1"}}},
+                None,  # No client overides
+                {"a": {"a1": "a1", "x1": "x1"}, "b": "b", "c": ["c"]},
+            ),
+            (  # No applicable client overrides
+                "xenial",
+                "26.0",
+                None,  # No series overides
+                {"26.1": {"a": {"261": "261"}}, "26.2": {"a": {"262": "262"}}},
+                {"a": {"a1": "a1"}, "b": "b", "c": ["c"]},
+            ),
+            (  # Two applicable client overrides non-competing
+                "xenial",
+                "26.2",
+                None,  # No series overides
+                {
+                    "26.3": {"c": "263"},
+                    "26.1": {"a": {"261": "261"}},
+                    "26.2": {"a": {"262": "262"}},
                 },
-            }
+                {
+                    "a": {"a1": "a1", "261": "261", "262": "262"},
+                    "b": "b",
+                    "c": ["c"],
+                },
+            ),
+            (  # Two applicable client overrides precendence to latest
+                "xenial",
+                "26.2",
+                None,  # No series overides
+                {
+                    "26.3": {"c": "263"},
+                    "26.1": {"a": "261"},
+                    "26.2": {"a": "262"},
+                },
+                {"a": "262", "b": "b", "c": ["c"]},
+            ),
+            (  # applicable series and client overrides precendence to client
+                "xenial",
+                "26.0",
+                {"xenial": {"a": "xa", "b": "xb"}},
+                {"26.0": {"a": "260", "c": "260"}},
+                {"a": "260", "b": "xb", "c": "260"},
+            ),
+            (  # series, client and client-series precendence to client-series
+                "xenial",
+                "26.0",
+                {"xenial": {"a": "xa", "b": "xb"}},
+                {
+                    "26.0": {
+                        "a": "260",
+                        "c": "260",
+                        "series": {"xenial": {"a": "260x"}},
+                    }
+                },
+                {"a": "260x", "b": "xb", "c": "260"},
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_mutates_orig_access_dict_with_series_overrides(
+        self,
+        m_get_platform_info,
+        series,
+        client_ver,
+        series_overrides,
+        client_overrides,
+        expected,
+    ):
+        """Mutate orig_access dict when called."""
+        m_get_platform_info.return_value = {"series": series}
+        orig_access = {
+            "entitlement": {"a": {"a1": "a1"}, "b": "b", "c": ["c"]}
         }
-        expected = {
-            "entitlement": {
-                "a": {"a1": "av1", "a2": {"aa2": "xxv2"}},
-                "b": "bx1",
-                "c": "c1",
-            }
-        }
-        util.apply_series_overrides(orig_access)
-        assert orig_access == expected
+        if series_overrides is not None:
+            orig_access["entitlement"]["series"] = series_overrides
+        if client_overrides is not None:
+            orig_access["entitlement"]["client"] = client_overrides
+        util.apply_contract_overrides(orig_access, series, client_ver)
+        assert orig_access == {"entitlement": expected}
 
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
@@ -342,7 +424,7 @@ class TestApplySeriesOverrides:
         }
         expected = {"entitlement": {"directives": {"suites": ["xenial"]}}}
 
-        util.apply_series_overrides(orig_access)
+        util.apply_contract_overrides(orig_access)
 
         assert expected == orig_access
 

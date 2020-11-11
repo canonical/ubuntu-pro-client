@@ -142,23 +142,57 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         return o
 
 
-def apply_series_overrides(
-    orig_access: "Dict[str, Any]", series: str = None
+def _apply_overrides_at_key(
+    orig_dict: "Dict[str, Any]", overrides: "Dict[str, Any]", override_key: str
 ) -> None:
-    """Apply series-specific overrides to an entitlement dict.
+    """Mutate orig_dict below override_key with the following overrides"""
+    for key, value in overrides.items():
+        current = orig_dict[override_key].get(key)
+        if isinstance(current, dict) and type(current) == type(value):
+            # If the key already exists and is a dict, update that dict using
+            # the override
+            current.update(value)
+        else:
+            # Otherwise, replace it wholesale
+            orig_dict[override_key][key] = value
 
-    This function mutates orig_access dict by applying any series-overrides to
-    the top-level keys under 'entitlement'. The series-overrides are sparse
-    and intended to supplement existing top-level dict values. So, sub-keys
-    under the top-level directives, obligations and affordance sub-key values
-    will be preserved if unspecified in series-overrides.
+
+def apply_contract_overrides(
+    orig_access: "Dict[str, Any]",
+    series: str = None,
+    client_version: str = None,
+) -> None:
+    """Apply series and client_version overrides to an entitlement dict.
+
+    This function mutates orig_access dict by first applying any series
+    overrides to the top-level keys under 'entitlement'. Any matching
+    client-version overrides for the client_version are then applied to
+    top-level keys under 'entitlement'.
+
+    The series and client_verision overrides are sparse and intended to
+    supplement existing top-level dict values. So, sub-keys under the
+    top-level directives, obligations and affordance sub-key values will be
+    preserved if unspecified in series or client_version overrides.
+
+
+    The order in which overrides are performed is:
+      1. top-level "series" overrides matching the running ubuntu series
+      2. sorted list "client" versions less than or equal to the current client
+         version
+         a. Each matching client version will first apply defaults
+         b. If a matching "series" sub-key is present in the client overrides,
+            apply those overrides last.
 
     To more clearly indicate that orig_access in memory has already had
-    the overrides applied, the 'series' key is also removed from the
-    orig_access dict.
+    the overrides applied, the 'series' keys and 'client' key will also be
+    removed from the orig_access dict.
 
     :param orig_access: Dict with original entitlement access details
+    :param series: string of the ubuntu series name. For example: xenial
+    :param client_version: str of the ubuntu-advantage-tools version: 26.0.
     """
+    from uaclient.version import __VERSION__
+
     if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
         raise RuntimeError(
             'Expected entitlement access dict. Missing "entitlement" key:'
@@ -167,15 +201,23 @@ def apply_series_overrides(
     series_name = get_platform_info()["series"] if series is None else series
     orig_entitlement = orig_access.get("entitlement", {})
     overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
-    for key, value in overrides.items():
-        current = orig_access["entitlement"].get(key)
-        if isinstance(current, dict):
-            # If the key already exists and is a dict, update that dict using
-            # the override
-            current.update(value)
-        else:
-            # Otherwise, replace it wholesale
-            orig_access["entitlement"][key] = value
+    _apply_overrides_at_key(orig_access, overrides, "entitlement")
+    if client_version is None:
+        client_version = __VERSION__
+    for version, client_overrides in sorted(
+        orig_entitlement.pop("client", {}).items()
+    ):
+        if float(version) > float(client_version):
+            break
+        # Apply series-specific client overrides last
+        client_series_overrides = client_overrides.pop("series", {}).pop(
+            series_name, {}
+        )
+        _apply_overrides_at_key(orig_access, client_overrides, "entitlement")
+        if client_series_overrides:
+            _apply_overrides_at_key(
+                orig_access, client_series_overrides, "entitlement"
+            )
 
 
 def del_file(path: str) -> None:
