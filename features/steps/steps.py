@@ -13,19 +13,12 @@ from hamcrest import (
 )
 
 from features.environment import create_uat_image
-from features.util import (
-    SLOW_CMDS,
-    emit_spinner_on_travis,
-    launch_lxd_container,
-    lxc_exec,
-    nullcontext,
-    wait_for_boot,
-)
+from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 
 
-CONTAINER_PREFIX = "behave-test-"
+CONTAINER_PREFIX = "ubuntu-behave-test-"
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
@@ -43,6 +36,9 @@ def given_a_machine(context, series):
         return
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
+        context.instance = context.config.cloud_api.get_instance(
+            context.container_name
+        )
         if "pro" in context.config.machine_type:
             context.instance = context.config.cloud_api.get_instance(
                 context.container_name
@@ -52,27 +48,36 @@ def given_a_machine(context, series):
     if series not in context.series_image_name:
         with emit_spinner_on_travis():
             create_uat_image(context, series)
-    if context.config.cloud_manager:
-        context.instance = context.config.cloud_manager.launch(
-            series=series, image_name=context.series_image_name[series]
-        )
-        context.container_name = context.config.cloud_manager.get_instance_id(
-            context.instance
-        )
-    else:
-        is_vm = bool(context.config.machine_type == "lxd.vm")
-        now = datetime.datetime.now()
-        vm_prefix = "vm-" if is_vm else ""
-        context.container_name = (
-            CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
-        )
-        launch_lxd_container(
-            context,
-            series=series,
-            image_name=context.series_image_name[series],
-            container_name=context.container_name,
-            is_vm=is_vm,
-        )
+
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    now = datetime.datetime.now()
+    vm_prefix = "vm-" if is_vm else ""
+
+    instance_name = (
+        CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
+    )
+
+    context.instance = context.config.cloud_manager.launch(
+        series=series,
+        instance_name=instance_name,
+        image_name=context.series_image_name[series],
+    )
+
+    context.container_name = context.config.cloud_manager.get_instance_id(
+        context.instance
+    )
+
+    def cleanup_instance() -> None:
+        if not context.config.destroy_instances:
+            print(
+                "--- Leaving instance running: {}".format(
+                    context.instance.name
+                )
+            )
+        else:
+            context.instance.delete(wait=False)
+
+    context.add_cleanup(cleanup_instance)
 
 
 @when("I run `{command}` {user_spec}")
@@ -85,26 +90,19 @@ def when_i_run_command(context, command, user_spec, verify_return=True):
             break
 
     full_cmd = prefix + shlex.split(command)
-    if context.config.cloud_manager:
-        with slow_cmd_spinner():
-            result = context.instance.execute(full_cmd)
-        process = subprocess.CompletedProcess(
-            args=full_cmd,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            returncode=result.return_code,
-        )
-    else:
-        with slow_cmd_spinner():
-            process = lxc_exec(
-                context.container_name,
-                full_cmd,
-                capture_output=True,
-                text=True,
-            )
+    with slow_cmd_spinner():
+        result = context.instance.execute(full_cmd)
+
+    process = subprocess.CompletedProcess(
+        args=full_cmd,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        returncode=result.return_code,
+    )
 
     if verify_return:
         assert_that(process.returncode, equal_to(0))
+
     context.process = process
 
 
@@ -144,12 +142,7 @@ def when_i_create_file_with_content(context, file_path):
 
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
-    when_i_run_command(context, "reboot", "with sudo")
-
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    wait_for_boot(
-        container_name=context.container_name, series=series, is_vm=is_vm
-    )
+    context.instance.restart(wait=True)
 
 
 @then("I will see the following on stdout")
