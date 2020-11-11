@@ -55,6 +55,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | trusty  | ant      |
            | xenial  | jq       |
 
+    @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
