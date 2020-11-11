@@ -1,7 +1,6 @@
 import datetime
 import os
 import itertools
-import subprocess
 import textwrap
 import logging
 import pycloudlib  # type: ignore
@@ -18,14 +17,7 @@ from behave.runner import Context
 
 import features.cloud as cloud
 
-from features.util import (
-    UA_DEBS,
-    emit_spinner_on_travis,
-    launch_lxd_container,
-    lxc_exec,
-    lxc_get_property,
-    build_debs,
-)
+from features.util import emit_spinner_on_travis, lxc_get_property, build_debs
 
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
@@ -65,7 +57,7 @@ apt:
     ua-tools-daily:
         source: deb {daily_ppa} $RELEASE main
         keyid: 8A295C4FB8B190B7
-packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
+packages: [openssh-server, ubuntu-advantage-tools, ubuntu-advantage-pro]
 """.format(
     daily_ppa=DAILY_PPA
 )
@@ -227,7 +219,6 @@ class UAClientBehaveConfig:
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
-            self.cloud_api = self.cloud_manager.api
         elif "azure" in self.machine_type:
             self.cloud_manager = cloud.Azure(
                 az_client_id=az_client_id,
@@ -238,7 +229,16 @@ class UAClientBehaveConfig:
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
-            self.cloud_api = self.cloud_manager.api
+        elif "lxd.vm" in self.machine_type:
+            self.cloud_manager = cloud.LXDVirtualMachine(
+                machine_type=self.machine_type
+            )
+        else:
+            self.cloud_manager = cloud.LXDContainer(
+                machine_type=self.machine_type
+            )
+
+        self.cloud_api = self.cloud_manager.api
 
         # Finally, print the config options.  This helps users debug the use of
         # config options, and means they'll be included in test logs in CI.
@@ -297,8 +297,8 @@ def before_all(context: Context) -> None:
     context.series_reuse_image = ""
     context.reuse_container = {}
     context.config = UAClientBehaveConfig.from_environ(context.config)
-    if context.config.cloud_api:
-        context.config.cloud_manager.manage_ssh_key()
+    context.config.cloud_manager.manage_ssh_key()
+
     if context.config.reuse_image:
         series = lxc_get_property(
             context.config.reuse_image, property_name="series", image=True
@@ -318,23 +318,14 @@ def before_all(context: Context) -> None:
             context.config.reuse_image = None
 
     if userdata.get("reuse_container"):
-        if context.config.cloud_api:
-            inst = context.config.cloud_api.get_instance(
-                userdata.get("reuse_container")
-            )
-            codename = inst.execute(
-                ["grep", "UBUNTU_CODENAME", "/etc/os-release"]
-            ).strip()
-            [_, series] = codename.split("=")
-        else:  # lxd.vm and lxd.container machine_types
-            series = lxc_get_property(
-                userdata.get("reuse_container"), property_name="series"
-            )
-            machine_type = lxc_get_property(
-                userdata.get("reuse_container"), property_name="machine_type"
-            )
-            if machine_type:
-                print("Found type: {vm_type}".format(vm_type=machine_type))
+        inst = context.config.cloud_api.get_instance(
+            userdata.get("reuse_container")
+        )
+        codename = inst.execute(
+            ["grep", "UBUNTU_CODENAME", "/etc/os-release"]
+        ).strip()
+        [_, series] = codename.split("=")
+
         context.reuse_container = {series: userdata.get("reuse_container")}
         print(
             textwrap.dedent(
@@ -417,16 +408,13 @@ def after_all(context):
                     context.series_image_name[key],
                 )
             else:
-                if context.config.cloud_api:
-                    context.config.cloud_api.delete_image(image)
-                else:
-                    subprocess.run(["lxc", "image", "delete", image])
+                context.config.cloud_api.delete_image(image)
 
 
 def _capture_container_as_image(
     container_name: str,
     image_name: str,
-    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
+    cloud_api: "pycloudlib.cloud.BaseCloud",
 ) -> str:
     """Capture a container as an image.
 
@@ -441,16 +429,8 @@ def _capture_container_as_image(
     print(
         "--- Creating  base image snapshot from vm {}".format(container_name)
     )
-    if cloud_api:
-        inst = cloud_api.get_instance(container_name)
-        return cloud_api.snapshot(instance=inst)
-    else:
-        # TODO(drop this with migration to pycloudlib.lxc)
-        subprocess.run(["lxc", "stop", container_name])
-        subprocess.run(
-            ["lxc", "publish", container_name, "--alias", image_name]
-        )
-        return image_name
+    inst = cloud_api.get_instance(container_name)
+    return cloud_api.snapshot(instance=inst)
 
 
 def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
@@ -481,39 +461,23 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         print(
             "--- Launching vm to build ubuntu-advantage*debs from local source"
         )
-        if context.config.cloud_manager:
-            cloud_manager = context.config.cloud_manager
-            if "pro" in context.config.machine_type:
-                user_data = USERDATA_BLOCK_AUTO_ATTACH
-            else:
-                user_data = ""
-            inst = cloud_manager.launch(series=series, user_data=user_data)
+        build_container_name = (
+            "ubuntu-behave-image-pre-build-%s-" % series + time_suffix
+        )
 
-            def cleanup_instance() -> None:
-                if not context.config.destroy_instances:
-                    print("--- Leaving instance running: {}".format(inst.id))
-                else:
-                    inst.delete(wait=False)
-
-            build_container_name = cloud_manager.get_instance_id(inst)
+        cloud_manager = context.config.cloud_manager
+        if "pro" in context.config.machine_type:
+            user_data = USERDATA_BLOCK_AUTO_ATTACH
         else:
-            build_container_name = (
-                "behave-image-pre-build-%s-" % series + time_suffix
-            )
-            is_vm = bool(context.config.machine_type == "lxd.vm")
-            if is_vm and series == "xenial":
-                # FIXME: use lxd custom cloud images which containt HWE kernel
-                # for vhost-vsock support
-                lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
-            else:
-                lxc_ubuntu_series = "ubuntu-daily:%s" % series
-            launch_lxd_container(
-                context,
-                series=series,
-                image_name=lxc_ubuntu_series,
-                container_name=build_container_name,
-                is_vm=is_vm,
-            )
+            user_data = ""
+        inst = cloud_manager.launch(
+            instance_name=build_container_name,
+            series=series,
+            user_data=user_data,
+        )
+
+        build_container_name = cloud_manager.get_instance_id(inst)
+
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
                 build_container_name,
@@ -555,42 +519,27 @@ def create_uat_image(context: Context, series: str) -> None:
     print(
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
-    if context.config.cloud_manager:
-        user_data = ""
-        if "pro" in context.config.machine_type:
-            user_data = USERDATA_BLOCK_AUTO_ATTACH
-        if not deb_paths:
-            if not user_data:
-                user_data = "#cloud-config\n"
-            if series == "trusty":
-                user_data += USERDATA_APT_SOURCE_DAILY_TRUSTY
-            else:
-                user_data += USERDATA_APT_SOURCE_DAILY
-        inst = context.config.cloud_manager.launch(
-            series=series, user_data=user_data
-        )
-        build_container_name = context.config.cloud_manager.get_instance_id(
-            inst
-        )
-    else:
-        is_vm = bool(context.config.machine_type == "lxd.vm")
-        build_container_name = "behave-image-build-%s-%s" % (
-            "-vm" if is_vm else "",
-            series + time_suffix,
-        )
-        if is_vm and series == "xenial":
-            # FIXME: use lxd custom cloud images which containt HWE kernel for
-            # vhost-vsock support
-            lxc_ubuntu_series = "images:ubuntu/16.04/cloud"
+
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    build_container_name = "ubuntu-behave-image-build-%s-%s" % (
+        "-vm" if is_vm else "",
+        series + time_suffix,
+    )
+
+    user_data = ""
+    if "pro" in context.config.machine_type:
+        user_data = USERDATA_BLOCK_AUTO_ATTACH
+    if not deb_paths:
+        if not user_data:
+            user_data = "#cloud-config\n"
+        if series == "trusty":
+            user_data += USERDATA_APT_SOURCE_DAILY_TRUSTY
         else:
-            lxc_ubuntu_series = "ubuntu-daily:%s" % series
-        launch_lxd_container(
-            context,
-            series=series,
-            image_name=lxc_ubuntu_series,
-            container_name=build_container_name,
-            is_vm=is_vm,
-        )
+            user_data += USERDATA_APT_SOURCE_DAILY
+    inst = context.config.cloud_manager.launch(
+        instance_name=build_container_name, series=series, user_data=user_data
+    )
+    build_container_name = context.config.cloud_manager.get_instance_id(inst)
 
     _install_uat_in_container(
         build_container_name,
@@ -601,17 +550,18 @@ def create_uat_image(context: Context, series: str) -> None:
 
     image_name = _capture_container_as_image(
         build_container_name,
-        image_name="behave-image-%s-" % series + time_suffix,
+        image_name="ubuntu-behave-image-%s-" % series + time_suffix,
         cloud_api=context.config.cloud_api,
     )
     context.series_image_name[series] = image_name
+    inst.delete(wait=False)
 
 
 def _install_uat_in_container(
     container_name: str,
     series: str,
     config: UAClientBehaveConfig,
-    deb_paths: "Optional[List[str]]" = [],
+    deb_paths: "Optional[List[str]]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
@@ -623,63 +573,35 @@ def _install_uat_in_container(
     :param deb_paths: Optional paths to local deb files we need to install
     """
     cmds = []
-    if not deb_paths:
-        if not config.cloud_api:
-            pkg_names = [
-                deb.replace(".deb", "")
-                for deb in UA_DEBS
-                if "pro" in config.machine_type or "pro" not in deb
-            ]
-            cmds.extend(
-                [
-                    [
-                        "sudo",
-                        "add-apt-repository",
-                        "--yes",
-                        "ppa:canonical-server/ua-client-daily",
-                    ],
-                    ["sudo", "apt-get", "update", "-qq"],
-                    ["sudo", "apt-get", "install", "-qq", "-y"] + pkg_names,
-                ]
-            )
-    else:
+
+    if deb_paths is None:
+        deb_paths = []
+
+    if deb_paths:
         cmds.append(["sudo", "apt-get", "update", "-qqy"])
+
         deb_files = []
+        inst = config.cloud_api.get_instance(container_name)
+
         for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
             deb_files.append(os.path.join("/tmp", deb_name))
-            if config.cloud_api:
-                inst = config.cloud_api.get_instance(container_name)
-                inst.push_file(deb_file, "/tmp/" + deb_name)
-            else:
-                cmd = [
-                    "lxc",
-                    "file",
-                    "push",
-                    deb_file,
-                    container_name + "/tmp/",
-                ]
-                print(
-                    "--- Push {} -> {}/tmp/".format(deb_file, container_name)
-                )
-                subprocess.check_call(cmd)
+            inst.push_file(deb_file, "/tmp/" + deb_name)
+
         if series == "trusty":
             cmds.append(["sudo", "dpkg", "-i"] + deb_files)
         else:
             cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
+
     cmds.append(["ua", "version"])
-    if config.cloud_api:
-        instance = config.cloud_api.get_instance(container_name)
-        for cmd in cmds:
-            result = instance.execute(cmd)
-            if result.failed:
-                print(
-                    "--- Failed {}: out {} err {}".format(
-                        result.return_code, result.stdout, result.stderr
-                    )
+    instance = config.cloud_api.get_instance(container_name)
+    for cmd in cmds:
+        result = instance.execute(cmd)
+        if result.failed:
+            print(
+                "--- Failed {}: out {} err {}".format(
+                    cmd, result.stdout, result.stderr
                 )
-            elif "version" in cmd:
-                print("--- " + result)
-    else:
-        for cmd in cmds:
-            print(lxc_exec(container_name, cmd))
+            )
+        elif "version" in cmd:
+            print("--- " + result)
