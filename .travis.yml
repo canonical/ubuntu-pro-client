@@ -135,11 +135,6 @@ matrix:
       install:
           - make testdeps
           - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET)
@@ -154,11 +149,6 @@ matrix:
       install:
           - make testdeps
           - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND type = cron
@@ -173,11 +163,6 @@ matrix:
       install:
           - make testdeps
           - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND type = cron
@@ -192,87 +177,6 @@ matrix:
       install:
           - make testdeps
           - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
-      script:
-          - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
-      python: 3.7
-      stage: integration
-      env:
-          - TOXENV=behave-azuregeneric-14.04
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
-      workspaces:
-        use:
-          - trusty
-      install:
-          - make testdeps
-          - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
-      script:
-          - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
-      python: 3.7
-      stage: integration
-      env:
-          - TOXENV=behave-azuregeneric-16.04
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
-      workspaces:
-        use:
-          - xenial
-      install:
-          - make testdeps
-          - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
-      script:
-          - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
-      python: 3.7
-      stage: integration
-      env:
-          - TOXENV=behave-azuregeneric-18.04
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
-      workspaces:
-        use:
-          - bionic
-      install:
-          - make testdeps
-          - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
-      script:
-          - ./tools/run_azure_travis_integration_tests.sh
-    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
-      python: 3.7
-      stage: integration
-      env:
-          - TOXENV=behave-azuregeneric-20.04
-          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
-      workspaces:
-        use:
-          - focal
-      install:
-          - make testdeps
-          - git clone https://github.com/canonical/server-test-scripts.git
-          - git clone https://github.com/canonical/pycloudlib.git
-          - cd pycloudlib
-          - pip install -r requirements.txt
-          - pip install -e .
-          - cd ..
       script:
           - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY) AND type = cron
@@ -359,6 +263,62 @@ matrix:
           - git clone https://github.com/canonical/server-test-scripts.git
       script:
           - ./tools/run_aws_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-14.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - trusty
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - ./tools/run_azure_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-16.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - xenial
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - ./tools/run_azure_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-18.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - bionic
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - ./tools/run_azure_travis_integration_tests.sh
+    - if: env(UACLIENT_BEHAVE_AZ_CLIENT_SECRET) AND env(UACLIENT_BEHAVE_CONTRACT_TOKEN) AND type = cron
+      python: 3.7
+      stage: integration
+      env:
+          - TOXENV=behave-azuregeneric-20.04
+          - UACLIENT_BEHAVE_DEBS_PATH=deb-artifacts
+      workspaces:
+        use:
+          - focal
+      install:
+          - make testdeps
+          - git clone https://github.com/canonical/server-test-scripts.git
+      script:
+          - ./tools/run_azure_travis_integration_tests.sh
     - if: env(UACLIENT_BEHAVE_CONTRACT_TOKEN)
       python: 3.7
       stage: integration
