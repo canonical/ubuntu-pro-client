@@ -243,6 +243,17 @@ def there_should_be_no_files_matching_regex(context, path_regex):
         )
 
 
+@then("I verify that `{package}` is installed and has `{name}` on its version")
+def verify_package_is_installed_and_has_name_on_version(
+    context, package, name
+):
+    when_i_run_command(
+        context, "apt-cache policy {}".format(package), "as non-root"
+    )
+    context.text = "Installed: .*{}.*".format(name)
+    then_stdout_matches_regexp(context)
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
