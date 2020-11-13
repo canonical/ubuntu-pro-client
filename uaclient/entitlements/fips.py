@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient import status, util
@@ -16,6 +18,24 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_pin_priority = 1001
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
     is_beta = True
+
+    """
+    Dictionary of conditional packages to be installed when
+    enabling FIPS services. For example, if we are enabling
+    FIPS services in a machine that has openssh-client installed,
+    we will perform two actions:
+
+    1. Upgrade the package to the FIPS version
+    2. Install the correspinding hmac version of that package.
+    """
+    conditional_packages = [
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "strongswan",
+        "strongswan-hmac",
+    ]
 
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
     # Review this fix to see if we want more general functionality for all
@@ -51,6 +71,22 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             ),
         )
 
+    @property
+    def packages(self) -> "List[str]":
+        packages = super().packages
+        installed_packages = apt.get_installed_packages()
+
+        pkg_groups = groupby(
+            self.conditional_packages,
+            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
+        )
+
+        for pkg_name, pkg_list in pkg_groups:
+            if pkg_name in installed_packages:
+                packages += pkg_list
+
+        return packages
+
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
         super_status, super_msg = super().application_status()
         if super_status != status.ApplicationStatus.ENABLED:
@@ -70,7 +106,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         FIPS on any related packages.
         """
         installed_packages = set(apt.get_installed_packages())
-        remove_packages = set(self.packages).intersection(installed_packages)
+        fips_metapackage = set(self.packages).difference(
+            set(self.conditional_packages)
+        )
+        remove_packages = fips_metapackage.intersection(installed_packages)
         if remove_packages:
             env = {"DEBIAN_FRONTEND": "noninteractive"}
             apt_options = [

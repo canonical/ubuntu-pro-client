@@ -62,6 +62,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         When I run `ua enable fips --assume-yes --beta` with sudo
         Then stdout matches regexp:
             """
@@ -77,6 +78,12 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed and has `fips` on its version
+        And I verify that `openssh-client` is installed and has `fips` on its version
+        And I verify that `strongswan` is installed and has `fips` on its version
+        And I verify that `openssh-server-hmac` is installed and has `fips` on its version
+        And I verify that `openssh-client-hmac` is installed and has `fips` on its version
+        And I verify that `strongswan-hmac` is installed and has `fips` on its version
         When I reboot the `<release>` machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
@@ -100,6 +107,13 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         0
         """
+        And I verify that `openssh-server` is installed and has `fips` on its version
+        And I verify that `openssh-client` is installed and has `fips` on its version
+        And I verify that `strongswan` is installed and has `fips` on its version
+        And I verify that `openssh-server-hmac` is installed and has `fips` on its version
+        And I verify that `openssh-client-hmac` is installed and has `fips` on its version
+        And I verify that `strongswan-hmac` is installed and has `fips` on its version
+
         Examples: ubuntu release
            | release |
            | xenial  |
