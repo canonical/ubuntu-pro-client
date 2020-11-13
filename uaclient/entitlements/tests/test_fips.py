@@ -271,14 +271,18 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert 0 == m_remove_apt_config.call_count
 
-    def test_failure_to_install_doesnt_remove_packages(self, entitlement):
+    def test_failure_to_install_removes_apt_auth(self, entitlement, tmpdir):
+
+        authfile = tmpdir.join("90ubuntu-advantage")
+        authfile.write("")
+
         def fake_subp(cmd, *args, **kwargs):
             if "install" in cmd:
                 raise util.ProcessExecutionError(cmd)
             return ("", "")
 
         with contextlib.ExitStack() as stack:
-            m_subp = stack.enter_context(
+            stack.enter_context(
                 mock.patch("uaclient.util.subp", side_effect=fake_subp)
             )
             stack.enter_context(
@@ -292,6 +296,11 @@ class TestFIPSEntitlementEnable:
                     entitlement, "setup_apt_config", return_value=True
                 )
             )
+            m_remove_apt_config = stack.enter_context(
+                mock.patch.object(
+                    entitlement, "remove_apt_config", return_value=True
+                )
+            )
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
@@ -302,8 +311,7 @@ class TestFIPSEntitlementEnable:
             error_msg = "Could not enable {}.".format(entitlement.title)
             assert error_msg == excinfo.value.msg
 
-        for call in m_subp.call_args_list:
-            assert "remove" not in call[0][0]
+        assert 1 == m_remove_apt_config.call_count
 
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
@@ -347,23 +355,79 @@ class TestFIPSEntitlementEnable:
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
 
-class TestFIPSEntitlementDisable:
-    @pytest.mark.parametrize("silent", [False, True])
-    @mock.patch("uaclient.util.get_platform_info")
-    def test_disable_returns_false_and_does_nothing(
-        self, m_platform_info, entitlement, silent, capsys
+class TestFIPSEntitlementRemovePackages:
+    @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
+    @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "apt.get_installed_packages")
+    def test_remove_packages_only_removes_if_package_is_installed(
+        self,
+        m_get_installed_packages,
+        m_subp,
+        _m_get_platform,
+        installed_pkgs,
+        entitlement,
     ):
-        """When can_disable is false disable returns false and noops."""
-        with mock.patch("uaclient.apt.remove_auth_apt_repo") as m_remove_apt:
-            assert False is entitlement.disable(silent)
-        assert 0 == m_remove_apt.call_count
+        m_subp.return_value = ("success", "")
+        m_get_installed_packages.return_value = installed_pkgs
+        entitlement.remove_packages()
+        remove_cmd = mock.call(
+            [
+                "apt-get",
+                "remove",
+                "--assume-yes",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+                "ubuntu-fips",
+            ],
+            capture=True,
+            retry_sleeps=apt.APT_RETRIES,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
+        )
+        if "ubuntu-fips" in installed_pkgs:
+            assert [remove_cmd] == m_subp.call_args_list
+        else:
+            assert 0 == m_subp.call_count
 
-        expected_stdout = ""
-        if not silent:
-            expected_stdout = "Warning: no option to disable {}\n".format(
-                entitlement.title
-            )
-        assert (expected_stdout, "") == capsys.readouterr()
+
+@mock.patch(M_REPOPATH + "handle_message_operations", return_value=True)
+@mock.patch(
+    "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+)
+class TestFIPSEntitlementDisable:
+    def test_disable_on_can_disable_true_removes_apt_config_and_packages(
+        self,
+        _m_platform_info,
+        m_handle_message_operations,
+        entitlement,
+        tmpdir,
+    ):
+        """When can_disable, disable removes apt config and packages."""
+        with mock.patch.object(entitlement, "can_disable", return_value=True):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                with mock.patch.object(
+                    entitlement, "remove_packages"
+                ) as m_remove_packages:
+                    assert entitlement.disable(True)
+        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call()] == m_remove_packages.call_args_list
+
+    def test_disable_on_can_disable_true_removes_packages(
+        self,
+        _m_platform_info,
+        m_handle_message_operations,
+        entitlement,
+        tmpdir,
+    ):
+        """When can_disable, disable removes apt configuration"""
+        with mock.patch.object(entitlement, "can_disable", return_value=True):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                assert entitlement.disable(True)
+        assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
 class TestFIPSEntitlementApplicationStatus:
@@ -402,7 +466,7 @@ class TestFIPSEntitlementApplicationStatus:
             ),
         ),
     )
-    def test_kernels_are_used_to_detemine_application_status_message(
+    def test_kernels_are_used_to_determine_application_status_message(
         self, entitlement, platform_info, expected_status, expected_msg
     ):
         msg = "sure is some status here"

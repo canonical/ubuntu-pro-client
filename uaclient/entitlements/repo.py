@@ -150,6 +150,8 @@ class RepoEntitlement(base.UAEntitlement):
             return False
         if not self.can_disable(silent):
             return False
+        if hasattr(self, "remove_packages"):
+            self.remove_packages()
         self._cleanup()
         msg_ops = self.messaging.get("post_disable", [])
         if not handle_message_operations(msg_ops):

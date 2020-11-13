@@ -1,3 +1,4 @@
+from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient import status, util
 
@@ -62,15 +63,27 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             "Reboot to FIPS kernel required",
         )
 
-    def disable(self, silent: bool = False) -> bool:
-        """FIPS cannot be disabled, so simply display a message to the user"""
-        if not silent:
-            print("Warning: no option to disable {}".format(self.title))
-        return False
+    def remove_packages(self) -> None:
+        """Remove fips meta package to disable the service.
 
-    def _cleanup(self) -> None:
-        """FIPS can't be cleaned up automatically, so don't do anything"""
-        pass
+        FIPS meta-package will unset grub config options which will deactivate
+        FIPS on any related packages.
+        """
+        installed_packages = set(apt.get_installed_packages())
+        remove_packages = set(self.packages).intersection(installed_packages)
+        if remove_packages:
+            env = {"DEBIAN_FRONTEND": "noninteractive"}
+            apt_options = [
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+            ]
+            apt.run_apt_command(
+                ["apt-get", "remove", "--assume-yes"]
+                + apt_options
+                + list(remove_packages),
+                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title),
+                env=env,
+            )
 
 
 class FIPSEntitlement(FIPSCommonEntitlement):
