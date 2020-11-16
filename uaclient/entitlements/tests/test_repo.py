@@ -483,12 +483,12 @@ class TestRepoEnable:
                 )
                 expected_output = (
                     "\n".join(
-                        [
-                            "Updating package lists",
-                            "Installing Repo Test Class packages",
-                        ]
+                        ["Updating package lists"]
                         + (pre_install_msgs if with_pre_install_msg else [])
-                        + ["Repo Test Class enabled"]
+                        + [
+                            "Installing Repo Test Class packages",
+                            "Repo Test Class enabled"
+                        ]
                         + ([reboot_msg] if should_reboot else [])
                     )
                     + "\n"
