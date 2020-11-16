@@ -109,33 +109,10 @@ class RepoEntitlement(base.UAEntitlement):
             return False
         self.setup_apt_config()
         if self.packages:
-            try:
-                print("Installing {title} packages".format(title=self.title))
-                msg_ops = self.messaging.get("pre_install", [])
-                if not handle_message_operations(msg_ops):
-                    return False
-
-                if self.apt_noninteractive:
-                    env = {"DEBIAN_FRONTEND": "noninteractive"}
-                    apt_options = [
-                        '-o Dpkg::Options::="--force-confdef"',
-                        '-o Dpkg::Options::="--force-confold"',
-                    ]
-                else:
-                    env = {}
-                    apt_options = []
-                apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"]
-                    + apt_options
-                    + self.packages,
-                    status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                        title=self.title
-                    ),
-                    env=env,
-                )
-            except exceptions.UserFacingError:
-                self._cleanup()
-                raise
+            msg_ops = self.messaging.get("pre_install", [])
+            if not handle_message_operations(msg_ops):
+                return False
+            self.install_packages()
         print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         msg_ops = self.messaging.get("post_enable", [])
         if not handle_message_operations(msg_ops):
@@ -237,8 +214,40 @@ class RepoEntitlement(base.UAEntitlement):
         self.setup_apt_config()
         return True
 
+    def install_packages(self, package_list: "List[str]" = None) -> None:
+        """Install contract recommended packages for the entitlement.
+
+        :param package_list: Optional package list to use instead of
+            self.packages.
+        """
+        print("Installing {title} packages".format(title=self.title))
+        if self.apt_noninteractive:
+            env = {"DEBIAN_FRONTEND": "noninteractive"}
+            apt_options = [
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+            ]
+        else:
+            env = {}
+            apt_options = []
+        if not package_list:
+            package_list = self.packages
+        try:
+            apt.run_apt_command(
+                ["apt-get", "install", "--assume-yes"]
+                + apt_options
+                + package_list,
+                status.MESSAGE_ENABLED_FAILED_TMPL.format(
+                    title=self.title
+                ),
+                env=env,
+            )
+        except exceptions.UserFacingError:
+            self._cleanup()
+            raise
+
     def setup_apt_config(self) -> None:
-        """Setup apt config based on the resourceToken and  directives.
+        """Setup apt config based on the resourceToken and directives.
 
         :raise UserFacingError: on failure to setup any aspect of this apt
            configuration
