@@ -1,9 +1,16 @@
 import datetime
 import subprocess
+import re
 import shlex
 
 from behave import given, then, when
-from hamcrest import assert_that, equal_to, matches_regexp, not_
+from hamcrest import (
+    assert_that,
+    equal_to,
+    matches_regexp,
+    not_,
+    contains_string,
+)
 
 from features.environment import create_uat_image
 from features.util import (
@@ -241,6 +248,44 @@ def there_should_be_no_files_matching_regex(context, path_regex):
         raise AssertionError(
             "Unexpected files found: {}".format(context.process.stdout.strip())
         )
+
+
+@then("I verify that `{package}` installed version matches regexp `{regex}`")
+def verify_installed_package_matches_version_regexp(context, package, regex):
+    when_i_run_command(
+        context,
+        "dpkg-query --showformat='${{Version}}' --show {}".format(package),
+        "as non-root",
+    )
+    assert_that(context.process.stdout.strip(), matches_regexp(regex))
+
+
+@then("I verify that `{package}` is installed from apt source `{apt_source}`")
+def verify_package_is_installed_from_apt_source(context, package, apt_source):
+    when_i_run_command(
+        context, "apt-cache policy {}".format(package), "as non-root"
+    )
+    policy = context.process.stdout.strip()
+    RE_APT_SOURCE = r"\s+\d+\s+(?P<source>.*)"
+    lines = policy.splitlines()
+    for index, line in enumerate(lines):
+        if re.match(r"\s+\*\*\*", line):  # apt-policy installed prefix ***
+            # Next line is the apt repo from which deb is installed
+            installed_apt_source = re.match(RE_APT_SOURCE, lines[index + 1])
+            if installed_apt_source is None:
+                raise RuntimeError(
+                    "Unable to process apt-policy line {}".format(
+                        lines[index + 1]
+                    )
+                )
+            assert_that(
+                installed_apt_source.groupdict()["source"],
+                contains_string(apt_source),
+            )
+            return
+    raise AssertionError(
+        "Package {package} is not installed".format(package=package)
+    )
 
 
 def get_command_prefix_for_user_spec(user_spec):

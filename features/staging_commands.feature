@@ -62,6 +62,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         When I run `ua enable fips --assume-yes --beta` with sudo
         Then stdout matches regexp:
             """
@@ -77,6 +78,12 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
         When I reboot the `<release>` machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
@@ -100,7 +107,14 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         0
         """
+        And I verify that `openssh-server` installed version matches regexp `fips`
+        And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `openssh-server-hmac` installed version matches regexp `fips`
+        And I verify that `openssh-client-hmac` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
+
         Examples: ubuntu release
-           | release |
-           | xenial  |
-           | bionic  |
+           | release | fips-apt-source |
+           | xenial  | https://esm.staging.ubuntu.com/fips/ubuntu xenial/main |
+           | bionic  | https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
