@@ -55,7 +55,7 @@ ifeq (${VERSION_ID},"14.04")
 else
 	# Move ua-auto-attach.service out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/lib/systemd/system
-	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.service debian/ubuntu-advantage-pro/lib/systemd/system
+	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.* debian/ubuntu-advantage-pro/lib/systemd/system
 	cd debian/ubuntu-advantage-tools && rmdir -p lib/systemd/system
 endif
 

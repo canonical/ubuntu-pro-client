@@ -1,0 +1,9 @@
+[Unit]
+Description=Ubuntu Advantage auto attach trigger
+
+[Path]
+PathExists=/run/cloud-init/instance-data.json
+Unit=ua-auto-attach.service
+
+[Install]
+WantedBy=multi-user.target
