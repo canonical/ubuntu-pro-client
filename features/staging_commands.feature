@@ -62,6 +62,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         When I run `ua enable fips --assume-yes --beta` with sudo
         Then stdout matches regexp:
             """
@@ -112,6 +113,13 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
         And I verify that `openssh-client-hmac` installed version matches regexp `fips`
         And I verify that `strongswan-hmac` installed version matches regexp `fips`
+        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+        Then I will see the following on stdout:
+        """
+        openssh-client was already not hold.
+        openssh-server was already not hold.
+        strongswan was already not hold.
+        """
 
         Examples: ubuntu release
            | release | fips-apt-source |

@@ -192,15 +192,28 @@ class TestFIPSEntitlementEnable:
             env={"DEBIAN_FRONTEND": "noninteractive"},
         )
 
-        subp_calls = [
-            mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                env={},
-            ),
-            install_cmd,
-        ]
+        if isinstance(entitlement, FIPSEntitlement):
+            subp_calls = [
+                mock.call(
+                    ["apt-mark", "showholds"],
+                    capture=True,
+                    retry_sleeps=apt.APT_RETRIES,
+                    env={},
+                )
+            ]
+        else:
+            subp_calls = []
+        subp_calls.extend(
+            [
+                mock.call(
+                    ["apt-get", "update"],
+                    capture=True,
+                    retry_sleeps=apt.APT_RETRIES,
+                    env={},
+                ),
+                install_cmd,
+            ]
+        )
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
@@ -533,6 +546,48 @@ def _fips_pkg_combinations():
             expected_installs.extend(installs)
         ret.append((installed_packages, expected_installs))
     return ret
+
+
+class TestFipsSetupAPTConfig:
+    @pytest.mark.parametrize(
+        "held_packages,unhold_packages",
+        (
+            ("", []),
+            ("asdf\n", []),
+            (
+                "openssh-server\nlibssl1.1-hmac\nasdf\n",
+                ["openssh-server", "libssl1.1-hmac"],
+            ),
+        ),
+    )
+    @mock.patch(M_REPOPATH + "RepoEntitlement.setup_apt_config")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_setup_apt_cofig_unmarks_held_fips_packages(
+        self,
+        run_apt_command,
+        setup_apt_config,
+        held_packages,
+        unhold_packages,
+        entitlement,
+    ):
+        """Unmark only fips-specific package holds if present."""
+        run_apt_command.return_value = held_packages
+        entitlement.setup_apt_config()
+        if isinstance(entitlement, FIPSUpdatesEntitlement):
+            expected_calls = []
+        else:
+            expected_calls = [
+                mock.call(
+                    ["apt-mark", "showholds"], "apt-mark showholds failed."
+                )
+            ]
+            if unhold_packages:
+                cmd = ["apt-mark", "unhold"] + unhold_packages
+                expected_calls.append(
+                    mock.call(cmd, " ".join(cmd) + " failed.")
+                )
+        assert expected_calls == run_apt_command.call_args_list
+        assert [mock.call()] == setup_apt_config.call_args_list
 
 
 class TestFipsEntitlementPackages:
