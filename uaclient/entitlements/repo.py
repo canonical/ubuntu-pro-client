@@ -189,6 +189,7 @@ class RepoEntitlement(base.UAEntitlement):
         delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
         delta_apt_url = delta_directives.get("aptURL")
+        delta_packages = delta_directives.get("additionalPackages")
         status_cache = self.cfg.read_cache("status-cache")
 
         if delta_directives and status_cache:
@@ -212,6 +213,8 @@ class RepoEntitlement(base.UAEntitlement):
                 apt.remove_auth_apt_repo(repo_filename, old_url)
         self.remove_apt_config()
         self.setup_apt_config()
+        if delta_packages:
+            self.install_packages(package_list=delta_packages)
         return True
 
     def install_packages(self, package_list: "List[str]" = None) -> None:
