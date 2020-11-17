@@ -224,30 +224,45 @@ class TestProcessContractDeltas:
         )
         assert expected_msg in caplog_text()
 
+    @pytest.mark.parametrize("packages", ([], ["extremetuxracer"]))
+    @mock.patch.object(RepoTestEntitlement, "install_packages")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(RepoTestEntitlement, "application_status")
-    def test_update_apt_config_when_active(
+    def test_update_apt_config_and_install_packages_when_active(
         self,
         m_application_status,
         m_remove_apt_config,
         m_setup_apt_config,
         m_remove_auth_apt_repo,
+        m_install_packages,
+        packages,
         entitlement,
     ):
-        """Update_apt_config when service is active and not enableByDefault."""
+        """Update_apt_config and packages if active and not enableByDefault."""
         application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
+        deltas = {
+            "entitlement": {"obligations": {"enableByDefault": False}},
+            "resourceToken": "repotest-token",
+        }
+        if packages:
+            deltas["entitlement"] = {
+                "directives": {"additionalPackages": packages}
+            }
+
         assert entitlement.process_contract_deltas(
-            {"entitlement": {"entitled": True}},
-            {
-                "entitlement": {"obligations": {"enableByDefault": False}},
-                "resourceToken": "repotest-token",
-            },
+            {"entitlement": {"entitled": True}}, deltas
         )
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_setup_apt_config.call_args_list
+        if packages:
+            assert [
+                mock.call(package_list=packages)
+            ] == m_install_packages.call_args_list
+        else:
+            assert 0 == m_install_packages.call_count
         assert [] == m_remove_auth_apt_repo.call_args_list
 
     @mock.patch(
@@ -487,7 +502,7 @@ class TestRepoEnable:
                         + (pre_install_msgs if with_pre_install_msg else [])
                         + [
                             "Installing Repo Test Class packages",
-                            "Repo Test Class enabled"
+                            "Repo Test Class enabled",
                         ]
                         + ([reboot_msg] if should_reboot else [])
                     )
