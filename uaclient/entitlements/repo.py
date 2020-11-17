@@ -240,9 +240,7 @@ class RepoEntitlement(base.UAEntitlement):
                 ["apt-get", "install", "--assume-yes"]
                 + apt_options
                 + package_list,
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                    title=self.title
-                ),
+                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title),
                 env=env,
             )
         except exceptions.UserFacingError:
