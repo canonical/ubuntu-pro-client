@@ -132,6 +132,24 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     description = "NIST-certified FIPS modules"
     origin = "UbuntuFIPS"
 
+    fips_pro_package_holds = [
+        "fips-initramfs",
+        "libssl1.1",
+        "libssl1.1-hmac",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "linux-fips",
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "openssl",
+        "strongswan",
+        "strongswan-hmac",
+    ]
+
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         static_affordances = super().static_affordances
@@ -176,6 +194,27 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 )
             ],
         }
+
+    def setup_apt_config(self) -> None:
+        """Setup apt config based on the resourceToken and directives.
+
+        FIPS-specifically handle apt-mark unhold
+
+        :raise UserFacingError: on failure to setup any aspect of this apt
+           configuration
+        """
+        cmd = ["apt-mark", "showholds"]
+        holds = apt.run_apt_command(cmd, " ".join(cmd) + " failed.")
+        unholds = []
+        for hold in holds.splitlines():
+            if hold in self.fips_pro_package_holds:
+                unholds.append(hold)
+        if unholds:
+            unhold_cmd = ["apt-mark", "unhold"] + unholds
+            holds = apt.run_apt_command(
+                unhold_cmd, " ".join(unhold_cmd) + " failed."
+            )
+        super().setup_apt_config()
 
 
 class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
