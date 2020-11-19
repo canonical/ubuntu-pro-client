@@ -19,8 +19,8 @@ Feature: Upgrade between releases when uaclient is attached
         """
         <next_release>
         """
-        When I run `egrep "<release>|disabled" /etc/apt/sources.list.d/*` as non-root
-        Then I will see the following on stdout:
+        And I verify that running `egrep "<release>|disabled" /etc/apt/sources.list.d/*` `as non-root` exits `2`
+        And I will see the following on stdout:
         """
         """
         When I run `ua status` with sudo
@@ -53,8 +53,8 @@ Feature: Upgrade between releases when uaclient is attached
         """
         <next_release>
         """
-        When I run `egrep "<release>|disabled" /etc/apt/sources.list.d/*` as non-root
-        Then I will see the following on stdout:
+        And I verify that running `egrep "<release>|disabled" /etc/apt/sources.list.d/*` `as non-root` exits `2`
+        And I will see the following on stdout:
         """
         """
         When I run `ua status` with sudo
