@@ -5,8 +5,8 @@ Feature: Enable command behaviour when attached to an UA staging subscription
     Scenario: Attached enable CC EAL service in a xenial lxd container
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I run `ua enable cc-eal` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
@@ -28,8 +28,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
         """
-        When I run `ua disable livepatch` with sudo
-        Then I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has permission `500`
         """

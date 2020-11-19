@@ -5,13 +5,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable Common Criteria service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable cc-eal` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable cc-eal --beta` with sudo
-        Then I will see the following on stdout
+        And I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
+        And I will see the following on stdout
             """
             One moment, checking your subscription first
             <msg>
@@ -27,13 +27,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable a disabled beta service and unknown service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable fips foobar` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable fips foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable fips foobar` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable fips foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             """
@@ -54,17 +54,17 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable of an unknown service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable foobar` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable foobar` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             """
-        Then stderr matches regexp:
+        And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
             Try esm-infra, livepatch
@@ -81,12 +81,12 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable of a known service already enabled (UA Infra) in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable esm-infra` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable esm-infra` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable esm-infra` with sudo
+        And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -120,8 +120,8 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable of a know service shows update in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable esm-infra` with sudo
-        Then I will see the following on stdout:
+        Then I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             ESM Infra is already enabled.
@@ -151,13 +151,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable a disabled, enable and unknown service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable livepatch esm-infra foobar` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable livepatch esm-infra foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable livepatch esm-infra foobar` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable livepatch esm-infra foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             Cannot install Livepatch on a container
@@ -183,13 +183,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <service> <flag>` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable <service> <flag>` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service> <flag>` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable <service> <flag>` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             Cannot install <title> on a container
@@ -214,13 +214,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline:  Attached enable of non-container beta services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <service> <flag>` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable <service> <flag>` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service> <flag>` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable <service> <flag>` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             """
@@ -245,13 +245,13 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua enable <service>` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua enable <service>` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua enable <service> --beta` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable <service> --beta` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             This subscription is not entitled to <title>.
@@ -274,15 +274,14 @@ Feature: Enable command behaviour when attached to an UA subscription
     Scenario: Attached enable of vm-based services in a focal lxd vm
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `ua enable fips --assume-yes --beta` with sudo
-        Then I will see the following on stdout:
+        Then I verify that running `ua enable fips --assume-yes --beta` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
             """
-        When I run `ua enable fips-updates --assume-yes --beta` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua enable fips-updates --assume-yes --beta` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             One moment, checking your subscription first
             FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
@@ -301,8 +300,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
-        And I run `canonical-livepatch status` with sudo
-        Then stdout matches regexp:
+        Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
+        And stdout matches regexp:
         """
         Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
         token obtained from https://ubuntu.com/livepatch.
@@ -324,7 +323,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable livepatch on a machine with fips active
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `canonical-livepatch status` with sudo
+        When I verify that running `canonical-livepatch status` `with sudo` exits `1`
         Then I will see the following on stderr:
             """
             sudo: canonical-livepatch: command not found
@@ -373,8 +372,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS enabled
             A reboot is required to complete install
             """
-        When I run `ua enable livepatch` with sudo
-        Then I will see the following on stdout
+        And I verify that running `ua enable livepatch` `with sudo` exits `1`
+        And I will see the following on stdout
             """
             One moment, checking your subscription first
             Cannot enable Livepatch when FIPS is enabled
@@ -392,8 +391,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             Installing canonical-livepatch snap
             Canonical livepatch enabled
             """
-        When I run `ua enable fips --assume-yes --beta` with sudo
-        Then I will see the following on stdout
+        And I verify that running `ua enable fips --assume-yes --beta` `with sudo` exits `1`
+        And I will see the following on stdout
             """
             One moment, checking your subscription first
             Cannot enable FIPS when Livepatch is enabled
@@ -421,7 +420,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS Updates enabled
             A reboot is required to complete install
             """
-        When I run `ua enable fips --assume-yes --beta` with sudo
+        When I verify that running `ua enable fips --assume-yes --beta` `with sudo` exits `1`
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
