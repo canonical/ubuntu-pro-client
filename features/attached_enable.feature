@@ -127,8 +127,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             ESM Infra is already enabled.
             See: sudo ua status
             """
-        When I run `apt install -y <pkg-version>` with sudo
-        And I run `apt update` with sudo
+        And I verify that running `apt install -y <pkg-version>` `with sudo` exits `0`
+        When I run `apt update` with sudo
         Then stdout matches regexp
         """
         \d+ of the updates (is|are) from UA Infra: ESM
@@ -141,10 +141,10 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release | pkg-version                |
-           | bionic  | libkrad0=1.16-2ubuntu0.1   |
-           | focal   | hello=2.10-2ubuntu2        |
-           | xenial  | libkrad0=1.16-2ubuntu0.1   |
+           | release | pkg-version            |
+           | bionic  | libkrad0=1.16-2build1  |
+           | focal   | hello=2.10-2ubuntu2    |
+           | xenial  | libkrad0=1.13.2+dfsg-5 |
 
     @series.all
     @uses.config.machine_type.lxd.container
