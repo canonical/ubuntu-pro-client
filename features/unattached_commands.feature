@@ -3,7 +3,7 @@ Feature: Command behaviour when unattached
     @series.all
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua auto-attach` as non-root
+        When I verify that running `ua auto-attach` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
@@ -25,12 +25,12 @@ Feature: Command behaviour when unattached
     @series.all
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua <command>` as non-root
+        When I verify that running `ua <command>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua <command>` with sudo
+        When I verify that running `ua <command>` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             This machine is not attached to a UA subscription.
@@ -51,12 +51,12 @@ Feature: Command behaviour when unattached
     @series.all
     Scenario Outline: Unattached command known and unknown services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua <command> livepatch` as non-root
+        When I verify that running `ua <command> <service>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua <command> <service>` with sudo
+        When I verify that running `ua <command> <service>` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             To use '<service>' you need an Ubuntu Advantage subscription
@@ -109,7 +109,7 @@ Feature: Command behaviour when unattached
             """
             {"name": "esm-infra", "available": "yes", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
             """
-        When I run `ua help invalid-service` with sudo
+        When I verify that running `ua help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
             """
             No help available for 'invalid-service'

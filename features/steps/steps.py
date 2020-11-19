@@ -76,7 +76,7 @@ def given_a_machine(context, series):
 
 
 @when("I run `{command}` {user_spec}")
-def when_i_run_command(context, command, user_spec):
+def when_i_run_command(context, command, user_spec, verify_return=True):
     prefix = get_command_prefix_for_user_spec(user_spec)
     slow_cmd_spinner = nullcontext
     for slow_cmd in SLOW_CMDS:
@@ -102,6 +102,9 @@ def when_i_run_command(context, command, user_spec):
                 capture_output=True,
                 text=True,
             )
+
+    if verify_return:
+        assert_that(process.returncode, equal_to(0))
     context.process = process
 
 
@@ -220,10 +223,19 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
 def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
-    when_i_run_command(context, cmd_name, spec)
+    when_i_run_command(context, cmd_name, spec, verify_return=False)
 
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
+
+
+@when("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
+def when_i_verify_that_running_cmd_with_spec_exits_with_codes(
+    context, cmd_name, spec, exit_codes
+):
+    then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+        context, cmd_name, spec, exit_codes
+    )
 
 
 @then("apt-cache policy for the following url has permission `{perm_id}`")
@@ -236,14 +248,18 @@ def then_apt_cache_policy_for_the_following_url_has_permission_perm_id(
 
 @then("I verify that files exist matching `{path_regex}`")
 def there_should_be_files_matching_regex(context, path_regex):
-    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    when_i_run_command(
+        context, "ls {}".format(path_regex), "with sudo", verify_return=False
+    )
     if context.process.returncode != 0:
         raise AssertionError("Missing expected files: {}".format(path_regex))
 
 
 @then("I verify that no files exist matching `{path_regex}`")
 def there_should_be_no_files_matching_regex(context, path_regex):
-    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    when_i_run_command(
+        context, "ls {}".format(path_regex), "with sudo", verify_return=False
+    )
     if context.process.returncode == 0:
         raise AssertionError(
             "Unexpected files found: {}".format(context.process.stdout.strip())

@@ -5,8 +5,8 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached refresh in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua refresh` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua refresh` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
@@ -27,13 +27,13 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua disable livepatch` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua disable livepatch` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua disable livepatch` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             Livepatch is not currently enabled
             See: sudo ua status
@@ -50,13 +50,13 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of an unknown service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable foobar` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua disable foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua disable foobar` with sudo
-        Then stderr matches regexp:
+        And I verify that running `ua disable foobar` `with sudo` exits `1`
+        And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
             Try cc-eal, cis-audit, esm-apps, esm-infra, fips, fips-updates, livepatch
@@ -73,8 +73,8 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached detach in a trusty machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua detach` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua detach` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
@@ -114,8 +114,8 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua auto-attach` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua auto-attach` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
@@ -205,13 +205,13 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable esm-infra livepatch foobar` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua disable esm-infra livepatch foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
-        When I run `ua disable esm-infra livepatch foobar` with sudo
-        Then I will see the following on stdout:
+        And I verify that running `ua disable esm-infra livepatch foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
             """
             Updating package lists
             Livepatch is not currently enabled
@@ -241,7 +241,7 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario Outline: Attached disable of an already enabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable esm-infra` as non-root
+        Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
@@ -267,8 +267,8 @@ Feature: Command behaviour when attached to an UA subscription
     Scenario: Attached disable of an already enabled service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable esm-infra` as non-root
-        Then I will see the following on stderr:
+        Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        And I will see the following on stderr:
             """
             This command must be run as root (try using sudo)
             """
@@ -323,8 +323,8 @@ Feature: Command behaviour when attached to an UA subscription
             """
             {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
             """
-        When I run `ua help invalid-service` with sudo
-        Then I will see the following on stderr:
+        And I verify that running `ua help invalid-service` `with sudo` exits `1`
+        And I will see the following on stderr:
             """
             No help available for 'invalid-service'
             """
@@ -427,4 +427,3 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | canonical-server-ubuntu-ua-client-daily |
            | bionic  | canonical-server-ubuntu-ua-client-daily |
            | focal   | canonical-server-ubuntu-ua-client-daily |
-

@@ -4,12 +4,12 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
     @series.all
     Scenario Outline: Attach command in a machine
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua attach INVALID_TOKEN` with sudo
+        When I verify that running `ua attach INVALID_TOKEN` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             Invalid token. See https://ubuntu.com/advantage
             """
-        When I run `ua attach INVALID_TOKEN` as non-root
+        When I verify that running `ua attach INVALID_TOKEN` `as non-root` exits `1`
         Then I will see the following on stderr:
              """
              This command must be run as root (try using sudo)
