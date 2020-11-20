@@ -1,6 +1,5 @@
 [Unit]
 Description=Ubuntu Advantage auto attach
-After=cloud-final.target
 
 [Service]
 Type=oneshot
