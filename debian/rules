@@ -19,7 +19,7 @@ APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
-	dh $@ --with python3,bash-completion --buildsystem=pybuild \
+	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild \
 		--no-start
 
 override_dh_auto_build:
@@ -56,7 +56,7 @@ else
 	# Move ua-auto-attach.service out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/lib/systemd/system
 	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.* debian/ubuntu-advantage-pro/lib/systemd/system
-	cd debian/ubuntu-advantage-tools && rmdir -p lib/systemd/system
+	cd debian/ubuntu-advantage-tools
 endif
 
 override_dh_auto_clean:

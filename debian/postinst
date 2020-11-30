@@ -29,6 +29,8 @@ SYSTEMD_WANTS_AUTO_ATTACH_LINK="/etc/systemd/system/multi-user.target.wants/ua-a
 SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enabled/ua-auto-attach.service.dsh-also"
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
+REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
+
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
@@ -113,6 +115,12 @@ EOF
     fi
 }
 
+mark_reboot_cmds_as_needed() {
+    if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
+      touch $REBOOT_CMD_MARKER_FILE
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -175,6 +183,12 @@ case "$1" in
       private_dir="/var/lib/ubuntu-advantage/private"
       if [ -d "$private_dir" ]; then
           chmod 0700 "$private_dir"
+      fi
+
+      trusty_pkg=$(echo $PREVIOUS_PKG_VER | grep -o 14.04)
+      if [ "$VERSION_ID" = "16.04" ] && [ ! -z "$trusty_pkg" ]; then
+          # trusty upgrade to xenial has known post-reboot operations required (livepatch)
+          mark_reboot_cmds_as_needed
       fi
       ;;
 esac
