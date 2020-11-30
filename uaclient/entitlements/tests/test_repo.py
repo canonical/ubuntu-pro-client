@@ -231,8 +231,10 @@ class TestProcessContractDeltas:
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
     @mock.patch.object(RepoTestEntitlement, "application_status")
+    @mock.patch.object(RepoTestEntitlement, "_check_apt_url_is_applied")
     def test_update_apt_config_and_install_packages_when_active(
         self,
+        m_check_apt_url_applied,
         m_application_status,
         m_remove_apt_config,
         m_setup_apt_config,
@@ -242,6 +244,7 @@ class TestProcessContractDeltas:
         entitlement,
     ):
         """Update_apt_config and packages if active and not enableByDefault."""
+        m_check_apt_url_applied.return_value = False
         application_status = status.ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         deltas = {
@@ -265,6 +268,7 @@ class TestProcessContractDeltas:
         else:
             assert 0 == m_install_packages.call_count
         assert [] == m_remove_auth_apt_repo.call_args_list
+        assert 1 == m_check_apt_url_applied.call_count
 
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
@@ -276,8 +280,10 @@ class TestProcessContractDeltas:
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
+    @mock.patch.object(RepoTestEntitlement, "_check_apt_url_is_applied")
     def test_remove_old_auth_apt_repo_when_active_and_apt_url_delta(
         self,
+        m_check_apt_url_applied,
         m_remove_apt_config,
         m_setup_apt_config,
         m_remove_auth_apt_repo,
@@ -287,6 +293,7 @@ class TestProcessContractDeltas:
         entitlement,
     ):
         """Remove old apt url when aptURL delta occurs on active service."""
+        m_check_apt_url_applied.return_value = False
         m_process_contract_deltas.return_value = False
         m_read_cache.return_value = {
             "services": [{"name": "repotest", "status": "enabled"}]
@@ -314,17 +321,74 @@ class TestProcessContractDeltas:
             )
         ]
         assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
-        apt_auth_remove_calls = [
-            mock.call(
-                "/etc/apt/sources.list.d/ubuntu-repotest.list", "http://old"
-            )
-        ]
-        assert apt_auth_remove_calls == m_remove_auth_apt_repo.call_args_list
         assert [
             mock.call("status-cache"),
             mock.call("status-cache"),
         ] == m_read_cache.call_args_list
         assert 1 == m_process_contract_deltas.call_count
+
+        assert [
+            mock.call("http://new")
+        ] == m_check_apt_url_applied.call_args_list
+        assert 1 == m_check_apt_url_applied.call_count
+
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
+    )
+    @mock.patch("uaclient.config.UAConfig.read_cache")
+    @mock.patch(
+        M_PATH + "util.get_platform_info", return_value={"series": "trusty"}
+    )
+    @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
+    @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
+    @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
+    @mock.patch.object(RepoTestEntitlement, "_check_apt_url_is_applied")
+    def test_system_does_not_change_when_apt_url_delta_already_applied(
+        self,
+        m_check_apt_url_applied,
+        m_remove_apt_config,
+        m_setup_apt_config,
+        m_remove_auth_apt_repo,
+        m_platform_info,
+        m_read_cache,
+        m_process_contract_deltas,
+        entitlement,
+    ):
+        """Do not change system if apt url delta is already applied."""
+        m_check_apt_url_applied.return_value = True
+        m_process_contract_deltas.return_value = False
+        m_read_cache.return_value = {
+            "services": [{"name": "repotest", "status": "enabled"}]
+        }
+        assert entitlement.process_contract_deltas(
+            {
+                "entitlement": {
+                    "entitled": True,
+                    "directives": {"aptURL": "http://old"},
+                }
+            },
+            {
+                "entitlement": {
+                    "obligations": {"enableByDefault": False},
+                    "directives": {"aptURL": "http://new"},
+                },
+                "resourceToken": "repotest-token",
+            },
+        )
+        assert m_remove_apt_config.call_count == 0
+        assert m_setup_apt_config.call_count == 0
+        assert m_remove_auth_apt_repo.call_count == 0
+
+        assert [
+            mock.call("status-cache"),
+            mock.call("status-cache"),
+        ] == m_read_cache.call_args_list
+        assert 1 == m_process_contract_deltas.call_count
+
+        assert [
+            mock.call("http://new")
+        ] == m_check_apt_url_applied.call_args_list
+        assert 1 == m_check_apt_url_applied.call_count
 
 
 class TestRepoEnable:

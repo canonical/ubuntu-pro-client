@@ -53,6 +53,7 @@ class UAConfig:
         "machine-token": DataPath("machine-token.json", True),
         "lock": DataPath("lock", True),
         "status-cache": DataPath("status.json", False),
+        "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
     }  # type: Dict[str, DataPath]
 
     _entitlements = None  # caching to avoid repetitive file reads
