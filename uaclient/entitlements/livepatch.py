@@ -219,10 +219,18 @@ class LivepatchEntitlement(base.UAEntitlement):
         """
         if super().process_contract_deltas(orig_access, deltas, allow_enable):
             return True  # Already processed parent class deltas
+
+        delta_entitlement = deltas.get("entitlement", {})
+        process_enable_default = delta_entitlement.get("obligations", {}).get(
+            "enabledByDefault", False
+        )
+
+        if process_enable_default:
+            return self.enable()
+
         application_status, _ = self.application_status()
         if application_status == status.ApplicationStatus.DISABLED:
             return True  # only operate on changed directives when ACTIVE
-        delta_entitlement = deltas.get("entitlement", {})
         delta_directives = delta_entitlement.get("directives", {})
         supported_deltas = set(["caCerts", "remoteServer"])
         process_directives = bool(
