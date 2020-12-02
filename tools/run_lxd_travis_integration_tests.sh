@@ -9,7 +9,7 @@ install_lxd() {
 
 copy_deb_packages
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && ["$TRAVIS_BRANCH" = "master"]; then
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   BUILD_PR=0
 else
   create_pr_tar_file
