@@ -1,3 +1,4 @@
+@uses.config.contract_token
 Feature: Upgrade between releases when uaclient is attached
 
     @series.focal
