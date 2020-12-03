@@ -1,4 +1,5 @@
 import datetime
+import logging
 import subprocess
 import re
 import shlex
@@ -142,7 +143,18 @@ def when_i_create_file_with_content(context, file_path):
 
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
-    context.instance.restart(wait=True)
+    if series == "trusty":
+        # TODO(LP: #1899299: LTS upgrade T->X pickled ds breaks Paths.run_dir)
+        # When Fix is SRUd to Xenial, we can drop the trusty clause
+        logging.warning(
+            "LP: #1899299: Not raising cloud-init-errors across Trusty reboot"
+        )
+        context.instance.shutdown(wait=True)
+        context.instance.start(wait=False)
+        # Trusty -> Xenial upgrades would raise a Paths no run_dir attr failure
+        context.instance.wait(raise_on_cloudinit_failure=False)
+    else:
+        context.instance.restart(wait=True)
 
 
 @then("I will see the following on stdout")
