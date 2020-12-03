@@ -3,8 +3,13 @@ source tools/base_travis_integration_tests.sh
 
 copy_deb_packages
 
-if [ "$TRAVIS_EVENT_TYPE" = "cron" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+if [ "$TRAVIS_EVENT_TYPE" = "cron" ]; then
   BUILD_PR=0
+  if [ "$TRAVIS_BRANCH" != "${TRAVIS_BRANCH/release-}" ]; then
+      # Run cron of release-XX branches against UA_STAGING_PPA
+      export UACLIENT_BEHAVE_PPA=${UA_STAGING_PPA}
+      export UACLIENT_BEHAVE_PPA_KEYID=${UA_STAGING_PPA_KEYID}
+  fi
 else
   create_pr_tar_file
 fi
