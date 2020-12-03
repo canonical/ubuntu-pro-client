@@ -22,6 +22,7 @@ from features.util import emit_spinner_on_travis, lxc_get_property, build_debs
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
+DAILY_PPA_KEYID = "8A295C4FB8B190B7"
 DEFAULT_PRIVATE_KEY_FILE = "/tmp/uaclient.pem"
 LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
@@ -42,25 +43,21 @@ write_files:
     append: true
 """
 
-USERDATA_APT_SOURCE_DAILY_TRUSTY = """\
+USERDATA_APT_SOURCE_PPA_TRUSTY = """\
 apt_sources:  # for trusty
-  - source: deb {daily_ppa} $RELEASE main
-    keyid: 8A295C4FB8B190B7
+  - source: deb {ppa_url} $RELEASE main
+    keyid: {ppa_keyid}
 packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
-""".format(
-    daily_ppa=DAILY_PPA
-)
+"""
 
-USERDATA_APT_SOURCE_DAILY = """\
+USERDATA_APT_SOURCE_PPA = """\
 apt:
   sources:
-    ua-tools-daily:
-        source: deb {daily_ppa} $RELEASE main
-        keyid: 8A295C4FB8B190B7
+    ua-tools-ppa:
+        source: deb {ppa_url} $RELEASE main
+        keyid: {ppa_keyid}
 packages: [openssh-server, ubuntu-advantage-tools, ubuntu-advantage-pro]
-""".format(
-    daily_ppa=DAILY_PPA
-)
+"""
 
 
 class UAClientBehaveConfig:
@@ -118,6 +115,8 @@ class UAClientBehaveConfig:
         "private_key_name",
         "reuse_image",
         "debs_path",
+        "ppa",
+        "ppa_keyid",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -155,6 +154,8 @@ class UAClientBehaveConfig:
         contract_token: str = None,
         contract_token_staging: str = None,
         debs_path: str = None,
+        ppa: str = DAILY_PPA,
+        ppa_keyid: str = DAILY_PPA_KEYID,
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
@@ -175,6 +176,8 @@ class UAClientBehaveConfig:
         self.reuse_image = reuse_image
         self.cmdline_tags = cmdline_tags
         self.debs_path = debs_path
+        self.ppa = ppa
+        self.ppa_keyid = ppa_keyid
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -532,10 +535,18 @@ def create_uat_image(context: Context, series: str) -> None:
     if not deb_paths:
         if not user_data:
             user_data = "#cloud-config\n"
+        ppa = context.config.ppa
+        ppa_keyid = context.config.ppa_keyid
+        if context.config.ppa.startswith("ppa:"):
+            ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
         if series == "trusty":
-            user_data += USERDATA_APT_SOURCE_DAILY_TRUSTY
+            user_data += USERDATA_APT_SOURCE_PPA_TRUSTY.format(
+                ppa_url=ppa, ppa_keyid=ppa_keyid
+            )
         else:
-            user_data += USERDATA_APT_SOURCE_DAILY
+            user_data += USERDATA_APT_SOURCE_PPA.format(
+                ppa_url=ppa, ppa_keyid=ppa_keyid
+            )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
     )
