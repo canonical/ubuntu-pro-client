@@ -49,6 +49,10 @@ current_codename_to_past_codename = {
 
 def process_contract_delta_after_apt_lock() -> None:
     setup_logging(logging.INFO, logging.DEBUG)
+    logging.debug("Check whether to upgrade-lts-contract")
+    if not UAConfig().is_attached:
+        logging.debug("Skiping upgrade-lts-contract. Machine is unattached")
+        return
     out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."
     if out:
