@@ -80,7 +80,7 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
         self.print_usage(sys.stderr)
-        self.exit(2, message)
+        self.exit(2, message + "\n")
 
     def print_help(self, file=None, show_all=False):
         desc_vars = [

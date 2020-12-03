@@ -1,6 +1,7 @@
 [Unit]
 Description=Ubuntu Advantage auto attach
-After=cloud-final.target
+Before=cloud-config.service
+WantedBy=cloud-config.service
 
 [Service]
 Type=oneshot

@@ -1,24 +1,25 @@
 import datetime
+import logging
 import subprocess
+import re
 import shlex
 
 from behave import given, then, when
-from hamcrest import assert_that, equal_to, matches_regexp, not_
+from hamcrest import (
+    assert_that,
+    equal_to,
+    matches_regexp,
+    not_,
+    contains_string,
+)
 
 from features.environment import create_uat_image
-from features.util import (
-    SLOW_CMDS,
-    emit_spinner_on_travis,
-    launch_lxd_container,
-    lxc_exec,
-    nullcontext,
-    wait_for_boot,
-)
+from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
 
 
-CONTAINER_PREFIX = "behave-test-"
+CONTAINER_PREFIX = "ubuntu-behave-test-"
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
@@ -36,6 +37,9 @@ def given_a_machine(context, series):
         return
     if series in context.reuse_container:
         context.container_name = context.reuse_container[series]
+        context.instance = context.config.cloud_api.get_instance(
+            context.container_name
+        )
         if "pro" in context.config.machine_type:
             context.instance = context.config.cloud_api.get_instance(
                 context.container_name
@@ -45,31 +49,40 @@ def given_a_machine(context, series):
     if series not in context.series_image_name:
         with emit_spinner_on_travis():
             create_uat_image(context, series)
-    if context.config.cloud_manager:
-        context.instance = context.config.cloud_manager.launch(
-            series=series, image_name=context.series_image_name[series]
-        )
-        context.container_name = context.config.cloud_manager.get_instance_id(
-            context.instance
-        )
-    else:
-        is_vm = bool(context.config.machine_type == "lxd.vm")
-        now = datetime.datetime.now()
-        vm_prefix = "vm-" if is_vm else ""
-        context.container_name = (
-            CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
-        )
-        launch_lxd_container(
-            context,
-            series=series,
-            image_name=context.series_image_name[series],
-            container_name=context.container_name,
-            is_vm=is_vm,
-        )
+
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    now = datetime.datetime.now()
+    vm_prefix = "vm-" if is_vm else ""
+
+    instance_name = (
+        CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
+    )
+
+    context.instance = context.config.cloud_manager.launch(
+        series=series,
+        instance_name=instance_name,
+        image_name=context.series_image_name[series],
+    )
+
+    context.container_name = context.config.cloud_manager.get_instance_id(
+        context.instance
+    )
+
+    def cleanup_instance() -> None:
+        if not context.config.destroy_instances:
+            print(
+                "--- Leaving instance running: {}".format(
+                    context.instance.name
+                )
+            )
+        else:
+            context.instance.delete(wait=False)
+
+    context.add_cleanup(cleanup_instance)
 
 
 @when("I run `{command}` {user_spec}")
-def when_i_run_command(context, command, user_spec):
+def when_i_run_command(context, command, user_spec, verify_return=True):
     prefix = get_command_prefix_for_user_spec(user_spec)
     slow_cmd_spinner = nullcontext
     for slow_cmd in SLOW_CMDS:
@@ -78,23 +91,19 @@ def when_i_run_command(context, command, user_spec):
             break
 
     full_cmd = prefix + shlex.split(command)
-    if context.config.cloud_manager:
-        with slow_cmd_spinner():
-            result = context.instance.execute(full_cmd)
-        process = subprocess.CompletedProcess(
-            args=full_cmd,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            returncode=result.return_code,
-        )
-    else:
-        with slow_cmd_spinner():
-            process = lxc_exec(
-                context.container_name,
-                full_cmd,
-                capture_output=True,
-                text=True,
-            )
+    with slow_cmd_spinner():
+        result = context.instance.execute(full_cmd)
+
+    process = subprocess.CompletedProcess(
+        args=full_cmd,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        returncode=result.return_code,
+    )
+
+    if verify_return:
+        assert_that(process.returncode, equal_to(0))
+
     context.process = process
 
 
@@ -134,12 +143,18 @@ def when_i_create_file_with_content(context, file_path):
 
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
-    when_i_run_command(context, "reboot", "with sudo")
-
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    wait_for_boot(
-        container_name=context.container_name, series=series, is_vm=is_vm
-    )
+    if series == "trusty":
+        # TODO(LP: #1899299: LTS upgrade T->X pickled ds breaks Paths.run_dir)
+        # When Fix is SRUd to Xenial, we can drop the trusty clause
+        logging.warning(
+            "LP: #1899299: Not raising cloud-init-errors across Trusty reboot"
+        )
+        context.instance.shutdown(wait=True)
+        context.instance.start(wait=False)
+        # Trusty -> Xenial upgrades would raise a Paths no run_dir attr failure
+        context.instance.wait(raise_on_cloudinit_failure=False)
+    else:
+        context.instance.restart(wait=True)
 
 
 @then("I will see the following on stdout")
@@ -213,10 +228,19 @@ def then_i_should_see_that_the_command_is_not_found(context, cmd_name):
 def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
 ):
-    when_i_run_command(context, cmd_name, spec)
+    when_i_run_command(context, cmd_name, spec, verify_return=False)
 
     expected_codes = exit_codes.split(",")
     assert str(context.process.returncode) in expected_codes
+
+
+@when("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
+def when_i_verify_that_running_cmd_with_spec_exits_with_codes(
+    context, cmd_name, spec, exit_codes
+):
+    then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+        context, cmd_name, spec, exit_codes
+    )
 
 
 @then("apt-cache policy for the following url has permission `{perm_id}`")
@@ -229,18 +253,60 @@ def then_apt_cache_policy_for_the_following_url_has_permission_perm_id(
 
 @then("I verify that files exist matching `{path_regex}`")
 def there_should_be_files_matching_regex(context, path_regex):
-    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    when_i_run_command(
+        context, "ls {}".format(path_regex), "with sudo", verify_return=False
+    )
     if context.process.returncode != 0:
         raise AssertionError("Missing expected files: {}".format(path_regex))
 
 
 @then("I verify that no files exist matching `{path_regex}`")
 def there_should_be_no_files_matching_regex(context, path_regex):
-    when_i_run_command(context, "ls {}".format(path_regex), "with sudo")
+    when_i_run_command(
+        context, "ls {}".format(path_regex), "with sudo", verify_return=False
+    )
     if context.process.returncode == 0:
         raise AssertionError(
             "Unexpected files found: {}".format(context.process.stdout.strip())
         )
+
+
+@then("I verify that `{package}` installed version matches regexp `{regex}`")
+def verify_installed_package_matches_version_regexp(context, package, regex):
+    when_i_run_command(
+        context,
+        "dpkg-query --showformat='${{Version}}' --show {}".format(package),
+        "as non-root",
+    )
+    assert_that(context.process.stdout.strip(), matches_regexp(regex))
+
+
+@then("I verify that `{package}` is installed from apt source `{apt_source}`")
+def verify_package_is_installed_from_apt_source(context, package, apt_source):
+    when_i_run_command(
+        context, "apt-cache policy {}".format(package), "as non-root"
+    )
+    policy = context.process.stdout.strip()
+    RE_APT_SOURCE = r"\s+\d+\s+(?P<source>.*)"
+    lines = policy.splitlines()
+    for index, line in enumerate(lines):
+        if re.match(r"\s+\*\*\*", line):  # apt-policy installed prefix ***
+            # Next line is the apt repo from which deb is installed
+            installed_apt_source = re.match(RE_APT_SOURCE, lines[index + 1])
+            if installed_apt_source is None:
+                raise RuntimeError(
+                    "Unable to process apt-policy line {}".format(
+                        lines[index + 1]
+                    )
+                )
+            assert_that(
+                installed_apt_source.groupdict()["source"],
+                contains_string(apt_source),
+            )
+            return
+    raise AssertionError(
+        "Package {package} is not installed".format(package=package)
+    )
 
 
 def get_command_prefix_for_user_spec(user_spec):

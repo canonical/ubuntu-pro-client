@@ -1,3 +1,40 @@
+ubuntu-advantage-tools (25.0~20.10.1~beta3) groovy; urgency=medium
+
+  * New upstream release 25.0~beta3:
+    - upgrade-lts-conract: noop during do-release-upgrade on unattached
+      (GH: #1255)
+    - ua-auto-attach: order systemd unit before cloud-config.service
+    - Update FIPSUpdates pin origin
+    - fips: unmark held fips packages for ubuntu pro fips image support
+      (GH: #1109)
+    - repo: handle changes to additionalPackages contract deltas
+    - repo: move package installation to install_packages method
+    - pro: trigger auto-attach as soon as instance-data.json is available
+      (GH: #1234)
+    - Conditionally install packages when enabling FIPS
+    - fips: allow disable (GH: #1168)
+    - cli: add trailing newline to argparse errors (GH: #1236)
+    - Install fips metapacking when enabling service
+    - integration test improvements:
+      + upgrade-test: fix upgrade path restart failures on trusty (GH: #1257)
+      + Fix integration test setup scripts (GH: #1253)
+      + strict checking for command success on behave
+      + Update tests to use new pycloudlib LXD abstraction
+      + Add upgrade scenario tests when FIPS is enabled
+      + Improve FIPS tests for checking packages
+      + Update esm-infra xenial lxd test
+      + Fix vm tests as esm-apps is beta service
+      + Fix azure generic integration testing
+      + Update esm-apps check on staging_commands tests
+      + Install pycloudlib for azure jobs only
+      + Fix shell condition in run_azure_travis_integration_tests.sh
+      + Update azure jobs on travis
+      + Update travis url in README
+      + Update travis scripts to use ppa only on master
+      + Fix cron event type check on travis yaml
+
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 02 Dec 2020 13:43:16 -0700
+
 ubuntu-advantage-tools (25.0~20.10.1~beta2) groovy; urgency=medium
 
   * New upstream release 25.0~beta2:

@@ -77,6 +77,7 @@ class Cloud:
     def _create_instance(
         self,
         series: str,
+        instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
     ) -> pycloudlib.instance:
@@ -86,6 +87,8 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :param instance_name:
+            The name of the instance to be created
         :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
@@ -99,6 +102,7 @@ class Cloud:
     def launch(
         self,
         series: str,
+        instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
     ) -> pycloudlib.instance.BaseInstance:
@@ -108,6 +112,8 @@ class Cloud:
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :param instance_name:
+            The name of the instance to be created
         :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
@@ -116,10 +122,15 @@ class Cloud:
         :returns:
             An cloud provider instance
         """
-        inst = self._create_instance(series, image_name, user_data)
+        inst = self._create_instance(
+            series=series,
+            instance_name=instance_name,
+            image_name=image_name,
+            user_data=user_data,
+        )
         print(
             "--- {} instance launched: {}. Waiting for ssh access".format(
-                self.name, inst.id
+                self.name, inst.name
             )
         )
         time.sleep(15)
@@ -289,6 +300,7 @@ class EC2(Cloud):
     def _create_instance(
         self,
         series: str,
+        instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
     ) -> pycloudlib.instance:
@@ -298,6 +310,8 @@ class EC2(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :param instance_name:
+            The name of the instance to be created
         :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
@@ -439,6 +453,7 @@ class Azure(Cloud):
     def _create_instance(
         self,
         series: str,
+        instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
     ) -> pycloudlib.instance:
@@ -448,6 +463,8 @@ class Azure(Cloud):
             The ubuntu release to be used when creating an instance. We will
             create an image based on this value if the used does not provide
             a image_name value
+        :param instance_name:
+            The name of the instance to be created
         :param image_name:
             The name of the image to be used when creating the instance
         :param user_data:
@@ -462,3 +479,148 @@ class Azure(Cloud):
         print("--- Launching Azure image {}({})".format(image_name, series))
         inst = self.api.launch(image_id=image_name, user_data=user_data)
         return inst
+
+
+class _LXD(Cloud):
+    name = "_lxd"
+
+    @property
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        raise NotImplementedError
+
+    def _create_instance(
+        self,
+        series: str,
+        instance_name: "Optional[str]" = None,
+        image_name: "Optional[str]" = None,
+        user_data: "Optional[str]" = None,
+    ) -> pycloudlib.instance:
+        """Launch an instance on the cloud provider.
+
+        :param series:
+            The ubuntu release to be used when creating an instance. We will
+            create an image based on this value if the used does not provide
+            a image_name value
+        :param instance_name:
+            The name of the instance to be created
+        :param image_name:
+            The name of the image to be used when creating the instance
+        :param user_data:
+            The user data to be passed when creating the instance
+
+        :returns:
+            An AWS cloud provider instance
+        """
+        if not image_name:
+            image_name = self.locate_image_name(series)
+
+        image_type = self.name.title().replace("-", " ")
+
+        print(
+            "--- Launching {} image {}({})".format(
+                image_type, image_name, series
+            )
+        )
+
+        inst = self.api.launch(
+            name=instance_name, image_id=image_name, user_data=user_data
+        )
+        return inst
+
+    def get_instance_id(
+        self, instance: pycloudlib.instance.BaseInstance
+    ) -> str:
+        """Return the instance identifier.
+
+        :param instance:
+            An instance created on the cloud provider
+
+        :returns:
+            The string of the unique instance id
+        """
+        # For LXD, the API identifier uses the instance name
+        # instead of the instance id
+        return instance.name
+
+    def locate_image_name(self, series: str) -> str:
+        """Locate and return the image name to use for vm provision.
+
+        :param series:
+            The ubuntu release to be used when locating the image name
+
+        :returns:
+            A image name to use when provisioning a virtual machine
+            based on the series value
+        """
+        if not series:
+            raise ValueError(
+                "Must provide either series or image_name to launch azure"
+            )
+
+        image_name = self.api.daily_image(release=series)
+        return image_name
+
+    @property
+    def api(self) -> pycloudlib.cloud.BaseCloud:
+        """Return the api used to interact with the cloud provider."""
+        if self._api is None:
+            self._api = self.pycloudlib_cls(
+                tag=self.tag, timestamp_suffix=self.timestamp_suffix
+            )
+
+        return self._api
+
+
+class LXDVirtualMachine(_LXD):
+    name = "lxd-virtual-machine"
+
+    @property
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        return pycloudlib.LXDVirtualMachine
+
+    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+        """Create and manage ssh key pairs to be used in the cloud provider.
+
+        :param private_key_path:
+            Location of the private key path to use. If None, the location
+            will be a default location.
+        """
+        pub_key_path = "lxd-pubkey"
+        priv_key_path = "lxd-privkey"
+        pub_key, priv_key = self.api.create_key_pair()
+
+        with open(pub_key_path, "w") as f:
+            f.write(pub_key)
+
+        with open(priv_key_path, "w") as f:
+            f.write(priv_key)
+
+        self.api.use_key(
+            public_key_path=pub_key_path, private_key_path=priv_key_path
+        )
+
+        os.chmod(pub_key_path, 0o600)
+        os.chmod(priv_key_path, 0o600)
+
+
+class LXDContainer(_LXD):
+    name = "lxd-container"
+
+    @property
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        return pycloudlib.LXDContainer
+
+    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+        """Create and manage ssh key pairs to be used in the cloud provider.
+
+        On a LXD container, we do not use ssh keys to communicate with the
+        instance. Therefore, this method should not be used.
+
+        :param private_key_path:
+            Location of the private key path to use. If None, the location
+            will be a default location.
+        """
+        pass

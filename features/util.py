@@ -2,15 +2,13 @@ from contextlib import contextmanager
 import os
 import multiprocessing
 import subprocess
-import sys
 import textwrap
 import time
 import yaml
-from typing import Any, List, Optional
+from typing import List
 
 import pycloudlib  # type: ignore
 
-from behave.runner import Context
 
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
@@ -64,110 +62,6 @@ BUILD_FROM_TGZ = textwrap.dedent(
    cp /tmp/ubuntu-advantage-pro*.deb /tmp/ubuntu-advantage-pro.deb
    """
 )
-
-
-def launch_lxd_container(
-    context: Context,
-    series: str,
-    image_name: str,
-    container_name: str,
-    is_vm: bool,
-) -> None:
-    """Launch a container from an image and wait for it to boot
-
-    This will also register a cleanup with behave so the container will be
-    removed before test execution completes.
-
-    :param context:
-        A `behave.runner.Context`; used only for registering cleanups.
-    :param image_name:
-        The name of the lxd image to launch as base image for the container
-    :param container_name:
-        The name to be used for the launched container.
-    :param series: A string representing the series of the vm to create
-    :param is_vm:
-        Boolean as to whether or not to launch KVM type container
-    :param user_data:
-        Optional str of userdata to pass to the launched image
-    """
-    command = ["lxc", "launch", image_name, container_name]
-    if is_vm:
-        lxc_create_vm_profile(series)
-        command.extend(["--profile", VM_PROFILE_TMPL.format(series), "--vm"])
-    subprocess.check_call(command)
-
-    if is_vm:
-        """ When we publish vm images we end up losing the image information.
-        Since we need at least the release information to reuse the vm instance
-        in other tests, we are adding this information back here."""
-        subprocess.run(["lxc", "stop", container_name])
-        subprocess.run(
-            ["lxc", "config", "set", container_name, "image.release", series]
-        )
-        subprocess.run(["lxc", "start", container_name])
-
-    def cleanup_container() -> None:
-        if not context.config.destroy_instances:
-            print(
-                "--- Leaving lxd container running: {}".format(container_name)
-            )
-        else:
-            subprocess.run(["lxc", "delete", "-f", container_name])
-
-    context.add_cleanup(cleanup_container)
-
-    wait_for_boot(container_name, series=series, is_vm=is_vm)
-
-
-def lxc_exec(
-    container_name: str,
-    cmd: List[str],
-    capture_output: bool = False,
-    text: bool = False,
-    **kwargs: Any
-) -> subprocess.CompletedProcess:
-    """Run `lxc exec` in a container.
-
-    :param container_name:
-        The name of the container to run `lxc exec` against.
-    :param cmd:
-        A list containing the command to be run and its parameters; this will
-        be appended to a list that is passed to `subprocess.run`.
-    :param capture_output:
-        If capture_output is true, stdout and stderr will be captured.  (On
-        pre-3.7 Pythons, this will behave as capture_output does for 3.7+.  On
-        3.7+, this is just passed through.)
-    :param text:
-        If text (also known as universal_newlines) is true, the file objects
-        stdin, stdout and stderr will be opened in text mode. (On pre-3.7
-        Pythons, this will behave as universal_newlines does).
-    :param kwargs:
-        These are passed directly to `subprocess.run`.
-
-    :return:
-        The `subprocess.CompletedProcess` returned by `subprocess.run`.
-    """
-    if sys.version_info >= (3, 7):
-        # We have native capture_output support
-        kwargs["capture_output"] = capture_output
-        kwargs["text"] = text
-    elif capture_output:
-        if (
-            kwargs.get("stdout") is not None
-            or kwargs.get("stderr") is not None
-        ):
-            raise ValueError(
-                "stdout and stderr arguments may not be used "
-                "with capture_output."
-            )
-        # stdout and stderr will be opened in text mode (by default they are
-        # opened in binary mode
-        kwargs["universal_newlines"] = text
-        kwargs["stdout"] = subprocess.PIPE
-        kwargs["stderr"] = subprocess.PIPE
-    return subprocess.run(
-        ["lxc", "exec", "--user", "1000", container_name, "--"] + cmd, **kwargs
-    )
 
 
 def lxc_create_vm_profile(series: str):
@@ -224,58 +118,6 @@ def lxc_create_vm_profile(series: str):
         proc.communicate(content.encode())
 
 
-def wait_for_boot(
-    container_name: str, series: str, is_vm: bool = False
-) -> None:
-    """Wait for a test container to boot.
-
-    :param container_name:
-        The name of the container to wait for.
-    :param series:
-        The Ubuntu series we are waiting for.
-    :param is_vm:
-        Boolean as to whether or not to launch KVM type container
-    """
-    if is_vm:
-        retries = [30, 45, 60, 75, 90, 105]
-    else:
-        retries = [5, 10, 15, 20, 20, 30]
-    if series != "trusty":
-        retcode = 1
-        for sleep_time in retries:
-            proc = lxc_exec(
-                container_name,
-                ["cloud-init", "status", "--wait", "--long"],
-                capture_output=True,
-                text=True,
-            )
-            retcode = proc.returncode
-            if retcode == 0:
-                break
-            print(
-                "--- Retrying on unexpected cloud-init status stderr: ",
-                proc.stderr.strip(),
-            )
-            time.sleep(sleep_time)
-        if retcode != 0:
-            raise Exception("System did not boot in {}s".format(sum(retries)))
-        return
-    for sleep_time in retries:
-        process = lxc_exec(
-            container_name, ["runlevel"], capture_output=True, text=True
-        )
-        try:
-            _, runlevel = process.stdout.strip().split(" ", 2)
-        except ValueError:
-            print("--- Unexpected runlevel output: ", process.stdout.strip())
-            runlevel = None
-        if runlevel in ("2", "5"):
-            break
-        time.sleep(sleep_time)
-    else:
-        raise Exception("System did not boot in {}s".format(sum(retries)))
-
-
 def lxc_get_property(name: str, property_name: str, image: bool = False):
     """Check series name of either an image or a container.
 
@@ -324,7 +166,7 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
 def build_debs(
     container_name: str,
     output_deb_dir: str,
-    cloud_api: "Optional[pycloudlib.cloud.BaseCloud]" = None,
+    cloud_api: "pycloudlib.cloud.BaseCloud",
 ) -> "List[str]":
     """
     Push source PR code .tar.gz to the container.
@@ -361,70 +203,21 @@ def build_debs(
     buildscript = "build-from-source.sh"
     with open(buildscript, "w") as stream:
         stream.write(BUILD_FROM_TGZ)
-    if cloud_api:
-        instance = cloud_api.get_instance(instance_id=container_name)
-        for filepath in (buildscript, SOURCE_PR_TGZ):
-            print("--- Push {} -> {}:/tmp".format(filepath, instance.id))
-            instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
-        instance.execute(["sudo", "bash", "/tmp/" + buildscript])
-        deb_artifacts = []
-        for deb in UA_DEBS:
-            deb_artifacts.append(output_deb_dir + deb)
-            print(
-                "--- Pull {}:/tmp/{} {}".format(
-                    instance.id, deb, output_deb_dir
-                )
-            )
-            instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
-        instance.delete(wait=False)
-        return deb_artifacts
-    else:  # TODO(drop lxc_build_deb when moving to pycloudlib lxd*)
-        return lxc_build_debs(container_name, output_deb_dir)
 
-
-def lxc_build_debs(container_name: str, output_deb_dir: str) -> "List[str]":
-    """
-    Push source PR code .tar.gz to the container.
-    Run tools/build-from-source.sh which will create the .deb
-    Pull .deb from this container to travis-ci instance
-    Stop the container
-
-    :param container_name: the name of the container to:
-         - push the PR source code;
-         - pull the built .deb package.
-    :param output_deb_dir: The directory into which deb artifacts will be
-         copied when built from source code
-    :return: List of local deb artifacts built.
-    """
-
-    buildscript = "build-from-source.sh"
-    with open(buildscript, "w") as stream:
-        stream.write(BUILD_FROM_TGZ)
-    os.chmod(buildscript, 0o755)
-    for push_file in (buildscript, SOURCE_PR_TGZ):
-        print("--- Push {} -> {}/tmp/".format(push_file, container_name))
-        cmd = ["lxc", "file", "push", push_file, container_name + "/tmp/"]
-        subprocess.check_call(cmd)
-    print("--- Run {}".format(buildscript))
-    lxc_exec(container_name, ["sudo", "/tmp/" + buildscript])
-    deb_paths = []
+    instance = cloud_api.get_instance(instance_id=container_name)
+    for filepath in (buildscript, SOURCE_PR_TGZ):
+        print("--- Push {} -> {}:/tmp".format(filepath, instance.name))
+        instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
+    instance.execute(["sudo", "bash", "/tmp/" + buildscript])
+    deb_artifacts = []
     for deb in UA_DEBS:
+        deb_artifacts.append(output_deb_dir + deb)
         print(
-            "--- Pull {}/tmp/{} {} ".format(
-                container_name, deb, output_deb_dir
-            )
+            "--- Pull {}:/tmp/{} {}".format(instance.name, deb, output_deb_dir)
         )
-        deb_paths.append(output_deb_dir + deb)
-        cmd = [
-            "lxc",
-            "file",
-            "pull",
-            container_name + "/tmp/" + deb,
-            deb_paths[-1],
-        ]
-        subprocess.check_call(cmd)
-    subprocess.run(["lxc", "stop", container_name])
-    return deb_paths
+        instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
+    instance.delete(wait=False)
+    return deb_artifacts
 
 
 # Support for python 3.6 or earlier

@@ -7,8 +7,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get install -y <downrev_pkg>` with sudo
+        When I verify that running ` --assume-yes --beta` `with sudo` exits `1`
         And I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
-
         Then if `<release>` in `trusty` and stdout matches regexp:
         """
         UA Infrastructure Extended Security Maintenance \(ESM\) is not enabled.
@@ -64,15 +64,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         \d+ update(s)? (is a|are) security update(s)?.
         """
         Examples: ubuntu release packages
-           | release | downrev_pkg                     |
-           | trusty  | libgit2-0=0.19.0-2ubuntu0.4     |
-           | xenial  | libkrad0=1.13.2+dfsg-5ubuntu2.1 |
-           | bionic  | libkrad0=1.16-2ubuntu0.1        |
-           | focal   | hello=2.10-2ubuntu2             |
+           | release | downrev_pkg                 |
+           | trusty  | libgit2-0=0.19.0-2ubuntu0.4 |
+           | xenial  | libkrad0=1.13.2+dfsg-5      |
+           | bionic  | libkrad0=1.16-2build1       |
+           | focal   | hello=2.10-2ubuntu2         |
 
     @series.all
     @uses.config.machine_type.aws.generic
-    @uses.config.machine_type.lxd.vm
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

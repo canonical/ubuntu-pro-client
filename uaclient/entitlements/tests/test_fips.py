@@ -19,24 +19,13 @@ from uaclient import exceptions
 M_PATH = "uaclient.entitlements.fips."
 M_REPOPATH = "uaclient.entitlements.repo."
 M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
+FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
 
 
 @pytest.fixture(params=[FIPSEntitlement, FIPSUpdatesEntitlement])
 def fips_entitlement_factory(request, entitlement_factory):
     """Parameterized fixture so we apply all tests to both FIPS and Updates"""
-    additional_packages = [
-        "fips-initramfs",
-        "libssl1.0.0",
-        "libssl1.0.0-hmac",
-        "linux-fips",
-        "openssh-client",
-        "openssh-client-hmac",
-        "openssh-server",
-        "openssh-server-hmac",
-        "openssl",
-        "strongswan",
-        "strongswan-hmac",
-    ]
+    additional_packages = FIPS_ADDITIONAL_PACKAGES
 
     return partial(
         entitlement_factory,
@@ -203,15 +192,28 @@ class TestFIPSEntitlementEnable:
             env={"DEBIAN_FRONTEND": "noninteractive"},
         )
 
-        subp_calls = [
-            mock.call(
-                ["apt-get", "update"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                env={},
-            ),
-            install_cmd,
-        ]
+        if isinstance(entitlement, FIPSEntitlement):
+            subp_calls = [
+                mock.call(
+                    ["apt-mark", "showholds"],
+                    capture=True,
+                    retry_sleeps=apt.APT_RETRIES,
+                    env={},
+                )
+            ]
+        else:
+            subp_calls = []
+        subp_calls.extend(
+            [
+                mock.call(
+                    ["apt-get", "update"],
+                    capture=True,
+                    retry_sleeps=apt.APT_RETRIES,
+                    env={},
+                ),
+                install_cmd,
+            ]
+        )
 
         assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
@@ -285,14 +287,18 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert 0 == m_remove_apt_config.call_count
 
-    def test_failure_to_install_doesnt_remove_packages(self, entitlement):
+    def test_failure_to_install_removes_apt_auth(self, entitlement, tmpdir):
+
+        authfile = tmpdir.join("90ubuntu-advantage")
+        authfile.write("")
+
         def fake_subp(cmd, *args, **kwargs):
             if "install" in cmd:
                 raise util.ProcessExecutionError(cmd)
             return ("", "")
 
         with contextlib.ExitStack() as stack:
-            m_subp = stack.enter_context(
+            stack.enter_context(
                 mock.patch("uaclient.util.subp", side_effect=fake_subp)
             )
             stack.enter_context(
@@ -306,6 +312,11 @@ class TestFIPSEntitlementEnable:
                     entitlement, "setup_apt_config", return_value=True
                 )
             )
+            m_remove_apt_config = stack.enter_context(
+                mock.patch.object(
+                    entitlement, "remove_apt_config", return_value=True
+                )
+            )
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
@@ -316,8 +327,7 @@ class TestFIPSEntitlementEnable:
             error_msg = "Could not enable {}.".format(entitlement.title)
             assert error_msg == excinfo.value.msg
 
-        for call in m_subp.call_args_list:
-            assert "remove" not in call[0][0]
+        assert 1 == m_remove_apt_config.call_count
 
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
@@ -361,100 +371,79 @@ class TestFIPSEntitlementEnable:
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
 
-def _fips_pkg_combinations():
-    """Construct all combinations of fips_packages and expected installs"""
-    fips_packages = {
-        "libssl1.0.0": {"libssl1.0.0-hmac"},
-        "openssh-client": {"openssh-client-hmac"},
-        "openssh-server": {"openssh-server-hmac"},
-        "openssl": set(),
-        "strongswan": {"strongswan-hmac"},
-    }
-
-    items = [  # These are the items that we will combine together
-        (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in fips_packages.items()
-    ]
-    # This produces combinations in all possible combination lengths
-    combinations = itertools.chain.from_iterable(
-        itertools.combinations(items, n) for n in range(1, len(items))
-    )
-    ret = []
-    # This for loop flattens each combination together in to a single
-    # (installed_packages, expected_installs) item
-    for combination in combinations:
-        installed_packages, expected_installs = [], []
-        for pkg, installs in combination:
-            installed_packages.append(pkg)
-            expected_installs.extend(installs)
-        ret.append((installed_packages, expected_installs))
-    return ret
-
-
-class TestFipsEntitlementPackages:
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_packages_is_list(self, _mock, entitlement):
-        """RepoEntitlement.enable will fail if it isn't"""
-        assert isinstance(entitlement.packages, list)
-
-    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_fips_required_packages_included(self, _mock, entitlement):
-        """The fips_required_packages should always be in .packages"""
-        assert entitlement.fips_required_packages.issubset(
-            entitlement.packages
-        )
-
-    @pytest.mark.parametrize(
-        "installed_packages,expected_installs", _fips_pkg_combinations()
-    )
+class TestFIPSEntitlementRemovePackages:
+    @pytest.mark.parametrize("installed_pkgs", (["sl"], ["ubuntu-fips", "sl"]))
+    @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+    @mock.patch(M_PATH + "util.subp")
     @mock.patch(M_PATH + "apt.get_installed_packages")
-    def test_currently_installed_packages_are_included_in_packages(
+    def test_remove_packages_only_removes_if_package_is_installed(
         self,
         m_get_installed_packages,
+        m_subp,
+        _m_get_platform,
+        installed_pkgs,
         entitlement,
-        installed_packages,
-        expected_installs,
     ):
-        """If FIPS packages are already installed, upgrade them"""
-        m_get_installed_packages.return_value = list(installed_packages)
-        full_expected_installs = (
-            list(entitlement.fips_required_packages) + expected_installs
+        m_subp.return_value = ("success", "")
+        m_get_installed_packages.return_value = installed_pkgs
+        entitlement.remove_packages()
+        remove_cmd = mock.call(
+            [
+                "apt-get",
+                "remove",
+                "--assume-yes",
+                '-o Dpkg::Options::="--force-confdef"',
+                '-o Dpkg::Options::="--force-confold"',
+                "ubuntu-fips",
+            ],
+            capture=True,
+            retry_sleeps=apt.APT_RETRIES,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
         )
-        assert sorted(full_expected_installs) == sorted(entitlement.packages)
-
-    @mock.patch(M_PATH + "apt.get_installed_packages")
-    def test_multiple_packages_calls_dont_mutate_state(
-        self, m_get_installed_packages, entitlement
-    ):
-        # Make it appear like all packages are installed
-        m_get_installed_packages.return_value.__contains__.return_value = True
-
-        before = copy.deepcopy(entitlement.fips_required_packages)
-
-        assert entitlement.packages
-
-        after = copy.deepcopy(entitlement.fips_required_packages)
-
-        assert before == after
+        if "ubuntu-fips" in installed_pkgs:
+            assert [remove_cmd] == m_subp.call_args_list
+        else:
+            assert 0 == m_subp.call_count
 
 
+@mock.patch(M_REPOPATH + "handle_message_operations", return_value=True)
+@mock.patch(
+    "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+)
 class TestFIPSEntitlementDisable:
-    @pytest.mark.parametrize("silent", [False, True])
-    @mock.patch("uaclient.util.get_platform_info")
-    def test_disable_returns_false_and_does_nothing(
-        self, m_platform_info, entitlement, silent, capsys
+    def test_disable_on_can_disable_true_removes_apt_config_and_packages(
+        self,
+        _m_platform_info,
+        m_handle_message_operations,
+        entitlement,
+        tmpdir,
     ):
-        """When can_disable is false disable returns false and noops."""
-        with mock.patch("uaclient.apt.remove_auth_apt_repo") as m_remove_apt:
-            assert False is entitlement.disable(silent)
-        assert 0 == m_remove_apt.call_count
+        """When can_disable, disable removes apt config and packages."""
+        with mock.patch.object(entitlement, "can_disable", return_value=True):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                with mock.patch.object(
+                    entitlement, "remove_packages"
+                ) as m_remove_packages:
+                    assert entitlement.disable(True)
+        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call()] == m_remove_packages.call_args_list
 
-        expected_stdout = ""
-        if not silent:
-            expected_stdout = "Warning: no option to disable {}\n".format(
-                entitlement.title
-            )
-        assert (expected_stdout, "") == capsys.readouterr()
+    def test_disable_on_can_disable_true_removes_packages(
+        self,
+        _m_platform_info,
+        m_handle_message_operations,
+        entitlement,
+        tmpdir,
+    ):
+        """When can_disable, disable removes apt configuration"""
+        with mock.patch.object(entitlement, "can_disable", return_value=True):
+            with mock.patch.object(
+                entitlement, "remove_apt_config"
+            ) as m_remove_apt_config:
+                assert entitlement.disable(True)
+        assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
 class TestFIPSEntitlementApplicationStatus:
@@ -493,7 +482,7 @@ class TestFIPSEntitlementApplicationStatus:
             ),
         ),
     )
-    def test_kernels_are_used_to_detemine_application_status_message(
+    def test_kernels_are_used_to_determine_application_status_message(
         self, entitlement, platform_info, expected_status, expected_msg
     ):
         msg = "sure is some status here"
@@ -529,3 +518,118 @@ class TestFIPSEntitlementApplicationStatus:
             expected_status = status.ApplicationStatus.ENABLED
 
         assert expected_status == application_status
+
+
+def _fips_pkg_combinations():
+    """Construct all combinations of fips_packages and expected installs"""
+    fips_packages = {
+        "openssh-client": {"openssh-client-hmac"},
+        "openssh-server": {"openssh-server-hmac"},
+        "strongswan": {"strongswan-hmac"},
+    }
+
+    items = [  # These are the items that we will combine together
+        (pkg_name, [pkg_name] + list(extra_pkgs))
+        for pkg_name, extra_pkgs in fips_packages.items()
+    ]
+    # This produces combinations in all possible combination lengths
+    combinations = itertools.chain.from_iterable(
+        itertools.combinations(items, n) for n in range(1, len(items))
+    )
+    ret = []
+    # This for loop flattens each combination together in to a single
+    # (installed_packages, expected_installs) item
+    for combination in combinations:
+        installed_packages, expected_installs = [], []
+        for pkg, installs in combination:
+            installed_packages.append(pkg)
+            expected_installs.extend(installs)
+        ret.append((installed_packages, expected_installs))
+    return ret
+
+
+class TestFipsSetupAPTConfig:
+    @pytest.mark.parametrize(
+        "held_packages,unhold_packages",
+        (
+            ("", []),
+            ("asdf\n", []),
+            (
+                "openssh-server\nlibssl1.1-hmac\nasdf\n",
+                ["openssh-server", "libssl1.1-hmac"],
+            ),
+        ),
+    )
+    @mock.patch(M_REPOPATH + "RepoEntitlement.setup_apt_config")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_setup_apt_cofig_unmarks_held_fips_packages(
+        self,
+        run_apt_command,
+        setup_apt_config,
+        held_packages,
+        unhold_packages,
+        entitlement,
+    ):
+        """Unmark only fips-specific package holds if present."""
+        run_apt_command.return_value = held_packages
+        entitlement.setup_apt_config()
+        if isinstance(entitlement, FIPSUpdatesEntitlement):
+            expected_calls = []
+        else:
+            expected_calls = [
+                mock.call(
+                    ["apt-mark", "showholds"], "apt-mark showholds failed."
+                )
+            ]
+            if unhold_packages:
+                cmd = ["apt-mark", "unhold"] + unhold_packages
+                expected_calls.append(
+                    mock.call(cmd, " ".join(cmd) + " failed.")
+                )
+        assert expected_calls == run_apt_command.call_args_list
+        assert [mock.call()] == setup_apt_config.call_args_list
+
+
+class TestFipsEntitlementPackages:
+    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
+    def test_packages_is_list(self, _mock, entitlement):
+        """RepoEntitlement.enable will fail if it isn't"""
+        assert isinstance(entitlement.packages, list)
+
+    @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
+    def test_fips_required_packages_included(self, _mock, entitlement):
+        """The fips_required_packages should always be in .packages"""
+        assert set(FIPS_ADDITIONAL_PACKAGES).issubset(
+            set(entitlement.packages)
+        )
+
+    @pytest.mark.parametrize(
+        "installed_packages,expected_installs", _fips_pkg_combinations()
+    )
+    @mock.patch(M_PATH + "apt.get_installed_packages")
+    def test_currently_installed_packages_are_included_in_packages(
+        self,
+        m_get_installed_packages,
+        entitlement,
+        installed_packages,
+        expected_installs,
+    ):
+        """If FIPS packages are already installed, upgrade them"""
+        m_get_installed_packages.return_value = list(installed_packages)
+        full_expected_installs = FIPS_ADDITIONAL_PACKAGES + expected_installs
+        assert sorted(full_expected_installs) == sorted(entitlement.packages)
+
+    @mock.patch(M_PATH + "apt.get_installed_packages")
+    def test_multiple_packages_calls_dont_mutate_state(
+        self, m_get_installed_packages, entitlement
+    ):
+        # Make it appear like all packages are installed
+        m_get_installed_packages.return_value.__contains__.return_value = True
+
+        before = copy.deepcopy(entitlement.conditional_packages)
+
+        assert entitlement.packages
+
+        after = copy.deepcopy(entitlement.conditional_packages)
+
+        assert before == after

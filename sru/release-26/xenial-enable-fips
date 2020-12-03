@@ -1,0 +1,188 @@
+=== Begin SRU Template ===
+[Impact]
+When enabling FIPS in a system we expect it to also update the current kernel to a FIPS supported
+one. We are now testing for Xenial if that is the scenario that we land up with after enabling FIPS
+using uaclient.
+
+[Test Case]
+```
+#!/bin/sh
+set -x
+
+STAGING_CONTRACT_TOKEN=<YOUR-STAGING-TOKEN>
+series=xenial
+name=$series-fips
+
+install_uac_from_branch() {
+    branch=$1
+    pkg_name=ubuntu-advantage-tools_26.0_amd64.deb
+
+    multipass exec $name -- sudo apt-get -yq update
+    multipass exec $name -- sudo apt-get -yq install git make
+    multipass exec $name -- git clone https://github.com/canonical/ubuntu-advantage-client.git /tmp/uac
+    multipass exec $name -- sh -c "cd /tmp/uac/ && git checkout $branch"
+    multipass exec $name -- sudo sh -c "cd /tmp/uac/ && make deps > /dev/null"
+    multipass exec $name -- sudo sh -c "cd /tmp/uac/ && dpkg-buildpackage -us -uc > /dev/null"
+    multipass exec $name -- sudo dpkg -i /tmp/$pkg_name
+}
+
+configure_uac_to_use_staging_contract() {
+    multipass exec $name -- sudo sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf
+}
+
+enable_fips() {
+    multipass exec $name -- sudo ua attach $STAGING_CONTRACT_TOKEN
+    multipass exec $name -- sudo ua disable livepatch
+    multipass exec $name -- sudo ua enable fips --beta --assume-yes
+    multipass exec $name -- sudo apt update
+
+    traceback_out=$(multipass exec $name -- grep Traceback /var/log/ubuntu-advantage.log)
+
+    if [ -z "$traceback_out" ]; then
+        echo "SUCCESS: No Tracebacks found on ubuntu-advantage.log"
+    else
+        echo "FAILURE: Tracebacks found on ubuntu-advantage.log"
+    fi
+}
+
+check_kernel_for_fips() {
+    kernel_version=$(multipass exec $name -- sh -c "uname -r | grep -o fips")
+    if [ "$kernel_version" = "fips" ]; then
+        echo "SUCCESS: Xenial kernel was updated to fips version"
+    else
+        echo "FAILURE: Xenial kernel was not updated to fips version"
+    fi
+
+    fips_enabled=$(multipass exec $name -- cat /proc/sys/crypto/fips_enabled)
+
+    if [ "$fips_enabled" = "1" ]; then
+        echo "SUCCESS: FIPS is shown as enabled in the system"
+    else
+        echo "FAILURE: FIPS is not shown as enabled in the system"
+    fi
+}
+
+multipass delete $name
+multipass purge
+multipass launch $series --name $name
+
+install_uac_from_branch "update-fips"
+configure_uac_to_use_staging_contract
+enable_fips
+
+multipass exec $name -- sudo reboot
+sleep 20
+multipass exec $name -- sudo ua status --all
+
+check_kernel_for_fips
+```
+
+=== Verification Log ===
+
+Creating xenial-fips
+Configuring xenial-fips
+Starting xenial-fips
+Waiting for initialization to complete
+Launched: xenial-fips
+Get:1 http://security.ubuntu.com/ubuntu xenial-security InRelease [109 kB]
+Hit:2 http://archive.ubuntu.com/ubuntu xenial InRelease
+Get:3 http://archive.ubuntu.com/ubuntu xenial-updates InRelease [109 kB]
+Get:4 http://security.ubuntu.com/ubuntu xenial-security/main amd64 Packages [1,476 kB]
+Get:5 http://archive.ubuntu.com/ubuntu xenial-backports InRelease [107 kB]
+Get:6 http://archive.ubuntu.com/ubuntu xenial/universe amd64 Packages [7,532 kB]
+Get:7 http://security.ubuntu.com/ubuntu xenial-security/main Translation-en [350 kB]
+Get:8 http://security.ubuntu.com/ubuntu xenial-security/universe amd64 Packages [773 kB]
+Get:9 http://security.ubuntu.com/ubuntu xenial-security/universe Translation-en [218 kB]
+Get:10 http://security.ubuntu.com/ubuntu xenial-security/multiverse amd64 Packages [8,236 B]
+Get:11 http://security.ubuntu.com/ubuntu xenial-security/multiverse Translation-en [2,888 B]
+Get:12 http://archive.ubuntu.com/ubuntu xenial/universe Translation-en [4,354 kB]
+Get:13 http://archive.ubuntu.com/ubuntu xenial/multiverse amd64 Packages [144 kB]
+Get:14 http://archive.ubuntu.com/ubuntu xenial/multiverse Translation-en [106 kB]
+Get:15 http://archive.ubuntu.com/ubuntu xenial-updates/main amd64 Packages [1,880 kB]
+Get:16 http://archive.ubuntu.com/ubuntu xenial-updates/main Translation-en [454 kB]
+Get:17 http://archive.ubuntu.com/ubuntu xenial-updates/universe amd64 Packages [1,195 kB]
+Get:18 http://archive.ubuntu.com/ubuntu xenial-updates/universe Translation-en [348 kB]
+Get:19 http://archive.ubuntu.com/ubuntu xenial-updates/multiverse amd64 Packages [23.0 kB]
+Get:20 http://archive.ubuntu.com/ubuntu xenial-updates/multiverse Translation-en [8,632 B]
+Get:21 http://archive.ubuntu.com/ubuntu xenial-backports/main amd64 Packages [9,812 B]
+Get:22 http://archive.ubuntu.com/ubuntu xenial-backports/main Translation-en [4,456 B]
+Get:23 http://archive.ubuntu.com/ubuntu xenial-backports/universe amd64 Packages [11.3 kB]
+Get:24 http://archive.ubuntu.com/ubuntu xenial-backports/universe Translation-en [4,476 B]
+Fetched 19.2 MB in 5s (3,437 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+git is already the newest version (1:2.7.4-0ubuntu1.9).
+Suggested packages:
+  make-doc
+The following NEW packages will be installed:
+  make
+0 upgraded, 1 newly installed, 0 to remove and 20 not upgraded.
+Need to get 151 kB of archives.
+After this operation, 365 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu xenial/main amd64 make amd64 4.1-6 [151 kB]
+Fetched 151 kB in 1s (111 kB/s)
+Selecting previously unselected package make.
+Preparing to unpack .../archives/make_4.1-6_amd64.deb ...
+Unpacking make (4.1-6) ...
+Processing triggers for man-db (2.7.5-1) ...
+Setting up make (4.1-6) ...
+Branch update-fips set up to track remote branch update-fips from origin.
+(Reading database ... 59834 files and directories currently installed.)
+Preparing to unpack .../ubuntu-advantage-tools_26.0_amd64.deb ...
+Unpacking ubuntu-advantage-tools (26.0) over (10ubuntu0.16.04.1) ...
+Setting up ubuntu-advantage-tools (26.0) ...
+Removing obsolete conffile /etc/update-motd.d/99-esm ...
+Processing triggers for man-db (2.7.5-1) ...
+Updating package lists
+ESM Apps enabled
+Installing canonical-livepatch snap
+Canonical livepatch enabled.
+This machine is now attached to 'server-team-ua-client-ci-uaa'
+
+SERVICE       ENTITLED  STATUS    DESCRIPTION
+esm-infra     no                 —                  UA Infra: Extended Security Maintenance (ESM)
+livepatch     yes                enabled            Canonical Livepatch service
+
+Enable services with: ua enable <service>
+
+                Account: server-team-ua-client-ci
+           Subscription: server-team-ua-client-ci-uaa
+            Valid until: n/a
+Technical support level: essential
+One moment, checking your subscription first
+Updating package lists
+Installing FIPS packages
+FIPS enabled
+A reboot is required to complete install
+Hit:1 http://security.ubuntu.com/ubuntu xenial-security InRelease
+Hit:2 http://archive.ubuntu.com/ubuntu xenial InRelease
+Hit:3 http://archive.ubuntu.com/ubuntu xenial-updates InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu xenial-backports InRelease
+Hit:5 https://esm.staging.ubuntu.com/apps/ubuntu xenial-apps-security InRelease
+Hit:6 https://esm.staging.ubuntu.com/apps/ubuntu xenial-apps-updates InRelease
+Hit:7 https://esm.staging.ubuntu.com/fips/ubuntu xenial InRelease
+Reading package lists...
+Building dependency tree...
+Reading state information...
+5 of the updates are from UA Apps: ESM.
+28 packages can be upgraded. Run 'apt list --upgradable' to see them.
+SUCCESS: No Tracebacks found on ubuntu-advantage.log
+SERVICE       ENTITLED  STATUS    DESCRIPTION
+cc-eal        yes                disabled           Common Criteria EAL2 Provisioning Packages
+cis-audit     no                 —                  Center for Internet Security Audit Tools
+esm-apps      yes                enabled            UA Apps: Extended Security Maintenance (ESM)
+esm-infra     no                 —                  UA Infra: Extended Security Maintenance (ESM)
+fips          yes                enabled            NIST-certified FIPS modules
+fips-updates  yes                disabled           Uncertified security updates to FIPS modules
+livepatch     yes                n/a                Canonical Livepatch service
+
+Enable services with: ua enable <service>
+
+                Account: server-team-ua-client-ci
+           Subscription: server-team-ua-client-ci-uaa
+            Valid until: n/a
+Technical support level: essential
+SUCCESS: Xenial kernel was updated to fips version
+SUCCESS: FIPS is shown as enabled in the system
