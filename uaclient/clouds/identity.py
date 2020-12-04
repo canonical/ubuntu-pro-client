@@ -8,7 +8,7 @@ from uaclient import status
 from uaclient import util
 
 try:
-    from typing import Optional  # noqa: F401
+    from typing import Dict, Optional, Type  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -19,7 +19,7 @@ CLOUDINIT_INSTANCE_ID_FILE = "/var/lib/cloud/data/instance-id"
 
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
-DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws"}
+DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
 
 
 def get_instance_id(
@@ -62,13 +62,15 @@ def get_cloud_type() -> "Optional[str]":
 def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
     from uaclient.clouds import aws
     from uaclient.clouds import azure
+    from uaclient.clouds import gcp
 
     cloud_instance_map = {
         "aws": aws.UAAutoAttachAWSInstance,
         "aws-china": aws.UAAutoAttachAWSInstance,
         "aws-gov": aws.UAAutoAttachAWSInstance,
         "azure": azure.UAAutoAttachAzureInstance,
-    }
+        "gce": gcp.UAAutoAttachGCPInstance,
+    }  # type: Dict[str, Type[clouds.AutoAttachCloudInstance]]
 
     cloud_type = get_cloud_type()
     if not cloud_type:
