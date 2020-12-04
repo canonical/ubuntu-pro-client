@@ -1,4 +1,10 @@
-ubuntu-advantage-tools (25.0~20.10.1~beta3) groovy; urgency=medium
+ubuntu-advantage-tools (25.0~20.10.1) groovy; urgency=medium
+
+  * Release version 25.0
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 04 Dec 2020 13:32:16 -0700
+
+ubuntu-advantage-tools (25.0~20.10.1beta3) groovy; urgency=medium
 
   * New upstream release 25.0~beta3:
     - upgrade-lts-conract: noop during do-release-upgrade on unattached
