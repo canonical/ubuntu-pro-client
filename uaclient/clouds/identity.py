@@ -8,7 +8,7 @@ from uaclient import status
 from uaclient import util
 
 try:
-    from typing import Optional  # noqa: F401
+    from typing import Dict, Optional, Type  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -70,7 +70,7 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
         "aws-gov": aws.UAAutoAttachAWSInstance,
         "azure": azure.UAAutoAttachAzureInstance,
         "gce": gcp.UAAutoAttachGCPInstance,
-    }
+    }  # type: Dict[str, Type[clouds.AutoAttachCloudInstance]]
 
     cloud_type = get_cloud_type()
     if not cloud_type:
