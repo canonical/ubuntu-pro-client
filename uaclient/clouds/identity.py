@@ -19,7 +19,7 @@ CLOUDINIT_INSTANCE_ID_FILE = "/var/lib/cloud/data/instance-id"
 
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
-DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gce"}
+DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
 
 
 def get_instance_id(
