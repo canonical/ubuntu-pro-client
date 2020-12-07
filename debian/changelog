@@ -4,6 +4,66 @@ ubuntu-advantage-tools (26.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Thu, 08 Oct 2020 15:29:13 -0600
 
+ubuntu-advantage-tools (25.0~20.10.1) groovy; urgency=medium
+
+  * Release version 25.0
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 04 Dec 2020 13:32:16 -0700
+
+ubuntu-advantage-tools (25.0~20.10.1beta3) groovy; urgency=medium
+
+  * New upstream release 25.0~beta3:
+    - upgrade-lts-conract: noop during do-release-upgrade on unattached
+      (GH: #1255)
+    - ua-auto-attach: order systemd unit before cloud-config.service
+    - Update FIPSUpdates pin origin
+    - fips: unmark held fips packages for ubuntu pro fips image support
+      (GH: #1109)
+    - repo: handle changes to additionalPackages contract deltas
+    - repo: move package installation to install_packages method
+    - pro: trigger auto-attach as soon as instance-data.json is available
+      (GH: #1234)
+    - Conditionally install packages when enabling FIPS
+    - fips: allow disable (GH: #1168)
+    - cli: add trailing newline to argparse errors (GH: #1236)
+    - Install fips metapacking when enabling service
+    - integration test improvements:
+      + upgrade-test: fix upgrade path restart failures on trusty (GH: #1257)
+      + Fix integration test setup scripts (GH: #1253)
+      + strict checking for command success on behave
+      + Update tests to use new pycloudlib LXD abstraction
+      + Add upgrade scenario tests when FIPS is enabled
+      + Improve FIPS tests for checking packages
+      + Update esm-infra xenial lxd test
+      + Fix vm tests as esm-apps is beta service
+      + Fix azure generic integration testing
+      + Update esm-apps check on staging_commands tests
+      + Install pycloudlib for azure jobs only
+      + Fix shell condition in run_azure_travis_integration_tests.sh
+      + Update azure jobs on travis
+      + Update travis url in README
+      + Update travis scripts to use ppa only on master
+      + Fix cron event type check on travis yaml
+
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 02 Dec 2020 13:43:16 -0700
+
+ubuntu-advantage-tools (25.0~20.10.1~beta2) groovy; urgency=medium
+
+  * New upstream release 25.0~beta2:
+    - help: update esm-infra help text (GH: #1212)
+    - apt-hook: update apt cli messaging for UA Infra: ESM and UA Apps: ESM
+      product names
+    - help: update fips help docs (GH: #1213)
+    - help: revert CIS help doc URL (GH: #1211)
+    - help: add new fips help URLs to CLI help docs (GH: #1210)
+    - Show error when enabling service with invalid repo [Lucas Moura]
+      (GH: #954)
+    - Update beta info for services (#1220) [Lucas Moura] (GH: #1216)
+    - Do not enable fips when fips-updates is active [Lucas Moura] (GH: #1209)
+    - Add vm test commands in tox.ini (#1204) [Lucas Moura]
+
+ -- Chad Smith <chad.smith@canonical.com>  Mon, 26 Oct 2020 20:01:21 -0600
+
 ubuntu-advantage-tools (25.0~20.10.1~beta1) groovy; urgency=medium
 
   * Beta bug fix release
