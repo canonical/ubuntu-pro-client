@@ -15,8 +15,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
             One moment, checking your subscription first
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found
-            """
-
+            """ 
     @series.xenial
     @series.bionic
     @series.focal
@@ -230,7 +229,9 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         1
         """
-        When I run `apt-get dist-upgrade -y` with sudo
+        When I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
+        # A package may need a reboot after running dist-upgrade
+        And I reboot the `<release>` machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
         """
         [Sources]
@@ -243,7 +244,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         <next_release>
         """
-        When I run `egrep "<release>|disabled" /etc/apt/sources.list.d/*` as non-root
+        When I verify that running `egrep "<release>|disabled" /etc/apt/sources.list.d/<source-file>.list` `as non-root` exits `1`
         Then I will see the following on stdout:
         """
         """
@@ -264,74 +265,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
 
         Examples: ubuntu release
-        | release | next_release | fips-service  | fips-name    |
-        | xenial  | bionic       | fips          | FIPS         |
-
-   @series.xenial
-   @uses.config.machine_type.lxd.vm
-   Scenario Outline: Attached FIPS upgrade across LTS releases
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
-        And I run `apt-get install lsof` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `ua enable <fips-service> --assume-yes --beta` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Installing <fips-name> packages
-            <fips-name> enabled
-            A reboot is required to complete install
-            """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            <fips-service> +yes                enabled
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-        When I reboot the `<release>` machine
-        And  I run `uname -r` as non-root
-        Then stdout matches regexp:
-        """
-        fips
-        """
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        1
-        """
-        When I run `apt-get dist-upgrade -y` with sudo
-        And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
-        """
-        [Sources]
-        AllowThirdParty=yes
-        """
-        Then I verify that running `do-release-upgrade --frontend DistUpgradeViewNonInteractive` `with sudo` exits `0`
-        When I reboot the `<release>` machine
-        And I run `lsb_release -cs` as non-root
-        Then I will see the following on stdout:
-        """
-        <next_release>
-        """
-        When I run `egrep "<release>|disabled" /etc/apt/sources.list.d/*` as non-root
-        Then I will see the following on stdout:
-        """
-        """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-        """
-        <fips-service> +yes                enabled
-        """
-        When  I run `uname -r` as non-root
-        Then stdout matches regexp:
-        """
-        fips
-        """
-        When I run `apt-cache policy ubuntu-fips` with sudo
-        Then stdout matches regexp:
-        """
-        .*Installed: \(none\)
-        """
-
-        Examples: ubuntu release
-        | release | next_release | fips-service  | fips-name    |
-        | xenial  | bionic       | fips-updates  | FIPS Updates |
+        | release | next_release | fips-service  | fips-name    | source-file         |
+        | xenial  | bionic       | fips          | FIPS         | ubuntu-fips         |
+        | xenial  | bionic       | fips-updates  | FIPS Updates | ubuntu-fips-updates |
