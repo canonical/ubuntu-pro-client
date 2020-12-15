@@ -8,6 +8,11 @@
 # we have an easy-to-read way of tracking what we currently have in the repo
 #
 # N.B. This will rename any existing keyrings with the suffix .old.
+
+# NOTE: If replacing keyrings on services that are intended for trusty, the
+# keyrings MUST BE pulled on a trusty machine to ensure compatibility with
+# trusty gpg tooling.
+
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
 if [ $# != 1 -o ! -d $1 ]; then
@@ -15,20 +20,12 @@ if [ $# != 1 -o ! -d $1 ]; then
  exit 1
 fi
 
-if [ $(lsb_release -sc) != "trusty" ]; then
-    echo "ERROR: must run on trusty to ensure compatibility"
-    exit 1
-fi
-
 TARGET_DIR="$1"
 
-EAL_KEY_ID_XENIAL="9F912DADD99EE1CC6BFFFF243A186E733F491C46"
-ESM_KEY_ID_PRECISE="74AE092F7629ACDF4FB17310B4C2AF7A67C7A026"
-ESM_KEY_ID_TRUSTY="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
-ESM_KEY_ID_XENIAL="3CB3DF682220A643B43065E9B30EDAA63D8F61D0"
-ESM_KEY_ID_BIONIC="2926E7D347A1955504000A983121D2531EF59819"
-# fips and fips-updates are same key ID
-FIPS_KEY_ID_XENIAL="E23341B2A1467EDBF07057D6C1997C40EDE22758"
+EAL_KEY_ID="9F912DADD99EE1CC6BFFFF243A186E733F491C46"
+ESM_KEY_ID="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
+FIPS_KEY_ID="E23341B2A1467EDBF07057D6C1997C40EDE22758"
+CIS_KEY_ID="81CF06E53F2C513A"
 
 generate_keyrings() {
     KEYRING_DIR="$1"
@@ -39,18 +36,14 @@ generate_keyrings() {
 
     for key in $KEYS; do
         case $key in
-            $EAL_KEY_ID_XENIAL)
+            $EAL_KEY_ID)
                 service_name="cc-eal-xenial";;
-            $ESM_KEY_ID_PRECISE)
-                service_name="esm-infra-precise";;
-            $ESM_KEY_ID_TRUSTY)
+            $ESM_KEY_ID)
                 service_name="esm-infra-trusty";;
-            $ESM_KEY_ID_XENIAL)
-                service_name="esm-infra-xenial";;
-            $ESM_KEY_ID_BIONIC)
-                service_name="esm-infra-bionic";;
-            $FIPS_KEY_ID_XENIAL)
+            $FIPS_KEY_ID)
                 service_name="fips";;  # Same FIPS key for any series
+            $CIS_KEY_ID)
+                service_name="cis";;
             *)
                 echo "Unhandled key id provided: " $key
                 exit 1;
@@ -71,6 +64,6 @@ generate_keyrings() {
 }
 
 
-generate_keyrings $TARGET_DIR $EAL_KEY_ID_XENIAL $ESM_KEY_ID_PRECISE $ESM_KEY_ID_TRUSTY $ESM_KEY_ID_XENIAL $ESM_KEY_ID_BIONIC $FIPS_KEY_ID_XENIAL
+generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID
 
 rm -rf $tmp_dir
