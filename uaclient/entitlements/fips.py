@@ -221,10 +221,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     name = "fips-updates"
     title = "FIPS Updates"
-    # RELEASE BLOCKER
-    # We have filled RT #128770 to address that situation, since
-    # we belive the origin name here should not be the same as FIPS
-    origin = "UbuntuFIPS"
+    origin = "UbuntuFIPSUpdates"
     description = "Uncertified security updates to FIPS modules"
 
     @property
