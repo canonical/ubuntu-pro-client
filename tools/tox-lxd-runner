@@ -14,11 +14,14 @@ function cleanup {
     fi
 }
 
-if (($# < 2)); then
-    echo "Usage: $0 <release> <command> [args]"
-    echo "Example: $0 trusty tox -e flake8-trusty"
+if (($# != 2)); then
+    echo "Usage: $0 <release> <command>"
+    echo "Example: $0 trusty 'tox -e flake8-trusty'"
     exit 1
 fi
+
+release=$1
+cmd=$2
 
 # Prevent carrying over .tox to a possibly very different environment.
 if [[ -e .tox ]]; then
@@ -32,8 +35,6 @@ cleanup
 
 echo "[STARTING LXD CONTAINER '$container']"
 
-release=$1
-shift
 lxc launch "ubuntu:$release" "$container" --ephemeral
 
 echo "[WAITING FOR CONTAINER]"
@@ -78,7 +79,7 @@ lxc file push --recursive --create-dirs "$uapath" "$container/$(dirname "$c_uapa
 echo "[RUNNING TESTS]"
 
 testrun_rc=1
-lxc exec "$container" --cwd "$c_uapath" -- "$@" && testrun_rc=0 || testrun_rc=$?
+lxc exec "$container" --cwd "$c_uapath" -- sh -c "$cmd" && testrun_rc=0 || testrun_rc=$?
 ((testrun_rc == 0)) && echo "[SUCCESS]" || echo "[FAILURE (RC=$testrun_rc)]"
 
 cleanup
