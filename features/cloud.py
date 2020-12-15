@@ -65,15 +65,6 @@ class Cloud:
         """Return the api used to interact with the cloud provider."""
         raise NotImplementedError
 
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
-        """Create and manage ssh key pairs to be used in the cloud provider.
-
-        :param private_key_path:
-            Location of the private key path to use. If None, the location
-            will be a default location.
-        """
-        raise NotImplementedError
-
     def _create_instance(
         self,
         series: str,
@@ -201,6 +192,31 @@ class Cloud:
             image_name = self.api.daily_image(release=series)
 
         return image_name
+
+    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+        """Create and manage ssh key pairs to be used in the cloud provider.
+
+        :param private_key_path:
+            Location of the private key path to use. If None, the location
+            will be a default location.
+        """
+        cloud_name = self.name.lower().replace("_", "-")
+        pub_key_path = "{}-pubkey".format(cloud_name)
+        priv_key_path = "{}-privkey".format(cloud_name)
+        pub_key, priv_key = self.api.create_key_pair()
+
+        with open(pub_key_path, "w") as f:
+            f.write(pub_key)
+
+        with open(priv_key_path, "w") as f:
+            f.write(priv_key)
+
+        os.chmod(pub_key_path, 0o600)
+        os.chmod(priv_key_path, 0o600)
+
+        self.api.use_key(
+            public_key_path=pub_key_path, private_key_path=priv_key_path
+        )
 
 
 class EC2(Cloud):
@@ -481,6 +497,97 @@ class Azure(Cloud):
         return inst
 
 
+class GCP(Cloud):
+    name = "gcp"
+
+    """Class that represents the Google Cloud Platform cloud provider.
+
+    :param gcp_credentials_path
+        The GCP credentials path to use when authentiacting to GCP
+    :param gcp_project
+        The name of the GCP project to be used
+    :machine_type:
+        A string representing the type of machine to launch (pro or generic)
+    :region:
+        The region to create the resources on
+    :tag:
+        A tag to be used when creating the resources on the cloud provider
+    :timestamp_suffix:
+        Boolean set true to direct pycloudlib to append a timestamp to the end
+        of the provided tag.
+    """
+
+    env_vars: "Tuple[str, ...]" = ("gcp_credentials_path", "gcp_project")
+
+    def __init__(
+        self,
+        machine_type: str,
+        region: "Optional[str]" = "us-west2",
+        tag: "Optional[str]" = None,
+        timestamp_suffix: bool = True,
+        zone: "Optional[str]" = "a",
+        gcp_credentials_path: "Optional[str]" = None,
+        gcp_project: "Optional[str]" = None,
+    ) -> None:
+        self.gcp_credentials_path = gcp_credentials_path
+        self.gcp_project = gcp_project
+        self.zone = zone
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
+            self.gcp_credentials_path
+        )
+
+        super().__init__(
+            machine_type=machine_type,
+            region=region,
+            tag=tag,
+            timestamp_suffix=timestamp_suffix,
+        )
+
+    @property
+    def api(self) -> pycloudlib.cloud.BaseCloud:
+        """Return the api used to interact with the cloud provider."""
+        if self._api is None:
+            self._api = pycloudlib.GCE(
+                tag=self.tag,
+                timestamp_suffix=self.timestamp_suffix,
+                project=self.gcp_project,
+                zone=self.zone,
+                region=self.region,
+            )
+
+        return self._api
+
+    def _create_instance(
+        self,
+        series: str,
+        instance_name: "Optional[str]" = None,
+        image_name: "Optional[str]" = None,
+        user_data: "Optional[str]" = None,
+    ) -> pycloudlib.instance:
+        """Launch an instance on the cloud provider.
+
+        :param series:
+            The ubuntu release to be used when creating an instance. We will
+            create an image based on this value if the used does not provide
+            a image_name value
+        :param instance_name:
+            The name of the instance to be created
+        :param image_name:
+            The name of the image to be used when creating the instance
+        :param user_data:
+            The user data to be passed when creating the instance
+
+        :returns:
+            An AWS cloud provider instance
+        """
+        if not image_name:
+            image_name = self.locate_image_name(series)
+
+        print("--- Launching GCP image {}({})".format(image_name, series))
+        inst = self.api.launch(image_id=image_name, user_data=user_data)
+        return inst
+
+
 class _LXD(Cloud):
     name = "_lxd"
 
@@ -579,30 +686,6 @@ class LXDVirtualMachine(_LXD):
     def pycloudlib_cls(self):
         """Return the pycloudlib cls to be used as an api."""
         return pycloudlib.LXDVirtualMachine
-
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
-        """Create and manage ssh key pairs to be used in the cloud provider.
-
-        :param private_key_path:
-            Location of the private key path to use. If None, the location
-            will be a default location.
-        """
-        pub_key_path = "lxd-pubkey"
-        priv_key_path = "lxd-privkey"
-        pub_key, priv_key = self.api.create_key_pair()
-
-        with open(pub_key_path, "w") as f:
-            f.write(pub_key)
-
-        with open(priv_key_path, "w") as f:
-            f.write(priv_key)
-
-        self.api.use_key(
-            public_key_path=pub_key_path, private_key_path=priv_key_path
-        )
-
-        os.chmod(pub_key_path, 0o600)
-        os.chmod(priv_key_path, 0o600)
 
 
 class LXDContainer(_LXD):

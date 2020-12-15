@@ -108,6 +108,8 @@ class UAClientBehaveConfig:
         "az_client_secret",
         "az_tenant_id",
         "az_subscription_id",
+        "gcp_credentials_path",
+        "gcp_project",
         "contract_token",
         "contract_token_staging",
         "machine_type",
@@ -144,6 +146,8 @@ class UAClientBehaveConfig:
         az_client_secret: str = None,
         az_tenant_id: str = None,
         az_subscription_id: str = None,
+        gcp_credentials_path: str = None,
+        gcp_project: str = None,
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
@@ -165,6 +169,8 @@ class UAClientBehaveConfig:
         self.az_client_secret = az_client_secret
         self.az_tenant_id = az_tenant_id
         self.az_subscription_id = az_subscription_id
+        self.gcp_credentials_path = gcp_credentials_path
+        self.gcp_project = gcp_project
         self.build_pr = build_pr
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
@@ -195,6 +201,8 @@ class UAClientBehaveConfig:
             ignore_vars += cloud.EC2.env_vars
         if "azure" not in self.machine_type:
             ignore_vars += cloud.Azure.env_vars
+        if "gcp" not in self.machine_type:
+            ignore_vars += cloud.GCP.env_vars
         if "pro" in self.machine_type:
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
@@ -231,6 +239,14 @@ class UAClientBehaveConfig:
                 machine_type=self.machine_type,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
+            )
+        elif "gcp" in self.machine_type:
+            self.cloud_manager = cloud.GCP(
+                machine_type=self.machine_type,
+                tag=timed_job_tag,
+                timestamp_suffix=False,
+                gcp_credentials_path=self.gcp_credentials_path,
+                gcp_project=gcp_project,
             )
         elif "lxd.vm" in self.machine_type:
             self.cloud_manager = cloud.LXDVirtualMachine(
