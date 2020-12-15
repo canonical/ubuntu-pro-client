@@ -103,6 +103,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
     @series.all
     @uses.config.machine_type.azure.generic
+    @uses.config.machine_type.gcp.generic
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
