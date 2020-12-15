@@ -48,9 +48,7 @@ class UAConfig:
 
     data_paths = {
         "instance-id": DataPath("instance-id", True),
-        "machine-access-cis": DataPath(
-            "machine-access-cis.json", True
-        ),
+        "machine-access-cis": DataPath("machine-access-cis.json", True),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
         "lock": DataPath("lock", True),
