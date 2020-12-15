@@ -1,0 +1,86 @@
+#!/bin/bash
+
+set -euf -o pipefail
+
+uapath=$PWD
+uadir=$(basename "$uapath")
+container="ua-tox-lxd-runner-$(cut -d- -f1 < /proc/sys/kernel/random/uuid)"
+
+function cleanup {
+    # Safe to run even if the container/vm does not exist.
+    if lxc info "$container" &> /dev/null; then
+        echo "[CLEANING UP CONTAINER '$container']"
+        lxc delete "$container" --force
+    fi
+}
+
+if (($# < 2)); then
+    echo "Usage: $0 <release> <command> [args]"
+    echo "Example: $0 trusty tox -e flake8-trusty"
+    exit 1
+fi
+
+# Prevent carrying over .tox to a possibly very different environment.
+if [[ -e .tox ]]; then
+   echo "Please remove .tox before running this script."
+   exit 1
+fi
+
+trap cleanup EXIT
+
+cleanup
+
+echo "[STARTING LXD CONTAINER '$container']"
+
+release=$1
+shift
+lxc launch "ubuntu:$release" "$container" --ephemeral
+
+echo "[WAITING FOR CONTAINER]"
+
+# Adapted from pycloudlib (instance.py).
+# shellcheck disable=SC2016
+until lxc exec "$container" -- sh -c 'test "$(runlevel | cut -d" " -f2)" -ge 2 -a -f /run/cloud-init/result.json' > /dev/null 2>&1; do
+    printf .
+    sleep 2
+done
+echo
+
+echo "[CONFIGURING CONTAINER]"
+
+# Install system packages
+lxc exec "$container" -- apt-get --quiet --yes update
+lxc exec "$container" --env DEBIAN_FRONTEND=noninteractive -- apt-get --quiet --yes install git
+
+python_minor=$(lxc exec "$container" -- python3 -c 'import sys; print(sys.version_info[1])')
+if ((python_minor > 4)); then
+    get_pip_url="https://bootstrap.pypa.io/get-pip.py"
+elif ((python_minor == 4)); then
+    get_pip_url="https://bootstrap.pypa.io/3.4/get-pip.py"
+else
+    echo "Unsupported Python version (3.$python_minor)"
+    exit 1
+fi
+
+# Bootstrap pip
+lxc exec "$container" -- sh -c "curl -Ss '$get_pip_url' | python3"
+
+# Install tox
+lxc exec "$container" -- pip --quiet install tox
+lxc exec "$container" -- tox --version
+
+echo "[COPYING SOURCE TREE TO CONTAINER]"
+
+c_home=$(lxc exec "$container" -- pwd)
+c_uapath="$c_home/$uadir"
+lxc file push --recursive --create-dirs "$uapath" "$container/$(dirname "$c_uapath")" --quiet
+
+echo "[RUNNING TESTS]"
+
+testrun_rc=1
+lxc exec "$container" --cwd "$c_uapath" -- "$@" && testrun_rc=0 || testrun_rc=$?
+((testrun_rc == 0)) && echo "[SUCCESS]" || echo "[FAILURE (RC=$testrun_rc)]"
+
+cleanup
+
+exit $testrun_rc
