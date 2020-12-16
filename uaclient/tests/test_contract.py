@@ -34,12 +34,12 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 
 
 @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+@mock.patch("uaclient.contract.util.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
         "detach,expected_http_method",
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
-    @mock.patch("uaclient.contract.util.get_machine_id")
     @mock.patch("uaclient.contract.util.get_platform_info")
     def test__request_machine_token_update(
         self,
@@ -82,6 +82,29 @@ class TestUAContractClient:
             }
         assert [
             mock.call("/v1/contracts/cId/context/machines/machineId", **params)
+        ] == request_url.call_args_list
+
+    def test_request_resource_machine_access(
+        self, get_machine_id, request_url, FakeConfig
+    ):
+        """GET from resource-machine-access route to "enable" a service"""
+        get_machine_id.return_value = "machineId"
+        request_url.return_value = ("response", {})
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        kwargs = {"machine_token": "mToken", "resource": "cis"}
+        assert "response" == client.request_resource_machine_access(**kwargs)
+        assert "response" == cfg.read_cache("machine-access-cis")
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer mToken",
+            }
+        }
+        assert [
+            mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
 

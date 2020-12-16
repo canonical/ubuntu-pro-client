@@ -17,6 +17,7 @@ from uaclient import util
 
 
 M_PATH = "uaclient.entitlements.repo."
+M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -742,6 +743,43 @@ class TestSetupAptConfig:
         with pytest.raises(exc_cls) as excinfo:
             entitlement.setup_apt_config()
         assert err_msg in str(excinfo.value)
+
+    @pytest.mark.parametrize("enable_by_default", (True, False))
+    @mock.patch(M_CONTRACT_PATH + "request_resource_machine_access")
+    @mock.patch(M_PATH + "apt.add_auth_apt_repo")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_setup_apt_config_request_machine_access_when_no_resource_token(
+        self,
+        run_apt_command,
+        add_auth_apt_repo,
+        request_resource_machine_access,
+        enable_by_default,
+        entitlement_factory,
+        caplog_text,
+    ):
+        """request_machine_access routes when contract lacks resourceToken."""
+        entitlement = entitlement_factory(
+            RepoTestEntitlement,
+            affordances={"series": ["xenial"]},
+            obligations={"enableByDefault": enable_by_default},
+        )
+        machine_token = entitlement.cfg.read_cache("machine-token")
+        # Drop resourceTokens values from base machine-token.
+        machine_token["resourceTokens"] = []
+        entitlement.cfg.write_cache("machine-token", machine_token)
+        entitlement.setup_apt_config()
+        if enable_by_default:
+            expected_msg = (
+                "No resourceToken present in contract for service Repo Test"
+                " Class. Using machine token as credentials"
+            )
+            assert expected_msg in caplog_text()
+            assert 0 == request_resource_machine_access.call_count
+        else:
+            assert "" == caplog_text()
+            assert [
+                mock.call("blah", "repotest")
+            ] == request_resource_machine_access.call_args_list
 
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")

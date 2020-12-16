@@ -272,13 +272,13 @@ class RepoEntitlement(base.UAEntitlement):
                 )
                 if machine_access:
                     token = machine_access.get("resourceToken")
-                if not token:
-                    token = machine_token
-                    logging.warning(
-                        "No resourceToken present in contract for service %s."
-                        " Using machine token as credentials",
-                        self.title,
-                    )
+            if not token:
+                token = machine_token
+                logging.warning(
+                    "No resourceToken present in contract for service %s."
+                    " Using machine token as credentials",
+                    self.title,
+                )
         aptKey = directives.get("aptKey")
         if not aptKey:
             raise exceptions.UserFacingError(
