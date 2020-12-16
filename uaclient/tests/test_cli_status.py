@@ -28,7 +28,7 @@ ATTACHED_STATUS = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
  Packages
-cis-audit     no        {dash}         Center for Internet Security Audit Tools
+cis           no        {dash}         Center for Internet Security Audit Tools
 esm-apps      no        {dash}         UA Apps: Extended Security Maintenance\
  (ESM)
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
