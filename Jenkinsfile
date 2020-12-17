@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         VM_NAME = "gitubuntu-ci-${currentBuild.getNumber()}"
+        UACLIENT_BEHAVE_CONTRACT_TOKEN = credentials('ua-contract-token')
     }
 
     stages {
@@ -21,12 +22,10 @@ pipeline {
         }
         stage ('Integration Tests') {
             steps {
-                withCredentials([usernameColonPassword(credentialsId: 'ua-contract-token', variable: 'UACLIENT_BEHAVE_CONTRACT_TOKEN')]) {
-                    sh '''
-                    set +x
-                    /usr/bin/tox -e behave-vm-18.04
-                   '''
-                }
+                sh '''
+                set +x
+                /usr/bin/tox -e behave-vm-18.04
+                '''
             }
         }
     }
