@@ -15,20 +15,6 @@ pipeline {
                 sh 'make testdeps'
             }
         }
-        stage ('Lint and Style') {
-            parallel {
-                stage("flake8") {
-                    steps {
-                        sh 'tox -e flake8'
-                    }
-                }
-                stage("style") {
-                    steps {
-                        sh 'tox -e black'
-                    }
-                }
-            }
-        }
         stage ('Unit Tests') {
             steps {
                 sh 'tox -e py3'
@@ -36,10 +22,10 @@ pipeline {
         }
         stage ('Integration Tests') {
             steps {
-                withCredentials([usernameColonPassword(credentialsId: 'ua-contract-token', variable: 'CONTRACT_TOKEN')]) {
+                withCredentials([usernameColonPassword(credentialsId: 'ua-contract-token', variable: 'UACLIENT_BEHAVE_CONTRACT_TOKEN')]) {
                     sh '''
                     set +x
-                    UACLIENT_BEHAVE_CONTRACT_TOKEN=$CONTRACT_TOKEN tox -e behave-vm-18.04
+                    tox -e behave-vm-18.04
                    '''
                 }
             }
