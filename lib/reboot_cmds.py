@@ -38,7 +38,7 @@ def run_command(cmd, cfg):
         reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
         del_file(reboot_cmd_marker_file)
 
-        logging.debug(msg)
+        logging.warning(msg)
         sys.exit(1)
 
 
