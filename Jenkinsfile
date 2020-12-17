@@ -36,7 +36,12 @@ pipeline {
         }
         stage ('Integration Tests') {
             steps {
-               sh 'tox -e behave-vm-18.04'
+                withCredentials([usernameColonPassword(credentialsId: 'ua-contract-token', variable: 'CONTRACT_TOKEN')]) {
+                    sh '''
+                    set +x
+                    UACLIENT_BEHAVE_CONTRACT_TOKEN=$CONTRACT_TOKEN tox -e behave-vm-18.04
+                   '''
+                }
             }
         }
     }
