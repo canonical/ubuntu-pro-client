@@ -17,7 +17,10 @@ pipeline {
         }
         stage ('Unit Tests') {
             steps {
-                sh 'tox -e py3'
+                sh '''
+                python3 -V
+                tox -e py3
+                '''
             }
         }
         stage ('Integration Tests') {
