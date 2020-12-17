@@ -260,13 +260,13 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: not entitled services
            | release | service      | title        |
-           | bionic  | cis-audit    | CIS Audit    |
+           | bionic  | cis          | CIS Audit    |
            | bionic  | esm-apps     | ESM Apps     |
-           | focal   | cis-audit    | CIS Audit    |
+           | focal   | cis          | CIS Audit    |
            | focal   | esm-apps     | ESM Apps     |
-           | trusty  | cis-audit    | CIS Audit    |
+           | trusty  | cis          | CIS Audit    |
            | trusty  | esm-apps     | ESM Apps     |
-           | xenial  | cis-audit    | CIS Audit    |
+           | xenial  | cis          | CIS Audit    |
            | xenial  | esm-apps     | ESM Apps     |
 
     @series.focal

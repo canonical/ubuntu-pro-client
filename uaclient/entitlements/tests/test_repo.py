@@ -768,15 +768,15 @@ class TestSetupAptConfig:
         machine_token["resourceTokens"] = []
         entitlement.cfg.write_cache("machine-token", machine_token)
         entitlement.setup_apt_config()
+        expected_msg = (
+            "No resourceToken present in contract for service Repo Test"
+            " Class. Using machine token as credentials"
+        )
         if enable_by_default:
-            expected_msg = (
-                "No resourceToken present in contract for service Repo Test"
-                " Class. Using machine token as credentials"
-            )
             assert expected_msg in caplog_text()
             assert 0 == request_resource_machine_access.call_count
         else:
-            assert "" == caplog_text()
+            assert expected_msg not in caplog_text()
             assert [
                 mock.call("blah", "repotest")
             ] == request_resource_machine_access.call_args_list

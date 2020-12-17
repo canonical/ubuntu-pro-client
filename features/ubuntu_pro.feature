@@ -21,7 +21,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +no       +—    +Center for Internet Security Audit Tools
             esm-apps      +yes +<esm-a-s> +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes     +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified FIPS modules
@@ -94,7 +94,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +no       +—    +Center for Internet Security Audit Tools
             esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules
@@ -149,7 +149,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +no       +—    +Center for Internet Security Audit Tools
             esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules
