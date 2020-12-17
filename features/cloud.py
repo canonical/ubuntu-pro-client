@@ -532,9 +532,6 @@ class GCP(Cloud):
         self.gcp_credentials_path = gcp_credentials_path
         self.gcp_project = gcp_project
         self.zone = zone
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
-            self.gcp_credentials_path
-        )
 
         super().__init__(
             machine_type=machine_type,
@@ -550,6 +547,7 @@ class GCP(Cloud):
             self._api = pycloudlib.GCE(
                 tag=self.tag,
                 timestamp_suffix=self.timestamp_suffix,
+                credentials_path=self.gcp_credentials_path,
                 project=self.gcp_project,
                 zone=self.zone,
                 region=self.region,
