@@ -10,7 +10,6 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
-                sh 'make testdeps'
             }
         }
         stage ('Unit Tests') {
