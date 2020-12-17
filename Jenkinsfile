@@ -15,8 +15,7 @@ pipeline {
         stage ('Unit Tests') {
             steps {
                 sh '''
-                python3 -V
-                tox -e py3
+                /usr/bin/tox -e py3
                 '''
             }
         }
@@ -25,7 +24,7 @@ pipeline {
                 withCredentials([usernameColonPassword(credentialsId: 'ua-contract-token', variable: 'UACLIENT_BEHAVE_CONTRACT_TOKEN')]) {
                     sh '''
                     set +x
-                    tox -e behave-vm-18.04
+                    /usr/bin/tox -e behave-vm-18.04
                    '''
                 }
             }
