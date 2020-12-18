@@ -152,4 +152,10 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            junit "pytest_results.xml"
+            junit "reports/*.xml"
+        }
+    }
 }
