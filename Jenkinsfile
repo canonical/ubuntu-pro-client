@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         VM_NAME = "uaclient-ci-${currentBuild.getNumber()}"
+        TMP_DIR = "/tmp/$VM_NAME"
         UACLIENT_BEHAVE_CONTRACT_TOKEN = credentials('ua-contract-token')
         UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID = credentials('ua-aws-access-key-id')
         UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY = credentials(
