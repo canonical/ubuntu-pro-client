@@ -1,6 +1,7 @@
 import datetime
 import os
 import itertools
+import tempfile
 import textwrap
 import logging
 import pycloudlib  # type: ignore
@@ -23,8 +24,6 @@ ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
 DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
 DAILY_PPA_KEYID = "8A295C4FB8B190B7"
-DEFAULT_PRIVATE_KEY_FILE = "/tmp/uaclient.pem"
-LOCAL_BUILD_ARTIFACTS_DIR = "/tmp/"
 
 USERDATA_BLOCK_AUTO_ATTACH = """\
 #cloud-config
@@ -500,7 +499,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
                 build_container_name,
-                output_deb_dir=LOCAL_BUILD_ARTIFACTS_DIR,
+                output_deb_dir=tempfile.gettempdir(),
                 cloud_api=context.config.cloud_api,
             )
 
@@ -612,7 +611,7 @@ def _install_uat_in_container(
 
         for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
-            deb_files.append(os.path.join("/tmp", deb_name))
+            deb_files.append(os.path.join(tempfile.gettempdir(), deb_name))
             inst.push_file(deb_file, "/tmp/" + deb_name)
 
         if series == "trusty":
