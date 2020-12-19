@@ -84,12 +84,12 @@ pipeline {
                         '''
                     }
                 }
-                stage("lxc vm 16.04") {
+                stage("lxc 16.04") {
                     steps {
                         sh '''
                         set +x
                         . /tmp/$VM_NAME/bin/activate
-                        tox --parallel--safe-build -e behave-vm-16.04
+                        tox --parallel--safe-build -e behave-16.04
                         '''
                     }
                 }
