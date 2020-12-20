@@ -218,7 +218,15 @@ class UAClientBehaveConfig:
                 setattr(self, attr_name, None)
         timed_job_tag = datetime.datetime.utcnow().strftime(
             "uaclient-ci-%m%d-"
-        ) + os.environ.get("TRAVIS_JOB_NUMBER", "dev")
+        )
+        # Jenkinsfile provides us with UACLIENT_BEHAVE_JENKINS_BUILD_TAG
+        job_suffix = os.environ.get("UACLIENT_BEHAVE_JENKINS_BUILD_TAG")
+        print("--- job suffix: {}".format(job_suffix), flush=True)
+        if not job_suffix:
+            job_suffix = os.environ.get("TRAVIS_JOB_NUMBER", "dev")
+        else:
+            job_suffix = job_suffix.split("PR-")[-1]
+        timed_job_tag += str(job_suffix)
         timed_job_tag = timed_job_tag.replace(".", "-")
         if "aws" in self.machine_type:
             self.cloud_manager = cloud.EC2(
@@ -462,8 +470,12 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_paths = []
 
-    print("--- Checking if debs can be reused")
     if context.config.debs_path:
+        print(
+            "--- Checking if debs can be reused in {}".format(
+                context.config.debs_path
+            )
+        )
         debs_path = context.config.debs_path
         if os.path.isdir(debs_path):
             deb_paths = [
@@ -499,7 +511,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
                 build_container_name,
-                output_deb_dir=tempfile.gettempdir(),
+                output_deb_dir=os.path.join(tempfile.gettempdir(), series),
                 cloud_api=context.config.cloud_api,
             )
 
@@ -611,7 +623,7 @@ def _install_uat_in_container(
 
         for deb_file in deb_paths:
             deb_name = os.path.basename(deb_file)
-            deb_files.append(os.path.join(tempfile.gettempdir(), deb_name))
+            deb_files.append("/tmp/" + deb_name)
             inst.push_file(deb_file, "/tmp/" + deb_name)
 
         if series == "trusty":
