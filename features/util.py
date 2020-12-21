@@ -2,6 +2,7 @@ from contextlib import contextmanager
 import os
 import multiprocessing
 import subprocess
+import tempfile
 import textwrap
 import time
 import yaml
@@ -15,7 +16,7 @@ LXC_PROPERTY_MAP = {
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
 SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
-SOURCE_PR_TGZ = "/tmp/pr_source.tar.gz"
+SOURCE_PR_TGZ = os.path.join(tempfile.gettempdir(), "pr_source.tar.gz")
 UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 VM_PROFILE_TMPL = "behave-{}"
 
@@ -54,7 +55,7 @@ BUILD_FROM_TGZ = textwrap.dedent(
    apt-get install make
    cd /tmp
    tar -zxf *gz
-   cd ubuntu-advantage-client
+   cd *ubuntu-advantage-client*
    make deps
    dpkg-buildpackage -us -uc
    # Copy and rename versioned debs to /tmp/ubuntu-advantage-(tools|pro).deb
@@ -188,18 +189,22 @@ def build_debs(
         print(
             "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
         )
-        os.chdir("..")
-        subprocess.run(
-            [
-                "tar",
-                "-zcf",
-                SOURCE_PR_TGZ,
-                "--exclude-vcs",
-                "--exclude-vcs-ignores",
-                "ubuntu-advantage-client",
-            ]
-        )
-        os.chdir("ubuntu-advantage-client")
+        if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
+            os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
+        if not os.path.exists(SOURCE_PR_TGZ):
+            cwd = os.getcwd()
+            os.chdir("..")
+            subprocess.run(
+                [
+                    "tar",
+                    "-zcf",
+                    SOURCE_PR_TGZ,
+                    "--exclude-vcs",
+                    "--exclude-vcs-ignores",
+                    os.path.basename(cwd),
+                ]
+            )
+            os.chdir(cwd)
     buildscript = "build-from-source.sh"
     with open(buildscript, "w") as stream:
         stream.write(BUILD_FROM_TGZ)
@@ -210,12 +215,14 @@ def build_debs(
         instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
     instance.execute(["sudo", "bash", "/tmp/" + buildscript])
     deb_artifacts = []
+    if not os.path.exists(output_deb_dir):
+        os.makedirs(output_deb_dir)
     for deb in UA_DEBS:
-        deb_artifacts.append(output_deb_dir + deb)
+        deb_artifacts.append(os.path.join(output_deb_dir, deb))
         print(
             "--- Pull {}:/tmp/{} {}".format(instance.name, deb, output_deb_dir)
         )
-        instance.pull_file("/tmp/" + deb, output_deb_dir + deb)
+        instance.pull_file("/tmp/" + deb, os.path.join(output_deb_dir, deb))
     instance.delete(wait=False)
     return deb_artifacts
 
