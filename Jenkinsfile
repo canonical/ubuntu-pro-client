@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        VM_NAME = "uaclient-ci-${currentBuild.getNumber()}"
-        TMP_DIR = "/tmp/$VM_NAME"
+        TMPDIR = "/tmp/$BUILD_TAG/"
+        UACLIENT_BEHAVE_JENKINS_BUILD_TAG = "${BUILD_TAG}"
+        UACLIENT_BEHAVE_BUILD_PR=1
         UACLIENT_BEHAVE_CONTRACT_TOKEN = credentials('ua-contract-token')
         UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID = credentials('ua-aws-access-key-id')
         UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY = credentials(
@@ -28,8 +29,8 @@ pipeline {
                 deleteDir()
                 checkout scm
                 sh '''
-                python3 -m venv /tmp/$VM_NAME
-                . /tmp/$VM_NAME/bin/activate
+                python3 -m venv $TMPDIR
+                . $TMPDIR/bin/activate
                 pip install tox  # for tox supporting --parallel--safe-build
                 '''
             }
@@ -40,7 +41,7 @@ pipeline {
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e flake8
                         '''
                     }
@@ -49,7 +50,7 @@ pipeline {
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e black
                         '''
                     }
@@ -58,7 +59,7 @@ pipeline {
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e mypy
                         '''
                     }
@@ -69,7 +70,7 @@ pipeline {
             steps {
                 sh '''
                 set +x
-                . /tmp/$VM_NAME/bin/activate
+                . $TMPDIR/bin/activate
                 tox --parallel--safe-build -e py3
                 '''
             }
@@ -77,55 +78,73 @@ pipeline {
         stage ('Integration Tests') {
             parallel {
                 stage("lxc 14.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}trusty/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-lxd-14.04
                         '''
                     }
                 }
                 stage("lxc 16.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-16.04
                         '''
                     }
                 }
                 stage("lxc 18.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-lxd-18.04
                         '''
                     }
                 }
                 stage("lxc vm 20.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-vm-20.04
                         '''
                     }
                 }
                 stage("azuregeneric 16.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-azuregeneric-16.04
                         '''
                     }
                 }
                 stage("awsgeneric 18.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
+                    }
                     steps {
                         sh '''
                         set +x
-                        . /tmp/$VM_NAME/bin/activate
+                        . $TMPDIR/bin/activate
                         tox --parallel--safe-build -e behave-awsgeneric-18.04
                         '''
                     }
