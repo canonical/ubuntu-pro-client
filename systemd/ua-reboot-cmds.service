@@ -1,9 +1,9 @@
 [Unit]
 Description=Ubuntu Advantage reboot cmds
+ConditionPathExists=/var/lib/ubuntu-advantage/marker-reboot-cmds-required
 
 [Service]
 Type=oneshot
-ConditionPathExists=/var/lib/ubuntu-advantage/marker-reboot-cmds-required
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/reboot_cmds.py
 TimeoutSec=0
 
