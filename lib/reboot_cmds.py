@@ -17,7 +17,7 @@ import sys
 
 from uaclient import config
 
-from uaclient.util import subp, ProcessExecutionError, del_file
+from uaclient.util import subp, ProcessExecutionError
 from uaclient.cli import setup_logging, assert_lock_file
 
 
@@ -35,8 +35,7 @@ def run_command(cmd, cfg):
             )
         )
 
-        reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
-        del_file(reboot_cmd_marker_file)
+        cfg.delete_cache_key("marker-reboot-cmds")
 
         logging.warning(msg)
         sys.exit(1)
@@ -61,21 +60,17 @@ def main(args, cfg):
         logging.debug("Skipping reboot_cmds. Machine is unattached")
 
         if os.path.exists(reboot_cmd_marker_file):
-            del_file(reboot_cmd_marker_file)
+            cfg.delete_cache_key("marker-reboot-cmds")
 
         return
 
     if os.path.exists(reboot_cmd_marker_file):
-        logging.debug(
-            "Running process contract deltas on reboot ...".format(
-                reboot_cmd_marker_file
-            )
-        )
+        logging.debug("Running process contract deltas on reboot ...")
 
         refresh_contract(args, cfg)
         process_remaining_deltas(args, cfg)
 
-        del_file(reboot_cmd_marker_file)
+        cfg.delete_cache_key("marker-reboot-cmds")
 
         logging.debug(
             "Completed running process contract deltas on reboot ..."
