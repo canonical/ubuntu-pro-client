@@ -185,10 +185,11 @@ case "$1" in
           chmod 0700 "$private_dir"
       fi
 
-      trusty_pkg=$(echo $PREVIOUS_PKG_VER | grep -o 14.04)
-      if [ "$VERSION_ID" = "16.04" ] && [ ! -z "$trusty_pkg" ]; then
+      if [ "$VERSION_ID" = "16.04" ]; then
+        if echo "$PREVIOUS_PKG_VER" | grep -q "14.04"; then
           # trusty upgrade to xenial has known post-reboot operations required (livepatch)
           mark_reboot_cmds_as_needed
+        fi
       fi
       ;;
 esac
