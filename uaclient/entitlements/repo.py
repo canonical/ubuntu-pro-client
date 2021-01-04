@@ -233,6 +233,11 @@ class RepoEntitlement(base.UAEntitlement):
             self.setup_apt_config()
 
         if delta_packages:
+            logging.info(
+                "Installing packages on changed directives: {}".format(
+                    ", ".join(delta_packages)
+                )
+            )
             self.install_packages(package_list=delta_packages)
 
         return True
