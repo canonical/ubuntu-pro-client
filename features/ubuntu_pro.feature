@@ -21,7 +21,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +<esm-a-s> +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes     +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified FIPS modules
@@ -67,10 +67,10 @@ Feature: Command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release | cc-eal-s | esm-a-s | infra-pkg | apps-pkg | fips-s | lp-s     | lp-d                          |
-           | xenial  | disabled | enabled | libkrad0  | jq       | n/a    | enabled  | Canonical Livepatch service |
-           | bionic  | n/a      | enabled | libkrad0  | bundler  | n/a    | enabled  | Canonical Livepatch service |
-           | focal   | n/a      | enabled | hello     | ant      | n/a    | enabled  | Canonical Livepatch service |
+           | release | cc-eal-s | cis-s | esm-a-s | infra-pkg | apps-pkg | fips-s | lp-s     | lp-d                          |
+           | xenial  | disabled | disabled | enabled | libkrad0  | jq       | n/a    | enabled  | Canonical Livepatch service |
+           | bionic  | n/a      | disabled | enabled | libkrad0  | bundler  | n/a    | enabled  | Canonical Livepatch service |
+           | focal   | n/a      | n/a      | enabled | hello     | ant      | n/a    | enabled  | Canonical Livepatch service |
 
     @series.trusty
     @uses.config.machine_type.aws.pro
@@ -94,7 +94,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +yes      +n/a    +Center for Internet Security Audit Tools
             esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules
@@ -149,7 +149,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis-audit     +no       +—    +Center for Internet Security Audit Tools
+            cis           +yes      +n/a      +Center for Internet Security Audit Tools
             esm-apps      +yes      +n/a   +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a   +NIST-certified FIPS modules

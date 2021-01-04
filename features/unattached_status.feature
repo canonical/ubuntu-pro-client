@@ -17,8 +17,9 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            cc-eal        <cc-eal>   +Common Criteria EAL2 Provisioning Packages
+            cis           <cis>      +Center for Internet Security Audit Tools
+            esm-apps      <esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
             fips-updates  <fips>      +Uncertified security updates to FIPS modules
@@ -41,7 +42,8 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            cc-eal        <cc-eal>   +Common Criteria EAL2 Provisioning Packages
+            cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
@@ -61,6 +63,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified FIPS modules
@@ -72,8 +75,8 @@ Feature: Unattached status
             """ 
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | fips | fips-update |
-           | bionic  | yes      | no     | yes  | yes         |
-           | focal   | yes      | no     | no   | no          |
-           | trusty  | no       | no     | no   | no          |
-           | xenial  | yes      | yes    | yes  | yes         |
+           | release | esm-apps | cc-eal | cis | fips | fips-update |
+           | bionic  | yes      | no     | yes | yes  | yes         |
+           | focal   | yes      | no     | no  | no   | no          |
+           | trusty  | no       | no     | no  | no   | no          |
+           | xenial  | yes      | yes    | yes | yes  | yes         |

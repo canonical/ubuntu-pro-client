@@ -59,7 +59,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis-audit, esm-apps, esm-infra, fips, fips-updates, livepatch
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
             """
 
         Examples: ubuntu release
@@ -91,6 +91,7 @@ Feature: Command behaviour when attached to an UA subscription
            """
            SERVICE       AVAILABLE  DESCRIPTION
            cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
+           cis           +<cis>      +Center for Internet Security Audit Tools
            esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
            esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
            fips          +<fips>     +NIST-certified FIPS modules
@@ -104,11 +105,11 @@ Feature: Command behaviour when attached to an UA subscription
        And I verify that running `apt update` `with sudo` exits `0`
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | fips | fips-update |
-           | bionic  | yes      | no     | yes  | yes         |
-           | focal   | yes      | no     | no   | no          |
-           | trusty  | no       | no     | no   | no          |
-           | xenial  | yes      | yes    | yes  | yes         |
+           | release | esm-apps | cc-eal | cis | fips | fips-update |
+           | bionic  | yes      | no     | yes | yes  | yes         |
+           | focal   | yes      | no     | no  | no   | no          |
+           | trusty  | no       | no     | no  | no   | no          |
+           | xenial  | yes      | yes    | yes | yes  | yes         |
 
     @series.all
     Scenario Outline: Attached auto-attach in a ubuntu machine
@@ -220,7 +221,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis-audit, esm-apps, esm-infra, fips, fips-updates, livepatch
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -352,7 +353,7 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
-         - cis-audit: Center for Internet Security Audit Tools
+         - cis: Center for Internet Security Audit Tools
            \(https://ubuntu.com/security/certifications#cis\)
          - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)

@@ -137,7 +137,7 @@ pipeline {
                         '''
                     }
                 }
-                stage("awsgeneric 18.04") {
+                stage("awspro 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
                     }
@@ -145,7 +145,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-awsgeneric-18.04
+                        tox --parallel--safe-build -e behave-awspro-18.04
                         '''
                     }
                 }

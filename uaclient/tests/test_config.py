@@ -29,7 +29,10 @@ from uaclient.status import (
 )
 
 
-KNOWN_DATA_PATHS = (("machine-token", "machine-token.json"),)
+KNOWN_DATA_PATHS = (
+    ("machine-access-cis", "machine-access-cis.json"),
+    ("machine-token", "machine-token.json"),
+)
 M_PATH = "uaclient.entitlements."
 
 DEFAULT_CFG_STATUS = {
@@ -172,6 +175,30 @@ class TestDataPath:
 
 class TestWriteCache:
     @pytest.mark.parametrize(
+        "key,clears_cache",
+        (
+            ("machine-token", True),
+            ("machine-access-cis", True),
+            ("lock", False),
+        ),
+    )
+    def test_write_cache_clears_machine_token_and_entitlements_instance_vars(
+        self, key, clears_cache, tmpdir
+    ):
+        """Clear _machine_token and _entitlements when machine keys updated."""
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        # setup cached values
+        cfg._machine_token = mock.sentinel.token
+        cfg._entitlements = mock.sentinel.entitlements
+        cfg.write_cache(key, "something")
+        if clears_cache:
+            assert None is cfg._entitlements
+            assert None is cfg._machine_token
+        else:
+            assert mock.sentinel.token is cfg._machine_token
+            assert mock.sentinel.entitlements is cfg._entitlements
+
+    @pytest.mark.parametrize(
         "key,content",
         (("unknownkey", "content1"), ("another-one", "content2")),
     )
@@ -296,6 +323,63 @@ class TestReadCache:
 
         actual = cfg.read_cache("dt_test")
         assert {"dt": datetime.datetime(2019, 7, 25, 14, 35, 51)} == actual
+
+
+class TestDeleteCacheKey:
+    @pytest.mark.parametrize("property_name", ("status-cache", "lock"))
+    def test_delete_cache_key_removes_public_or_private_data_path_files(
+        self, property_name, tmpdir
+    ):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg.write_cache(property_name, "himom")
+        assert True is os.path.exists(cfg.data_path(property_name))
+        cfg.delete_cache_key(property_name)
+        assert False is os.path.exists(cfg.data_path(property_name))
+        assert None is cfg.read_cache(property_name)
+
+    @pytest.mark.parametrize(
+        "property_name,clears_cache",
+        (
+            ("machine-token", True),
+            ("machine-access-cis", True),
+            ("machine", False),
+        ),
+    )
+    def test_delete_cache_key_clears_machine_token_and_entitlements(
+        self, property_name, clears_cache, tmpdir
+    ):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        token = {
+            "availableResources": ALL_RESOURCES_AVAILABLE,
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {"type": "entitlement1", "entitled": True},
+                        {"type": "entitlement2", "entitled": True},
+                    ]
+                }
+            },
+        }
+        cfg.write_cache("machine-token", token)
+        cfg.entitlements  # sets config _entitlements and _machine_token cache
+        assert cfg._entitlements is not None
+        assert cfg._machine_token is not None
+        cfg.delete_cache_key(property_name)
+        if clears_cache:
+            # internal cache is cleared
+            assert cfg._entitlements is None
+            assert cfg._machine_token is None
+
+        # Reconstitutes _entitlements and _machine_token caches
+        entitlements = cfg.entitlements
+        if property_name == "machine-token":
+            # We performed delete_cache_key("machine-token") above, so None now
+            assert None is cfg._entitlements
+            assert None is cfg.machine_token
+        else:
+            # re-constitute from cache
+            assert entitlements is cfg._entitlements
+            assert cfg._machine_token is cfg.machine_token
 
 
 class TestDeleteCache:

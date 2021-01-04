@@ -268,3 +268,40 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         | release | next_release | fips-service  | fips-name    | source-file         |
         | xenial  | bionic       | fips          | FIPS         | ubuntu-fips         |
         | xenial  | bionic       | fips-updates  | FIPS Updates | ubuntu-fips-updates |
+
+    @series.xenial
+    @series.bionic
+    Scenario Outline: Attached enable of cis service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I verify that running `ua enable cis --beta` `with sudo` exits `0`
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing CIS Audit packages
+            CIS Audit enabled
+            """
+        When I run `apt-cache policy usg-cisbenchmark` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+        When I run `apt-cache policy usg-common` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+
+        Examples: not entitled services
+           | release |
+           | bionic  |
+           | xenial  |

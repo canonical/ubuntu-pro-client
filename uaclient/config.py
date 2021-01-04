@@ -48,6 +48,7 @@ class UAConfig:
 
     data_paths = {
         "instance-id": DataPath("instance-id", True),
+        "machine-access-cis": DataPath("machine-access-cis.json", True),
         "machine-id": DataPath("machine-id", True),
         "machine-token": DataPath("machine-token.json", True),
         "lock": DataPath("lock", True),
@@ -212,7 +213,7 @@ class UAConfig:
             raise RuntimeError(
                 "Invalid or empty key provided to delete_cache_key"
             )
-        if key == "machine-token":
+        if key.startswith("machine-access") or key == "machine-token":
             self._entitlements = None
             self._machine_token = None
         cache_path = self.data_path(key)
@@ -243,7 +244,7 @@ class UAConfig:
             os.makedirs(data_dir)
             if os.path.basename(data_dir) == PRIVATE_SUBDIR:
                 os.chmod(data_dir, 0o700)
-        if key == "machine-token":
+        if key.startswith("machine-access") or key == "machine-token":
             self._machine_token = None
             self._entitlements = None
         if not isinstance(content, str):

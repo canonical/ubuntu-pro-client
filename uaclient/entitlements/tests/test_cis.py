@@ -60,8 +60,8 @@ class TestCISEntitlementEnable:
 
         add_apt_calls = [
             mock.call(
-                "/etc/apt/sources.list.d/ubuntu-cis-audit.list",
-                "http://CIS-AUDIT",
+                "/etc/apt/sources.list.d/ubuntu-cis.list",
+                "http://CIS",
                 "{}-token".format(entitlement.name),
                 ["xenial"],
                 entitlement.repo_key_file,
@@ -82,15 +82,22 @@ class TestCISEntitlementEnable:
                 env={},
             ),
             mock.call(
-                ["apt-get", "install", "--assume-yes"] + entitlement.packages,
+                [
+                    "apt-get",
+                    "install",
+                    "--assume-yes",
+                    '-o Dpkg::Options::="--force-confdef"',
+                    '-o Dpkg::Options::="--force-confold"',
+                ]
+                + entitlement.packages,
                 capture=True,
                 retry_sleeps=apt.APT_RETRIES,
-                env={},
+                env={"DEBIAN_FRONTEND": "noninteractive"},
             ),
         ]
 
         assert add_apt_calls == m_add_apt.call_args_list
-        # No apt pinning for cis-audit
+        # No apt pinning for cis
         assert [] == m_add_pin.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         assert 1 == m_should_reboot.call_count

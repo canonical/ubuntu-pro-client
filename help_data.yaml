@@ -10,7 +10,7 @@ cis:
       CIS benchmarks locks down your systems by removing non-secure programs,
       disabling unused filesystems, disabling unnecessary ports or services to
       prevent cyber attacks and malware, auditing privileged operations and
-      restricting administrative privileges. The cis-audit command installs
+      restricting administrative privileges. The cis command installs
       tooling needed to automate audit and hardening according to a desired
       CIS profile - level 1 or level 2 for server or workstation on
       Ubuntu 18.04 LTS or 16.04 LTS. The audit tooling uses OpenSCAP libraries

@@ -3,6 +3,8 @@ import logging
 import os
 import re
 
+from uaclient import contract
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -256,14 +258,27 @@ class RepoEntitlement(base.UAEntitlement):
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         resource_cfg = self.cfg.entitlements.get(self.name)
         directives = resource_cfg["entitlement"].get("directives", {})
+        obligations = resource_cfg["entitlement"].get("obligations", {})
         token = resource_cfg.get("resourceToken")
         if not token:
-            logging.debug(
-                "No specific resourceToken present. Using machine token"
-                " as %s credentials",
-                self.title,
-            )
-            token = self.cfg.machine_token["machineToken"]
+            machine_token = self.cfg.machine_token["machineToken"]
+            if not obligations.get("enableByDefault"):
+                # services that are not enableByDefault need to obtain specific
+                # resource access for tokens. We want to refresh this every
+                # enable call because it is not refreshed by `ua refresh`.
+                client = contract.UAContractClient(self.cfg)
+                machine_access = client.request_resource_machine_access(
+                    machine_token, self.name
+                )
+                if machine_access:
+                    token = machine_access.get("resourceToken")
+            if not token:
+                token = machine_token
+                logging.warning(
+                    "No resourceToken present in contract for service %s."
+                    " Using machine token as credentials",
+                    self.title,
+                )
         aptKey = directives.get("aptKey")
         if not aptKey:
             raise exceptions.UserFacingError(
