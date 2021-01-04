@@ -58,7 +58,7 @@ def main(args, cfg):
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
 
     if not cfg.is_attached:
-        logging.debug("Skiping reboot_cmds. Machine is unattached")
+        logging.debug("Skipping reboot_cmds. Machine is unattached")
 
         if os.path.exists(reboot_cmd_marker_file):
             del_file(reboot_cmd_marker_file)
