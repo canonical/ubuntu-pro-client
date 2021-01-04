@@ -216,11 +216,12 @@ class RepoEntitlement(base.UAEntitlement):
         if application_status == status.ApplicationStatus.DISABLED:
             return True
 
-        logging.info(
-            "Updating '%s' apt sources list on changed directives.", self.name
-        )
-
         if not self._check_apt_url_is_applied(delta_apt_url):
+            logging.info(
+                "Updating '%s' apt sources list on changed directives.",
+                self.name,
+            )
+
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
