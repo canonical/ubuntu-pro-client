@@ -167,6 +167,20 @@ class RepoEntitlement(base.UAEntitlement):
             "{} is not configured".format(self.title),
         )
 
+    def _check_apt_url_is_applied(self, apt_url):
+        """Check if apt url delta should be applied.
+
+        :param apt_url: string containing the apt url to be used.
+
+        :return: False if apt url is already found on the source file.
+                 True otherwise.
+        """
+        if not apt_url:
+            return True
+
+        apt_file = self.repo_list_file_tmpl.format(name=self.name)
+        return bool(apt_url in util.load_file(apt_file))
+
     def process_contract_deltas(
         self,
         orig_access: "Dict[str, Any]",
@@ -202,21 +216,30 @@ class RepoEntitlement(base.UAEntitlement):
         if application_status == status.ApplicationStatus.DISABLED:
             return True
 
-        logging.info(
-            "Updating '%s' apt sources list on changed directives.", self.name
-        )
+        if not self._check_apt_url_is_applied(delta_apt_url):
+            logging.info(
+                "Updating '%s' apt sources list on changed directives.",
+                self.name,
+            )
 
-        if delta_apt_url:
             orig_entitlement = orig_access.get("entitlement", {})
             old_url = orig_entitlement.get("directives", {}).get("aptURL")
             if old_url:
                 # Remove original aptURL and auth and rewrite
                 repo_filename = self.repo_list_file_tmpl.format(name=self.name)
                 apt.remove_auth_apt_repo(repo_filename, old_url)
-        self.remove_apt_config()
-        self.setup_apt_config()
+
+            self.remove_apt_config()
+            self.setup_apt_config()
+
         if delta_packages:
+            logging.info(
+                "Installing packages on changed directives: {}".format(
+                    ", ".join(delta_packages)
+                )
+            )
             self.install_packages(package_list=delta_packages)
+
         return True
 
     def install_packages(self, package_list: "List[str]" = None) -> None:
