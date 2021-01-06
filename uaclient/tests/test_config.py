@@ -55,6 +55,45 @@ RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
 ]
 
 
+class TestNotices:
+    @pytest.mark.parametrize(
+        "notices,expected",
+        (
+            ([], []),
+            ([["a", "a1"]], [["a", "a1"]]),
+            ([["a", "a1"], ["a", "a1"]], [["a", "a1"]]),
+        ),
+    )
+    def test_add_notice_avoids_duplicates(self, notices, expected, tmpdir):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        assert None is cfg.read_cache("notices")
+        for notice in notices:
+            cfg.add_notice(*notice)
+        if notices:
+            assert expected == cfg.read_cache("notices")
+        else:
+            assert None is cfg.read_cache("notices")
+
+    @pytest.mark.parametrize(
+        "notices,removes,expected",
+        (
+            ([], ["a", "a1"], []),
+            ([["a", "a1"]], [["a", "a1"]], []),
+            ([["a", "a1"], ["a", "a2"]], [["a", "a1"]], [["a", "a2"]]),
+            ([["a", "a1"], ["a", "a2"], ["b", "b2"]], [["a"]], [["b", "b2"]]),
+        ),
+    )
+    def test_remove_notice_removes_matching(
+        self, notices, removes, expected, tmpdir
+    ):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        for notice in notices:
+            cfg.add_notice(*notice)
+        for notice in removes:
+            cfg.remove_notice(*notice)
+        assert expected == cfg.read_cache("notices")
+
+
 class TestEntitlements:
     def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
         """Return machine_token resourceEntitlements, keyed by name."""
@@ -866,15 +905,15 @@ class TestStatus:
         m_getuid.return_value = 1000
         assert expected_dt == cfg.status()["expires"]
 
-    @mock.patch("uaclient.config.util.should_reboot", return_value=True)
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, _m_should_reboot, m_getuid, tmpdir
+        self, m_getuid, tmpdir
     ):
         m_getuid.return_value = 1000
 
         status = {"pass": True}
         cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
         cfg.write_cache("status-cache", status)
 
         # Even non-root users can update configStatus details
@@ -885,6 +924,7 @@ class TestStatus:
             {
                 "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
                 "configStatusDetails": details,
+                "notices": [],
             }
         )
         assert status == cfg.status()

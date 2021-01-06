@@ -11,7 +11,15 @@ from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 from uaclient import exceptions
 
 try:
-    from typing import Any, cast, Dict, Optional  # noqa: F401
+    from typing import (  # noqa: F401
+        Any,
+        cast,
+        Dict,
+        List,
+        Optional,
+        Tuple,
+        Union,
+    )
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     def cast(_, x):  # type: ignore
@@ -27,6 +35,7 @@ DEFAULT_STATUS = {
     "services": [],
     "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
     "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+    "notices": [],
     "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
@@ -53,6 +62,7 @@ class UAConfig:
         "machine-token": DataPath("machine-token.json", True),
         "lock": DataPath("lock", True),
         "status-cache": DataPath("status.json", False),
+        "notices": DataPath("notices.json", False),
         "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
     }  # type: Dict[str, DataPath]
 
@@ -93,6 +103,27 @@ class UAConfig:
             return getattr(logging, log_level.upper())
         except AttributeError:
             return getattr(logging, CONFIG_DEFAULTS["log_level"])
+
+    def add_notice(self, label: str, description: str):
+        notices = self.read_cache("notices") or []
+        notice = [label, description]
+        if notice not in notices:
+            notices.append(notice)
+            self.write_cache("notices", notices)
+
+    def remove_notice(self, label: str, description: str = None):
+        """Remove matching notices if present.
+
+        :param label: String of the notice label to remove.
+        :param description: Optional string of the notice description. If
+           not provided, remove any matching label notice entries.
+        """
+        notices = []
+        for notice_label, notice_descr in self.read_cache("notices") or []:
+            if label == notice_label and description in (None, notice_descr):
+                continue
+            notices.append((notice_label, notice_descr))
+        self.write_cache("notices", notices)
 
     @property
     def log_file(self):
@@ -285,28 +316,41 @@ class UAConfig:
 
         return new_response
 
-    def _get_config_status(self) -> "Dict[str, str]":
-        """Return a dict with configStatus and configStatusDetails keys.
+    def _get_config_status(
+        self
+    ) -> "Dict[str, Union[str, List[Tuple[str,str]]]]":
+        """Return a dict with configStatus, configStatusDetails and notices.
 
             Values for configStatus will be one of UserFacingConfigStatus enum:
                 inactive, active, reboot-required
             configStatusDescription will provide more details about that state.
+            notices is a list of tuples with label and description items.
         """
         userStatus = status.UserFacingConfigStatus
         status_val = userStatus.INACTIVE.value
         status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
         (lock_pid, lock_holder) = util.check_lock_info(self.data_path("lock"))
+        notices = self.read_cache("notices") or []
         if lock_pid > 0:
             status_val = userStatus.ACTIVE.value
             status_desc = status.MESSAGE_LOCK_HELD.format(
                 pid=lock_pid, lock_holder=lock_holder
             )
-        elif util.should_reboot():
+        elif os.path.exists(self.data_path("marker-reboot-cmds")):
             status_val = userStatus.REBOOTREQUIRED.value
+            operation = "configuration changes"
+            for label, description in notices:
+                if label == "Reboot required":
+                    operation = description
+                    break
             status_desc = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                operation="configuration changes"
+                operation=operation
             )
-        return {"configStatus": status_val, "configStatusDetails": status_desc}
+        return {
+            "configStatus": status_val,
+            "configStatusDetails": status_desc,
+            "notices": notices,
+        }
 
     def _unattached_status(self) -> "Dict[str, Any]":
         """Return unattached status as a dict."""
@@ -378,6 +422,7 @@ class UAConfig:
                 "origin": contractInfo.get("origin"),
                 "subscription": contractInfo["name"],
                 "subscription-id": contractInfo["id"],
+                "notices": self.read_cache("notices") or [],
             }
         )
         if contractInfo.get("effectiveTo"):
