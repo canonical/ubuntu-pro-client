@@ -128,6 +128,7 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_cfg = mock.MagicMock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         action_detach(mock.MagicMock(), m_cfg)
 
@@ -152,6 +153,7 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_cfg = mock.MagicMock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         action_detach(mock.MagicMock(), m_cfg)
 
@@ -171,6 +173,7 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_cfg = mock.MagicMock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         ret = action_detach(mock.MagicMock(), m_cfg)
 
@@ -226,6 +229,7 @@ class TestActionDetach:
         m_client.return_value = fake_client
 
         m_cfg = mock.MagicMock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
 
         action_detach(mock.MagicMock(), m_cfg)
