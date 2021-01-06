@@ -2,7 +2,7 @@ import enum
 import sys
 
 try:
-    from typing import Any, Dict  # noqa: F401
+    from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -181,6 +181,12 @@ Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
 MESSAGE_LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 PROMPT_YES_NO = """Are you sure? (y/N) """
+MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED = (
+    "Livepatch support requires a system reboot across LTS upgrade."
+)
+MESSAGE_FIPS_REBOOT_REQUIRED = (
+    "FIPS support requires system reboot to complete configuration."
+)
 PROMPT_FIPS_PRE_ENABLE = (
     """\
 Installation of additional packages are required to make this system FIPS
@@ -266,6 +272,27 @@ def colorize(string: str) -> str:
     return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
 
 
+def get_section_column_content(
+    column_data: "List[Tuple[str, str]]", header: "Optional[str]" = None
+) -> "List[str]":
+    """Return a list of content lines to print to console for a section
+
+    Content lines will be center-aligned based on max value length of first
+    column.
+    """
+    content = [""]
+    if header:
+        content.append(header)
+    template_length = max([len(pair[0]) for pair in column_data])
+    if template_length > 0:
+        template = "{{:>{}}}: {{}}".format(template_length)
+        content.extend([template.format(*pair) for pair in column_data])
+    else:
+        # Then we have an empty "label" column and only descriptions
+        content.extend([pair[1] for pair in column_data])
+    return content
+
+
 def format_tabular(status: "Dict[str, Any]") -> str:
     """Format status dict for tabular output."""
     if not status["attached"]:
@@ -295,9 +322,15 @@ def format_tabular(status: "Dict[str, Any]") -> str:
             "description": description,
         }
         content.append(STATUS_TMPL.format(**fmt_args))
-    content.append("\nEnable services with: ua enable <service>\n")
     tech_support_level = status["techSupportLevel"]
 
+    if status.get("notices"):
+        content.extend(
+            get_section_column_content(
+                status.get("notices") or [], header="NOTICES"
+            )
+        )
+    content.append("\nEnable services with: ua enable <service>")
     pairs = [
         ("Account", status["account"]),
         ("Subscription", status["subscription"]),
@@ -305,7 +338,5 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     if status["origin"] != "free":
         pairs.append(("Valid until", str(status["expires"])))
         pairs.append(("Technical support level", colorize(tech_support_level)))
-    template_length = max([len(pair[0]) for pair in pairs])
-    template = "{{:>{}}}: {{}}".format(template_length)
-    content.extend([template.format(*pair) for pair in pairs])
+    content.extend(get_section_column_content(column_data=pairs))
     return "\n".join(content)
