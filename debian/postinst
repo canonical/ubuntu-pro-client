@@ -5,7 +5,6 @@ set -e
 . /etc/os-release  # For VERSION_ID
 
 
-MYRELEASE=$(lsb_release -sc)
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
 
@@ -39,7 +38,7 @@ from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
 ")
 
-    for file in `ls $DIR`; do
+    for file in "$DIR"/*; do
         release_name=""
         case "$file" in
             *-trusty*)
@@ -61,19 +60,38 @@ print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
              for service in ${UA_SERVICES}; do
                  if [ "${file#*$service}" != "$file" ]; then
                       # Valid apt cfg file for an ubuntu-advantage service
-                      mv $DIR/$file $DIR/$new_file
+                      mv "$file" "$new_file"
                  fi
              done
          fi
     done
 }
 
-check_esm_infra_is_enabled() {
-    ua status | egrep -q 'esm-infra.*enabled' && return 0 || return 1
+
+# Check cached service status from status.json and return 0 if enabled else 1
+check_service_is_enabled() {
+    service_name=$1
+    _RET=$(python3 -c "
+import os
+import json
+from uaclient.config import UAConfig
+cfg = UAConfig()
+status = cfg.read_cache('status-cache')
+if status:
+    for service in status['services']:
+       if service['name'] == '${service_name}':
+           print(service['status'])
+")
+   if [ "${_RET}" = "enabled" ]; then
+       return  0
+   else
+       return  1
+   fi
 }
 
+
 unconfigure_esm() {
-    if ! check_esm_infra_is_enabled; then
+    if ! check_service_is_enabled esm-infra; then
         rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
         rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
         rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
@@ -115,10 +133,27 @@ EOF
     fi
 }
 
+
+# If held fips packages exist, we are on a FIPS PRO machine with FIPS enabled
+mark_reboot_for_fips_pro() {
+    FIPS_HOLDS=$(apt-mark showholds | grep -E 'fips|libssl1|openssh-client|openssh-server|linux-fips|openssl|strongswan' || exit 0)
+    if [ "$FIPS_HOLDS" ]; then
+       mark_reboot_cmds_as_needed MESSAGE_FIPS_REBOOT_REQUIRED
+    fi
+}
+
+
 mark_reboot_cmds_as_needed() {
+    msg_name=$1
     if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
       touch $REBOOT_CMD_MARKER_FILE
     fi
+    python3 -c "
+from uaclient.config import UAConfig
+from uaclient.status import ${msg_name}
+cfg = UAConfig()
+cfg.add_notice(label='', description=${msg_name})
+"
 }
 
 case "$1" in
@@ -151,7 +186,7 @@ case "$1" in
               # ubuntu-advantage-pro package that should be installed
               . /usr/share/debconf/confmodule
               db_input high ubuntu-advantage-tools/suggest_pro_pkg || true
-              db_go
+              db_go || true
           fi
       fi
 
@@ -187,10 +222,10 @@ case "$1" in
 
       if [ "$VERSION_ID" = "16.04" ]; then
         if echo "$PREVIOUS_PKG_VER" | grep -q "14.04"; then
-          # trusty upgrade to xenial has known post-reboot operations required (livepatch)
-          mark_reboot_cmds_as_needed
+          mark_reboot_cmds_as_needed MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED
         fi
       fi
+      mark_reboot_for_fips_pro
       ;;
 esac
 

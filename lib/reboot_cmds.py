@@ -15,7 +15,8 @@ import logging
 import os
 import sys
 
-from uaclient import config
+from uaclient import config, entitlements, status
+from uaclient.exceptions import UserFacingError
 
 from uaclient.util import subp, ProcessExecutionError
 from uaclient.cli import setup_logging, assert_lock_file
@@ -41,6 +42,43 @@ def run_command(cmd, cfg):
         sys.exit(1)
 
 
+@assert_lock_file("ua-reboot-fix-pro-pkg-holds")
+def fix_pro_pkg_holds(args, cfg):
+    status_cache = cfg.read_cache("status-cache")
+    if not status_cache:
+        return
+    for service in status_cache.get("services", []):
+        if service.get("name") == "fips":
+            service_status = service.get("status")
+            if service_status == "enabled":
+                ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[
+                    service.get("name")
+                ]
+                logging.debug(
+                    "Attempting to remove Ubuntu Pro FIPS package holds"
+                )
+                entitlement = ent_cls(cfg)
+                try:
+                    entitlement.setup_apt_config()  # Removes package holds
+                    logging.debug(
+                        "Successfully removed Ubuntu Pro FIPS package holds"
+                    )
+                except:
+                    logging.warning(
+                        "Failed to remove Ubuntu PRO FIPS package holds"
+                    )
+                try:
+                    entitlement.install_packages(cleanup_on_failure=False)
+                except UserFacingError as e:
+                    logging.warning(
+                        "Failed to install packages at boot: {}".format(
+                            ", ".join(entitlement.packages)
+                        )
+                    )
+                    sys.exit(1)
+                cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+
+
 def refresh_contract(args, cfg):
     cmd = "ua refresh"
     run_command(cmd=cmd, cfg=cfg)
@@ -50,6 +88,7 @@ def refresh_contract(args, cfg):
 def process_remaining_deltas(args, cfg):
     cmd = "/usr/bin/python3 /usr/lib/ubuntu-advantage/upgrade_lts_contract.py"
     run_command(cmd=cmd, cfg=cfg)
+    cfg.remove_notice("", status.MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED)
 
 
 def main(args, cfg):
@@ -67,6 +106,7 @@ def main(args, cfg):
     if os.path.exists(reboot_cmd_marker_file):
         logging.debug("Running process contract deltas on reboot ...")
 
+        fix_pro_pkg_holds(args, cfg)
         refresh_contract(args, cfg)
         process_remaining_deltas(args, cfg)
 
