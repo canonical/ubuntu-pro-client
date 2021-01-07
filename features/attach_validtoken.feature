@@ -22,7 +22,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
         \d+ package(s)? can be updated.
-        \d+ update(s)? (is a|are) security update(s)?.
+        \d+ of these updates (is a|are) security update(s)?.
         """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
@@ -51,17 +51,17 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
         Then if `<release>` in `trusty or focal` and stdout matches regexp:
         """
-        UA Infrastructure Extended Security Maintenance \(ESM\) is enabled.
+        UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ update(s)? can be installed immediately.
-        \d+ of these updates (is|are) provided through UA Infrastructure ESM.
+        \d+ of these updates (is|are) (fixed|provided) through UA (Infra:|Infrastructure) ESM.
         \d+ of these updates (is a|are) security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
         \d+ package(s)? can be updated.
-        \d+ update(s)? (is a|are) security update(s)?.
+        \d+ of these updates (is a|are) security update(s)?.
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                 |
