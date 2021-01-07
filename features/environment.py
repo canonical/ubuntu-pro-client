@@ -46,7 +46,7 @@ USERDATA_APT_SOURCE_PPA_TRUSTY = """\
 apt_sources:  # for trusty
   - source: deb {ppa_url} $RELEASE main
     keyid: {ppa_keyid}
-packages: [ubuntu-advantage-tools, ubuntu-advantage-pro]
+packages: [{packages}]
 """
 
 USERDATA_APT_SOURCE_PPA = """\
@@ -55,7 +55,7 @@ apt:
     ua-tools-ppa:
         source: deb {ppa_url} $RELEASE main
         keyid: {ppa_keyid}
-packages: [openssh-server, ubuntu-advantage-tools, ubuntu-advantage-pro]
+packages: [{packages}]
 """
 
 
@@ -567,12 +567,22 @@ def create_uat_image(context: Context, series: str) -> None:
         if context.config.ppa.startswith("ppa:"):
             ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
         if series == "trusty":
+            packages = ["ubuntu-advantage-tools"]
+
+            if "pro" in context.config.machine_type:
+                packages.append("ubuntu-advantage-pro")
+
             user_data += USERDATA_APT_SOURCE_PPA_TRUSTY.format(
-                ppa_url=ppa, ppa_keyid=ppa_keyid
+                ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
             )
         else:
+            packages = ["openssh-server", "ubuntu-advantage-tools"]
+
+            if "pro" in context.config.machine_type:
+                packages.append("ubuntu-advantage-pro")
+
             user_data += USERDATA_APT_SOURCE_PPA.format(
-                ppa_url=ppa, ppa_keyid=ppa_keyid
+                ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
             )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
@@ -622,6 +632,9 @@ def _install_uat_in_container(
         inst = config.cloud_api.get_instance(container_name)
 
         for deb_file in deb_paths:
+            if "pro" in deb_file and "pro" not in config.machine_type:
+                continue
+
             deb_name = os.path.basename(deb_file)
             deb_files.append("/tmp/" + deb_name)
             inst.push_file(deb_file, "/tmp/" + deb_name)
