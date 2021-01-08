@@ -125,18 +125,6 @@ pipeline {
                         '''
                     }
                 }
-                stage("azuregeneric 16.04") {
-                    environment {
-                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
-                    }
-                    steps {
-                        sh '''
-                        set +x
-                        . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-azuregeneric-16.04
-                        '''
-                    }
-                }
                 stage("awspro 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
