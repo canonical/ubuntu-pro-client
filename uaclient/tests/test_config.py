@@ -77,10 +77,14 @@ class TestNotices:
     @pytest.mark.parametrize(
         "notices,removes,expected",
         (
-            ([], ["a", "a1"], []),
+            ([], [["a", "a1"]], []),
             ([["a", "a1"]], [["a", "a1"]], []),
             ([["a", "a1"], ["a", "a2"]], [["a", "a1"]], [["a", "a2"]]),
-            ([["a", "a1"], ["a", "a2"], ["b", "b2"]], [["a"]], [["b", "b2"]]),
+            (
+                [["a", "a1"], ["a", "a2"], ["b", "b2"]],
+                [["a", ".*"]],
+                [["b", "b2"]],
+            ),
         ),
     )
     def test_remove_notice_removes_matching(
@@ -89,8 +93,8 @@ class TestNotices:
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         for notice in notices:
             cfg.add_notice(*notice)
-        for notice in removes:
-            cfg.remove_notice(*notice)
+        for label, descr in removes:
+            cfg.remove_notice(label, descr)
         assert expected == cfg.read_cache("notices")
 
 
@@ -478,9 +482,14 @@ class TestDeleteCache:
         """Any cached files defined in cfg.data_paths will be removed."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         # Create half of the cached files, but not all
-        odd_keys = list(cfg.data_paths.keys())[::2]
+        odd_keys = list(sorted(cfg.data_paths.keys()))[::2]
         for odd_key in odd_keys:
-            cfg.write_cache(odd_key, odd_key)
+            if odd_key == "notices":
+                # notices key expects specific list or lists format
+                value = [[odd_key, odd_key]]
+            else:
+                value = odd_key
+            cfg.write_cache(odd_key, value)
 
         present_files = list(
             itertools.chain(

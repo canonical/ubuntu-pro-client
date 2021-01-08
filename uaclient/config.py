@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import logging
 import os
+import re
 import yaml
 from collections import namedtuple, OrderedDict
 
@@ -92,6 +93,42 @@ class UAConfig:
     def contract_url(self):
         return self.cfg.get("contract_url", "https://contracts.canonical.com")
 
+    def check_lock_info(self) -> "Tuple[int, str]":
+        """Return lock info if config lock file is present the lock is active.
+
+        If process claiming the lock is no longer present, remove the lock file
+        and log a warning.
+
+        :param lock_path: Full path to the lock file.
+
+        :return: A tuple (pid, string describing lock holder)
+            If no active lock, pid will be -1.
+        """
+        lock_path = self.data_path("lock")
+        no_lock = (-1, "")
+        if not os.path.exists(lock_path):
+            return no_lock
+        lock_content = util.load_file(lock_path)
+        [lock_pid, lock_holder] = lock_content.split(":")
+        try:
+            util.subp(["ps", lock_pid])
+            return (int(lock_pid), lock_holder)
+        except util.ProcessExecutionError:
+            if os.getuid() != 0:
+                logging.debug(
+                    "Found stale lock file previously held by %s:%s",
+                    lock_pid,
+                    lock_holder,
+                )
+                return (int(lock_pid), lock_holder)
+            logging.warning(
+                "Removing stale lock file previously held by %s:%s",
+                lock_pid,
+                lock_holder,
+            )
+            os.unlink(lock_path)
+            return no_lock
+
     @property
     def data_dir(self):
         return self.cfg["data_dir"]
@@ -105,24 +142,32 @@ class UAConfig:
             return getattr(logging, CONFIG_DEFAULTS["log_level"])
 
     def add_notice(self, label: str, description: str):
+        """Add a notice message to notices cache.
+
+        Such notices are seen in the Notices section from ua status output.
+        They are also present in the JSON status output.
+        """
         notices = self.read_cache("notices") or []
         notice = [label, description]
         if notice not in notices:
             notices.append(notice)
             self.write_cache("notices", notices)
 
-    def remove_notice(self, label: str, description: str = None):
+    def remove_notice(self, label_regex: str, descr_regex: str):
         """Remove matching notices if present.
 
-        :param label: String of the notice label to remove.
-        :param description: Optional string of the notice description. If
-           not provided, remove any matching label notice entries.
+        :param label_regex: Regex used to remove notices with matching labels.
+        :param descr_regex: Regex used to remove notices with matching
+            descriptions.
         """
         notices = []
-        for notice_label, notice_descr in self.read_cache("notices") or []:
-            if label == notice_label and description in (None, notice_descr):
-                continue
-            notices.append((notice_label, notice_descr))
+        cached_notices = self.read_cache("notices")
+        if cached_notices:
+            for notice_label, notice_descr in cached_notices:
+                if re.match(label_regex, notice_label):
+                    if re.match(descr_regex, notice_descr):
+                        continue
+                notices.append((notice_label, notice_descr))
         self.write_cache("notices", notices)
 
     @property
@@ -248,6 +293,8 @@ class UAConfig:
         if key.startswith("machine-access") or key == "machine-token":
             self._entitlements = None
             self._machine_token = None
+        elif key == "lock":
+            self.remove_notice("", "Operation in progress.*")
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
@@ -279,6 +326,12 @@ class UAConfig:
         if key.startswith("machine-access") or key == "machine-token":
             self._machine_token = None
             self._entitlements = None
+        elif key == "lock":
+            if ":" in content:
+                self.add_notice(
+                    "",
+                    "Operation in progress: {}".format(content.split(":")[1]),
+                )
         if not isinstance(content, str):
             content = json.dumps(content, cls=util.DatetimeAwareJSONEncoder)
         mode = 0o600
@@ -329,7 +382,7 @@ class UAConfig:
         userStatus = status.UserFacingConfigStatus
         status_val = userStatus.INACTIVE.value
         status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
-        (lock_pid, lock_holder) = util.check_lock_info(self.data_path("lock"))
+        (lock_pid, lock_holder) = self.check_lock_info()
         notices = self.read_cache("notices") or []
         if lock_pid > 0:
             status_val = userStatus.ACTIVE.value
