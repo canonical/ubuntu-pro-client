@@ -81,7 +81,6 @@ pipeline {
                 stage("lxc 14.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}trusty/"
-                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -94,7 +93,6 @@ pipeline {
                 stage("lxc 16.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
-                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -107,7 +105,6 @@ pipeline {
                 stage("lxc 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
-                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -120,7 +117,6 @@ pipeline {
                 stage("lxc vm 20.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
-                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
