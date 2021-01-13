@@ -32,6 +32,7 @@ ifneq (,$(findstring trusty,$(TOXENV)))
 	pip install virtualenv==20.0.31
 endif
 	pip install tox
+	pip install tox-pip-version
 
 travis-deb-install:
 	git fetch --unshallow
