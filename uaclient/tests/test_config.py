@@ -527,7 +527,7 @@ class TestDeleteCache:
 
 class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
-    fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
+    cc_eal_desc = ENTITLEMENT_CLASS_BY_NAME["cc-eal"].description
 
     def check_beta(self, cls, show_beta, uacfg=None):
         if not show_beta:
@@ -550,14 +550,14 @@ class TestStatus:
                 True,
                 [
                     {
+                        "available": "no",
+                        "name": "cc-eal",
+                        "description": cc_eal_desc,
+                    },
+                    {
                         "available": "yes",
                         "name": "esm-infra",
                         "description": esm_desc,
-                    },
-                    {
-                        "available": "no",
-                        "name": "fips",
-                        "description": fips_desc,
                     },
                 ],
             ),
@@ -587,7 +587,7 @@ class TestStatus:
         cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
-            {"name": "fips", "available": False},
+            {"name": "cc-eal", "available": False},
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["services"] = expected_services

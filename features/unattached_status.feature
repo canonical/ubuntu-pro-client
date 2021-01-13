@@ -8,6 +8,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
+            fips          <fips>      +NIST-certified FIPS modules
+            fips-updates  <fips>      +Uncertified security updates to FIPS modules
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -33,6 +35,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
+            fips          <fips>      +NIST-certified FIPS modules
+            fips-updates  <fips>      +Uncertified security updates to FIPS modules
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.

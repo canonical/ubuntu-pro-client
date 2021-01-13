@@ -17,7 +17,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
-    is_beta = True
 
     """
     Dictionary of conditional packages to be installed when
