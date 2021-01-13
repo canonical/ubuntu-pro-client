@@ -274,7 +274,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I verify that running `ua enable cis --beta` `with sudo` exits `0`
+        And I verify that running `ua enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first

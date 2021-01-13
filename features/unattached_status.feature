@@ -7,6 +7,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cis           <cis>      +Center for Internet Security Audit Tools
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             livepatch     yes        Canonical Livepatch service
 
@@ -32,6 +33,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cis           <cis>      +Center for Internet Security Audit Tools
             esm-infra     yes        UA Infra: Extended Security Maintenance \(ESM\)
             livepatch     yes        Canonical Livepatch service
 

@@ -8,5 +8,4 @@ class CISEntitlement(repo.RepoEntitlement):
     title = "CIS Audit"
     description = "Center for Internet Security Audit Tools"
     repo_key_file = "ubuntu-advantage-cis.gpg"
-    is_beta = True
     apt_noninteractive = True

@@ -333,6 +333,8 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
+         - cis: Center for Internet Security Audit Tools
+           \(https://ubuntu.com/security/certifications#cis\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - livepatch: Canonical Livepatch service
@@ -342,6 +344,8 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
+         - cis: Center for Internet Security Audit Tools
+           \(https://ubuntu.com/security/certifications#cis\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - livepatch: Canonical Livepatch service
