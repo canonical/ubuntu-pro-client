@@ -76,6 +76,74 @@ pipeline {
                 '''
             }
         }
+        stage ('Package builds') {
+            parallel {
+                stage ('Package build: 14.04') {
+                    environment {
+                        BUILD_SERIES = "trusty"
+                        ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
+                    }
+                    steps {
+                        sh '''
+                        set -x
+                        dpkg-source -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        mkdir ${ARTIFACT_DIR}
+                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        '''
+                    }
+                }
+                stage ('Package build: 16.04') {
+                    environment {
+                        BUILD_SERIES = "xenial"
+                        ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
+                    }
+                    steps {
+                        sh '''
+                        set -x
+                        dpkg-source -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        mkdir ${ARTIFACT_DIR}
+                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        '''
+                    }
+                }
+                stage ('Package build: 18.04') {
+                    environment {
+                        BUILD_SERIES = "bionic"
+                        ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
+                    }
+                    steps {
+                        sh '''
+                        set -x
+                        dpkg-source -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        mkdir ${ARTIFACT_DIR}
+                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        '''
+                    }
+                }
+                stage ('Package build: 20.04') {
+                    environment {
+                        BUILD_SERIES = "focal"
+                        ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
+                    }
+                    steps {
+                        sh '''
+                        set -x
+                        dpkg-source -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        mkdir ${ARTIFACT_DIR}
+                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        '''
+                    }
+                }
+            }
+        }
         stage ('Integration Tests') {
             parallel {
                 stage("lxc 14.04") {
