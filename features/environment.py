@@ -485,7 +485,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
             ]
 
     if len(deb_paths):
-        print("--- Reusing debs")
+        print("--- Reusing debs: {}".format(", ".join(deb_paths)))
     else:
         print("--- Could not find any debs to reuse. Building it locally")
         print(
