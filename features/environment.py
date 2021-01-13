@@ -223,7 +223,7 @@ class UAClientBehaveConfig:
         job_suffix = os.environ.get("UACLIENT_BEHAVE_JENKINS_BUILD_TAG")
         print("--- job suffix: {}".format(job_suffix), flush=True)
         if not job_suffix:
-            job_suffix = os.environ.get("TRAVIS_JOB_NUMBER", "dev")
+            job_suffix = os.environ.get("CHANGE_ID", "dev")
         else:
             job_suffix = job_suffix.split("PR-")[-1]
         timed_job_tag += str(job_suffix)

@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 import subprocess
 import re
 import shlex
@@ -51,11 +52,15 @@ def given_a_machine(context, series):
             create_uat_image(context, series)
 
     is_vm = bool(context.config.machine_type == "lxd.vm")
+    pr_number = os.environ.get("UACLIENT_BEHAVE_JENKINS_CHANGE_ID")
     now = datetime.datetime.now()
+
     vm_prefix = "vm-" if is_vm else ""
+    pr_prefix = str(pr_number) + "-" if pr_number else ""
+    date_prefix = now.strftime("-%s%f")
 
     instance_name = (
-        CONTAINER_PREFIX + vm_prefix + series + now.strftime("-%s%f")
+        CONTAINER_PREFIX + pr_prefix + vm_prefix + series + date_prefix
     )
 
     context.instance = context.config.cloud_manager.launch(
@@ -76,7 +81,14 @@ def given_a_machine(context, series):
                 )
             )
         else:
-            context.instance.delete(wait=False)
+            try:
+                context.instance.delete(wait=False)
+            except RuntimeError as e:
+                print(
+                    "Failed to delete instance: {}\n{}".format(
+                        context.instance.name, str(e)
+                    )
+                )
 
     context.add_cleanup(cleanup_instance)
 

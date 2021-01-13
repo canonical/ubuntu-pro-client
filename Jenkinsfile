@@ -4,6 +4,7 @@ pipeline {
     environment {
         TMPDIR = "/tmp/$BUILD_TAG/"
         UACLIENT_BEHAVE_JENKINS_BUILD_TAG = "${BUILD_TAG}"
+        UACLIENT_BEHAVE_JENKINS_CHANGE_ID = "${CHANGE_ID}"
         UACLIENT_BEHAVE_BUILD_PR=1
         UACLIENT_BEHAVE_CONTRACT_TOKEN = credentials('ua-contract-token')
         UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID = credentials('ua-aws-access-key-id')
@@ -80,6 +81,7 @@ pipeline {
                 stage("lxc 14.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}trusty/"
+                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -92,18 +94,20 @@ pipeline {
                 stage("lxc 16.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
+                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-16.04
+                        tox --parallel--safe-build -e behave-lxd-16.04
                         '''
                     }
                 }
                 stage("lxc 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
+                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -116,6 +120,7 @@ pipeline {
                 stage("lxc vm 20.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
+                        UACLIENT_BEHAVE_DESTROY_INSTANCES = 0
                     }
                     steps {
                         sh '''
@@ -142,8 +147,22 @@ pipeline {
     }
     post {
         always {
-            junit "pytest_results.xml"
-            junit "reports/*.xml"
+            script {
+                try {
+                    sh '''
+                    set +x
+                    DATE=`date -d 'now+1day' +%m/%d/%Y`
+                    git clone https://github.com/canonical/server-test-scripts.git
+                    python3 server-test-scripts/ubuntu-advantage-client/lxd_cleanup.py --prefix ubuntu-behave-test-$CHANGE_ID --before-date $DATE || true
+                    '''
+
+                    junit "pytest_results.xml"
+                    junit "reports/*.xml"
+                } catch (Exception e) {
+                    echo e.toString()
+                    currentBuild.result = 'UNSTABLE'
+                }
+            }
         }
     }
 }
