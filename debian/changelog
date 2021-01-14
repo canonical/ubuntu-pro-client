@@ -1,8 +1,49 @@
-ubuntu-advantage-tools (26.0) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (26.0~21.04.1~beta) hirsute; urgency=medium
 
-  * Open 26.0 for active development
+  * d/rules:
+    - add --with systemd to allow reboot init script
+    - do not remove lib/systemd/system folder
+  * d/postinst:
+    - create marker file when reboot script need to run:
+      - enable livepatch across trusty to xenial upgrade
+      - update fips on existing fips pro machines
+  * New upstream release 26.0~beta:
+    - gcp: add Google Cloud Platform support (GH #1269)
+    - fips:
+      + remove is_beta from fips sevices
+      + fips pro: add upgrade support to require reboot to unmark held fips pkgs
+      + update origin UbuntuFIPSUpdates
+    - status:
+      + add notice to tabular output
+      + held locks emit notice about Operation in progress
+    - cli: help sort output so trusty ordering matches xenial++
+    - cis: rename service from cis-audit
+    - config: provide config notices and add_notice and remove_notice methods
+    - contract: add resource-machine-access route and datapath
+    - init: add init script to run commands on reboot
+    - keys: add ubuntu-advantage-cis keyring
+    - livepatch: make livepatch react to enableByDefault delta
+    - log: log when we install pkgs because of contract delta
+    - make: drop six testdeps target
+    - pro: do not install pro debs on non-pro instances
+    - services: Update beta info for services (GH #1220)
+    - tools: add tox-lxd-runner, that execute the test command in a shell
+    - tools: refresh-keyrings handles cis keys. drop series-specific keys
+    - tests:
+      + add GCE support for integration tests
+      + add cis integration tests for unattached and pro
+      + add pytest constraint for mypy tests
+      + add unittests for reboot_cmds script
+      + fix esm package messages for new update notifier version
+      + pin importlib-metadata for mypy tests
+      + repo tests for request_resource_machine_access
+      + unit tests for config cache clearing and machine-access data
+    - jenkins:
+      + add basic Jenkinsfile for CI runs per PR
+      + add jenkins parseable test results
+      + add lxc cleanup stage on Jenkinsfile
 
- -- Chad Smith <chad.smith@canonical.com>  Thu, 08 Oct 2020 15:29:13 -0600
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 14 Jan 2021 10:08:20 -0300
 
 ubuntu-advantage-tools (25.0~20.10.1) groovy; urgency=medium
 
