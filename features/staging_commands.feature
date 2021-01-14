@@ -244,7 +244,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         <next_release>
         """
-        When I verify that running `egrep "<release>|disabled" /etc/apt/sources.list.d/<source-file>.list` `as non-root` exits `1`
+        When I verify that running `egrep "disabled" /etc/apt/sources.list.d/<source-file>.list` `as non-root` exits `1`
         Then I will see the following on stdout:
         """
         """
