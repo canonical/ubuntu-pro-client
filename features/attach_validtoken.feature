@@ -42,6 +42,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        fips         +yes      +n/a      +NIST-certified FIPS modules
+        fips-updates +yes      +n/a      +Uncertified security updates to FIPS modules
         livepatch    +yes      +n/a      +Canonical Livepatch service
         """
         And stderr matches regexp:

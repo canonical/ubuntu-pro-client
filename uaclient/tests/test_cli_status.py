@@ -37,7 +37,7 @@ fips          no        {dash}         NIST-certified FIPS modules
 fips-updates  no        {dash}         Uncertified security updates to FIPS\
  modules
 livepatch     no        {dash}         Canonical Livepatch service
-
+{notices}
 Enable services with: ua enable <service>
 
                 Account: test_account
@@ -53,11 +53,28 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
+    @pytest.mark.parametrize(
+        "notices,notice_status",
+        (
+            ([], ""),
+            (
+                [["a", "adesc"], ["b2", "bdesc"]],
+                "\nNOTICES\n a: adesc\nb2: bdesc\n",
+            ),
+        ),
+    )
     def test_attached(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        notices,
+        notice_status,
+        capsys,
+        FakeConfig,
     ):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
+        cfg.write_cache("notices", notices)
         assert 0 == action_status(mock.MagicMock(), cfg)
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
@@ -71,7 +88,10 @@ class TestActionStatus:
         expected_dash = "-"
         if sys.stdout.encoding and "UTF-8" in sys.stdout.encoding.upper():
             expected_dash = "\u2014"
-        assert ATTACHED_STATUS.format(dash=expected_dash) == printable_stdout
+        assert (
+            ATTACHED_STATUS.format(dash=expected_dash, notices=notice_status)
+            == printable_stdout
+        )
 
     def test_unattached(
         self, m_getuid, m_get_avail_resources, capsys, FakeConfig
@@ -132,6 +152,7 @@ class TestActionStatus:
             "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": False,
             "expires": "n/a",
+            "notices": [],
             "origin": None,
             "services": [
                 {
@@ -184,5 +205,5 @@ class TestActionStatus:
         # comparison
         out = out.replace(" " * 17, " " * 8)
 
-        expected_out = ATTACHED_STATUS.format(dash=expected_dash)
+        expected_out = ATTACHED_STATUS.format(dash=expected_dash, notices="")
         assert expected_out == out

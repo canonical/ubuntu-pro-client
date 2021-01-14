@@ -14,6 +14,7 @@ import pytest
 from uaclient.cli import (
     action_help,
     assert_attached,
+    assert_lock_file,
     assert_not_attached,
     assert_root,
     get_parser,
@@ -61,6 +62,10 @@ SERVICES_WRAPPED_HELP = textwrap.dedent(
 Client to manage Ubuntu Advantage services on a machine.
  - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
+ - fips-updates: Uncertified security updates to FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
+ - fips: NIST-certified FIPS modules
+   (https://ubuntu.com/security/certifications#fips)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
 """
@@ -304,6 +309,41 @@ class TestCLIParser:
         assert "No help available for 'test'" == str(excinfo.value)
         assert 1 == m_service_name.call_count
         assert 1 == m_available_resources.call_count
+
+
+M_PATH_UACONFIG = "uaclient.config.UAConfig."
+
+
+class TestAssertLockFile:
+    @mock.patch("os.getpid", return_value=123)
+    @mock.patch(M_PATH_UACONFIG + "remove_notice")
+    @mock.patch(M_PATH_UACONFIG + "add_notice")
+    @mock.patch(M_PATH_UACONFIG + "write_cache")
+    def test_assert_root_creates_lock_and_notice(
+        self,
+        m_write_cache,
+        m_add_notice,
+        m_remove_notice,
+        _m_getpid,
+        FakeConfig,
+    ):
+        arg, kwarg = mock.sentinel.arg, mock.sentinel.kwarg
+
+        @assert_lock_file("some operation")
+        def test_function(args, cfg):
+            assert arg == mock.sentinel.arg
+            assert kwarg == mock.sentinel.kwarg
+
+            return mock.sentinel.success
+
+        ret = test_function(arg, FakeConfig())
+        assert mock.sentinel.success == ret
+        lock_msg = "Operation in progress: some operation"
+        assert [mock.call("", lock_msg)] == m_add_notice.call_args_list
+        assert [mock.call("", lock_msg)] == m_remove_notice.call_args_list
+        assert [
+            mock.call("lock", "123:some operation")
+        ] == m_write_cache.call_args_list
 
 
 class TestAssertRoot:

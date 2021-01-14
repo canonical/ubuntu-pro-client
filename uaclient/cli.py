@@ -98,7 +98,7 @@ class UAArgumentParser(argparse.ArgumentParser):
             )
         else:
             self.description = "\n".join(
-                [self.base_desc] + self.non_beta_services_desc
+                [self.base_desc] + sorted(self.non_beta_services_desc)
             )
 
         super().print_help(file=file)
@@ -123,7 +123,7 @@ def assert_lock_file(lock_holder=None):
         def new_f(args, cfg, **kwargs):
             global _LOCK_FILE
             lock_file = cfg.data_path("lock")
-            (lock_pid, cur_lock_holder) = util.check_lock_info(lock_file)
+            (lock_pid, cur_lock_holder) = cfg.check_lock_info()
             if lock_pid > 0:
                 raise exceptions.LockHeldError(
                     lock_request=lock_holder,
@@ -131,9 +131,12 @@ def assert_lock_file(lock_holder=None):
                     pid=lock_pid,
                 )
             cfg.write_cache("lock", "{}:{}".format(os.getpid(), lock_holder))
+            notice_msg = "Operation in progress: {}".format(lock_holder)
+            cfg.add_notice("", notice_msg)
             _LOCK_FILE = lock_file  # Set _LOCK_FILE for cleanup
             retval = f(args, cfg, **kwargs)
             util.remove_file(lock_file)
+            cfg.remove_notice("", notice_msg)
             return retval
 
         return new_f

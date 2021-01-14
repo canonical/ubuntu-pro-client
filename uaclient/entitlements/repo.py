@@ -242,9 +242,13 @@ class RepoEntitlement(base.UAEntitlement):
 
         return True
 
-    def install_packages(self, package_list: "List[str]" = None) -> None:
+    def install_packages(
+        self, package_list: "List[str]" = None, cleanup_on_failure: bool = True
+    ) -> None:
         """Install contract recommended packages for the entitlement.
 
+        :param package_list: Optional package list to use instead of
+            self.packages.
         :param package_list: Optional package list to use instead of
             self.packages.
         """
@@ -269,7 +273,8 @@ class RepoEntitlement(base.UAEntitlement):
                 env=env,
             )
         except exceptions.UserFacingError:
-            self._cleanup()
+            if cleanup_on_failure:
+                self._cleanup()
             raise
 
     def setup_apt_config(self) -> None:

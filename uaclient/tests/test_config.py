@@ -55,6 +55,49 @@ RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
 ]
 
 
+class TestNotices:
+    @pytest.mark.parametrize(
+        "notices,expected",
+        (
+            ([], []),
+            ([["a", "a1"]], [["a", "a1"]]),
+            ([["a", "a1"], ["a", "a1"]], [["a", "a1"]]),
+        ),
+    )
+    def test_add_notice_avoids_duplicates(self, notices, expected, tmpdir):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        assert None is cfg.read_cache("notices")
+        for notice in notices:
+            cfg.add_notice(*notice)
+        if notices:
+            assert expected == cfg.read_cache("notices")
+        else:
+            assert None is cfg.read_cache("notices")
+
+    @pytest.mark.parametrize(
+        "notices,removes,expected",
+        (
+            ([], [["a", "a1"]], []),
+            ([["a", "a1"]], [["a", "a1"]], []),
+            ([["a", "a1"], ["a", "a2"]], [["a", "a1"]], [["a", "a2"]]),
+            (
+                [["a", "a1"], ["a", "a2"], ["b", "b2"]],
+                [["a", ".*"]],
+                [["b", "b2"]],
+            ),
+        ),
+    )
+    def test_remove_notice_removes_matching(
+        self, notices, removes, expected, tmpdir
+    ):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        for notice in notices:
+            cfg.add_notice(*notice)
+        for label, descr in removes:
+            cfg.remove_notice(label, descr)
+        assert expected == cfg.read_cache("notices")
+
+
 class TestEntitlements:
     def test_entitlements_property_keyed_by_entitlement_name(self, tmpdir):
         """Return machine_token resourceEntitlements, keyed by name."""
@@ -439,9 +482,14 @@ class TestDeleteCache:
         """Any cached files defined in cfg.data_paths will be removed."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         # Create half of the cached files, but not all
-        odd_keys = list(cfg.data_paths.keys())[::2]
+        odd_keys = list(sorted(cfg.data_paths.keys()))[::2]
         for odd_key in odd_keys:
-            cfg.write_cache(odd_key, odd_key)
+            if odd_key == "notices":
+                # notices key expects specific list or lists format
+                value = [[odd_key, odd_key]]
+            else:
+                value = odd_key
+            cfg.write_cache(odd_key, value)
 
         present_files = list(
             itertools.chain(
@@ -479,7 +527,7 @@ class TestDeleteCache:
 
 class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
-    fips_desc = ENTITLEMENT_CLASS_BY_NAME["fips"].description
+    cc_eal_desc = ENTITLEMENT_CLASS_BY_NAME["cc-eal"].description
 
     def check_beta(self, cls, show_beta, uacfg=None):
         if not show_beta:
@@ -502,14 +550,14 @@ class TestStatus:
                 True,
                 [
                     {
+                        "available": "no",
+                        "name": "cc-eal",
+                        "description": cc_eal_desc,
+                    },
+                    {
                         "available": "yes",
                         "name": "esm-infra",
                         "description": esm_desc,
-                    },
-                    {
-                        "available": "no",
-                        "name": "fips",
-                        "description": fips_desc,
                     },
                 ],
             ),
@@ -539,7 +587,7 @@ class TestStatus:
         cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
-            {"name": "fips", "available": False},
+            {"name": "cc-eal", "available": False},
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["services"] = expected_services
@@ -866,15 +914,15 @@ class TestStatus:
         m_getuid.return_value = 1000
         assert expected_dt == cfg.status()["expires"]
 
-    @mock.patch("uaclient.config.util.should_reboot", return_value=True)
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, _m_should_reboot, m_getuid, tmpdir
+        self, m_getuid, tmpdir
     ):
         m_getuid.return_value = 1000
 
         status = {"pass": True}
         cfg = UAConfig({"data_dir": tmpdir.strpath})
+        cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
         cfg.write_cache("status-cache", status)
 
         # Even non-root users can update configStatus details
@@ -885,6 +933,7 @@ class TestStatus:
             {
                 "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
                 "configStatusDetails": details,
+                "notices": [],
             }
         )
         assert status == cfg.status()

@@ -4,9 +4,9 @@ Feature: Command behaviour when unattached
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua auto-attach` `as non-root` exits `1`
-        Then I will see the following on stderr:
+        Then stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:

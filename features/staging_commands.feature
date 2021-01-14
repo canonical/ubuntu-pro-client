@@ -63,7 +63,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         And I run `ua disable livepatch` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        When I run `ua enable <fips-service> --assume-yes --beta` with sudo
+        When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -134,7 +134,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
-        When I run `ua enable <fips-service> --assume-yes --beta` with sudo
+        When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -204,7 +204,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         When I attach `contract_token_staging` with sudo
         And I run `apt-get install lsof` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `ua enable <fips-service> --assume-yes --beta` with sudo
+        And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists

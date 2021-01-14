@@ -6,9 +6,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua refresh` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua refresh` with sudo
         Then I will see the following on stdout:
@@ -28,9 +28,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable livepatch` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         And I verify that running `ua disable livepatch` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -51,9 +51,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable foobar` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         And I verify that running `ua disable foobar` `with sudo` exits `1`
         And stderr matches regexp:
@@ -74,9 +74,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua detach` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua detach --assume-yes` with sudo
         Then I will see the following on stdout:
@@ -116,9 +116,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua auto-attach` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:
@@ -207,9 +207,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable esm-infra livepatch foobar` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         And I verify that running `ua disable esm-infra livepatch foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -243,9 +243,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
-        Then I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua disable esm-infra` with sudo
         Then I will see the following on stdout:
@@ -269,9 +269,9 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
-        And I will see the following on stderr:
+        And stderr matches regexp:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root \(try using sudo\)
             """
         When I run `ua disable esm-infra` with sudo
         Then I will see the following on stdout:
@@ -335,6 +335,10 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
+         - fips-updates: Uncertified security updates to FIPS modules
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified FIPS modules
+           \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
@@ -344,6 +348,10 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
+         - fips-updates: Uncertified security updates to FIPS modules
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified FIPS modules
+           \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """

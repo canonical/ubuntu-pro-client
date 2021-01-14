@@ -49,8 +49,8 @@ class TestDisable:
 
             entitlements_obj.append(m_entitlement)
             entitlements_cls.append(m_entitlement_cls)
-
         m_cfg = mock.Mock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
 
         args_mock = mock.Mock()
@@ -101,6 +101,7 @@ class TestDisable:
         m_entitlements.RELEASED_ENTITLEMENTS_STR = "ent2, ent3"
 
         m_cfg = mock.Mock()
+        m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
