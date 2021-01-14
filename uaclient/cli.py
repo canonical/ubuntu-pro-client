@@ -98,7 +98,7 @@ class UAArgumentParser(argparse.ArgumentParser):
             )
         else:
             self.description = "\n".join(
-                [self.base_desc] + self.non_beta_services_desc
+                [self.base_desc] + sorted(self.non_beta_services_desc)
             )
 
         super().print_help(file=file)
