@@ -168,7 +168,10 @@ class UAConfig:
                     if re.match(descr_regex, notice_descr):
                         continue
                 notices.append((notice_label, notice_descr))
-        self.write_cache("notices", notices)
+        if notices:
+            self.write_cache("notices", notices)
+        else:
+            util.remove_file(self.data_path("notices"))
 
     @property
     def log_file(self):

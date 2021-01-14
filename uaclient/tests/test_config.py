@@ -77,8 +77,8 @@ class TestNotices:
     @pytest.mark.parametrize(
         "notices,removes,expected",
         (
-            ([], [["a", "a1"]], []),
-            ([["a", "a1"]], [["a", "a1"]], []),
+            ([], [["a", "a1"]], None),
+            ([["a", "a1"]], [["a", "a1"]], None),
             ([["a", "a1"], ["a", "a2"]], [["a", "a1"]], [["a", "a2"]]),
             (
                 [["a", "a1"], ["a", "a2"], ["b", "b2"]],
@@ -504,7 +504,7 @@ class TestDeleteCache:
             )
         )
         assert 0 == len(dirty_files), "{} files not deleted".format(
-            len(dirty_files)
+            ", ".join(dirty_files)
         )
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
