@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (27.0) UNRELEASED; urgency=medium
+
+  * Open 27.0 for active development
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 15 Jan 2021 10:44:55 -0300
+
 ubuntu-advantage-tools (26.0~21.04.1~beta) hirsute; urgency=medium
 
   * d/rules:
