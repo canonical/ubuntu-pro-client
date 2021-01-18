@@ -1,3 +1,4 @@
+import json
 import os
 import logging
 import pycloudlib  # type: ignore
@@ -499,6 +500,7 @@ class Azure(Cloud):
 
 class GCP(Cloud):
     name = "gcp"
+    pro_ids_path = "features/gcp-ids.yaml"
 
     """Class that represents the Google Cloud Platform cloud provider.
 
@@ -540,6 +542,18 @@ class GCP(Cloud):
             timestamp_suffix=timestamp_suffix,
         )
 
+        self._set_service_account_email()
+
+    def _set_service_account_email(self):
+        """Set service account email if credentials provided."""
+        json_credentials = {}
+
+        if self.gcp_credentials_path:
+            with open(self.gcp_credentials_path, "r") as f:
+                json_credentials = json.load(f)
+
+        self.service_account_email = json_credentials.get("client_email")
+
     @property
     def api(self) -> pycloudlib.cloud.BaseCloud:
         """Return the api used to interact with the cloud provider."""
@@ -551,6 +565,7 @@ class GCP(Cloud):
                 project=self.gcp_project,
                 zone=self.zone,
                 region=self.region,
+                service_account_email=self.service_account_email,
             )
 
         return self._api

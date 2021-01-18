@@ -5,6 +5,7 @@ Feature: Command behaviour when attached to an UA subscription
     @series.focal
     @uses.config.machine_type.azure.pro
     @uses.config.machine_type.aws.pro
+    @uses.config.machine_type.gcp.pro
     Scenario Outline: Attached refresh in an Ubuntu PRO machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -80,7 +81,7 @@ Feature: Command behaviour when attached to an UA subscription
            | release | cc-eal-s | cis-s    | esm-a-s | infra-pkg | apps-pkg | fips-s   | lp-s     | lp-d                        |
            | xenial  | disabled | disabled | enabled | libkrad0  | jq       | disabled | enabled  | Canonical Livepatch service |
            | bionic  | n/a      | disabled | enabled | libkrad0  | bundler  | disabled | enabled  | Canonical Livepatch service |
-           | focal   | n/a      | n/a      | enabled | hello     | ant      | disabled | enabled  | Canonical Livepatch service |
+           | focal   | n/a      | n/a      | enabled | hello     | ant      | n/a      | enabled  | Canonical Livepatch service |
 
     @series.trusty
     @uses.config.machine_type.aws.pro
