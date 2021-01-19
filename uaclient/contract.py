@@ -1,5 +1,4 @@
 import logging
-import urllib
 
 from uaclient import clouds
 from uaclient import exceptions
@@ -97,7 +96,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             "kernel": platform["kernel"],
         }
         resource_response, headers = self.request_url(
-            API_V1_RESOURCES + "?" + urllib.parse.urlencode(query_params)
+            API_V1_RESOURCES, query_params=query_params
         )
         return resource_response
 

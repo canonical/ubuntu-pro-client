@@ -1,6 +1,7 @@
 import abc
 import json
 from urllib import error
+from urllib.parse import urlencode
 from posixpath import join as urljoin
 
 from uaclient import config
@@ -40,13 +41,21 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             "content-type": "application/json",
         }
 
-    def request_url(self, path, data=None, headers=None, method=None):
+    def request_url(
+        self, path, data=None, headers=None, method=None, query_params=None
+    ):
         path = path.lstrip("/")
         if not headers:
             headers = self.headers()
         if headers.get("content-type") == "application/json" and data:
             data = json.dumps(data).encode("utf-8")
         url = urljoin(getattr(self.cfg, self.cfg_url_base_attr), path)
+        if query_params:
+            # filter out None values
+            filtered_params = {
+                k: v for k, v in sorted(query_params.items()) if v is not None
+            }
+            url += "?" + urlencode(filtered_params)
         try:
             response, headers = util.readurl(
                 url=url, data=data, headers=headers, method=method
