@@ -282,6 +282,58 @@ class TestUaEntitlement:
         assert 0 == m_can_disable.call_count
 
     @pytest.mark.parametrize(
+        "block_disable_on_enable,assume_yes",
+        ((True, True), (False, False), (True, False), (False, True)),
+    )
+    @mock.patch("uaclient.util.is_config_value_true")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_can_enable_when_incompatible_service_found(
+        self,
+        m_prompt,
+        m_is_config_value_true,
+        block_disable_on_enable,
+        assume_yes,
+        concrete_entitlement_factory,
+    ):
+        import uaclient.entitlements as ent
+
+        m_prompt.return_value = assume_yes
+        m_is_config_value_true.return_value = block_disable_on_enable
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(status.ApplicationStatus.DISABLED, ""),
+        )
+        base_ent._incompatible_services = ["test"]
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.ENABLED,
+            "",
+        ]
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+
+        with mock.patch.object(
+            base_ent, "is_access_expired", return_value=False
+        ):
+            with mock.patch.object(
+                ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+            ):
+                ret = base_ent.can_enable()
+
+        expected_prompt_call = 0 if block_disable_on_enable else 1
+        expected_ret = False
+        if assume_yes and not block_disable_on_enable:
+            expected_ret = True
+        expected_disable_call = 1 if expected_ret else 0
+
+        assert ret == expected_ret
+        assert m_prompt.call_count == expected_prompt_call
+        assert m_is_config_value_true.call_count == 1
+        assert m_entitlement_obj.disable.call_count == expected_disable_call
+
+    @pytest.mark.parametrize(
         "orig_access,delta",
         (
             ({"entitlement": {"entitled": True}}, {}),  # no deltas

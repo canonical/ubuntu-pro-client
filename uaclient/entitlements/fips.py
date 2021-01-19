@@ -42,30 +42,15 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
+    _incompatible_services = ["livepatch"]
 
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests
-        from uaclient.entitlements.livepatch import LivepatchEntitlement
-
-        livepatch_ent = LivepatchEntitlement(self.cfg)
-        enabled_status = status.ApplicationStatus.ENABLED
-
-        is_livepatch_enabled = bool(
-            livepatch_ent.application_status()[0] == enabled_status
-        )
-
         return (
             (
                 "Cannot install {} on a container".format(self.title),
                 lambda: util.is_container(),
-                False,
-            ),
-            (
-                "Cannot enable {} when Livepatch is enabled".format(
-                    self.title
-                ),
-                lambda: is_livepatch_enabled,
                 False,
             ),
         )
