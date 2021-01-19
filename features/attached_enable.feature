@@ -370,7 +370,12 @@ Feature: Enable command behaviour when attached to an UA subscription
             FIPS enabled
             A reboot is required to complete install
             """
-        And I verify that running `ua enable livepatch` `with sudo` exits `1`
+        When I append the following on uaclient config:
+            """
+            features:
+              block_disable_on_enable: true
+            """
+        Then I verify that running `ua enable livepatch` `with sudo` exits `1`
         And I will see the following on stdout
             """
             One moment, checking your subscription first
@@ -389,13 +394,59 @@ Feature: Enable command behaviour when attached to an UA subscription
             Installing canonical-livepatch snap
             Canonical livepatch enabled
             """
-        And I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        When I append the following on uaclient config:
+        """
+        features:
+          block_disable_on_enable: true
+        """
+        Then I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
         And I will see the following on stdout
             """
             One moment, checking your subscription first
             Cannot enable FIPS when Livepatch is enabled
             """
 
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable fips on a machine with livepatch active
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            ESM Infra enabled
+            """
+        And stdout matches regexp:
+            """
+            Installing canonical-livepatch snap
+            Canonical livepatch enabled
+            """
+        When I run `ua enable fips --assume-yes` with sudo
+        Then I will see the following on stdout
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing FIPS packages
+            FIPS enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            fips +yes +enabled
+            """
+        And stdout matches regexp:
+            """
+            livepatch +yes +n/a
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | xenial  |
+
+    @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable fips on a machine with fips-updates active
@@ -428,3 +479,4 @@ Feature: Enable command behaviour when attached to an UA subscription
         Examples: ubuntu release
            | release |
            | bionic  |
+           | xenial  |
