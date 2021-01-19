@@ -21,6 +21,7 @@ from uaclient.status import (
     ApplicabilityStatus,
     ContractStatus,
     UserFacingStatus,
+    MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
 
@@ -38,11 +39,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Whether to assume yes to any messaging prompts
     assume_yes = False
 
-    # Wheter that entitlement is in beta stage
+    # Whether that entitlement is in beta stage
     is_beta = False
 
     # Help info message for the entitlement
     _help_info = None  # type: str
+
+    # List of services that are incompatible with this service
+    _incompatible_services = []  # type: "List[str]"
 
     @property
     @abc.abstractmethod
@@ -82,6 +86,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         return ()
+
+    @property
+    def incompatible_services(self) -> "List[str]":
+        """
+        Return a list of packages that aren't compatible with the entitlement.
+        When we are enabling the entitlement we can directly ask the user
+        if those entitlements can be disabled before proceding.
+        Overridden in livepatch and fips
+        """
+        return self._incompatible_services
 
     def __init__(
         self, cfg: "Optional[config.UAConfig]" = None, assume_yes: bool = False
@@ -139,6 +153,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
             return False
+
         application_status, _ = self.application_status()
         if application_status != status.ApplicationStatus.DISABLED:
             if not silent:
@@ -153,6 +168,78 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not silent:
                 print(details)
             return False
+
+        if self.incompatible_services:
+            return self.handle_incompatible_services()
+
+        return True
+
+    def handle_incompatible_services(self) -> bool:
+        """
+        Prompt user when incompatible services are found during enable.
+
+        When enabling a service, we may find that there is an incompatible
+        service already enable. In that situation, we can ask the user
+        if the incompatible service should be disabled before proceeding.
+        There are also different ways to configure that behavior:
+
+        We can disable removing incompatible service during enable by
+        adding the following lines into uaclient.conf:
+
+        features:
+          block_disable_on_enable: true
+
+        We can also use the --allow-disable flag during enable to
+        automatically disable any incompatible service during
+        enable.
+        """
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        cfg_block_disable_on_enable = util.is_config_value_true(
+            config=self.cfg.cfg,
+            path_to_value="features.block_disable_on_enable",
+        )
+        for incompatible_service in self.incompatible_services:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(incompatible_service)
+
+            if ent_cls:
+                ent = ent_cls(self.cfg)
+                enabled_status = status.ApplicationStatus.ENABLED
+
+                is_service_enabled = (
+                    ent.application_status()[0] == enabled_status
+                )
+
+                if is_service_enabled:
+                    user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
+                        service_being_enabled=self.title,
+                        incompatible_service=ent.title,
+                    )
+
+                    e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+                        service_being_enabled=self.title,
+                        incompatible_service=ent.title,
+                    )
+
+                    if cfg_block_disable_on_enable:
+                        logging.info(e_msg)
+                        return False
+
+                    if not util.prompt_for_confirmation(
+                        msg=user_msg, assume_yes=self.assume_yes
+                    ):
+                        print(e_msg)
+                        return False
+
+                    disable_msg = "Disabling incompatible service: {}".format(
+                        ent.title
+                    )
+                    logging.info(disable_msg)
+
+                    ret = ent.disable()
+                    if not ret:
+                        return ret
+
         return True
 
     def applicability_status(self) -> "Tuple[ApplicabilityStatus, str]":

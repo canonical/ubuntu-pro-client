@@ -67,10 +67,10 @@ Feature: Command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release | cc-eal-s | cis-s | esm-a-s | infra-pkg | apps-pkg | fips-s | lp-s     | lp-d                          |
-           | xenial  | disabled | disabled | enabled | libkrad0  | jq       | n/a    | enabled  | Canonical Livepatch service |
-           | bionic  | n/a      | disabled | enabled | libkrad0  | bundler  | n/a    | enabled  | Canonical Livepatch service |
-           | focal   | n/a      | n/a      | enabled | hello     | ant      | n/a    | enabled  | Canonical Livepatch service |
+           | release | cc-eal-s | cis-s    | esm-a-s | infra-pkg | apps-pkg | fips-s   | lp-s     | lp-d                        |
+           | xenial  | disabled | disabled | enabled | libkrad0  | jq       | disabled | enabled  | Canonical Livepatch service |
+           | bionic  | n/a      | disabled | enabled | libkrad0  | bundler  | disabled | enabled  | Canonical Livepatch service |
+           | focal   | n/a      | n/a      | enabled | hello     | ant      | disabled | enabled  | Canonical Livepatch service |
 
     @series.trusty
     @uses.config.machine_type.aws.pro

@@ -258,6 +258,15 @@ MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
 MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 
+MESSAGE_INCOMPATIBLE_SERVICE = """\
+{service_being_enabled} cannot be enabled with {incompatible_service}.
+Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
+(y/N)"""
+
+MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
+Cannot enable {service_being_enabled} when {incompatible_service} is enabled
+"""
+
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
