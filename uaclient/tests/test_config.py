@@ -1002,6 +1002,7 @@ class TestParseConfig:
         assert expected_calls == m_exists.call_args_list
         expected_default_config = {
             "contract_url": "https://contracts.canonical.com",
+            "security_url": "https://ubuntu.com/security",
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
             "log_level": "INFO",
@@ -1012,6 +1013,7 @@ class TestParseConfig:
     def test_parse_config_scrubs_user_environ_values(self, m_exists):
         user_values = {
             "UA_CONTRACT_URL": "https://contract",
+            "UA_security_URL": "https://security",
             "ua_data_dir": "~/somedir",
             "Ua_LoG_FiLe": "some.log",
             "UA_LOG_LEVEL": "debug",
@@ -1021,21 +1023,31 @@ class TestParseConfig:
         expanded_dir = os.path.expanduser("~")
         expected_default_config = {
             "contract_url": "https://contract",
+            "security_url": "https://security",
             "data_dir": "{}/somedir".format(expanded_dir),
             "log_file": "some.log",
             "log_level": "DEBUG",
         }
         assert expected_default_config == config
 
+    @pytest.mark.parametrize(
+        "env_var,env_value",
+        (
+            ("UA_CONTRACT_URL", "htp:/contract"),
+            ("UA_SECURITY_URL", "ht://security"),
+        ),
+    )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_parse_raises_errors_on_invalid_urls(self, m_exists):
-        user_values = {
-            "UA_CONTRACT_URL": "htp://contract"  # no acceptable url scheme
-        }
+    def test_parse_raises_errors_on_invalid_urls(
+        self, _m_exists, env_var, env_value
+    ):
+        user_values = {env_var: env_value}  # no acceptable url scheme
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 parse_config()
-        expected_msg = "Invalid url in config. contract_url: htp://contract"
+        expected_msg = "Invalid url in config. {}: {}".format(
+            env_var.replace("UA_", "").lower(), env_value
+        )
         assert expected_msg == excinfo.value.msg
 
 
