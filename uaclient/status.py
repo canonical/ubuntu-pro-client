@@ -15,6 +15,10 @@ class TxtColor:
     ENDC = "\033[0m"
 
 
+OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
+FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
+
+
 @enum.unique
 class ApplicationStatus(enum.Enum):
     """
@@ -126,6 +130,21 @@ STATUS_COLOR = {
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC,
 }
 
+MESSAGE_SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
+MESSAGE_SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
+MESSAGE_SECURITY_UPDATE_INSTALLED = "The update is already installed."
+MESSAGE_SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
+MESSAGE_SECURITY_ISSUE_UNAFFECTED = (
+    OKGREEN_CHECK + " {issue} does not affect your system."
+)
+MESSAGE_SECURITY_AFFECTED_PKGS = (
+    "{count} affected package{plural_str} installed"
+)
+MESSAGE_USN_FIXED = "{issue} is addressed."
+MESSAGE_CVE_FIXED = "{issue} is resolved."
+MESSAGE_SECURITY_URL = (
+    "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
+)
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
 MESSAGE_APT_UPDATE_INVALID_URL_CONFIG = (

@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import pathlib
+import re
 import sys
 import textwrap
 import time
@@ -23,6 +24,7 @@ from uaclient import config
 from uaclient import contract
 from uaclient import entitlements
 from uaclient import exceptions
+from uaclient import security
 from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
@@ -219,6 +221,32 @@ def attach_parser(parser):
         help="do not enable any recommended services automatically",
     )
     return parser
+
+
+def fix_parser(parser):
+    """Build or extend an arg parser for fix subcommand."""
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="fix <CVE-yyyy-nnnn>|<USN-nnnn>"
+    )
+    parser.prog = "fix"
+    parser._optionals.title = "Flags"
+    parser.add_argument(
+        "security_issue",
+        help=(
+            "Security vulnerability ID to inspect and resolve on this system."
+            " Format: CVE-yyyy-nnnn or USN-nnnn"
+        ),
+    )
+    return parser
+
+
+def action_fix(args, cfg, **kwargs):
+    if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
+        # TODO(review of error messaging to reduce output)
+        raise exceptions.UserFacingError(
+            "Invalid issue format issue: {}".format(args.security_issue)
+        )
+    security.fix_security_issue_id(cfg, args.security_issue)
 
 
 def detach_parser(parser):
@@ -803,6 +831,11 @@ def get_parser():
         "refresh",
         help="refresh Ubuntu Advantage services from contracts server",
     )
+    parser_fix = subparsers.add_parser(
+        "fix", help="fix CVE and USN security issues on this machine"
+    )
+    parser_fix.set_defaults(action=action_fix)
+    fix_parser(parser_fix)
     parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         "version", help="show version of {}".format(NAME)
