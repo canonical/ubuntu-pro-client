@@ -113,6 +113,11 @@ def when_i_run_command(context, command, user_spec, verify_return=True):
         returncode=result.return_code,
     )
 
+    if verify_return and result.return_code != 0:
+        print("Error executing command: {}".format(command))
+        print("stdout: {}".format(result.stdout))
+        print("stderr: {}".format(result.stderr))
+
     if verify_return:
         assert_that(process.returncode, equal_to(0))
 
