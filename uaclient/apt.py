@@ -16,7 +16,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-APT_HELPER_TIMEOUT = 20.0  # 20 second timeout used for apt-helper call
+APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
 APT_CONFIG_AUTH_FILE = "Dir::Etc::netrc/"
 APT_CONFIG_AUTH_PARTS_DIR = "Dir::Etc::netrcparts/"
