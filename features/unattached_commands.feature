@@ -121,3 +121,59 @@ Feature: Command behaviour when unattached
            | focal   |
            | trusty  |
            | xenial  |
+
+    @series.xenial
+    @series.bionic
+    @series.focal
+    Scenario Outline: Fix command on an unattached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `ua fix USN-4539-1` as non-root
+        Then stdout matches regexp:
+            """
+            USN-4539-1: AWL vulnerability
+            https://ubuntu.com/security/notices/usn-4539-1.json
+            No affected packages are installed.
+            .*✔.* USN-4539-1 does not affect your system.
+            """
+        When I run `ua fix CVE-2020-28196` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2020-28196: Kerberos vulnerability
+            https://ubuntu.com/security/cve-2020-28196.json
+            1 affected package is installed: krb5
+            \(1/1\) krb5:
+            A fix is available in Ubuntu standard updates.
+            The update is already installed.
+            .*✔.* CVE-2020-28196 is resolved.
+            """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | trusty  |
+           | xenial  |
+
+    @series.trusty
+    Scenario Outline: Fix command on an unattached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `ua fix USN-4539-1` as non-root
+        Then stdout matches regexp:
+            """
+            USN-4539-1: AWL vulnerability
+            https://ubuntu.com/security/notices/usn-4539-1.json
+            No affected packages are installed.
+            .*✔.* USN-4539-1 does not affect your system.
+            """
+        When I run `ua fix CVE-2020-28196` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2020-28196: Kerberos vulnerability
+            https://ubuntu.com/security/cve-2020-28196.json
+            No affected packages are installed.
+            .*✔.* CVE-2020-28196 does not affect your system.
+            """
+
+        Examples: ubuntu release
+           | release |
+           | trusty  |
