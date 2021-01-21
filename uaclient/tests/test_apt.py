@@ -148,7 +148,7 @@ class TestValidAptCredentials:
                 "http://user:pwd@fakerepo/ubuntu/pool/",
                 expected_path,
             ],
-            timeout=20,
+            timeout=60,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
@@ -219,7 +219,7 @@ class TestValidAptCredentials:
                 "http://user:pwd@fakerepo/ubuntu/pool/",
                 expected_path,
             ],
-            timeout=20,
+            timeout=60,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
