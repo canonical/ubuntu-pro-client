@@ -138,3 +138,204 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | n/a       | disabled    |
            | bionic  | n/a       | disabled    |
            | focal   | n/a       | n/a         |
+
+    @series.bionic
+    @uses.config.machine_type.azure.generic
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "fips",
+                            "directives": {
+                                "additionalPackages": ["ubuntu-azure-fips"]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
+        """
+        And I attach `contract_token_staging` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
+        When I run `ua enable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing <fips-name> packages
+            <fips-name> enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                enabled
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I run `apt-cache policy ubuntu-azure-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            azure-fips
+            """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+        When I run `ua disable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        """
+        When I run `apt-cache policy ubuntu-azure-fips` as non-root
+        Then stdout matches regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the `<release>` machine
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        0
+        """
+        And I verify that `openssh-server` installed version matches regexp `fips`
+        And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `openssh-server-hmac` installed version matches regexp `fips`
+        And I verify that `openssh-client-hmac` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
+        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+        Then I will see the following on stdout:
+        """
+        openssh-client was already not hold.
+        openssh-server was already not hold.
+        strongswan was already not hold.
+        """
+
+        Examples: ubuntu release
+           | release | fips-name    | fips-service |fips-apt-source                                        |
+           | bionic  | FIPS         | fips         |https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
+
+    @series.bionic
+    @uses.config.machine_type.aws.generic
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "fips",
+                            "directives": {
+                                "additionalPackages": ["ubuntu-aws-fips"]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
+        """
+        And I attach `contract_token_staging` with sudo
+        And I run `ua disable livepatch` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
+        When I run `ua enable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing <fips-name> packages
+            <fips-name> enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                enabled
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I run `apt-cache policy ubuntu-aws-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            aws-fips
+            """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+        When I run `ua disable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        """
+        When I run `apt-cache policy ubuntu-aws-fips` as non-root
+        Then stdout matches regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I reboot the `<release>` machine
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        0
+        """
+        And I verify that `openssh-server` installed version matches regexp `fips`
+        And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `openssh-server-hmac` installed version matches regexp `fips`
+        And I verify that `openssh-client-hmac` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
+        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+        Then I will see the following on stdout:
+        """
+        openssh-client was already not hold.
+        openssh-server was already not hold.
+        strongswan was already not hold.
+        """
+
+        Examples: ubuntu release
+           | release | fips-name    | fips-service |fips-apt-source                                        |
+           | bionic  | FIPS         | fips         |https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
