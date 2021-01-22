@@ -63,7 +63,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         And I run `ua disable livepatch` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -101,6 +101,11 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             Updating package lists
             A reboot is required to complete disable operation
             """
+        When I run `apt-cache policy ubuntu-fips` as non-root
+        Then stdout matches regexp:
+        """
+        .*Installed: \(none\)
+        """
         When I reboot the `<release>` machine
         When I run `cat /proc/sys/crypto/fips_enabled` with sudo
         Then I will see the following on stdout:
