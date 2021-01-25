@@ -2,6 +2,7 @@ from itertools import groupby
 
 from uaclient import apt
 from uaclient.entitlements import repo
+from uaclient.clouds.identity import get_cloud_type
 from uaclient import status, util
 
 try:
@@ -44,13 +45,44 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
     _incompatible_services = ["livepatch"]
 
+    def _prevent_fips_on_xenial_cloud_instances(self):
+        cfg_allow_xenial_fips_on_cloud = util.is_config_value_true(
+            config=self.cfg.cfg,
+            path_to_value="features.allow_xenial_fips_on_cloud",
+        )
+
+        if cfg_allow_xenial_fips_on_cloud:
+            return False
+
+        series = util.get_platform_info()["series"]
+
+        if series != "xenial":
+            return False
+
+        cloud_id = get_cloud_type()
+
+        if cloud_id is None:
+            return False
+
+        return bool(cloud_id.lower() in ("azure", "gce"))
+
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests
+        cloud_titles = {"azure": "an Azure", "gce": "a GCP"}
+        cloud_id = get_cloud_type() or ""
+
         return (
             (
                 "Cannot install {} on a container".format(self.title),
                 lambda: util.is_container(),
+                False,
+            ),
+            (
+                status.MESSAGE_FIPS_BLOCK_ON_CLOUD.format(
+                    service=self.title, cloud=cloud_titles.get(cloud_id)
+                ),
+                lambda: self._prevent_fips_on_xenial_cloud_instances(),
                 False,
             ),
         )
