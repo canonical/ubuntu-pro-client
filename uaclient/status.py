@@ -267,6 +267,10 @@ MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {incompatible_service} is enabled
 """
 
+MESSAGE_FIPS_BLOCK_ON_CLOUD = """\
+Ubuntu Xenial does not provide {cloud} optimized FIPS kernel
+For help see: https://ubuntu.com/advantage"""
+
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""

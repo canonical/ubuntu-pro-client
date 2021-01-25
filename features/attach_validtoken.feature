@@ -339,3 +339,35 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
            | bionic  | FIPS         | fips         |https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
+
+    @series.xenial
+    @uses.config.machine_type.azure.generic
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
+        And stdout matches regexp:
+        """
+        Ubuntu Xenial does not provide an Azure optimized FIPS kernel
+        """
+
+        Examples: fips
+           | fips_service  |
+           | fips          |
+           | fips-updates  |
+
+    @series.xenial
+    @uses.config.machine_type.gcp.generic
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
+        And stdout matches regexp:
+        """
+        Ubuntu Xenial does not provide a GCP optimized FIPS kernel
+        """
+
+        Examples: fips
+           | fips_service  |
+           | fips          |
+           | fips-updates  |
