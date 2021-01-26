@@ -1,25 +1,33 @@
 #!/usr/bin/env python3
 
 """
+Run configuration operations during system boot.
+
 Some uaclient operations cannot be fully completed by running a single
 command. For example, when upgrading uaclient from trusty to xenial,
 we may have a livepatch change in the contract, allowing livepatch to be
 enabled on xenial. However, during the upgrade we cannot install livepatch on
-the system, only after a reboot.
+the system because the running kernel version will not be updated until reboot.
 
-To allow uaclient to postpone commands that need to be executed in a system boot,
-we are using this script, which will basically try to reprocess contract deltas
-on boot time.
+UA client touches a flag file
+/var/lib/ubuntu-advantage/marker-reboot-cmds-required to indicate this script
+should run at next boot to process any pending/unresovled config operations.
 """
+
 import logging
 import os
 import sys
+import time
 
-from uaclient import config, entitlements, status
-from uaclient.exceptions import UserFacingError
+from uaclient import config, contract, entitlements, status
+from uaclient.exceptions import UserFacingError, LockHeldError
 
-from uaclient.util import subp, ProcessExecutionError
+from uaclient.util import subp, ProcessExecutionError, UrlError
 from uaclient.cli import setup_logging, assert_lock_file
+
+# Retry sleep backoff algorithm if lock is held.
+# Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
+SLEEP_RETRIES_ON_LOCK_HELD = [1, 1, 5]
 
 
 def run_command(cmd, cfg):
@@ -42,8 +50,7 @@ def run_command(cmd, cfg):
         sys.exit(1)
 
 
-@assert_lock_file("ua-reboot-fix-pro-pkg-holds")
-def fix_pro_pkg_holds(args, cfg):
+def fix_pro_pkg_holds(cfg):
     status_cache = cfg.read_cache("status-cache")
     if not status_cache:
         return
@@ -63,13 +70,15 @@ def fix_pro_pkg_holds(args, cfg):
                     logging.debug(
                         "Successfully removed Ubuntu Pro FIPS package holds"
                     )
-                except:
+                except Exception as e:
+                    logging.exception(e)
                     logging.warning(
-                        "Failed to remove Ubuntu PRO FIPS package holds"
+                        "Could not remove Ubuntu PRO FIPS package holds"
                     )
                 try:
                     entitlement.install_packages(cleanup_on_failure=False)
                 except UserFacingError as e:
+                    logging.exception(e)
                     logging.warning(
                         "Failed to install packages at boot: {}".format(
                             ", ".join(entitlement.packages)
@@ -79,19 +88,24 @@ def fix_pro_pkg_holds(args, cfg):
                 cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
 
 
-def refresh_contract(args, cfg):
-    cmd = "ua refresh"
-    run_command(cmd=cmd, cfg=cfg)
+def refresh_contract(cfg):
+    try:
+        contract.request_updated_contract(cfg)
+    except UrlError as exc:
+        logging.exception(exc)
+        logging.warning(status.MESSAGE_REFRESH_FAILURE)
+        sys.exit(1)
 
 
-@assert_lock_file("ua-reboot-process-deltas")
-def process_remaining_deltas(args, cfg):
+def process_remaining_deltas(cfg):
     cmd = "/usr/bin/python3 /usr/lib/ubuntu-advantage/upgrade_lts_contract.py"
     run_command(cmd=cmd, cfg=cfg)
     cfg.remove_notice("", status.MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED)
 
 
-def main(args, cfg):
+@assert_lock_file("ua-reboot-cmds")
+def process_reboot_operations(args, cfg):
+
     setup_logging(logging.INFO, logging.DEBUG)
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
 
@@ -106,9 +120,9 @@ def main(args, cfg):
     if os.path.exists(reboot_cmd_marker_file):
         logging.debug("Running process contract deltas on reboot ...")
 
-        fix_pro_pkg_holds(args, cfg)
-        refresh_contract(args, cfg)
-        process_remaining_deltas(args, cfg)
+        fix_pro_pkg_holds(cfg)
+        refresh_contract(cfg)
+        process_remaining_deltas(cfg)
 
         cfg.delete_cache_key("marker-reboot-cmds")
 
@@ -117,6 +131,29 @@ def main(args, cfg):
         )
 
 
+def main(cfg):
+    """Retry running process_reboot_operations on LockHeldError
+
+    :raises: LockHeldError when lock still held by auto-attach after retries.
+             UserFacingError for all other errors
+    """
+    while True:
+        try:
+            process_reboot_operations(args=None, cfg=cfg)
+            break
+        except LockHeldError as e:
+            logging.debug(
+                "Retrying ua-reboot-cmds {} times on held lock".format(
+                    len(SLEEP_RETRIES_ON_LOCK_HELD)
+                )
+            )
+            if SLEEP_RETRIES_ON_LOCK_HELD:
+                time.sleep(SLEEP_RETRIES_ON_LOCK_HELD.pop(0))
+            else:
+                logging.warning("Lock not released. %s", str(e.msg))
+                sys.exit(1)
+
+
 if __name__ == "__main__":
     cfg = config.UAConfig()
-    main(args=None, cfg=cfg)
+    main(cfg=cfg)
