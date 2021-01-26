@@ -1,6 +1,8 @@
 [Unit]
 Description=Ubuntu Advantage reboot cmds
 ConditionPathExists=/var/lib/ubuntu-advantage/marker-reboot-cmds-required
+Wants=ua-auto-attach.service
+After=ua-auto-attach.service
 
 [Service]
 Type=oneshot
