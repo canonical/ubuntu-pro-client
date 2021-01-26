@@ -143,32 +143,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "fips",
-                            "directives": {
-                                "additionalPackages": ["ubuntu-azure-fips"]
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
-        """
-        And I attach `contract_token_staging` with sudo
+        When I attach `contract_token_staging` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
@@ -243,33 +221,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "fips",
-                            "directives": {
-                                "additionalPackages": ["ubuntu-aws-fips"]
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
-        """
-        And I attach `contract_token_staging` with sudo
+        When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
         And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
