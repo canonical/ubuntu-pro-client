@@ -16,6 +16,16 @@ Feature: Enable command behaviour when attached to an UA subscription
             One moment, checking your subscription first
             <msg>
             """
+        And I verify that running `ua enable cc-eal` `with sudo` exits `1`
+        And I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable unknown service 'cc-eal'.
+            Try esm-infra, fips, fips-updates, livepatch
+            """
 
         Examples: ubuntu release
            | release | msg                                                            |
@@ -148,38 +158,6 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached enable a disabled, enable and unknown service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable livepatch esm-infra foobar` `as non-root` exits `1`
-        And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        And I verify that running `ua enable livepatch esm-infra foobar` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install Livepatch on a container
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable unknown service 'foobar'.
-            Try esm-infra, fips, fips-updates, livepatch
-            """
-
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | trusty  |
-           | xenial  |
-
-
-    @series.all
-    @uses.config.machine_type.lxd.container
     Scenario Outline:  Attached enable of non-container services in a ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -209,31 +187,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | xenial  | livepatch    | Livepatch    |              |
            | xenial  | fips         | FIPS         | --assume-yes |
            | xenial  | fips-updates | FIPS Updates | --assume-yes |
-
-    @series.all
-    Scenario Outline:  Attached enable of non-container beta services in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
-        And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo)
-            """
-        And I verify that running `ua enable cc-eal` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable unknown service 'cc-eal'.
-            Try esm-infra, fips, fips-updates, livepatch
-            """
-           | release |
-           | bionic  |
-           | focal   |
-           | trusty  |
-           | xenial  |
 
     @series.all
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
