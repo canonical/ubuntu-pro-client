@@ -1,7 +1,6 @@
 [Unit]
 Description=Ubuntu Advantage auto attach
 Before=cloud-config.service
-WantedBy=cloud-config.service
 
 [Service]
 Type=oneshot
@@ -9,4 +8,4 @@ ExecStart=/usr/bin/ua auto-attach
 TimeoutSec=0
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=cloud-config.service multi-user.target
