@@ -177,7 +177,7 @@ def when_i_reboot_the_machine(context, series):
         context.instance.shutdown(wait=True)
         context.instance.start(wait=False)
         # Trusty -> Xenial upgrades would raise a Paths no run_dir attr failure
-        context.instance.wait(raise_on_cloudinit_failure=False)
+        context.instance.wait()
     else:
         context.instance.restart(wait=True)
 
