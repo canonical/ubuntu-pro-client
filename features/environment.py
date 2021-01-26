@@ -25,16 +25,17 @@ ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
 DAILY_PPA_KEYID = "8A295C4FB8B190B7"
 
-USERDATA_BLOCK_AUTO_ATTACH = """\
+USERDATA_BLOCK_AUTO_ATTACH_IMG = """\
+#cloud-config
+bootcmd:
+ - cp /usr/bin/ua /usr/bin/ua.orig
+ - 'echo "#!/bin/sh\ndate >> /root/ua-calls\n" > /usr/bin/ua'
+ - chmod 755 /usr/bin/ua
+"""
+
+USERDATA_BLOCK_AUTO_ATTACH_TESTS = """\
 #cloud-config
 write_files:
-  # TODO(drop path: /usr/bin/ua when 25.0 is in Ubuntu PRO images)
-  - path: /usr/bin/ua
-    content: |
-        #!/bin/bash
-        DATE=`date -u`
-        echo "$DATE: exec ua $@" >> /root/ua-runs
-    permissions: '0755'
   - path: /etc/ubuntu-advantage/uaclient.conf
     content: |
       features:
@@ -497,7 +498,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
 
         cloud_manager = context.config.cloud_manager
         if "pro" in context.config.machine_type:
-            user_data = USERDATA_BLOCK_AUTO_ATTACH
+            user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
         else:
             user_data = ""
         inst = cloud_manager.launch(
@@ -558,7 +559,7 @@ def create_uat_image(context: Context, series: str) -> None:
 
     user_data = ""
     if "pro" in context.config.machine_type:
-        user_data = USERDATA_BLOCK_AUTO_ATTACH
+        user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
     if not deb_paths:
         if not user_data:
             user_data = "#cloud-config\n"
