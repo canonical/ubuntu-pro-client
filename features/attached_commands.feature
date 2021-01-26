@@ -47,7 +47,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.all
-    Scenario Outline: Attached disable of an unknown service in a ubuntu machine
+    Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable foobar` `as non-root` exits `1`
@@ -61,12 +61,27 @@ Feature: Command behaviour when attached to an UA subscription
             Cannot disable unknown service 'foobar'.
             Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
             """
+        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        And stderr matches regexp:
+            """
+            This command must be run as root \(try using sudo\)
+            """
+        When I run `ua disable esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            Updating package lists
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
 
         Examples: ubuntu release
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -236,39 +251,22 @@ Feature: Command behaviour when attached to an UA subscription
            | trusty  |
            | xenial  |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
-    Scenario Outline: Attached disable of an already enabled service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\)
-            """
-        When I run `ua disable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            Updating package lists
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
-            """
-
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-
     @series.trusty
     Scenario: Attached disable of an already enabled service in a trusty machine
         Given a `trusty` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        Then I verify that running `ua disable foobar` `as non-root` exits `1`
+        And stderr matches regexp:
+            """
+            This command must be run as root \(try using sudo\)
+            """
+        And I verify that running `ua disable foobar` `with sudo` exits `1`
+        And stderr matches regexp:
+            """
+            Cannot disable unknown service 'foobar'.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
+            """
+        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
             """
             This command must be run as root \(try using sudo\)
