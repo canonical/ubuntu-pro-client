@@ -87,9 +87,33 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             ),
         )
 
+    def _replace_metapackage_on_cloud_instance(
+        self, packages: "List[str]"
+    ) -> "List[str]":
+        """
+        Identify correct metapackage to be used if in a cloud instance.
+
+        Currently, the contract backend is not delivering the right
+        metapackage on a Bionic Azure or AWS cloud instance. For those
+        clouds, we have cloud specific fips metapackages and we should
+        use them. We are now performing that correction here, but this
+        is a temporary fix.
+        """
+        series = util.get_platform_info().get("series")
+
+        if series != "bionic":
+            return packages
+
+        cloud_id = get_cloud_type()
+        if cloud_id and cloud_id.lower() in ("azure", "aws"):
+            return ["ubuntu-{}-fips".format(cloud_id.lower())]
+
+        return packages
+
     @property
     def packages(self) -> "List[str]":
         packages = super().packages
+        packages = self._replace_metapackage_on_cloud_instance(packages)
         installed_packages = apt.get_installed_packages()
 
         pkg_groups = groupby(
