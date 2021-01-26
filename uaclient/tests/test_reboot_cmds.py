@@ -2,7 +2,6 @@ import logging
 import mock
 import pytest
 
-from uaclient import exceptions
 from uaclient.util import ProcessExecutionError
 
 from lib.reboot_cmds import main, fix_pro_pkg_holds, run_command
@@ -11,6 +10,26 @@ M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
 
 class TestMain:
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    def test_retries_on_lock_file(self, FakeConfig, caplog_text):
+        cfg = FakeConfig.for_attached_machine()
+        with pytest.raises(SystemExit) as excinfo:
+            with mock.patch(
+                "uaclient.config.UAConfig.check_lock_info"
+            ) as m_check_lock:
+                m_check_lock.return_value = (123, "ua auto-attach")
+                with mock.patch("lib.reboot_cmds.time.sleep") as m_sleep:
+                    main(cfg=cfg)
+        assert [
+            mock.call(1),
+            mock.call(1),
+            mock.call(5),
+        ] == m_sleep.call_args_list
+        assert 1 == excinfo.value.code
+        assert (
+            "Lock not released. Unable to perform: ua-reboot-cmds"
+        ) in caplog_text()
+
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("lib.reboot_cmds.subp")
     def test_main_unattached_removes_marker(
@@ -18,7 +37,7 @@ class TestMain:
     ):
         cfg = FakeConfig()
         cfg.write_cache("marker-reboot-cmds", "samplecontent")
-        main(args="notused", cfg=cfg)
+        main(cfg=cfg)
         assert None is cfg.read_cache("marker-reboot-cmds")
         assert "Skipping reboot_cmds. Machine is unattached" in caplog_text()
         assert 0 == m_subp.call_count
@@ -27,7 +46,7 @@ class TestMain:
     def test_main_noops_when_no_marker(self, m_subp, FakeConfig):
         cfg = FakeConfig()
         assert None is cfg.read_cache("marker-reboot-cmds")
-        main(args="notused", cfg=cfg)
+        main(cfg=cfg)
         assert 0 == m_subp.call_count
 
     @mock.patch("lib.reboot_cmds.subp")
@@ -36,7 +55,7 @@ class TestMain:
     ):
         cfg = FakeConfig.for_attached_machine()
         assert None is cfg.read_cache("marker-reboot-cmds")
-        main(args="notused", cfg=cfg)
+        main(cfg=cfg)
         assert 0 == m_subp.call_count
 
 
@@ -44,13 +63,6 @@ M_REPO_PATH = "uaclient.entitlements"
 
 
 class TestFixProPkgHolds:
-    def test_attempts_lock_file(self, FakeConfig):
-        cfg = FakeConfig()
-        with mock.patch("uaclient.config.UAConfig.check_lock_info") as m_lock:
-            m_lock.return_value = (123, "ua refresh")
-            with pytest.raises(exceptions.LockHeldError):
-                fix_pro_pkg_holds(args=None, cfg=cfg)
-
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
     @pytest.mark.parametrize("fips_status", ("enabled", "disabled"))
     @mock.patch("sys.exit")
@@ -70,7 +82,7 @@ class TestFixProPkgHolds:
             "services": [{"name": "fips", "status": fips_status}]
         }
         cfg.write_cache("status-cache", fake_status_cache)
-        fix_pro_pkg_holds(args=None, cfg=cfg)
+        fix_pro_pkg_holds(cfg=cfg)
         if fips_status == "enabled":
             assert [mock.call()] == setup_apt_config.call_args_list
             assert [
