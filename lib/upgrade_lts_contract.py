@@ -14,16 +14,14 @@ https://esm.ubuntu.com/ubuntu
 
 While on Xenial, the apt url is:
 
-https://esm.ubuntu.com/infra/ubuntu 
+https://esm.ubuntu.com/infra/ubuntu
 
 This script will detect differences like that and update the Xenial system
 to reflect them.
 """
 
 import time
-import contextlib
 import logging
-import os
 import sys
 
 from uaclient.cli import setup_logging
@@ -75,8 +73,7 @@ def process_contract_delta_after_apt_lock() -> None:
 
     retry_count = 0
     while out:
-        # Loop until that apt hold is released (at the end of the do-release-upgrade operation
-        # when a reboot is suggested)
+        # Loop until apt hold is released at the end of `do-release-upgrade`
         time.sleep(10)
         out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
         retry_count += 1

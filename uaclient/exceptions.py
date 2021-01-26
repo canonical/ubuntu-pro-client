@@ -58,8 +58,6 @@ class LockHeldError(UserFacingError):
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
         lock_request = lock_request
-        lock_holder = lock_holder
-        pid = pid
         msg = "Unable to perform: {lock_request}.\n".format(
             lock_request=lock_request
         )
