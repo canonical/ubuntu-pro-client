@@ -105,8 +105,9 @@ class TestFIPSEntitlementDefaults:
 
 
 class TestFIPSEntitlementCanEnable:
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     def test_can_enable_true_on_entitlement_inactive(
-        self, capsys, entitlement
+        self, m_is_config_value_true, capsys, entitlement
     ):
         """When entitlement is disabled, can_enable returns True."""
         with mock.patch.object(
@@ -329,26 +330,42 @@ class TestFIPSEntitlementEnable:
 
         assert 1 == m_remove_apt_config.call_count
 
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
+    @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_livepatch_service_is_enabled(
-        self, m_is_container, m_handle_message_op, entitlement
+        self,
+        m_is_container,
+        m_handle_message_op,
+        m_prompt,
+        m_is_config_value_true,
+        entitlement,
     ):
-        m_handle_message_op.return_value = True
-        base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
+        import uaclient.entitlements as ent
 
-        with mock.patch(
-            "{}.application_status".format(base_path)
-        ) as m_livepatch:
-            m_livepatch.return_value = (status.ApplicationStatus.ENABLED, "")
-            fake_stdout = io.StringIO()
+        m_handle_message_op.return_value = True
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.ENABLED,
+            "",
+        ]
+        type(m_entitlement_obj).title = mock.PropertyMock(
+            return_value="Livepatch"
+        )
+
+        fake_stdout = io.StringIO()
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"livepatch": m_entitlement_cls}
+        ):
             with contextlib.redirect_stdout(fake_stdout):
                 entitlement.enable()
 
         expected_msg = "Cannot enable {} when Livepatch is enabled".format(
             entitlement.title
         )
-        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+        assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
