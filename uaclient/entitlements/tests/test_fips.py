@@ -747,9 +747,13 @@ class TestFipsEntitlementPackages:
         assert before == after
 
     @pytest.mark.parametrize(
+        "cfg_disable_fips_metapckage_override", ((True), (False))
+    )
+    @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
     @pytest.mark.parametrize("cloud_id", (("azure"), ("aws"), ("gce"), (None)))
+    @mock.patch("uaclient.util.is_config_value_true")
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.apt.get_installed_packages")
@@ -758,16 +762,34 @@ class TestFipsEntitlementPackages:
         m_installed_packages,
         m_platform_info,
         m_get_cloud_type,
+        m_is_config_value,
         cloud_id,
         series,
-        entitlement,
+        cfg_disable_fips_metapckage_override,
+        fips_entitlement_factory,
     ):
         m_platform_info.return_value = {"series": series}
         m_get_cloud_type.return_value = cloud_id
         m_installed_packages.return_value = []
+        m_is_config_value.return_value = cfg_disable_fips_metapckage_override
+        additional_packages = ["test1", "ubuntu-fips", "test2"]
+        entitlement = fips_entitlement_factory(
+            additional_packages=additional_packages
+        )
+
         packages = entitlement.packages
 
-        if series == "bionic" and cloud_id in ("azure", "aws"):
-            assert packages == ["ubuntu-{}-fips".format(cloud_id)]
+        if all(
+            [
+                series == "bionic",
+                cloud_id in ("azure", "aws"),
+                not cfg_disable_fips_metapckage_override,
+            ]
+        ):
+            assert packages == [
+                "test1",
+                "ubuntu-{}-fips".format(cloud_id),
+                "test2",
+            ]
         else:
-            assert packages == ["ubuntu-fips"]
+            assert packages == additional_packages
