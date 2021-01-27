@@ -422,7 +422,7 @@ class TestFIPSEntitlementEnable:
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
-    @pytest.mark.parametrize("cloud_id", (("AWS"), ("GCE"), ("Azure"), (None)))
+    @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
     @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
@@ -448,7 +448,7 @@ class TestFIPSEntitlementEnable:
         if all(
             [
                 not allow_xenial_fips_on_cloud,
-                cloud_id in ("Azure", "GCE"),
+                cloud_id in ("azure", "gce"),
                 series == "xenial",
             ]
         ):
@@ -749,7 +749,7 @@ class TestFipsEntitlementPackages:
     @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
-    @pytest.mark.parametrize("cloud_id", (("Azure"), ("AWS"), ("GCE"), (None)))
+    @pytest.mark.parametrize("cloud_id", (("azure"), ("aws"), ("gce"), (None)))
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.apt.get_installed_packages")
@@ -767,7 +767,7 @@ class TestFipsEntitlementPackages:
         m_installed_packages.return_value = []
         packages = entitlement.packages
 
-        if series == "bionic" and cloud_id in ("Azure", "AWS"):
-            assert packages == ["ubuntu-{}-fips".format(cloud_id.lower())]
+        if series == "bionic" and cloud_id in ("azure", "aws"):
+            assert packages == ["ubuntu-{}-fips".format(cloud_id)]
         else:
             assert packages == ["ubuntu-fips"]
