@@ -64,7 +64,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if cloud_id is None:
             return False
 
-        return bool(cloud_id.lower() in ("azure", "gce"))
+        return bool(cloud_id in ("azure", "gce"))
 
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
@@ -105,8 +105,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             return packages
 
         cloud_id = get_cloud_type()
-        if cloud_id and cloud_id.lower() in ("azure", "aws"):
-            return ["ubuntu-{}-fips".format(cloud_id.lower())]
+        if cloud_id and cloud_id in ("azure", "aws"):
+            return ["ubuntu-{}-fips".format(cloud_id)]
 
         return packages
 
