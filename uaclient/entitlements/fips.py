@@ -99,16 +99,27 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         use them. We are now performing that correction here, but this
         is a temporary fix.
         """
-        series = util.get_platform_info().get("series")
+        cfg_disable_fips_metapackage_override = util.is_config_value_true(
+            config=self.cfg.cfg,
+            path_to_value="features.disable_fips_metapackage_override",
+        )
 
+        if cfg_disable_fips_metapackage_override:
+            return packages
+
+        series = util.get_platform_info().get("series")
         if series != "bionic":
             return packages
 
         cloud_id = get_cloud_type()
-        if cloud_id and cloud_id in ("azure", "aws"):
-            return ["ubuntu-{}-fips".format(cloud_id)]
+        if not cloud_id or cloud_id not in ("azure", "aws"):
+            return packages
 
-        return packages
+        cloud_metapkg = "ubuntu-{}-fips".format(cloud_id)
+        # Replace only the ubuntu-fips meta package if exists
+        return [
+            cloud_metapkg if pkg == "ubuntu-fips" else pkg for pkg in packages
+        ]
 
     @property
     def packages(self) -> "List[str]":
