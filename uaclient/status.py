@@ -218,7 +218,8 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
 MESSAGE_ATTACH_EXPIRED_TOKEN = """\
-Expired token. To obtain a new token visit: https://ubuntu.com/advantage"""
+Expired token or contract. To obtain a new token visit: \
+https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_INVALID_TOKEN = """\
 Invalid token. See https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_REQUIRES_TOKEN = """\
@@ -232,9 +233,6 @@ MESSAGE_ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'
 """
 
-MESSAGE_CONTRACT_EXPIRED_ERROR = """\
-Subscription has expired
-To obtain a token please visit: https://ubuntu.com/advantage"""
 MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL = """\
 Cannot {operation} unknown service '{name}'.
 {service_msg}"""
