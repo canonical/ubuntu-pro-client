@@ -65,6 +65,16 @@ Feature: Command behaviour when attached to an UA subscription
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        When I create the file `/var/lib/ubuntu-advantage/marker-reboot-cmds-required` with the following:
+        """
+        """
+        And I reboot the `<release>` machine
+        And  I verify that running `systemctl status ua-reboot-cmds.service` `as non-root` exits `0,3`
+
+        Then stdout matches regexp:
+            """
+            .*status=0\/SUCCESS.*
+            """
 
         Examples: ubuntu release
            | release | cc-eal-s | cis-s    | esm-a-s | infra-pkg | apps-pkg | fips-s   | lp-s     | lp-d                        |
