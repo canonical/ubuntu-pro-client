@@ -54,8 +54,10 @@ lxc exec "$container" -- apt-get --quiet --yes update
 lxc exec "$container" --env DEBIAN_FRONTEND=noninteractive -- apt-get --quiet --yes install git
 
 python_minor=$(lxc exec "$container" -- python3 -c 'import sys; print(sys.version_info[1])')
-if ((python_minor > 4)); then
+if ((python_minor > 5)); then
     get_pip_url="https://bootstrap.pypa.io/get-pip.py"
+elif ((python_minor == 5)); then
+    get_pip_url="https://bootstrap.pypa.io/3.5/get-pip.py"
 elif ((python_minor == 4)); then
     get_pip_url="https://bootstrap.pypa.io/3.4/get-pip.py"
 else
