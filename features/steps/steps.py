@@ -4,6 +4,7 @@ import os
 import subprocess
 import re
 import shlex
+import time
 
 from behave import given, then, when
 from hamcrest import (
@@ -143,7 +144,22 @@ def when_i_attach_staging_token(context, token_type, user_spec):
             ),
             user_spec,
         )
-    when_i_run_command(context, "ua attach %s" % token, user_spec)
+    cmd = "ua attach {}".format(token)
+    when_i_run_command(context, cmd, user_spec, verify_return=False)
+
+    retries = [5, 5, 10]  # Sleep times to wait between retries
+    while context.process.returncode != 0:
+        try:
+            time.sleep(retries.pop(0))
+        except IndexError:  # no more timeouts
+            logging.warning("Exhausted retries waiting for exit code: 0")
+            break
+        print(
+            "--- Retrying on exit {exit_code}: {cmd}".format(
+                exit_code=context.process.returncode, cmd=cmd
+            )
+        )
+        when_i_run_command(context, cmd, user_spec, verify_return=False)
 
 
 @when("I append the following on uaclient config")
