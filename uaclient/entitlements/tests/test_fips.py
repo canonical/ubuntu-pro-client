@@ -422,7 +422,7 @@ class TestFIPSEntitlementEnable:
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
-    @pytest.mark.parametrize("cloud_id", (("AWS"), ("GCE"), ("Azure"), (None)))
+    @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
     @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
@@ -448,7 +448,7 @@ class TestFIPSEntitlementEnable:
         if all(
             [
                 not allow_xenial_fips_on_cloud,
-                cloud_id in ("Azure", "GCE"),
+                cloud_id in ("azure", "gce"),
                 series == "xenial",
             ]
         ):
@@ -678,13 +678,27 @@ class TestFipsSetupAPTConfig:
 
 class TestFipsEntitlementPackages:
     @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_packages_is_list(self, _mock, entitlement):
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_packages_is_list(self, m_platform_info, _mock, entitlement):
         """RepoEntitlement.enable will fail if it isn't"""
+
+        # Do not trigger metapackage override by
+        # _replace_metapackage_on_cloud_instance
+        m_platform_info.return_value = {"series": "test"}
+
         assert isinstance(entitlement.packages, list)
 
     @mock.patch(M_PATH + "apt.get_installed_packages", return_value=[])
-    def test_fips_required_packages_included(self, _mock, entitlement):
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_fips_required_packages_included(
+        self, m_platform_info, _mock, entitlement
+    ):
         """The fips_required_packages should always be in .packages"""
+
+        # Do not trigger metapackage override by
+        # _replace_metapackage_on_cloud_instance
+        m_platform_info.return_value = {"series": "test"}
+
         assert set(FIPS_ADDITIONAL_PACKAGES).issubset(
             set(entitlement.packages)
         )
@@ -693,8 +707,10 @@ class TestFipsEntitlementPackages:
         "installed_packages,expected_installs", _fips_pkg_combinations()
     )
     @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch("uaclient.util.get_platform_info")
     def test_currently_installed_packages_are_included_in_packages(
         self,
+        m_platform_info,
         m_get_installed_packages,
         entitlement,
         installed_packages,
@@ -702,15 +718,25 @@ class TestFipsEntitlementPackages:
     ):
         """If FIPS packages are already installed, upgrade them"""
         m_get_installed_packages.return_value = list(installed_packages)
+
+        # Do not trigger metapackage override by
+        # _replace_metapackage_on_cloud_instance
+        m_platform_info.return_value = {"series": "test"}
+
         full_expected_installs = FIPS_ADDITIONAL_PACKAGES + expected_installs
         assert sorted(full_expected_installs) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch("uaclient.util.get_platform_info")
     def test_multiple_packages_calls_dont_mutate_state(
-        self, m_get_installed_packages, entitlement
+        self, m_platform_info, m_get_installed_packages, entitlement
     ):
         # Make it appear like all packages are installed
         m_get_installed_packages.return_value.__contains__.return_value = True
+
+        # Do not trigger metapackage override by
+        # _replace_metapackage_on_cloud_instance
+        m_platform_info.return_value = {"series": "test"}
 
         before = copy.deepcopy(entitlement.conditional_packages)
 
@@ -719,3 +745,51 @@ class TestFipsEntitlementPackages:
         after = copy.deepcopy(entitlement.conditional_packages)
 
         assert before == after
+
+    @pytest.mark.parametrize(
+        "cfg_disable_fips_metapckage_override", ((True), (False))
+    )
+    @pytest.mark.parametrize(
+        "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
+    )
+    @pytest.mark.parametrize("cloud_id", (("azure"), ("aws"), ("gce"), (None)))
+    @mock.patch("uaclient.util.is_config_value_true")
+    @mock.patch(M_PATH + "get_cloud_type")
+    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.apt.get_installed_packages")
+    def test_packages_are_override_when_bionic_cloud_instance(
+        self,
+        m_installed_packages,
+        m_platform_info,
+        m_get_cloud_type,
+        m_is_config_value,
+        cloud_id,
+        series,
+        cfg_disable_fips_metapckage_override,
+        fips_entitlement_factory,
+    ):
+        m_platform_info.return_value = {"series": series}
+        m_get_cloud_type.return_value = cloud_id
+        m_installed_packages.return_value = []
+        m_is_config_value.return_value = cfg_disable_fips_metapckage_override
+        additional_packages = ["test1", "ubuntu-fips", "test2"]
+        entitlement = fips_entitlement_factory(
+            additional_packages=additional_packages
+        )
+
+        packages = entitlement.packages
+
+        if all(
+            [
+                series == "bionic",
+                cloud_id in ("azure", "aws"),
+                not cfg_disable_fips_metapckage_override,
+            ]
+        ):
+            assert packages == [
+                "test1",
+                "ubuntu-{}-fips".format(cloud_id),
+                "test2",
+            ]
+        else:
+            assert packages == additional_packages
