@@ -608,21 +608,6 @@ class TestFIPSEntitlementDisable:
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
 
-    def test_disable_on_can_disable_true_removes_packages(
-        self,
-        _m_platform_info,
-        m_handle_message_operations,
-        entitlement,
-        tmpdir,
-    ):
-        """When can_disable, disable removes apt configuration"""
-        with mock.patch.object(entitlement, "can_disable", return_value=True):
-            with mock.patch.object(
-                entitlement, "remove_apt_config"
-            ) as m_remove_apt_config:
-                assert entitlement.disable(True)
-        assert [mock.call()] == m_remove_apt_config.call_args_list
-
 
 class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize(
