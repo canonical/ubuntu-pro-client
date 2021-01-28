@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 import urllib
 
@@ -348,7 +347,7 @@ def request_updated_contract(
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
         try:
-            new_token = contract_client.request_contract_machine_attach(
+            contract_client.request_contract_machine_attach(
                 contract_token=contract_token
             )
         except util.UrlError as e:
@@ -369,15 +368,9 @@ def request_updated_contract(
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]
-        new_token = contract_client.request_machine_token_update(
+        contract_client.request_machine_token_update(
             machine_token=machine_token, contract_id=contract_id
         )
-    expiry = new_token["machineTokenInfo"]["contractInfo"].get("effectiveTo")
-    if expiry:
-        if datetime.strptime(expiry, "%Y-%m-%dT%H:%M:%SZ") < datetime.utcnow():
-            raise exceptions.UserFacingError(
-                status.MESSAGE_CONTRACT_EXPIRED_ERROR
-            )
 
     process_entitlements_delta(
         orig_entitlements, cfg.entitlements, allow_enable
