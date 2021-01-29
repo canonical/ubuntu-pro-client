@@ -25,6 +25,7 @@ from uaclient.cli import (
 
 from uaclient.exceptions import (
     AlreadyAttachedError,
+    LockHeldError,
     NonRootUserError,
     UserFacingError,
     UnattachedError,
@@ -316,7 +317,7 @@ M_PATH_UACONFIG = "uaclient.config.UAConfig."
 
 class TestAssertLockFile:
     @mock.patch("os.getpid", return_value=123)
-    @mock.patch(M_PATH_UACONFIG + "remove_notice")
+    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch(M_PATH_UACONFIG + "add_notice")
     @mock.patch(M_PATH_UACONFIG + "write_cache")
     def test_assert_root_creates_lock_and_notice(
@@ -340,7 +341,7 @@ class TestAssertLockFile:
         assert mock.sentinel.success == ret
         lock_msg = "Operation in progress: some operation"
         assert [mock.call("", lock_msg)] == m_add_notice.call_args_list
-        assert [mock.call("", lock_msg)] == m_remove_notice.call_args_list
+        assert [mock.call("lock")] == m_remove_notice.call_args_list
         assert [
             mock.call("lock", "123:some operation")
         ] == m_write_cache.call_args_list
@@ -436,6 +437,16 @@ class TestMain:
         "exception,expected_error_msg,expected_log",
         (
             (
+                LockHeldError(
+                    pid="123",
+                    lock_request="ua reboot-cmds",
+                    lock_holder="ua auto-attach",
+                ),
+                "Unable to perform: ua reboot-cmds.\nOperation in progress:"
+                " ua auto-attach (pid:123)\n",
+                "LockHeldError",
+            ),
+            (
                 KeyboardInterrupt,
                 "Interrupt received; exiting.\n",
                 "KeyboardInterrupt",
@@ -447,12 +458,14 @@ class TestMain:
             ),
         ),
     )
+    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
     @mock.patch("uaclient.cli.setup_logging")
     @mock.patch("uaclient.cli.get_parser")
     def test_errors_handled_gracefully(
         self,
         m_get_parser,
         _m_setup_logging,
+        m_delete_cache_key,
         capsys,
         logging_sandbox,
         caplog_text,
@@ -466,6 +479,7 @@ class TestMain:
         with pytest.raises(SystemExit) as excinfo:
             with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
                 main()
+        assert 0 == m_delete_cache_key.call_count
 
         exc = excinfo.value
         assert 1 == exc.code
