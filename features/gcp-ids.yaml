@@ -1,0 +1,3 @@
+xenial: "projects/ubuntu-os-cloud-image-proposed/global/images/testing-ubuntu-pro-1604-xenial-v20210128"
+bionic: "projects/ubuntu-os-cloud-image-proposed/global/images/testing-ubuntu-pro-1804-bionic-v20210128"
+focal: "projects/ubuntu-os-cloud-image-proposed/global/images/testing-ubuntu-pro-2004-focal-v20210128"
