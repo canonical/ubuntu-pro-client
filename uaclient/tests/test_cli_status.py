@@ -46,6 +46,85 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
+# Omit beta services from status
+ATTACHED_STATUS_NOBETA = """\
+SERVICE       ENTITLED  STATUS    DESCRIPTION
+esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
+ (ESM)
+fips          no        {dash}         NIST-certified FIPS modules
+fips-updates  no        {dash}         Uncertified security updates to FIPS\
+ modules
+livepatch     no        {dash}         Canonical Livepatch service
+{notices}
+Enable services with: ua enable <service>
+
+                Account: test_account
+           Subscription: test_contract
+            Valid until: n/a
+Technical support level: n/a
+"""
+
+BETA_SVC_NAMES = ["cc-eal", "cis", "esm-apps"]
+
+SERVICES_JSON_ALL = [
+    {
+        "description": "Common Criteria EAL2 Provisioning Packages",
+        "description_override": None,
+        "entitled": "no",
+        "name": "cc-eal",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "Center for Internet Security Audit Tools",
+        "description_override": None,
+        "entitled": "no",
+        "name": "cis",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "UA Apps: Extended Security Maintenance (ESM)",
+        "description_override": None,
+        "entitled": "no",
+        "name": "esm-apps",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "UA Infra: Extended Security Maintenance (ESM)",
+        "description_override": None,
+        "entitled": "no",
+        "name": "esm-infra",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "NIST-certified FIPS modules",
+        "description_override": None,
+        "entitled": "no",
+        "name": "fips",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "Uncertified security updates to FIPS modules",
+        "description_override": None,
+        "entitled": "no",
+        "name": "fips-updates",
+        "status": "—",
+        "statusDetails": "",
+    },
+    {
+        "description": "Canonical Livepatch service",
+        "description_override": None,
+        "entitled": "no",
+        "name": "livepatch",
+        "status": "—",
+        "statusDetails": "",
+    },
+]
+
 
 @mock.patch(
     M_PATH + "contract.get_available_resources",
@@ -53,6 +132,7 @@ Technical support level: n/a
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
+    @pytest.mark.parametrize("use_all", (True, False))
     @pytest.mark.parametrize(
         "notices,notice_status",
         (
@@ -69,13 +149,14 @@ class TestActionStatus:
         m_get_avail_resources,
         notices,
         notice_status,
+        use_all,
         capsys,
         FakeConfig,
     ):
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("notices", notices)
-        assert 0 == action_status(mock.MagicMock(), cfg)
+        assert 0 == action_status(mock.MagicMock(all=use_all), cfg)
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
         printable_stdout = capsys.readouterr()[0].replace(" " * 17, " " * 8)
@@ -86,10 +167,12 @@ class TestActionStatus:
         # a specific test that the correct one is used in
         # test_unicode_dash_replacement_when_unprintable
         expected_dash = "-"
+        status_tmpl = ATTACHED_STATUS if use_all else ATTACHED_STATUS_NOBETA
+
         if sys.stdout.encoding and "UTF-8" in sys.stdout.encoding.upper():
             expected_dash = "\u2014"
         assert (
-            ATTACHED_STATUS.format(dash=expected_dash, notices=notice_status)
+            status_tmpl.format(dash=expected_dash, notices=notice_status)
             == printable_stdout
         )
 
@@ -99,7 +182,7 @@ class TestActionStatus:
         """Check that unattached status is emitted to console"""
         cfg = FakeConfig()
 
-        assert 0 == action_status(mock.MagicMock(), cfg)
+        assert 0 == action_status(mock.MagicMock(all=False), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
     @mock.patch("uaclient.util.subp")
@@ -124,23 +207,25 @@ class TestActionStatus:
 
         m_sleep.side_effect = fake_sleep
 
-        assert 0 == action_status(mock.MagicMock(), cfg)
+        assert 0 == action_status(mock.MagicMock(all=False), cfg)
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @pytest.mark.parametrize("use_all", (True, False))
     @mock.patch(M_PATH + "util.should_reboot", return_value=False)
     def test_unattached_json(
         self,
         m_getuid,
         m_get_avail_resources,
         m_should_reboot,
+        use_all,
         capsys,
         FakeConfig,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
-        args = mock.MagicMock(format="json")
+        args = mock.MagicMock(format="json", all=use_all)
         assert 0 == action_status(args, cfg)
 
         expected = {
@@ -165,6 +250,51 @@ class TestActionStatus:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @pytest.mark.parametrize("use_all", (True, False))
+    @mock.patch(M_PATH + "util.should_reboot", return_value=False)
+    def test_attached_json(
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        m_should_reboot,
+        use_all,
+        capsys,
+        FakeConfig,
+    ):
+        """Check that unattached status json output is emitted to console"""
+        cfg = FakeConfig.for_attached_machine()
+
+        args = mock.MagicMock(format="json", all=use_all)
+        assert 0 == action_status(args, cfg)
+
+        if use_all:
+            services = SERVICES_JSON_ALL
+        else:
+            services = [
+                svc
+                for svc in SERVICES_JSON_ALL
+                if svc["name"] not in BETA_SVC_NAMES
+            ]
+        expected = {
+            "_doc": (
+                "Content provided in json response is currently "
+                "considered Experimental and may change"
+            ),
+            "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
+            "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+            "attached": True,
+            "expires": "n/a",
+            "notices": [],
+            "origin": None,
+            "services": services,
+            "account": "test_account",
+            "account-id": "acct-1",
+            "subscription": "test_contract",
+            "subscription-id": "cid",
+            "techSupportLevel": "n/a",
+        }
+        assert expected == json.loads(capsys.readouterr()[0])
+
     def test_error_on_connectivity_errors(
         self, m_getuid, m_get_avail_resources, capsys, FakeConfig
     ):
@@ -176,7 +306,7 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         with pytest.raises(util.UrlError):
-            action_status(mock.MagicMock(), cfg)
+            action_status(mock.MagicMock(all=False), cfg)
 
     @pytest.mark.parametrize(
         "encoding,expected_dash",
@@ -196,7 +326,9 @@ class TestActionStatus:
         fake_stdout = io.TextIOWrapper(underlying_stdout, encoding=encoding)
 
         with mock.patch("sys.stdout", fake_stdout):
-            action_status(mock.MagicMock(), FakeConfig.for_attached_machine())
+            action_status(
+                mock.MagicMock(all=True), FakeConfig.for_attached_machine()
+            )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
         out = underlying_stdout.getvalue().decode(encoding)
