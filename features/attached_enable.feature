@@ -109,7 +109,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>` with sudo
+        When I run `apt install -y <infra-pkg>` with sudo, retrying exit [100]
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -137,8 +137,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             ESM Infra is already enabled.
             See: sudo ua status
             """
-        And I verify that running `apt install -y <pkg-version>` `with sudo` exits `0`
-        When I run `apt update` with sudo
+        When I run `apt install -y <pkg-version>` with sudo, retrying exit [100]
+        And I run `apt update` with sudo
         Then stdout matches regexp
         """
         \d+ of the updates (is|are) from UA Infra: ESM

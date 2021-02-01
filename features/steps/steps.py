@@ -103,6 +103,27 @@ def given_a_machine(context, series):
     print("--- instance ip: {}".format(context.instance.ip))
 
 
+@when("I run `{command}` {user_spec}, retrying exit [{exit_codes}]")
+def when_i_retry_run_command(context, command, user_spec, exit_codes):
+    when_i_run_command(context, command, user_spec, verify_return=False)
+    retries = [5, 5, 10]  # Sleep times to wait between retries
+    while str(context.process.returncode) in exit_codes.split(","):
+        try:
+            time.sleep(retries.pop(0))
+        except IndexError:  # no more timeouts
+            logging.warning(
+                "Exhausted retries waiting for exit codes: %s", exit_codes
+            )
+            break
+        print(
+            "--- Retrying on exit {exit_code}: {command}".format(
+                exit_code=context.process.returncode, command=command
+            )
+        )
+        when_i_run_command(context, command, user_spec, verify_return=False)
+    assert_that(context.process.returncode, equal_to(0))
+
+
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(context, command, user_spec, verify_return=True):
     prefix = get_command_prefix_for_user_spec(user_spec)
