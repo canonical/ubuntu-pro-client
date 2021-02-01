@@ -38,7 +38,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <apps-pkg>` with sudo
+        When I run `apt install -y <apps-pkg>` with sudo, retrying exit [100]
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -61,7 +61,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo, retrying exit [100]
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
@@ -138,7 +138,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo, retrying exit [100]
         When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
@@ -207,7 +207,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
    Scenario Outline: Attached FIPS upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I run `apt-get install lsof` with sudo
+        And I run `apt-get install lsof` with sudo, retrying exit [100]
         And I run `ua disable livepatch` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
