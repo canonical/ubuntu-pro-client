@@ -820,22 +820,22 @@ def get_parser():
 def action_status(args, cfg):
     if not cfg:
         cfg = config.UAConfig()
-    status = cfg.status()
+    show_beta = args.all if args else False
+    status = cfg.status(show_beta=show_beta)
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
     config_active = bool(status["configStatus"] == active_value)
     if args and args.wait and config_active:
         while status["configStatus"] == active_value:
             print(".", end="")
             time.sleep(1)
-            status = cfg.status()
+            status = cfg.status(show_beta=show_beta)
         print("")
     if args and args.format == "json":
         if status["expires"] != ua_status.UserFacingStatus.INAPPLICABLE.value:
             status["expires"] = str(status["expires"])
         print(json.dumps(status))
     else:
-        show_beta = args.all if args else False
-        output = ua_status.format_tabular(cfg.status(show_beta))
+        output = ua_status.format_tabular(status)
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
         # writing to a utf-8 output; see
         # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859
