@@ -100,6 +100,7 @@ def given_a_machine(context, series):
                 )
 
     context.add_cleanup(cleanup_instance)
+    print("--- instance ip: {}".format(context.instance.ip))
 
 
 @when("I run `{command}` {user_spec}")

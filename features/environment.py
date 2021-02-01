@@ -218,7 +218,7 @@ class UAClientBehaveConfig:
                 )
                 setattr(self, attr_name, None)
         timed_job_tag = datetime.datetime.utcnow().strftime(
-            "uaclient-ci-%m%d-"
+            "uaclient-ci-%m%d-%H%M-"
         )
         # Jenkinsfile provides us with UACLIENT_BEHAVE_JENKINS_BUILD_TAG
         job_suffix = os.environ.get("UACLIENT_BEHAVE_JENKINS_BUILD_TAG")
