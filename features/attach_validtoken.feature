@@ -6,7 +6,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get install -y <downrev_pkg>` with sudo
+        When I run `apt-get install -y <downrev_pkg>` with sudo, retrying exit [100]
         When I verify that running ` --assume-yes --beta` `with sudo` exits `1`
         And I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
         Then if `<release>` in `trusty` and stdout matches regexp:
