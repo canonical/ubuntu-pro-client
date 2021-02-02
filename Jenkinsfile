@@ -87,10 +87,8 @@ pipeline {
                         sh '''
                         set -x
                         dpkg-source -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         mkdir ${ARTIFACT_DIR}
-                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         '''
                     }
                 }
@@ -103,10 +101,8 @@ pipeline {
                         sh '''
                         set -x
                         dpkg-source -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         mkdir ${ARTIFACT_DIR}
-                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         '''
                     }
                 }
@@ -119,10 +115,8 @@ pipeline {
                         sh '''
                         set -x
                         dpkg-source -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         mkdir ${ARTIFACT_DIR}
-                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         '''
                     }
                 }
@@ -135,10 +129,8 @@ pipeline {
                         sh '''
                         set -x
                         dpkg-source -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         mkdir ${ARTIFACT_DIR}
-                        cp ./ubuntu-advantage-tools*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
                         '''
                     }
                 }
