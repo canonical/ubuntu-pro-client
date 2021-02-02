@@ -93,6 +93,8 @@ class UAClientBehaveConfig:
     :param debs_path:
         Location of the debs to be used when lauching a focal integration
         test. If that path is None, we will build those debs locally.
+    :param artifact_dir:
+        Location where test artifacts are emitted.
     """
 
     prefix = "UACLIENT_BEHAVE_"
@@ -117,6 +119,7 @@ class UAClientBehaveConfig:
         "private_key_name",
         "reuse_image",
         "debs_path",
+        "artifact_dir",
         "ppa",
         "ppa_keyid",
     ]
@@ -158,6 +161,7 @@ class UAClientBehaveConfig:
         contract_token: str = None,
         contract_token_staging: str = None,
         debs_path: str = None,
+        artifact_dir: str = None,
         ppa: str = DAILY_PPA,
         ppa_keyid: str = DAILY_PPA_KEYID,
         cmdline_tags: "List" = []
@@ -182,6 +186,7 @@ class UAClientBehaveConfig:
         self.reuse_image = reuse_image
         self.cmdline_tags = cmdline_tags
         self.debs_path = debs_path
+        self.artifact_dir = artifact_dir
         self.ppa = ppa
         self.ppa_keyid = ppa_keyid
         self.filter_series = set(
@@ -424,6 +429,55 @@ def before_scenario(context: Context, scenario: Scenario):
     reason = _should_skip_tags(context, scenario.effective_tags)
     if reason:
         scenario.skip(reason=reason)
+
+
+FAILURE_LOGS = ("/var/log/cloud-init.log", "/var/log/ubuntu-advantage.log")
+FAILURE_CMDS = {
+    "cloud-init.status": ["sudo", "cloud-init", "status", "--long"],
+    "status.json": ["sudo", "ua", "status", "--all", "--format=json"],
+    "journal.log": ["journalctl", "-b", "0"],
+    "systemctl-status-ua-auto-attach": [
+        "systemctl",
+        "status",
+        "ua-auto-attach.service",
+    ],
+    "systemctl-status-ua-reboot-cmds": [
+        "systemctl",
+        "status",
+        "ua-reboot-cmds.service",
+    ],
+}
+
+
+def after_step(context, step):
+    """Collect test artifacts in the event of failure."""
+    if step.status == "failed":
+        if hasattr(context, "instance"):
+            if context.config.artifact_dir:
+                artifacts_dir = context.config.artifact_dir
+            else:
+                artifacts_dir = "artifacts"
+            artifacts_dir = os.path.join(
+                artifacts_dir,
+                "{}_{}".format(os.path.basename(step.filename), step.line),
+            )
+            if not os.path.exists(artifacts_dir):
+                os.makedirs(artifacts_dir)
+            for log_file in FAILURE_LOGS:
+                try:
+                    context.instance.pull_file(log_file, artifacts_dir)
+                except RuntimeError:
+                    # File did not exist
+                    artifact_file = os.path.join(
+                        artifacts_dir, os.path.basename(log_file)
+                    )
+                    with open(artifact_file, "w") as stream:
+                        stream.write("")
+            for artifact_file, cmd in FAILURE_CMDS.items():
+                result = context.instance.execute(cmd)
+                artifact_file = os.path.join(artifacts_dir, artifact_file)
+                with open(artifact_file, "w") as stream:
+                    stream.write(result.stdout)
 
 
 def after_all(context):
