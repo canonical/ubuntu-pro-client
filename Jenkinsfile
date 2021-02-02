@@ -33,6 +33,7 @@ pipeline {
                 python3 -m venv $TMPDIR
                 . $TMPDIR/bin/activate
                 pip install tox  # for tox supporting --parallel--safe-build
+                dpkg-source -b .
                 '''
             }
         }
@@ -86,9 +87,10 @@ pipeline {
                     steps {
                         sh '''
                         set -x
-                        dpkg-source -b .
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~14.04 ../ubuntu-advantage-tools*.dsc
+                        cp ./ubuntu-advantage-tools*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
@@ -100,9 +102,10 @@ pipeline {
                     steps {
                         sh '''
                         set -x
-                        dpkg-source -b .
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~16.04 ../ubuntu-advantage-tools*.dsc
+                        cp ./ubuntu-advantage-tools*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
@@ -114,9 +117,10 @@ pipeline {
                     steps {
                         sh '''
                         set -x
-                        dpkg-source -b .
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~18.04 ../ubuntu-advantage-tools*.dsc
+                        cp ./ubuntu-advantage-tools*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
@@ -128,9 +132,10 @@ pipeline {
                     steps {
                         sh '''
                         set -x
-                        dpkg-source -b .
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --build-dir=${ARTIFACT_DIR} --no-run-lintian ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~20.04 ../ubuntu-advantage-tools*.dsc
+                        cp ./ubuntu-advantage-tools*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
