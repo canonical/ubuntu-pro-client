@@ -68,7 +68,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                 |
-           | trusty  | libgit2-0=0.19.0-2ubuntu0.4 |
+           | trusty  | libgit2-0=0.19.0-2          |
            | xenial  | libkrad0=1.13.2+dfsg-5      |
            | bionic  | libkrad0=1.16-2build1       |
            | focal   | hello=2.10-2ubuntu2         |
