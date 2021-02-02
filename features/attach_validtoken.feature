@@ -16,7 +16,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ update(s)? can be installed immediately.
         \d+ of these updates (is a|are) security update(s)?.
-
+        """
+        Then if `<release>` in `trusty` and stdout matches regexp:
+        """
         Enable UA Infrastructure ESM to receive \d+ additional security update(s)?.
         See https://ubuntu.com/advantage or run: sudo ua status
         """
@@ -52,7 +54,15 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Enabling default service esm-infra
         """
         When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
-        Then if `<release>` in `trusty or focal` and stdout matches regexp:
+        Then if `<release>` in `trusty` and stdout matches regexp:
+        """
+        UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
+
+        \d+ update(s)? can be installed immediately.
+        \d+ of these updates (is|are) (fixed|provided) through UA (Infra:|Infrastructure) ESM.
+        \d+ of these updates (is a|are) security update(s)?.
+        """
+        Then if `<release>` in `focal` and stdout matches regexp:
         """
         UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
 
