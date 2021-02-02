@@ -391,7 +391,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg`
         And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
         And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
-        When I run `apt-get purge ubuntu-advantage-tools -y` with sudo
+        When I run `apt-get purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
         Then stdout matches regexp:
         """
         Purging configuration files for ubuntu-advantage-tools
@@ -415,7 +415,7 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable esm-infra` with sudo
-        And I run `add-apt-repository ppa:ua-client/staging -y` with sudo
+        And I run `add-apt-repository ppa:ua-client/staging -y` with sudo, retrying exit [1]
         And I run `apt update` with sudo
         And I run `sed -i 's/ubuntu/ubun/' /etc/apt/sources.list.d/<ppa_file>.list` with sudo
         And I run `ua enable esm-infra` with sudo
