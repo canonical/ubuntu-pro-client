@@ -100,8 +100,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +n/a      +NIST-certified FIPS modules
-        fips-updates +yes      +n/a      +Uncertified security updates to FIPS modules
+        fips         +yes      +<fips_status>      +NIST-certified FIPS modules
+        fips-updates +yes      +<fips_status>      +Uncertified security updates to FIPS modules
         livepatch    +yes      +<lp_status>  +<lp_desc>
         """
         And stderr matches regexp:
@@ -110,11 +110,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | lp_desc                       |
-           | trusty  | n/a       | Available with the HWE kernel |
-           | xenial  | enabled   | Canonical Livepatch service   |
-           | bionic  | enabled   | Canonical Livepatch service   |
-           | focal   | enabled   | Canonical Livepatch service   |
+           | release | fips_status |lp_status | lp_desc                       |
+           | trusty  | n/a         |n/a       | Available with the HWE kernel |
+           | xenial  | disabled    |enabled   | Canonical Livepatch service   |
+           | bionic  | disabled    |enabled   | Canonical Livepatch service   |
+           | focal   | n/a         |enabled   | Canonical Livepatch service   |
 
     @series.all
     @uses.config.machine_type.azure.generic
