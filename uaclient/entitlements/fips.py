@@ -1,3 +1,5 @@
+import os
+
 from itertools import groupby
 
 from uaclient import apt
@@ -18,6 +20,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     repo_pin_priority = 1001
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
+    FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
 
     """
     Dictionary of conditional packages to be installed when
@@ -163,9 +166,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
         if super_status != status.ApplicationStatus.ENABLED:
             return super_status, super_msg
-        running_kernel = util.get_platform_info()["kernel"]
-        if running_kernel.endswith("-fips"):
-            return super_status, super_msg
+
+        if os.path.exists(self.FIPS_PROC_FILE):
+            if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
+                return super_status, super_msg
+            else:
+                return (
+                    status.ApplicationStatus.DISABLED,
+                    "{} is not set to 1".format(self.FIPS_PROC_FILE),
+                )
+
         return (
             status.ApplicationStatus.ENABLED,
             "Reboot to FIPS kernel required",
