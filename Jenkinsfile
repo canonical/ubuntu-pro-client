@@ -224,10 +224,14 @@ pipeline {
 
                     junit "pytest_results.xml"
                     junit "reports/*.xml"
-                    archiveArtifacts "/tmp/${BUILD_TAG}/artifacts/**/*"
                 } catch (Exception e) {
                     echo e.toString()
                     currentBuild.result = 'UNSTABLE'
+                }
+                try {
+                    archiveArtifacts "/tmp/${BUILD_TAG}/artifacts/**/*"
+                } catch (Exception e) {
+                    echo "No integration test artifacts found. Presume success."
                 }
             }
         }
