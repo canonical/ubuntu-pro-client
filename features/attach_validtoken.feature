@@ -205,12 +205,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -223,6 +218,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
@@ -284,12 +284,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -302,6 +297,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
