@@ -107,12 +107,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -125,6 +120,11 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
@@ -178,12 +178,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             A reboot is required to complete disable operation
             """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -196,6 +191,11 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                                        |
