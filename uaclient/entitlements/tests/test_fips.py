@@ -330,6 +330,8 @@ class TestFIPSEntitlementEnable:
 
         assert 1 == m_remove_apt_config.call_count
 
+    @mock.patch("uaclient.entitlements.fips.get_cloud_type", return_value="")
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
@@ -340,18 +342,22 @@ class TestFIPSEntitlementEnable:
         m_handle_message_op,
         m_prompt,
         m_is_config_value_true,
+        m_platform_info,
+        m_get_cloud_type,
         entitlement,
     ):
         m_handle_message_op.return_value = True
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
+        m_platform_info.return_value = {"series": "test"}
 
         with mock.patch(
             "{}.application_status".format(base_path)
         ) as m_livepatch:
             with mock.patch.object(
-                entitlement, "_prevent_fips_on_xenial_cloud_instances"
-            ) as m_prevent_xenial_on_cloud:
-                m_prevent_xenial_on_cloud.return_value = False
+                entitlement,
+                "applicability_status",
+                return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
+            ):
                 m_livepatch.return_value = (
                     status.ApplicationStatus.ENABLED,
                     "",
@@ -378,9 +384,9 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_fips_update:
             with mock.patch.object(
-                fips_entitlement, "_prevent_fips_on_xenial_cloud_instances"
-            ) as m_prevent_xenial_on_cloud:
-                m_prevent_xenial_on_cloud.return_value = False
+                fips_entitlement, "_allow_fips_on_cloud_instance"
+            ) as m_allow_fips_on_cloud:
+                m_allow_fips_on_cloud.return_value = True
                 m_fips_update.return_value = (
                     status.ApplicationStatus.ENABLED,
                     "",
@@ -392,33 +398,72 @@ class TestFIPSEntitlementEnable:
         expected_msg = "Cannot enable FIPS when FIPS Updates is enabled"
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
+    @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_on_xenial_cloud_instance(
-        self, m_is_container, m_handle_message_op, m_cloud_type, entitlement
+        self,
+        m_is_container,
+        m_handle_message_op,
+        m_cloud_type,
+        m_platform_info,
+        entitlement,
     ):
         m_handle_message_op.return_value = True
         m_cloud_type.return_value = "azure"
+        m_platform_info.return_value = {"series": "xenial"}
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
 
         with mock.patch(
             "{}.application_status".format(base_path)
         ) as m_livepatch:
-            with mock.patch.object(
-                entitlement, "_prevent_fips_on_xenial_cloud_instances"
-            ) as m_prevent_xenial_on_cloud:
-                m_prevent_xenial_on_cloud.return_value = True
-                m_livepatch.return_value = (
-                    status.ApplicationStatus.DISABLED,
-                    "",
-                )
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    entitlement.enable()
+            m_livepatch.return_value = (status.ApplicationStatus.DISABLED, "")
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                entitlement.enable()
 
         expected_msg = """\
         Ubuntu Xenial does not provide an Azure optimized FIPS kernel"""
+        assert expected_msg.strip() in fake_stdout.getvalue().strip()
+
+    @mock.patch("uaclient.util.get_platform_info")
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
+    @mock.patch("uaclient.entitlements.fips.get_cloud_type")
+    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.is_container", return_value=False)
+    def test_enable_fails_when_on_gcp_instance_with_default_fips(
+        self,
+        m_is_container,
+        m_handle_message_op,
+        m_get_cloud_type,
+        m_is_config_value_true,
+        m_platform_info,
+        entitlement,
+    ):
+        m_handle_message_op.return_value = True
+        m_get_cloud_type.return_value = "gce"
+        m_platform_info.return_value = {"series": "test"}
+
+        ent_name = entitlement.name
+        fips_cls_name = "FIPS" if ent_name == "fips" else "FIPSUpdates"
+        base_path = "uaclient.entitlements.fips.{}Entitlement".format(
+            fips_cls_name
+        )
+
+        with mock.patch(
+            "{}.application_status".format(base_path)
+        ) as m_fips_status:
+            m_fips_status.return_value = (
+                status.ApplicationStatus.DISABLED,
+                "",
+            )
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                entitlement.enable()
+
+        expected_msg = """\
+        Ubuntu Test does not provide a GCP optimized FIPS kernel"""
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
@@ -426,35 +471,72 @@ class TestFIPSEntitlementEnable:
     @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
-    @mock.patch("uaclient.util.get_platform_info")
-    @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.util.is_config_value_true")
     def test_prevent_fips_on_xenial_cloud_instances(
         self,
         m_is_config_value_true,
-        m_get_cloud_type,
-        m_platform_info,
         series,
         cloud_id,
         allow_xenial_fips_on_cloud,
         entitlement,
     ):
-        m_is_config_value_true.return_value = allow_xenial_fips_on_cloud
-        m_get_cloud_type.return_value = cloud_id
-        m_platform_info.return_value = {"series": series}
+        def mock_config_value(config, path_to_value):
+            if "allow_xenial_fips_on_cloud" in path_to_value:
+                return allow_xenial_fips_on_cloud
 
-        actual_value = entitlement._prevent_fips_on_xenial_cloud_instances()
+            return False
+
+        m_is_config_value_true.side_effect = mock_config_value
+        actual_value = entitlement._allow_fips_on_cloud_instance(
+            cloud_id=cloud_id, series=series
+        )
+
+        if cloud_id == "aws" or cloud_id is None:
+            assert actual_value
+        elif cloud_id == "gce":
+            assert not actual_value
+        elif all([allow_xenial_fips_on_cloud, series == "xenial"]):
+            assert actual_value
+        elif series == "xenial":
+            assert not actual_value
+        else:
+            assert actual_value
+
+    @pytest.mark.parametrize(
+        "cfg_allow_default_fips_metapkg_on_gcp", ((True), (False))
+    )
+    @pytest.mark.parametrize(
+        "additional_pkgs", (["ubuntu-fips"], ["ubuntu-gcp-fips", "test"])
+    )
+    @pytest.mark.parametrize(
+        "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
+    )
+    @mock.patch("uaclient.util.is_config_value_true")
+    def test_prevent_default_fips_on_gcp_cloud(
+        self,
+        m_is_config_value,
+        series,
+        additional_pkgs,
+        cfg_allow_default_fips_metapkg_on_gcp,
+        fips_entitlement_factory,
+    ):
+        m_is_config_value.return_value = cfg_allow_default_fips_metapkg_on_gcp
+        entitlement = fips_entitlement_factory(
+            additional_packages=additional_pkgs
+        )
+        actual_value = entitlement._allow_fips_on_cloud_instance(
+            cloud_id="gce", series=series
+        )
 
         if all(
             [
-                not allow_xenial_fips_on_cloud,
-                cloud_id in ("azure", "gce"),
-                series == "xenial",
+                not cfg_allow_default_fips_metapkg_on_gcp,
+                "ubuntu-gcp-fips" not in additional_pkgs,
             ]
         ):
-            assert actual_value
-        else:
             assert not actual_value
+        else:
+            assert actual_value
 
 
 class TestFIPSEntitlementRemovePackages:

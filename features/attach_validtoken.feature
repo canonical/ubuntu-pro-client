@@ -312,18 +312,21 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | fips          |
            | fips-updates  |
 
+    @series.bionic
     @series.xenial
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
-        Given a `xenial` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Attached enable of fips services in an ubuntu gcp vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
         And stdout matches regexp:
         """
-        Ubuntu Xenial does not provide a GCP optimized FIPS kernel
+        Ubuntu <release_title> does not provide a GCP optimized FIPS kernel
         """
 
         Examples: fips
-           | fips_service  |
-           | fips          |
-           | fips-updates  |
+            | release | release_title | fips_service  |
+            | xenial  | Xenial        | fips          |
+            | xenial  | Xenial        | fips-updates  |
+            | bionic  | Bionic        | fips          |
+            | bionic  | Bionic        | fips-updates  |

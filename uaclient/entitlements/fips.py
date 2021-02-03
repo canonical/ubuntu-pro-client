@@ -45,26 +45,45 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
     _incompatible_services = ["livepatch"]
 
-    def _prevent_fips_on_xenial_cloud_instances(self):
-        cfg_allow_xenial_fips_on_cloud = util.is_config_value_true(
-            config=self.cfg.cfg,
-            path_to_value="features.allow_xenial_fips_on_cloud",
-        )
+    def _allow_fips_on_cloud_instance(
+        self, series: str, cloud_id: str
+    ) -> bool:
+        """Return False when FIPS is allowed on this cloud and series.
 
-        if cfg_allow_xenial_fips_on_cloud:
-            return False
+        On Xenial Azure and GCP there will be no cloud-optimized kernel so
+        block default ubuntu-fips enable. This can be overridden in
+        config with features.allow_xenial_fips_on_cloud.
 
-        series = util.get_platform_info()["series"]
+        GCP doesn't yet have a cloud-optimized kernel or metapackage so
+        block enable of fips if the contract does not specify ubuntu-gcp-fips.
+        This also can be overridden in config with
+        features.allow_default_fips_metapackage_on_gcp.
 
-        if series != "xenial":
-            return False
 
-        cloud_id = get_cloud_type()
+        :return: False when this cloud, series or config override allows FIPS.
+        """
+        if cloud_id not in ("azure", "gce"):
+            return True
 
-        if cloud_id is None:
-            return False
+        if cloud_id == "gce":
+            if util.is_config_value_true(
+                config=self.cfg.cfg,
+                path_to_value="features.allow_default_fips_metapackage_on_gcp",
+            ):
+                return True
+            return bool("ubuntu-gcp-fips" in super().packages)
 
-        return bool(cloud_id in ("azure", "gce"))
+        # Azure FIPS cloud support
+        if series == "xenial":
+            if util.is_config_value_true(
+                config=self.cfg.cfg,
+                path_to_value="features.allow_xenial_fips_on_cloud",
+            ):
+                return True
+            else:
+                return False
+
+        return True
 
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
@@ -72,6 +91,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         cloud_titles = {"azure": "an Azure", "gce": "a GCP"}
         cloud_id = get_cloud_type() or ""
 
+        series = util.get_platform_info().get("series", "")
+        blocked_message = status.MESSAGE_FIPS_BLOCK_ON_CLOUD.format(
+            series=series.title(), cloud=cloud_titles.get(cloud_id)
+        )
         return (
             (
                 "Cannot install {} on a container".format(self.title),
@@ -79,11 +102,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 False,
             ),
             (
-                status.MESSAGE_FIPS_BLOCK_ON_CLOUD.format(
-                    service=self.title, cloud=cloud_titles.get(cloud_id)
-                ),
-                lambda: self._prevent_fips_on_xenial_cloud_instances(),
-                False,
+                blocked_message,
+                lambda: self._allow_fips_on_cloud_instance(series, cloud_id),
+                True,
             ),
         )
 
