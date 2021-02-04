@@ -118,6 +118,38 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
     @series.all
     @uses.config.machine_type.azure.generic
+    Scenario Outline: Attach command in a ubuntu lxd container
+       Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+        """
+        ESM Infra enabled
+        """
+        And stdout matches regexp:
+        """
+        This machine is now attached to
+        """
+        And stdout matches regexp:
+        """
+        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+        fips         +yes      +<fips_status> +NIST-certified FIPS modules
+        fips-updates +yes      +<fips_status> +Uncertified security updates to FIPS modules
+        livepatch    +yes      +<lp_status>  +Canonical Livepatch service
+        """
+        And stderr matches regexp:
+        """
+        Enabling default service esm-infra
+        """
+
+        Examples: ubuntu release livepatch status
+           | release | lp_status | fips_status |
+           | trusty  | disabled  | n/a         |
+           | xenial  | n/a       | n/a         |
+           | bionic  | n/a       | disabled    |
+           | focal   | n/a       | n/a         |
+
+    @series.all
     @uses.config.machine_type.gcp.generic
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -146,8 +178,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status |
            | trusty  | disabled  | n/a         |
-           | xenial  | n/a       | disabled    |
-           | bionic  | n/a       | disabled    |
+           | xenial  | n/a       | n/a         |
+           | bionic  | n/a       | n/a         |
            | focal   | n/a       | n/a         |
 
     @series.bionic
