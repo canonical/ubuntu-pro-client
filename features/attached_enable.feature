@@ -244,8 +244,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +n/a      +NIST-certified FIPS modules
-        fips-updates +yes      +n/a      +Uncertified security updates to FIPS modules
+        fips         +yes      +disabled +NIST-certified FIPS modules
+        fips-updates +yes      +disabled +Uncertified security updates to FIPS modules
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
@@ -407,8 +407,10 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
             """
-            Updating package lists
             ESM Infra enabled
+            """
+        And stdout matches regexp:
+            """
             Installing canonical-livepatch snap
             Canonical livepatch enabled
             """
