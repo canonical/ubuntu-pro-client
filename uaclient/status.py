@@ -187,6 +187,10 @@ MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED = (
 MESSAGE_FIPS_REBOOT_REQUIRED = (
     "FIPS support requires system reboot to complete configuration."
 )
+NOTICE_FIPS_MANUAL_DISABLE_URL = """\
+FIPS kernel is running in a disabled state.
+  To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
+"""
 PROMPT_FIPS_PRE_ENABLE = (
     """\
 Installation of additional packages are required to make this system FIPS

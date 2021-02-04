@@ -170,7 +170,7 @@ class UAConfig:
                 notices.append((notice_label, notice_descr))
         if notices:
             self.write_cache("notices", notices)
-        else:
+        elif os.path.exists(self.data_path("notices")):
             util.remove_file(self.data_path("notices"))
 
     @property
