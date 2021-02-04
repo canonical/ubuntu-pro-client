@@ -635,38 +635,36 @@ class TestFIPSEntitlementApplicationStatus:
 
         assert (super_application_status, msg) == application_status
 
-    @pytest.mark.parametrize(
-        "platform_info,expected_status,expected_msg",
-        (
-            (
-                {"kernel": "4.4.0-1002-fips"},
-                status.ApplicationStatus.ENABLED,
-                None,
-            ),
-            (
-                {"kernel": "4.4.0-148-generic"},
-                status.ApplicationStatus.ENABLED,
-                "Reboot to FIPS kernel required",
-            ),
-        ),
-    )
-    def test_kernels_are_used_to_determine_application_status_message(
-        self, entitlement, platform_info, expected_status, expected_msg
+    @pytest.mark.parametrize("path_exists", ((True), (False)))
+    @pytest.mark.parametrize("proc_content", (("0"), ("1")))
+    @mock.patch("os.path.exists")
+    @mock.patch("uaclient.util.load_file")
+    def test_proc_file_is_used_to_determine_application_status_message(
+        self,
+        m_load_file,
+        m_path_exists,
+        proc_content,
+        path_exists,
+        entitlement,
     ):
+        m_path_exists.return_value = path_exists
+        m_load_file.return_value = proc_content
         msg = "sure is some status here"
         with mock.patch(
             M_PATH + "repo.RepoEntitlement.application_status",
             return_value=(status.ApplicationStatus.ENABLED, msg),
         ):
-            with mock.patch(
-                M_PATH + "util.get_platform_info", return_value=platform_info
-            ):
-                application_status = entitlement.application_status()
+            application_status = entitlement.application_status()
 
-        if expected_msg is None:
-            # None indicates that we expect the super-class message to be
-            # passed through
+        expected_status = status.ApplicationStatus.ENABLED
+        if path_exists and proc_content == "1":
             expected_msg = msg
+        elif path_exists and proc_content == "0":
+            expected_msg = "/proc/sys/crypto/fips_enabled is not set to 1"
+            expected_status = status.ApplicationStatus.DISABLED
+        else:
+            expected_msg = "Reboot to FIPS kernel required"
+
         assert (expected_status, expected_msg) == application_status
 
     def test_fips_does_not_show_enabled_when_fips_updates_is(

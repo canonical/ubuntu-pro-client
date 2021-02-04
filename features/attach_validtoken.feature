@@ -100,8 +100,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +n/a      +NIST-certified FIPS modules
-        fips-updates +yes      +n/a      +Uncertified security updates to FIPS modules
+        fips         +yes      +<fips_status>      +NIST-certified FIPS modules
+        fips-updates +yes      +<fips_status>      +Uncertified security updates to FIPS modules
         livepatch    +yes      +<lp_status>  +<lp_desc>
         """
         And stderr matches regexp:
@@ -110,11 +110,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | lp_desc                       |
-           | trusty  | n/a       | Available with the HWE kernel |
-           | xenial  | enabled   | Canonical Livepatch service   |
-           | bionic  | enabled   | Canonical Livepatch service   |
-           | focal   | enabled   | Canonical Livepatch service   |
+           | release | fips_status |lp_status | lp_desc                       |
+           | trusty  | n/a         |n/a       | Available with the HWE kernel |
+           | xenial  | disabled    |enabled   | Canonical Livepatch service   |
+           | bionic  | disabled    |enabled   | Canonical Livepatch service   |
+           | focal   | n/a         |enabled   | Canonical Livepatch service   |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -205,12 +205,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -223,6 +218,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
@@ -284,12 +284,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         .*Installed: \(none\)
         """
         When I reboot the `<release>` machine
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        0
-        """
-        And I verify that `openssh-server` installed version matches regexp `fips`
+        Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
         And I verify that `strongswan` installed version matches regexp `fips`
         And I verify that `openssh-server-hmac` installed version matches regexp `fips`
@@ -302,6 +297,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         openssh-server was already not hold.
         strongswan was already not hold.
         """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                        |
