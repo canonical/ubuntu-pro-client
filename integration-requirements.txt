@@ -1,7 +1,8 @@
 # Integration testing
 behave
 PyHamcrest
-git+https://github.com/canonical/pycloudlib.git
+pycloudlib @ git+https://github.com/canonical/pycloudlib.git@1ac9d4c82fdfd5cb1407f70b8a2b17e02953569d
+
 
 # Simplestreams is not found on PyPi so pull from repo directly
 git+https://git.launchpad.net/simplestreams@21c5bba2a5413c51e6b9131fc450e96f6b46090d
