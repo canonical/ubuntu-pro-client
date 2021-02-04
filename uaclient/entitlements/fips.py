@@ -164,18 +164,21 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
         super_status, super_msg = super().application_status()
-        if super_status != status.ApplicationStatus.ENABLED:
-            return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
+                self.cfg.remove_notice(
+                    "", status.NOTICE_FIPS_MANUAL_DISABLE_URL
+                )
                 return super_status, super_msg
             else:
+                self.cfg.add_notice("", status.NOTICE_FIPS_MANUAL_DISABLE_URL)
                 return (
                     status.ApplicationStatus.DISABLED,
                     "{} is not set to 1".format(self.FIPS_PROC_FILE),
                 )
-
+        if super_status != status.ApplicationStatus.ENABLED:
+            return super_status, super_msg
         return (
             status.ApplicationStatus.ENABLED,
             "Reboot to FIPS kernel required",
