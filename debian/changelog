@@ -1,3 +1,37 @@
+ubuntu-advantage-tools (26.0~21.04.1) hirsute; urgency=medium
+
+  * New upstream release 26.0:
+    - auto-attach: systemd unit to run before ua-reboot-cmds.service
+    - config: remove_notice should remove notices.json when empty
+    - fips:
+      + add notice if running a deactivated FIPS kernel (GH: #1348)
+      + block enabling FIPS on clouds using Xenial
+      + block enabling fips on GCP instances
+      + check /proc/sys/crypto/fips_enable to see if fips is enabled
+      + override fips metapackage when on bionic cloud
+      + update metapackage override logic on fips
+    - notices: clear lock file and notice when encountering any exception
+      (GH: #1326)
+    - reboot_cmds: retry on lock held errors due to pro auto-attach
+    - services: allow uaclient to disable services during enable
+    - status: include beta services in json formatted output with --all
+      (GH: #1341)
+    - tests:
+      + add FIPS tests to AWS and Azure bionic images
+      + add GCP pro test for focal machine
+      + add after_step collection of artifacts on failure
+      + remove proc file check after disabling fips
+      + pro: block auto-attach with cloud-config bootcmd
+      + add validation of systemd unit ua-reboot-cmds.service
+      + test enabling fips-updates when fips is enabled
+    - jenkins:
+      - add deb build stage to assert package builds
+      - use series-specific sbuild --build-dir avoid races
+      - use --append-to-version for each sbuild run to avoid races
+      - presume success when no integration artifacts created
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 04 Feb 2021 16:34:56 -0300
+
 ubuntu-advantage-tools (26.0~21.04.1~beta) hirsute; urgency=medium
 
   * d/rules:
@@ -148,7 +182,7 @@ ubuntu-advantage-tools (25.0~20.10.1~beta) groovy; urgency=medium
       machine-token
     - Support ESM Apps [Brian Murray] (GH: #930)
     - Do not enable services if blocking services is active (GH: #1029)
-    - contract: handle 401 on invalid token, 403 on expired
+    - contract: handle 401 on invalid token, 403 on expired (GH: #1335)
     - Hide beta services from default status output and enable/disable
       operations (GH: #1079) (GH: #1091)
     - fips: force apt noninteractive prompts during package installs
