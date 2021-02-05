@@ -658,7 +658,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     current_iid = identity.get_instance_id()
     if cfg.is_attached:
         prev_iid = cfg.read_cache("instance-id")
-        if current_iid == prev_iid:
+        if str(current_iid) == str(prev_iid):
             raise exceptions.AlreadyAttachedError(cfg)
         print("Re-attaching Ubuntu Advantage subscription on new instance")
         if _detach(cfg, assume_yes=True) != 0:
