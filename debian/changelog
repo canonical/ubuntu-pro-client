@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (26.0.1~21.04.1) hirsute; urgency=medium
+
+  * auto-attach: fix comparing numeric iid
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 05 Feb 2021 14:10:09 -0300
+
 ubuntu-advantage-tools (26.0~21.04.1) hirsute; urgency=medium
 
   * New upstream release 26.0:
