@@ -229,6 +229,40 @@ class TestGetContractTokenFromCloudIdentity:
             )
         assert status.MESSAGE_DETACH_AUTOMATION_FAILURE == str(err.value)
 
+    @pytest.mark.parametrize("iid_curr, iid_old", (("123", 123), (123, "123")))
+    @mock.patch(M_ID_PATH + "get_instance_id")
+    @mock.patch(
+        M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"
+    )
+    @mock.patch(M_ID_PATH + "cloud_instance_factory")
+    def test_numeric_iid_does_not_trigger_auto_attach(
+        self,
+        cloud_instance_factory,
+        request_auto_attach_contract_token,
+        get_instance_id,
+        iid_curr,
+        iid_old,
+        FakeConfig,
+    ):
+        """When instance-id changes since last attach, call detach."""
+
+        get_instance_id.return_value = iid_curr
+        cloud_instance_factory.side_effect = self.fake_instance_factory
+
+        def fake_contract_token(instance):
+            return {"contractToken": "myPKCS7-token"}
+
+        request_auto_attach_contract_token.side_effect = fake_contract_token
+
+        account_name = "test_account"
+        cfg = FakeConfig.for_attached_machine(account_name=account_name)
+        # persist old instance-id value
+        cfg.write_cache("instance-id", iid_old)
+
+        with pytest.raises(AlreadyAttachedError):
+            _get_contract_token_from_cloud_identity(cfg)
+        assert str(iid_curr) == str(cfg.read_cache("instance-id"))
+
 
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
