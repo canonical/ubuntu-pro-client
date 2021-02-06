@@ -192,6 +192,20 @@ def assert_not_attached(f):
     return new_f
 
 
+def clean_parser(parser):
+    """Build or extend an arg parser for clean subcommand."""
+    parser.prog = "clean"
+    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser._optionals.title = "Flags"
+    parser.add_argument(
+        "--logs",
+        action="store_true",
+        dest="logs",
+        help="remove existing /var/log/ubuntu-advantage.log",
+    )
+    return parser
+
+
 def auto_attach_parser(parser):
     """Build or extend an arg parser for auto-attach subcommand."""
     parser.prog = "auto-attach"
@@ -683,6 +697,16 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
 
 @assert_root
+@assert_lock_file("ua clean")
+def action_clean(args, cfg):
+    """Remove all UA client artifacts, and optionally log files"""
+    cfg.delete_cache()
+    if args.logs:
+        if os.path.exists(cfg.log_file):
+            util.remove_file(cfg.log_file)
+
+
+@assert_root
 @assert_lock_file("ua auto-attach")
 def action_auto_attach(args, cfg):
     disable_auto_attach = util.is_config_value_true(
@@ -807,6 +831,12 @@ def get_parser():
     parser_version = subparsers.add_parser(
         "version", help="show version of {}".format(NAME)
     )
+    parser_clean = subparsers.add_parser(
+        "clean",
+        help="remove any Ubuntu Advantage artifacts or logs on the system",
+    )
+    clean_parser(parser_clean)
+    parser_clean.set_defaults(action=action_clean)
     parser_version.set_defaults(action=print_version)
     parser_help = subparsers.add_parser(
         "help", help="show this help message and exit"

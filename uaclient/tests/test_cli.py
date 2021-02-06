@@ -72,6 +72,20 @@ Client to manage Ubuntu Advantage services on a machine.
 """
 )
 
+HELP_COMMANDS = """\
+    status     current status of all Ubuntu Advantage services
+    attach     attach this machine to an Ubuntu Advantage subscription
+    auto-attach
+               automatically attach Ubuntu Advantage on supported platforms
+    detach     remove this machine from an Ubuntu Advantage subscription
+    enable     enable a specific Ubuntu Advantage service on this machine
+    disable    disable a specific Ubuntu Advantage service on this machine
+    refresh    refresh Ubuntu Advantage services from contracts server
+    version    show version of ua
+    clean      remove any Ubuntu Advantage artifacts or logs on the system
+    help       show this help message and exit
+"""
+
 
 @pytest.fixture(params=["direct", "--help", "ua help", "ua help --all"])
 def get_help(request, capsys):
@@ -141,6 +155,7 @@ class TestCLIParser:
             assert SERVICES_WRAPPED_HELP in out
         else:
             assert ALL_SERVICES_WRAPPED_HELP in out
+        assert HELP_COMMANDS in out
 
     @pytest.mark.parametrize(
         "out_format, expected_return",
