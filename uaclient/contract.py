@@ -165,12 +165,19 @@ class UAContractClient(serviceclient.UAServiceClient):
         self, machine_token: str, contract_id: str, machine_id: str = None
     ) -> "Dict":
         """Report the attached machine should be detached from the contract."""
-        return self._request_machine_token_update(
-            machine_token=machine_token,
-            contract_id=contract_id,
-            machine_id=machine_id,
-            detach=True,
-        )
+        try:
+            return self._request_machine_token_update(
+                machine_token=machine_token,
+                contract_id=contract_id,
+                machine_id=machine_id,
+                detach=True,
+            )
+        except ContractAPIError as e:
+            if detach and e.code == 403 and "token invalid for machine" in e:
+                logging.debug("Found new machine-id ignoring 403 on DELETE call")
+                return {}
+            else:
+                raise
 
     def _request_machine_token_update(
         self,
