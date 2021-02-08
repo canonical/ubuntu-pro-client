@@ -92,6 +92,7 @@ def given_a_machine(context, series):
                 )
 
     context.add_cleanup(cleanup_instance)
+    logging.warning("--- instance ip: {}".format(context.instance.ip))
     print("--- instance ip: {}".format(context.instance.ip))
 
 
