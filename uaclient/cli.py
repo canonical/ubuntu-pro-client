@@ -226,15 +226,21 @@ def attach_parser(parser):
 def fix_parser(parser):
     """Build or extend an arg parser for fix subcommand."""
     parser.usage = USAGE_TMPL.format(
-        name=NAME, command="fix <CVE-yyyy-nnnn>|<USN-nnnn>"
+        name=NAME, command="fix --beta <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
     )
     parser.prog = "fix"
     parser._optionals.title = "Flags"
     parser.add_argument(
+        "--beta",
+        required=True,
+        action="store_true",
+        help="allow using this beta command",
+    )
+    parser.add_argument(
         "security_issue",
         help=(
             "Security vulnerability ID to inspect and resolve on this system."
-            " Format: CVE-yyyy-nnnn or USN-nnnn"
+            " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
         ),
     )
     return parser
@@ -242,9 +248,8 @@ def fix_parser(parser):
 
 def action_fix(args, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
-        # TODO(review of error messaging to reduce output)
         raise exceptions.UserFacingError(
-            "Invalid issue format issue: {}".format(args.security_issue)
+            "Invalid issue format: {}".format(args.security_issue)
         )
     security.fix_security_issue_id(cfg, args.security_issue)
 
@@ -832,7 +837,7 @@ def get_parser():
         help="refresh Ubuntu Advantage services from contracts server",
     )
     parser_fix = subparsers.add_parser(
-        "fix", help="fix CVE and USN security issues on this machine"
+        "fix"  # BETA omit help string to hide subcommand from help
     )
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
