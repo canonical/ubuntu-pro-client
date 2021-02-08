@@ -1,3 +1,4 @@
+artifacts/*
 *debhelper*
 debian/ubuntu-advantage-tools/
 debian/ubuntu-advantage-tools.substvars
