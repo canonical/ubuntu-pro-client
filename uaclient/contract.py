@@ -165,6 +165,17 @@ class UAContractClient(serviceclient.UAServiceClient):
         self, machine_token: str, contract_id: str, machine_id: str = None
     ) -> "Dict":
         """Report the attached machine should be detached from the contract."""
+        curr_machine_id = self._get_platform_data(machine_id=None).get(
+            "machineId", ""
+        )
+        past_machine_id = self.cfg.read_cache("machine-id")
+
+        if str(curr_machine_id) != str(past_machine_id):
+            logging.debug(
+                "Found new machine-id. Do not call detach on contract backend"
+            )
+            return {}
+
         return self._request_machine_token_update(
             machine_token=machine_token,
             contract_id=contract_id,
@@ -208,6 +219,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             response["expires"] = headers["expires"]
         if not detach:
             self.cfg.write_cache("machine-token", response)
+            self.cfg.write_cache("machine-id", data.get("machineId", ""))
         return response
 
     def _get_platform_data(self, machine_id):
