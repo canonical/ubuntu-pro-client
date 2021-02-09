@@ -356,6 +356,9 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I will see the following on stdout
             """
             One moment, checking your subscription first
+            """
+        And I will see the following on stderr
+            """
             Cannot enable FIPS when Livepatch is enabled
             """
 
