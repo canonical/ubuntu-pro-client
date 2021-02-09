@@ -27,7 +27,7 @@ pipeline {
     stages {
         stage ('Setup Dependencies') {
             environment {
-                PKG_VERSION = sh("dpkg-parsechangelog --show-field Version").trim()
+                PKG_VERSION = sh(returnStrdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
             }
             steps {
                 deleteDir()
