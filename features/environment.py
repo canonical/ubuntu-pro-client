@@ -31,10 +31,6 @@ bootcmd:
  - cp /usr/bin/ua /usr/bin/ua.orig
  - 'echo "#!/bin/sh\ndate >> /root/ua-calls\n" > /usr/bin/ua'
  - chmod 755 /usr/bin/ua
-"""
-
-USERDATA_BLOCK_AUTO_ATTACH_TESTS = """\
-#cloud-config
 write_files:
   - path: /etc/ubuntu-advantage/uaclient.conf
     content: |
