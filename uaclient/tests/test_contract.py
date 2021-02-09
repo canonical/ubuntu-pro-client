@@ -1,4 +1,5 @@
 import copy
+import logging
 import mock
 import pytest
 import socket
@@ -493,3 +494,43 @@ class TestRequestUpdatedContract:
             ),
         ]
         assert process_calls == process_entitlement_delta.call_args_list
+
+
+class TestDetachMachineFromContract:
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "curr_machine_id,past_machine_id",
+        (("123", "124"), (123, "124"), ("123", 124), ("123", "123")),
+    )
+    @mock.patch.object(UAContractClient, "_request_machine_token_update")
+    @mock.patch.object(UAContractClient, "_get_platform_data")
+    def test_do_not_make_make_detach_call_when_machine_id_is_different(
+        self,
+        m_platform_data,
+        m_request_machine_token_update,
+        curr_machine_id,
+        past_machine_id,
+        caplog_text,
+        FakeConfig,
+    ):
+        m_platform_data.return_value = {"machineId": curr_machine_id}
+        cfg = FakeConfig.for_attached_machine()
+        cfg.write_cache("machine-id", past_machine_id)
+        client = UAContractClient(cfg)
+
+        actual_value = client.detach_machine_from_contract(
+            machine_token="machine_token",
+            contract_id="contract_id",
+            machine_id="machine_id",
+        )
+
+        expected_msg = """\
+        Found new machine-id. Do not call detach on contract backend
+        """
+        if str(past_machine_id) != str(curr_machine_id):
+            assert actual_value == {}
+            assert m_request_machine_token_update.call_count == 0
+            assert expected_msg.strip() in caplog_text()
+        else:
+            assert m_request_machine_token_update.call_count == 1
+            assert expected_msg.strip() not in caplog_text()

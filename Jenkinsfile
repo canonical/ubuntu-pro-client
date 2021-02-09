@@ -81,6 +81,7 @@ pipeline {
             parallel {
                 stage ('Package build: 14.04') {
                     environment {
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "trusty"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
@@ -88,7 +89,7 @@ pipeline {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~14.04 ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~14.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
                         cp ./ubuntu-advantage-tools*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
@@ -96,6 +97,7 @@ pipeline {
                 }
                 stage ('Package build: 16.04') {
                     environment {
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "xenial"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
@@ -103,7 +105,7 @@ pipeline {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~16.04 ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~16.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
                         cp ./ubuntu-advantage-tools*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
@@ -111,6 +113,7 @@ pipeline {
                 }
                 stage ('Package build: 18.04') {
                     environment {
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "bionic"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
@@ -118,7 +121,7 @@ pipeline {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~18.04 ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~18.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
                         cp ./ubuntu-advantage-tools*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
@@ -126,6 +129,7 @@ pipeline {
                 }
                 stage ('Package build: 20.04') {
                     environment {
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "focal"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
@@ -133,7 +137,7 @@ pipeline {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~20.04 ../ubuntu-advantage-tools*.dsc
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~20.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
                         cp ./ubuntu-advantage-tools*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
