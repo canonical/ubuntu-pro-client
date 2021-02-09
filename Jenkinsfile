@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         TMPDIR = "/tmp/$BUILD_TAG/"
+        PKG_VERSION = sh("dpkg-parsechangelog --show-field Version")
         UACLIENT_BEHAVE_JENKINS_BUILD_TAG = "${BUILD_TAG}"
         UACLIENT_BEHAVE_JENKINS_CHANGE_ID = "${CHANGE_ID}"
         UACLIENT_BEHAVE_BUILD_PR=1
@@ -30,6 +31,8 @@ pipeline {
                 deleteDir()
                 checkout scm
                 sh '''
+                echo $PKG_VERSION CHAD
+                exit 1
                 python3 -m venv $TMPDIR
                 . $TMPDIR/bin/activate
                 pip install tox  # for tox supporting --parallel--safe-build
