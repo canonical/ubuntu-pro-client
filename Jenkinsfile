@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         TMPDIR = "/tmp/$BUILD_TAG/"
-        PKG_VERSION = sh("dpkg-parsechangelog --show-field Version")
         UACLIENT_BEHAVE_JENKINS_BUILD_TAG = "${BUILD_TAG}"
         UACLIENT_BEHAVE_JENKINS_CHANGE_ID = "${CHANGE_ID}"
         UACLIENT_BEHAVE_BUILD_PR=1
@@ -27,6 +26,9 @@ pipeline {
 
     stages {
         stage ('Setup Dependencies') {
+            environment {
+                PKG_VERSION = sh("dpkg-parsechangelog --show-field Version").trim()
+            }
             steps {
                 deleteDir()
                 checkout scm
