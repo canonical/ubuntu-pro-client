@@ -10,7 +10,7 @@ from urllib import error, request
 from urllib.parse import urlparse
 import uuid
 from contextlib import contextmanager
-from functools import wraps
+from functools import lru_cache, wraps
 from http.client import HTTPMessage  # noqa: F401
 
 from uaclient import exceptions
@@ -288,6 +288,7 @@ def get_dict_deltas(
     return deltas
 
 
+@lru_cache(maxsize=None)
 def get_machine_id(data_dir: str) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     # Generate, cache our own uuid if not present on the system
@@ -348,6 +349,7 @@ def get_platform_info() -> "Dict[str, str]":
     return platform_info
 
 
+@lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
     try:
@@ -385,6 +387,7 @@ def load_file(filename: str, decode: bool = True) -> str:
     return content.decode("utf-8")
 
 
+@lru_cache(maxsize=None)
 def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
     if not release_file:
         release_file = "/etc/os-release"
