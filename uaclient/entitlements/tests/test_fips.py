@@ -18,6 +18,7 @@ from uaclient import exceptions
 
 
 M_PATH = "uaclient.entitlements.fips."
+M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."
 M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 FIPS_ADDITIONAL_PACKAGES = ["ubuntu-fips"]
@@ -373,9 +374,17 @@ class TestFIPSEntitlementEnable:
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch(
+        M_LIVEPATCH_PATH + "application_status",
+        return_value=((status.ApplicationStatus.DISABLED, "")),
+    )
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_fips_update_service_is_enabled(
-        self, m_is_container, m_handle_message_op, entitlement_factory
+        self,
+        m_is_container,
+        m_livepatch,
+        m_handle_message_op,
+        entitlement_factory,
     ):
         m_handle_message_op.return_value = True
         fips_entitlement = entitlement_factory(FIPSEntitlement)
@@ -598,21 +607,6 @@ class TestFIPSEntitlementDisable:
                     assert entitlement.disable(True)
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
-
-    def test_disable_on_can_disable_true_removes_packages(
-        self,
-        _m_platform_info,
-        m_handle_message_operations,
-        entitlement,
-        tmpdir,
-    ):
-        """When can_disable, disable removes apt configuration"""
-        with mock.patch.object(entitlement, "can_disable", return_value=True):
-            with mock.patch.object(
-                entitlement, "remove_apt_config"
-            ) as m_remove_apt_config:
-                assert entitlement.disable(True)
-        assert [mock.call()] == m_remove_apt_config.call_args_list
 
 
 class TestFIPSEntitlementApplicationStatus:

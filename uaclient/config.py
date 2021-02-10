@@ -93,6 +93,10 @@ class UAConfig:
     def contract_url(self):
         return self.cfg.get("contract_url", "https://contracts.canonical.com")
 
+    @property
+    def security_url(self):
+        return self.cfg.get("security_url", "https://ubuntu.com/security")
+
     def check_lock_info(self) -> "Tuple[int, str]":
         """Return lock info if config lock file is present the lock is active.
 
@@ -624,12 +628,11 @@ def parse_config(config_path=None):
     cfg.update(env_keys)
     cfg["log_level"] = cfg["log_level"].upper()
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
-    if not util.is_service_url(cfg["contract_url"]):
-        raise exceptions.UserFacingError(
-            "Invalid url in config. contract_url: {}".format(
-                cfg["contract_url"]
+    for key in ("contract_url", "security_url"):
+        if not util.is_service_url(cfg[key]):
+            raise exceptions.UserFacingError(
+                "Invalid url in config. {}: {}".format(key, cfg[key])
             )
-        )
     return cfg
 
 

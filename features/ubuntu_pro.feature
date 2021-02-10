@@ -207,7 +207,7 @@ Feature: Command behaviour when attached to an UA subscription
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo
+        When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
         And I run `apt-cache policy <infra-pkg>` as non-root
         Then stdout matches regexp:
         """
@@ -218,7 +218,7 @@ Feature: Command behaviour when attached to an UA subscription
         """
         Installed: .*[~+]esm
         """
-        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo
+        When I run `apt install -y <apps-pkg>/<release>-apps-security` with sudo, retrying exit [100]
         And I run `apt-cache policy <apps-pkg>` as non-root
         Then stdout matches regexp:
         """

@@ -18,12 +18,15 @@ class FakeContractClient(UAContractClient):
         if responses:
             self._responses = responses
 
-    def request_url(self, path, data=None, headers=None, method=None):
+    def request_url(
+        self, path, data=None, headers=None, method=None, query_params=None
+    ):
         request = {
             "path": path,
             "data": data,
             "headers": headers,
             "method": method,
+            "query_params": method,
         }
         self._requests.append(request)
         # Return a response if we have one or empty

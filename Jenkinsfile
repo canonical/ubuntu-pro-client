@@ -22,6 +22,7 @@ pipeline {
         UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING = credentials(
             'ua-contract-token-staging'
         )
+        JOB_SUFFIX = sh(returnStdout: true, script: "basename ${JOB_NAME}| cut -d'-' -f2").trim()
     }
 
     stages {
@@ -33,7 +34,6 @@ pipeline {
                 python3 -m venv $TMPDIR
                 . $TMPDIR/bin/activate
                 pip install tox  # for tox supporting --parallel--safe-build
-                dpkg-source -b .
                 '''
             }
         }
@@ -81,65 +81,85 @@ pipeline {
             parallel {
                 stage ('Package build: 14.04') {
                     environment {
-                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "trusty"
+                        SERIES_VERSION = "14.04"
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
+                        NEW_PKG_VERSION = "${PKG_VERSION}~${SERIES_VERSION}~${JOB_SUFFIX}"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
                     steps {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~14.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
-                        cp ./ubuntu-advantage-tools*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*14.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
+                        cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
                 stage ('Package build: 16.04') {
                     environment {
-                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "xenial"
+                        SERIES_VERSION = "16.04"
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
+                        NEW_PKG_VERSION = "${PKG_VERSION}~${SERIES_VERSION}~${JOB_SUFFIX}"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
                     steps {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~16.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
-                        cp ./ubuntu-advantage-tools*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*16.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
+                        cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
                 stage ('Package build: 18.04') {
                     environment {
-                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "bionic"
+                        SERIES_VERSION = "18.04"
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
+                        NEW_PKG_VERSION = "${PKG_VERSION}~${SERIES_VERSION}~${JOB_SUFFIX}"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
                     steps {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~18.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
-                        cp ./ubuntu-advantage-tools*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*18.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
+                        cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }
                 stage ('Package build: 20.04') {
                     environment {
-                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
                         BUILD_SERIES = "focal"
+                        SERIES_VERSION = "20.04"
+                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
+                        NEW_PKG_VERSION = "${PKG_VERSION}~${SERIES_VERSION}~${JOB_SUFFIX}"
                         ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
                     }
                     steps {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~20.04 ../ubuntu-advantage-tools*${PKG_VERSION}*.dsc
-                        cp ./ubuntu-advantage-tools*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*20.04*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
+                        cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
+                        cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
+                        cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
                     }
                 }

@@ -31,12 +31,6 @@ bootcmd:
  - cp /usr/bin/ua /usr/bin/ua.orig
  - 'echo "#!/bin/sh\ndate >> /root/ua-calls\n" > /usr/bin/ua'
  - chmod 755 /usr/bin/ua
-write_files:
-  - path: /etc/ubuntu-advantage/uaclient.conf
-    content: |
-      features:
-         disable_auto_attach: true
-    append: true
 """
 
 USERDATA_APT_SOURCE_PPA_TRUSTY = """\
@@ -694,10 +688,22 @@ def _install_uat_in_container(
             cmds.append(["sudo", "dpkg", "-i"] + deb_files)
         else:
             cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
+            features = "features:\n  disable_auto_attach: true\n"
+            cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
+            cmds.append(["sh", "-c", '"{}"'.format(cmd)])
+            cmds.append(
+                [
+                    "sudo",
+                    "--",
+                    "sh",
+                    "-c",
+                    '"cat /tmp/uaclient.conf >> /etc/ubuntu-advantage/uaclient.conf"',
+                ]
+            )
 
     cmds.append(["ua", "version"])
     instance = config.cloud_api.get_instance(container_name)
-    for cmd in cmds:
+    for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)
         if result.failed:
             print(

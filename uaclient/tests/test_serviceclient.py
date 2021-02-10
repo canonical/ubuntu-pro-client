@@ -1,5 +1,6 @@
 import mock
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from io import BytesIO
 
 import pytest
@@ -61,3 +62,22 @@ class TestRequestUrl:
             client.request_url("/")
 
         assert excinfo.value.code is None
+
+    @pytest.mark.parametrize(
+        "m_kwargs", ({"a": 1, "b": "2", "c": "try me"}, {})
+    )
+    @mock.patch("uaclient.serviceclient.util.readurl")
+    def test_url_query_params_append_querystring(self, m_readurl, m_kwargs):
+
+        m_readurl.return_value = (m_kwargs, {})  # (response, resp_headers)
+
+        client = OurServiceClient(cfg=mock.Mock(url_attr="http://example.com"))
+        assert (m_kwargs, {}) == client.request_url("/", query_params=m_kwargs)
+        url = "http://example.com/"
+        if m_kwargs:
+            url += "?" + urlencode(m_kwargs)
+        assert [
+            mock.call(
+                url=url, data=None, headers=client.headers(), method=None
+            )
+        ] == m_readurl.call_args_list
