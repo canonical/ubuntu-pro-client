@@ -226,16 +226,10 @@ def attach_parser(parser):
 def fix_parser(parser):
     """Build or extend an arg parser for fix subcommand."""
     parser.usage = USAGE_TMPL.format(
-        name=NAME, command="fix --beta <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
+        name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
     )
     parser.prog = "fix"
     parser._optionals.title = "Flags"
-    parser.add_argument(
-        "--beta",
-        required=True,
-        action="store_true",
-        help="allow using this beta command",
-    )
     parser.add_argument(
         "security_issue",
         help=(
@@ -837,7 +831,8 @@ def get_parser():
         help="refresh Ubuntu Advantage services from contracts server",
     )
     parser_fix = subparsers.add_parser(
-        "fix"  # BETA omit help string to hide subcommand from help
+        "fix",
+        help="check for and mitigate the impact of a CVE/USN on this system",
     )
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)

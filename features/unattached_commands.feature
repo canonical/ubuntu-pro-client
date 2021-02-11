@@ -127,7 +127,7 @@ Feature: Command behaviour when unattached
     @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua fix --beta USN-4539-1` as non-root
+        When I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -135,7 +135,7 @@ Feature: Command behaviour when unattached
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
-        When I run `ua fix --beta CVE-2020-28196` as non-root
+        When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
@@ -151,12 +151,13 @@ Feature: Command behaviour when unattached
            | release |
            | bionic  |
            | focal   |
+           | trusty  |
            | xenial  |
 
     @series.trusty
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua fix --beta USN-4539-1` as non-root
+        When I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -164,7 +165,7 @@ Feature: Command behaviour when unattached
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
-        When I run `ua fix --beta CVE-2020-28196` as non-root
+        When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
