@@ -738,6 +738,7 @@ def _install_uat_in_container(
         else:
             cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
             features = "features:\n  disable_auto_attach: true\n"
+            conf_path = "/etc/ubuntu-advantage/uaclient.conf"
             cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
             cmds.append(["sh", "-c", '"{}"'.format(cmd)])
             cmds.append(
@@ -746,7 +747,7 @@ def _install_uat_in_container(
                     "--",
                     "sh",
                     "-c",
-                    '"cat /tmp/uaclient.conf >> /etc/ubuntu-advantage/uaclient.conf"',
+                    '"cat /tmp/uaclient.conf >> {}"'.format(conf_path),
                 ]
             )
 
