@@ -222,6 +222,9 @@ class TestFIPSEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
+        assert [
+            ["", status.MESSAGE_FIPS_REBOOT_REQUIRED]
+        ] == entitlement.cfg.read_cache("notices")
 
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
@@ -585,6 +588,7 @@ class TestFIPSEntitlementRemovePackages:
 
 
 @mock.patch(M_REPOPATH + "handle_message_operations", return_value=True)
+@mock.patch("uaclient.util.should_reboot", return_value=True)
 @mock.patch(
     "uaclient.util.get_platform_info", return_value={"series": "xenial"}
 )
@@ -592,6 +596,7 @@ class TestFIPSEntitlementDisable:
     def test_disable_on_can_disable_true_removes_apt_config_and_packages(
         self,
         _m_platform_info,
+        _m_should_reboot,
         m_handle_message_operations,
         entitlement,
         tmpdir,
@@ -607,6 +612,9 @@ class TestFIPSEntitlementDisable:
                     assert entitlement.disable(True)
         assert [mock.call()] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
+        assert [
+            ["", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED]
+        ] == entitlement.cfg.read_cache("notices")
 
 
 class TestFIPSEntitlementApplicationStatus:
@@ -650,6 +658,13 @@ class TestFIPSEntitlementApplicationStatus:
             return orig_exists(path)
 
         msg = "sure is some status here"
+        entitlement.cfg.add_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+
+        if proc_content == "0":
+            entitlement.cfg.add_notice(
+                "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+            )
+
         with mock.patch(
             M_PATH + "repo.RepoEntitlement.application_status",
             return_value=(status.ApplicationStatus.ENABLED, msg),
@@ -663,6 +678,7 @@ class TestFIPSEntitlementApplicationStatus:
         expected_status = status.ApplicationStatus.ENABLED
         if path_exists and proc_content == "1":
             expected_msg = msg
+            assert entitlement.cfg.read_cache("notices") is None
         elif path_exists and proc_content == "0":
             expected_msg = "/proc/sys/crypto/fips_enabled is not set to 1"
             expected_status = status.ApplicationStatus.DISABLED
@@ -671,6 +687,9 @@ class TestFIPSEntitlementApplicationStatus:
             ] == entitlement.cfg.read_cache("notices")
         else:
             expected_msg = "Reboot to FIPS kernel required"
+            assert [
+                ["", status.MESSAGE_FIPS_REBOOT_REQUIRED]
+            ] == entitlement.cfg.read_cache("notices")
 
         assert (expected_status, expected_msg) == application_status
 
