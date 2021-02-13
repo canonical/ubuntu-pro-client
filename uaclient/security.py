@@ -4,7 +4,9 @@ from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 
-CVE_OR_USN_REGEX = r"(CVE-\d{4}-\d{4,7}|(USN|LSN)-\d{1,5}-\d{1,2})"
+CVE_OR_USN_REGEX = (
+    r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
+)
 
 try:
     from typing import Any, Dict, List, Optional  # noqa: F401
