@@ -246,6 +246,7 @@ def action_fix(args, cfg, **kwargs):
             "Invalid issue format: {}".format(args.security_issue)
         )
     security.fix_security_issue_id(cfg, args.security_issue)
+    return 0
 
 
 def detach_parser(parser):
