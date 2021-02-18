@@ -78,6 +78,10 @@ class TestRequestUrl:
             url += "?" + urlencode(m_kwargs)
         assert [
             mock.call(
-                url=url, data=None, headers=client.headers(), method=None
+                url=url,
+                data=None,
+                headers=client.headers(),
+                method=None,
+                timeout=10,
             )
         ] == m_readurl.call_args_list
