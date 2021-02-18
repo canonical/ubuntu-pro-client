@@ -172,7 +172,7 @@ class CVEPackageStatus:
         elif self.pocket in ("updates", "security"):
             fix_source = "Ubuntu standard updates"
         else:
-            # TODO(drop this once pockets are supplied from Security Team)
+            # TODO(GH: #1376 drop this when esm* pockets supplied by API)
             if "esm" in self.fixed_version:
                 fix_source = "UA Infra"
             else:
@@ -198,6 +198,17 @@ class CVE:
         for notice_id in sorted(self.notice_ids, reverse=True):
             self._notices.append(self.client.get_notice(notice_id=notice_id))
         return self._notices
+
+    def get_url_header(self):
+        """Return a string representing the URL for this cve."""
+        title = self.description
+        for notice in self.get_notices_metadata():
+            # Only look at the most recent USN title
+            title = notice.title
+            break
+        return status.MESSAGE_SECURITY_URL.format(
+            issue=self.id, title=title, url_path="{}".format(self.id)
+        )
 
     @property
     def notice_ids(self):
@@ -255,6 +266,14 @@ class USN:
             self._cves.append(self.client.get_cve(cve_id=cve_id))
         return self._cves
 
+    def get_url_header(self):
+        """Return a string representing the URL for this notice."""
+        return status.MESSAGE_SECURITY_URL.format(
+            issue=self.id,
+            title=self.title,
+            url_path="notices/{}".format(self.id),
+        )
+
 
 def query_installed_source_pkg_versions() -> "Dict[str, str]":
     """Return a dict of all source packages installed on the system.
@@ -279,15 +298,23 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
     client = UASecurityClient(cfg=cfg)
     installed_packages = query_installed_source_pkg_versions()
     if "CVE" in issue_id:
+        try:
+            cve = client.get_cve(cve_id=issue_id)
+        except SecurityAPIError as e:
+            raise exceptions.UserFacingError(str(e))
         affected_pkg_status = get_cve_affected_packages_status(
-            client=client,
-            issue_id=issue_id,
-            installed_packages=installed_packages,
+            cve=cve, installed_packages=installed_packages
         )
+        print(cve.get_url_header())
     else:  # USN
+        try:
+            usn = client.get_notice(notice_id=issue_id)
+        except SecurityAPIError as e:
+            raise exceptions.UserFacingError(str(e))
         affected_pkg_status = get_usn_affected_packages_status(
-            client=client, issue_id=issue_id
+            usn=usn, installed_packages=installed_packages
         )
+        print(usn.get_url_header())
     prompt_for_affected_packages(
         issue_id=issue_id,
         affected_pkg_status=affected_pkg_status,
@@ -296,46 +323,36 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
 
 
 def get_usn_affected_packages_status(
-    client: UASecurityClient, issue_id: str
+    usn: USN, installed_packages: "Dict[str,str]"
 ) -> "Dict[str, CVEPackageStatus]":
-    """Walk CVEs related to a USN and determine if all are fixed."""
-    affected_pkg_versions = {}  # type: Dict[str, CVEPackageStatus]
-    try:
-        usn = client.get_notice(notice_id=issue_id)
-    except SecurityAPIError as e:
-        raise exceptions.UserFacingError(str(e))
-    print(
-        status.MESSAGE_SECURITY_URL.format(
-            issue=usn.id,
-            title=usn.title,
-            url_path="notices/{}.json".format(usn.id.lower()),
-        )
-    )
-    return affected_pkg_versions  # TODO(walk USN CVEs for affected packages)
+    """Walk CVEs related to a USN and return a dict of all affected packages.
+
+    :return: Dict keyed on source package name, with active CVEPackageStatus
+        for the current Ubuntu release.
+    """
+    affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
+    for cve in usn.get_cves_metadata():
+        for pkg_name, pkg_status in get_cve_affected_packages_status(
+            cve, installed_packages
+        ).items():
+            if pkg_name not in affected_pkgs:
+                affected_pkgs[pkg_name] = pkg_status
+            else:
+                current_ver = affected_pkgs[pkg_name].fixed_version
+                if not version_cmp_le(current_ver, pkg_status.fixed_version):
+                    affected_pkgs[pkg_name] = pkg_status
+    return affected_pkgs
 
 
 def get_cve_affected_packages_status(
-    client: UASecurityClient,
-    issue_id: str,
-    installed_packages: "Dict[str,str]",
+    cve: CVE, installed_packages: "Dict[str,str]"
 ) -> "Dict[str, CVEPackageStatus]":
-    try:
-        cve = client.get_cve(cve_id=issue_id)
-    except SecurityAPIError as e:
-        raise exceptions.UserFacingError(str(e))
+    """Get a dict of any CVEPackageStatuses affecting this Ubuntu release.
 
-    title = cve.description
-    for notice in cve.get_notices_metadata():
-        # Only look at the most recent USN title
-        title = notice.title
-        break
-    print(
-        status.MESSAGE_SECURITY_URL.format(
-            issue=cve.id,
-            title=title,
-            url_path="{}.json".format(cve.id.lower()),
-        )
-    )
+    Filter any CVEPackageStatus that is "not-affected".
+
+    :return: Dict of active CVEPackageStatus keyed by source package names.
+    """
     affected_pkg_versions = {}
     for source_pkg, package_status in cve.packages_status.items():
         if source_pkg in installed_packages:
@@ -379,19 +396,9 @@ def prompt_for_affected_packages(
         pkg_status = affected_pkg_status[pkg_name]
         msgs.append(pkg_status.status_message)
         if pkg_status.status == "released":
-            try:  # get_pkg_install_status_messages
-                util.subp(
-                    [
-                        "dpkg",
-                        "--compare-versions",
-                        pkg_status.fixed_version,
-                        "le",
-                        installed_packages[pkg_name],
-                    ]
-                )
-                fix_installed = True
-            except util.ProcessExecutionError:
-                fix_installed = False
+            fix_installed = version_cmp_le(
+                pkg_status.fixed_version, installed_packages[pkg_name]
+            )
             if fix_installed:
                 msgs.append(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
                 msgs.append(
@@ -403,3 +410,12 @@ def prompt_for_affected_packages(
                 msgs.append(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
     for msg in msgs:
         print(msg)
+
+
+def version_cmp_le(version1, version2) -> bool:
+    """Return True when version1 is less than or equal to version2."""
+    try:
+        util.subp(["dpkg", "--compare-versions", version1, "le", version2])
+        return True
+    except util.ProcessExecutionError:
+        return False
