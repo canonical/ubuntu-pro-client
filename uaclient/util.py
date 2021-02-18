@@ -425,6 +425,7 @@ def readurl(
     data: "Optional[bytes]" = None,
     headers: "Dict[str, str]" = {},
     method: "Optional[str]" = None,
+    timeout: "Optional[int]" = None,
 ) -> "Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]":
     if data and not method:
         method = "POST"
@@ -436,7 +437,7 @@ def readurl(
         headers,
         data,
     )
-    resp = request.urlopen(req)
+    resp = request.urlopen(req, timeout=timeout)
     content = resp.read().decode("utf-8")
     if "application/json" in str(resp.headers.get("Content-type", "")):
         content = json.loads(content)

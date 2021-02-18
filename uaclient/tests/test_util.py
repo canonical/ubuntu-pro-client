@@ -458,7 +458,18 @@ class TestIsServiceUrl:
 
 
 class TestReadurl:
-    def test_simple_call_with_url_works(self):
+    @pytest.mark.parametrize("timeout", (None, 1))
+    def test_simple_call_with_url_and_timeout_works(self, timeout):
+        with mock.patch("uaclient.util.request.urlopen") as m_urlopen:
+            if timeout:
+                util.readurl("http://some_url", timeout=timeout)
+            else:
+                util.readurl("http://some_url")
+        assert [
+            mock.call(mock.ANY, timeout=timeout)
+        ] == m_urlopen.call_args_list
+
+    def test_call_with_timeout(self):
         with mock.patch("uaclient.util.request.urlopen") as m_urlopen:
             util.readurl("http://some_url")
         assert 1 == m_urlopen.call_count
