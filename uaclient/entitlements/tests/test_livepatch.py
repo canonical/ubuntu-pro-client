@@ -25,7 +25,8 @@ from uaclient.entitlements.livepatch import (
 )
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
-from uaclient.status import ContractStatus
+from uaclient.status import ApplicationStatus, ContractStatus
+from uaclient.util import ProcessExecutionError
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -682,3 +683,45 @@ class TestLivepatchEntitlementEnable:
             cls_title
         )
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
+
+
+class TestLivepatchApplicationStatus:
+    @pytest.mark.parametrize("which_result", ((True), (False)))
+    @pytest.mark.parametrize("subp_raise_exception", ((True), (False)))
+    @mock.patch("uaclient.util.which")
+    @mock.patch("uaclient.util.subp")
+    def test_application_status(
+        self, m_subp, m_which, subp_raise_exception, which_result, entitlement
+    ):
+        m_which.return_value = which_result
+
+        if subp_raise_exception:
+            m_subp.side_effect = ProcessExecutionError("error msg")
+
+        status, details = entitlement.application_status()
+
+        if not which_result:
+            assert status == ApplicationStatus.DISABLED
+            assert "canonical-livepatch snap is not installed." in details
+        elif subp_raise_exception:
+            assert status == ApplicationStatus.DISABLED
+            assert "error msg" in details
+        else:
+            assert status == ApplicationStatus.ENABLED
+            assert "" == details
+
+    @mock.patch("time.sleep")
+    @mock.patch("uaclient.util.which", return_value=True)
+    def test_status_command_retry_on_application_status(
+        self, m_which, m_sleep, entitlement
+    ):
+        from uaclient import util
+
+        with mock.patch.object(util, "_subp") as m_subp:
+            m_subp.side_effect = ProcessExecutionError("error msg")
+            status, details = entitlement.application_status()
+
+            assert m_subp.call_count == 3
+            assert m_sleep.call_count == 2
+            assert status == ApplicationStatus.DISABLED
+            assert "error msg" in details
