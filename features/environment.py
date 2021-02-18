@@ -8,7 +8,7 @@ import logging
 import pycloudlib  # type: ignore
 
 try:
-    from typing import Dict, Optional, Union, List, Tuple  # noqa: F401
+    from typing import Dict, Optional, Union, List, Tuple, Any  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -506,8 +506,8 @@ def after_step(context, step):
                         result = context.instance.execute(
                             ["cat", log_file], use_sudo=True
                         )
-                    with open(artifact_file, "w") as stream:
-                        stream.write(result.stdout)
+                        with open(artifact_file, "w") as stream:
+                            stream.write(result.stdout)
                 except RuntimeError:
                     # File did not exist
                     with open(artifact_file, "w") as stream:
@@ -714,7 +714,7 @@ def _install_uat_in_container(
     :param config: UAClientBehaveConfig
     :param deb_paths: Optional paths to local deb files we need to install
     """
-    cmds = [["systemctl", "is-system-running", "--wait"]]
+    cmds: "List[Any]" = [["systemctl", "is-system-running", "--wait"]]
 
     if deb_paths is None:
         deb_paths = []
@@ -737,19 +737,16 @@ def _install_uat_in_container(
             cmds.append(["sudo", "dpkg", "-i"] + deb_files)
         else:
             cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
-            features = "features:\n  disable_auto_attach: true\n"
-            conf_path = "/etc/ubuntu-advantage/uaclient.conf"
-            cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
-            cmds.append(["sh", "-c", '"{}"'.format(cmd)])
-            cmds.append(
-                [
-                    "sudo",
-                    "--",
-                    "sh",
-                    "-c",
-                    '"cat /tmp/uaclient.conf >> {}"'.format(conf_path),
-                ]
-            )
+
+    if "pro" in config.machine_type:
+        features = "features:\n  disable_auto_attach: true\n"
+        conf_path = "/etc/ubuntu-advantage/uaclient.conf"
+        cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
+        cmds.append('sh -c "{}"'.format(cmd))
+        cmds.append(
+            'sudo -- sh -c "cat /tmp/uaclient.conf >> {}"'.format(conf_path)
+        )
+        cmds.append("sudo ua detach --assume-yes")
 
     cmds.append(["ua", "version"])
     instance = config.cloud_api.get_instance(container_name)
