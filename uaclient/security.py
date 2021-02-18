@@ -152,10 +152,14 @@ class CVEPackageStatus:
     def status_message(self):
         if self.status == "needed":
             return "Sorry, no fix is available yet."
+        elif self.status == "needs-triage":
+            return "Ubuntu security engineers are investigating this issue."
         elif self.status == "pending":
             return "A fix is coming soon. Try again tomorrow."
         elif self.status in ("ignored", "deferred"):
             return "Sorry, no fix is available."
+        elif self.status == "DNE":
+            return "Source package does not exist on this release."
         elif self.status == "released":
             return status.MESSAGE_SECURITY_FIX_RELEASE_STREAM.format(
                 fix_stream=self.pocket_source

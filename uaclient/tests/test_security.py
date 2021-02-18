@@ -129,7 +129,7 @@ class TestGetCVEAffectedPackageStatus:
         (
             ("bionic", {}, {}),
             # installed package version has no bearing on status filtering
-            ("bionic",{"samba": "1000"}, SAMBA_CVE_STATUS_BIONIC),
+            ("bionic", {"samba": "1000"}, SAMBA_CVE_STATUS_BIONIC),
             # active series has a bearing on status filtering
             ("upstream", {"samba": "1000"}, SAMBA_CVE_STATUS_UPSTREAM),
             # not-affected status has a bearing on status filtering
@@ -351,6 +351,12 @@ class TestCVEPackageStatus:
     @pytest.mark.parametrize(
         "status,pocket,expected",
         (
+            ("DNE", "", "Source package does not exist on this release."),
+            (
+                "needs-triage",
+                "esm-infra",
+                "Ubuntu security engineers are investigating this issue.",
+            ),
             ("needed", "esm-infra", "Sorry, no fix is available yet."),
             (
                 "pending",
