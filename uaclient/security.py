@@ -125,7 +125,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
 class CVEPackageStatus:
     """Class representing specific CVE PackageStatus on an Ubuntu series"""
 
-    def __init__(self, cve_response: "Dict[str, str]"):
+    def __init__(self, cve_response: "Dict[str, Any]"):
         self.response = cve_response
 
     @property
@@ -191,31 +191,21 @@ class CVE:
     def id(self):
         return self.response.get("id", "UNKNOWN_CVE_ID").upper()
 
-    def _get_related_notices(self):
-        if hasattr(self, "notices"):
-            return self.notices
-        self.notices = {}
-        for notice_id in self.response.get("notices", []):
-            self.notices[notice_id] = self.client.get_notice(
-                notice_id=notice_id
-            )
-        return self.notices
+    def get_notices_metadata(self):
+        if hasattr(self, "_notices"):
+            return self._notices
+        self._notices = []
+        for notice_id in sorted(self.notice_ids, reverse=True):
+            self._notices.append(self.client.get_notice(notice_id=notice_id))
+        return self._notices
 
     @property
     def notice_ids(self):
-        notices_md = self._get_related_notices()
-        return list(notices_md.keys())
+        return self.response.get("notices", [])
 
     @property
-    def title(self):
-        descr = self.response.get("description", "UNKNOWN_CVE_DESCRIPTION")
-        notices = self._get_related_notices()
-        if not notices:
-            return descr
-        # TODO(If multiple notices, which title to use?)
-        for key in sorted(notices):
-            return notices[key].title
-        return descr
+    def description(self):
+        return self.response.get("description")
 
     @property
     def packages_status(self) -> "Dict[str, CVEPackageStatus]":
@@ -240,17 +230,30 @@ class CVE:
 class USN:
     """Class representing USN response from the SecurityClient"""
 
-    def __init__(self, client: UASecurityClient, response: "Dict[str, str]"):
+    def __init__(self, client: UASecurityClient, response: "Dict[str, Any]"):
         self.response = response
         self.client = client
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.response.get("id", "UNKNOWN_USN_ID").upper()
+
+    @property
+    def cve_ids(self) -> "List[str]":
+        """List of CVE IDs related to this USN."""
+        return self.response.get("cves", [])
 
     @property
     def title(self):
         return self.response.get("title")
+
+    def get_cves_metadata(self):
+        if hasattr(self, "_cves"):
+            return self._cves
+        self._cves = []
+        for cve_id in sorted(self.cve_ids, reverse=True):
+            self._cves.append(self.client.get_cve(cve_id=cve_id))
+        return self._cves
 
 
 def query_installed_source_pkg_versions() -> "Dict[str, str]":
@@ -320,10 +323,16 @@ def get_cve_affected_packages_status(
         cve = client.get_cve(cve_id=issue_id)
     except SecurityAPIError as e:
         raise exceptions.UserFacingError(str(e))
+
+    title = cve.description
+    for notice in cve.get_notices_metadata():
+        # Only look at the most recent USN title
+        title = notice.title
+        break
     print(
         status.MESSAGE_SECURITY_URL.format(
             issue=cve.id,
-            title=cve.title,
+            title=title,
             url_path="{}.json".format(cve.id.lower()),
         )
     )

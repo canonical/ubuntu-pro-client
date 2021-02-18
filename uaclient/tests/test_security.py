@@ -1,4 +1,6 @@
+import copy
 import mock
+import os
 import pytest
 
 from uaclient.security import (
@@ -45,6 +47,202 @@ CVE_ESM_PACKAGE_STATUS_RESPONSE = {
     "release_codename": "focal",
     "status": "released",
 }
+
+
+SAMPLE_CVE_RESPONSE = {
+    "bugs": ["https://bugzilla.samba.org/show_bug.cgi?id=14497"],
+    "description": "\nAn elevation of privilege vulnerability exists ...",
+    "id": "CVE-2020-1472",
+    "notes": [{"author": "..", "note": "..."}],
+    "notices": ["USN-4510-1", "USN-4510-2", "USN-4559-1"],
+    "packages": [
+        {
+            "debian": "https://tracker.debian.org/pkg/samba",
+            "name": "samba",
+            "source": "https://ubuntu.com/security/cve?package=samba",
+            "statuses": [
+                {
+                    "component": None,
+                    "description": "2:4.7.6+dfsg~ubuntu-0ubuntu2.19",
+                    "pocket": None,
+                    "release_codename": "bionic",
+                    "status": "released",
+                },
+                {
+                    "component": None,
+                    "description": "2:4.11.6+dfsg-0ubuntu1.4",
+                    "pocket": None,
+                    "release_codename": "focal",
+                    "status": "not-affected",
+                },
+                {
+                    "component": None,
+                    "description": "2:4.12.5+dfsg-3ubuntu3",
+                    "pocket": None,
+                    "release_codename": "groovy",
+                    "status": "not-affected",
+                },
+                {
+                    "component": None,
+                    "description": "",
+                    "pocket": None,
+                    "release_codename": "precise",
+                },
+                {
+                    "component": None,
+                    "description": "",
+                    "pocket": None,
+                    "release_codename": "upstream",
+                    "status": "needs-triage",
+                },
+            ],
+        }
+    ],
+    "status": "active",
+}
+
+SAMPLE_USN_RESPONSE = {
+    "cves": ["CVE-2020-1472"],
+    "id": "USN-4510-2",
+    "instructions": "In general, a standard system update will make all ...\n",
+    "references": [],
+    "release_packages": {
+        "trusty": [
+            {
+                "description": "SMB/CIFS file, print, and login ... Unix",
+                "is_source": True,
+                "name": "samba",
+                "version": "2:4.3.11+dfsg-0ubuntu0.14.04.20+esm9",
+            },
+            {
+                "is_source": False,
+                "name": "samba",
+                "source_link": "https://launchpad.net/ubuntu/+source/samba",
+                "version": "2:4.3.11+dfsg-0ubuntu0.14.04.20+esm9",
+                "version_link": "https://....11+dfsg-0ubuntu0.14.04.20+esm9",
+            },
+        ]
+    },
+    "summary": "Samba would allow unintended access to files over the ....\n",
+    "title": "Samba vulnerability",
+    "type": "USN",
+}
+
+
+class TestCVE:
+    def test_cve_init_attributes(self, FakeConfig):
+        """CVE.__init__ saves client and response on instance."""
+        client = UASecurityClient(FakeConfig())
+        cve = CVE(client, {"some": "response"})
+        assert client == cve.client
+        assert {"some": "response"} == cve.response
+
+    @pytest.mark.parametrize(
+        "attr_name,expected,response",
+        (
+            ("description", None, {}),
+            ("description", "descr", {"description": "descr"}),
+            ("id", "UNKNOWN_CVE_ID", {}),
+            (
+                "id",
+                "CVE-123",
+                {"id": "cve-123"},
+            ),  # Uppercase of id value is used
+            ("notice_ids", [], {}),
+            ("notice_ids", [], {"notices": []}),
+            ("notice_ids", ["1", "2"], {"notices": ["1", "2"]}),
+        ),
+    )
+    def test_cve_basic_properties_from_response(
+        self, attr_name, expected, response, FakeConfig
+    ):
+        """CVE instance properties are set from Security API CVE response."""
+        client = UASecurityClient(FakeConfig())
+        cve = CVE(client, response)
+        assert expected == getattr(cve, attr_name)
+
+    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    def test_get_notices_metadata(self, request_url, FakeConfig):
+        """CVE.get_notices_metadata is cached to avoid API round-trips."""
+        client = UASecurityClient(FakeConfig())
+        cve = CVE(client, SAMPLE_CVE_RESPONSE)
+
+        def fake_request_url(url):
+            usn = copy.deepcopy(SAMPLE_USN_RESPONSE)
+            usn_id = os.path.basename(url).split(".")[0]
+            usn["id"] = usn_id
+            return (usn, "headers")
+
+        request_url.side_effect = fake_request_url
+
+        usns = cve.get_notices_metadata()
+        assert ["USN-4559-1", "USN-4510-2", "USN-4510-1"] == [
+            usn.id for usn in usns
+        ]
+        assert [
+            mock.call("notices/USN-4559-1.json"),
+            mock.call("notices/USN-4510-2.json"),
+            mock.call("notices/USN-4510-1.json"),
+        ] == request_url.call_args_list
+        # no extra calls being made
+        cve.get_notices_metadata()
+        assert 3 == request_url.call_count
+
+
+class TestUSN:
+    def test_usn_init_attributes(self, FakeConfig):
+        """USN.__init__ saves client and response on instance."""
+        client = UASecurityClient(FakeConfig())
+        cve = USN(client, {"some": "response"})
+        assert client == cve.client
+        assert {"some": "response"} == cve.response
+
+    @pytest.mark.parametrize(
+        "attr_name,expected,response",
+        (
+            ("title", None, {}),
+            ("title", "my title", {"title": "my title"}),
+            ("id", "UNKNOWN_USN_ID", {}),
+            (
+                "id",
+                "USN-123",
+                {"id": "usn-123"},
+            ),  # Uppercase of id value is used
+            ("cve_ids", [], {}),
+            ("cve_ids", [], {"cves": []}),
+            ("cve_ids", ["1", "2"], {"cves": ["1", "2"]}),
+        ),
+    )
+    def test_usn_basic_properties_from_response(
+        self, attr_name, expected, response, FakeConfig
+    ):
+        """USN instance properties are set from Security API USN response."""
+        client = UASecurityClient(FakeConfig())
+        usn = USN(client, response)
+        assert expected == getattr(usn, attr_name)
+
+    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    def test_get_cves_metadata(self, request_url, FakeConfig):
+        """USN.get_cves_metadata is cached to avoid API round-trips."""
+        client = UASecurityClient(FakeConfig())
+        usn = USN(client, SAMPLE_USN_RESPONSE)
+
+        def fake_request_url(url):
+            cve = copy.deepcopy(SAMPLE_CVE_RESPONSE)
+            cve_id = os.path.basename(url).split(".")[0]
+            cve["id"] = cve_id
+            return (cve, "headers")
+
+        request_url.side_effect = fake_request_url
+
+        cves = usn.get_cves_metadata()
+        assert ["CVE-2020-1472"] == [cve.id for cve in cves]
+        assert [
+            mock.call("cves/CVE-2020-1472.json")
+        ] == request_url.call_args_list
+        # no extra calls being made
+        usn.get_cves_metadata()
+        assert 1 == request_url.call_count
 
 
 class TestCVEPackageStatus:
