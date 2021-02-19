@@ -91,6 +91,25 @@ class Cloud:
         """
         raise NotImplementedError
 
+    def _check_cloudinit_status(
+        self, instance: pycloudlib.instance.BaseInstance
+    ) -> None:
+        """
+        Check if cloudinit was able to finish without errors.
+
+        :param instance:
+            An instance created on the cloud provider
+        """
+        result = instance.execute(["cloud-init", "status", "--wait", "--long"])
+
+        if result.failed:
+            raise OSError(
+                "cloud-init failed to start\n: out: %s\n error: %s"
+                % (result.stdout, result.stderr)
+            )
+
+        print("--- cloud-init succeeded")
+
     def launch(
         self,
         series: str,
@@ -132,6 +151,9 @@ class Cloud:
                 break
             except Exception as e:
                 print("--- Retrying instance.wait on {}".format(str(e)))
+
+        if series != "trusty":
+            self._check_cloudinit_status(inst)
 
         return inst
 

@@ -48,6 +48,24 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
     _incompatible_services = ["livepatch"]
 
+    def check_for_reboot_msg(self, operation: str) -> None:
+        """Check if user should be alerted that a reboot must be performed.
+
+        @param operation: The operation being executed.
+        """
+        if util.should_reboot():
+            print(
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation=operation
+                )
+            )
+            if operation == "install":
+                self.cfg.add_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+            elif operation == "disable operation":
+                self.cfg.add_notice(
+                    "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+                )
+
     def _allow_fips_on_cloud_instance(
         self, series: str, cloud_id: str
     ) -> bool:
@@ -166,17 +184,26 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
 
         if os.path.exists(self.FIPS_PROC_FILE):
+            self.cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
                     "", status.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return super_status, super_msg
             else:
+                self.cfg.remove_notice(
+                    "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+                )
                 self.cfg.add_notice("", status.NOTICE_FIPS_MANUAL_DISABLE_URL)
                 return (
                     status.ApplicationStatus.DISABLED,
                     "{} is not set to 1".format(self.FIPS_PROC_FILE),
                 )
+        else:
+            self.cfg.remove_notice(
+                "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+            )
+
         if super_status != status.ApplicationStatus.ENABLED:
             return super_status, super_msg
         return (

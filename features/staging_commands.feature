@@ -76,6 +76,10 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
             <fips-service> +yes                enabled
             """
+        And stdout matches regexp:
+            """
+            FIPS support requires system reboot to complete configuration
+            """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
@@ -95,11 +99,21 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         1
         """
+        When I run `ua status --all` with sudo
+        Then stdout does not match regexp:
+            """
+            FIPS support requires system reboot to complete configuration
+            """
         When I run `ua disable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
             Updating package lists
             A reboot is required to complete disable operation
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            Disabling FIPS requires system reboot to complete operation
             """
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout matches regexp:
@@ -124,6 +138,10 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Then stdout matches regexp:
             """
             <fips-service> +yes                disabled
+            """
+        Then stdout does not match regexp:
+            """
+            Disabling FIPS requires system reboot to complete operation
             """
 
         Examples: ubuntu release

@@ -15,10 +15,7 @@ from hamcrest import (
     contains_string,
 )
 
-from features.environment import (
-    USERDATA_BLOCK_AUTO_ATTACH_TESTS,
-    create_uat_image,
-)
+from features.environment import create_uat_image
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE
@@ -66,16 +63,11 @@ def given_a_machine(context, series):
     instance_name = (
         CONTAINER_PREFIX + pr_prefix + vm_prefix + series + date_prefix
     )
-    if "pro" in context.config.machine_type:
-        user_data = USERDATA_BLOCK_AUTO_ATTACH_TESTS
-    else:
-        user_data = ""
 
     context.instance = context.config.cloud_manager.launch(
         series=series,
         instance_name=instance_name,
         image_name=context.series_image_name[series],
-        user_data=user_data,
     )
 
     context.container_name = context.config.cloud_manager.get_instance_id(
@@ -100,6 +92,7 @@ def given_a_machine(context, series):
                 )
 
     context.add_cleanup(cleanup_instance)
+    logging.warning("--- instance ip: {}".format(context.instance.ip))
     print("--- instance ip: {}".format(context.instance.ip))
 
 

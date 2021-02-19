@@ -7,6 +7,7 @@ from uaclient.status import ApplicationStatus
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
+LIVEPATCH_RETRIES = [0.5, 1.0]
 
 try:
     from typing import Any, Callable, Dict, Tuple  # noqa: F401
@@ -191,8 +192,18 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def application_status(self) -> "Tuple[ApplicationStatus, str]":
         status = (ApplicationStatus.ENABLED, "")
+
+        if not util.which("/snap/bin/canonical-livepatch"):
+            return (
+                ApplicationStatus.DISABLED,
+                "canonical-livepatch snap is not installed.",
+            )
+
         try:
-            util.subp(["/snap/bin/canonical-livepatch", "status"])
+            util.subp(
+                ["/snap/bin/canonical-livepatch", "status"],
+                retry_sleeps=LIVEPATCH_RETRIES,
+            )
         except util.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug("Livepatch not enabled. %s", str(e))

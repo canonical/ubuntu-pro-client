@@ -394,18 +394,26 @@ the project, you should install them via `dev-requirements.txt`.)
 On Launchpad, there is a [daily build recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily),
 which will build the client and place it in the [ua-client-daily PPA](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily).
 
-## Demo
+## Remastering custom golden images based on Ubuntu PRO
 
-Users can demo the client with a local backend. This can be done with
-the following:
+Vendors who wish to provide custom images based on Ubuntu PRO images can
+follow the procedure below:
 
-```shell
-# Set up ua-contracts in a docker container in a bionic lxc on port 3000
-make demo
-# Set up two clients pointing at the local contract server
-./demo/run-uaclient --series disco
-./demo/run-uaclient --series xenial -b multipass
+* Launch the Ubuntu PRO golden image
+* Customize your golden image as you see fit
+* If `ua status` shows attached, remove the UA artifacts to allow clean
+  auto-attach on subsequent cloned VM launches
+```bash
+sudo ua detach
+sudo rm -rf /var/log/ubuntu-advantage.log  # to remove credentials and tokens from logs
 ```
+* Remove `cloud-init` first boot artifacts so the cloned VM boot is seen as a first boot
+```bash
+sudo cloud-init clean --logs
+sudo shutdown -h now
+```
+* Use your cloud platform to clone or snapshot this VM as a golden image
+
 
 ## Releasing ubuntu-adantage-tools
 see [RELEASES.md](RELEASES.md)

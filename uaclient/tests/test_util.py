@@ -125,6 +125,8 @@ class TestIsContainer:
         """Return True when systemd-detect virt exits success."""
         m_subp.return_value = "", ""
         assert True is util.is_container()
+        # Second call for lru_cache test
+        util.is_container()
         calls = [mock.call(["systemd-detect-virt", "--quiet", "--container"])]
         assert calls == m_subp.call_args_list
 
@@ -220,7 +222,8 @@ class TestSubp:
 
 
 class TestParseOSRelease:
-    def test_parse_os_release(self, tmpdir):
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    def test_parse_os_release(self, caplog_text, tmpdir):
         """parse_os_release returns a dict of values from /etc/os-release."""
         release_file = tmpdir.join("os-release")
         release_file.write(OS_RELEASE_TRUSTY)
@@ -236,6 +239,19 @@ class TestParseOSRelease:
             "VERSION_ID": "14.04",
         }
         assert expected == util.parse_os_release(release_file.strpath)
+        # Add a 2nd call for lru_cache test
+        util.parse_os_release(release_file.strpath)
+
+        os_release_reads = len(
+            [
+                line
+                for line in caplog_text().splitlines()
+                if "os-release" in line
+            ]
+        )
+        assert (
+            1 == os_release_reads
+        ), "lru_cache expected 1 read but found {}".format(os_release_reads)
 
 
 class TestGetPlatformInfo:
@@ -359,6 +375,12 @@ class TestGetMachineId:
             value = util.get_machine_id(
                 data_dir=tmpdir.join("non-existent").strpath
             )
+            # Test lru_cache caches /etc/machine-id from first read
+            etc_machine_id.write("does-not-change")
+            cached_value = util.get_machine_id(
+                data_dir=tmpdir.join("non-existent").strpath
+            )
+            assert value == cached_value
         assert "etc-machine-id" == value
 
     def test_get_machine_id_from_var_lib_dbus_machine_id(self, tmpdir):

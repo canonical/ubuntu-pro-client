@@ -1,4 +1,5 @@
 import datetime
+import errno
 import os
 import itertools
 import tempfile
@@ -7,7 +8,7 @@ import logging
 import pycloudlib  # type: ignore
 
 try:
-    from typing import Dict, Optional, Union, List, Tuple  # noqa: F401
+    from typing import Dict, Optional, Union, List, Tuple, Any  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -33,16 +34,6 @@ bootcmd:
  - chmod 755 /usr/bin/ua
 """
 
-USERDATA_BLOCK_AUTO_ATTACH_TESTS = """\
-#cloud-config
-write_files:
-  - path: /etc/ubuntu-advantage/uaclient.conf
-    content: |
-      features:
-         disable_auto_attach: true
-    append: true
-"""
-
 USERDATA_APT_SOURCE_PPA_TRUSTY = """\
 apt_sources:  # for trusty
   - source: deb {ppa_url} $RELEASE main
@@ -57,6 +48,22 @@ apt:
         source: deb {ppa_url} $RELEASE main
         keyid: {ppa_keyid}
 packages: [{packages}]
+"""
+
+PROCESS_LOG_TMPL = """\
+returncode: {}
+stdout:
+{stdout}
+stderr:
+{stderr}
+"""
+
+PROCESS_LOG_TMPL = """\
+returncode: {returncode}
+stdout:
+{stdout}
+stderr:
+{stderr}
 """
 
 
@@ -431,11 +438,21 @@ def before_scenario(context: Context, scenario: Scenario):
         scenario.skip(reason=reason)
 
 
-FAILURE_LOGS = ("/var/log/cloud-init.log", "/var/log/ubuntu-advantage.log")
+FAILURE_FILES = (
+    "/etc/ubuntu-advantage/uaclient.log",
+    "/var/log/cloud-init.log",
+    "/var/log/ubuntu-advantage.log",
+    "/var/lib/cloud/instance/user-data.txt",
+    "/var/lib/cloud/instance/vendor-data.txt",
+)
 FAILURE_CMDS = {
-    "cloud-init.status": ["sudo", "cloud-init", "status", "--long"],
-    "status.json": ["sudo", "ua", "status", "--all", "--format=json"],
+    "ua-version": ["ua", "version"],
+    "cloud-init-analyze": ["cloud-init", "analyze", "show"],
+    "cloud-init.status": ["cloud-init", "status", "--long"],
+    "status.json": ["ua", "status", "--all", "--format=json"],
     "journal.log": ["journalctl", "-b", "0"],
+    "systemd-analyze-blame": ["systemd-analyze", "blame"],
+    "systemctl-status": ["systemctl", "status"],
     "systemctl-status-ua-auto-attach": [
         "systemctl",
         "status",
@@ -452,29 +469,51 @@ FAILURE_CMDS = {
 def after_step(context, step):
     """Collect test artifacts in the event of failure."""
     if step.status == "failed":
-        if hasattr(context, "instance"):
-            if context.config.artifact_dir:
-                artifacts_dir = context.config.artifact_dir
-            else:
-                artifacts_dir = "artifacts"
-            artifacts_dir = os.path.join(
-                artifacts_dir,
-                "{}_{}".format(os.path.basename(step.filename), step.line),
-            )
+        if context.config.artifact_dir:
+            artifacts_dir = context.config.artifact_dir
+        else:
+            artifacts_dir = "artifacts"
+        artifacts_dir = os.path.join(
+            artifacts_dir,
+            "{}_{}".format(os.path.basename(step.filename), step.line),
+        )
+        if hasattr(context, "process"):
             if not os.path.exists(artifacts_dir):
                 os.makedirs(artifacts_dir)
-            for log_file in FAILURE_LOGS:
+            artifact_file = os.path.join(artifacts_dir, "process.log")
+            process = context.process
+            with open(artifact_file, "w") as stream:
+                stream.write(
+                    PROCESS_LOG_TMPL.format(
+                        returncode=process.returncode,
+                        stdout=process.stdout,
+                        stderr=process.stderr,
+                    )
+                )
+
+        if hasattr(context, "instance"):
+            if not os.path.exists(artifacts_dir):
+                os.makedirs(artifacts_dir)
+            for log_file in FAILURE_FILES:
+                artifact_file = os.path.join(
+                    artifacts_dir, os.path.basename(log_file)
+                )
+                print("-- pull instance:{} {}".format(log_file, artifact_file))
                 try:
-                    context.instance.pull_file(log_file, artifacts_dir)
+                    context.instance.pull_file(log_file, artifact_file)
+                except IOError as e:
+                    if e.errno == errno.EACCES:
+                        result = context.instance.execute(
+                            ["cat", log_file], use_sudo=True
+                        )
+                        with open(artifact_file, "w") as stream:
+                            stream.write(result.stdout)
                 except RuntimeError:
                     # File did not exist
-                    artifact_file = os.path.join(
-                        artifacts_dir, os.path.basename(log_file)
-                    )
                     with open(artifact_file, "w") as stream:
                         stream.write("")
             for artifact_file, cmd in FAILURE_CMDS.items():
-                result = context.instance.execute(cmd)
+                result = context.instance.execute(cmd, use_sudo=True)
                 artifact_file = os.path.join(artifacts_dir, artifact_file)
                 with open(artifact_file, "w") as stream:
                     stream.write(result.stdout)
@@ -675,7 +714,7 @@ def _install_uat_in_container(
     :param config: UAClientBehaveConfig
     :param deb_paths: Optional paths to local deb files we need to install
     """
-    cmds = []
+    cmds: "List[Any]" = [["systemctl", "is-system-running", "--wait"]]
 
     if deb_paths is None:
         deb_paths = []
@@ -699,9 +738,19 @@ def _install_uat_in_container(
         else:
             cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
 
+    if "pro" in config.machine_type:
+        features = "features:\n  disable_auto_attach: true\n"
+        conf_path = "/etc/ubuntu-advantage/uaclient.conf"
+        cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
+        cmds.append('sh -c "{}"'.format(cmd))
+        cmds.append(
+            'sudo -- sh -c "cat /tmp/uaclient.conf >> {}"'.format(conf_path)
+        )
+        cmds.append("sudo ua detach --assume-yes")
+
     cmds.append(["ua", "version"])
     instance = config.cloud_api.get_instance(container_name)
-    for cmd in cmds:
+    for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)
         if result.failed:
             print(
