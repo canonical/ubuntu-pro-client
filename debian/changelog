@@ -1,3 +1,23 @@
+ubuntu-advantage-tools (26.1~21.04.1) hirsute; urgency=medium
+
+  *  New upstream release 26.1
+     - contract: block detach call to contract if machine-id change
+     - docs: add readme docs about mastering clean golden images
+     - fips: add reboot notices for fips operations (GH: #1368)
+     - livepatch: add retry when running canonical-livepatch status
+       (GH: #1360)
+     - util: use lru_cache to avoid re-reading os-release and machine-id
+       (GH: #1329)
+     - tests:
+       + add disable_auto_attach config to all test PRO vms
+       + add more log artifacts during failed integration test
+       + check cloudinit status after launching image
+       + mock leaking livepatch.application_status for fips test
+       + retry package installs on apt exit 100
+     - jenkins: parameterize build stages to avoid parallel job collision
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 19 Feb 2021 10:30:22 -0300
+
 ubuntu-advantage-tools (26.0.1~21.04.1) hirsute; urgency=medium
 
   * auto-attach: fix comparing numeric iid
