@@ -1,3 +1,5 @@
+import socket
+
 from uaclient.config import UAConfig
 from uaclient import exceptions
 from uaclient import status
@@ -43,8 +45,21 @@ class SecurityAPIError(util.UrlError):
 
 class UASecurityClient(serviceclient.UAServiceClient):
 
+    url_timeout = 20
     cfg_url_base_attr = "security_url"
     api_error_cls = SecurityAPIError
+
+    @util.retry(socket.timeout, retry_sleeps=[1, 3, 5])
+    def request_url(
+        self, path, data=None, headers=None, method=None, query_params=None
+    ):
+        return super().request_url(
+            path=path,
+            data=data,
+            headers=headers,
+            method=method,
+            query_params=query_params,
+        )
 
     def get_cves(
         self,

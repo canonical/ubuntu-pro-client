@@ -207,7 +207,8 @@ class TestCVE:
         cve = CVE(client, response)
         assert expected == getattr(cve, attr_name)
 
-    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    #  @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    @mock.patch("uaclient.util.readurl")
     def test_get_url_header(self, request_url, FakeConfig):
         """CVE.get_url_header returns a string based on the CVE response."""
         client = UASecurityClient(FakeConfig())
@@ -221,8 +222,23 @@ class TestCVE:
             )
             == cve.get_url_header()
         )
+        headers = client.headers()
+        calls = []
+        for issue in ["USN-4559-1", "USN-4510-2", "USN-4510-1"]:
+            calls.append(
+                mock.call(
+                    url="https://ubuntu.com/security/notices/{}.json".format(
+                        issue
+                    ),
+                    data=None,
+                    headers=headers,
+                    method=None,
+                    timeout=20,
+                )
+            )
+        assert calls == request_url.call_args_list
 
-    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_notices_metadata(self, request_url, FakeConfig):
         """CVE.get_notices_metadata is cached to avoid API round-trips."""
         client = UASecurityClient(FakeConfig())
@@ -282,7 +298,7 @@ class TestUSN:
         usn = USN(client, response)
         assert expected == getattr(usn, attr_name)
 
-    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_cves_metadata(self, request_url, FakeConfig):
         """USN.get_cves_metadata is cached to avoid API round-trips."""
         client = UASecurityClient(FakeConfig())
@@ -379,7 +395,8 @@ class TestCVEPackageStatus:
         assert expected == pkg_status.status_message
 
 
-@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+# @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+@mock.patch("uaclient.security.UASecurityClient.request_url")
 class TestUASecurityClient:
     @pytest.mark.parametrize(
         "m_kwargs,expected_error",
