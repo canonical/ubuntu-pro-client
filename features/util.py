@@ -18,33 +18,6 @@ LXC_PROPERTY_MAP = {
 SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
 SOURCE_PR_TGZ = os.path.join(tempfile.gettempdir(), "pr_source.tar.gz")
 UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
-VM_PROFILE_TMPL = "behave-{}"
-
-
-# For Xenial and Bionic vendor-data required to setup lxd-agent
-# Additionally xenial needs to launch images:ubuntu/16.04/cloud
-# because it contains the HWE kernel which has vhost-vsock support
-LXC_SETUP_VENDORDATA = textwrap.dedent(
-    """\
-    config:
-      user.vendor-data: |
-        #cloud-config
-        {custom_cfg}
-        write_files:
-        - path: /var/lib/cloud/scripts/per-once/setup-lxc.sh
-          encoding: b64
-          permissions: '0755'
-          owner: root:root
-          content: |
-              IyEvYmluL3NoCmlmICEgZ3JlcCBseGRfY29uZmlnIC9wcm9jL21vdW50czsgdGhlbgogICAgbWtk
-              aXIgLXAgL3J1bi9seGRhZ2VudAogICAgbW91bnQgLXQgOXAgY29uZmlnIC9ydW4vbHhkYWdlbnQK
-              ICAgIFZJUlQ9JChzeXN0ZW1kLWRldGVjdC12aXJ0KQogICAgY2FzZSAkVklSVCBpbgogICAgICAg
-              IHFlbXV8a3ZtKQogICAgICAgICAgICAoY2QgL3J1bi9seGRhZ2VudC8gJiYgLi9pbnN0YWxsLnNo
-              KQogICAgICAgICAgICB1bW91bnQgL3J1bi9seGRhZ2VudAogICAgICAgICAgICBzeXN0ZW1jdGwg
-              c3RhcnQgbHhkLWFnZW50LTlwIGx4ZC1hZ2VudAogICAgICAgICAgICA7OwogICAgICAgICopCiAg
-              ICBlc2FjCmZpCg==
-   """
-)
 
 
 BUILD_FROM_TGZ = textwrap.dedent(
@@ -63,60 +36,6 @@ BUILD_FROM_TGZ = textwrap.dedent(
    cp /tmp/ubuntu-advantage-pro*.deb /tmp/ubuntu-advantage-pro.deb
    """
 )
-
-
-def lxc_create_vm_profile(series: str):
-    """Create a vm profile to enable launching kvm instances"""
-
-    content_tmpl = textwrap.dedent(
-        """\
-        {vendordata}
-        description: Default LXD profile for {series} VMs
-        devices:
-          config:
-            source: cloud-init:config
-            type: disk
-          eth0:
-            name: eth0
-            network: lxdbr0
-            type: nic
-          root:
-            path: /
-            pool: default
-            type: disk
-        name: vm
-    """
-    )
-    if series == "xenial":
-        # FIXME: Xenial images from images:ubuntu/16.04/cloud have HWE kernel
-        # but no openssh-server (which fips testing would expect)
-        # Work with CPC to get vhost-vsock support if possible to use
-        # ubuntu-daily:xenial images
-        content = content_tmpl.format(
-            vendordata=LXC_SETUP_VENDORDATA.format(
-                custom_cfg="packages: [openssh-server]"
-            ),
-            series=series,
-        )
-    elif series == "bionic":
-        content = content_tmpl.format(
-            vendordata=LXC_SETUP_VENDORDATA.format(custom_cfg=""),
-            series=series,
-        )
-    elif series == "focal":
-        content = content_tmpl.format(vendordata="config: {}", series=series)
-    else:
-        raise RuntimeError(
-            "===No lxc mv support for series {}====".format(series)
-        )
-    output = subprocess.check_output(["lxc", "profile", "list"])
-    profile_name = VM_PROFILE_TMPL.format(series)
-    if " {} ".format(profile_name) not in output.decode("utf-8"):
-        subprocess.run(["lxc", "profile", "create", profile_name])
-        proc = subprocess.Popen(
-            ["lxc", "profile", "edit", profile_name], stdin=subprocess.PIPE
-        )
-        proc.communicate(content.encode())
 
 
 def lxc_get_property(name: str, property_name: str, image: bool = False):

@@ -730,15 +730,3 @@ class LXDContainer(_LXD):
     def pycloudlib_cls(self):
         """Return the pycloudlib cls to be used as an api."""
         return pycloudlib.LXDContainer
-
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
-        """Create and manage ssh key pairs to be used in the cloud provider.
-
-        On a LXD container, we do not use ssh keys to communicate with the
-        instance. Therefore, this method should not be used.
-
-        :param private_key_path:
-            Location of the private key path to use. If None, the location
-            will be a default location.
-        """
-        pass
