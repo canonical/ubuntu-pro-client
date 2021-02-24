@@ -2,6 +2,7 @@ import copy
 import mock
 import os
 import pytest
+import textwrap
 
 from uaclient.security import (
     API_V1_CVES,
@@ -12,7 +13,9 @@ from uaclient.security import (
     CVEPackageStatus,
     UASecurityClient,
     USN,
+    get_cve_affected_packages_status,
     query_installed_source_pkg_versions,
+    version_cmp_le,
 )
 
 
@@ -49,6 +52,28 @@ CVE_ESM_PACKAGE_STATUS_RESPONSE = {
 }
 
 
+SAMBA_CVE_STATUS_BIONIC = {
+    "component": None,
+    "description": "2:4.7.6+dfsg~ubuntu-0ubuntu2.19",
+    "pocket": None,
+    "release_codename": "bionic",
+    "status": "released",
+}
+SAMBA_CVE_STATUS_FOCAL = {
+    "component": None,
+    "description": "2:4.11.6+dfsg-0ubuntu1.4",
+    "pocket": None,
+    "release_codename": "focal",
+    "status": "not-affected",
+}
+SAMBA_CVE_STATUS_UPSTREAM = {
+    "component": None,
+    "description": "",
+    "pocket": None,
+    "release_codename": "upstream",
+    "status": "needs-triage",
+}
+
 SAMPLE_CVE_RESPONSE = {
     "bugs": ["https://bugzilla.samba.org/show_bug.cgi?id=14497"],
     "description": "\nAn elevation of privilege vulnerability exists ...",
@@ -61,40 +86,9 @@ SAMPLE_CVE_RESPONSE = {
             "name": "samba",
             "source": "https://ubuntu.com/security/cve?package=samba",
             "statuses": [
-                {
-                    "component": None,
-                    "description": "2:4.7.6+dfsg~ubuntu-0ubuntu2.19",
-                    "pocket": None,
-                    "release_codename": "bionic",
-                    "status": "released",
-                },
-                {
-                    "component": None,
-                    "description": "2:4.11.6+dfsg-0ubuntu1.4",
-                    "pocket": None,
-                    "release_codename": "focal",
-                    "status": "not-affected",
-                },
-                {
-                    "component": None,
-                    "description": "2:4.12.5+dfsg-3ubuntu3",
-                    "pocket": None,
-                    "release_codename": "groovy",
-                    "status": "not-affected",
-                },
-                {
-                    "component": None,
-                    "description": "",
-                    "pocket": None,
-                    "release_codename": "precise",
-                },
-                {
-                    "component": None,
-                    "description": "",
-                    "pocket": None,
-                    "release_codename": "upstream",
-                    "status": "needs-triage",
-                },
+                SAMBA_CVE_STATUS_BIONIC,
+                SAMBA_CVE_STATUS_FOCAL,
+                SAMBA_CVE_STATUS_UPSTREAM,
             ],
         }
     ],
@@ -129,6 +123,58 @@ SAMPLE_USN_RESPONSE = {
 }
 
 
+class TestGetCVEAffectedPackageStatus:
+    @pytest.mark.parametrize(
+        "series,installed_packages,expected_status",
+        (
+            ("bionic", {}, {}),
+            # installed package version has no bearing on status filtering
+            ("bionic", {"samba": "1000"}, SAMBA_CVE_STATUS_BIONIC),
+            # active series has a bearing on status filtering
+            ("upstream", {"samba": "1000"}, SAMBA_CVE_STATUS_UPSTREAM),
+            # not-affected status has a bearing on status filtering
+            ("focal", {"samba": "1000"}, {}),
+        ),
+    )
+    @mock.patch("uaclient.security.util.get_platform_info")
+    def test_affected_packages_status_filters_installed_pkgs_and_not_affected(
+        self,
+        get_platform_info,
+        series,
+        installed_packages,
+        expected_status,
+        FakeConfig,
+    ):
+        """Package statuses are filterd if not installed or == not-affected"""
+        get_platform_info.return_value = {"series": series}
+        client = UASecurityClient(FakeConfig())
+        cve = CVE(client, SAMPLE_CVE_RESPONSE)
+        affected_packages = get_cve_affected_packages_status(
+            cve, installed_packages=installed_packages
+        )
+        if expected_status:
+            package_status = affected_packages["samba"]
+            assert expected_status == package_status.response
+        else:
+            assert expected_status == affected_packages
+
+
+class TestVersionCmpLe:
+    @pytest.mark.parametrize(
+        "ver1,ver2,is_lessorequal",
+        (
+            ("1.0", "2.0", True),
+            ("2.0", "2.0", True),
+            ("2.1~18.04.1", "2.1", True),
+            ("2.1", "2.1~18.04.1", False),
+            ("2.1", "2.0", False),
+        ),
+    )
+    def test_version_cmp_le(self, ver1, ver2, is_lessorequal):
+        """version_cmp_le returns True when ver1 less than or equal to ver2."""
+        assert is_lessorequal is version_cmp_le(ver1, ver2)
+
+
 class TestCVE:
     def test_cve_init_attributes(self, FakeConfig):
         """CVE.__init__ saves client and response on instance."""
@@ -161,7 +207,38 @@ class TestCVE:
         cve = CVE(client, response)
         assert expected == getattr(cve, attr_name)
 
-    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    #  @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    @mock.patch("uaclient.util.readurl")
+    def test_get_url_header(self, request_url, FakeConfig):
+        """CVE.get_url_header returns a string based on the CVE response."""
+        client = UASecurityClient(FakeConfig())
+        cve = CVE(client, SAMPLE_CVE_RESPONSE)
+        request_url.return_value = (SAMPLE_USN_RESPONSE, "header")
+        assert (
+            textwrap.dedent(
+                """\
+                CVE-2020-1472: Samba vulnerability
+                https://ubuntu.com/security/CVE-2020-1472"""
+            )
+            == cve.get_url_header()
+        )
+        headers = client.headers()
+        calls = []
+        for issue in ["USN-4559-1", "USN-4510-2", "USN-4510-1"]:
+            calls.append(
+                mock.call(
+                    url="https://ubuntu.com/security/notices/{}.json".format(
+                        issue
+                    ),
+                    data=None,
+                    headers=headers,
+                    method=None,
+                    timeout=20,
+                )
+            )
+        assert calls == request_url.call_args_list
+
+    @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_notices_metadata(self, request_url, FakeConfig):
         """CVE.get_notices_metadata is cached to avoid API round-trips."""
         client = UASecurityClient(FakeConfig())
@@ -221,7 +298,7 @@ class TestUSN:
         usn = USN(client, response)
         assert expected == getattr(usn, attr_name)
 
-    @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+    @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_cves_metadata(self, request_url, FakeConfig):
         """USN.get_cves_metadata is cached to avoid API round-trips."""
         client = UASecurityClient(FakeConfig())
@@ -243,6 +320,17 @@ class TestUSN:
         # no extra calls being made
         usn.get_cves_metadata()
         assert 1 == request_url.call_count
+
+    def test_get_url_header(self, FakeConfig):
+        """USN.get_url_header returns a string based on the USN response."""
+        client = UASecurityClient(FakeConfig())
+        usn = CVE(client, SAMPLE_USN_RESPONSE)
+        assert (
+            textwrap.dedent(
+                """USN-4510-2: None\nhttps://ubuntu.com/security/USN-4510-2"""
+            )
+            == usn.get_url_header()
+        )
 
 
 class TestCVEPackageStatus:
@@ -279,6 +367,12 @@ class TestCVEPackageStatus:
     @pytest.mark.parametrize(
         "status,pocket,expected",
         (
+            ("DNE", "", "Source package does not exist on this release."),
+            (
+                "needs-triage",
+                "esm-infra",
+                "Ubuntu security engineers are investigating this issue.",
+            ),
             ("needed", "esm-infra", "Sorry, no fix is available yet."),
             (
                 "pending",
@@ -301,7 +395,8 @@ class TestCVEPackageStatus:
         assert expected == pkg_status.status_message
 
 
-@mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+# @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
+@mock.patch("uaclient.security.UASecurityClient.request_url")
 class TestUASecurityClient:
     @pytest.mark.parametrize(
         "m_kwargs,expected_error",

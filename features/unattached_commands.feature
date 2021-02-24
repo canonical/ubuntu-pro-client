@@ -127,19 +127,21 @@ Feature: Command behaviour when unattached
     @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua fix USN-4539-1` as non-root
+        When I run `apt install -y libawl-php` with sudo
+        And I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/usn-4539-1.json
-            No affected packages are installed.
-            .*✔.* USN-4539-1 does not affect your system.
+            https://ubuntu.com/security/notices/USN-4539-1
+            1 affected package is installed: awl
+            \(1/1\) awl:
+            <usn_resolution>
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
-            https://ubuntu.com/security/cve-2020-28196.json
+            https://ubuntu.com/security/CVE-2020-28196
             1 affected package is installed: krb5
             \(1/1\) krb5:
             A fix is available in Ubuntu standard updates.
@@ -147,12 +149,12 @@ Feature: Command behaviour when unattached
             .*✔.* CVE-2020-28196 is resolved.
             """
 
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | trusty  |
-           | xenial  |
+        Examples: ubuntu release details
+           | release | usn_resolution |
+           | xenial  | Ubuntu security engineers are investigating this issue. |
+           | bionic  | Ubuntu security engineers are investigating this issue. |
+           | focal   | A fix is available in Ubuntu standard updates.\nThe update is already installed.\n.*✔.* USN-4539-1 is resolved. |
+
 
     @series.trusty
     Scenario Outline: Fix command on an unattached machine
@@ -161,7 +163,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/usn-4539-1.json
+            https://ubuntu.com/security/notices/USN-4539-1
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
@@ -169,7 +171,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             CVE-2020-28196: Kerberos vulnerability
-            https://ubuntu.com/security/cve-2020-28196.json
+            https://ubuntu.com/security/CVE-2020-28196
             No affected packages are installed.
             .*✔.* CVE-2020-28196 does not affect your system.
             """

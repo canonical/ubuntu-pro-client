@@ -1,7 +1,6 @@
 import abc
 import json
 
-import socket
 from urllib import error
 from urllib.parse import urlencode
 from posixpath import join as urljoin
@@ -18,6 +17,9 @@ except ImportError:
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
+
+    url_timeout = None  # type: Optional[int]
+
     @property
     @abc.abstractmethod
     def api_error_cls(self) -> "Type[Exception]":
@@ -43,7 +45,6 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             "content-type": "application/json",
         }
 
-    @util.retry(socket.timeout, retry_sleeps=[1, 3])
     def request_url(
         self, path, data=None, headers=None, method=None, query_params=None
     ):
@@ -61,10 +62,12 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             url += "?" + urlencode(filtered_params)
         try:
             response, headers = util.readurl(
-                url=url, data=data, headers=headers, method=method, timeout=10
+                url=url,
+                data=data,
+                headers=headers,
+                method=method,
+                timeout=self.url_timeout,
             )
-        except socket.timeout:
-            raise
         except error.URLError as e:
             if hasattr(e, "read"):
                 try:

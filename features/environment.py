@@ -1,5 +1,4 @@
 import datetime
-import errno
 import os
 import itertools
 import tempfile
@@ -500,18 +499,14 @@ def after_step(context, step):
                 )
                 print("-- pull instance:{} {}".format(log_file, artifact_file))
                 try:
-                    context.instance.pull_file(log_file, artifact_file)
-                except IOError as e:
-                    if e.errno == errno.EACCES:
-                        result = context.instance.execute(
-                            ["cat", log_file], use_sudo=True
-                        )
-                        with open(artifact_file, "w") as stream:
-                            stream.write(result.stdout)
+                    result = context.instance.execute(
+                        ["cat", log_file], use_sudo=True
+                    )
+                    content = result.stdout if result.ok else ""
                 except RuntimeError:
-                    # File did not exist
-                    with open(artifact_file, "w") as stream:
-                        stream.write("")
+                    content = ""
+                with open(artifact_file, "w") as stream:
+                    stream.write(content)
             for artifact_file, cmd in FAILURE_CMDS.items():
                 result = context.instance.execute(cmd, use_sudo=True)
                 artifact_file = os.path.join(artifacts_dir, artifact_file)
@@ -741,10 +736,12 @@ def _install_uat_in_container(
     if "pro" in config.machine_type:
         features = "features:\n  disable_auto_attach: true\n"
         conf_path = "/etc/ubuntu-advantage/uaclient.conf"
-        cmd = "printf '{}' > /tmp/uaclient.conf".format(features)
+        cmd = "printf '{}' > /var/tmp/uaclient.conf".format(features)
         cmds.append('sh -c "{}"'.format(cmd))
         cmds.append(
-            'sudo -- sh -c "cat /tmp/uaclient.conf >> {}"'.format(conf_path)
+            'sudo -- sh -c "cat /var/tmp/uaclient.conf >> {}"'.format(
+                conf_path
+            )
         )
         cmds.append("sudo ua detach --assume-yes")
 
