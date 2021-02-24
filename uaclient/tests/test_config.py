@@ -1017,18 +1017,21 @@ class TestParseConfig:
             "ua_data_dir": "~/somedir",
             "Ua_LoG_FiLe": "some.log",
             "UA_LOG_LEVEL": "debug",
+            "UA_FEATURES_X_Y_Z": "XYZ_VAL",
+            "UA_FEATURES_A_B_C": "ABC_VAL",
         }
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
             config = parse_config()
         expanded_dir = os.path.expanduser("~")
-        expected_default_config = {
+        expected_config = {
             "contract_url": "https://contract",
             "security_url": "https://security",
             "data_dir": "{}/somedir".format(expanded_dir),
             "log_file": "some.log",
             "log_level": "DEBUG",
+            "features": {"a_b_c": "ABC_VAL", "x_y_z": "XYZ_VAL"},
         }
-        assert expected_default_config == config
+        assert expected_config == config
 
     @pytest.mark.parametrize(
         "env_var,env_value",
