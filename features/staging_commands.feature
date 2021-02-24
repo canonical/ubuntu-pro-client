@@ -81,7 +81,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             FIPS support requires system reboot to complete configuration
             """
         And I verify that running `apt update` `with sudo` exits `0`
-        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
@@ -171,7 +170,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             <fips-service> +yes                enabled
             """
         And I verify that running `apt update` `with sudo` exits `0`
-        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
@@ -370,7 +368,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
         When I reboot the `<release>` machine
         Then I verify that running `apt update` `with sudo` exits `0`
-        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `ubuntu-fips` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
