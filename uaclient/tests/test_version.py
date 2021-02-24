@@ -21,13 +21,20 @@ class TestGetVersion:
             assert "24.1~18.04.1" + suffix == get_version(features=features)
         assert 0 == m_subp.call_count
 
-    @mock.patch("uaclient.version.PACKAGED_VERSION", "@@PACKAGED_VERSION")
+    @pytest.mark.parametrize(
+        "features,suffix", (({}, ""), ({"on": True}, " +on"))
+    )
     @mock.patch("uaclient.version.os.path.exists", return_value=True)
     def test_get_version_returns_matching_git_describe_long(
-        self, m_exists, m_subp
+        self, m_exists, m_subp, features, suffix
     ):
         m_subp.return_value = ("24.1-5-g12345678", "")
-        assert "24.1-5-g12345678" == get_version()
+        with mock.patch(
+            "uaclient.version.PACKAGED_VERSION", "@@PACKAGED_VERSION"
+        ):
+            assert "24.1-5-g12345678" + suffix == get_version(
+                features=features
+            )
         assert [
             mock.call(
                 ["git", "describe", "--abbrev=8", "--match=[0-9]*", "--long"]

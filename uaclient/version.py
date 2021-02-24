@@ -38,7 +38,7 @@ def get_version(_args=None, features={}):
         cmd = ["git", "describe", "--abbrev=8", "--match=[0-9]*", "--long"]
         try:
             out, _ = util.subp(cmd)
-            return out.strip()
+            return out.strip() + feature_suffix
         except util.ProcessExecutionError:
             # Rely on debian/changelog because we are in a git-ubuntu or other
             # packaging repo

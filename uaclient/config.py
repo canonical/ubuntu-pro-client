@@ -624,7 +624,14 @@ def parse_config(config_path=None):
     for key, value in os.environ.items():
         key = key.lower()
         if key.startswith("ua_"):
-            env_keys[key[3:]] = value  # Strip leading UA_
+            if "ua_features_" in key:
+                key = key[12:]  # String leading UA_FEATURES_
+                if "features" not in cfg:
+                    cfg["features"] = {key: value}
+                else:
+                    cfg["features"][key] = value
+            else:
+                env_keys[key[3:]] = value  # Strip leading UA_
     cfg.update(env_keys)
     cfg["log_level"] = cfg["log_level"].upper()
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
