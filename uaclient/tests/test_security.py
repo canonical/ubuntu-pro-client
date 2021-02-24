@@ -14,6 +14,7 @@ from uaclient.security import (
     UASecurityClient,
     USN,
     get_cve_affected_packages_status,
+    prompt_for_affected_packages,
     query_installed_source_pkg_versions,
     version_cmp_le,
 )
@@ -527,9 +528,17 @@ class TestQueryInstalledPkgSources:
     @pytest.mark.parametrize(
         "dpkg_out,results",
         (
+            # Ignore b non-installed status
+            ("a,,1.2,installed\nb,b,1.2,config-files", {"a": "1.2"}),
+            # Handle cases where no Source is defined for the pkg
             (
-                "a,1.2,installed\nzip,3.0-1,installed\nb,1.2,config-files",
-                {"a": "1.2", "zip": "3.0-1"},
+                "a,,1.2,installed\nzip,zip,3.0,installed",
+                {"a": "1.2", "zip": "3.0"},
+            ),
+            # Prefer Source package name to binary package name
+            (
+                "b,bsrc,1.2,installed\nzip,zip,3.0,installed",
+                {"bsrc": "1.2", "zip": "3.0"},
             ),
         ),
     )
@@ -543,8 +552,79 @@ class TestQueryInstalledPkgSources:
             mock.call(
                 [
                     "dpkg-query",
-                    "-f=${Source},${Version},${db:Status-Status}\n",
+                    "-f=${Package},${Source},${Version},${db:Status-Status}\n",
                     "-W",
                 ]
             )
         ] == subp.call_args_list
+
+
+CVE_PKG_STATUS_RELEASED = {
+    "description": "2.1",
+    "pocket": "updates",
+    "status": "released",
+}
+CVE_PKG_STATUS_RELEASED_ESM_INFRA = {
+    "description": "2.1",
+    "pocket": "esm-infra",
+    "status": "released",
+}
+CVE_PKG_STATUS_RELEASED_ESM_APPS = {
+    "description": "2.1",
+    "pocket": "esm-infra",
+    "status": "released",
+}
+
+
+class TestPromptForAffectedPackages:
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,msgs",
+        (
+            (
+                {},  # No affected_packages listed
+                {"curl": "1.0"},
+                [
+                    "No affected packages are installed.",
+                    "USN-### does not affect your system.",
+                ],
+            ),
+            (  # version is >= released affected package
+                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"sl": "2.1"},
+                [
+                    "1 affected package is installed: sl\n(1/1) sl:\n",
+                    "USN-### is resolved.\n",
+                ],
+            ),
+            (  # version is < released affected package
+                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"sl": "2.0"},
+                [
+                    "1 affected package is installed: sl\n(1/1) sl:\n",
+                    "The update is not installed because this system is not"
+                    " attached to a\nsubscription that covers these packages.",
+                ],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.security.util.prompt_choices")
+    def test_messages_for_affected_packages_based_on_installed(
+        self,
+        prompt_choices,
+        affected_pkg_status,
+        installed_packages,
+        msgs,
+        FakeConfig,
+        capsys,
+    ):
+        """Messaging is based on affected status and installed packages."""
+        cfg = FakeConfig()
+        prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id="USN-###",
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+        )
+        out, err = capsys.readouterr()
+        for msg in msgs:
+            assert msg in out

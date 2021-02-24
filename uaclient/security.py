@@ -301,11 +301,18 @@ def query_installed_source_pkg_versions() -> "Dict[str, str]":
     package version.
     """
     out, _err = util.subp(
-        ["dpkg-query", "-f=${Source},${Version},${db:Status-Status}\n", "-W"]
+        [
+            "dpkg-query",
+            "-f=${Package},${Source},${Version},${db:Status-Status}\n",
+            "-W",
+        ]
     )
     installed_packages = {}  # type: Dict[str, str]
     for pkg_line in out.splitlines():
-        source_pkg_name, pkg_version, status = pkg_line.split(",")
+        pkg_name, source_pkg_name, pkg_version, status = pkg_line.split(",")
+        if not source_pkg_name:
+            # some package don't define the Source
+            source_pkg_name = pkg_name
         if status != "installed":
             continue
         installed_packages[source_pkg_name] = pkg_version
@@ -335,6 +342,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         )
         print(usn.get_url_header())
     prompt_for_affected_packages(
+        cfg=cfg,
         issue_id=issue_id,
         affected_pkg_status=affected_pkg_status,
         installed_packages=installed_packages,
@@ -381,9 +389,10 @@ def get_cve_affected_packages_status(
 
 
 def prompt_for_affected_packages(
+    cfg: UAConfig,
     issue_id: str,
     affected_pkg_status: "Dict[str, CVEPackageStatus]",
-    installed_packages: "Dict[str,str]",
+    installed_packages: "Dict[str, str]",
 ) -> None:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -410,6 +419,7 @@ def prompt_for_affected_packages(
     )
     msg_suffix = ": " + ", ".join(affected_pkg_status.keys())
     msgs = [msg + msg_suffix]
+    upgrade_packages = []
     for pkg_num, pkg_name in enumerate(affected_pkg_status.keys(), 1):
         msgs.append("({}/{}) {}:".format(pkg_num, count, pkg_name))
         pkg_status = affected_pkg_status[pkg_name]
@@ -426,9 +436,19 @@ def prompt_for_affected_packages(
                     )
                 )
             else:
-                msgs.append(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+                if not cfg.is_attached:
+                    msgs.append(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+                upgrade_packages.append(pkg_name)
     for msg in msgs:
         print(msg)
+    if upgrade_packages and not cfg.is_attached:
+        print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_UNATTACHED)
+        choice = util.prompt_choices(
+            "Choose: [S]ubscribe at ubuntu.com [A]ttach"
+            " existing token [C]ancel",
+            valid_choices=["s", "a", "c"],
+        )
+        print(choice)
 
 
 def version_cmp_le(version1, version2) -> bool:

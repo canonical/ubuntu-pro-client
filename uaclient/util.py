@@ -399,6 +399,24 @@ def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
     return data
 
 
+def prompt_choices(msg: str = "", valid_choices: "List[str]" = []) -> str:
+    """Interactive prompt message, returning a valid choice from msg.
+
+    Expects a structured msg which designates choices with square brackets []
+    around the characters which indicate a valid choice.
+
+    Uppercase and lowercase responses are allowed. Loop on invalid choices.
+
+    :return: Valid response character chosen.
+    """
+    value = ""
+    if msg[-1] != " ":
+        msg += " "
+    while value not in valid_choices:
+        value = input(msg).lower().strip()
+    return value
+
+
 def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
     """
     Display a confirmation prompt, returning a bool indicating the response
