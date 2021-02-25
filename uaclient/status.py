@@ -163,6 +163,7 @@ MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)"
 MESSAGE_ALREADY_DISABLED_TMPL = """\
 {title} is not currently enabled\nSee: sudo ua status"""
 MESSAGE_ENABLED_FAILED_TMPL = "Could not enable {title}."
+MESSAGE_DISABLE_FAILED_TMPL = "Could not disable {title}."
 MESSAGE_ENABLED_TMPL = "{title} enabled"
 MESSAGE_ALREADY_ATTACHED = """\
 This machine is already attached to '{account_name}'

@@ -232,7 +232,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 ["apt-get", "remove", "--assume-yes"]
                 + apt_options
                 + list(remove_packages),
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title),
+                status.MESSAGE_DISABLE_FAILED_TMPL.format(title=self.title),
                 env=env,
             )
 

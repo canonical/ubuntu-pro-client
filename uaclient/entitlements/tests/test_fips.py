@@ -586,6 +586,21 @@ class TestFIPSEntitlementRemovePackages:
         else:
             assert 0 == m_subp.call_count
 
+    @mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
+    @mock.patch(M_PATH + "util.subp")
+    @mock.patch(M_PATH + "apt.get_installed_packages")
+    def test_remove_packages_output_message_when_fail(
+        self, m_get_installed_packages, m_subp, _m_get_platform, entitlement
+    ):
+        m_get_installed_packages.return_value = ["ubuntu-fips"]
+        m_subp.side_effect = util.ProcessExecutionError(cmd="test")
+        expected_msg = "Could not disable {}.".format(entitlement.title)
+
+        with pytest.raises(exceptions.UserFacingError) as exc_info:
+            entitlement.remove_packages()
+
+        assert exc_info.value.msg.strip() == expected_msg
+
 
 @mock.patch(M_REPOPATH + "handle_message_operations", return_value=True)
 @mock.patch("uaclient.util.should_reboot", return_value=True)
