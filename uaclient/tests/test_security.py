@@ -366,6 +366,23 @@ class TestCVEPackageStatus:
         assert expected == pkg_status.pocket_source
 
     @pytest.mark.parametrize(
+        "pocket,description,expected",
+        (
+            ("esm-infra", "1.2", True),
+            ("esm-apps", "1.2", True),
+            ("updates", "1.2esm", False),
+            ("security", "1.2esm", False),
+            (None, "1.2", False),
+            (None, "1.2esm", True),
+        ),
+    )
+    def test_requires_ua_from_response(self, pocket, description, expected):
+        """requires_ua is derived from response pocket and description."""
+        cve_response = {"pocket": pocket, "description": description}
+        pkg_status = CVEPackageStatus(cve_response=cve_response)
+        assert expected is pkg_status.requires_ua
+
+    @pytest.mark.parametrize(
         "status,pocket,expected",
         (
             ("DNE", "", "Source package does not exist on this release."),
@@ -596,11 +613,36 @@ class TestPromptForAffectedPackages:
                     "USN-### is resolved.\n",
                 ],
             ),
-            (  # version is < released affected package
+            (  # version is < released affected package standard updates
                 {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"sl": "2.0"},
                 [
                     "1 affected package is installed: sl\n(1/1) sl:\n",
+                    "A fix is available in Ubuntu standard updates.",
+                    "The update is not yet installed.",
+                ],
+            ),
+            (  # version is < released affected package esm-infra updates
+                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
+                {"sl": "2.0"},
+                [
+                    "1 affected package is installed: sl\n(1/1) sl:\n",
+                    "The update is not installed because this system is not"
+                    " attached to a\nsubscription that covers these packages.",
+                ],
+            ),
+            (  # version is < released affected both esm-apps and standard
+                {
+                    "sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "curl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                },
+                {"sl": "2.0", "curl": "2.0"},
+                [
+                    "2 affected packages are installed: curl, sl\n"
+                    "(1/2) curl:\n"
+                    "A fix is available in Ubuntu standard updates.\n"
+                    "The update is not yet installed",
+                    "(2/2) sl:\n" "A fix is available in UA Infra.\n",
                     "The update is not installed because this system is not"
                     " attached to a\nsubscription that covers these packages.",
                 ],

@@ -132,7 +132,7 @@ STATUS_COLOR = {
 
 MESSAGE_SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 MESSAGE_SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
-MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_UNATTACHED = """\
+MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
 The update is not installed because this system is not attached to a
 subscription that covers these packages.
 """

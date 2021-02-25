@@ -182,6 +182,11 @@ class CVEPackageStatus:
         return "UNKNOWN: {}".format(self.status)
 
     @property
+    def requires_ua(self) -> bool:
+        """Return True if the package requires an active UA subscription."""
+        return bool(self.pocket_source != "Ubuntu standard updates")
+
+    @property
     def pocket_source(self):
         """Human-readable string representing where the fix is published."""
         if self.pocket == "esm-infra":
@@ -388,16 +393,14 @@ def get_cve_affected_packages_status(
     return affected_pkg_versions
 
 
-def prompt_for_affected_packages(
-    cfg: UAConfig,
-    issue_id: str,
-    affected_pkg_status: "Dict[str, CVEPackageStatus]",
-    installed_packages: "Dict[str, str]",
-) -> None:
-    """Process security CVE dict returning a CVEStatus object.
+def print_affected_packages_header(
+    issue_id: str, affected_pkg_status: "Dict[str, CVEPackageStatus]"
+):
+    """Print header strings describing affected packages related to a CVE/USN.
 
-    Since CVEs point to a USN if active, get_notice may be called to fill in
-    CVE title details.
+    :param issue_id: String of USN or CVE issue id.
+    :param affected_pkg_status: Dict keyed on source package name, with active
+        CVEPackageStatus for the current Ubuntu release.
     """
     count = len(affected_pkg_status)
     if count == 0:
@@ -417,38 +420,80 @@ def prompt_for_affected_packages(
     msg = status.MESSAGE_SECURITY_AFFECTED_PKGS.format(
         count=count, plural_str=plural_str
     )
-    msg_suffix = ": " + ", ".join(affected_pkg_status.keys())
-    msgs = [msg + msg_suffix]
-    upgrade_packages = []
-    for pkg_num, pkg_name in enumerate(affected_pkg_status.keys(), 1):
-        msgs.append("({}/{}) {}:".format(pkg_num, count, pkg_name))
+    print(msg + ": " + ", ".join(sorted(affected_pkg_status.keys())))
+
+
+def prompt_for_affected_packages(
+    cfg: UAConfig,
+    issue_id: str,
+    affected_pkg_status: "Dict[str, CVEPackageStatus]",
+    installed_packages: "Dict[str, str]",
+) -> None:
+    """Process security CVE dict returning a CVEStatus object.
+
+    Since CVEs point to a USN if active, get_notice may be called to fill in
+    CVE title details.
+    """
+    count = len(affected_pkg_status)
+    print_affected_packages_header(issue_id, affected_pkg_status)
+    if count == 0:
+        return
+    upgrade_packages = []  # Packages from Ubuntu standard updates
+    upgrade_packages_ua = []  # Packages requiring UA subscription
+    for pkg_num, pkg_name in enumerate(sorted(affected_pkg_status.keys()), 1):
+        print("({}/{}) {}:".format(pkg_num, count, pkg_name))
         pkg_status = affected_pkg_status[pkg_name]
-        msgs.append(pkg_status.status_message)
+        print(pkg_status.status_message)
         if pkg_status.status == "released":
             fix_installed = version_cmp_le(
                 pkg_status.fixed_version, installed_packages[pkg_name]
             )
             if fix_installed:
-                msgs.append(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
-                msgs.append(
+                print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+                print(
                     status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(
                         issue=issue_id
                     )
                 )
             else:
-                if not cfg.is_attached:
-                    msgs.append(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
-                upgrade_packages.append(pkg_name)
-    for msg in msgs:
-        print(msg)
-    if upgrade_packages and not cfg.is_attached:
-        print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_UNATTACHED)
-        choice = util.prompt_choices(
-            "Choose: [S]ubscribe at ubuntu.com [A]ttach"
-            " existing token [C]ancel",
-            valid_choices=["s", "a", "c"],
+                print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+                if pkg_status.requires_ua:
+                    upgrade_packages_ua.append(pkg_name)
+                else:
+                    upgrade_packages.append(pkg_name)
+    upgrade_packages_and_attach(cfg, upgrade_packages, upgrade_packages_ua)
+
+
+def upgrade_packages_and_attach(
+    cfg: UAConfig,
+    upgrade_packages: "List[str]",
+    upgrade_packages_ua: "List[str]",
+):
+    """Upgrade available packages to fix a CVE.
+
+    Upgrade all packages in Ubuntu standard updates regardless of attach
+    status.
+
+    For UA upgrades, prompt regarding system attach prior to upgrading UA
+    packages.
+    """
+    if upgrade_packages:
+        print(
+            "TODO: GH #1401: apt commands upgrading security/updates packages"
         )
-        print(choice)
+    if upgrade_packages_ua:
+        if cfg.is_attached:
+            print(
+                "TODO: GH: #1402: apt commands to install missing UA updates"
+            )
+        else:
+            print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
+            choice = util.prompt_choices(
+                "Choose: [S]ubscribe at ubuntu.com [A]ttach"
+                " existing token [C]ancel",
+                valid_choices=["s", "a", "c"],
+            )
+            print("TODO react to subscription choice:{} GH: #".format(choice))
 
 
 def version_cmp_le(version1, version2) -> bool:
