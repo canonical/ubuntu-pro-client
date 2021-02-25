@@ -129,7 +129,10 @@ def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
 
 
 def run_apt_command(
-    cmd: "List[str]", error_msg: str, env: "Optional[Dict[str, str]]" = {}
+    cmd: "List[str]",
+    error_msg: str,
+    env: "Optional[Dict[str, str]]" = {},
+    print_cmd: bool = False,
 ) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
 
@@ -137,11 +140,15 @@ def run_apt_command(
     :param error_msg: The string to raise as UserFacingError when all retries
        are exhausted in failure.
     :param env: Optional dictionary of environment variables to pass to subp.
+    :param print_cmd: If true, print the apt command that will be run
 
     :return: stdout from successful run of the apt command.
     :raise UserFacingError: on issues running apt-cache policy.
     """
     try:
+        if print_cmd:
+            print(" ".join(cmd))
+
         out, _err = util.subp(
             cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
         )
