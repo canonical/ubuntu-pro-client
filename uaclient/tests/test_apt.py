@@ -1,6 +1,8 @@
 """Tests related to uaclient.apt module."""
 
+import contextlib
 import glob
+import io
 import mock
 import os
 import stat
@@ -911,3 +913,21 @@ class TestRunAptCommand:
 
         expected_message = "\n".join(output_list)
         assert expected_message == excinfo.value.msg
+
+    @pytest.mark.parametrize("print_cmd", ((True), (False)))
+    @mock.patch("uaclient.apt.util.subp")
+    def test_run_apt_command_can_print_cmd_to_output(self, m_subp, print_cmd):
+        m_subp.side_effect = util.ProcessExecutionError(cmd="apt update")
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            with pytest.raises(exceptions.UserFacingError):
+                run_apt_command(
+                    cmd=["apt", "update"],
+                    error_msg=status.MESSAGE_APT_UPDATE_FAILED,
+                    print_cmd=print_cmd,
+                )
+
+        if print_cmd:
+            assert "apt update" in fake_stdout.getvalue()
+        else:
+            assert "apt update" not in fake_stdout.getvalue()
