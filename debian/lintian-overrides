@@ -1,0 +1,2 @@
+# False positive
+ubuntu-advantage-tools: maintainer-script-calls-service postinst:*
