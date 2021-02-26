@@ -20,6 +20,7 @@ Standards-Version: 4.3.0
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
 Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
+Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools
 Architecture: any
