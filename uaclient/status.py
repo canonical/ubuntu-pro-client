@@ -307,6 +307,11 @@ Failed to find the machine token overlay file: {file_path}"""
 ERROR_JSON_DECODING_IN_FILE = """\
 Found error: {error} when reading json file: {file_path}"""
 
+MESSAGE_SECURITY_APT_NON_ROOT = """\
+Package fixes cannot be installed.
+To install them, run this command as root (try using sudo)
+"""
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""

@@ -1,3 +1,4 @@
+import os
 import socket
 
 from uaclient.config import UAConfig
@@ -5,6 +6,7 @@ from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
+from uaclient import apt
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -496,8 +498,22 @@ def upgrade_packages_and_attach(
     packages.
     """
     if upgrade_packages:
-        print(
-            "TODO: GH #1401: apt commands upgrading security/updates packages"
+        if os.getuid() != 0:
+            print(status.MESSAGE_SECURITY_APT_NON_ROOT)
+            return
+
+        apt.run_apt_command(
+            cmd=["apt-get", "update"],
+            error_msg=status.MESSAGE_APT_UPDATE_FAILED,
+            print_cmd=True,
+        )
+
+        apt.run_apt_command(
+            cmd=["apt-get", "install", "--only-upgrade", "-y"]
+            + upgrade_packages,
+            error_msg=status.MESSAGE_APT_INSTALL_FAILED,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
+            print_cmd=True,
         )
     if upgrade_packages_ua:
         if cfg.is_attached:
