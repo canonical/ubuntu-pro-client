@@ -179,3 +179,43 @@ Feature: Command behaviour when unattached
         Examples: ubuntu release
            | release |
            | trusty  |
+
+    @series.bionic
+    Scenario: Fix command on an unattached machine
+        Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
+        And I run `ua fix CVE-2021-27135` as non-root
+        Then stdout matches regexp:
+        """
+        CVE-2021-27135: xterm vulnerability
+        https://ubuntu.com/security/CVE-2021-27135
+        1 affected package is installed: xterm
+        \(1/1\) xterm:
+        A fix is available in Ubuntu standard updates.
+        The update is not yet installed.
+        Package fixes cannot be installed.
+        To install them, run this command as root \(try using sudo\)
+        """
+        When I run `ua fix CVE-2021-27135` with sudo
+        Then stdout matches regexp:
+        """
+        CVE-2021-27135: xterm vulnerability
+        https://ubuntu.com/security/CVE-2021-27135
+        1 affected package is installed: xterm
+        \(1/1\) xterm:
+        A fix is available in Ubuntu standard updates.
+        The update is not yet installed.
+        apt-get update
+        apt-get install --only-upgrade -y xterm
+        """
+        When I run `ua fix CVE-2021-27135` with sudo
+        Then stdout matches regexp:
+        """
+        CVE-2021-27135: xterm vulnerability
+        https://ubuntu.com/security/CVE-2021-27135
+        1 affected package is installed: xterm
+        \(1/1\) xterm:
+        A fix is available in Ubuntu standard updates.
+        The update is already installed.
+        .*✔.* CVE-2021-27135 is resolved.
+        """

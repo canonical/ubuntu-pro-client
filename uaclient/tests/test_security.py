@@ -1,4 +1,6 @@
 import copy
+import contextlib
+import io
 import mock
 import os
 import pytest
@@ -17,7 +19,9 @@ from uaclient.security import (
     prompt_for_affected_packages,
     query_installed_source_pkg_versions,
     version_cmp_le,
+    upgrade_packages_and_attach,
 )
+from uaclient import status
 
 
 M_PATH = "uaclient.contract."
@@ -413,7 +417,6 @@ class TestCVEPackageStatus:
         assert expected == pkg_status.status_message
 
 
-# @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
 @mock.patch("uaclient.security.UASecurityClient.request_url")
 class TestUASecurityClient:
     @pytest.mark.parametrize(
@@ -649,10 +652,14 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.util.prompt_choices")
     def test_messages_for_affected_packages_based_on_installed(
         self,
         prompt_choices,
+        m_run_apt_cmd,
+        _m_os_getuid,
         affected_pkg_status,
         installed_packages,
         msgs,
@@ -670,3 +677,32 @@ class TestPromptForAffectedPackages:
         out, err = capsys.readouterr()
         for msg in msgs:
             assert msg in out
+
+
+class TestUpgradePackagesAndAttach:
+    @pytest.mark.parametrize("getuid_value", ((0), (1)))
+    @mock.patch("os.getuid")
+    @mock.patch("uaclient.security.util.subp")
+    def test_upgrade_packages_are_installed_without_need_for_ua(
+        self, m_subp, m_os_getuid, getuid_value
+    ):
+        m_subp.return_value = ("", "")
+        m_os_getuid.return_value = getuid_value
+
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            upgrade_packages_and_attach(
+                cfg=None,
+                upgrade_packages=["t1", "t2"],
+                upgrade_packages_ua=None,
+            )
+
+        stdout_output = fake_stdout.getvalue()
+
+        if getuid_value == 0:
+            assert m_subp.call_count == 2
+            assert "apt-get update" in stdout_output
+            assert "apt-get install --only-upgrade -y t1 t2" in stdout_output
+        else:
+            assert status.MESSAGE_SECURITY_APT_NON_ROOT in stdout_output
+            assert m_subp.call_count == 0
