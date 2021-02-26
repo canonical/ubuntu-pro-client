@@ -417,19 +417,30 @@ class TestCVEPackageStatus:
 @mock.patch("uaclient.security.UASecurityClient.request_url")
 class TestUASecurityClient:
     @pytest.mark.parametrize(
-        "m_kwargs,expected_error",
+        "m_kwargs,expected_error, extra_security_params",
         (
-            ({}, None),
-            ({"query": "vq"}, None),
-            (SAMPLE_GET_CVES_QUERY_PARAMS, None),
-            ({"invalidparam": "vv"}, TypeError),
+            ({}, None, None),
+            ({"query": "vq"}, None, {"test": "blah"}),
+            (SAMPLE_GET_CVES_QUERY_PARAMS, None, None),
+            ({"invalidparam": "vv"}, TypeError, None),
         ),
     )
     def test_get_cves_sets_query_params_on_get_cves_route(
-        self, request_url, m_kwargs, expected_error, FakeConfig
+        self,
+        request_url,
+        m_kwargs,
+        expected_error,
+        extra_security_params,
+        FakeConfig,
     ):
         """GET CVE instances from API_V1_CVES route with querystrings"""
-        client = UASecurityClient(FakeConfig())
+        cfg = FakeConfig()
+        if extra_security_params:
+            cfg.override_features(
+                {"extra_security_params": extra_security_params}
+            )
+
+        client = UASecurityClient(cfg)
         if expected_error:
             with pytest.raises(expected_error) as exc:
                 client.get_cves(**m_kwargs)
@@ -449,24 +460,36 @@ class TestUASecurityClient:
             assert "body2" == cve2.response
             # get_cves transposes "query" to "q"
             m_kwargs["q"] = m_kwargs.pop("query")
+
             assert [
                 mock.call(API_V1_CVES, query_params=m_kwargs)
             ] == request_url.call_args_list
 
     @pytest.mark.parametrize(
-        "m_kwargs,expected_error",
+        "m_kwargs,expected_error, extra_security_params",
         (
-            ({}, None),
-            ({"details": "vd"}, None),
-            (SAMPLE_GET_NOTICES_QUERY_PARAMS, None),
-            ({"invalidparam": "vv"}, TypeError),
+            ({}, None, None),
+            ({"details": "vd"}, None, None),
+            (SAMPLE_GET_NOTICES_QUERY_PARAMS, None, {"test": "blah"}),
+            ({"invalidparam": "vv"}, TypeError, None),
         ),
     )
     def test_get_notices_sets_query_params_on_get_cves_route(
-        self, request_url, m_kwargs, expected_error, FakeConfig
+        self,
+        request_url,
+        m_kwargs,
+        expected_error,
+        extra_security_params,
+        FakeConfig,
     ):
         """GET body from API_V1_NOTICES route with appropriate querystring"""
-        client = UASecurityClient(FakeConfig())
+        cfg = FakeConfig()
+        if extra_security_params:
+            cfg.override_features(
+                {"extra_security_params": extra_security_params}
+            )
+
+        client = UASecurityClient(cfg)
         if expected_error:
             with pytest.raises(expected_error) as exc:
                 client.get_notices(**m_kwargs)
@@ -490,14 +513,24 @@ class TestUASecurityClient:
             ] == request_url.call_args_list
 
     @pytest.mark.parametrize(
-        "m_kwargs,expected_error",
-        (({}, TypeError), ({"cve_id": "CVE-1"}, None)),
+        "m_kwargs,expected_error, extra_security_params",
+        (({}, TypeError, None), ({"cve_id": "CVE-1"}, None, {"test": "blah"})),
     )
     def test_get_cve_provides_response_from_cve_json_route(
-        self, request_url, m_kwargs, expected_error, FakeConfig
+        self,
+        request_url,
+        m_kwargs,
+        expected_error,
+        extra_security_params,
+        FakeConfig,
     ):
         """GET body from API_V1_CVE_TMPL route with required cve_id."""
-        client = UASecurityClient(FakeConfig())
+        cfg = FakeConfig()
+        if extra_security_params:
+            cfg.override_features(
+                {"extra_security_params": extra_security_params}
+            )
+        client = UASecurityClient(cfg)
         if expected_error:
             with pytest.raises(expected_error) as exc:
                 client.get_cve(**m_kwargs)
@@ -515,14 +548,28 @@ class TestUASecurityClient:
             ] == request_url.call_args_list
 
     @pytest.mark.parametrize(
-        "m_kwargs,expected_error",
-        (({}, TypeError), ({"notice_id": "USN-1"}, None)),
+        "m_kwargs,expected_error, extra_security_params",
+        (
+            ({}, TypeError, None),
+            ({"notice_id": "USN-1"}, None, {"test": "blah"}),
+        ),
     )
     def test_get_notice_provides_response_from_notice_json_route(
-        self, request_url, m_kwargs, expected_error, FakeConfig
+        self,
+        request_url,
+        m_kwargs,
+        expected_error,
+        extra_security_params,
+        FakeConfig,
     ):
         """GET body from API_V1_NOTICE_TMPL route with required notice_id."""
-        client = UASecurityClient(FakeConfig())
+        cfg = FakeConfig()
+        if extra_security_params:
+            cfg.override_features(
+                {"extra_security_params": extra_security_params}
+            )
+
+        client = UASecurityClient(cfg)
         if expected_error:
             with pytest.raises(expected_error) as exc:
                 client.get_notice(**m_kwargs)

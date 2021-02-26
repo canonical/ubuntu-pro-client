@@ -16,6 +16,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+
 API_V1_CVES = "cves.json"
 API_V1_CVE_TMPL = "cves/{cve}.json"
 API_V1_NOTICES = "notices.json"
@@ -49,10 +50,27 @@ class UASecurityClient(serviceclient.UAServiceClient):
     cfg_url_base_attr = "security_url"
     api_error_cls = SecurityAPIError
 
+    def _get_query_params(
+        self, query_params: "Dict[str, Any]"
+    ) -> "Dict[str, Any]":
+        """
+        Update query params with data from feature config.
+        """
+        extra_security_params = self.cfg.cfg.get("features", {}).get(
+            "extra_security_params", {}
+        )
+
+        if query_params:
+            query_params.update(extra_security_params)
+            return query_params
+
+        return extra_security_params
+
     @util.retry(socket.timeout, retry_sleeps=[1, 3, 5])
     def request_url(
         self, path, data=None, headers=None, method=None, query_params=None
     ):
+        query_params = self._get_query_params(query_params)
         return super().request_url(
             path=path,
             data=data,
