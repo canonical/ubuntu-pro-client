@@ -4,6 +4,9 @@ set -e
 
 . /etc/os-release  # For VERSION_ID
 
+# Needed even if this script doesn't call debconf, see:
+# https://lintian.debian.org/tags/postinst-does-not-load-confmodule.html
+. /usr/share/debconf/confmodule
 
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
@@ -182,11 +185,6 @@ case "$1" in
               rm -f $SYSTEMD_WANTS_AUTO_ATTACH_LINK
               rm -f $SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH
               rm -f $SYSTEMD_HELPER_ENABLED_WANTS_LINK
-              # Use debconf to alert the user to the additional
-              # ubuntu-advantage-pro package that should be installed
-              . /usr/share/debconf/confmodule
-              db_input high ubuntu-advantage-tools/suggest_pro_pkg || true
-              db_go || true
           fi
       fi
 
