@@ -609,20 +609,23 @@ class TestQueryInstalledPkgSources:
             ),
         ),
     )
+    @pytest.mark.parametrize("series", ("trusty", "bionic"))
     @mock.patch("uaclient.security.util.subp")
+    @mock.patch("uaclient.util.get_platform_info")
     def test_result_keyed_by_source_package_name(
-        self, subp, dpkg_out, results
+        self, get_platform_info, subp, series, dpkg_out, results
     ):
+        get_platform_info.return_value = {"series": series}
         subp.return_value = dpkg_out, ""
         assert results == query_installed_source_pkg_versions()
-        assert [
-            mock.call(
-                [
-                    "dpkg-query",
-                    "-f=${Package},${Source},${Version},${db:Status-Status}\n",
-                    "-W",
-                ]
+        if series == "trusty":
+            _format = "-f=${Package},${Source},${Version},${Status}\n"
+        else:
+            _format = (
+                "-f=${Package},${Source},${Version},${db:Status-Status}\n"
             )
+        assert [
+            mock.call(["dpkg-query", _format, "-W"])
         ] == subp.call_args_list
 
 

@@ -1,12 +1,13 @@
 import os
 import socket
 
+from uaclient import apt
 from uaclient.config import UAConfig
 from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
-from uaclient import apt
+
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -310,6 +311,25 @@ class USN:
             self._cves.append(self.client.get_cve(cve_id=cve_id))
         return self._cves
 
+    def released_packages(self, series: str) -> "Dict[str, Dict[str, str]]":
+        """Return a dict of released binary packages keyed on source pkg name.
+
+        The value is a dict with binary package name as key and pkg version.
+        """
+        binary_pkgs = {}  # type: Dict[str, str]
+        src_pkg = {}
+        for released_pkg in self.response["release_packages"].get(series, []):
+            is_source = released_pkg.get("is_source")
+            if is_source is True:
+                src_pkg = released_pkg
+            elif is_source is False:
+                binary_pkgs[released_pkg["name"]] = released_pkg["version"]
+        if not all([src_pkg, binary_pkgs]):
+            raise RuntimeError(
+                "Unable to parse USN response for {}".format(self.id)
+            )
+        return {src_pkg["name"]: binary_pkgs}
+
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
         return status.MESSAGE_SECURITY_URL.format(
@@ -319,28 +339,36 @@ class USN:
         )
 
 
-def query_installed_source_pkg_versions() -> "Dict[str, str]":
+def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
     """Return a dict of all source packages installed on the system.
 
-    The dict keys will be source package name: "krb5". The value will be the
-    package version.
+    The dict keys will be source package name: "krb5". The value will list of
+    dicts with keys binary_pkg and version.
     """
+    series = util.get_platform_info()["series"]
+    if series == "trusty":
+        status_field = "${Status}"
+    else:
+        status_field = "${db:Status-Status}"
     out, _err = util.subp(
         [
             "dpkg-query",
-            "-f=${Package},${Source},${Version},${db:Status-Status}\n",
+            "-f=${Package},${Source},${Version}," + status_field + "\n",
             "-W",
         ]
     )
-    installed_packages = {}  # type: Dict[str, str]
+    installed_packages = {}  # type: Dict[str, Dict[str, str]]
     for pkg_line in out.splitlines():
         pkg_name, source_pkg_name, pkg_version, status = pkg_line.split(",")
         if not source_pkg_name:
             # some package don't define the Source
             source_pkg_name = pkg_name
-        if status != "installed":
+        if "installed" not in status:
             continue
-        installed_packages[source_pkg_name] = pkg_version
+        if source_pkg_name in installed_packages:
+            installed_packages[source_pkg_name][pkg_name] = pkg_version
+        else:
+            installed_packages[source_pkg_name] = {pkg_name: pkg_version}
     return installed_packages
 
 
@@ -353,7 +381,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
             cve = client.get_cve(cve_id=issue_id)
         except SecurityAPIError as e:
             raise exceptions.UserFacingError(str(e))
-        affected_pkg_status = get_cve_affected_packages_status(
+        affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
         )
         print(cve.get_url_header())
@@ -375,7 +403,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
 
 
 def get_usn_affected_packages_status(
-    usn: USN, installed_packages: "Dict[str,str]"
+    usn: USN, installed_packages: "Dict[str, Dict[str, str]]"
 ) -> "Dict[str, CVEPackageStatus]":
     """Walk CVEs related to a USN and return a dict of all affected packages.
 
@@ -384,7 +412,7 @@ def get_usn_affected_packages_status(
     """
     affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
     for cve in usn.get_cves_metadata():
-        for pkg_name, pkg_status in get_cve_affected_packages_status(
+        for pkg_name, pkg_status in get_cve_affected_source_packages_status(
             cve, installed_packages
         ).items():
             if pkg_name not in affected_pkgs:
@@ -396,8 +424,8 @@ def get_usn_affected_packages_status(
     return affected_pkgs
 
 
-def get_cve_affected_packages_status(
-    cve: CVE, installed_packages: "Dict[str,str]"
+def get_cve_affected_source_packages_status(
+    cve: CVE, installed_packages: "Dict[str, Dict[str, str]]"
 ) -> "Dict[str, CVEPackageStatus]":
     """Get a dict of any CVEPackageStatuses affecting this Ubuntu release.
 
@@ -447,7 +475,7 @@ def prompt_for_affected_packages(
     cfg: UAConfig,
     issue_id: str,
     affected_pkg_status: "Dict[str, CVEPackageStatus]",
-    installed_packages: "Dict[str, str]",
+    installed_packages: "Dict[str, Dict[str, str]]",
 ) -> None:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -465,22 +493,17 @@ def prompt_for_affected_packages(
         pkg_status = affected_pkg_status[pkg_name]
         print(pkg_status.status_message)
         if pkg_status.status == "released":
-            fix_installed = version_cmp_le(
-                pkg_status.fixed_version, installed_packages[pkg_name]
-            )
-            if fix_installed:
-                print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
-                print(
-                    status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(
-                        issue=issue_id
-                    )
-                )
-            else:
-                print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
-                if pkg_status.requires_ua:
-                    upgrade_packages_ua.append(pkg_name)
-                else:
-                    upgrade_packages.append(pkg_name)
+            for binary_pkg, version in installed_packages[pkg_name].items():
+                if not version_cmp_le(pkg_status.fixed_version, version):
+                    if pkg_status.requires_ua:
+                        upgrade_packages_ua.append(binary_pkg)
+                    else:
+                        upgrade_packages.append(binary_pkg)
+    if upgrade_packages or upgrade_packages_ua:
+        print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+    else:
+        print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+        print(status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id))
     upgrade_packages_and_attach(cfg, upgrade_packages, upgrade_packages_ua)
 
 
@@ -497,6 +520,8 @@ def upgrade_packages_and_attach(
     For UA upgrades, prompt regarding system attach prior to upgrading UA
     packages.
     """
+    from uaclient import cli
+
     if upgrade_packages:
         if os.getuid() != 0:
             print(status.MESSAGE_SECURITY_APT_NON_ROOT)
@@ -517,6 +542,9 @@ def upgrade_packages_and_attach(
         )
     if upgrade_packages_ua:
         if cfg.is_attached:
+            import pdb
+
+            pdb.set_trace()
             print(
                 "TODO: GH: #1402: apt commands to install missing UA updates"
             )
