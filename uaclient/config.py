@@ -626,6 +626,19 @@ def parse_config(config_path=None):
         if key.startswith("ua_"):
             if "ua_features_" in key:
                 key = key[12:]  # String leading UA_FEATURES_
+
+                # Users can provide a yaml file to override
+                # config behavor. If they do, we are going
+                # to load that yaml and update the config
+                # with it
+                if value.endswith("yaml"):
+                    if os.path.exists(value):
+                        value = yaml.safe_load(util.load_file(value))
+                    else:
+                        raise exceptions.UserFacingError(
+                            "Could not find yaml file: {}".format(value)
+                        )
+
                 if "features" not in cfg:
                     cfg["features"] = {key: value}
                 else:
