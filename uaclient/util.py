@@ -1,4 +1,5 @@
 from errno import ENOENT
+import sys
 import datetime
 import json
 import logging
@@ -410,10 +411,15 @@ def prompt_choices(msg: str = "", valid_choices: "List[str]" = []) -> str:
     :return: Valid response character chosen.
     """
     value = ""
-    if msg[-1] != " ":
-        msg += " "
-    while value not in valid_choices:
-        value = input(msg).lower().strip()
+    error_msg = "{} is not one of: {}".format(
+        value, ", ".join([choice.upper() for choice in valid_choices])
+    )
+    while True:
+        print(msg)
+        value = input("> ").lower()
+        if value in valid_choices:
+            break
+        print(error_msg)
     return value
 
 
