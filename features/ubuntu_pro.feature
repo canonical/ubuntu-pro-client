@@ -12,6 +12,10 @@ Feature: Command behaviour when attached to an UA subscription
         data_dir: /var/lib/ubuntu-advantage
         log_level: debug
         log_file: /var/log/ubuntu-advantage.log
+        features:
+          entitlements:
+            esm_apps:
+              is_beta: false
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
@@ -21,6 +25,16 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified FIPS modules
+            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified FIPS modules

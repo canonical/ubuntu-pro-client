@@ -11,6 +11,7 @@ from uaclient import status, util
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 from uaclient import exceptions
 
+
 try:
     from typing import (  # noqa: F401
         Any,
@@ -217,9 +218,14 @@ class UAConfig:
         """Report whether this machine configuration is attached to UA."""
         return bool(self.machine_token)  # machine_token is removed on detach
 
-    @property
-    def features(self):
+    def features(self, key_path: str = None):
         """Return a dictionary of any features provided in uaclient.conf."""
+        if key_path:
+            if key_path.startswith("features."):
+                key_path = key_path[9:]
+            return util.get_value_from_dict(
+                self.cfg.get("features", {}), key_path
+            )
         return self.cfg.get("features", {})
 
     @property
@@ -228,9 +234,7 @@ class UAConfig:
         if not self._machine_token:
             raw_machine_token = self.read_cache("machine-token")
 
-            machine_token_overlay_path = self.features.get(
-                "machine_token_overlay"
-            )
+            machine_token_overlay_path = self.features("machine_token_overlay")
 
             if raw_machine_token and machine_token_overlay_path:
                 machine_token_overlay = self.parse_machine_token_overlay(
@@ -368,7 +372,8 @@ class UAConfig:
                 released_resources.append(resource)
                 continue
 
-            if not ent_cls.is_beta:
+            entitlement = ent_cls(self)
+            if not entitlement.is_beta:
                 released_resources.append(resource)
 
         if released_resources:
@@ -581,7 +586,7 @@ class UAConfig:
             response_dict["entitled"] = service_status["entitled"]
             response_dict["status"] = status_msg
 
-            if status_msg == "enabled" and help_ent_cls.is_beta:
+            if status_msg == "enabled" and help_ent.is_beta:
                 response_dict["beta"] = True
 
         else:
@@ -627,9 +632,10 @@ def parse_config(config_path=None):
             if "ua_features_" in key:
                 key = key[12:]  # String leading UA_FEATURES_
                 if "features" not in cfg:
-                    cfg["features"] = {key: value}
-                else:
-                    cfg["features"][key] = value
+                    cfg["features"] = {}
+                for part in key.split(".")[::-1]:  # reverse ordered list
+                    value = {part: value}
+                cfg["features"].update(value)
             else:
                 env_keys[key[3:]] = value  # Strip leading UA_
     cfg.update(env_keys)

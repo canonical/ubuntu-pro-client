@@ -40,7 +40,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     assume_yes = False
 
     # Whether that entitlement is in beta stage
-    is_beta = False
+    _is_beta = False
+
+    @property
+    def is_beta(self) -> bool:
+        """Is this service beta (and hidden from status) or production"""
+        cfg_beta = self.cfg.features(
+            "entitlements.{}.is_beta".format(self.name.replace("-", "_"))
+        )
+        if cfg_beta is not None:
+            return bool(cfg_beta)
+        return self._is_beta
 
     # Help info message for the entitlement
     _help_info = None  # type: str

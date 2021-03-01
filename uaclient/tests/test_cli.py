@@ -74,11 +74,11 @@ Client to manage Ubuntu Advantage services on a machine.
 
 
 @pytest.fixture(params=["direct", "--help", "ua help", "ua help --all"])
-def get_help(request, capsys):
+def get_help(request, FakeConfig, capsys):
     if request.param == "direct":
 
         def _get_help_output():
-            parser = get_parser()
+            parser = get_parser(FakeConfig())
             help_file = io.StringIO()
             parser.print_help(file=help_file)
             return (help_file.getvalue(), "base")
@@ -86,7 +86,7 @@ def get_help(request, capsys):
     elif request.param == "--help":
 
         def _get_help_output():
-            parser = get_parser()
+            parser = get_parser(FakeConfig())
             with mock.patch("sys.argv", ["ua", "--help"]):
                 with pytest.raises(SystemExit):
                     parser.parse_args()
@@ -113,24 +113,27 @@ def get_help(request, capsys):
 class TestCLIParser:
     maxDiff = None
 
-    @mock.patch("uaclient.cli.entitlements")
-    def test_help_descr_and_url_is_wrapped_at_eighty_chars(
-        self, m_entitlements, get_help
-    ):
+    def test_help_descr_and_url_is_wrapped_at_eighty_chars(self, get_help):
         """Help lines are wrapped at 80 chars"""
+        import uaclient.entitlements as ent
 
         def cls_mock_factory(desc, url):
-            return mock.Mock(description=desc, help_doc_url=url, is_beta=False)
+            ent_cls = mock.Mock(description=desc, help_doc_url=url)
+            ent_obj = ent_cls.return_value
+            type(ent_obj).is_beta = mock.PropertyMock(return_value=False)
+            return ent_cls
 
-        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "test": cls_mock_factory(BIG_DESC, BIG_URL)
-        }
+        with mock.patch.object(
+            ent,
+            "ENTITLEMENT_CLASS_BY_NAME",
+            {"test": cls_mock_factory(BIG_DESC, BIG_URL)},
+        ):
+            out, _ = get_help()
 
         lines = [
             " - test: " + " ".join(["123456789"] * 7),
             "   next line ({url})".format(url=BIG_URL),
         ]
-        out, _ = get_help()
         assert "\n".join(lines) in out
 
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
@@ -230,9 +233,9 @@ class TestCLIParser:
             return_value="Test service\nService is being tested"
         )
         m_is_beta = mock.PropertyMock(return_value=is_beta)
-        type(m_entitlement_cls).is_beta = m_is_beta
         m_entitlement_obj = m_entitlement_cls.return_value
         type(m_entitlement_obj).help_info = m_ent_help_info
+        type(m_entitlement_obj).is_beta = m_is_beta
 
         m_entitlement_obj.contract_status.return_value = ent_status
         m_entitlement_obj.user_facing_status.return_value = (
@@ -596,7 +599,7 @@ class TestMain:
         assert "['some', 'args']" in log
 
     def test_argparse_errors_well_formatted(self, capsys):
-        parser = get_parser()
+        parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "enable"]):
             with pytest.raises(SystemExit) as excinfo:
                 parser.parse_args()

@@ -218,14 +218,14 @@ class TestParser:
         assert "Flags" == parser._optionals.title
 
     def test_attach_parser_stores_token(self):
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "attach", "token"]):
             args = full_parser.parse_args()
         assert "token" == args.token
 
     def test_attach_parser_allows_empty_required_token(self):
         """Token required but parse_args allows none due to action_attach"""
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "attach"]):
             args = full_parser.parse_args()
         assert None is args.token
@@ -234,14 +234,14 @@ class TestParser:
         self, capsys
     ):
         """Contracts' dashboard URL is referenced by ua attach --help."""
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "attach", "--help"]):
             with pytest.raises(SystemExit):
                 full_parser.parse_args()
         assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
 
     def test_attach_parser_accepts_and_stores_no_auto_enable(self):
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch(
             "sys.argv", ["ua", "attach", "--no-auto-enable", "token"]
         ):
@@ -249,7 +249,7 @@ class TestParser:
         assert not args.auto_enable
 
     def test_attach_parser_defaults_to_auto_enable(self):
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "attach", "token"]):
             args = full_parser.parse_args()
         assert args.auto_enable

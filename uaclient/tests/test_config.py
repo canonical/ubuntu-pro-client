@@ -539,7 +539,7 @@ class TestStatus:
                 if allow_beta:
                     return False
 
-            return cls.is_beta
+            return cls._is_beta
 
         return False
 
@@ -1067,13 +1067,15 @@ class TestFeatures:
             ),
         ),
     )
-    def test_features_are_a_property_of_uaconfig(self, cfg_features, expected):
+    def test_features_are_a_extracted_from_config(
+        self, cfg_features, expected
+    ):
         if cfg_features is None:
             user_cfg = None
         else:
             user_cfg = {"features": cfg_features}
         cfg = UAConfig(cfg=user_cfg)
-        assert expected == cfg.features
+        assert expected == cfg.features()
 
 
 class TestMachineTokenOverlay:

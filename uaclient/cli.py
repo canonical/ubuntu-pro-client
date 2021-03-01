@@ -513,7 +513,8 @@ def _perform_enable(
         config=cfg.cfg, path_to_value="features.allow_beta"
     )
     allow_beta |= config_allow_beta
-    if not allow_beta and ent_cls.is_beta:
+    entitlement = ent_cls(cfg, assume_yes=assume_yes)
+    if not allow_beta and entitlement.is_beta:
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         raise exceptions.BetaServiceError(
             tmpl.format(
@@ -523,7 +524,6 @@ def _perform_enable(
             )
         )
 
-    entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
     cfg.status()  # Update the status cache
     return ret
@@ -738,7 +738,7 @@ def action_attach(args, cfg):
     )
 
 
-def get_parser():
+def get_parser(cfg: config.UAConfig):
     service_line_tmpl = " - {name}: {description}{url}"
     base_desc = __doc__
     non_beta_services_desc = []
@@ -761,8 +761,8 @@ def get_parser():
                 [line, wrapped_word] = line.rsplit(" ", 1)
                 wrapped_words.insert(0, wrapped_word)
             service_info = [line + "\n   " + " ".join(wrapped_words)]
-
-        if ent_cls.is_beta:
+        entitlement = ent_cls(cfg)
+        if entitlement.is_beta:
             beta_services_desc.extend(service_info)
         else:
             non_beta_services_desc.extend(service_info)
@@ -886,7 +886,7 @@ def get_version(_args=None, _cfg=None):
     if _cfg is None:
         _cfg = config.UAConfig()
 
-    return version.get_version(features=_cfg.features)
+    return version.get_version(features=_cfg.features())
 
 
 def print_version(_args=None, _cfg=None):
@@ -911,12 +911,12 @@ def action_help(args, cfg):
     service = args.service
     show_all = args.all
 
-    if not service:
-        get_parser().print_help(show_all=show_all)
-        return 0
-
     if not cfg:
         cfg = config.UAConfig()
+
+    if not service:
+        get_parser(cfg).print_help(show_all=show_all)
+        return 0
 
     help_response = cfg.help(service)
 
@@ -1012,14 +1012,14 @@ def main_error_handler(func):
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
-    parser = get_parser()
+    cfg = config.UAConfig()
+    parser = get_parser(cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
         print("Try 'ua --help' for more information.")
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
-    cfg = config.UAConfig()
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)

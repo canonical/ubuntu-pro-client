@@ -18,7 +18,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     title = "ESM Apps"
     description = "UA Apps: Extended Security Maintenance (ESM)"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
-    is_beta = True
+    _is_beta = True
 
 
 class ESMInfraEntitlement(ESMBaseEntitlement):

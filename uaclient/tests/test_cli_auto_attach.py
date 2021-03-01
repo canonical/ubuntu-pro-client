@@ -356,7 +356,7 @@ class TestParser:
         assert "auto-attach" == m_parser.prog
         assert "Flags" == m_parser._optionals.title
 
-        full_parser = get_parser()
+        full_parser = get_parser(mock.Mock())
         with mock.patch("sys.argv", ["ua", "auto-attach"]):
             args = full_parser.parse_args()
         assert "auto-attach" == args.command

@@ -627,16 +627,7 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
             path_to_value parameter can not be translated into either
             a 'False' or 'True' boolean value.
     """
-    value = config
-    default_value = {}  # type: Any
-    paths = path_to_value.split(".")
-    leaf_value = paths[-1]
-    for key in paths:
-        if key == leaf_value:
-            default_value = "false"
-
-        value = value.get(key, default_value)
-
+    value = get_value_from_dict(config, path_to_value, default=False)
     value_str = str(value)
     if value_str.lower() == "true":
         return True
@@ -650,6 +641,22 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
                 value=value_str,
             )
         )
+
+
+def get_value_from_dict(
+    config: "Dict[str, Any]", path_to_value: str, default: "Any" = None
+):
+    """Return the value present at a given path_to_value"""
+    value = config
+    default_value = {}  # type: Any
+    paths = path_to_value.split(".")
+    leaf_value = paths[-1]
+    for key in paths:
+        if key == leaf_value:
+            default_value = default
+
+        value = value.get(key, default_value)
+    return value
 
 
 def should_reboot() -> bool:

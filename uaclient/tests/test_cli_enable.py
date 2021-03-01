@@ -124,11 +124,11 @@ class TestActionEnable:
 
         m_entitlement_cls = mock.MagicMock()
         m_ent_is_beta = mock.PropertyMock(return_value=False)
-        type(m_entitlement_cls).is_beta = m_ent_is_beta
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "testitlement": m_entitlement_cls
         }
         m_entitlement_obj = m_entitlement_cls.return_value
+        type(m_entitlement_obj).is_beta = m_ent_is_beta
         m_entitlement_obj.enable.return_value = True
 
         cfg = FakeConfig.for_attached_machine()
@@ -166,15 +166,15 @@ class TestActionEnable:
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
         m_ent2_obj.enable.return_value = False
+        type(m_ent2_obj).is_beta = m_ent2_is_beta
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = True
+        type(m_ent3_obj).is_beta = m_ent3_is_beta
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "ent2": m_ent2_cls,
@@ -244,14 +244,14 @@ class TestActionEnable:
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
-        type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
+        type(m_ent2_obj).is_beta = m_ent2_is_beta
         m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
-        type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
+        type(m_ent3_obj).is_beta = m_ent3_is_beta
         m_ent3_obj.enable.return_value = True
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
@@ -382,11 +382,12 @@ class TestPerformEnable:
         m_user_cfg = mock.PropertyMock(return_value={})
         type(m_cfg).cfg = m_user_cfg
         m_is_beta = mock.PropertyMock(return_value=allow_beta)
-        type(m_entitlement_cls).is_beta = m_is_beta
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "testitlement": m_entitlement_cls
         }
+        m_entitlement = m_entitlement_cls.return_value
+        type(m_entitlement).is_beta = m_is_beta
 
         kwargs = {"allow_beta": allow_beta}
         if silent_if_inapplicable is not None:
@@ -397,7 +398,6 @@ class TestPerformEnable:
             mock.call(m_cfg, assume_yes=False)
         ] == m_entitlement_cls.call_args_list
 
-        m_entitlement = m_entitlement_cls.return_value
         if silent_if_inapplicable:
             expected_enable_call = mock.call(silent_if_inapplicable=True)
         else:
@@ -415,11 +415,12 @@ class TestPerformEnable:
         self, m_entitlements, silent_if_inapplicable
     ):
         m_entitlement_cls = mock.Mock()
+        m_entitlement_obj = m_entitlement_cls.return_value
         m_cfg = mock.Mock()
         m_user_cfg = mock.PropertyMock(return_value={})
         type(m_cfg).cfg = m_user_cfg
         m_is_beta = mock.PropertyMock(return_value=True)
-        type(m_entitlement_cls).is_beta = m_is_beta
+        type(m_entitlement_obj).is_beta = m_is_beta
 
         m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
             "testitlement": m_entitlement_cls
