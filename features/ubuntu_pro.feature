@@ -15,7 +15,17 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
-        And I run `ua status --all` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified FIPS modules
+            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
@@ -96,7 +106,17 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
-        And I run `ua status --all` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified FIPS modules
+            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
@@ -177,7 +197,17 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And I run `ua auto-attach` with sudo
         And I run `ua status --wait` as non-root
-        And I run `ua status --all` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified FIPS modules
+            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
