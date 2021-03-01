@@ -205,8 +205,7 @@ Feature: Command behaviour when unattached
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         The update is not yet installed.
-        apt-get update
-        apt-get install --only-upgrade -y xterm
+        .*\{ apt update && apt install --only-upgrade -y xterm \}.*
         """
         When I run `ua fix CVE-2021-27135` with sudo
         Then stdout matches regexp:

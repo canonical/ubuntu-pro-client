@@ -21,6 +21,16 @@ CLOUDINIT_INSTANCE_ID_FILE = "/var/lib/cloud/data/instance-id"
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
 DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
 
+CLOUD_TYPE_TO_TITLE = {
+    "aws": "AWS",
+    "aws-china": "AWS China",
+    "aws-gov": "AWS Gov",
+    "azure": "Azure",
+    "gcp": "GCP",
+}
+
+PRO_CLOUDS = ["aws", "azure"]
+
 
 def get_instance_id(
     _iid_file: str = CLOUDINIT_INSTANCE_ID_FILE

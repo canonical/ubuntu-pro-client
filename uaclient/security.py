@@ -3,6 +3,11 @@ import socket
 
 from uaclient import apt
 from uaclient.config import UAConfig
+from uaclient.clouds.identity import (
+    CLOUD_TYPE_TO_TITLE,
+    PRO_CLOUDS,
+    get_cloud_type,
+)
 from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
@@ -311,25 +316,6 @@ class USN:
             self._cves.append(self.client.get_cve(cve_id=cve_id))
         return self._cves
 
-    def released_packages(self, series: str) -> "Dict[str, Dict[str, str]]":
-        """Return a dict of released binary packages keyed on source pkg name.
-
-        The value is a dict with binary package name as key and pkg version.
-        """
-        binary_pkgs = {}  # type: Dict[str, str]
-        src_pkg = {}
-        for released_pkg in self.response["release_packages"].get(series, []):
-            is_source = released_pkg.get("is_source")
-            if is_source is True:
-                src_pkg = released_pkg
-            elif is_source is False:
-                binary_pkgs[released_pkg["name"]] = released_pkg["version"]
-        if not all([src_pkg, binary_pkgs]):
-            raise RuntimeError(
-                "Unable to parse USN response for {}".format(self.id)
-            )
-        return {src_pkg["name"]: binary_pkgs}
-
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
         return status.MESSAGE_SECURITY_URL.format(
@@ -342,8 +328,8 @@ class USN:
 def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
     """Return a dict of all source packages installed on the system.
 
-    The dict keys will be source package name: "krb5". The value will list of
-    dicts with keys binary_pkg and version.
+    The dict keys will be source package name: "krb5". The value will be a dict
+    with keys binary_pkg and version.
     """
     series = util.get_platform_info()["series"]
     if series == "trusty":
@@ -493,25 +479,69 @@ def prompt_for_affected_packages(
         pkg_status = affected_pkg_status[pkg_name]
         print(pkg_status.status_message)
         if pkg_status.status == "released":
+            update_needed = False
             for binary_pkg, version in installed_packages[pkg_name].items():
                 if not version_cmp_le(pkg_status.fixed_version, version):
+                    update_needed = True
                     if pkg_status.requires_ua:
                         upgrade_packages_ua.append(binary_pkg)
                     else:
                         upgrade_packages.append(binary_pkg)
-    if upgrade_packages or upgrade_packages_ua:
-        print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
-    else:
+            if update_needed:
+                print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+    if not any([upgrade_packages, upgrade_packages_ua]):
         print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
         print(status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id))
-    upgrade_packages_and_attach(cfg, upgrade_packages, upgrade_packages_ua)
+    elif upgrade_packages_and_attach(
+        cfg, upgrade_packages, upgrade_packages_ua
+    ):
+        print(status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id))
+
+
+def _prompt_for_attach(cfg: UAConfig) -> bool:
+    """Prompt for attach to a subscription or token.
+
+    :return: True if attach performed.
+    """
+    import argparse
+    from uaclient import cli
+
+    cloud_type = get_cloud_type()
+    if cloud_type in PRO_CLOUDS:
+        print(
+            status.MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                title=CLOUD_TYPE_TO_TITLE.get(cloud_type), cloud=cloud_type
+            )
+        )
+    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
+    choice = util.prompt_choices(
+        "Choose: [S]ubscribe at ubuntu.com [A]ttach"
+        " existing token [C]ancel",
+        valid_choices=["s", "a", "c"],
+    )
+    if choice == "c":
+        return False
+    if choice == "a":
+        print(status.PROMPT_ENTER_TOKEN)
+        token = input("> ")
+        print(status.colorize_commands([["ua", "attach", token]]))
+        return bool(
+            0
+            == cli.action_attach(
+                argparse.Namespace(token=token, auto_enable=True), cfg
+            )
+        )
+    elif choice == "s":
+        print(status.PROMPT_UA_SUBSCRIPTION_URL)
+        print("TODO: GH: #1413: magic subscription attach")
+    return True
 
 
 def upgrade_packages_and_attach(
     cfg: UAConfig,
     upgrade_packages: "List[str]",
     upgrade_packages_ua: "List[str]",
-):
+) -> bool:
     """Upgrade available packages to fix a CVE.
 
     Upgrade all packages in Ubuntu standard updates regardless of attach
@@ -519,43 +549,37 @@ def upgrade_packages_and_attach(
 
     For UA upgrades, prompt regarding system attach prior to upgrading UA
     packages.
+
+    :return: True if package upgrade completed or unneeded, False otherwise.
     """
-    from uaclient import cli
-
-    if upgrade_packages:
-        if os.getuid() != 0:
-            print(status.MESSAGE_SECURITY_APT_NON_ROOT)
-            return
-
-        apt.run_apt_command(
-            cmd=["apt-get", "update"],
-            error_msg=status.MESSAGE_APT_UPDATE_FAILED,
-            print_cmd=True,
-        )
-
-        apt.run_apt_command(
-            cmd=["apt-get", "install", "--only-upgrade", "-y"]
-            + upgrade_packages,
-            error_msg=status.MESSAGE_APT_INSTALL_FAILED,
-            env={"DEBIAN_FRONTEND": "noninteractive"},
-            print_cmd=True,
-        )
+    if not any([upgrade_packages, upgrade_packages_ua]):
+        return True
+    if os.getuid() != 0:
+        print(status.MESSAGE_SECURITY_APT_NON_ROOT)
+        return False
     if upgrade_packages_ua:
-        if cfg.is_attached:
-            import pdb
-
-            pdb.set_trace()
-            print(
-                "TODO: GH: #1402: apt commands to install missing UA updates"
-            )
-        else:
-            print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
-            choice = util.prompt_choices(
-                "Choose: [S]ubscribe at ubuntu.com [A]ttach"
-                " existing token [C]ancel",
-                valid_choices=["s", "a", "c"],
-            )
-            print("TODO react to subscription choice:{} GH: #".format(choice))
+        if not cfg.is_attached:
+            if not _prompt_for_attach(cfg):
+                return False  # User opted to cancel
+    packages = sorted(upgrade_packages + upgrade_packages_ua)
+    print(
+        status.colorize_commands(
+            [
+                ["apt", "update", "&&"]
+                + ["apt", "install", "--only-upgrade", "-y"]
+                + packages
+            ]
+        )
+    )
+    apt.run_apt_command(
+        cmd=["apt-get", "update"], error_msg=status.MESSAGE_APT_UPDATE_FAILED
+    )
+    apt.run_apt_command(
+        cmd=["apt-get", "install", "--only-upgrade", "-y"] + packages,
+        error_msg=status.MESSAGE_APT_INSTALL_FAILED,
+        env={"DEBIAN_FRONTEND": "noninteractive"},
+    )
+    return True
 
 
 def version_cmp_le(version1, version2) -> bool:

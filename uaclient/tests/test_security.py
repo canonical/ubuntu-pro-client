@@ -1,6 +1,4 @@
 import copy
-import contextlib
-import io
 import mock
 import os
 import pytest
@@ -15,14 +13,19 @@ from uaclient.security import (
     CVEPackageStatus,
     UASecurityClient,
     USN,
-    get_cve_affected_packages_status,
+    get_cve_affected_source_packages_status,
     prompt_for_affected_packages,
     query_installed_source_pkg_versions,
     version_cmp_le,
     upgrade_packages_and_attach,
 )
-from uaclient import status
-
+from uaclient.status import (
+    MESSAGE_SECURITY_USE_PRO_TMPL,
+    OKGREEN_CHECK,
+    MESSAGE_SECURITY_APT_NON_ROOT,
+    MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
+    colorize_commands,
+)
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
@@ -154,7 +157,7 @@ class TestGetCVEAffectedPackageStatus:
         get_platform_info.return_value = {"series": series}
         client = UASecurityClient(FakeConfig())
         cve = CVE(client, SAMPLE_CVE_RESPONSE)
-        affected_packages = get_cve_affected_packages_status(
+        affected_packages = get_cve_affected_source_packages_status(
             cve, installed_packages=installed_packages
         )
         if expected_status:
@@ -596,16 +599,16 @@ class TestQueryInstalledPkgSources:
         "dpkg_out,results",
         (
             # Ignore b non-installed status
-            ("a,,1.2,installed\nb,b,1.2,config-files", {"a": "1.2"}),
+            ("a,,1.2,installed\nb,b,1.2,config-files", {"a": {"a": "1.2"}}),
             # Handle cases where no Source is defined for the pkg
             (
                 "a,,1.2,installed\nzip,zip,3.0,installed",
-                {"a": "1.2", "zip": "3.0"},
+                {"a": {"a": "1.2"}, "zip": {"zip": "3.0"}},
             ),
             # Prefer Source package name to binary package name
             (
                 "b,bsrc,1.2,installed\nzip,zip,3.0,installed",
-                {"bsrc": "1.2", "zip": "3.0"},
+                {"bsrc": {"b": "1.2"}, "zip": {"zip": "3.0"}},
             ),
         ),
     )
@@ -648,75 +651,151 @@ CVE_PKG_STATUS_RELEASED_ESM_APPS = {
 
 class TestPromptForAffectedPackages:
     @pytest.mark.parametrize(
-        "affected_pkg_status,installed_packages,msgs",
+        "affected_pkg_status,installed_packages,cloud_type,expected",
         (
             (
                 {},  # No affected_packages listed
-                {"curl": "1.0"},
-                [
-                    "No affected packages are installed.",
-                    "USN-### does not affect your system.",
-                ],
+                {"curl": {"curl": "1.0"}},
+                None,
+                textwrap.dedent(
+                    """\
+                    No affected packages are installed.
+                    {check} USN-### does not affect your system.
+                    """.format(
+                        check=OKGREEN_CHECK  # noqa: E126
+                    )  # noqa: E126
+                ),
             ),
             (  # version is >= released affected package
-                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
-                {"sl": "2.1"},
-                [
-                    "1 affected package is installed: sl\n(1/1) sl:\n",
-                    "USN-### is resolved.\n",
-                ],
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"slsrc": {"sl": "2.1"}},
+                None,
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in Ubuntu standard updates.
+                    The update is already installed.
+                    {check} USN-### is resolved.
+                    """.format(
+                        check=OKGREEN_CHECK  # noqa: E126
+                    )  # noqa: E126
+                ),
             ),
             (  # version is < released affected package standard updates
-                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
-                {"sl": "2.0"},
-                [
-                    "1 affected package is installed: sl\n(1/1) sl:\n",
-                    "A fix is available in Ubuntu standard updates.",
-                    "The update is not yet installed.",
-                ],
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"slsrc": {"sl": "2.0"}},
+                None,
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in Ubuntu standard updates.
+                    The update is not yet installed.
+                    """
+                )
+                + "\n".join(
+                    [
+                        colorize_commands(
+                            [
+                                [
+                                    "apt update && apt install --only-upgrade"
+                                    " -y sl"
+                                ]
+                            ]
+                        ),
+                        "{check} USN-### is resolved.\n".format(
+                            check=OKGREEN_CHECK
+                        ),
+                    ]
+                ),
             ),
             (  # version is < released affected package esm-infra updates
-                {"sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
-                {"sl": "2.0"},
-                [
-                    "1 affected package is installed: sl\n(1/1) sl:\n",
-                    "The update is not installed because this system is not"
-                    " attached to a\nsubscription that covers these packages.",
-                ],
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
+                {"slsrc": {"sl": "2.0"}},
+                "azure",
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in UA Infra.
+                    The update is not yet installed.
+                    """
+                )
+                + "\n".join(
+                    [
+                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                            title="Azure", cloud="azure"
+                        ),
+                        MSG_SUBSCRIPTION,
+                    ]
+                ),
+            ),
+            (  # version < released package in esm-infra updates and aws cloud
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
+                {"slsrc": {"sl": "2.0"}},
+                "aws",
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in UA Infra.
+                    The update is not yet installed.
+                    """
+                )
+                + "\n".join(
+                    [
+                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                            title="AWS", cloud="aws"
+                        ),
+                        MSG_SUBSCRIPTION,
+                    ]
+                ),
             ),
             (  # version is < released affected both esm-apps and standard
                 {
-                    "sl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "slsrc": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_APPS
+                    ),
                     "curl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
                 },
-                {"sl": "2.0", "curl": "2.0"},
-                [
-                    "2 affected packages are installed: curl, sl\n"
-                    "(1/2) curl:\n"
-                    "A fix is available in Ubuntu standard updates.\n"
-                    "The update is not yet installed",
-                    "(2/2) sl:\n" "A fix is available in UA Infra.\n",
-                    "The update is not installed because this system is not"
-                    " attached to a\nsubscription that covers these packages.",
-                ],
+                {"slsrc": {"sl": "2.0"}, "curl": {"curl": "2.0"}},
+                "gcp",
+                textwrap.dedent(
+                    """\
+                    2 affected packages are installed: curl, slsrc
+                    (1/2) curl:
+                    A fix is available in Ubuntu standard updates.
+                    The update is not yet installed.
+                    (2/2) slsrc:
+                    A fix is available in UA Infra.
+                    The update is not yet installed.
+                    """
+                )
+                + MSG_SUBSCRIPTION
+                + "\n",
             ),
         ),
     )
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
-    @mock.patch("uaclient.security.util.prompt_choices")
+    @mock.patch("uaclient.security.get_cloud_type")
+    @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
     def test_messages_for_affected_packages_based_on_installed(
         self,
         prompt_choices,
+        get_cloud_type,
         m_run_apt_cmd,
         _m_os_getuid,
         affected_pkg_status,
         installed_packages,
-        msgs,
+        cloud_type,
+        expected,
         FakeConfig,
         capsys,
     ):
         """Messaging is based on affected status and installed packages."""
+        get_cloud_type.return_value = cloud_type
         cfg = FakeConfig()
         prompt_for_affected_packages(
             cfg=cfg,
@@ -725,8 +804,7 @@ class TestPromptForAffectedPackages:
             installed_packages=installed_packages,
         )
         out, err = capsys.readouterr()
-        for msg in msgs:
-            assert msg in out
+        assert expected in out
 
 
 class TestUpgradePackagesAndAttach:
@@ -734,25 +812,20 @@ class TestUpgradePackagesAndAttach:
     @mock.patch("os.getuid")
     @mock.patch("uaclient.security.util.subp")
     def test_upgrade_packages_are_installed_without_need_for_ua(
-        self, m_subp, m_os_getuid, getuid_value
+        self, m_subp, m_os_getuid, getuid_value, capsys
     ):
         m_subp.return_value = ("", "")
         m_os_getuid.return_value = getuid_value
 
-        fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            upgrade_packages_and_attach(
-                cfg=None,
-                upgrade_packages=["t1", "t2"],
-                upgrade_packages_ua=None,
-            )
+        upgrade_packages_and_attach(
+            cfg=None, upgrade_packages=["t1", "t2"], upgrade_packages_ua=[]
+        )
 
-        stdout_output = fake_stdout.getvalue()
-
+        out, err = capsys.readouterr()
         if getuid_value == 0:
             assert m_subp.call_count == 2
-            assert "apt-get update" in stdout_output
-            assert "apt-get install --only-upgrade -y t1 t2" in stdout_output
+            assert "apt update" in out
+            assert "apt install --only-upgrade -y t1 t2" in out
         else:
-            assert status.MESSAGE_SECURITY_APT_NON_ROOT in stdout_output
+            assert MESSAGE_SECURITY_APT_NON_ROOT in out
             assert m_subp.call_count == 0

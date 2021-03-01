@@ -134,9 +134,13 @@ MESSAGE_SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
 MESSAGE_SECURITY_UPDATE_NOT_INSTALLED = "The update is not yet installed."
 MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
 The update is not installed because this system is not attached to a
-subscription that covers these packages.
+subscription.
 """
 MESSAGE_SECURITY_UPDATE_INSTALLED = "The update is already installed."
+MESSAGE_SECURITY_USE_PRO_TMPL = (
+    "For easiest security on {title}, use Ubuntu PRO."
+    " https://ubuntu.com/{cloud}/pro."
+)
 MESSAGE_SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
 MESSAGE_SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue} does not affect your system."
@@ -239,6 +243,11 @@ This will disable access to certified FIPS packages.
     + PROMPT_YES_NO
 )
 
+PROMPT_ENTER_TOKEN = """\
+Enter your token (from https://ubuntu.com/advantage) to attach this system:"""
+PROMPT_UA_SUBSCRIPTION_URL = """\
+Open a browser to: https://ubuntu.com/advantage/subscribe"""
+
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
 STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
@@ -316,6 +325,17 @@ To install them, run this command as root (try using sudo)
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
     return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
+
+
+def colorize_commands(commands: "List[List[str]]") -> str:
+    content = ""
+    for cmd in commands:
+        if content:
+            content += " && "
+        content += " ".join(cmd)
+    return "{color}{{ {content} }}{end}".format(
+        color=TxtColor.DISABLEGREY, content=content, end=TxtColor.ENDC
+    )
 
 
 def get_section_column_content(
