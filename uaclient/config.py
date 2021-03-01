@@ -364,7 +364,11 @@ class UAConfig:
                 released_resources.append(resource)
                 continue
 
-            if not ent_cls.is_beta:
+            enabled_status = status.UserFacingStatus.ACTIVE.value
+            if (
+                not ent_cls.is_beta
+                or resource.get("status", "") == enabled_status
+            ):
                 released_resources.append(resource)
 
         if released_resources:

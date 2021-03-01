@@ -529,8 +529,11 @@ class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
     cc_eal_desc = ENTITLEMENT_CLASS_BY_NAME["cc-eal"].description
 
-    def check_beta(self, cls, show_beta, uacfg=None):
+    def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:
+            if status == "enabled":
+                return False
+
             if uacfg:
                 allow_beta = uacfg.cfg.get("features", {}).get(
                     "allow_beta", False
@@ -797,12 +800,16 @@ class TestStatus:
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
+    @mock.patch(M_PATH + "esm.ESMAppsEntitlement.user_facing_status")
+    @mock.patch(M_PATH + "esm.ESMAppsEntitlement.contract_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.user_facing_status")
     @mock.patch(M_PATH + "repo.RepoEntitlement.contract_status")
     def test_attached_reports_contract_and_service_status(
         self,
         m_repo_contract_status,
         m_repo_uf_status,
+        m_esm_contract_status,
+        m_esm_uf_status,
         m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_getuid,
@@ -823,6 +830,11 @@ class TestStatus:
         m_livepatch_uf_status.return_value = (
             status.UserFacingStatus.ACTIVE,
             "livepatch details",
+        )
+        m_esm_contract_status.return_value = status.ContractStatus.ENTITLED
+        m_esm_uf_status.return_value = (
+            status.UserFacingStatus.ACTIVE,
+            "esm-apps details",
         )
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -856,15 +868,19 @@ class TestStatus:
             }
         )
         for cls in ENTITLEMENT_CLASSES:
-            if self.check_beta(cls, show_beta, cfg):
-                continue
-
             if cls.name == "livepatch":
                 expected_status = status.UserFacingStatus.ACTIVE.value
                 details = "livepatch details"
+            elif cls.name == "esm-apps":
+                expected_status = status.UserFacingStatus.ACTIVE.value
+                details = "esm-apps details"
             else:
                 expected_status = status.UserFacingStatus.INAPPLICABLE.value
                 details = "repo details"
+
+            if self.check_beta(cls, show_beta, cfg, expected_status):
+                continue
+
             expected["services"].append(
                 {
                     "name": cls.name,
@@ -880,7 +896,7 @@ class TestStatus:
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == cfg.status(show_beta=show_beta)
-        assert len(ENTITLEMENT_CLASSES) - 1 == m_repo_uf_status.call_count
+        assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
 
     @mock.patch("uaclient.contract.get_available_resources")
