@@ -1053,6 +1053,33 @@ class TestParseConfig:
         )
         assert expected_msg == excinfo.value.msg
 
+    @mock.patch("uaclient.config.os.path.exists")
+    @mock.patch("uaclient.util.load_file")
+    def test_parse_reads_yaml_from_environ_values(
+        self, m_load_file, m_path_exists
+    ):
+        m_load_file.return_value = "test: true\nfoo: bar"
+        m_path_exists.side_effect = [False, False, True]
+
+        user_values = {"UA_FEATURES_TEST": "test.yaml"}
+        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+            cfg = parse_config()
+
+        assert {"test": True, "foo": "bar"} == cfg["features"]["test"]
+
+    @mock.patch("uaclient.config.os.path.exists")
+    def test_parse_raise_exception_when_environ_yaml_file_does_not_exist(
+        self, m_path_exists
+    ):
+        m_path_exists.return_value = False
+        user_values = {"UA_FEATURES_TEST": "test.yaml"}
+        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+            with pytest.raises(exceptions.UserFacingError) as excinfo:
+                parse_config()
+
+        expected_msg = "Could not find yaml file: test.yaml"
+        assert expected_msg == excinfo.value.msg.strip()
+
 
 class TestFeatures:
     @pytest.mark.parametrize(
