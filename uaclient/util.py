@@ -1,5 +1,4 @@
 from errno import ENOENT
-import sys
 import datetime
 import json
 import logging
