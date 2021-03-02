@@ -13,7 +13,7 @@ Feature: Unattached status
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -28,7 +28,7 @@ Feature: Unattached status
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -40,7 +40,7 @@ Feature: Unattached status
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
@@ -55,7 +55,7 @@ Feature: Unattached status
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """ 
         When I append the following on uaclient config:
             """
@@ -75,7 +75,7 @@ Feature: Unattached status
             livepatch     yes        Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """ 
 
         Examples: ubuntu release

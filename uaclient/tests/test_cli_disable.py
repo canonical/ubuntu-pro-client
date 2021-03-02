@@ -9,7 +9,7 @@ from uaclient import status
 
 ALL_SERVICE_MSG = "\n".join(
     textwrap.wrap(
-        "Try " + entitlements.ALL_ENTITLEMENTS_STR,
+        "Try " + entitlements.ALL_ENTITLEMENTS_STR + ".",
         width=80,
         break_long_words=False,
     )
@@ -112,7 +112,7 @@ class TestDisable:
 
         assert (
             expected_error_tmpl.format(
-                operation="disable", name="ent1", service_msg="Try ent2, ent3"
+                operation="disable", name="ent1", service_msg="Try ent2, ent3."
             )
             == err.value.msg
         )

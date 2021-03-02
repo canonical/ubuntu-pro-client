@@ -469,7 +469,7 @@ def action_disable(args, cfg, **kwargs):
         ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
 
     if entitlements_not_found:
-        valid_names = "Try " + entitlements.ALL_ENTITLEMENTS_STR
+        valid_names = "Try " + entitlements.ALL_ENTITLEMENTS_STR + "."
         service_msg = "\n".join(
             textwrap.wrap(valid_names, width=80, break_long_words=False)
         )
@@ -570,7 +570,7 @@ def action_enable(args, cfg, **kwargs):
             valid_names = entitlements.RELEASED_ENTITLEMENTS_STR
         service_msg = "\n".join(
             textwrap.wrap(
-                "Try " + valid_names, width=80, break_long_words=False
+                "Try " + valid_names + ".", width=80, break_long_words=False
             )
         )
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL

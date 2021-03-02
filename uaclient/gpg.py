@@ -18,7 +18,7 @@ def export_gpg_key(source_keyfile: str, destination_keyfile: str) -> None:
     logging.debug("Exporting GPG key %s", source_keyfile)
     if not os.path.exists(source_keyfile):
         raise exceptions.UserFacingError(
-            "GPG key '{}' not found".format(source_keyfile)
+            "GPG key '{}' not found.".format(source_keyfile)
         )
     shutil.copy(source_keyfile, destination_keyfile)
     os.chmod(destination_keyfile, 0o644)

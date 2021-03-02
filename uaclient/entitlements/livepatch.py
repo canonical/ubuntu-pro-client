@@ -49,17 +49,17 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         return (
             (
-                "Cannot install Livepatch on a container",
+                "Cannot install Livepatch on a container.",
                 lambda: util.is_container(),
                 False,
             ),
             (
-                "Cannot enable Livepatch when FIPS is enabled",
+                "Cannot enable Livepatch when FIPS is enabled.",
                 lambda: is_fips_enabled,
                 False,
             ),
             (
-                "Cannot enable Livepatch when FIPS Updates is enabled",
+                "Cannot enable Livepatch when FIPS Updates is enabled.",
                 lambda: is_fips_updates_enabled,
                 False,
             ),

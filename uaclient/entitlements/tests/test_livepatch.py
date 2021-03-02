@@ -218,7 +218,7 @@ class TestLivepatchEntitlementCanEnable:
             assert not entitlement.can_enable()
         msg = (
             "Livepatch is not available for kernel 4.2.9-00-generic.\n"
-            "Minimum kernel version required: 4.4\n"
+            "Minimum kernel version required: 4.4.\n"
         )
         assert (msg, "") == capsys.readouterr()
 
@@ -234,7 +234,7 @@ class TestLivepatchEntitlementCanEnable:
             assert not entitlement.can_enable()
         msg = (
             "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
-            "Supported flavors are: generic, lowlatency\n"
+            "Supported flavors are: generic, lowlatency.\n"
         )
         assert (msg, "") == capsys.readouterr()
 
@@ -272,7 +272,9 @@ class TestLivepatchEntitlementCanEnable:
         else:
             msg = (
                 "Livepatch is not available for kernel {}.\n"
-                "Minimum kernel version required: 4.4\n".format(kernel_version)
+                "Minimum kernel version required: 4.4.\n".format(
+                    kernel_version
+                )
             )
         assert (msg, "") == capsys.readouterr()
 
@@ -287,7 +289,7 @@ class TestLivepatchEntitlementCanEnable:
             assert not entitlement.can_enable()
         msg = (
             "Livepatch is not available for platform ppc64le.\n"
-            "Supported platforms are: x86_64\n"
+            "Supported platforms are: x86_64.\n"
         )
         assert (msg, "") == capsys.readouterr()
 
@@ -302,7 +304,7 @@ class TestLivepatchEntitlementCanEnable:
             m_is_container.return_value = True
             entitlement = LivepatchEntitlement(entitlement.cfg)
             assert not entitlement.can_enable()
-        msg = "Cannot install Livepatch on a container\n"
+        msg = "Cannot install Livepatch on a container.\n"
         assert (msg, "") == capsys.readouterr()
 
 
@@ -679,7 +681,7 @@ class TestLivepatchEntitlementEnable:
                 with contextlib.redirect_stdout(fake_stdout):
                     entitlement.enable()
 
-        expected_msg = "Cannot enable Livepatch when {} is enabled".format(
+        expected_msg = "Cannot enable Livepatch when {} is enabled.".format(
             cls_title
         )
         assert expected_msg.strip() == fake_stdout.getvalue().strip()

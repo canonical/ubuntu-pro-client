@@ -537,7 +537,7 @@ class TestRepoEnable:
             )
         ]
 
-        reboot_msg = "A reboot is required to complete install"
+        reboot_msg = "A reboot is required to complete install."
         expected_output = (
             "\n".join(
                 ["Updating package lists", "Repo Test Class enabled"]

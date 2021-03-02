@@ -92,7 +92,7 @@ class TestActionEnable:
             action_enable(args, cfg)
         service_msg = "\n".join(
             textwrap.wrap(
-                "Try " + entitlements.ALL_ENTITLEMENTS_STR,
+                "Try " + entitlements.ALL_ENTITLEMENTS_STR + ".",
                 width=80,
                 break_long_words=False,
             )
@@ -201,7 +201,7 @@ class TestActionEnable:
             expected_error_tmpl.format(
                 operation="enable",
                 name="ent1",
-                service_msg="Try " + m_entitlements.ALL_ENTITLEMENTS_STR,
+                service_msg="Try " + m_entitlements.ALL_ENTITLEMENTS_STR + ".",
             )
             == err.value.msg
         )
@@ -275,9 +275,9 @@ class TestActionEnable:
 
         if not beta_flag:
             not_found_name += ", ent2"
-            ent_str = "Try " + m_entitlements.RELEASED_ENTITLEMENTS_STR
+            ent_str = "Try " + m_entitlements.RELEASED_ENTITLEMENTS_STR + "."
         else:
-            ent_str = "Try " + m_entitlements.ALL_ENTITLEMENTS_STR
+            ent_str = "Try " + m_entitlements.ALL_ENTITLEMENTS_STR + "."
             mock_ent_list.append(m_ent2_cls)
             mock_obj_list.append(m_ent3_obj)
         service_msg = "\n".join(
@@ -334,9 +334,9 @@ class TestActionEnable:
 
         assert expected_msg == fake_stdout.getvalue()
         if beta:
-            ent_str = "Try " + entitlements.ALL_ENTITLEMENTS_STR
+            ent_str = "Try " + entitlements.ALL_ENTITLEMENTS_STR + "."
         else:
-            ent_str = "Try " + entitlements.RELEASED_ENTITLEMENTS_STR
+            ent_str = "Try " + entitlements.RELEASED_ENTITLEMENTS_STR + "."
         service_msg = "\n".join(
             textwrap.wrap(ent_str, width=80, break_long_words=False)
         )

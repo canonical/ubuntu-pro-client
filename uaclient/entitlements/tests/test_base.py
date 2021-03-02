@@ -121,7 +121,7 @@ class TestUaEntitlement:
 
         expected_stdout = (
             "Test Concrete Entitlement is not currently enabled\n"
-            "See: sudo ua status\n"
+            "See: sudo ua status.\n"
         )
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
@@ -154,8 +154,8 @@ class TestUaEntitlement:
         assert not entitlement.can_enable(**kwargs)
 
         expected_stdout = (
-            "This subscription is not entitled to Test Concrete Entitlement.\n"
-            "For more information see: https://ubuntu.com/advantage\n"
+            "This subscription is not entitled to Test Concrete Entitlement\n"
+            "For more information see: https://ubuntu.com/advantage.\n"
         )
         if silent:
             expected_stdout = ""
@@ -203,7 +203,7 @@ class TestUaEntitlement:
 
         expected_stdout = (
             "Test Concrete Entitlement is already enabled.\n"
-            "See: sudo ua status\n"
+            "See: sudo ua status.\n"
         )
         if silent:
             expected_stdout = ""

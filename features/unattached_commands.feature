@@ -6,13 +6,13 @@ Feature: Command behaviour when unattached
         When I verify that running `ua auto-attach` `as non-root` exits `1`
         Then stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:
             """
             Auto-attach image support is not available on <data>
-            See: https://ubuntu.com/advantage
+            See: https://ubuntu.com/advantage.
             """
 
         Examples: ubuntu release
@@ -28,13 +28,13 @@ Feature: Command behaviour when unattached
         When I verify that running `ua <command>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root (try using sudo).
             """
         When I verify that running `ua <command>` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """
 
         Examples: ua commands
@@ -54,14 +54,14 @@ Feature: Command behaviour when unattached
         When I verify that running `ua <command> <service>` `as non-root` exits `1`
         Then I will see the following on stderr:
             """
-            This command must be run as root (try using sudo)
+            This command must be run as root (try using sudo).
             """
         When I verify that running `ua <command> <service>` `with sudo` exits `1`
         Then stderr matches regexp:
             """
             To use '<service>' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
-            See https://ubuntu.com/advantage
+            See https://ubuntu.com/advantage.
             """
 
         Examples: ua commands

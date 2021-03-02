@@ -580,6 +580,8 @@ class TestMain:
         assert "{}\n".format(status.MESSAGE_CONNECTIVITY_ERROR) == err
         error_log = caplog_text()
 
+        print(expected_log)
+        print(error_log)
         assert expected_log in error_log
         assert "Traceback (most recent call last):" in error_log
 

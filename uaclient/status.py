@@ -152,54 +152,54 @@ MESSAGE_SECURITY_URL = (
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
 MESSAGE_APT_UPDATE_INVALID_URL_CONFIG = (
-    "APT update failed to read APT config for the following URL{}:\n{}"
+    "APT update failed to read APT config for the following URL{}:\n{}."
 )
 MESSAGE_APT_POLICY_FAILED = "Failure checking APT policy."
 MESSAGE_APT_UPDATING_LISTS = "Updating package lists"
 MESSAGE_CONNECTIVITY_ERROR = """\
 Failed to connect to authentication server
-Check your Internet connection and try again"""
-LOG_CONNECTIVITY_ERROR_TMPL = MESSAGE_CONNECTIVITY_ERROR + ". {error}"
+Check your Internet connection and try again."""
+LOG_CONNECTIVITY_ERROR_TMPL = MESSAGE_CONNECTIVITY_ERROR + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
-    MESSAGE_CONNECTIVITY_ERROR + ". Failed to access URL: {url}. {error}"
+    MESSAGE_CONNECTIVITY_ERROR + " Failed to access URL: {url}. {error}"
 )
-MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)"
+MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)."
 MESSAGE_ALREADY_DISABLED_TMPL = """\
-{title} is not currently enabled\nSee: sudo ua status"""
+{title} is not currently enabled\nSee: sudo ua status."""
 MESSAGE_ENABLED_FAILED_TMPL = "Could not enable {title}."
 MESSAGE_DISABLE_FAILED_TMPL = "Could not disable {title}."
 MESSAGE_ENABLED_TMPL = "{title} enabled"
 MESSAGE_ALREADY_ATTACHED = """\
 This machine is already attached to '{account_name}'
-To use a different subscription first run: sudo ua detach"""
+To use a different subscription first run: sudo ua detach."""
 MESSAGE_ALREADY_ENABLED_TMPL = """\
-{title} is already enabled.\nSee: sudo ua status"""
+{title} is already enabled.\nSee: sudo ua status."""
 MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
 {title} is not available for platform {arch}.
-Supported platforms are: {supported_arches}"""
+Supported platforms are: {supported_arches}."""
 MESSAGE_INAPPLICABLE_SERIES_TMPL = """\
 {title} is not available for Ubuntu {series}."""
 MESSAGE_INAPPLICABLE_KERNEL_TMPL = """\
 {title} is not available for kernel {kernel}.
-Supported flavors are: {supported_kernels}"""
+Supported flavors are: {supported_kernels}."""
 MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL = """\
 {title} is not available for kernel {kernel}.
-Minimum kernel version required: {min_kernel}"""
+Minimum kernel version required: {min_kernel}."""
 MESSAGE_UNENTITLED_TMPL = """\
-This subscription is not entitled to {title}.
-For more information see: https://ubuntu.com/advantage"""
+This subscription is not entitled to {title}
+For more information see: https://ubuntu.com/advantage."""
 MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
 Unable to determine auto-attach platform support
-For more information see: https://ubuntu.com/advantage"""
+For more information see: https://ubuntu.com/advantage."""
 MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = """\
 Auto-attach image support is not available on {cloud_type}
-See: https://ubuntu.com/advantage"""
+See: https://ubuntu.com/advantage."""
 MESSAGE_UNSUPPORTED_AUTO_ATTACH = """\
 Auto-attach image support is not available on this image
-See: https://ubuntu.com/advantage"""
+See: https://ubuntu.com/advantage."""
 MESSAGE_UNATTACHED = """\
 This machine is not attached to a UA subscription.
-See https://ubuntu.com/advantage"""
+See https://ubuntu.com/advantage."""
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
@@ -252,7 +252,7 @@ MESSAGE_ATTACH_EXPIRED_TOKEN = """\
 Expired token or contract. To obtain a new token visit: \
 https://ubuntu.com/advantage"""
 MESSAGE_ATTACH_INVALID_TOKEN = """\
-Invalid token. See https://ubuntu.com/advantage"""
+Invalid token. See https://ubuntu.com/advantage."""
 MESSAGE_ATTACH_REQUIRES_TOKEN = """\
 Attach requires a token: sudo ua attach <TOKEN>
 To obtain a token please visit: https://ubuntu.com/advantage"""
@@ -274,17 +274,17 @@ To file a bug run: ubuntu-bug ubuntu-advantage-tools"""
 MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL = """\
 To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
-See https://ubuntu.com/advantage"""
+See https://ubuntu.com/advantage."""
 MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL = """\
-A reboot is required to complete {operation}"""
+A reboot is required to complete {operation}."""
 MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL = """\
 Service {name} is recommended by default. Run: sudo ua enable {name}"""
-MESSAGE_DETACH_SUCCESS = "This machine is now detached"
+MESSAGE_DETACH_SUCCESS = "This machine is now detached."
 MESSAGE_DETACH_AUTOMATION_FAILURE = "Unable to automatically detach machine"
 
 MESSAGE_REFRESH_ENABLE = "One moment, checking your subscription first"
-MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription"
+MESSAGE_REFRESH_SUCCESS = "Successfully refreshed your subscription."
 MESSAGE_REFRESH_FAILURE = "Unable to refresh your subscription"
 
 MESSAGE_INCOMPATIBLE_SERVICE = """\
@@ -298,7 +298,7 @@ Cannot enable {service_being_enabled} when {incompatible_service} is enabled
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = """\
 Ubuntu {series} does not provide {cloud} optimized FIPS kernel
-For help see: https://ubuntu.com/advantage"""
+For help see: https://ubuntu.com/advantage."""
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
