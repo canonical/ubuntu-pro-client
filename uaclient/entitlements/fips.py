@@ -118,7 +118,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         )
         return (
             (
-                "Cannot install {} on a container".format(self.title),
+                "Cannot install {} on a container.".format(self.title),
                 lambda: util.is_container(),
                 False,
             ),

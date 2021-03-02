@@ -909,5 +909,5 @@ class TestRunAptCommand:
                 error_msg=status.MESSAGE_APT_UPDATE_FAILED,
             )
 
-        expected_message = "\n".join(output_list)
+        expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg

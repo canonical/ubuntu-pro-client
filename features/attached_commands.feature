@@ -8,12 +8,12 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua refresh` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         When I run `ua refresh` with sudo
         Then I will see the following on stdout:
             """
-            Successfully refreshed your subscription
+            Successfully refreshed your subscription.
             """
 
         Examples: ubuntu release
@@ -30,13 +30,13 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua disable livepatch` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         And I verify that running `ua disable livepatch` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             Livepatch is not currently enabled
-            See: sudo ua status
+            See: sudo ua status.
             """
 
         Examples: ubuntu release
@@ -53,18 +53,18 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua disable foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         And I verify that running `ua disable foobar` `with sudo` exits `1`
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         When I run `ua disable esm-infra` with sudo
         Then I will see the following on stdout:
@@ -91,7 +91,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua detach` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         When I run `ua detach --assume-yes` with sudo
         Then I will see the following on stdout:
@@ -99,7 +99,7 @@ Feature: Command behaviour when attached to an UA subscription
             Detach will disable the following service:
                 esm-infra
             Updating package lists
-            This machine is now detached
+            This machine is now detached.
             """
        When I run `ua status --all` as non-root
        Then stdout matches regexp:
@@ -133,7 +133,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua auto-attach` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:
@@ -231,12 +231,12 @@ Feature: Command behaviour when attached to an UA subscription
             """
             Updating package lists
             Livepatch is not currently enabled
-            See: sudo ua status
+            See: sudo ua status.
             """
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -258,13 +258,13 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua disable foobar` `as non-root` exits `1`
         And stderr matches regexp:
             """
-            This command must be run as root \(try using sudo\)
+            This command must be run as root \(try using sudo\).
             """
         And I verify that running `ua disable foobar` `with sudo` exits `1`
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
