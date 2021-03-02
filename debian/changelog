@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
+
+  * status: show beta services in status if enabled (GH: #1410)
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 02 Mar 2021 10:11:53 -0300
+
 ubuntu-advantage-tools (26.1~21.04.1) hirsute; urgency=medium
 
   *  New upstream release 26.1
