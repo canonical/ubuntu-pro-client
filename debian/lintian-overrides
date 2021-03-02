@@ -1,0 +1,5 @@
+# False positive
+ubuntu-advantage-tools: maintainer-script-calls-service postinst:*
+
+# Ubuntu doesn't require init.d scripts
+ubuntu-advantage-tools: package-supports-alternative-init-but-no-init.d-script

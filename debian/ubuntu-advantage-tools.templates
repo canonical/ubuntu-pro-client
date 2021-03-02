@@ -3,4 +3,4 @@ Type: note
 _Description: Ubuntu Pro support now requires ubuntu-advantage-pro
  To install run the following:
  .
- sudo apt-get install ubuntu-advantage-pro
+ sudo apt install ubuntu-advantage-pro

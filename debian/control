@@ -16,10 +16,11 @@ Build-Depends: bash-completion,
                python3-pytest,
                python3-setuptools,
                python3-yaml
-Standards-Version: 4.3.0
+Standards-Version: 4.5.1
 Homepage: https://buy.ubuntu.com
 Vcs-Git: https://github.com/CanonicalLtd/ubuntu-advantage-script.git
 Vcs-Browser: https://github.com/CanonicalLtd/ubuntu-advantage-script
+Rules-Requires-Root: no
 
 Package: ubuntu-advantage-tools
 Architecture: any
@@ -37,7 +38,7 @@ Description: management tools for Ubuntu Advantage
  services in this package.
 
 Package: ubuntu-advantage-pro
-Architecture: any
+Architecture: all
 Depends: ${misc:Depends}, ubuntu-advantage-tools (>=20.2)
 Replaces: ubuntu-advantage-tools (<<20.2)
 Breaks: ubuntu-advantage-tools (<<20.2)
