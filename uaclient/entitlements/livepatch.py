@@ -6,7 +6,7 @@ from uaclient import util
 from uaclient.status import ApplicationStatus
 
 SNAP_CMD = "/usr/bin/snap"
-SNAP_INSTALL_RETRIES = [5, 30, 60, 90]
+SNAP_INSTALL_RETRIES = [5.0, 30.0, 60.0, 90.0]
 SNAP_INSTALL_TIMEOUT = 30
 LIVEPATCH_RETRIES = [0.5, 1.0]
 
