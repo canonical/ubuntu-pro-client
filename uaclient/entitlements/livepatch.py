@@ -6,8 +6,10 @@ from uaclient import util
 from uaclient.status import ApplicationStatus
 
 SNAP_CMD = "/usr/bin/snap"
-SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
+SNAP_INSTALL_RETRIES = [5, 30, 60, 90]
+SNAP_INSTALL_TIMEOUT = 30
 LIVEPATCH_RETRIES = [0.5, 1.0]
+
 
 try:
     from typing import Any, Callable, Dict, Tuple  # noqa: F401
@@ -109,6 +111,7 @@ class LivepatchEntitlement(base.UAEntitlement):
                     [SNAP_CMD, "install", "canonical-livepatch"],
                     capture=True,
                     retry_sleeps=SNAP_INSTALL_RETRIES,
+                    timeout=SNAP_INSTALL_TIMEOUT,
                 )
             except util.ProcessExecutionError as e:
                 msg = "Unable to install Livepatch client: " + str(e)

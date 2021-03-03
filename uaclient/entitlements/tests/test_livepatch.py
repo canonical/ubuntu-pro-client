@@ -20,6 +20,8 @@ import pytest
 from uaclient import apt
 from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
+    SNAP_INSTALL_RETRIES,
+    SNAP_INSTALL_TIMEOUT,
     LivepatchEntitlement,
     process_config_directives,
 )
@@ -428,7 +430,8 @@ class TestLivepatchEntitlementEnable:
         mock.call(
             ["/usr/bin/snap", "install", "canonical-livepatch"],
             capture=True,
-            retry_sleeps=[0.5, 1, 5],
+            retry_sleeps=SNAP_INSTALL_RETRIES,
+            timeout=SNAP_INSTALL_TIMEOUT,
         )
     ]
     mocks_install = (
