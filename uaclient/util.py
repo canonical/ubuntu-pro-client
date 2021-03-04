@@ -493,7 +493,7 @@ def _subp(
 
     @return: Tuple of utf-8 decoded stdout, stderr
     @raises ProcessExecutionError on invalid command or returncode not in rcs.
-    @raises subprocess.TimeoutError when timeout specified and the command
+    @raises subprocess.TimeoutExpired when timeout specified and the command
         exceeds that number of seconds.
     """
     bytes_args = [
@@ -508,6 +508,9 @@ def _subp(
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
         )
         (out, err) = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        raise
     except OSError:
         try:
             raise ProcessExecutionError(
@@ -568,6 +571,16 @@ def subp(
         try:
             out, err = _subp(args, rcs, capture, timeout, env=env)
             break
+        except subprocess.TimeoutExpired:
+            if not retry_sleeps:
+                raise
+            logging.debug(
+                "Timeout running %s. Retrying %d more times.",
+                " ".join(args),
+                len(retry_sleeps),
+            )
+            time.sleep(retry_sleeps.pop(0))
+            raise
         except ProcessExecutionError as e:
             if capture:
                 logging.debug(str(e))

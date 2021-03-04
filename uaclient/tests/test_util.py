@@ -170,12 +170,15 @@ class TestIsContainer:
 
 
 class TestSubp:
-    def test_raise_error_on_timeout(self):
+    @pytest.mark.parametrize("retry_sleeps", ([], [1]))
+    @mock.patch("uaclient.util.time.sleep")
+    def test_raise_error_on_timeout(self, sleep, retry_sleeps):
         """When cmd exceeds the timeout raises a TimeoutExpired error."""
         with pytest.raises(subprocess.TimeoutExpired) as excinfo:
-            util.subp(["sleep", "2"], timeout=0)
+            util.subp(["sleep", "2"], timeout=0, retry_sleeps=retry_sleeps)
         msg = "Command '[b'sleep', b'2']' timed out after 0 seconds"
         assert msg == str(excinfo.value)
+        assert [mock.call(sec) for sec in retry_sleeps] == sleep.call_args_list
 
     @mock.patch("uaclient.util.time.sleep")
     def test_default_do_not_retry_on_failure_return_code(self, m_sleep):
