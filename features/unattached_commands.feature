@@ -172,8 +172,12 @@ Feature: Command behaviour when unattached
             """
             CVE-2020-28196: Kerberos vulnerability
             https://ubuntu.com/security/CVE-2020-28196
-            No affected packages are installed.
-            .*✔.* CVE-2020-28196 does not affect your system.
+            1 affected package is installed: krb5
+            \(1/1\) krb5:
+            A fix is available in UA Infra.
+            The update is not yet installed.
+            Package fixes cannot be installed.
+            To install them, run this command as root \(try using sudo\)
             """
 
         Examples: ubuntu release
