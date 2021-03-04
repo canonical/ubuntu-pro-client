@@ -170,7 +170,7 @@ pipeline {
                 stage("lxc 14.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}trusty/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "${TMPDIR}artifacts/behave-lxd-14.04"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-14.04"
                     }
                     steps {
                         sh '''
@@ -183,7 +183,7 @@ pipeline {
                 stage("lxc 16.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "${TMPDIR}artifacts/behave-lxd-16.04"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-16.04"
                     }
                     steps {
                         sh '''
@@ -196,7 +196,7 @@ pipeline {
                 stage("lxc 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "${TMPDIR}artifacts/behave-lxd-18.04"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-18.04"
                     }
                     steps {
                         sh '''
@@ -209,7 +209,7 @@ pipeline {
                 stage("lxc vm 20.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "${TMPDIR}artifacts/behave-vm-20.04"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-vm-20.04"
                     }
                     steps {
                         sh '''
@@ -222,7 +222,7 @@ pipeline {
                 stage("awspro 18.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "${TMPDIR}artifacts/behave-awspro-18.04"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-awspro-18.04"
                     }
                     steps {
                         sh '''
@@ -253,7 +253,7 @@ pipeline {
                     currentBuild.result = 'UNSTABLE'
                 }
                 try {
-                    archiveArtifacts "/tmp/${BUILD_TAG}/artifacts/**/*"
+                    archiveArtifacts "artifacts/**/**/*"
                 } catch (Exception e) {
                     echo "No integration test artifacts found. Presume success."
                 }
