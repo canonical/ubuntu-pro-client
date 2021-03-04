@@ -127,6 +127,16 @@ Feature: Command behaviour when unattached
     @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: CVE-1800-123456 not found.
+            """
+        When I verify that running `ua fix USN-12345-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: USN-12345-12 not found.
+            """
         When I run `apt install -y libawl-php` with sudo
         And I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:

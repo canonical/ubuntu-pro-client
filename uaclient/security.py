@@ -366,7 +366,13 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         try:
             cve = client.get_cve(cve_id=issue_id)
         except SecurityAPIError as e:
-            raise exceptions.UserFacingError(str(e))
+            msg = str(e)
+            if "not found" in msg.lower():
+                msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
+                    issue_id=issue_id
+                )
+
+            raise exceptions.UserFacingError(msg)
         affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
         )
@@ -375,7 +381,12 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         try:
             usn = client.get_notice(notice_id=issue_id)
         except SecurityAPIError as e:
-            raise exceptions.UserFacingError(str(e))
+            msg = str(e)
+            if "not found" in msg.lower():
+                msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
+                    issue_id=issue_id
+                )
+            raise exceptions.UserFacingError(msg)
         affected_pkg_status = get_usn_affected_packages_status(
             usn=usn, installed_packages=installed_packages
         )

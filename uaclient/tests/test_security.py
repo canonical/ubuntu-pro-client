@@ -18,6 +18,8 @@ from uaclient.security import (
     query_installed_source_pkg_versions,
     version_cmp_le,
     upgrade_packages_and_attach,
+    fix_security_issue_id,
+    SecurityAPIError,
 )
 from uaclient.status import (
     MESSAGE_SECURITY_USE_PRO_TMPL,
@@ -26,6 +28,8 @@ from uaclient.status import (
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
     colorize_commands,
 )
+from uaclient import exceptions
+from uaclient.util import UrlError
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
@@ -829,3 +833,33 @@ class TestUpgradePackagesAndAttach:
         else:
             assert MESSAGE_SECURITY_APT_NON_ROOT in out
             assert m_subp.call_count == 0
+
+
+class TestFixSecurityIssueId:
+    @pytest.mark.parametrize(
+        "issue_id", (("CVE-1800-123456"), ("USN-12345-12"))
+    )
+    def test_error_msg_when_issue_id_is_not_found(self, issue_id, FakeConfig):
+        expected_message = "Error: {} not found.".format(issue_id)
+        if "CVE" in issue_id:
+            mock_func = "get_cve"
+            issue_type = "CVE"
+        else:
+            mock_func = "get_notice"
+            issue_type = "USN"
+
+        with mock.patch.object(UrlError, "__str__") as m_str:
+            with mock.patch.object(UASecurityClient, mock_func) as m_func:
+                m_str.return_value = "NOT FOUND"
+                msg = "{} with id 'ID' does not exist".format(issue_type)
+                error_mock = mock.Mock()
+                type(error_mock).url = mock.PropertyMock(return_value="URL")
+
+                m_func.side_effect = SecurityAPIError(
+                    e=error_mock, error_response={"message": msg}
+                )
+
+                with pytest.raises(exceptions.UserFacingError) as exc:
+                    fix_security_issue_id(FakeConfig(), issue_id)
+
+        assert expected_message == exc.value.msg
