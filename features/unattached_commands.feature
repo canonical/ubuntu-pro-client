@@ -177,6 +177,14 @@ Feature: Command behaviour when unattached
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
+        When I run `ua fix CVE-2020-15180` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2020-15180: MariaDB vulnerabilities
+            https://ubuntu.com/security/CVE-2020-15180
+            No affected packages are installed.
+            .*✔.* CVE-2020-15180 does not affect your system.
+            """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
             """
