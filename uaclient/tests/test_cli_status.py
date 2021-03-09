@@ -4,12 +4,13 @@ import mock
 import os
 import socket
 import sys
+import textwrap
 
 import pytest
 
 from uaclient import util
 
-from uaclient.cli import action_status
+from uaclient.cli import action_status, main
 from uaclient import status
 
 M_PATH = "uaclient.cli."
@@ -125,6 +126,45 @@ SERVICES_JSON_ALL = [
     },
 ]
 
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua status [flags]
+
+Report current status of Ubuntu Advantage services on system.
+
+This shows whether this machine is attached to an Ubuntu Advantage
+support contract. When attached, the report includes the specific
+support contract details including contract name, expiry dates, and the
+status of each service on this system.
+
+The attached status output has four columns:
+
+* SERVICE: name of the service
+* ENTITLED: whether the contract to which this machine is attached
+  entitles use of this service. Possible values are: yes or no
+* STATUS: whether the service is enabled on this machine. Possible
+  values are: enabled, disabled, n/a (if your contract entitles
+  you to the service, but it isn't available for this machine) or — (if
+  you aren't entitled to this service)
+* DESCRIPTION: a brief description of the service
+
+The unattached status output instead has three columns. SERVICE
+and DESCRIPTION are the same as above, and there is the addition
+of:
+
+* AVAILABLE: whether this service would be available if this machine
+  were attached. The possible values are yes or no.
+
+Flags:
+  -h, --help            show this help message and exit
+  --wait                Block waiting on ua to complete
+  --format {tabular,json}
+                        output status in the specified format (default:
+                        tabular)
+  --all                 Allow the visualization of beta services
+"""
+)
+
 
 @mock.patch(
     M_PATH + "contract.get_available_resources",
@@ -132,6 +172,13 @@ SERVICES_JSON_ALL = [
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
+    def test_status_help(self, _getuid, _get_available_resources, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     @pytest.mark.parametrize("use_all", (True, False))
     @pytest.mark.parametrize(
         "notices,notice_status",

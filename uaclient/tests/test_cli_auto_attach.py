@@ -1,4 +1,5 @@
 import mock
+import textwrap
 
 import pytest
 
@@ -7,6 +8,7 @@ from uaclient.cli import (
     auto_attach_parser,
     get_parser,
     _get_contract_token_from_cloud_identity,
+    main,
 )
 from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
@@ -22,6 +24,17 @@ from uaclient import util
 
 M_PATH = "uaclient.cli."
 M_ID_PATH = "uaclient.clouds.identity."
+
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua auto-attach [flags]
+
+Automatically attach an Ubuntu Advantage token on Ubuntu Pro images.
+
+Flags:
+  -h, --help  show this help message and exit
+"""
+)
 
 
 @mock.patch(M_PATH + "os.getuid")
@@ -267,6 +280,15 @@ class TestGetContractTokenFromCloudIdentity:
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
+    def test_auto_attach_help(self, _getuid, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch(
+                "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
+            ):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     @mock.patch(M_ID_PATH + "cloud_instance_factory")
     def test_already_attached_on_non_ubuntu_pro(
         self, m_cloud_instance_factory, _m_getuid, FakeConfig

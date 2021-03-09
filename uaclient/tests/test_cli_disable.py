@@ -2,10 +2,11 @@ import mock
 import pytest
 import textwrap
 
-from uaclient.cli import action_disable
+from uaclient.cli import action_disable, main
 from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status
+
 
 ALL_SERVICE_MSG = "\n".join(
     textwrap.wrap(
@@ -15,9 +16,32 @@ ALL_SERVICE_MSG = "\n".join(
     )
 )
 
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua disable <service> [<service>] [flags]
+
+Disable an Ubuntu Advantage service.
+
+Arguments:
+  service       the name(s) of the Ubuntu Advantage services to disable One
+                of: esm-infra, fips, fips-updates, livepatch
+
+Flags:
+  -h, --help    show this help message and exit
+  --assume-yes  do not prompt for confirmation before performing the disable
+"""
+)
+
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
+    def test_disable_help(self, _getuid, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     @pytest.mark.parametrize("service", [["testitlement"], ["ent1", "ent2"]])
     @pytest.mark.parametrize("assume_yes", (True, False))
     @pytest.mark.parametrize(

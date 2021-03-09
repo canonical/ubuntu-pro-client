@@ -1,15 +1,39 @@
 import mock
+import textwrap
 
 import pytest
 
 from uaclient import exceptions
 
-from uaclient.cli import action_fix
+from uaclient.cli import action_fix, main
 
 M_PATH = "uaclient.cli."
 
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+> [flags]
+
+Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this machine.
+
+positional arguments:
+  security_issue  Security vulnerability ID to inspect and resolve on this
+                  system. Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-
+                  dd
+
+Flags:
+  -h, --help      show this help message and exit
+"""
+)
+
 
 class TestActionFix:
+    def test_fix_help(self, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/ua", "fix", "--help"]):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     @pytest.mark.parametrize(
         "issue,is_valid",
         (
