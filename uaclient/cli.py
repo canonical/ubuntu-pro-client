@@ -90,19 +90,11 @@ class UAArgumentParser(argparse.ArgumentParser):
             self.non_beta_services_desc,
             self.beta_services_desc,
         ]
-
-        if all([desc_var is None for desc_var in desc_vars]):
-            super().print_help(file=file)
-        elif show_all:
-            self.description = "\n".join(
-                [self.base_desc]
-                + sorted(self.non_beta_services_desc + self.beta_services_desc)
-            )
-        else:
-            self.description = "\n".join(
-                [self.base_desc] + sorted(self.non_beta_services_desc)
-            )
-
+        if any(desc_vars):
+            services = sorted(self.non_beta_services_desc)
+            if show_all:
+                services = sorted(services + self.beta_services_desc)
+            self.description = "\n".join([self.base_desc] + services)
         super().print_help(file=file)
 
 
@@ -197,6 +189,10 @@ def assert_not_attached(f):
 def auto_attach_parser(parser):
     """Build or extend an arg parser for auto-attach subcommand."""
     parser.prog = "auto-attach"
+    parser.description = (
+        "Automatically attach an Ubuntu Advantage token on Ubuntu Pro"
+        " images."
+    )
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = "Flags"
     return parser
@@ -206,6 +202,10 @@ def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
     parser.prog = "attach"
+    parser.description = (
+        "Attach this machine to Ubuntu Advantage with a token obtained"
+        " from https://ubuntu.com/advantage"
+    )
     parser._optionals.title = "Flags"
     parser.add_argument(
         "token",
@@ -229,6 +229,10 @@ def fix_parser(parser):
         name=NAME, command="fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+>"
     )
     parser.prog = "fix"
+    parser.description = (
+        "Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this"
+        " machine."
+    )
     parser._optionals.title = "Flags"
     parser.add_argument(
         "security_issue",
@@ -237,6 +241,17 @@ def fix_parser(parser):
             " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
         ),
     )
+    return parser
+
+
+def refresh_parser(parser):
+    """Build or extend an arg parser for refresh subcommand."""
+    parser.prog = "refresh"
+    parser.description = (
+        "Refresh existing Ubuntu Advantage contract and update services."
+    )
+    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser._optionals.title = "Flags"
     return parser
 
 
@@ -254,6 +269,9 @@ def detach_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="detach")
     parser.usage = usage
     parser.prog = "detach"
+    parser.description = (
+        "Detach this machine from Ubuntu Advantage services."
+    )
     parser._optionals.title = "Flags"
     parser.add_argument(
         "--assume-yes",
@@ -268,6 +286,9 @@ def help_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="help [service]")
     parser.usage = usage
     parser.prog = "help"
+    parser.description = (
+        "Provide detailed information about Ubuntu Advantage services."
+    )
     parser._positionals.title = "Arguments"
     parser.add_argument(
         "service",
@@ -304,6 +325,7 @@ def enable_parser(parser):
     usage = USAGE_TMPL.format(
         name=NAME, command="enable <service> [<service>]"
     )
+    parser.description = "Enable an Ubuntu Advantage service."
     parser.usage = usage
     parser.prog = "enable"
     parser._positionals.title = "Arguments"
@@ -314,7 +336,7 @@ def enable_parser(parser):
         nargs="+",
         help=(
             "the name(s) of the Ubuntu Advantage services to enable."
-            " One of: {}".format(entitlements.RELEASED_ENTITLEMENTS_STR),
+            " One of: {}".format(entitlements.RELEASED_ENTITLEMENTS_STR)
         ),
     )
     parser.add_argument(
@@ -333,6 +355,7 @@ def disable_parser(parser):
     usage = USAGE_TMPL.format(
         name=NAME, command="disable <service> [<service>]"
     )
+    parser.description = "Disable an Ubuntu Advantage service."
     parser.usage = usage
     parser.prog = "disable"
     parser._positionals.title = "Arguments"
@@ -358,6 +381,9 @@ def status_parser(parser):
     """Build or extend an arg parser for status subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="status")
     parser.usage = usage
+    parser.description = (
+        "Output the status information for Ubuntu Advantage services."
+    )
     parser.prog = "status"
     # This formatter_class ensures that our formatting below isn't lost
     parser.formatter_class = argparse.RawDescriptionHelpFormatter
@@ -831,13 +857,14 @@ def get_parser():
         "refresh",
         help="refresh Ubuntu Advantage services from contracts server",
     )
+    parser_refresh.set_defaults(action=action_refresh)
+    refresh_parser(parser_refresh)
     parser_fix = subparsers.add_parser(
         "fix",
         help="check for and mitigate the impact of a CVE/USN on this system",
     )
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
-    parser_refresh.set_defaults(action=action_refresh)
     parser_version = subparsers.add_parser(
         "version", help="show version of {}".format(NAME)
     )

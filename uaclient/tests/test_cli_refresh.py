@@ -1,4 +1,5 @@
 import mock
+import textwrap
 
 import pytest
 
@@ -11,13 +12,31 @@ except ImportError:
     pass
 
 from uaclient import status
-from uaclient.cli import action_refresh
+from uaclient.cli import action_refresh, main
 
 M_PATH = "uaclient.cli."
+
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua refresh [flags]
+
+Refresh existing Ubuntu Advantage contract and update services.
+
+Flags:
+  -h, --help  show this help message and exit
+"""
+)
 
 
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionRefresh:
+    def test_refresh_help(self, _getuid, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     def test_non_root_users_are_rejected(self, getuid, FakeConfig):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1

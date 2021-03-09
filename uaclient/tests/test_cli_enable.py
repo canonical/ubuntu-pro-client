@@ -5,15 +5,39 @@ import textwrap
 
 import pytest
 
-from uaclient.cli import _perform_enable, action_enable
+from uaclient.cli import _perform_enable, action_enable, main
 from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status
+
+HELP_OUTPUT = textwrap.dedent(
+    """\
+usage: ua enable <service> [<service>] [flags]
+
+Enable an Ubuntu Advantage service.
+
+Arguments:
+  service       the name(s) of the Ubuntu Advantage services to enable. One
+                of: esm-infra, fips, fips-updates, livepatch
+
+Flags:
+  -h, --help    show this help message and exit
+  --assume-yes  do not prompt for confirmation before performing the enable
+  --beta        allow beta service to be enabled
+"""
+)
 
 
 @mock.patch("uaclient.cli.os.getuid")
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
+    def test_enable_help(self, _getuid, _request_updated_contract, capsys):
+        with pytest.raises(SystemExit):
+            with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
+                main()
+        out, _err = capsys.readouterr()
+        assert HELP_OUTPUT == out
+
     def test_non_root_users_are_rejected(
         self, _request_updated_contract, getuid, FakeConfig
     ):
