@@ -1,6 +1,8 @@
 import os
 import socket
 
+from itertools import groupby
+
 from uaclient import apt
 from uaclient.config import UAConfig
 from uaclient.clouds.identity import (
@@ -485,28 +487,74 @@ def prompt_for_affected_packages(
         return
     upgrade_packages = []  # Packages from Ubuntu standard updates
     upgrade_packages_ua = []  # Packages requiring UA subscription
-    for pkg_num, pkg_name in enumerate(sorted(affected_pkg_status.keys()), 1):
-        print("({}/{}) {}:".format(pkg_num, count, pkg_name))
-        pkg_status = affected_pkg_status[pkg_name]
-        print(pkg_status.status_message)
-        if pkg_status.status == "released":
-            update_needed = False
-            for binary_pkg, version in installed_packages[pkg_name].items():
-                if not version_cmp_le(pkg_status.fixed_version, version):
-                    update_needed = True
-                    if pkg_status.requires_ua:
-                        upgrade_packages_ua.append(binary_pkg)
-                    else:
-                        upgrade_packages.append(binary_pkg)
-            if update_needed:
-                print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+    is_fixable = True
+    pkg_index = 0
+
+    for pkg_status, pkg_status_group in groupby(
+        sorted(affected_pkg_status.items(), key=lambda x: (x[1].status, x[0])),
+        key=lambda x: x[1].status.replace("ignored", "deferred"),
+    ):
+        if pkg_status != "released":
+            is_fixable = False
+            msg_index = []
+            pkg_names = []
+            for pkg_name, pkg_status_obj in pkg_status_group:
+                pkg_index += 1
+                msg_index.append("{}/{}".format(pkg_index, count))
+                pkg_names.append(pkg_name)
+
+            print(
+                "{} {}:\n{}".format(
+                    "(" + ", ".join(msg_index) + ")",
+                    ", ".join(sorted(pkg_names)),
+                    pkg_status_obj.status_message,
+                )
+            )
+        else:
+            for pkg_name, pkg_status_obj in pkg_status_group:
+                pkg_index += 1
+                print("({}/{}) {}:".format(pkg_index, count, pkg_name))
+                print(pkg_status_obj.status_message)
+                update_needed = False
+                for binary_pkg, version in installed_packages[
+                    pkg_name
+                ].items():
+                    if not version_cmp_le(
+                        pkg_status_obj.fixed_version, version
+                    ):
+                        update_needed = True
+                        if pkg_status_obj.requires_ua:
+                            upgrade_packages_ua.append(binary_pkg)
+                        else:
+                            upgrade_packages.append(binary_pkg)
+                if update_needed:
+                    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
+                else:
+                    print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
     if not any([upgrade_packages, upgrade_packages_ua]):
-        print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
-        print(status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id))
+        if is_fixable:
+            print(
+                status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+            )
+        else:
+            print(
+                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id
+                )
+            )
     elif upgrade_packages_and_attach(
         cfg, upgrade_packages, upgrade_packages_ua
     ):
-        print(status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id))
+        if is_fixable:
+            print(
+                status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+            )
+        else:
+            print(
+                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id
+                )
+            )
 
 
 def _prompt_for_attach(cfg: UAConfig) -> bool:
