@@ -143,6 +143,7 @@ MESSAGE_SECURITY_USE_PRO_TMPL = (
     " https://ubuntu.com/{cloud}/pro."
 )
 MESSAGE_SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
+MESSAGE_SECURITY_ISSUE_NOT_RESOLVED = FAIL_X + " {issue} is not resolved."
 MESSAGE_SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue} does not affect your system."
 )

@@ -24,6 +24,7 @@ from uaclient.security import (
 from uaclient.status import (
     MESSAGE_SECURITY_USE_PRO_TMPL,
     OKGREEN_CHECK,
+    FAIL_X,
     MESSAGE_SECURITY_APT_NON_ROOT,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
     colorize_commands,
@@ -636,6 +637,31 @@ class TestQueryInstalledPkgSources:
         ] == subp.call_args_list
 
 
+CVE_PKG_STATUS_NEEDED = {
+    "description": "2.1",
+    "pocket": None,
+    "status": "needed",
+}
+CVE_PKG_STATUS_IGNORED = {
+    "description": "2.1",
+    "pocket": None,
+    "status": "ignored",
+}
+CVE_PKG_STATUS_DEFERRED = {
+    "description": "2.1",
+    "pocket": None,
+    "status": "deferred",
+}
+CVE_PKG_STATUS_NEEDS_TRIAGE = {
+    "description": "2.1",
+    "pocket": None,
+    "status": "needs-triage",
+}
+CVE_PKG_STATUS_PENDING = {
+    "description": "2.1",
+    "pocket": None,
+    "status": "pending",
+}
 CVE_PKG_STATUS_RELEASED = {
     "description": "2.1",
     "pocket": "updates",
@@ -778,6 +804,56 @@ class TestPromptForAffectedPackages:
                 )
                 + MSG_SUBSCRIPTION
                 + "\n",
+            ),
+            (  # version is < released affected both esm-apps and standard
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
+                    "pkg3": CVEPackageStatus(CVE_PKG_STATUS_PENDING),
+                    "pkg4": CVEPackageStatus(CVE_PKG_STATUS_PENDING),
+                    "pkg5": CVEPackageStatus(CVE_PKG_STATUS_NEEDS_TRIAGE),
+                    "pkg6": CVEPackageStatus(CVE_PKG_STATUS_NEEDS_TRIAGE),
+                    "pkg7": CVEPackageStatus(CVE_PKG_STATUS_NEEDED),
+                    "pkg8": CVEPackageStatus(CVE_PKG_STATUS_NEEDED),
+                    "pkg9": CVEPackageStatus(CVE_PKG_STATUS_DEFERRED),
+                    "pkg10": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                    "pkg11": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                },
+                {"pkg10": {"pkg10": "2.0"}, "pkg11": {"pkg11": "2.0"}},
+                "gcp",
+                textwrap.dedent(
+                    """\
+                    11 affected packages are installed: {}
+                    (1/11, 2/11, 3/11) pkg1, pkg2, pkg9:
+                    Sorry, no fix is available.
+                    (4/11, 5/11) pkg7, pkg8:
+                    Sorry, no fix is available yet.
+                    (6/11, 7/11) pkg5, pkg6:
+                    Ubuntu security engineers are investigating this issue.
+                    (8/11, 9/11) pkg3, pkg4:
+                    A fix is coming soon. Try again tomorrow.
+                    (10/11) pkg10:
+                    A fix is available in Ubuntu standard updates.
+                    The update is not yet installed.
+                    (11/11) pkg11:
+                    A fix is available in Ubuntu standard updates.
+                    The update is not yet installed.
+                    """
+                ).format(
+                    (
+                        "pkg1, pkg10, pkg11, pkg2, pkg3, pkg4, pkg5,"
+                        " pkg6, pkg7, pkg8, pkg9"
+                    )
+                )
+                + colorize_commands(
+                    [
+                        [
+                            "apt update && apt install --only-upgrade"
+                            " -y pkg10 pkg11"
+                        ]
+                    ]
+                )
+                + "\n{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
     )
