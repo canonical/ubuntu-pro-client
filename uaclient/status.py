@@ -139,7 +139,7 @@ subscription.
 """
 MESSAGE_SECURITY_UPDATE_INSTALLED = "The update is already installed."
 MESSAGE_SECURITY_USE_PRO_TMPL = (
-    "For easiest security on {title}, use Ubuntu PRO."
+    "For easiest security on {title}, use Ubuntu Pro."
     " https://ubuntu.com/{cloud}/pro."
 )
 MESSAGE_SECURITY_ISSUE_RESOLVED = OKGREEN_CHECK + " {issue} is resolved."
