@@ -57,9 +57,9 @@ python_minor=$(lxc exec "$container" -- python3 -c 'import sys; print(sys.versio
 if ((python_minor > 5)); then
     get_pip_url="https://bootstrap.pypa.io/get-pip.py"
 elif ((python_minor == 5)); then
-    get_pip_url="https://bootstrap.pypa.io/3.5/get-pip.py"
+    get_pip_url="https://bootstrap.pypa.io/pip/3.5/get-pip.py"
 elif ((python_minor == 4)); then
-    get_pip_url="https://bootstrap.pypa.io/3.4/get-pip.py"
+    get_pip_url="https://bootstrap.pypa.io/pip/3.4/get-pip.py"
 else
     echo "Unsupported Python version (3.$python_minor)"
     exit 1
