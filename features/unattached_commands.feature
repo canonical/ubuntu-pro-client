@@ -136,6 +136,18 @@ Feature: Command behaviour when unattached
             """
             Error: USN-12345-12 not found.
             """
+        When I verify that running `ua fix CVE-12345678-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: issue "CVE-12345678-12" is not recognized.
+            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            """
+        When I verify that running `ua fix USN-12345678-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: issue "USN-12345678-12" is not recognized.
+            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            """
         When I run `apt install -y libawl-php` with sudo
         And I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:

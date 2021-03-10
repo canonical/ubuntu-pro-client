@@ -68,7 +68,11 @@ class TestActionFix:
         else:
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 action_fix(args, cfg)
-            assert "Invalid issue format: {}".format(issue) == str(
-                excinfo.value
-            )
+
+            expected_msg = (
+                'Error: issue "{}" is not recognized.\n'
+                'Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"'
+            ).format(issue)
+
+            assert expected_msg == str(excinfo.value)
             assert 0 == m_fix_security_issue_id.call_count
