@@ -58,6 +58,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                     os.path.join(tmpd, "apt-helper-output"),
                 ],
                 timeout=APT_HELPER_TIMEOUT,
+                retry_sleeps=APT_RETRIES,
             )
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
