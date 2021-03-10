@@ -269,9 +269,7 @@ def detach_parser(parser):
     usage = USAGE_TMPL.format(name=NAME, command="detach")
     parser.usage = usage
     parser.prog = "detach"
-    parser.description = (
-        "Detach this machine from Ubuntu Advantage services."
-    )
+    parser.description = "Detach this machine from Ubuntu Advantage services."
     parser._optionals.title = "Flags"
     parser.add_argument(
         "--assume-yes",
