@@ -90,3 +90,10 @@ class UnattachedError(UserFacingError):
 
     def __init__(self, msg: str = status.MESSAGE_UNATTACHED) -> None:
         super().__init__(msg)
+
+
+class SecurityAPIMetadataError(UserFacingError):
+    """An exception raised with Security API metadata returns invalid data."""
+
+    def __init__(self, msg: str) -> None:
+        super().__init__("Error: " + msg)

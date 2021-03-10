@@ -1,7 +1,8 @@
+import copy
+import logging
 import os
 import socket
-
-from itertools import groupby
+import sys
 
 from uaclient import apt
 from uaclient.config import UAConfig
@@ -15,17 +16,16 @@ from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 
-
-CVE_OR_USN_REGEX = (
-    r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
-)
-
 try:
-    from typing import Any, Dict, List, Optional  # noqa: F401
+    from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+
+CVE_OR_USN_REGEX = (
+    r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
+)
 
 API_V1_CVES = "cves.json"
 API_V1_CVE_TMPL = "cves/{cve}.json"
@@ -248,7 +248,16 @@ class CVE:
             return self._notices
         self._notices = []
         for notice_id in sorted(self.notice_ids, reverse=True):
-            self._notices.append(self.client.get_notice(notice_id=notice_id))
+            try:
+                self._notices.append(
+                    self.client.get_notice(notice_id=notice_id)
+                )
+            except SecurityAPIError as e:
+                logging.debug(
+                    "Cannot collect USN info for {}: {}".format(
+                        notice_id, str(e)
+                    )
+                )
         return self._notices
 
     def get_url_header(self):
@@ -326,6 +335,44 @@ class USN:
             url_path="notices/{}".format(self.id),
         )
 
+    @property
+    def release_packages(self) -> "Dict[str, Dict[str, str]]":
+        """Binary package information available for this release.
+
+        :return: Dict with package name as the key. Dict values will be
+            a dict containing the following keys: name, version.
+            Optional additional keys: pocket and component.
+        """
+        if hasattr(self, "_release_packages"):
+            return self._release_packages
+        series = util.get_platform_info()["series"]
+        self._release_packages = {}  # type: Dict[str, Dict[str, str]]
+        # Organize source and binary packages under a common source package key
+        for pkg in self.response.get("release_packages", {}).get(series, []):
+            if pkg.get("is_source"):
+                # Create a "source" key under src_pkg_name with API response
+                if pkg["name"] in self._release_packages:
+                    if "source" in self._release_packages[pkg["name"]]:
+                        logging.error(
+                            "Invalid {}.release_packages metadata."
+                            " Duplicate source package {} found".format(
+                                pkg["name"], self.id
+                            )
+                        )
+                        sys.exit(1)
+                    self._release_packages[pkg["name"]]["source"] = pkg
+                else:
+                    self._release_packages[pkg["name"]] = {"source": pkg}
+            else:
+                # is_source == False or None, then this is a binary package.
+                # If processed before a source item, the top-level key will
+                # not exist yet.
+                source_pkg_name = pkg["source_link"].split("/")[-1]
+                if source_pkg_name not in self._release_packages:
+                    self._release_packages[source_pkg_name] = {}
+                self._release_packages[source_pkg_name][pkg["name"]] = pkg
+        return self._release_packages
+
 
 def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
     """Return a dict of all source packages installed on the system.
@@ -360,6 +407,41 @@ def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
     return installed_packages
 
 
+def merge_usn_released_binary_package_versions(
+    cve: CVE
+) -> "Dict[str, Dict[str, str]]":
+    """Walk related USNs, merging the released binary package versions.
+
+    For each USN, iterate over release_packages to collect released binary
+        package names and required fix version. If multiple related USNs
+        require differnt version fixes to the same binary package, track the
+        maximum version required across all USNs.
+
+    :return: Dict keyed by source package name. Under each source package will
+        be a dict with binary package name as keys and required version as the
+        value.
+    """
+    usn_pkg_versions = {}
+    for usn in cve.get_notices_metadata():
+        # Aggregate USN.release_package binary versions into usn_pkg_versions
+        for src_pkg, binary_pkg_versions in usn.release_packages.items():
+            if src_pkg not in usn_pkg_versions:
+                usn_pkg_versions[src_pkg] = binary_pkg_versions
+            else:
+                # Since src_pkg exists, only record this USN's binary version
+                # when it is greater than the previous version in usn_src_pkg.
+                usn_src_pkg = usn_pkg_versions[src_pkg]
+                for binary_pkg, binary_version in binary_pkg_versions.items():
+                    if binary_pkg not in usn_src_pkg:
+                        usn_src_pkg[binary_pkg] = binary_version
+                    else:
+                        prev_version = usn_src_pkg[binary_pkg]
+                        if not version_cmp_le(binary_version, prev_version):
+                            # binary_version is greater than prev_version
+                            usn_src_pkg[binary_pkg] = binary_version
+    return usn_pkg_versions
+
+
 def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
     issue_id = issue_id.upper()
     client = UASecurityClient(cfg=cfg)
@@ -373,12 +455,12 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
                 msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
-
             raise exceptions.UserFacingError(msg)
         affected_pkg_status = get_cve_affected_source_packages_status(
             cve=cve, installed_packages=installed_packages
         )
         print(cve.get_url_header())
+        usn_released_pkgs = merge_usn_released_binary_package_versions(cve)
     else:  # USN
         try:
             usn = client.get_notice(notice_id=issue_id)
@@ -393,11 +475,21 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
             usn=usn, installed_packages=installed_packages
         )
         print(usn.get_url_header())
+        # Since we came in fixing one USN, depend on this USN.release_package
+        usn_released_pkgs = usn.release_packages
+        if not usn_released_pkgs:
+            ubuntu_version = util.get_platform_info()["version"]
+            print("TODO(GH: #1451: query all related USNs through CVE)")
+            logging.info(
+                "{} does not apply to {}.".format(usn.id, ubuntu_version)
+            )
+            return
     prompt_for_affected_packages(
         cfg=cfg,
         issue_id=issue_id,
         affected_pkg_status=affected_pkg_status,
         installed_packages=installed_packages,
+        usn_released_pkgs=usn_released_pkgs,
     )
 
 
@@ -470,11 +562,56 @@ def print_affected_packages_header(
     print(msg + ": " + ", ".join(sorted(affected_pkg_status.keys())))
 
 
+def override_usn_release_package_status(
+    pkg_status: CVEPackageStatus, usn_src_released_pkgs: "Dict[str, str]"
+) -> CVEPackageStatus:
+    """Parse release status based on both pkg_status and USN.release_packages.
+
+    Since some source packages in universe are not represented in
+    CVEPackageStatus, rely on presence of such source packages in
+    usn_src_released_pkgs to represent package as a "released" status.
+
+    :param pkg_status: the CVEPackageStatus for this source package.
+    :param usn_src_released_pkgs: The USN.release_packages representing only
+       this source package. Normally, release_packages would have data on
+       multiple source packages.
+
+    :return: Tuple of:
+        human-readable status message, boolean whether released,
+        boolean whether the fix requires access to UA
+    """
+
+    usn_pkg_status = copy.deepcopy(pkg_status)
+    if pkg_status.status != "released":
+        if usn_src_released_pkgs:
+            # TODO(GH: #1439 parse pocket values from USN.release_package)
+            usn_pkg_status.response["status"] = "released"
+            # A USN having released pkgs unreported in CVE means this either
+            # a Universe package under ESM or a pre-release USN
+            usn_pkg_status.response["pocket"] = "esm-apps"
+    return usn_pkg_status
+
+
+def group_by_usn_package_status(affected_pkg_status, usn_released_pkgs):
+    status_groups = {}
+    for src_pkg, pkg_status in sorted(affected_pkg_status.items()):
+        usn_released_src = usn_released_pkgs.get(src_pkg, {})
+        usn_pkg_status = override_usn_release_package_status(
+            pkg_status, usn_released_src
+        )
+        status_group = usn_pkg_status.status.replace("ignored", "deferred")
+        if status_group not in status_groups:
+            status_groups[status_group] = []
+        status_groups[status_group].append((src_pkg, usn_pkg_status))
+    return status_groups
+
+
 def prompt_for_affected_packages(
     cfg: UAConfig,
     issue_id: str,
     affected_pkg_status: "Dict[str, CVEPackageStatus]",
     installed_packages: "Dict[str, Dict[str, str]]",
+    usn_released_pkgs: "Dict[str, Dict[str, str]]",
 ) -> None:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -487,43 +624,52 @@ def prompt_for_affected_packages(
         return
     upgrade_packages = []  # Packages from Ubuntu standard updates
     upgrade_packages_ua = []  # Packages requiring UA subscription
-    is_fixable = True
+    fix_message = status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
     pkg_index = 0
 
-    for pkg_status, pkg_status_group in groupby(
-        sorted(affected_pkg_status.items(), key=lambda x: (x[1].status, x[0])),
-        key=lambda x: x[1].status.replace("ignored", "deferred"),
-    ):
-        if pkg_status != "released":
-            is_fixable = False
+    pkg_status_groups = group_by_usn_package_status(
+        affected_pkg_status, usn_released_pkgs
+    )
+    for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
+        if status_value != "released":
+            fix_message = status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                issue=issue_id
+            )
             msg_index = []
-            pkg_names = []
-            for pkg_name, pkg_status_obj in pkg_status_group:
+            src_pkgs = []
+            for src_pkg, pkg_status in pkg_status_group:
                 pkg_index += 1
                 msg_index.append("{}/{}".format(pkg_index, count))
-                pkg_names.append(pkg_name)
+                src_pkgs.append(src_pkg)
 
             print(
                 "{} {}:\n{}".format(
                     "(" + ", ".join(msg_index) + ")",
-                    ", ".join(sorted(pkg_names)),
-                    pkg_status_obj.status_message,
+                    ", ".join(sorted(src_pkgs)),
+                    pkg_status.status_message,
                 )
             )
         else:
-            for pkg_name, pkg_status_obj in pkg_status_group:
+            for src_pkg, pkg_status in pkg_status_group:
                 pkg_index += 1
-                print("({}/{}) {}:".format(pkg_index, count, pkg_name))
-                print(pkg_status_obj.status_message)
+                print("({}/{}) {}:".format(pkg_index, count, src_pkg))
+                print(pkg_status.status_message)
                 update_needed = False
-                for binary_pkg, version in installed_packages[
-                    pkg_name
-                ].items():
-                    if not version_cmp_le(
-                        pkg_status_obj.fixed_version, version
-                    ):
+                for binary_pkg, version in installed_packages[src_pkg].items():
+                    usn_released_src = usn_released_pkgs.get(src_pkg, {})
+                    if binary_pkg not in usn_released_src:
+                        msg = (
+                            "{issue}.release_packages has no {bin_pkg}"
+                            " version. Unable to fix package.".format(
+                                bin_pkg=binary_pkg, issue=issue_id
+                            )
+                        )
+                        raise exceptions.SecurityAPIMetadataError(msg)
+                    fixed_pkg = usn_released_src[binary_pkg]
+                    fixed_version = fixed_pkg["version"]  # type: ignore
+                    if not version_cmp_le(fixed_version, version):
                         update_needed = True
-                        if pkg_status_obj.requires_ua:
+                        if pkg_status.requires_ua:
                             upgrade_packages_ua.append(binary_pkg)
                         else:
                             upgrade_packages.append(binary_pkg)
@@ -532,29 +678,11 @@ def prompt_for_affected_packages(
                 else:
                     print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
     if not any([upgrade_packages, upgrade_packages_ua]):
-        if is_fixable:
-            print(
-                status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
-            )
-        else:
-            print(
-                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id
-                )
-            )
+        print(fix_message)
     elif upgrade_packages_and_attach(
         cfg, upgrade_packages, upgrade_packages_ua
     ):
-        if is_fixable:
-            print(
-                status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
-            )
-        else:
-            print(
-                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id
-                )
-            )
+        print(fix_message)
 
 
 def _prompt_for_attach(cfg: UAConfig) -> bool:
@@ -641,7 +769,7 @@ def upgrade_packages_and_attach(
     return True
 
 
-def version_cmp_le(version1, version2) -> bool:
+def version_cmp_le(version1: str, version2: str) -> bool:
     """Return True when version1 is less than or equal to version2."""
     try:
         util.subp(["dpkg", "--compare-versions", version1, "le", version2])

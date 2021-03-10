@@ -125,10 +125,25 @@ SAMPLE_USN_RESPONSE = {
                 "is_source": False,
                 "name": "samba",
                 "source_link": "https://launchpad.net/ubuntu/+source/samba",
-                "version": "2:4.3.11+dfsg-0ubuntu0.14.04.20+esm9",
+                "version": "2~14.04.1+esm9",
                 "version_link": "https://....11+dfsg-0ubuntu0.14.04.20+esm9",
             },
-        ]
+        ],
+        "bionic": [
+            {
+                "description": "high-level 3D graphics kit implementing ...",
+                "is_source": True,
+                "name": "coin3",
+                "version": "3.1.4~abc9f50-4ubuntu2+esm1",
+            },
+            {
+                "is_source": False,
+                "name": "libcoin80-runtime",
+                "source_link": "https://launchpad.net/ubuntu/+source/coin3",
+                "version": "3~18.04.1+esm2",
+                "version_link": "https://coin3...18.04.1+esm2",
+            },
+        ],
     },
     "summary": "Samba would allow unintended access to files over the ....\n",
     "title": "Samba vulnerability",
@@ -253,7 +268,7 @@ class TestCVE:
 
     @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_notices_metadata(self, request_url, FakeConfig):
-        """CVE.get_notices_metadata is cached to avoid API round-trips."""
+        """CVE.get_notices_metadata is cached to avoid extra round-trips."""
         client = UASecurityClient(FakeConfig())
         cve = CVE(client, SAMPLE_CVE_RESPONSE)
 
@@ -310,6 +325,74 @@ class TestUSN:
         client = UASecurityClient(FakeConfig())
         usn = USN(client, response)
         assert expected == getattr(usn, attr_name)
+
+    @pytest.mark.parametrize(
+        "series,expected",
+        (
+            (
+                "trusty",
+                {
+                    "samba": {
+                        "source": {
+                            "description": (
+                                "SMB/CIFS file, print, and login ... Unix"
+                            ),
+                            "is_source": True,
+                            "name": "samba",
+                            "version": "2:4.3.11+dfsg-0ubuntu0.14.04.20+esm9",
+                        },
+                        "samba": {
+                            "is_source": False,
+                            "name": "samba",
+                            "source_link": (
+                                "https://launchpad.net/ubuntu/+source/samba"
+                            ),
+                            "version": "2~14.04.1+esm9",
+                            "version_link": (
+                                "https://....11+dfsg-0ubuntu0.14.04.20+esm9"
+                            ),
+                        },
+                    }
+                },
+            ),
+            (
+                "bionic",
+                {
+                    "coin3": {
+                        "source": {
+                            "description": (
+                                "high-level 3D graphics kit implementing ..."
+                            ),
+                            "is_source": True,
+                            "name": "coin3",
+                            "version": "3.1.4~abc9f50-4ubuntu2+esm1",
+                        },
+                        "libcoin80-runtime": {
+                            "is_source": False,
+                            "name": "libcoin80-runtime",
+                            "source_link": (
+                                "https://launchpad.net/ubuntu/+source/coin3"
+                            ),
+                            "version": "3~18.04.1+esm2",
+                            "version_link": "https://coin3...18.04.1+esm2",
+                        },
+                    }
+                },
+            ),
+            ("focal", {}),
+        ),
+    )
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_release_packages_returns_source_and_binary_pkgs_for_series(
+        self, get_platform_info, series, expected, FakeConfig
+    ):
+        get_platform_info.return_value = {"series": series}
+        client = UASecurityClient(FakeConfig())
+        usn = USN(client, SAMPLE_USN_RESPONSE)
+
+        assert expected == usn.release_packages
+        usn._release_packages = {"sl": "1.0"}
+        assert {"sl": "1.0"} == usn.release_packages
 
     @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_cves_metadata(self, request_url, FakeConfig):
@@ -677,15 +760,48 @@ CVE_PKG_STATUS_RELEASED_ESM_APPS = {
     "pocket": "esm-infra",
     "status": "released",
 }
+CVE_PKG_STATUS_NEEDED = {"description": "", "pocket": None, "status": "needed"}
 
 
 class TestPromptForAffectedPackages:
     @pytest.mark.parametrize(
-        "affected_pkg_status,installed_packages,cloud_type,expected",
+        "affected_pkg_status,installed_packages,usn_released_pkgs",
         (
             (
-                {},  # No affected_packages listed
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"slsrc": {"sl": "2.0"}},
+                {},
+            ),
+        ),
+    )
+    def test_raise_userfacing_error_on_invalid_usn_metadata(
+        self,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        FakeConfig,
+    ):
+        with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
+            prompt_for_affected_packages(
+                cfg=FakeConfig(),
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+        assert (
+            "Error: USN-###.release_packages has no sl version. "
+            "Unable to fix package." == exc.value.msg
+        )
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,"
+        "usn_released_pkgs,cloud_type,expected",
+        (
+            (  # No affected_packages listed
+                {},
                 {"curl": {"curl": "1.0"}},
+                {"unread-because-no-affected-pkgs": {}},
                 None,
                 textwrap.dedent(
                     """\
@@ -699,6 +815,7 @@ class TestPromptForAffectedPackages:
             (  # version is >= released affected package
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"slsrc": {"sl": "2.1"}},
+                {"slsrc": {"sl": {"version": "2.1"}}},
                 None,
                 textwrap.dedent(
                     """\
@@ -712,9 +829,24 @@ class TestPromptForAffectedPackages:
                     )  # noqa: E126
                 ),
             ),
+            (  # usn_released_pkgs version is used instead of CVE (2.1)
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"slsrc": {"sl": "2.1"}},
+                {"slsrc": {"sl": {"version": "2.2"}}},
+                None,
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in Ubuntu standard updates.
+                    The update is not yet installed.
+                    """
+                ),
+            ),
             (  # version is < released affected package standard updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"slsrc": {"sl": "2.0"}},
+                {"slsrc": {"sl": {"version": "2.1"}}},
                 None,
                 textwrap.dedent(
                     """\
@@ -743,6 +875,7 @@ class TestPromptForAffectedPackages:
             (  # version is < released affected package esm-infra updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"slsrc": {"sl": "2.0"}},
+                {"slsrc": {"sl": {"version": "2.1"}}},
                 "azure",
                 textwrap.dedent(
                     """\
@@ -764,6 +897,7 @@ class TestPromptForAffectedPackages:
             (  # version < released package in esm-infra updates and aws cloud
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"slsrc": {"sl": "2.0"}},
+                {"slsrc": {"sl": {"version": "2.1"}}},
                 "aws",
                 textwrap.dedent(
                     """\
@@ -790,6 +924,10 @@ class TestPromptForAffectedPackages:
                     "curl": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
                 },
                 {"slsrc": {"sl": "2.0"}, "curl": {"curl": "2.0"}},
+                {
+                    "slsrc": {"sl": {"version": "2.1"}},
+                    "curl": {"curl": {"version": "2.1"}},
+                },
                 "gcp",
                 textwrap.dedent(
                     """\
@@ -820,6 +958,10 @@ class TestPromptForAffectedPackages:
                     "pkg11": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
                 },
                 {"pkg10": {"pkg10": "2.0"}, "pkg11": {"pkg11": "2.0"}},
+                {
+                    "pkg10": {"pkg10": {"version": "2.1"}},
+                    "pkg11": {"pkg11": {"version": "2.1"}},
+                },
                 "gcp",
                 textwrap.dedent(
                     """\
@@ -861,7 +1003,7 @@ class TestPromptForAffectedPackages:
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
-    def test_messages_for_affected_packages_based_on_installed(
+    def test_messages_for_affected_packages_based_on_installed_and_usn_release(
         self,
         prompt_choices,
         get_cloud_type,
@@ -869,6 +1011,7 @@ class TestPromptForAffectedPackages:
         _m_os_getuid,
         affected_pkg_status,
         installed_packages,
+        usn_released_pkgs,
         cloud_type,
         expected,
         FakeConfig,
@@ -882,6 +1025,7 @@ class TestPromptForAffectedPackages:
             issue_id="USN-###",
             affected_pkg_status=affected_pkg_status,
             installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
         )
         out, err = capsys.readouterr()
         assert expected in out
