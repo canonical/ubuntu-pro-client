@@ -257,9 +257,12 @@ def refresh_parser(parser):
 
 def action_fix(args, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
-        raise exceptions.UserFacingError(
-            "Invalid issue format: {}".format(args.security_issue)
-        )
+        msg = (
+            'Error: issue "{}" is not recognized.\n'
+            'Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"'
+        ).format(args.security_issue)
+        raise exceptions.UserFacingError(msg)
+
     security.fix_security_issue_id(cfg, args.security_issue)
     return 0
 
