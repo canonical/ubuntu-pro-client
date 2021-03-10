@@ -10,6 +10,7 @@ from textwrap import dedent
 import pytest
 
 from uaclient.apt import (
+    APT_RETRIES,
     APT_KEYS_DIR,
     APT_AUTH_COMMENT,
     KEYRINGS_DIR,
@@ -149,6 +150,7 @@ class TestValidAptCredentials:
                 expected_path,
             ],
             timeout=60,
+            retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
@@ -220,6 +222,7 @@ class TestValidAptCredentials:
                 expected_path,
             ],
             timeout=60,
+            retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
@@ -262,6 +265,7 @@ class TestValidAptCredentials:
                 expected_path,
             ],
             timeout=apt.APT_HELPER_TIMEOUT,
+            retry_sleeps=APT_RETRIES,
         )
         assert [apt_helper_call] == m_subp.call_args_list
 
