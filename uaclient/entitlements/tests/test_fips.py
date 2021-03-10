@@ -408,7 +408,7 @@ class TestFIPSEntitlementEnable:
                 with contextlib.redirect_stdout(fake_stdout):
                     fips_entitlement.enable()
 
-        expected_msg = "Cannot enable FIPS when FIPS Updates is enabled"
+        expected_msg = "Cannot enable FIPS when FIPS Updates is enabled."
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
     @mock.patch("uaclient.util.get_platform_info")

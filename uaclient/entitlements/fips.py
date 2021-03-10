@@ -274,7 +274,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
         return static_affordances + (
             (
-                "Cannot enable {} when {} is enabled".format(
+                "Cannot enable {} when {} is enabled.".format(
                     self.title, fips_update.title
                 ),
                 lambda: is_fips_update_enabled,

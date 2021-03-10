@@ -303,7 +303,7 @@ Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
 (y/N)"""
 
 MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
-Cannot enable {service_being_enabled} when {incompatible_service} is enabled
+Cannot enable {service_being_enabled} when {incompatible_service} is enabled.
 """
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = """\
