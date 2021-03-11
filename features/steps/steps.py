@@ -118,7 +118,9 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
 
 
 @when("I run `{command}` {user_spec}")
-def when_i_run_command(context, command, user_spec, verify_return=True):
+def when_i_run_command(
+    context, command, user_spec, verify_return=True, stdin=None
+):
     prefix = get_command_prefix_for_user_spec(user_spec)
     slow_cmd_spinner = nullcontext
     for slow_cmd in SLOW_CMDS:
@@ -128,7 +130,7 @@ def when_i_run_command(context, command, user_spec, verify_return=True):
 
     full_cmd = prefix + shlex.split(command)
     with slow_cmd_spinner():
-        result = context.instance.execute(full_cmd)
+        result = context.instance.execute(full_cmd, stdin=stdin)
 
     process = subprocess.CompletedProcess(
         args=full_cmd,
@@ -146,6 +148,17 @@ def when_i_run_command(context, command, user_spec, verify_return=True):
         assert_that(process.returncode, equal_to(0))
 
     context.process = process
+
+
+@when("I fix `{issue}` by attaching to a subscription with `{token_type}`")
+def when_i_fix_a_issue_by_attaching(context, issue, token_type):
+    token = getattr(context.config, token_type)
+    when_i_run_command(
+        context=context,
+        command="ua fix {}".format(issue),
+        user_spec="with sudo",
+        stdin="a\n{}\n".format(token),
+    )
 
 
 @when("I attach `{token_type}` {user_spec}")

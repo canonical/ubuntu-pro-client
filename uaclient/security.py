@@ -4,6 +4,8 @@ import logging
 import os
 import socket
 
+from collections import defaultdict
+
 from uaclient import apt
 from uaclient.config import UAConfig
 from uaclient.clouds.identity import (
@@ -31,6 +33,10 @@ API_V1_CVES = "cves.json"
 API_V1_CVE_TMPL = "cves/{cve}.json"
 API_V1_NOTICES = "notices.json"
 API_V1_NOTICE_TMPL = "notices/{notice}.json"
+
+UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
+UA_INFRA_POCKET = "UA Infra"
+UA_APPS_POCKET = "UA Apps"
 
 
 class SecurityAPIError(util.UrlError):
@@ -218,23 +224,23 @@ class CVEPackageStatus:
     @property
     def requires_ua(self) -> bool:
         """Return True if the package requires an active UA subscription."""
-        return bool(self.pocket_source != "Ubuntu standard updates")
+        return bool(self.pocket_source != UBUNTU_STANDARD_UPDATES_POCKET)
 
     @property
     def pocket_source(self):
         """Human-readable string representing where the fix is published."""
         if self.pocket == "esm-infra":
-            fix_source = "UA Infra"
+            fix_source = UA_INFRA_POCKET
         elif self.pocket == "esm-apps":
-            fix_source = "UA Apps"
+            fix_source = UA_APPS_POCKET
         elif self.pocket in ("updates", "security"):
-            fix_source = "Ubuntu standard updates"
+            fix_source = UBUNTU_STANDARD_UPDATES_POCKET
         else:
             # TODO(GH: #1376 drop this when esm* pockets supplied by API)
             if "esm" in self.fixed_version:
-                fix_source = "UA Infra"
+                fix_source = UA_INFRA_POCKET
             else:
-                fix_source = "Ubuntu standard updates"
+                fix_source = UBUNTU_STANDARD_UPDATES_POCKET
         return fix_source
 
 
@@ -640,6 +646,69 @@ def group_by_usn_package_status(affected_pkg_status, usn_released_pkgs):
     return status_groups
 
 
+def _format_packages_message(
+    pkg_status_list: "List[Tuple[str, CVEPackageStatus]]",
+    pkg_index: int,
+    num_pkgs: int,
+) -> str:
+    """Format the packages and status to an user friendly message."""
+    if not pkg_status_list:
+        return ""
+
+    msg_index = []
+    src_pkgs = []
+    for src_pkg, pkg_status in pkg_status_list:
+        pkg_index += 1
+        msg_index.append("{}/{}".format(pkg_index, num_pkgs))
+        src_pkgs.append(src_pkg)
+
+    return "{} {}:\n{}".format(
+        "(" + ", ".join(msg_index) + ")",
+        ", ".join(sorted(src_pkgs)),
+        pkg_status.status_message,
+    )
+
+
+def _handle_released_package_fixes(
+    cfg: UAConfig,
+    src_pocket_pkgs: "Dict[str, List[Tuple[str, CVEPackageStatus]]]",
+    binary_pocket_pkgs: "Dict[str, List[str]]",
+    pkg_index: int,
+    num_pkgs: int,
+) -> bool:
+    """Handle the packages that could be fixed and have a released status."""
+    if src_pocket_pkgs:
+        for pocket in [
+            UBUNTU_STANDARD_UPDATES_POCKET,
+            UA_INFRA_POCKET,
+            UA_APPS_POCKET,
+        ]:
+            pkg_src_group = src_pocket_pkgs[pocket]
+            binary_pkgs = binary_pocket_pkgs[pocket]
+
+            msg = _format_packages_message(
+                pkg_status_list=pkg_src_group,
+                pkg_index=pkg_index,
+                num_pkgs=num_pkgs,
+            )
+
+            if msg:
+                print(msg)
+
+                if not binary_pkgs:
+                    print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+
+            upgrade_return = upgrade_packages_and_attach(
+                cfg, binary_pkgs, pocket
+            )
+            if not upgrade_return:
+                return False
+
+            pkg_index += len(pkg_src_group)
+
+    return True
+
+
 def prompt_for_affected_packages(
     cfg: UAConfig,
     issue_id: str,
@@ -656,9 +725,9 @@ def prompt_for_affected_packages(
     print_affected_packages_header(issue_id, affected_pkg_status)
     if count == 0:
         return
-    upgrade_packages = []  # Packages from Ubuntu standard updates
-    upgrade_packages_ua = []  # Packages requiring UA subscription
     fix_message = status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+    src_pocket_pkgs = defaultdict(list)
+    binary_pocket_pkgs = defaultdict(list)
     pkg_index = 0
 
     pkg_status_groups = group_by_usn_package_status(
@@ -669,26 +738,19 @@ def prompt_for_affected_packages(
             fix_message = status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
                 issue=issue_id
             )
-            msg_index = []
-            src_pkgs = []
-            for src_pkg, pkg_status in pkg_status_group:
-                pkg_index += 1
-                msg_index.append("{}/{}".format(pkg_index, count))
-                src_pkgs.append(src_pkg)
-
             print(
-                "{} {}:\n{}".format(
-                    "(" + ", ".join(msg_index) + ")",
-                    ", ".join(sorted(src_pkgs)),
-                    pkg_status.status_message,
+                _format_packages_message(
+                    pkg_status_list=pkg_status_group,
+                    pkg_index=pkg_index,
+                    num_pkgs=count,
                 )
             )
+            pkg_index += len(pkg_status_group)
         else:
             for src_pkg, pkg_status in pkg_status_group:
-                pkg_index += 1
-                print("({}/{}) {}:".format(pkg_index, count, src_pkg))
-                print(pkg_status.status_message)
-                update_needed = False
+                src_pocket_pkgs[pkg_status.pocket_source].append(
+                    (src_pkg, pkg_status)
+                )
                 for binary_pkg, version in installed_packages[src_pkg].items():
                     usn_released_src = usn_released_pkgs.get(src_pkg, {})
                     if binary_pkg not in usn_released_src:
@@ -702,21 +764,22 @@ def prompt_for_affected_packages(
                     fixed_pkg = usn_released_src[binary_pkg]
                     fixed_version = fixed_pkg["version"]  # type: ignore
                     if not version_cmp_le(fixed_version, version):
-                        update_needed = True
-                        if pkg_status.requires_ua:
-                            upgrade_packages_ua.append(binary_pkg)
-                        else:
-                            upgrade_packages.append(binary_pkg)
-                if update_needed:
-                    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED)
-                else:
-                    print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
-    if not any([upgrade_packages, upgrade_packages_ua]):
-        print(fix_message)
-    elif upgrade_packages_and_attach(
-        cfg, upgrade_packages, upgrade_packages_ua
+                        binary_pocket_pkgs[pkg_status.pocket_source].append(
+                            binary_pkg
+                        )
+
+    if _handle_released_package_fixes(
+        cfg=cfg,
+        src_pocket_pkgs=src_pocket_pkgs,
+        binary_pocket_pkgs=binary_pocket_pkgs,
+        pkg_index=pkg_index,
+        num_pkgs=count,
     ):
         print(fix_message)
+    else:
+        print(
+            status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+        )
 
 
 def _prompt_for_attach(cfg: UAConfig) -> bool:
@@ -759,36 +822,33 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
 
 
 def upgrade_packages_and_attach(
-    cfg: UAConfig,
-    upgrade_packages: "List[str]",
-    upgrade_packages_ua: "List[str]",
+    cfg: UAConfig, upgrade_packages: "List[str]", pocket: str
 ) -> bool:
     """Upgrade available packages to fix a CVE.
 
-    Upgrade all packages in Ubuntu standard updates regardless of attach
-    status.
-
-    For UA upgrades, prompt regarding system attach prior to upgrading UA
-    packages.
+    Upgrade all packages in upgrades_packages and, if necessary,
+    prompt regarding system attach prior to upgrading UA packages.
 
     :return: True if package upgrade completed or unneeded, False otherwise.
     """
-    if not any([upgrade_packages, upgrade_packages_ua]):
+    if not upgrade_packages:
         return True
+
     if os.getuid() != 0:
         print(status.MESSAGE_SECURITY_APT_NON_ROOT)
         return False
-    if upgrade_packages_ua:
+
+    if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
         if not cfg.is_attached:
             if not _prompt_for_attach(cfg):
                 return False  # User opted to cancel
-    packages = sorted(upgrade_packages + upgrade_packages_ua)
+
     print(
         status.colorize_commands(
             [
                 ["apt", "update", "&&"]
                 + ["apt", "install", "--only-upgrade", "-y"]
-                + packages
+                + upgrade_packages
             ]
         )
     )
@@ -796,7 +856,7 @@ def upgrade_packages_and_attach(
         cmd=["apt-get", "update"], error_msg=status.MESSAGE_APT_UPDATE_FAILED
     )
     apt.run_apt_command(
-        cmd=["apt-get", "install", "--only-upgrade", "-y"] + packages,
+        cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_packages,
         error_msg=status.MESSAGE_APT_INSTALL_FAILED,
         env={"DEBIAN_FRONTEND": "noninteractive"},
     )

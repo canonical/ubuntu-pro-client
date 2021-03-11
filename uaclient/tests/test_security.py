@@ -29,6 +29,7 @@ from uaclient.status import (
     MESSAGE_SECURITY_APT_NON_ROOT,
     MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
+    PROMPT_ENTER_TOKEN,
     colorize_commands,
 )
 from uaclient import exceptions
@@ -767,7 +768,7 @@ CVE_PKG_STATUS_RELEASED_ESM_INFRA = {
 }
 CVE_PKG_STATUS_RELEASED_ESM_APPS = {
     "description": "2.1",
-    "pocket": "esm-infra",
+    "pocket": "esm-apps",
     "status": "released",
 }
 CVE_PKG_STATUS_NEEDED = {"description": "", "pocket": None, "status": "needed"}
@@ -852,9 +853,13 @@ class TestPromptForAffectedPackages:
                     1 affected package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
-                    The update is not yet installed.
                     """
-                ),
+                )
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y sl"]]
+                )
+                + "\n"
+                + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
             ),
             (  # version is < released affected package standard updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -866,7 +871,6 @@ class TestPromptForAffectedPackages:
                     1 affected package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
-                    The update is not yet installed.
                     """
                 )
                 + "\n".join(
@@ -895,7 +899,6 @@ class TestPromptForAffectedPackages:
                     1 affected package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in UA Infra.
-                    The update is not yet installed.
                     """
                 )
                 + "\n".join(
@@ -917,7 +920,6 @@ class TestPromptForAffectedPackages:
                     1 affected package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in UA Infra.
-                    The update is not yet installed.
                     """
                 )
                 + "\n".join(
@@ -947,14 +949,19 @@ class TestPromptForAffectedPackages:
                     2 affected packages are installed: curl, slsrc
                     (1/2) curl:
                     A fix is available in Ubuntu standard updates.
-                    The update is not yet installed.
-                    (2/2) slsrc:
-                    A fix is available in UA Infra.
-                    The update is not yet installed.
                     """
                 )
-                + MSG_SUBSCRIPTION
-                + "\n",
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y curl"]]
+                )
+                + "\n"
+                + textwrap.dedent(
+                    """\
+                    (2/2) slsrc:
+                    A fix is available in UA Apps.
+                    """
+                )
+                + MSG_SUBSCRIPTION,
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -969,35 +976,44 @@ class TestPromptForAffectedPackages:
                     "pkg9": CVEPackageStatus(CVE_PKG_STATUS_DEFERRED),
                     "pkg10": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
                     "pkg11": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                    "pkg12": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
+                    ),
+                    "pkg13": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
+                    ),
                 },
-                {"pkg10": {"pkg10": "2.0"}, "pkg11": {"pkg11": "2.0"}},
+                {
+                    "pkg10": {"pkg10": "2.0"},
+                    "pkg11": {"pkg11": "2.0"},
+                    "pkg12": {"pkg12": "2.0"},
+                    "pkg13": {"pkg13": "2.0"},
+                },
                 {
                     "pkg10": {"pkg10": {"version": "2.1"}},
                     "pkg11": {"pkg11": {"version": "2.1"}},
+                    "pkg12": {"pkg12": {"version": "2.1"}},
+                    "pkg13": {"pkg13": {"version": "2.1"}},
                 },
                 "gcp",
                 textwrap.dedent(
                     """\
-                    11 affected packages are installed: {}
-                    (1/11, 2/11, 3/11) pkg1, pkg2, pkg9:
+                    13 affected packages are installed: {}
+                    (1/13, 2/13, 3/13) pkg1, pkg2, pkg9:
                     Sorry, no fix is available.
-                    (4/11, 5/11) pkg7, pkg8:
+                    (4/13, 5/13) pkg7, pkg8:
                     Sorry, no fix is available yet.
-                    (6/11, 7/11) pkg5, pkg6:
+                    (6/13, 7/13) pkg5, pkg6:
                     Ubuntu security engineers are investigating this issue.
-                    (8/11, 9/11) pkg3, pkg4:
+                    (8/13, 9/13) pkg3, pkg4:
                     A fix is coming soon. Try again tomorrow.
-                    (10/11) pkg10:
+                    (10/13, 11/13) pkg10, pkg11:
                     A fix is available in Ubuntu standard updates.
-                    The update is not yet installed.
-                    (11/11) pkg11:
-                    A fix is available in Ubuntu standard updates.
-                    The update is not yet installed.
                     """
                 ).format(
                     (
-                        "pkg1, pkg10, pkg11, pkg2, pkg3, pkg4, pkg5,"
-                        " pkg6, pkg7, pkg8, pkg9"
+                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg2, pkg3, pkg4,"
+                        " pkg5, pkg6, pkg7, pkg8, pkg9"
                     )
                 )
                 + colorize_commands(
@@ -1008,7 +1024,46 @@ class TestPromptForAffectedPackages:
                         ]
                     ]
                 )
-                + "\n{check} USN-### is not resolved.\n".format(check=FAIL_X),
+                + "\n"
+                + textwrap.dedent(
+                    """\
+                    (12/13, 13/13) pkg12, pkg13:
+                    A fix is available in UA Infra.
+                    """
+                )
+                + MSG_SUBSCRIPTION,
+            ),
+            (  # No released version
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
+                    "pkg3": CVEPackageStatus(CVE_PKG_STATUS_PENDING),
+                    "pkg4": CVEPackageStatus(CVE_PKG_STATUS_PENDING),
+                    "pkg5": CVEPackageStatus(CVE_PKG_STATUS_NEEDS_TRIAGE),
+                    "pkg6": CVEPackageStatus(CVE_PKG_STATUS_NEEDS_TRIAGE),
+                    "pkg7": CVEPackageStatus(CVE_PKG_STATUS_NEEDED),
+                    "pkg8": CVEPackageStatus(CVE_PKG_STATUS_NEEDED),
+                    "pkg9": CVEPackageStatus(CVE_PKG_STATUS_DEFERRED),
+                },
+                {},
+                {},
+                "gcp",
+                textwrap.dedent(
+                    """\
+                    9 affected packages are installed: {}
+                    (1/9, 2/9, 3/9) pkg1, pkg2, pkg9:
+                    Sorry, no fix is available.
+                    (4/9, 5/9) pkg7, pkg8:
+                    Sorry, no fix is available yet.
+                    (6/9, 7/9) pkg5, pkg6:
+                    Ubuntu security engineers are investigating this issue.
+                    (8/9, 9/9) pkg3, pkg4:
+                    A fix is coming soon. Try again tomorrow.
+                    """
+                ).format(
+                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                )
+                + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
     )
@@ -1043,6 +1098,164 @@ class TestPromptForAffectedPackages:
         out, err = capsys.readouterr()
         assert expected in out
 
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "pkg3": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
+                    ),
+                },
+                {
+                    "pkg1": {"pkg1": "1.8"},
+                    "pkg2": {"pkg2": "1.8"},
+                    "pkg3": {"pkg3": "1.8"},
+                },
+                {
+                    "pkg1": {"pkg1": {"version": "2.0"}},
+                    "pkg2": {"pkg2": {"version": "2.0"}},
+                    "pkg3": {"pkg3": {"version": "2.0"}},
+                },
+                textwrap.dedent(
+                    """\
+                    3 affected packages are installed: pkg1, pkg2, pkg3
+                    (1/3) pkg1:
+                    A fix is available in Ubuntu standard updates.
+                    """
+                )
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
+                )
+                + "\n"
+                + textwrap.dedent(
+                    """\
+                    (2/3) pkg3:
+                    A fix is available in UA Infra.
+                    """
+                )
+                + MSG_SUBSCRIPTION
+                + "\n"
+                + PROMPT_ENTER_TOKEN
+                + "\n"
+                + colorize_commands([["ua attach token"]])
+                + "\n"
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg3"]]
+                )
+                + "\n"
+                + textwrap.dedent(
+                    """\
+                    (3/3) pkg2:
+                    A fix is available in UA Apps.
+                    """
+                )
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg2"]]
+                )
+                + "\n"
+                + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.cli.action_attach")
+    @mock.patch("builtins.input", return_value="token")
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("uaclient.security.get_cloud_type")
+    @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
+    def test_messages_for_affected_packages_covering_all_release_pockets(
+        self,
+        m_prompt_choices,
+        m_get_cloud_type,
+        m_run_apt_cmd,
+        _m_os_getuid,
+        _m_input,
+        m_action_attach,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        m_get_cloud_type.return_value = "cloud"
+
+        def fake_attach(args, cfg):
+            cfg.for_attached_machine()
+            return 0
+
+        m_action_attach.side_effect = fake_attach
+
+        cfg = FakeConfig()
+        prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id="USN-###",
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
+        )
+        out, err = capsys.readouterr()
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "pkg3": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
+                    ),
+                },
+                {
+                    "pkg1": {"pkg1": "1.8"},
+                    "pkg2": {"pkg2": "1.8"},
+                    "pkg3": {"pkg3": "1.8"},
+                },
+                {
+                    "pkg1": {"pkg1": {"version": "2.0"}},
+                    "pkg2": {"pkg2": {"version": "2.0"}},
+                    "pkg3": {"pkg3": {"version": "2.0"}},
+                },
+                textwrap.dedent(
+                    """\
+                    3 affected packages are installed: pkg1, pkg2, pkg3
+                    (1/3) pkg1:
+                    A fix is available in Ubuntu standard updates.
+                    """
+                )
+                + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.security.upgrade_packages_and_attach")
+    def test_messages_for_affected_packages_when_fix_fail(
+        self,
+        m_upgrade_packages,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        m_upgrade_packages.return_value = False
+
+        cfg = FakeConfig()
+        prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id="USN-###",
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
+        )
+        out, err = capsys.readouterr()
+        assert expected in out
+
 
 class TestUpgradePackagesAndAttach:
     @pytest.mark.parametrize("getuid_value", ((0), (1)))
@@ -1055,7 +1268,9 @@ class TestUpgradePackagesAndAttach:
         m_os_getuid.return_value = getuid_value
 
         upgrade_packages_and_attach(
-            cfg=None, upgrade_packages=["t1", "t2"], upgrade_packages_ua=[]
+            cfg=None,
+            upgrade_packages=["t1", "t2"],
+            pocket="Ubuntu standard updates",
         )
 
         out, err = capsys.readouterr()
