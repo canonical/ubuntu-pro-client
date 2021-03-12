@@ -1,8 +1,8 @@
 import copy
+import itertools
 import logging
 import os
 import socket
-import sys
 
 from uaclient import apt
 from uaclient.config import UAConfig
@@ -139,7 +139,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
     ) -> "List[USN]":
         """Query to match multiple-USNs.
 
-        @return: List of USN instances based on the the JSON response.
+        @return: Sorted list of USN instances based on the the JSON response.
         """
         query_params = {
             "details": details,
@@ -151,7 +151,13 @@ class UASecurityClient(serviceclient.UAServiceClient):
         usns_response, _headers = self.request_url(
             API_V1_NOTICES, query_params=query_params
         )
-        return [USN(client=self, response=usn_md) for usn_md in usns_response]
+        return sorted(
+            [
+                USN(client=self, response=usn_md)
+                for usn_md in usns_response.get("notices", [])
+            ],
+            key=lambda x: x.id,
+        )
 
     def get_notice(self, notice_id: str) -> "USN":
         """Query to match single-USN.
@@ -319,10 +325,10 @@ class USN:
     def title(self):
         return self.response.get("title")
 
-    def get_cves_metadata(self):
+    def get_cves_metadata(self) -> "List[CVE]":
         if hasattr(self, "_cves"):
             return self._cves
-        self._cves = []
+        self._cves = []  # type: List[CVE]
         for cve_id in sorted(self.cve_ids, reverse=True):
             self._cves.append(self.client.get_cve(cve_id=cve_id))
         return self._cves
@@ -336,30 +342,35 @@ class USN:
         )
 
     @property
-    def release_packages(self) -> "Dict[str, Dict[str, str]]":
+    def release_packages(self) -> "Dict[str, Dict[str, Dict[str, str]]]":
         """Binary package information available for this release.
 
-        :return: Dict with package name as the key. Dict values will be
-            a dict containing the following keys: name, version.
+
+        Reformat the USN.release_packages response to key it based on source
+        package name and related binary package names.
+
+        :return: Dict keyed by source package name. The second-level key will
+            be binary package names generated from that source package and the
+            values will be the dict response from USN.release_packages for
+            that binary package. The binary metadata contains the following
+            keys: name, version.
             Optional additional keys: pocket and component.
         """
         if hasattr(self, "_release_packages"):
             return self._release_packages
         series = util.get_platform_info()["series"]
-        self._release_packages = {}  # type: Dict[str, Dict[str, str]]
+        self._release_packages = {}  # type: Dict[str, Dict[str, Any]]
         # Organize source and binary packages under a common source package key
         for pkg in self.response.get("release_packages", {}).get(series, []):
             if pkg.get("is_source"):
                 # Create a "source" key under src_pkg_name with API response
                 if pkg["name"] in self._release_packages:
                     if "source" in self._release_packages[pkg["name"]]:
-                        logging.error(
-                            "Invalid {}.release_packages metadata."
-                            " Duplicate source package {} found".format(
-                                pkg["name"], self.id
-                            )
+                        raise exceptions.SecurityAPIMetadataError(
+                            "{usn} metadata defines duplicate source packages"
+                            " {pkg}".format(usn=self.id, pkg=pkg["name"]),
+                            issue_id=self.id,
                         )
-                        sys.exit(1)
                     self._release_packages[pkg["name"]]["source"] = pkg
                 else:
                     self._release_packages[pkg["name"]] = {"source": pkg}
@@ -408,8 +419,8 @@ def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
 
 
 def merge_usn_released_binary_package_versions(
-    cve: CVE
-) -> "Dict[str, Dict[str, str]]":
+    usns: "List[USN]"
+) -> "Dict[str,  Dict[str, Dict[str, str]]]":
     """Walk related USNs, merging the released binary package versions.
 
     For each USN, iterate over release_packages to collect released binary
@@ -418,11 +429,11 @@ def merge_usn_released_binary_package_versions(
         maximum version required across all USNs.
 
     :return: Dict keyed by source package name. Under each source package will
-        be a dict with binary package name as keys and required version as the
-        value.
+        be a dict with binary package name as keys and binary package metadata
+        as the value.
     """
     usn_pkg_versions = {}
-    for usn in cve.get_notices_metadata():
+    for usn in usns:
         # Aggregate USN.release_package binary versions into usn_pkg_versions
         for src_pkg, binary_pkg_versions in usn.release_packages.items():
             if src_pkg not in usn_pkg_versions:
@@ -431,14 +442,15 @@ def merge_usn_released_binary_package_versions(
                 # Since src_pkg exists, only record this USN's binary version
                 # when it is greater than the previous version in usn_src_pkg.
                 usn_src_pkg = usn_pkg_versions[src_pkg]
-                for binary_pkg, binary_version in binary_pkg_versions.items():
+                for binary_pkg, binary_pkg_md in binary_pkg_versions.items():
                     if binary_pkg not in usn_src_pkg:
-                        usn_src_pkg[binary_pkg] = binary_version
+                        usn_src_pkg[binary_pkg] = binary_pkg_md
                     else:
-                        prev_version = usn_src_pkg[binary_pkg]
-                        if not version_cmp_le(binary_version, prev_version):
+                        prev_version = usn_src_pkg[binary_pkg]["version"]
+                        current_version = binary_pkg_md["version"]
+                        if not version_cmp_le(current_version, prev_version):
                             # binary_version is greater than prev_version
-                            usn_src_pkg[binary_pkg] = binary_version
+                            usn_src_pkg[binary_pkg] = binary_pkg_md
     return usn_pkg_versions
 
 
@@ -449,6 +461,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
     if "CVE" in issue_id:
         try:
             cve = client.get_cve(cve_id=issue_id)
+            usns = client.get_notices(details=issue_id)
         except SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
@@ -460,10 +473,16 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
             cve=cve, installed_packages=installed_packages
         )
         print(cve.get_url_header())
-        usn_released_pkgs = merge_usn_released_binary_package_versions(cve)
+        usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
     else:  # USN
+        related_usns = {}
         try:
             usn = client.get_notice(notice_id=issue_id)
+            for cve_id in usn.cve_ids:
+                for related_usn in client.get_notices(details=cve_id):
+                    if related_usn.id not in related_usns:
+                        related_usns[related_usn.id] = related_usn
+            usns = list(sorted(related_usns.values(), key=lambda x: x.id))
         except SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
@@ -474,16 +493,24 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         affected_pkg_status = get_usn_affected_packages_status(
             usn=usn, installed_packages=installed_packages
         )
+        usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
         print(usn.get_url_header())
-        # Since we came in fixing one USN, depend on this USN.release_package
-        usn_released_pkgs = usn.release_packages
-        if not usn_released_pkgs:
-            ubuntu_version = util.get_platform_info()["version"]
-            print("TODO(GH: #1451: query all related USNs through CVE)")
-            logging.info(
-                "{} does not apply to {}.".format(usn.id, ubuntu_version)
+        related_cves = set(itertools.chain(*[u.cve_ids for u in usns]))
+        if not related_cves:
+            raise exceptions.SecurityAPIMetadataError(
+                "{} metadata defines no related CVEs.".format(issue_id),
+                issue_id=issue_id,
             )
-            return
+        print("Related CVEs: {}.".format(", ".join(usn.cve_ids)))
+        if not usn.response["release_packages"]:
+            # Since usn.release_packages filters to our current release only
+            # check overall metadata and error if empty.
+            raise exceptions.SecurityAPIMetadataError(
+                "{} metadata defines no fixed package versions.".format(
+                    issue_id
+                ),
+                issue_id=issue_id,
+            )
     prompt_for_affected_packages(
         cfg=cfg,
         issue_id=issue_id,
@@ -520,15 +547,12 @@ def get_cve_affected_source_packages_status(
 ) -> "Dict[str, CVEPackageStatus]":
     """Get a dict of any CVEPackageStatuses affecting this Ubuntu release.
 
-    Filter any CVEPackageStatus that is "not-affected".
-
     :return: Dict of active CVEPackageStatus keyed by source package names.
     """
     affected_pkg_versions = {}
     for source_pkg, package_status in cve.packages_status.items():
         if source_pkg in installed_packages:
-            if package_status.status != "not-affected":
-                affected_pkg_versions[source_pkg] = package_status
+            affected_pkg_versions[source_pkg] = package_status
     return affected_pkg_versions
 
 
@@ -611,7 +635,7 @@ def prompt_for_affected_packages(
     issue_id: str,
     affected_pkg_status: "Dict[str, CVEPackageStatus]",
     installed_packages: "Dict[str, Dict[str, str]]",
-    usn_released_pkgs: "Dict[str, Dict[str, str]]",
+    usn_released_pkgs: "Dict[str, Dict[str, Dict[str, str]]]",
 ) -> None:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -659,12 +683,12 @@ def prompt_for_affected_packages(
                     usn_released_src = usn_released_pkgs.get(src_pkg, {})
                     if binary_pkg not in usn_released_src:
                         msg = (
-                            "{issue}.release_packages has no {bin_pkg}"
-                            " version. Unable to fix package.".format(
-                                bin_pkg=binary_pkg, issue=issue_id
-                            )
+                            "{issue} metadata defines no fixed version for"
+                            " {pkg}.".format(pkg=binary_pkg, issue=issue_id)
                         )
-                        raise exceptions.SecurityAPIMetadataError(msg)
+                        raise exceptions.SecurityAPIMetadataError(
+                            msg, issue_id
+                        )
                     fixed_pkg = usn_released_src[binary_pkg]
                     fixed_version = fixed_pkg["version"]  # type: ignore
                     if not version_cmp_le(fixed_version, version):
@@ -702,13 +726,16 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
         )
     print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
     choice = util.prompt_choices(
-        "Choose: [S]ubscribe at ubuntu.com [A]ttach"
-        " existing token [C]ancel",
+        "Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel",
         valid_choices=["s", "a", "c"],
     )
     if choice == "c":
         return False
-    if choice == "a":
+    if choice == "s":
+        print(status.PROMPT_UA_SUBSCRIPTION_URL)
+        # TODO(GH: #1413: magic subscription attach)
+        input("Hit [Enter] when subscription is complete.")
+    if choice in ("a", "s"):
         print(status.PROMPT_ENTER_TOKEN)
         token = input("> ")
         print(status.colorize_commands([["ua", "attach", token]]))
@@ -718,9 +745,6 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
                 argparse.Namespace(token=token, auto_enable=True), cfg
             )
         )
-    elif choice == "s":
-        print(status.PROMPT_UA_SUBSCRIPTION_URL)
-        print("TODO: GH: #1413: magic subscription attach")
     return True
 
 
