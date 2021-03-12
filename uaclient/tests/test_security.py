@@ -26,6 +26,7 @@ from uaclient.status import (
     OKGREEN_CHECK,
     FAIL_X,
     MESSAGE_SECURITY_APT_NON_ROOT,
+    MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
     colorize_commands,
 )
@@ -160,12 +161,12 @@ class TestGetCVEAffectedPackageStatus:
             ("bionic", {"samba": "1000"}, SAMBA_CVE_STATUS_BIONIC),
             # active series has a bearing on status filtering
             ("upstream", {"samba": "1000"}, SAMBA_CVE_STATUS_UPSTREAM),
-            # not-affected status has a bearing on status filtering
-            ("focal", {"samba": "1000"}, {}),
+            # package status status has no bearing on status filtering
+            ("focal", {"samba": "1000"}, SAMBA_CVE_STATUS_FOCAL),
         ),
     )
     @mock.patch("uaclient.security.util.get_platform_info")
-    def test_affected_packages_status_filters_installed_pkgs_and_not_affected(
+    def test_affected_packages_status_filters_by_installed_pkgs_and_series(
         self,
         get_platform_info,
         series,
@@ -173,7 +174,7 @@ class TestGetCVEAffectedPackageStatus:
         expected_status,
         FakeConfig,
     ):
-        """Package statuses are filterd if not installed or == not-affected"""
+        """Package statuses are filtered if not installed"""
         get_platform_info.return_value = {"series": series}
         client = UASecurityClient(FakeConfig())
         cve = CVE(client, SAMPLE_CVE_RESPONSE)
@@ -596,12 +597,15 @@ class TestUASecurityClient:
             for key in SAMPLE_GET_NOTICES_QUERY_PARAMS:
                 if key not in m_kwargs:
                     m_kwargs[key] = None
-            request_url.return_value = (["body1", "body2"], "headers")
+            request_url.return_value = (
+                {"notices": [{"id": "2"}, {"id": "1"}]},
+                "headers",
+            )
             [usn1, usn2] = client.get_notices(**m_kwargs)
             assert isinstance(usn1, USN)
             assert isinstance(usn2, USN)
-            assert "body1" == usn1.response
-            assert "body2" == usn2.response
+            assert "1" == usn1.id
+            assert "2" == usn2.id
             assert [
                 mock.call(API_V1_NOTICES, query_params=m_kwargs)
             ] == request_url.call_args_list
@@ -790,8 +794,11 @@ class TestPromptForAffectedPackages:
                 usn_released_pkgs=usn_released_pkgs,
             )
         assert (
-            "Error: USN-###.release_packages has no sl version. "
-            "Unable to fix package." == exc.value.msg
+            "Error: USN-### metadata defines no fixed version for sl.\n"
+            "{msg}".format(
+                msg=MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue="USN-###")
+            )
+            == exc.value.msg
         )
 
     @pytest.mark.parametrize(
