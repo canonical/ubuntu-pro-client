@@ -20,6 +20,7 @@ from uaclient.security import (
     upgrade_packages_and_attach,
     fix_security_issue_id,
     SecurityAPIError,
+    merge_usn_released_binary_package_versions,
 )
 from uaclient.status import (
     MESSAGE_SECURITY_USE_PRO_TMPL,
@@ -950,33 +951,6 @@ class TestPromptForAffectedPackages:
                 + MSG_SUBSCRIPTION
                 + "\n",
             ),
-            (  # version is < released affected package overrides USN pocket
-                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
-                {"slsrc": {"sl": "2.0"}},
-                {
-                    "slsrc": {
-                        "source": {"name": "slsrc", "version": "1.2"},
-                        "sl": {"pocket": "esm-apps", "version": "2.1"},
-                    }
-                },
-                "azure",
-                textwrap.dedent(
-                    """\
-                    1 affected package is installed: slsrc
-                    (1/1) slsrc:
-                    A fix is available in UA Apps.
-                    The update is not yet installed.
-                    """
-                )
-                + "\n".join(
-                    [
-                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
-                            title="Azure", cloud="azure"
-                        ),
-                        MSG_SUBSCRIPTION,
-                    ]
-                ),
-            ),
             (  # version is < released affected both esm-apps and standard
                 {
                     "pkg1": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
@@ -1117,3 +1091,138 @@ class TestFixSecurityIssueId:
                     fix_security_issue_id(FakeConfig(), issue_id)
 
         assert expected_message == exc.value.msg
+
+    @mock.patch("uaclient.security.query_installed_source_pkg_versions")
+    @mock.patch("uaclient.security.get_usn_affected_packages_status")
+    @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
+    def test_error_msg_when_usn_does_not_define_any_cves(
+        self,
+        m_merge_usn,
+        m_usn_affected_pkgs,
+        m_query_installed_pkgs,
+        FakeConfig,
+    ):
+        m_query_installed_pkgs.return_value = {}
+        m_usn_affected_pkgs.return_value = {}
+        m_merge_usn.return_value = {}
+        with mock.patch.object(UASecurityClient, "get_notice") as m_notice:
+            usn_mock = mock.MagicMock()
+            type(usn_mock).release_packages = mock.PropertyMock(
+                return_value={"a": {}}
+            )
+            type(usn_mock).cve_ids = mock.PropertyMock(return_value=[])
+            m_notice.return_value = usn_mock
+
+            with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
+                fix_security_issue_id(FakeConfig(), "USN-123")
+
+        expected_msg = "Error: USN-123 metadata defines no related CVEs."
+        assert expected_msg in exc.value.msg
+
+    @mock.patch("uaclient.security.query_installed_source_pkg_versions")
+    @mock.patch("uaclient.security.get_usn_affected_packages_status")
+    @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
+    def test_error_msg_when_usn_does_not_have_any_related_usns(
+        self,
+        m_merge_usn,
+        m_usn_affected_pkgs,
+        m_query_installed_pkgs,
+        FakeConfig,
+    ):
+        m_query_installed_pkgs.return_value = {}
+        m_usn_affected_pkgs.return_value = {}
+        m_merge_usn.return_value = {}
+        with mock.patch.object(UASecurityClient, "get_notice") as m_notice:
+            with mock.patch.object(
+                UASecurityClient, "get_notices"
+            ) as m_notices:
+                usn_mock = mock.MagicMock()
+                type(usn_mock).response = mock.PropertyMock(
+                    return_value={"release_packages": {}}
+                )
+                type(usn_mock).cve_ids = mock.PropertyMock(
+                    return_value=["cve-123"]
+                )
+                type(usn_mock).id = mock.PropertyMock(return_value="id")
+
+                m_notice.return_value = usn_mock
+                m_notices.return_value = [usn_mock]
+
+                with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
+                    fix_security_issue_id(FakeConfig(), "USN-123")
+
+        expected_msg = (
+            "Error: USN-123 metadata defines no fixed package versions."
+        )
+        assert expected_msg in exc.value.msg
+
+
+class TestMergeUSNReleasedBinaryPackageVersions:
+    @pytest.mark.parametrize(
+        "usns_released_packages, expected_pkgs_dict",
+        (
+            ([{}], {}),
+            (
+                [{"pkg1": {"libpkg1": {"version": "1.0", "name": "libpkg1"}}}],
+                {"pkg1": {"libpkg1": {"version": "1.0", "name": "libpkg1"}}},
+            ),
+            (
+                [
+                    {
+                        "pkg1": {
+                            "libpkg1": {"version": "1.0", "name": "libpkg1"}
+                        },
+                        "pkg2": {
+                            "libpkg2": {"version": "2.0", "name": "libpkg2"},
+                            "libpkg3": {"version": "3.0", "name": "libpkg3"},
+                            "libpkg4": {"version": "3.0", "name": "libpkg4"},
+                        },
+                    },
+                    {
+                        "pkg2": {
+                            "libpkg2": {"version": "1.8", "name": "libpkg2"},
+                            "libpkg4": {"version": "3.2", "name": "libpkg4"},
+                        }
+                    },
+                ],
+                {
+                    "pkg1": {"libpkg1": {"version": "1.0", "name": "libpkg1"}},
+                    "pkg2": {
+                        "libpkg2": {"version": "2.0", "name": "libpkg2"},
+                        "libpkg3": {"version": "3.0", "name": "libpkg3"},
+                        "libpkg4": {"version": "3.2", "name": "libpkg4"},
+                    },
+                },
+            ),
+            (
+                [
+                    {
+                        "pkg1": {
+                            "libpkg1": {"version": "1.0", "name": "libpkg1"},
+                            "source": {"version": "2.0", "name": "pkg1"},
+                        }
+                    },
+                    {"pkg1": {"source": {"version": "2.5", "name": "pkg1"}}},
+                ],
+                {
+                    "pkg1": {
+                        "libpkg1": {"version": "1.0", "name": "libpkg1"},
+                        "source": {"version": "2.5", "name": "pkg1"},
+                    }
+                },
+            ),
+        ),
+    )
+    def test_merge_usn_released_binary_package_versions(
+        self, usns_released_packages, expected_pkgs_dict
+    ):
+        usns = []
+        for usn_released_pkgs in usns_released_packages:
+            usn = mock.MagicMock()
+            type(usn).release_packages = mock.PropertyMock(
+                return_value=usn_released_pkgs
+            )
+            usns.append(usn)
+
+        usn_pkgs_dict = merge_usn_released_binary_package_versions(usns)
+        assert expected_pkgs_dict == usn_pkgs_dict
