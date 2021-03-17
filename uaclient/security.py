@@ -587,7 +587,8 @@ def print_affected_packages_header(
 
 
 def override_usn_release_package_status(
-    pkg_status: CVEPackageStatus, usn_src_released_pkgs: "Dict[str, str]"
+    pkg_status: CVEPackageStatus,
+    usn_src_released_pkgs: "Dict[str, Dict[str, str]]",
 ) -> CVEPackageStatus:
     """Parse release status based on both pkg_status and USN.release_packages.
 
@@ -606,13 +607,17 @@ def override_usn_release_package_status(
     """
 
     usn_pkg_status = copy.deepcopy(pkg_status)
-    if pkg_status.status != "released":
-        if usn_src_released_pkgs:
-            # TODO(GH: #1439 parse pocket values from USN.release_package)
-            usn_pkg_status.response["status"] = "released"
-            # A USN having released pkgs unreported in CVE means this either
-            # a Universe package under ESM or a pre-release USN
-            usn_pkg_status.response["pocket"] = "esm-apps"
+    if usn_src_released_pkgs and usn_src_released_pkgs.get("source"):
+        usn_pkg_status.response["status"] = "released"
+        usn_pkg_status.response["description"] = usn_src_released_pkgs[
+            "source"
+        ]["version"]
+        for pkg_name, usn_released_pkg in usn_src_released_pkgs.items():
+            # Copy the pocket from any valid binary package
+            pocket = usn_released_pkg.get("pocket")
+            if pocket:
+                usn_pkg_status.response["pocket"] = pocket
+                break
     return usn_pkg_status
 
 

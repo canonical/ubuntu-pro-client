@@ -950,6 +950,33 @@ class TestPromptForAffectedPackages:
                 + MSG_SUBSCRIPTION
                 + "\n",
             ),
+            (  # version is < released affected package overrides USN pocket
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
+                {"slsrc": {"sl": "2.0"}},
+                {
+                    "slsrc": {
+                        "source": {"name": "slsrc", "version": "1.2"},
+                        "sl": {"pocket": "esm-apps", "version": "2.1"},
+                    }
+                },
+                "azure",
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in UA Apps.
+                    The update is not yet installed.
+                    """
+                )
+                + "\n".join(
+                    [
+                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                            title="Azure", cloud="azure"
+                        ),
+                        MSG_SUBSCRIPTION,
+                    ]
+                ),
+            ),
             (  # version is < released affected both esm-apps and standard
                 {
                     "pkg1": CVEPackageStatus(CVE_PKG_STATUS_IGNORED),
