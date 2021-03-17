@@ -152,8 +152,8 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/USN-4539-1
-            Related CVEs: CVE-2020-11728.
+            Found CVEs: CVE-2020-11728
+            https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
             A fix is available in Ubuntu standard updates.
@@ -185,8 +185,8 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/USN-4539-1
-            Related CVEs: CVE-2020-11728.
+            Found CVEs: CVE-2020-11728
+            https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
             Ubuntu security engineers are investigating this issue.
@@ -204,21 +204,7 @@ Feature: Command behaviour when unattached
             .*✔.* CVE-2020-28196 is resolved.
             """
         When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza` with sudo
-        And I run `ua fix CVE-2017-9233` with sudo
-        Then stdout matches regexp:
-            """
-            CVE-2017-9233: Expat vulnerability
-            https://ubuntu.com/security/CVE-2017-9233
-            3 affected packages are installed: expat, matanza, swish-e
-            \(1/3, 2/3\) matanza, swish-e:
-            Ubuntu security engineers are investigating this issue.
-            \(3/3\) expat:
-            A fix is available in Ubuntu standard updates.
-            The update is not yet installed.
-            .*\{ apt update && apt install --only-upgrade -y expat \}.*
-            .*✘.* CVE-2017-9233 is not resolved.
-            """
-        When I run `ua fix CVE-2017-9233` with sudo
+        And I verify that running `ua fix CVE-2017-9233` `as non-root` exits `1`
         Then stdout matches regexp:
             """
             CVE-2017-9233: Expat vulnerability
@@ -247,8 +233,8 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/USN-4539-1
-            Related CVEs: CVE-2020-11728.
+            Found CVEs: CVE-2020-11728
+            https://ubuntu.com/security/CVE-2020-11728
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
@@ -307,8 +293,8 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            https://ubuntu.com/security/notices/USN-4539-1
-            Related CVEs: CVE-2020-11728.
+            Found CVEs: CVE-2020-11728
+            https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
             Ubuntu security engineers are investigating this issue.
