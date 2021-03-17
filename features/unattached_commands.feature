@@ -122,7 +122,6 @@ Feature: Command behaviour when unattached
            | trusty  |
            | xenial  |
 
-    @series.bionic
     @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -148,8 +147,8 @@ Feature: Command behaviour when unattached
             Error: issue "USN-12345678-12" is not recognized.
             Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
             """
-        When I run `apt install -y libawl-php` with sudo
-        And I run `ua fix USN-4539-1` as non-root
+        When I run `apt install -y libawl-php=0.60-1 --allow-downgrades` with sudo
+        And I run `ua fix USN-4539-1` with sudo
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -157,7 +156,10 @@ Feature: Command behaviour when unattached
             Related CVEs: CVE-2020-11728.
             1 affected package is installed: awl
             \(1/1\) awl:
-            <usn_resolution>
+            A fix is available in Ubuntu standard updates.
+            The update is not yet installed.
+            .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
+            .*✔.* USN-4539-1 is resolved.
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -172,10 +174,8 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ubuntu release details
-           | release | usn_resolution |
-           | xenial  | Ubuntu security engineers are investigating this issue. |
-           | bionic  | Ubuntu security engineers are investigating this issue. |
-           | focal   | A fix is available in Ubuntu standard updates.\nThe update is already installed.\n.*✔.* USN-4539-1 is resolved. |
+           | release |
+           | focal   |
 
     @series.xenial
     Scenario Outline: Fix command on an unattached machine
@@ -187,8 +187,10 @@ Feature: Command behaviour when unattached
             USN-4539-1: AWL vulnerability
             https://ubuntu.com/security/notices/USN-4539-1
             Related CVEs: CVE-2020-11728.
-            No affected packages are installed.
-            .*✔.* USN-4539-1 does not affect your system.
+            1 affected package is installed: awl
+            \(1/1\) awl:
+            Ubuntu security engineers are investigating this issue.
+            .*✘.* USN-4539-1 is not resolved.
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -226,7 +228,10 @@ Feature: Command behaviour when unattached
             Ubuntu security engineers are investigating this issue.
             \(3/3\) expat:
             A fix is available in Ubuntu standard updates.
-            The update is already installed.
+            """
+        Then stderr matches regexp:
+            """
+            Error: CVE-2017-9233 metadata defines no fixed version for expat.
             .*✘.* CVE-2017-9233 is not resolved.
             """
 
@@ -275,6 +280,51 @@ Feature: Command behaviour when unattached
     @series.bionic
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
+        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: CVE-1800-123456 not found.
+            """
+        When I verify that running `ua fix USN-12345-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: USN-12345-12 not found.
+            """
+        When I verify that running `ua fix CVE-12345678-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: issue "CVE-12345678-12" is not recognized.
+            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            """
+        When I verify that running `ua fix USN-12345678-12` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Error: issue "USN-12345678-12" is not recognized.
+            Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
+            """
+        When I run `apt install -y libawl-php` with sudo
+        And I run `ua fix USN-4539-1` as non-root
+        Then stdout matches regexp:
+            """
+            USN-4539-1: AWL vulnerability
+            https://ubuntu.com/security/notices/USN-4539-1
+            Related CVEs: CVE-2020-11728.
+            1 affected package is installed: awl
+            \(1/1\) awl:
+            Ubuntu security engineers are investigating this issue.
+            .*✘.* USN-4539-1 is not resolved.
+            """
+        When I run `ua fix CVE-2020-28196` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2020-28196: Kerberos vulnerability
+            https://ubuntu.com/security/CVE-2020-28196
+            1 affected package is installed: krb5
+            \(1/1\) krb5:
+            A fix is available in Ubuntu standard updates.
+            The update is already installed.
+            .*✔.* CVE-2020-28196 is resolved.
+            """
         When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
         And I run `ua fix CVE-2021-27135` as non-root
         Then stdout matches regexp:
