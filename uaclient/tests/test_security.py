@@ -111,7 +111,7 @@ SAMPLE_CVE_RESPONSE = {
 }
 
 SAMPLE_USN_RESPONSE = {
-    "cves": ["CVE-2020-1472"],
+    "cves": ["CVE-2020-1473", "CVE-2020-1472"],
     "id": "USN-4510-2",
     "instructions": "In general, a standard system update will make all ...\n",
     "references": [],
@@ -411,21 +411,26 @@ class TestUSN:
         request_url.side_effect = fake_request_url
 
         cves = usn.get_cves_metadata()
-        assert ["CVE-2020-1472"] == [cve.id for cve in cves]
+        assert ["CVE-2020-1473", "CVE-2020-1472"] == [cve.id for cve in cves]
         assert [
-            mock.call("cves/CVE-2020-1472.json")
+            mock.call("cves/CVE-2020-1473.json"),
+            mock.call("cves/CVE-2020-1472.json"),
         ] == request_url.call_args_list
         # no extra calls being made
         usn.get_cves_metadata()
-        assert 1 == request_url.call_count
+        assert 2 == request_url.call_count
 
     def test_get_url_header(self, FakeConfig):
         """USN.get_url_header returns a string based on the USN response."""
         client = UASecurityClient(FakeConfig())
-        usn = CVE(client, SAMPLE_USN_RESPONSE)
+        usn = USN(client, SAMPLE_USN_RESPONSE)
         assert (
             textwrap.dedent(
-                """USN-4510-2: None\nhttps://ubuntu.com/security/USN-4510-2"""
+                """\
+                USN-4510-2: Samba vulnerability
+                Found CVEs: CVE-2020-1473, CVE-2020-1472
+                https://ubuntu.com/security/CVE-2020-1473
+                https://ubuntu.com/security/CVE-2020-1472"""
             )
             == usn.get_url_header()
         )

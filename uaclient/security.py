@@ -273,9 +273,11 @@ class CVE:
             # Only look at the most recent USN title
             title = notice.title
             break
-        return status.MESSAGE_SECURITY_URL.format(
-            issue=self.id, title=title, url_path="{}".format(self.id)
-        )
+        lines = [
+            "{issue}: {title}".format(issue=self.id, title=title),
+            "https://ubuntu.com/security/{}".format(self.id),
+        ]
+        return "\n".join(lines)
 
     @property
     def notice_ids(self):
@@ -335,11 +337,15 @@ class USN:
 
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
-        return status.MESSAGE_SECURITY_URL.format(
-            issue=self.id,
-            title=self.title,
-            url_path="notices/{}".format(self.id),
-        )
+        lines = [
+            "{issue}: {title}".format(issue=self.id, title=self.title),
+            "Found CVEs: {}".format(
+                ", ".join(sorted(self.cve_ids, reverse=True))
+            ),
+        ]
+        for cve in self.cve_ids:
+            lines.append("https://ubuntu.com/security/{}".format(cve))
+        return "\n".join(lines)
 
     @property
     def release_packages(self) -> "Dict[str, Dict[str, Dict[str, str]]]":
@@ -501,7 +507,6 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
                 "{} metadata defines no related CVEs.".format(issue_id),
                 issue_id=issue_id,
             )
-        print("Related CVEs: {}.".format(", ".join(usn.cve_ids)))
         if not usn.response["release_packages"]:
             # Since usn.release_packages filters to our current release only
             # check overall metadata and error if empty.
