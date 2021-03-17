@@ -154,6 +154,7 @@ Feature: Command behaviour when unattached
             """
             USN-4539-1: AWL vulnerability
             https://ubuntu.com/security/notices/USN-4539-1
+            Related CVEs: CVE-2020-11728.
             1 affected package is installed: awl
             \(1/1\) awl:
             <usn_resolution>
@@ -185,10 +186,9 @@ Feature: Command behaviour when unattached
             """
             USN-4539-1: AWL vulnerability
             https://ubuntu.com/security/notices/USN-4539-1
-            1 affected package is installed: awl
-            \(1/1\) awl:
-            <usn_resolution>
-            .*✘.* USN-4539-1 is not resolved.
+            Related CVEs: CVE-2020-11728.
+            No affected packages are installed.
+            .*✔.* USN-4539-1 does not affect your system.
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -231,8 +231,8 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ubuntu release details
-           | release | usn_resolution |
-           | xenial  | Ubuntu security engineers are investigating this issue. |
+           | release |
+           | xenial  |
 
 
     @series.trusty
@@ -243,6 +243,7 @@ Feature: Command behaviour when unattached
             """
             USN-4539-1: AWL vulnerability
             https://ubuntu.com/security/notices/USN-4539-1
+            Related CVEs: CVE-2020-11728.
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
             """
