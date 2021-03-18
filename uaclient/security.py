@@ -17,6 +17,7 @@ from uaclient import exceptions
 from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
 try:
     from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
@@ -680,8 +681,8 @@ def _handle_released_package_fixes(
     if src_pocket_pkgs:
         for pocket in [
             UBUNTU_STANDARD_UPDATES_POCKET,
-            UA_INFRA_POCKET,
             UA_APPS_POCKET,
+            UA_INFRA_POCKET,
         ]:
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
@@ -821,6 +822,35 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     return True
 
 
+def _check_subscription_for_required_service(
+    cfg: UAConfig, pocket: str
+) -> bool:
+    """Verify if the ua subscription has the required service enabled."""
+    if pocket == UA_INFRA_POCKET:
+        service_to_check = "esm-infra"
+    else:
+        service_to_check = "esm-apps"
+
+    ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(service_to_check)
+
+    if ent_cls:
+        ent = ent_cls(cfg)
+        ent_status, _ = ent.user_facing_status()
+
+        if ent_status == status.UserFacingStatus.ACTIVE:
+            return True
+
+        # TODO(GH: #1455 prompt when service not enabled)
+        print(
+            status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                service=ent.name
+            )
+        )
+        return False
+
+    return False
+
+
 def upgrade_packages_and_attach(
     cfg: UAConfig, upgrade_packages: "List[str]", pocket: str
 ) -> bool:
@@ -842,6 +872,10 @@ def upgrade_packages_and_attach(
         if not cfg.is_attached:
             if not _prompt_for_attach(cfg):
                 return False  # User opted to cancel
+
+        if not _check_subscription_for_required_service(cfg, pocket):
+            # User subscription does not have required service enabled
+            return False
 
     print(
         status.colorize_commands(

@@ -155,6 +155,9 @@ MESSAGE_CVE_FIXED = "{issue} is resolved."
 MESSAGE_SECURITY_URL = (
     "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
 )
+MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED = """\
+Error: The current ua subscription is not entitled to {service}
+Without it, we cannot fix the system."""
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."
 MESSAGE_APT_UPDATE_INVALID_URL_CONFIG = (
