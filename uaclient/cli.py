@@ -965,22 +965,21 @@ def setup_logging(console_level, log_level, log_file=None):
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     root = logging.getLogger()
     root.setLevel(log_level)
+
     # Setup console logging
-    stderr_found = False
+    stderr_handler = None
     for handler in root.handlers:
         if hasattr(handler, "stream") and hasattr(handler.stream, "name"):
             if handler.stream.name == "<stderr>":
-                handler.setLevel(console_level)
-                handler.setFormatter(console_formatter)
-                handler.set_name("console")  # Used to disable console logging
-                stderr_found = True
+                stderr_handler = handler
                 break
-    if not stderr_found:
-        console = logging.StreamHandler(sys.stderr)
-        console.setFormatter(console_formatter)
-        console.setLevel(console_level)
-        console.set_name("console")  # Used to disable console logging
-        root.addHandler(console)
+    if not stderr_handler:
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        root.addHandler(stderr_handler)
+    stderr_handler.setFormatter(console_formatter)
+    stderr_handler.setLevel(console_level)
+    stderr_handler.set_name("console")  # Used to disable console logging
+
     if os.getuid() == 0:
         # Setup readable-by-root-only debug file logging if running as root
         log_file_path = pathlib.Path(log_file)
