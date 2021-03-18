@@ -27,9 +27,11 @@ from uaclient.status import (
     OKGREEN_CHECK,
     FAIL_X,
     MESSAGE_SECURITY_APT_NON_ROOT,
+    MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED,
     MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
     PROMPT_ENTER_TOKEN,
+    UserFacingStatus,
     colorize_commands,
 )
 from uaclient import exceptions
@@ -1103,8 +1105,8 @@ class TestPromptForAffectedPackages:
         (
             (
                 {
-                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
-                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "pkg2": CVEPackageStatus(CVE_PKG_STATUS_RELEASED),
                     "pkg3": CVEPackageStatus(
                         CVE_PKG_STATUS_RELEASED_ESM_INFRA
                     ),
@@ -1122,18 +1124,18 @@ class TestPromptForAffectedPackages:
                 textwrap.dedent(
                     """\
                     3 affected packages are installed: pkg1, pkg2, pkg3
-                    (1/3) pkg1:
+                    (1/3) pkg2:
                     A fix is available in Ubuntu standard updates.
                     """
                 )
                 + colorize_commands(
-                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
+                    [["apt update && apt install --only-upgrade" " -y pkg2"]]
                 )
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (2/3) pkg3:
-                    A fix is available in UA Infra.
+                    (2/3) pkg1:
+                    A fix is available in UA Apps.
                     """
                 )
                 + MSG_SUBSCRIPTION
@@ -1143,23 +1145,24 @@ class TestPromptForAffectedPackages:
                 + colorize_commands([["ua attach token"]])
                 + "\n"
                 + colorize_commands(
-                    [["apt update && apt install --only-upgrade" " -y pkg3"]]
+                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
                 )
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (3/3) pkg2:
-                    A fix is available in UA Apps.
+                    (3/3) pkg3:
+                    A fix is available in UA Infra.
                     """
                 )
                 + colorize_commands(
-                    [["apt update && apt install --only-upgrade" " -y pkg2"]]
+                    [["apt update && apt install --only-upgrade" " -y pkg3"]]
                 )
                 + "\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
             ),
         ),
     )
+    @mock.patch("uaclient.security._check_subscription_for_required_service")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("os.getuid", return_value=0)
@@ -1174,6 +1177,7 @@ class TestPromptForAffectedPackages:
         _m_os_getuid,
         _m_input,
         m_action_attach,
+        m_check_subscription,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1182,6 +1186,7 @@ class TestPromptForAffectedPackages:
         capsys,
     ):
         m_get_cloud_type.return_value = "cloud"
+        m_check_subscription.return_value = True
 
         def fake_attach(args, cfg):
             cfg.for_attached_machine()
@@ -1254,6 +1259,105 @@ class TestPromptForAffectedPackages:
             usn_released_pkgs=usn_released_pkgs,
         )
         out, err = capsys.readouterr()
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "service_status",
+        (
+            (UserFacingStatus.INACTIVE),
+            (UserFacingStatus.INAPPLICABLE),
+            (UserFacingStatus.UNAVAILABLE),
+        ),
+    )
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {
+                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
+                    "pkg2": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
+                    ),
+                },
+                {"pkg1": {"pkg1": "1.8"}, "pkg2": {"pkg2": "1.8"}},
+                {
+                    "pkg1": {"pkg1": {"version": "2.0"}},
+                    "pkg2": {"pkg2": {"version": "2.0"}},
+                },
+                textwrap.dedent(
+                    """\
+                    2 affected packages are installed: pkg1, pkg2
+                    (1/2) pkg1:
+                    A fix is available in UA Apps.
+                    """
+                )
+                + MSG_SUBSCRIPTION
+                + "\n"
+                + PROMPT_ENTER_TOKEN
+                + "\n"
+                + colorize_commands([["ua attach token"]])
+                + "\n"
+                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                    service="esm-apps"
+                )
+                + "\n"
+                + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.cli.action_attach")
+    @mock.patch("builtins.input", return_value="token")
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.get_cloud_type")
+    @mock.patch("uaclient.security.util.prompt_choices", return_value="a")
+    def test_messages_for_affected_packages_when_required_service_not_enabled(
+        self,
+        m_prompt_choices,
+        m_get_cloud_type,
+        _m_os_getuid,
+        _m_input,
+        m_action_attach,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        service_status,
+        FakeConfig,
+        capsys,
+    ):
+        import uaclient.security as sec
+
+        m_get_cloud_type.return_value = "cloud"
+
+        def fake_attach(args, cfg):
+            cfg.for_attached_machine()
+            return 0
+
+        m_action_attach.side_effect = fake_attach
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.user_facing_status.return_value = (
+            service_status,
+            "",
+        )
+        type(m_entitlement_obj).name = mock.PropertyMock(
+            return_value="esm-apps"
+        )
+
+        cfg = FakeConfig()
+        with mock.patch.object(
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+        ):
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+        out, err = capsys.readouterr()
+        print(out)
+        print(expected)
         assert expected in out
 
 
