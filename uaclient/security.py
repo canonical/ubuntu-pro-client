@@ -393,6 +393,25 @@ class USN:
                 # is_source == False or None, then this is a binary package.
                 # If processed before a source item, the top-level key will
                 # not exist yet.
+                # TODO(GH: 1465: determine if this is expected on kern pkgs)
+                if not pkg.get("source_link"):
+                    raise exceptions.SecurityAPIMetadataError(
+                        "{issue} metadata does not define release_packages"
+                        " source_link for {bin_pkg}.".format(
+                            issue=self.id, bin_pkg=pkg["name"]
+                        ),
+                        issue_id=self.id,
+                    )
+                elif "/" not in pkg["source_link"]:
+                    raise exceptions.SecurityAPIMetadataError(
+                        "{issue} metadata has unexpected release_packages"
+                        " source_link value for {bin_pkg}: {link}".format(
+                            issue=self.id,
+                            bin_pkg=pkg["name"],
+                            link=pkg["source_link"],
+                        ),
+                        issue_id=self.id,
+                    )
                 source_pkg_name = pkg["source_link"].split("/")[-1]
                 if source_pkg_name not in self._release_packages:
                     self._release_packages[source_pkg_name] = {}

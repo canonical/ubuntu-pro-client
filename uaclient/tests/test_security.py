@@ -399,6 +399,43 @@ class TestUSN:
         usn._release_packages = {"sl": "1.0"}
         assert {"sl": "1.0"} == usn.release_packages
 
+    @pytest.mark.parametrize(
+        "source_link,error_msg",
+        (
+            (
+                None,
+                "USN-4510-2 metadata does not define release_packages"
+                " source_link for samba2.",
+            ),
+            (
+                "unknown format",
+                "USN-4510-2 metadata has unexpected release_packages"
+                " source_link value for samba2: unknown format",
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_release_packages_errors_on_sparse_source_url(
+        self, get_platform_info, source_link, error_msg, FakeConfig
+    ):
+        """Raise errors when USN metadata contains no valid source_link."""
+        get_platform_info.return_value = {"series": "trusty"}
+        client = UASecurityClient(FakeConfig())
+        sparse_md = copy.deepcopy(SAMPLE_USN_RESPONSE)
+        sparse_md["release_packages"]["trusty"].append(
+            {
+                "is_source": False,
+                "name": "samba2",
+                "source_link": source_link,
+                "version": "2~14.04.1+esm9",
+                "version_link": "https://....11+dfsg-0ubuntu0.14.04.20+esm9",
+            }
+        )
+        usn = USN(client, sparse_md)
+        with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
+            usn.release_packages
+        assert error_msg == str(exc.value)
+
     @mock.patch("uaclient.security.UASecurityClient.request_url")
     def test_get_cves_metadata(self, request_url, FakeConfig):
         """USN.get_cves_metadata is cached to avoid API round-trips."""
