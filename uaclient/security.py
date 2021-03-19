@@ -216,6 +216,8 @@ class CVEPackageStatus:
             return "Sorry, no fix is available."
         elif self.status == "DNE":
             return "Source package does not exist on this release."
+        elif self.status == "not-affected":
+            return "Source package is not affected on this release."
         elif self.status == "released":
             return status.MESSAGE_SECURITY_FIX_RELEASE_STREAM.format(
                 fix_stream=self.pocket_source
@@ -563,6 +565,8 @@ def get_cve_affected_source_packages_status(
     """
     affected_pkg_versions = {}
     for source_pkg, package_status in cve.packages_status.items():
+        if package_status.status == "not-affected":
+            continue
         if source_pkg in installed_packages:
             affected_pkg_versions[source_pkg] = package_status
     return affected_pkg_versions

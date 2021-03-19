@@ -201,7 +201,7 @@ Feature: Command behaviour when unattached
             The update is already installed.
             .*✔.* CVE-2020-28196 is resolved.
             """
-        When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza` with sudo
+        When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
         And I verify that running `ua fix CVE-2017-9233` `with sudo` exits `1`
         Then stdout matches regexp:
             """
