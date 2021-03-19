@@ -165,8 +165,8 @@ class TestGetCVEAffectedPackageStatus:
             ("bionic", {"samba": "1000"}, SAMBA_CVE_STATUS_BIONIC),
             # active series has a bearing on status filtering
             ("upstream", {"samba": "1000"}, SAMBA_CVE_STATUS_UPSTREAM),
-            # package status status has no bearing on status filtering
-            ("focal", {"samba": "1000"}, SAMBA_CVE_STATUS_FOCAL),
+            # package status not-affected gets filtered from affected_pkgs
+            ("focal", {"samba": "1000"}, {}),
         ),
     )
     @mock.patch("uaclient.security.util.get_platform_info")
@@ -490,6 +490,11 @@ class TestCVEPackageStatus:
     @pytest.mark.parametrize(
         "status,pocket,expected",
         (
+            (
+                "not-affected",
+                "",
+                "Source package is not affected on this release.",
+            ),
             ("DNE", "", "Source package does not exist on this release."),
             (
                 "needs-triage",
