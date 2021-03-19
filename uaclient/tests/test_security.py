@@ -13,14 +13,15 @@ from uaclient.security import (
     CVEPackageStatus,
     UASecurityClient,
     USN,
+    SecurityAPIError,
+    fix_security_issue_id,
     get_cve_affected_source_packages_status,
+    merge_usn_released_binary_package_versions,
+    override_usn_release_package_status,
     prompt_for_affected_packages,
     query_installed_source_pkg_versions,
-    version_cmp_le,
     upgrade_packages_and_attach,
-    fix_security_issue_id,
-    SecurityAPIError,
-    merge_usn_released_binary_package_versions,
+    version_cmp_le,
 )
 from uaclient.status import (
     MESSAGE_SECURITY_USE_PRO_TMPL,
@@ -1592,3 +1593,57 @@ class TestMergeUSNReleasedBinaryPackageVersions:
 
         usn_pkgs_dict = merge_usn_released_binary_package_versions(usns)
         assert expected_pkgs_dict == usn_pkgs_dict
+
+
+class TestOverrideUSNReleasePackageStatus:
+    @pytest.mark.parametrize(
+        "pkg_status",
+        (
+            CVE_PKG_STATUS_IGNORED,
+            CVE_PKG_STATUS_PENDING,
+            CVE_PKG_STATUS_NEEDS_TRIAGE,
+            CVE_PKG_STATUS_NEEDED,
+            CVE_PKG_STATUS_DEFERRED,
+            CVE_PKG_STATUS_RELEASED,
+            CVE_PKG_STATUS_RELEASED_ESM_INFRA,
+        ),
+    )
+    @pytest.mark.parametrize(
+        "usn_src_released_pkgs,expected",
+        (
+            ({}, None),
+            (  # No "source" key, so ignore all binaries
+                {"somebinary": {"pocket": "my-pocket", "version": "usn-ver"}},
+                None,
+            ),
+            (
+                {
+                    "source": {
+                        "name": "srcpkg",
+                        "version": "usn-source-pkg-ver",
+                    },
+                    "somebinary": {
+                        "pocket": "my-pocket",
+                        "version": "usn-bin-ver",
+                    },
+                },
+                {
+                    "pocket": "my-pocket",
+                    "description": "usn-source-pkg-ver",
+                    "status": "released",
+                },
+            ),
+        ),
+    )
+    def test_override_cve_src_info_with_pocket_and_ver_from_usn(
+        self, usn_src_released_pkgs, expected, pkg_status
+    ):
+        """Override CVEPackageStatus with released/pocket from USN."""
+        orig_cve = CVEPackageStatus(pkg_status)
+        override = override_usn_release_package_status(
+            orig_cve, usn_src_released_pkgs
+        )
+        if expected is None:  # Expect CVEPackageStatus unaltered
+            assert override.response == orig_cve.response
+        else:
+            assert expected == override.response
