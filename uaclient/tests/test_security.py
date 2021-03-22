@@ -29,10 +29,13 @@ from uaclient.status import (
     FAIL_X,
     MESSAGE_SECURITY_APT_NON_ROOT,
     MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED,
+    MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED,
     MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
+    MESSAGE_SECURITY_SERVICE_DISABLED,
     PROMPT_ENTER_TOKEN,
     UserFacingStatus,
+    ApplicabilityStatus,
     colorize_commands,
 )
 from uaclient import exceptions
@@ -1340,7 +1343,7 @@ class TestPromptForAffectedPackages:
                 + "\n"
                 + colorize_commands([["ua attach token"]])
                 + "\n"
-                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
                     service="esm-apps"
                 )
                 + "\n"
@@ -1383,11 +1386,167 @@ class TestPromptForAffectedPackages:
             service_status,
             "",
         )
+        m_entitlement_obj.applicability_status.return_value = (
+            ApplicabilityStatus.INAPPLICABLE,
+            "",
+        )
         type(m_entitlement_obj).name = mock.PropertyMock(
             return_value="esm-apps"
         )
 
         cfg = FakeConfig()
+        with mock.patch.object(
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+        ):
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+        out, err = capsys.readouterr()
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": {"pkg1": "1.8"}},
+                {"pkg1": {"pkg1": {"version": "2.0"}}},
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: pkg1
+                    (1/1) pkg1:
+                    A fix is available in UA Apps.
+                    """
+                )
+                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-apps")
+                + "\n"
+                + colorize_commands([["ua enable esm-apps"]])
+                + "\n"
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
+                )
+                + "\n"
+                + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.cli.action_enable", return_value=0)
+    @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.get_cloud_type")
+    @mock.patch("uaclient.security.util.prompt_choices", return_value="e")
+    def test_messages_for_affected_packages_when_service_can_be_enabled(
+        self,
+        m_prompt_choices,
+        m_get_cloud_type,
+        _m_os_getuid,
+        _m_run_apt,
+        m_action_enable,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        import uaclient.security as sec
+
+        m_get_cloud_type.return_value = "cloud"
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.user_facing_status.return_value = (
+            UserFacingStatus.INACTIVE,
+            "",
+        )
+        m_entitlement_obj.applicability_status.return_value = (
+            ApplicabilityStatus.APPLICABLE,
+            "",
+        )
+        type(m_entitlement_obj).name = mock.PropertyMock(
+            return_value="esm-apps"
+        )
+
+        cfg = FakeConfig()
+        cfg.for_attached_machine()
+        with mock.patch.object(
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+        ):
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+        out, err = capsys.readouterr()
+        print(out)
+        print(expected)
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": {"pkg1": "1.8"}},
+                {"pkg1": {"pkg1": {"version": "2.0"}}},
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: pkg1
+                    (1/1) pkg1:
+                    A fix is available in UA Apps.
+                    """
+                )
+                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-apps")
+                + "\n"
+                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                    service="esm-apps"
+                )
+                + "\n"
+                + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+            ),
+        ),
+    )
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.get_cloud_type")
+    @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
+    def test_messages_for_affected_packages_when_service_kept_disabled(
+        self,
+        m_prompt_choices,
+        m_get_cloud_type,
+        _m_os_getuid,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        import uaclient.security as sec
+
+        m_get_cloud_type.return_value = "cloud"
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.user_facing_status.return_value = (
+            UserFacingStatus.INACTIVE,
+            "",
+        )
+        m_entitlement_obj.applicability_status.return_value = (
+            ApplicabilityStatus.APPLICABLE,
+            "",
+        )
+        type(m_entitlement_obj).name = mock.PropertyMock(
+            return_value="esm-apps"
+        )
+
+        cfg = FakeConfig()
+        cfg.for_attached_machine()
         with mock.patch.object(
             sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
         ):

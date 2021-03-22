@@ -161,6 +161,16 @@ def when_i_fix_a_issue_by_attaching(context, issue, token_type):
     )
 
 
+@when("I fix `{issue}` by enabling required service")
+def when_i_fix_a_issue_by_enabling_service(context, issue):
+    when_i_run_command(
+        context=context,
+        command="ua fix {}".format(issue),
+        user_spec="with sudo",
+        stdin="e\n",
+    )
+
+
 @when("I attach `{token_type}` {user_spec}")
 def when_i_attach_staging_token(context, token_type, user_spec):
     token = getattr(context.config, token_type)
