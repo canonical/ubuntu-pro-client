@@ -453,23 +453,32 @@ def readurl(
     if data and not method:
         method = "POST"
     req = request.Request(url, data=data, headers=headers, method=method)
+    sorted_header_str = ", ".join(
+        ["'{}': '{}'".format(k, headers[k]) for k in sorted(headers)]
+    )
     logging.debug(
-        "URL [%s]: %s, headers: %s, data: %s",
-        method or "GET",
-        url,
-        headers,
-        data,
+        redact_sensitive_logs(
+            "URL [{}]: {}, headers: {{{}}}, data: {}".format(
+                method or "GET",
+                url,
+                sorted_header_str,
+                data.decode("utf-8") if data else None,
+            )
+        )
     )
     resp = request.urlopen(req, timeout=timeout)
     content = resp.read().decode("utf-8")
     if "application/json" in str(resp.headers.get("Content-type", "")):
         content = json.loads(content)
+    sorted_header_str = ", ".join(
+        ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
+    )
     logging.debug(
-        "URL [%s] response: %s, headers: %s, data: %s",
-        method or "GET",
-        url,
-        resp.headers,
-        content,
+        redact_sensitive_logs(
+            "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
+                method or "GET", url, sorted_header_str, content
+            )
+        )
     )
     return content, resp.headers
 
@@ -655,6 +664,24 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
                 value=value_str,
             )
         )
+
+
+REDACT_SENSITIVE_LOGS = [
+    r"(Bearer )[^\']+",
+    r"(\'attach\', \')[^\']+",
+    r"(\'machineToken\': \')[^\']+",
+    r"(\'token\': \')[^\']+",
+]
+
+
+def redact_sensitive_logs(
+    log, redact_regexs: "List[str]" = REDACT_SENSITIVE_LOGS
+) -> str:
+    """Redact known sensitive information from log content."""
+    redacted_log = log
+    for redact_regex in redact_regexs:
+        redacted_log = re.sub(redact_regex, r"\g<1><REDACTED>", redacted_log)
+    return redacted_log
 
 
 def should_reboot() -> bool:
