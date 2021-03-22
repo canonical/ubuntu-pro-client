@@ -458,6 +458,60 @@ class TestIsServiceUrl:
 
 
 class TestReadurl:
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize(
+        "headers,data,response,expected_logs",
+        (
+            (
+                {},
+                None,
+                None,
+                [
+                    "URL [GET]: http://some_url, headers: {}, data: None",
+                    "URL [GET] response: http://some_url, headers: {},"
+                    " data: response\n",
+                ],
+            ),
+            (
+                {"key1": "Bearcat", "Authorization": "Bearer SEKRET"},
+                b"{'token': 'HIDEME', 'tokenInfo': 'SHOWME'}",
+                b"{'machineToken': 'HIDEME', 'machineTokenInfo': 'SHOWME'}",
+                [
+                    "URL [POST]: http://some_url, headers: {'Authorization':"
+                    " 'Bearer <REDACTED>', 'key1': 'Bearcat'}, data:"
+                    " {'token': '<REDACTED>', 'tokenInfo': 'SHOWME'}",
+                    "URL [POST] response: http://some_url, headers:"
+                    " {'Authorization': 'Bearer <REDACTED>', 'key1': 'Bearcat'"
+                    "}, data: {'machineToken': '<REDACTED>',"
+                    " 'machineTokenInfo': 'SHOWME'}",
+                ],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.request.urlopen")
+    def test_readurl_redacts_call_and_response(
+        self, urlopen, headers, data, response, expected_logs, caplog_text
+    ):
+        """Log and redact sensitive data from logs for url interactions."""
+
+        class FakeHTTPResponse:
+            def __init__(self, headers, content):
+                self.headers = headers
+                self._content = content
+
+            def read(self):
+                return self._content
+
+        if not response:
+            response = b"response"
+        urlopen.return_value = FakeHTTPResponse(
+            headers=headers, content=response
+        )
+        util.readurl("http://some_url", headers=headers, data=data)
+        logs = caplog_text()
+        for log in expected_logs:
+            assert log in logs
+
     @pytest.mark.parametrize("timeout", (None, 1))
     def test_simple_call_with_url_and_timeout_works(self, timeout):
         with mock.patch("uaclient.util.request.urlopen") as m_urlopen:
@@ -639,3 +693,37 @@ class TestIsConfigValueTrue:
             value=key_val,
         )
         assert expected_msg == str(excinfo.value)
+
+
+class TestRedactSensitiveLogs:
+    @pytest.mark.parametrize(
+        "raw_log,expected",
+        (
+            ("Super valuable", "Super valuable"),
+            (
+                "Hi 'Bearer not the droids you are looking for', data",
+                "Hi 'Bearer <REDACTED>', data",
+            ),
+            (
+                "Hi 'Bearer not the droids you are looking for', data",
+                "Hi 'Bearer <REDACTED>', data",
+            ),
+            (
+                "Executed with sys.argv: ['/usr/bin/ua', 'attach', 'SEKRET']",
+                "Executed with sys.argv:"
+                " ['/usr/bin/ua', 'attach', '<REDACTED>']",
+            ),
+            (
+                "'resourceTokens': [{'token': 'SEKRET', 'type': 'cc-eal'}]'",
+                "'resourceTokens':"
+                " [{'token': '<REDACTED>', 'type': 'cc-eal'}]'",
+            ),
+            (
+                "'machineToken': 'SEKRET', 'machineTokenInfo': 'blah'",
+                "'machineToken': '<REDACTED>', 'machineTokenInfo': 'blah'",
+            ),
+        ),
+    )
+    def test_redact_all_matching_regexs(self, raw_log, expected):
+        """Redact all sensitive matches from log messages."""
+        assert expected == util.redact_sensitive_logs(raw_log)
