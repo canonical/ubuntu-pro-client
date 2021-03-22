@@ -137,6 +137,10 @@ MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
 The update is not installed because this system is not attached to a
 subscription.
 """
+MESSAGE_SECURITY_SERVICE_DISABLED = """\
+The update is not installed because this system does not have
+{service} enabled.
+"""
 MESSAGE_SECURITY_UPDATE_INSTALLED = "The update is already installed."
 MESSAGE_SECURITY_USE_PRO_TMPL = (
     "For easiest security on {title}, use Ubuntu Pro."
@@ -156,7 +160,10 @@ MESSAGE_SECURITY_URL = (
     "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
 )
 MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED = """\
-Error: The current ua subscription is not entitled to {service}
+Error: UA service: {service} is not enabled.
+Without it, we cannot fix the system."""
+MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED = """\
+Error: The current UA subscription is not entitled to: {service}.
 Without it, we cannot fix the system."""
 MESSAGE_APT_INSTALL_FAILED = "APT install failed."
 MESSAGE_APT_UPDATE_FAILED = "APT update failed."

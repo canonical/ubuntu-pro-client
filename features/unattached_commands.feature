@@ -276,6 +276,31 @@ Feature: Command behaviour when unattached
             .*\{ apt update && apt install --only-upgrade -y screen \}.*
             .*✔.* USN-4747-2 is resolved.
             """
+        When I run `apt-get install -y screen=4.1.0~20120320gitdb59704-9 --force-yes` with sudo
+        And I run `ua disable esm-infra` with sudo
+        And I fix `USN-4747-2` by enabling required service
+        Then stdout matches regexp:
+            """
+            USN-4747-2: GNU Screen vulnerability
+            Found CVEs: CVE-2021-26937
+            https://ubuntu.com/security/CVE-2021-26937
+            1 affected package is installed: screen
+            \(1/1\) screen:
+            A fix is available in UA Infra.
+            The update is not installed because this system does not have
+            esm-infra enabled.
+
+            Choose: \[E\]nable esm-infra \[C\]ancel
+            > .*\{ ua enable esm-infra \}.*
+            One moment, checking your subscription first
+            Updating package lists
+            ESM Infra enabled
+            """
+        And stdout matches regexp:
+            """
+            .*\{ apt update && apt install --only-upgrade -y screen \}.*
+            .*✔.* USN-4747-2 is resolved.
+            """
 
         Examples: ubuntu release
            | release |

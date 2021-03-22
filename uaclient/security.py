@@ -845,6 +845,35 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     return True
 
 
+def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
+    """Prompt for enable a ua service.
+
+    :return: True if enable performed.
+    """
+    import argparse
+    from uaclient import cli
+
+    print(status.MESSAGE_SECURITY_SERVICE_DISABLED.format(service=service))
+    choice = util.prompt_choices(
+        "Choose: [E]nable {} [C]ancel".format(service),
+        valid_choices=["e", "c"],
+    )
+
+    if choice == "e":
+        print(status.colorize_commands([["ua", "enable", service]]))
+        return bool(
+            0
+            == cli.action_enable(
+                argparse.Namespace(
+                    service=[service], assume_yes=True, beta=False
+                ),
+                cfg,
+            )
+        )
+
+    return False
+
+
 def _check_subscription_for_required_service(
     cfg: UAConfig, pocket: str
 ) -> bool:
@@ -863,13 +892,22 @@ def _check_subscription_for_required_service(
         if ent_status == status.UserFacingStatus.ACTIVE:
             return True
 
-        # TODO(GH: #1455 prompt when service not enabled)
-        print(
-            status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
-                service=ent.name
+        applicability_status, _ = ent.applicability_status()
+        if applicability_status == status.ApplicabilityStatus.APPLICABLE:
+            if _prompt_for_enable(cfg, service_to_check):
+                return True
+            else:
+                print(
+                    status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                        service=ent.name
+                    )
+                )
+        else:
+            print(
+                status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
+                    service=ent.name
+                )
             )
-        )
-        return False
 
     return False
 
