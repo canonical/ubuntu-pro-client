@@ -162,6 +162,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
             [
                 USN(client=self, response=usn_md)
                 for usn_md in usns_response.get("notices", [])
+                if details is None or details in usn_md.get("cves", [])
             ],
             key=lambda x: x.id,
         )

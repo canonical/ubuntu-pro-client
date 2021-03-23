@@ -57,7 +57,7 @@ SAMPLE_GET_CVES_QUERY_PARAMS = {
 }
 
 SAMPLE_GET_NOTICES_QUERY_PARAMS = {
-    "details": "vd",
+    "details": "cve",
     "release": "vq",
     "limit": 1,
     "offset": 2,
@@ -619,7 +619,7 @@ class TestUASecurityClient:
         "m_kwargs,expected_error, extra_security_params",
         (
             ({}, None, None),
-            ({"details": "vd"}, None, None),
+            ({"details": "cve"}, None, None),
             (SAMPLE_GET_NOTICES_QUERY_PARAMS, None, {"test": "blah"}),
             ({"invalidparam": "vv"}, TypeError, None),
         ),
@@ -653,7 +653,12 @@ class TestUASecurityClient:
                 if key not in m_kwargs:
                     m_kwargs[key] = None
             request_url.return_value = (
-                {"notices": [{"id": "2"}, {"id": "1"}]},
+                {
+                    "notices": [
+                        {"id": "2", "cves": ["cve"]},
+                        {"id": "1", "cves": ["cve"]},
+                    ]
+                },
                 "headers",
             )
             [usn1, usn2] = client.get_notices(**m_kwargs)
@@ -664,6 +669,32 @@ class TestUASecurityClient:
             assert [
                 mock.call(API_V1_NOTICES, query_params=m_kwargs)
             ] == request_url.call_args_list
+
+    @pytest.mark.parametrize("details", (("cve1"), (None)))
+    def test_get_notices_filter_usns_when_setting_details_param(
+        self, request_url, details, FakeConfig
+    ):
+        """Test if details are used to filter the returned USNs."""
+        cfg = FakeConfig()
+        client = UASecurityClient(cfg)
+        request_url.return_value = (
+            {
+                "notices": [
+                    {"id": "2", "cves": ["cve1"]},
+                    {"id": "1", "cves": ["cve12"]},
+                ]
+            },
+            "headers",
+        )
+        usns = client.get_notices(details=details)
+
+        if details:
+            assert len(usns) == 1
+            assert usns[0].id == "2"
+        else:
+            assert len(usns) == 2
+            assert usns[0].id == "1"
+            assert usns[1].id == "2"
 
     @pytest.mark.parametrize(
         "m_kwargs,expected_error, extra_security_params",
