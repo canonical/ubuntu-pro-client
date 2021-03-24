@@ -121,7 +121,7 @@ class TestUaEntitlement:
 
         expected_stdout = (
             "Test Concrete Entitlement is not currently enabled\n"
-            "See: sudo ua status.\n"
+            "See: sudo ua status\n"
         )
         stdout, _ = capsys.readouterr()
         assert expected_stdout == stdout
@@ -203,7 +203,7 @@ class TestUaEntitlement:
 
         expected_stdout = (
             "Test Concrete Entitlement is already enabled.\n"
-            "See: sudo ua status.\n"
+            "See: sudo ua status\n"
         )
         if silent:
             expected_stdout = ""

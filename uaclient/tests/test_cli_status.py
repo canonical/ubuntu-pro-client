@@ -22,7 +22,7 @@ SERVICE       AVAILABLE  DESCRIPTION
 livepatch     yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
-See https://ubuntu.com/advantage.
+See https://ubuntu.com/advantage
 """
 
 ATTACHED_STATUS = """\
