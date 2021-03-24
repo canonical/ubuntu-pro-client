@@ -378,8 +378,7 @@ Found error: {error} when reading json file: {file_path}"""
 
 MESSAGE_SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
-To install them, run this command as root (try using sudo)
-"""
+To install them, run this command as root (try using sudo)"""
 
 
 def colorize(string: str) -> str:
