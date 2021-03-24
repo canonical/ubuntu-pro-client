@@ -22,8 +22,8 @@ from features.util import emit_spinner_on_travis, lxc_get_property, build_debs
 
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
 
-DAILY_PPA = "http://ppa.launchpad.net/canonical-server/ua-client-daily/ubuntu"
-DAILY_PPA_KEYID = "8A295C4FB8B190B7"
+DAILY_PPA = "http://ppa.launchpad.net/ua-client/daily/ubuntu"
+DAILY_PPA_KEYID = "6E34E7116C0BC933"
 
 USERDATA_BLOCK_AUTO_ATTACH_IMG = """\
 #cloud-config
