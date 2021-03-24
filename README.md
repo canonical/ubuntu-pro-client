@@ -144,7 +144,7 @@ logic for those tests.
 
 By default, integration tests will do the folowing on a given cloud platform:
  * Launch an instance running latest daily image of the target Ubuntu release
- * Add the Ubuntu advantage client daily build PPA: [ppa:canonical-server/ua-client-daily](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily)
+ * Add the Ubuntu advantage client daily build PPA: [ppa:ua-client/daily](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily)
  * Install the appropriate ubuntu-advantage-tools and ubuntu-advantage-pro deb
  * Stop the instance and snapshot it creating an updated bootable image for
    test runs
@@ -271,7 +271,7 @@ To update `features/aws-ids.yaml`, run `./tools/refresh-aws-pro-ids` and put up
 a pull request against this repo to updated that content from the ua-contracts
 marketplace definitions.
 
-* To manually run EC2 integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
+* To manually run EC2 integration tests using packages from `ppa:ua-client/daily` provide the following environment vars:
 
 ```sh
 UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID=<blah> UACLIENT_BEHAVE_AWS_SECRET_KEY=<blah2> tox -e behave-awspro-20.04
@@ -312,7 +312,7 @@ To specifically run non-ubuntu pro tests using canonical cloud-images an
 additional token obtained from https://ubuntu.com/advantage needs to be set:
   - UACLIENT_BEHAVE_CONTRACT_TOKEN=<your_token>
 
-* To manually run Azure integration tests using packages from `ppa:canonical-server/ua-client-daily` provide the following environment vars:
+* To manually run Azure integration tests using packages from `ppa:ua-client/daily` provide the following environment vars:
 
 ```sh
 UACLIENT_BEHAVE_AZ_CLIENT_ID=<blah> UACLIENT_BEHAVE_AZ_CLIENT_SECRET=<blah2> UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID=<blah3> UACLIENT_BEHAVE_AZ_TENANT_ID=<blah4> tox -e behave-azurepro-20.04
