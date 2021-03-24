@@ -54,10 +54,10 @@ Previous release bugs:
 
 Manually perform a binary package copy from Daily PPA to Premium PPA and notify image creators
 
- 1. [Open Daily PPA copy-package operation](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily/+copy-packages)
+ 1. [Open Daily PPA copy-package operation](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily/+copy-packages)
  2. Check Trusty, Xenial, Bionic package
- 3. Select Destination PPA: UA Client Premium [~canonical-server/ubuntu/ua-client-premium]
+ 3. Select Destination PPA: UA Client Premium [~ua-client/ubuntu/staging]
  4. Select Destination series: The same series
- 5. Copy options: "Copy existing binaries
+ 5. Copy options: "Copy existing binaries"
  6. Click Copy packages
- 7. Notify Pro Image creatros about expected Premium PPA version (patviafore/rcj)
+ 7. Notify Pro Image creators about expected Premium PPA version (patviafore/rcj/powersj)
