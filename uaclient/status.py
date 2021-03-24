@@ -187,7 +187,7 @@ LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
 )
 MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)."
 MESSAGE_ALREADY_DISABLED_TMPL = """\
-{title} is not currently enabled\nSee: sudo ua status."""
+{title} is not currently enabled\nSee: sudo ua status"""
 MESSAGE_ENABLED_FAILED_TMPL = "Could not enable {title}."
 MESSAGE_DISABLE_FAILED_TMPL = "Could not disable {title}."
 MESSAGE_ENABLED_TMPL = "{title} enabled"
@@ -195,7 +195,7 @@ MESSAGE_ALREADY_ATTACHED = """\
 This machine is already attached to '{account_name}'
 To use a different subscription first run: sudo ua detach."""
 MESSAGE_ALREADY_ENABLED_TMPL = """\
-{title} is already enabled.\nSee: sudo ua status."""
+{title} is already enabled.\nSee: sudo ua status"""
 MESSAGE_INAPPLICABLE_ARCH_TMPL = """\
 {title} is not available for platform {arch}.
 Supported platforms are: {supported_arches}."""
@@ -226,21 +226,18 @@ MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = (
 Auto-attach image support is not available on {cloud_type}
 See: """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_UNSUPPORTED_AUTO_ATTACH = (
     """\
 Auto-attach image support is not available on this image
 See: """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_UNATTACHED = (
     """\
 This machine is not attached to a UA subscription.
 See """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
@@ -310,7 +307,6 @@ MESSAGE_ATTACH_INVALID_TOKEN = (
     """\
 Invalid token. See """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_ATTACH_REQUIRES_TOKEN = (
     """\
@@ -323,7 +319,6 @@ MESSAGE_ATTACH_FAILURE = (
     """\
 Failed to attach machine. See """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES = """\
 Failed to enable default services, check: sudo ua status"""
@@ -344,7 +339,6 @@ To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
 See """
     + BASE_UA_URL
-    + "."
 )
 MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL = """\

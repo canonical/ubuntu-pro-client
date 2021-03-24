@@ -67,7 +67,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             ESM Infra is already enabled.
-            See: sudo ua status.
+            See: sudo ua status
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -101,7 +101,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             ESM Infra is already enabled.
-            See: sudo ua status.
+            See: sudo ua status
             """
         When I run `apt install -y <pkg-version>` with sudo, retrying exit [100]
         And I run `apt update` with sudo

@@ -36,7 +36,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I will see the following on stdout:
             """
             Livepatch is not currently enabled
-            See: sudo ua status.
+            See: sudo ua status
             """
 
         Examples: ubuntu release
@@ -231,7 +231,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             Updating package lists
             Livepatch is not currently enabled
-            See: sudo ua status.
+            See: sudo ua status
             """
         And stderr matches regexp:
             """

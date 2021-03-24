@@ -12,7 +12,7 @@ Feature: Command behaviour when unattached
         Then stderr matches regexp:
             """
             Auto-attach image support is not available on <data>
-            See: https://ubuntu.com/advantage.
+            See: https://ubuntu.com/advantage
             """
 
         Examples: ubuntu release
@@ -34,7 +34,7 @@ Feature: Command behaviour when unattached
         Then stderr matches regexp:
             """
             This machine is not attached to a UA subscription.
-            See https://ubuntu.com/advantage.
+            See https://ubuntu.com/advantage
             """
 
         Examples: ua commands
@@ -61,7 +61,7 @@ Feature: Command behaviour when unattached
             """
             To use '<service>' you need an Ubuntu Advantage subscription
             Personal and community subscriptions are available at no charge
-            See https://ubuntu.com/advantage.
+            See https://ubuntu.com/advantage
             """
 
         Examples: ua commands
