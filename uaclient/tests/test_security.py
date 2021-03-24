@@ -884,6 +884,7 @@ class TestPromptForAffectedPackages:
             )
         assert (
             "Error: USN-### metadata defines no fixed version for sl.\n"
+            "1 package is still affected: slsrc\n"
             "{msg}".format(
                 msg=MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue="USN-###")
             )
@@ -1064,38 +1065,48 @@ class TestPromptForAffectedPackages:
                     "pkg13": CVEPackageStatus(
                         CVE_PKG_STATUS_RELEASED_ESM_INFRA
                     ),
+                    "pkg14": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_APPS
+                    ),
+                    "pkg15": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED_ESM_APPS
+                    ),
                 },
                 {
                     "pkg10": {"pkg10": "2.0"},
                     "pkg11": {"pkg11": "2.0"},
                     "pkg12": {"pkg12": "2.0"},
                     "pkg13": {"pkg13": "2.0"},
+                    "pkg14": {"pkg14": "2.0"},
+                    "pkg15": {"pkg15": "2.0"},
                 },
                 {
                     "pkg10": {"pkg10": {"version": "2.1"}},
                     "pkg11": {"pkg11": {"version": "2.1"}},
                     "pkg12": {"pkg12": {"version": "2.1"}},
                     "pkg13": {"pkg13": {"version": "2.1"}},
+                    "pkg14": {"pkg14": {"version": "2.1"}},
+                    "pkg15": {"pkg15": {"version": "2.1"}},
                 },
                 "gcp",
                 textwrap.dedent(
                     """\
-                    13 affected packages are installed: {}
-                    (1/13, 2/13, 3/13) pkg1, pkg2, pkg9:
+                    15 affected packages are installed: {}
+                    (1/15, 2/15, 3/15) pkg1, pkg2, pkg9:
                     Sorry, no fix is available.
-                    (4/13, 5/13) pkg7, pkg8:
+                    (4/15, 5/15) pkg7, pkg8:
                     Sorry, no fix is available yet.
-                    (6/13, 7/13) pkg5, pkg6:
+                    (6/15, 7/15) pkg5, pkg6:
                     Ubuntu security engineers are investigating this issue.
-                    (8/13, 9/13) pkg3, pkg4:
+                    (8/15, 9/15) pkg3, pkg4:
                     A fix is coming soon. Try again tomorrow.
-                    (10/13, 11/13) pkg10, pkg11:
+                    (10/15, 11/15) pkg10, pkg11:
                     A fix is available in Ubuntu standard updates.
                     """
                 ).format(
                     (
-                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg2, pkg3, pkg4,"
-                        " pkg5, pkg6, pkg7, pkg8, pkg9"
+                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg14, pkg15, "
+                        "pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
                     )
                 )
                 + colorize_commands(
@@ -1109,11 +1120,18 @@ class TestPromptForAffectedPackages:
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (12/13, 13/13) pkg12, pkg13:
-                    A fix is available in UA Infra.
+                    (12/15, 13/15) pkg14, pkg15:
+                    A fix is available in UA Apps.
                     """
                 )
-                + MSG_SUBSCRIPTION,
+                + MSG_SUBSCRIPTION
+                + "\n"
+                + "13 packages are still affected: {}".format(
+                    (
+                        "pkg1, pkg12, pkg13, pkg14, pkg15, pkg2, pkg3,"
+                        " pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                    )
+                ),
             ),
             (  # No released version
                 {
@@ -1145,6 +1163,10 @@ class TestPromptForAffectedPackages:
                 ).format(
                     "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
                 )
+                + "9 packages are still affected: {}".format(
+                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                )
+                + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
@@ -1316,6 +1338,8 @@ class TestPromptForAffectedPackages:
                     A fix is available in Ubuntu standard updates.
                     """
                 )
+                + "3 packages are still affected: pkg1, pkg2, pkg3"
+                + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
@@ -1383,6 +1407,8 @@ class TestPromptForAffectedPackages:
                 + MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
                     service="esm-apps"
                 )
+                + "\n"
+                + "2 packages are still affected: pkg1, pkg2"
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
@@ -1546,6 +1572,8 @@ class TestPromptForAffectedPackages:
                     service="esm-apps"
                 )
                 + "\n"
+                + "1 package is still affected: pkg1"
+                + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
@@ -1692,6 +1720,8 @@ class TestPromptForAffectedPackages:
                     """
                 )
                 + MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
+                + "\n"
+                + "1 package is still affected: pkg1"
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),

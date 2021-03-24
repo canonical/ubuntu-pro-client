@@ -701,8 +701,15 @@ def _handle_released_package_fixes(
     binary_pocket_pkgs: "Dict[str, List[str]]",
     pkg_index: int,
     num_pkgs: int,
-) -> bool:
-    """Handle the packages that could be fixed and have a released status."""
+) -> "Tuple[bool, List[str]]":
+    """Handle the packages that could be fixed and have a released status.
+
+    :returns: Tuple of
+        boolean whether all packages were successfully upgraded,
+        list of strings containing the packages that were not upgraded
+    """
+    upgrade_status = True
+    unfixed_pkgs = []
     if src_pocket_pkgs:
         for pocket in [
             UBUNTU_STANDARD_UPDATES_POCKET,
@@ -712,27 +719,44 @@ def _handle_released_package_fixes(
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
 
-            msg = _format_packages_message(
-                pkg_status_list=pkg_src_group,
-                pkg_index=pkg_index,
-                num_pkgs=num_pkgs,
-            )
+            if upgrade_status:
+                msg = _format_packages_message(
+                    pkg_status_list=pkg_src_group,
+                    pkg_index=pkg_index,
+                    num_pkgs=num_pkgs,
+                )
 
-            if msg:
-                print(msg)
+                if msg:
+                    print(msg)
 
-                if not binary_pkgs:
-                    print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+                    if not binary_pkgs:
+                        print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+                        continue
 
-            upgrade_return = upgrade_packages_and_attach(
-                cfg, binary_pkgs, pocket
-            )
-            if not upgrade_return:
-                return False
+                pkg_index += len(pkg_src_group)
+                upgrade_status &= upgrade_packages_and_attach(
+                    cfg, binary_pkgs, pocket
+                )
 
-            pkg_index += len(pkg_src_group)
+            if not upgrade_status:
+                unfixed_pkgs += [src_pkg for src_pkg, _ in pkg_src_group]
 
-    return True
+    return upgrade_status, unfixed_pkgs
+
+
+def _format_unfixed_packages_msg(unfixed_pkgs: "List[str]") -> str:
+    """Format the list of unfixed packages into an message.
+
+    :returns: A string containing the message output for the unfixed
+              packages.
+    """
+    num_pkgs_unfixed = len(unfixed_pkgs)
+    return "{} package{} {} still affected: {}".format(
+        num_pkgs_unfixed,
+        "s" if num_pkgs_unfixed > 1 else "",
+        "are" if num_pkgs_unfixed > 1 else "is",
+        ", ".join(sorted(unfixed_pkgs)),
+    )
 
 
 def prompt_for_affected_packages(
@@ -759,6 +783,8 @@ def prompt_for_affected_packages(
     pkg_status_groups = group_by_usn_package_status(
         affected_pkg_status, usn_released_pkgs
     )
+
+    unfixed_pkgs = []
     for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
         if status_value != "released":
             fix_message = status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
@@ -772,6 +798,7 @@ def prompt_for_affected_packages(
                 )
             )
             pkg_index += len(pkg_status_group)
+            unfixed_pkgs += [src_pkg for src_pkg, _ in pkg_status_group]
         else:
             for src_pkg, pkg_status in pkg_status_group:
                 src_pocket_pkgs[pkg_status.pocket_source].append(
@@ -780,10 +807,15 @@ def prompt_for_affected_packages(
                 for binary_pkg, version in installed_packages[src_pkg].items():
                     usn_released_src = usn_released_pkgs.get(src_pkg, {})
                     if binary_pkg not in usn_released_src:
+                        unfixed_pkgs += [
+                            src_pkg for src_pkg, _ in pkg_status_group
+                        ]
                         msg = (
                             "{issue} metadata defines no fixed version for"
-                            " {pkg}.".format(pkg=binary_pkg, issue=issue_id)
+                            " {pkg}.\n".format(pkg=binary_pkg, issue=issue_id)
                         )
+
+                        msg += _format_unfixed_packages_msg(unfixed_pkgs)
                         raise exceptions.SecurityAPIMetadataError(
                             msg, issue_id
                         )
@@ -794,13 +826,20 @@ def prompt_for_affected_packages(
                             binary_pkg
                         )
 
-    if _handle_released_package_fixes(
+    fix_status, unfixed_pkgs_released = _handle_released_package_fixes(
         cfg=cfg,
         src_pocket_pkgs=src_pocket_pkgs,
         binary_pocket_pkgs=binary_pocket_pkgs,
         pkg_index=pkg_index,
         num_pkgs=count,
-    ):
+    )
+
+    unfixed_pkgs += unfixed_pkgs_released
+
+    if unfixed_pkgs:
+        print(_format_unfixed_packages_msg(unfixed_pkgs))
+
+    if fix_status:
         print(fix_message)
     else:
         print(

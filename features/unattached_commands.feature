@@ -189,6 +189,8 @@ Feature: Command behaviour when unattached
             1 affected package is installed: awl
             \(1/1\) awl:
             Ubuntu security engineers are investigating this issue.
+            1 package is still affected: awl
+            .*✘.* USN-4539-1 is not resolved.
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -214,6 +216,7 @@ Feature: Command behaviour when unattached
         And stderr matches regexp:
             """
             Error: CVE-2017-9233 metadata defines no fixed version for expat.
+            3 packages are still affected: expat, matanza, swish-e
             .*✘.* CVE-2017-9233 is not resolved.
             """
 
@@ -252,6 +255,8 @@ Feature: Command behaviour when unattached
             A fix is available in UA Infra.
             Package fixes cannot be installed.
             To install them, run this command as root \(try using sudo\)
+            1 package is still affected: krb5
+            .*✘.* CVE-2020-28196 is not resolved.
             """
         When I fix `USN-4747-2` by attaching to a subscription with `contract_token`
         Then stdout matches regexp:
@@ -341,6 +346,7 @@ Feature: Command behaviour when unattached
             1 affected package is installed: awl
             \(1/1\) awl:
             Ubuntu security engineers are investigating this issue.
+            1 package is still affected: awl
             .*✘.* USN-4539-1 is not resolved.
             """
         When I run `ua fix CVE-2020-28196` as non-root
@@ -365,6 +371,8 @@ Feature: Command behaviour when unattached
         A fix is available in Ubuntu standard updates.
         Package fixes cannot be installed.
         To install them, run this command as root \(try using sudo\)
+        1 package is still affected: xterm
+        .*✘.* CVE-2021-27135 is not resolved.
         """
         When I run `ua fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
@@ -375,6 +383,7 @@ Feature: Command behaviour when unattached
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
+        .*✔.* CVE-2021-27135 is resolved.
         """
         When I run `ua fix CVE-2021-27135` with sudo
         Then stdout matches regexp:
