@@ -1,6 +1,8 @@
 import enum
 import sys
 
+from uaclient.defaults import BASE_UA_URL
+
 try:
     from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 except ImportError:
@@ -205,21 +207,41 @@ Supported flavors are: {supported_kernels}."""
 MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL = """\
 {title} is not available for kernel {kernel}.
 Minimum kernel version required: {min_kernel}."""
-MESSAGE_UNENTITLED_TMPL = """\
+MESSAGE_UNENTITLED_TMPL = (
+    """\
 This subscription is not entitled to {title}
-For more information see: https://ubuntu.com/advantage."""
-MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE = """\
+For more information see: """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE = (
+    """\
 Unable to determine auto-attach platform support
-For more information see: https://ubuntu.com/advantage."""
-MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = """\
+For more information see: """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE = (
+    """\
 Auto-attach image support is not available on {cloud_type}
-See: https://ubuntu.com/advantage."""
-MESSAGE_UNSUPPORTED_AUTO_ATTACH = """\
+See: """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_UNSUPPORTED_AUTO_ATTACH = (
+    """\
 Auto-attach image support is not available on this image
-See: https://ubuntu.com/advantage."""
-MESSAGE_UNATTACHED = """\
+See: """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_UNATTACHED = (
+    """\
 This machine is not attached to a UA subscription.
-See https://ubuntu.com/advantage."""
+See """
+    + BASE_UA_URL
+    + "."
+)
 MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
@@ -260,11 +282,15 @@ This will disable access to certified FIPS packages.
 )
 
 PROMPT_ENTER_TOKEN = """\
-Enter your token (from https://ubuntu.com/advantage) to attach this system:"""
+Enter your token (from {}) to attach this system:""".format(
+    BASE_UA_URL
+)
 PROMPT_EXPIRED_ENTER_TOKEN = """\
 Enter your new token to renew UA subscription on this system:"""
 PROMPT_UA_SUBSCRIPTION_URL = """\
-Open a browser to: https://ubuntu.com/advantage/subscribe"""
+Open a browser to: {}/subscribe""".format(
+    BASE_UA_URL
+)
 
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
@@ -275,16 +301,30 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
-MESSAGE_ATTACH_EXPIRED_TOKEN = """\
-Expired token or contract. To obtain a new token visit: \
-https://ubuntu.com/advantage"""
-MESSAGE_ATTACH_INVALID_TOKEN = """\
-Invalid token. See https://ubuntu.com/advantage."""
-MESSAGE_ATTACH_REQUIRES_TOKEN = """\
+MESSAGE_ATTACH_EXPIRED_TOKEN = (
+    """\
+Expired token or contract. To obtain a new token visit: """
+    + BASE_UA_URL
+)
+MESSAGE_ATTACH_INVALID_TOKEN = (
+    """\
+Invalid token. See """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_ATTACH_REQUIRES_TOKEN = (
+    """\
 Attach requires a token: sudo ua attach <TOKEN>
-To obtain a token please visit: https://ubuntu.com/advantage"""
-MESSAGE_ATTACH_FAILURE = """\
-Failed to attach machine. See https://ubuntu.com/advantage"""
+To obtain a token please visit: """
+    + BASE_UA_URL
+    + "."
+)
+MESSAGE_ATTACH_FAILURE = (
+    """\
+Failed to attach machine. See """
+    + BASE_UA_URL
+    + "."
+)
 MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES = """\
 Failed to enable default services, check: sudo ua status"""
 MESSAGE_ATTACH_SUCCESS_TMPL = """\
@@ -298,10 +338,14 @@ MESSAGE_UNEXPECTED_ERROR = """\
 Unexpected error(s) occurred.
 For more details, see the log: /var/log/ubuntu-advantage.log
 To file a bug run: ubuntu-bug ubuntu-advantage-tools"""
-MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL = """\
+MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL = (
+    """\
 To use '{name}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
-See https://ubuntu.com/advantage."""
+See """
+    + BASE_UA_URL
+    + "."
+)
 MESSAGE_ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL = """\
 A reboot is required to complete {operation}."""
@@ -323,9 +367,13 @@ MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {incompatible_service} is enabled.
 """
 
-MESSAGE_FIPS_BLOCK_ON_CLOUD = """\
+MESSAGE_FIPS_BLOCK_ON_CLOUD = (
+    """\
 Ubuntu {series} does not provide {cloud} optimized FIPS kernel
-For help see: https://ubuntu.com/advantage."""
+For help see: """
+    + BASE_UA_URL
+    + "."
+)
 ERROR_INVALID_CONFIG_VALUE = """\
 Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
 Expected {expected_value}, found {value}."""
