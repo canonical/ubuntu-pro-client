@@ -807,14 +807,8 @@ def prompt_for_affected_packages(
         )
 
 
-def _prompt_for_attach(cfg: UAConfig) -> bool:
-    """Prompt for attach to a subscription or token.
-
-    :return: True if attach performed.
-    """
-    import argparse
-    from uaclient import cli
-
+def _inform_ubuntu_pro_existence_if_applicable() -> None:
+    """Alert the user when running UA on cloud with PRO support."""
     cloud_type = get_cloud_type()
     if cloud_type in PRO_CLOUDS:
         print(
@@ -822,6 +816,31 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
                 title=CLOUD_TYPE_TO_TITLE.get(cloud_type), cloud=cloud_type
             )
         )
+
+
+def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
+    """Attach to a UA subscription with a given token.
+
+    :return: True if attach performed without errors.
+    """
+    import argparse
+    from uaclient import cli
+
+    print(status.colorize_commands([["ua", "attach", token]]))
+    return bool(
+        0
+        == cli.action_attach(
+            argparse.Namespace(token=token, auto_enable=True), cfg
+        )
+    )
+
+
+def _prompt_for_attach(cfg: UAConfig) -> bool:
+    """Prompt for attach to a subscription or token.
+
+    :return: True if attach performed.
+    """
+    _inform_ubuntu_pro_existence_if_applicable()
     print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
     choice = util.prompt_choices(
         "Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel",
@@ -836,13 +855,8 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     if choice in ("a", "s"):
         print(status.PROMPT_ENTER_TOKEN)
         token = input("> ")
-        print(status.colorize_commands([["ua", "attach", token]]))
-        return bool(
-            0
-            == cli.action_attach(
-                argparse.Namespace(token=token, auto_enable=True), cfg
-            )
-        )
+        return _run_ua_attach(cfg, token)
+
     return True
 
 
@@ -913,6 +927,49 @@ def _check_subscription_for_required_service(
     return False
 
 
+def _prompt_for_new_token(cfg: UAConfig) -> bool:
+    """Prompt for attach a new subscription token to the user.
+
+    :return: True if attach performed.
+    """
+    import argparse
+    from uaclient import cli
+
+    _inform_ubuntu_pro_existence_if_applicable()
+    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
+    token_url = "https://ubuntu.com/advantage"
+    choice = util.prompt_choices(
+        "Choose: [R]enew your subscription (at {}) [C]ancel".format(token_url),
+        valid_choices=["r", "c"],
+    )
+    if choice == "r":
+        print(status.PROMPT_EXPIRED_ENTER_TOKEN)
+        token = input("> ")
+        print(status.colorize_commands([["ua", "detach"]]))
+        cli.action_detach(argparse.Namespace(assume_yes=True), cfg)
+        return _run_ua_attach(cfg, token)
+
+    return False
+
+
+def _check_subscription_is_expired(cfg: UAConfig) -> bool:
+    """Check if user UA subscription is expired.
+
+    :returns: True if subscription is expired and not renewed.
+    """
+    from uaclient import cli
+
+    try:
+        cli.action_refresh(args=None, cfg=cfg, verbose=False)
+    except exceptions.UserFacingError as e:
+        if status.MESSAGE_ATTACH_EXPIRED_TOKEN in str(e):
+            return not _prompt_for_new_token(cfg)
+        else:
+            raise e
+
+    return False
+
+
 def upgrade_packages_and_attach(
     cfg: UAConfig, upgrade_packages: "List[str]", pocket: str
 ) -> bool:
@@ -934,6 +991,10 @@ def upgrade_packages_and_attach(
         if not cfg.is_attached:
             if not _prompt_for_attach(cfg):
                 return False  # User opted to cancel
+        elif _check_subscription_is_expired(cfg):
+            # UA subscription is expired and the user has not
+            # renewed it
+            return False
 
         if not _check_subscription_for_required_service(cfg, pocket):
             # User subscription does not have required service enabled
