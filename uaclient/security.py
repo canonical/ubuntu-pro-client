@@ -18,6 +18,7 @@ from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+from uaclient.defaults import BASE_UA_URL
 
 try:
     from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
@@ -937,9 +938,10 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
 
     _inform_ubuntu_pro_existence_if_applicable()
     print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
-    token_url = "https://ubuntu.com/advantage"
     choice = util.prompt_choices(
-        "Choose: [R]enew your subscription (at {}) [C]ancel".format(token_url),
+        "Choose: [R]enew your subscription (at {}) [C]ancel".format(
+            BASE_UA_URL
+        ),
         valid_choices=["r", "c"],
     )
     if choice == "r":
