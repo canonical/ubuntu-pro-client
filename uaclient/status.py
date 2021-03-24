@@ -137,6 +137,10 @@ MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION = """\
 The update is not installed because this system is not attached to a
 subscription.
 """
+MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED = """\
+The update is not installed because this system is attached to an
+expired subscription.
+"""
 MESSAGE_SECURITY_SERVICE_DISABLED = """\
 The update is not installed because this system does not have
 {service} enabled.
@@ -257,6 +261,8 @@ This will disable access to certified FIPS packages.
 
 PROMPT_ENTER_TOKEN = """\
 Enter your token (from https://ubuntu.com/advantage) to attach this system:"""
+PROMPT_EXPIRED_ENTER_TOKEN = """\
+Enter your new token to renew UA subscription on this system:"""
 PROMPT_UA_SUBSCRIPTION_URL = """\
 Open a browser to: https://ubuntu.com/advantage/subscribe"""
 
