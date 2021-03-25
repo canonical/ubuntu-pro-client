@@ -268,10 +268,10 @@ Feature: Command behaviour when attached to an UA subscription
             """
 
         Examples: ubuntu release
-           | release | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
-           | xenial  | disabled | disabled | libkrad0  | jq       |
-           | bionic  | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | hello     | ant      |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       |
+           | bionic  | n/a      | n/a      | disabled | libkrad0  | bundler  |
+           | focal   | n/a      | n/a      | n/a      | hello     | ant      |
 
     @series.trusty
     @uses.config.machine_type.aws.pro
