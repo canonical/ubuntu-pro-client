@@ -743,6 +743,7 @@ def _install_uat_in_container(
                 conf_path
             )
         )
+        cmds.append("sudo ua status --wait")
         cmds.append("sudo ua detach --assume-yes")
 
     cmds.append(["ua", "version"])
