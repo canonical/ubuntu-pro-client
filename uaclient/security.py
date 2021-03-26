@@ -1,6 +1,5 @@
 import copy
 import itertools
-import logging
 import os
 import socket
 
@@ -256,31 +255,19 @@ class CVE:
         self.response = response
         self.client = client
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, CVE):
+            return False
+        return self.response == other.response
+
     @property
     def id(self):
         return self.response.get("id", "UNKNOWN_CVE_ID").upper()
 
-    def get_notices_metadata(self):
-        if hasattr(self, "_notices"):
-            return self._notices
-        self._notices = []
-        for notice_id in sorted(self.notice_ids, reverse=True):
-            try:
-                self._notices.append(
-                    self.client.get_notice(notice_id=notice_id)
-                )
-            except SecurityAPIError as e:
-                logging.debug(
-                    "Cannot collect USN info for {}: {}".format(
-                        notice_id, str(e)
-                    )
-                )
-        return self._notices
-
     def get_url_header(self):
         """Return a string representing the URL for this cve."""
         title = self.description
-        for notice in self.get_notices_metadata():
+        for notice in self.notices:
             # Only look at the most recent USN title
             title = notice.title
             break
@@ -291,8 +278,25 @@ class CVE:
         return "\n".join(lines)
 
     @property
-    def notice_ids(self):
-        return self.response.get("notices", [])
+    def notices_ids(self) -> "List[str]":
+        return self.response.get("notices_ids", [])
+
+    @property
+    def notices(self) -> "List[USN]":
+        """Return a list of USN instances from API response 'notices'.
+
+        Cache the value to avoid extra work on multiple calls.
+        """
+        if not hasattr(self, "_notices"):
+            self._notices = sorted(
+                [
+                    USN(self.client, notice)
+                    for notice in self.response.get("notices", [])
+                ],
+                key=lambda n: n.id,
+                reverse=True,
+            )
+        return self._notices
 
     @property
     def description(self):
@@ -325,36 +329,50 @@ class USN:
         self.response = response
         self.client = client
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, USN):
+            return False
+        return self.response == other.response
+
     @property
     def id(self) -> str:
         return self.response.get("id", "UNKNOWN_USN_ID").upper()
 
     @property
-    def cve_ids(self) -> "List[str]":
+    def cves_ids(self) -> "List[str]":
         """List of CVE IDs related to this USN."""
-        return self.response.get("cves", [])
+        return self.response.get("cves_ids", [])
+
+    @property
+    def cves(self) -> "List[CVE]":
+        """List of CVE instances based on API response 'cves' key.
+
+        Cache the values to avoid extra work for multiple call-sites.
+        """
+        if not hasattr(self, "_cves"):
+            self._cves = sorted(
+                [
+                    CVE(self.client, cve)
+                    for cve in self.response.get("cves", [])
+                ],
+                key=lambda n: n.id,
+                reverse=True,
+            )  # type: List[CVE]
+        return self._cves
 
     @property
     def title(self):
         return self.response.get("title")
-
-    def get_cves_metadata(self) -> "List[CVE]":
-        if hasattr(self, "_cves"):
-            return self._cves
-        self._cves = []  # type: List[CVE]
-        for cve_id in sorted(self.cve_ids, reverse=True):
-            self._cves.append(self.client.get_cve(cve_id=cve_id))
-        return self._cves
 
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
         lines = [
             "{issue}: {title}".format(issue=self.id, title=self.title),
             "Found CVEs: {}".format(
-                ", ".join(sorted(self.cve_ids, reverse=True))
+                ", ".join(sorted(self.cves_ids, reverse=True))
             ),
         ]
-        for cve in self.cve_ids:
+        for cve in self.cves_ids:
             lines.append("https://ubuntu.com/security/{}".format(cve))
         return "\n".join(lines)
 
@@ -514,10 +532,12 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         related_usns = {}
         try:
             usn = client.get_notice(notice_id=issue_id)
-            for cve_id in usn.cve_ids:
-                for related_usn in client.get_notices(details=cve_id):
-                    if related_usn.id not in related_usns:
-                        related_usns[related_usn.id] = related_usn
+            for cve in usn.cves:
+                for related_usn_id in cve.usn_ids:
+                    if related_usn_id not in related_usns:
+                        related_usns[related_usn_id] = client.get_notice(
+                            notice_id=related_usn_id
+                        )
             usns = list(sorted(related_usns.values(), key=lambda x: x.id))
         except SecurityAPIError as e:
             msg = str(e)
@@ -531,7 +551,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         )
         usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
         print(usn.get_url_header())
-        related_cves = set(itertools.chain(*[u.cve_ids for u in usns]))
+        related_cves = set(itertools.chain(*[u.cves_ids for u in usns]))
         if not related_cves:
             raise exceptions.SecurityAPIMetadataError(
                 "{} metadata defines no related CVEs.".format(issue_id),
@@ -564,7 +584,7 @@ def get_usn_affected_packages_status(
         for the current Ubuntu release.
     """
     affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
-    for cve in usn.get_cves_metadata():
+    for cve in usn.cves:
         for pkg_name, pkg_status in get_cve_affected_source_packages_status(
             cve, installed_packages
         ).items():

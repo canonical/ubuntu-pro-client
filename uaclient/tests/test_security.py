@@ -1,6 +1,5 @@
 import copy
 import mock
-import os
 import pytest
 import textwrap
 
@@ -104,7 +103,7 @@ SAMPLE_CVE_RESPONSE = {
     "description": "\nAn elevation of privilege vulnerability exists ...",
     "id": "CVE-2020-1472",
     "notes": [{"author": "..", "note": "..."}],
-    "notices": ["USN-4510-1", "USN-4510-2", "USN-4559-1"],
+    "notices_ids": ["USN-4510-1", "USN-4510-2", "USN-4559-1"],
     "packages": [
         {
             "debian": "https://tracker.debian.org/pkg/samba",
@@ -121,7 +120,7 @@ SAMPLE_CVE_RESPONSE = {
 }
 
 SAMPLE_USN_RESPONSE = {
-    "cves": ["CVE-2020-1473", "CVE-2020-1472"],
+    "cves_ids": ["CVE-2020-1473", "CVE-2020-1472"],
     "id": "USN-4510-2",
     "instructions": "In general, a standard system update will make all ...\n",
     "references": [],
@@ -224,6 +223,25 @@ class TestCVE:
         assert {"some": "response"} == cve.response
 
     @pytest.mark.parametrize(
+        "cve1,cve2,are_equal",
+        (
+            (CVE(None, {"1": "2"}), CVE(None, {"1": "2"}), True),
+            (CVE("A", {"1": "2"}), CVE("B", {"1": "2"}), True),
+            (CVE(None, {}), CVE("B", {"1": "2"}), False),
+            (CVE(None, {"1": "2"}), USN(None, {"1": "2"}), False),
+        ),
+    )
+    def test_equality(self, cve1, cve2, are_equal):
+        """Equality is based instance type and CVE.response value"""
+        if are_equal:
+            assert cve1.response == cve2.response
+            assert cve1 == cve2
+        else:
+            if isinstance(cve1, CVE) and isinstance(cve2, CVE):
+                assert cve1.response != cve2.response
+            assert cve1 != cve2
+
+    @pytest.mark.parametrize(
         "attr_name,expected,response",
         (
             ("description", None, {}),
@@ -234,9 +252,9 @@ class TestCVE:
                 "CVE-123",
                 {"id": "cve-123"},
             ),  # Uppercase of id value is used
-            ("notice_ids", [], {}),
-            ("notice_ids", [], {"notices": []}),
-            ("notice_ids", ["1", "2"], {"notices": ["1", "2"]}),
+            ("notices_ids", [], {}),
+            ("notices_ids", [], {"notices_ids": []}),
+            ("notices_ids", ["1", "2"], {"notices_ids": ["1", "2"]}),
         ),
     )
     def test_cve_basic_properties_from_response(
@@ -247,13 +265,13 @@ class TestCVE:
         cve = CVE(client, response)
         assert expected == getattr(cve, attr_name)
 
-    #  @mock.patch("uaclient.serviceclient.UAServiceClient.request_url")
-    @mock.patch("uaclient.util.readurl")
-    def test_get_url_header(self, request_url, FakeConfig):
+    def test_get_url_header(self, FakeConfig):
         """CVE.get_url_header returns a string based on the CVE response."""
         client = UASecurityClient(FakeConfig())
-        cve = CVE(client, SAMPLE_CVE_RESPONSE)
-        request_url.return_value = (SAMPLE_USN_RESPONSE, "header")
+        detailed_cve_response = copy.deepcopy(SAMPLE_CVE_RESPONSE)
+        # Detailed CVE responses will contain full USN metadata in notices key
+        detailed_cve_response["notices"] = [{"title": "Samba vulnerability"}]
+        cve = CVE(client, detailed_cve_response)
         assert (
             textwrap.dedent(
                 """\
@@ -262,48 +280,31 @@ class TestCVE:
             )
             == cve.get_url_header()
         )
-        headers = client.headers()
-        calls = []
-        for issue in ["USN-4559-1", "USN-4510-2", "USN-4510-1"]:
-            calls.append(
-                mock.call(
-                    url="https://ubuntu.com/security/notices/{}.json".format(
-                        issue
-                    ),
-                    data=None,
-                    headers=headers,
-                    method=None,
-                    timeout=20,
-                )
-            )
-        assert calls == request_url.call_args_list
 
-    @mock.patch("uaclient.security.UASecurityClient.request_url")
-    def test_get_notices_metadata(self, request_url, FakeConfig):
-        """CVE.get_notices_metadata is cached to avoid extra round-trips."""
+    @pytest.mark.parametrize(
+        "usns_response,expected",
+        (
+            (None, []),
+            ([], []),
+            (  # USNs are properly sorted by id
+                [{"id": "1"}, {"id": "2"}],
+                [USN(None, {"id": "2"}), USN(None, {"id": "1"})],
+            ),
+        ),
+    )
+    def test_notices_cached_from_usns_response(
+        self, usns_response, expected, FakeConfig
+    ):
+        """List of USNs returned from CVE 'usns' response if present."""
         client = UASecurityClient(FakeConfig())
-        cve = CVE(client, SAMPLE_CVE_RESPONSE)
-
-        def fake_request_url(url):
-            usn = copy.deepcopy(SAMPLE_USN_RESPONSE)
-            usn_id = os.path.basename(url).split(".")[0]
-            usn["id"] = usn_id
-            return (usn, "headers")
-
-        request_url.side_effect = fake_request_url
-
-        usns = cve.get_notices_metadata()
-        assert ["USN-4559-1", "USN-4510-2", "USN-4510-1"] == [
-            usn.id for usn in usns
-        ]
-        assert [
-            mock.call("notices/USN-4559-1.json"),
-            mock.call("notices/USN-4510-2.json"),
-            mock.call("notices/USN-4510-1.json"),
-        ] == request_url.call_args_list
-        # no extra calls being made
-        cve.get_notices_metadata()
-        assert 3 == request_url.call_count
+        cve_response = copy.deepcopy(SAMPLE_CVE_RESPONSE)
+        if usns_response is not None:
+            cve_response["notices"] = usns_response
+        cve = CVE(client, cve_response)
+        assert expected == cve.notices
+        # white box test caching in effect
+        cve.response = "junk"
+        assert expected == cve.notices
 
 
 class TestUSN:
@@ -313,6 +314,25 @@ class TestUSN:
         cve = USN(client, {"some": "response"})
         assert client == cve.client
         assert {"some": "response"} == cve.response
+
+    @pytest.mark.parametrize(
+        "usn1,usn2,are_equal",
+        (
+            (USN(None, {"1": "2"}), USN(None, {"1": "2"}), True),
+            (USN("A", {"1": "2"}), USN("B", {"1": "2"}), True),
+            (USN(None, {}), USN("B", {"1": "2"}), False),
+            (USN(None, {"1": "2"}), CVE(None, {"1": "2"}), False),
+        ),
+    )
+    def test_equality(self, usn1, usn2, are_equal):
+        """Equality is based instance type and USN.response value"""
+        if are_equal:
+            assert usn1.response == usn2.response
+            assert usn1 == usn2
+        else:
+            if isinstance(usn1, USN) and isinstance(usn2, USN):
+                assert usn1.response != usn2.response
+            assert usn1 != usn2
 
     @pytest.mark.parametrize(
         "attr_name,expected,response",
@@ -325,9 +345,11 @@ class TestUSN:
                 "USN-123",
                 {"id": "usn-123"},
             ),  # Uppercase of id value is used
-            ("cve_ids", [], {}),
-            ("cve_ids", [], {"cves": []}),
-            ("cve_ids", ["1", "2"], {"cves": ["1", "2"]}),
+            ("cves_ids", [], {}),
+            ("cves_ids", [], {"cves_ids": []}),
+            ("cves_ids", ["1", "2"], {"cves_ids": ["1", "2"]}),
+            ("cves", [], {}),
+            ("cves", [], {"cves": []}),
         ),
     )
     def test_usn_basic_properties_from_response(
@@ -443,30 +465,6 @@ class TestUSN:
             usn.release_packages
         assert error_msg == str(exc.value)
 
-    @mock.patch("uaclient.security.UASecurityClient.request_url")
-    def test_get_cves_metadata(self, request_url, FakeConfig):
-        """USN.get_cves_metadata is cached to avoid API round-trips."""
-        client = UASecurityClient(FakeConfig())
-        usn = USN(client, SAMPLE_USN_RESPONSE)
-
-        def fake_request_url(url):
-            cve = copy.deepcopy(SAMPLE_CVE_RESPONSE)
-            cve_id = os.path.basename(url).split(".")[0]
-            cve["id"] = cve_id
-            return (cve, "headers")
-
-        request_url.side_effect = fake_request_url
-
-        cves = usn.get_cves_metadata()
-        assert ["CVE-2020-1473", "CVE-2020-1472"] == [cve.id for cve in cves]
-        assert [
-            mock.call("cves/CVE-2020-1473.json"),
-            mock.call("cves/CVE-2020-1472.json"),
-        ] == request_url.call_args_list
-        # no extra calls being made
-        usn.get_cves_metadata()
-        assert 2 == request_url.call_count
-
     def test_get_url_header(self, FakeConfig):
         """USN.get_url_header returns a string based on the USN response."""
         client = UASecurityClient(FakeConfig())
@@ -481,6 +479,31 @@ class TestUSN:
             )
             == usn.get_url_header()
         )
+
+    @pytest.mark.parametrize(
+        "cves_response,expected",
+        (
+            (None, []),
+            ([], []),
+            (  # CVEs are properly sorted by id
+                [{"id": "1"}, {"id": "2"}],
+                [CVE(None, {"id": "2"}), CVE(None, {"id": "1"})],
+            ),
+        ),
+    )
+    def test_cves_cached_and_sorted_from_cves_response(
+        self, cves_response, expected, FakeConfig
+    ):
+        """List of USNs returned from CVE 'usns' response if present."""
+        client = UASecurityClient(FakeConfig())
+        usn_response = copy.deepcopy(SAMPLE_USN_RESPONSE)
+        if cves_response is not None:
+            usn_response["cves"] = cves_response
+        usn = USN(client, usn_response)
+        assert expected == usn.cves
+        # white box test caching in effect
+        usn.response = "junk"
+        assert expected == usn.cves
 
 
 class TestCVEPackageStatus:
@@ -1835,7 +1858,7 @@ class TestFixSecurityIssueId:
             type(usn_mock).release_packages = mock.PropertyMock(
                 return_value={"a": {}}
             )
-            type(usn_mock).cve_ids = mock.PropertyMock(return_value=[])
+            type(usn_mock).cves_ids = mock.PropertyMock(return_value=[])
             m_notice.return_value = usn_mock
 
             with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
@@ -1865,7 +1888,7 @@ class TestFixSecurityIssueId:
                 type(usn_mock).response = mock.PropertyMock(
                     return_value={"release_packages": {}}
                 )
-                type(usn_mock).cve_ids = mock.PropertyMock(
+                type(usn_mock).cves_ids = mock.PropertyMock(
                     return_value=["cve-123"]
                 )
                 type(usn_mock).id = mock.PropertyMock(return_value="id")
