@@ -681,8 +681,8 @@ class TestUASecurityClient:
             request_url.return_value = (
                 {
                     "notices": [
-                        {"id": "2", "cves": ["cve"]},
-                        {"id": "1", "cves": ["cve"]},
+                        {"id": "2", "cves_ids": ["cve"]},
+                        {"id": "1", "cves_ids": ["cve"]},
                     ]
                 },
                 "headers",
@@ -706,8 +706,8 @@ class TestUASecurityClient:
         request_url.return_value = (
             {
                 "notices": [
-                    {"id": "2", "cves": ["cve1"]},
-                    {"id": "1", "cves": ["cve12"]},
+                    {"id": "2", "cves_ids": ["cve1"]},
+                    {"id": "1", "cves_ids": ["cve12"]},
                 ]
             },
             "headers",
@@ -1885,6 +1885,14 @@ class TestFixSecurityIssueId:
                 UASecurityClient, "get_notices"
             ) as m_notices:
                 usn_mock = mock.MagicMock()
+                cve_mock = mock.MagicMock()
+
+                type(cve_mock).notices_ids = mock.PropertyMock(
+                    return_value=["USN-123"]
+                )
+                type(usn_mock).cves = mock.PropertyMock(
+                    return_value=[cve_mock]
+                )
                 type(usn_mock).response = mock.PropertyMock(
                     return_value={"release_packages": {}}
                 )

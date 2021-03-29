@@ -162,7 +162,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
             [
                 USN(client=self, response=usn_md)
                 for usn_md in usns_response.get("notices", [])
-                if details is None or details in usn_md.get("cves", [])
+                if details is None or details in usn_md.get("cves_ids", [])
             ],
             key=lambda x: x.id,
         )
@@ -533,7 +533,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         try:
             usn = client.get_notice(notice_id=issue_id)
             for cve in usn.cves:
-                for related_usn_id in cve.usn_ids:
+                for related_usn_id in cve.notices_ids:
                     if related_usn_id not in related_usns:
                         related_usns[related_usn_id] = client.get_notice(
                             notice_id=related_usn_id
