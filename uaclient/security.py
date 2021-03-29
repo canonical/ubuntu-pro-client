@@ -859,6 +859,17 @@ def prompt_for_affected_packages(
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
 
+    if util.should_reboot():
+        print(
+            status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                operation="fix operation"
+            )
+        )
+        print(
+            status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+        )
+        return
+
     if fix_status:
         print(fix_message)
     else:

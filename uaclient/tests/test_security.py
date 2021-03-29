@@ -1194,6 +1194,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.security.get_cloud_type")
@@ -1204,6 +1205,7 @@ class TestPromptForAffectedPackages:
         get_cloud_type,
         m_run_apt_cmd,
         _m_os_getuid,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1287,6 +1289,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.security._check_subscription_for_required_service")
     @mock.patch("uaclient.cli.action_attach")
@@ -1305,6 +1308,7 @@ class TestPromptForAffectedPackages:
         m_action_attach,
         m_check_subscription_for_service,
         m_check_subscription_expired,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1367,10 +1371,12 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security.upgrade_packages_and_attach")
     def test_messages_for_affected_packages_when_fix_fail(
         self,
         m_upgrade_packages,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1437,6 +1443,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("os.getuid", return_value=0)
@@ -1449,6 +1456,7 @@ class TestPromptForAffectedPackages:
         _m_os_getuid,
         _m_input,
         m_action_attach,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1520,6 +1528,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.cli.action_enable", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
@@ -1534,6 +1543,7 @@ class TestPromptForAffectedPackages:
         _m_run_apt,
         m_action_enable,
         m_check_subscription_expired,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1601,6 +1611,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
@@ -1611,6 +1622,7 @@ class TestPromptForAffectedPackages:
         m_get_cloud_type,
         _m_os_getuid,
         m_check_subscription_expired,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1682,6 +1694,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
@@ -1702,6 +1715,7 @@ class TestPromptForAffectedPackages:
         _m_input,
         m_cli_attach,
         _m_run_apt_command,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1750,6 +1764,7 @@ class TestPromptForAffectedPackages:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.cli.action_refresh")
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
@@ -1760,6 +1775,7 @@ class TestPromptForAffectedPackages:
         m_get_cloud_type,
         _m_os_getuid,
         m_cli_refresh,
+        _m_should_reboot,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1774,6 +1790,60 @@ class TestPromptForAffectedPackages:
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
+        prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id="USN-###",
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
+        )
+        out, err = capsys.readouterr()
+        assert expected in out
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"pkg1": {"pkg1": "1.8"}},
+                {"pkg1": {"pkg1": {"version": "2.0"}}},
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: pkg1
+                    (1/1) pkg1:
+                    A fix is available in Ubuntu standard updates.
+                    """
+                )
+                + colorize_commands(
+                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
+                )
+                + "\n"
+                + "A reboot is required to complete fix operation."
+                + "\n"
+                + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.should_reboot", return_value=True)
+    @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.get_cloud_type")
+    def test_messages_for_affected_packages_when_reboot_required(
+        self,
+        m_get_cloud_type,
+        _m_os_getuid,
+        _m_run_apt_command,
+        _m_should_reboot,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        m_get_cloud_type.return_value = "cloud"
+
+        cfg = FakeConfig()
         prompt_for_affected_packages(
             cfg=cfg,
             issue_id="USN-###",
