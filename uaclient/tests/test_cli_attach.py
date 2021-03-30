@@ -122,12 +122,16 @@ class TestActionAttach:
             ),
         ),
     )
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
         self,
         request_updated_contract,
         _m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
         _m_get_uid,
         error_class,
         error_str,
@@ -158,12 +162,20 @@ class TestActionAttach:
         logs = caplog_text()
         assert expected_log in logs
 
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
     )
     @mock.patch(M_PATH + "action_status")
     def test_happy_path_with_token_arg(
-        self, action_status, contract_machine_attach, _m_getuid, FakeConfig
+        self,
+        action_status,
+        contract_machine_attach,
+        _m_should_reboot,
+        _m_remove_notice,
+        _m_getuid,
+        FakeConfig,
     ):
         """A mock-heavy test for the happy path with the contract token arg"""
         # TODO: Improve this test with less general mocking and more
@@ -186,9 +198,17 @@ class TestActionAttach:
         assert expected_calls == contract_machine_attach.call_args_list
 
     @pytest.mark.parametrize("auto_enable", (True, False))
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.contract.get_available_resources")
     def test_auto_enable_passed_through_to_request_updated_contract(
-        self, _m_getuid, _m_get_available_resources, auto_enable, FakeConfig
+        self,
+        _m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        _m_get_uid,
+        auto_enable,
+        FakeConfig,
     ):
         args = mock.MagicMock(auto_enable=auto_enable)
 

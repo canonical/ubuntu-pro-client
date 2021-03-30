@@ -166,13 +166,22 @@ Flags:
 )
 
 
+@mock.patch("uaclient.util.should_reboot", return_value=False)
+@mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch(
     M_PATH + "contract.get_available_resources",
     return_value=RESPONSE_LIVEPATCH_AVAILABLE,
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
-    def test_status_help(self, _getuid, _get_available_resources, capsys):
+    def test_status_help(
+        self,
+        _getuid,
+        _get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        capsys,
+    ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "status", "--help"]):
                 main()
@@ -194,6 +203,8 @@ class TestActionStatus:
         self,
         m_getuid,
         m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
         notices,
         notice_status,
         use_all,
@@ -224,7 +235,13 @@ class TestActionStatus:
         )
 
     def test_unattached(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        capsys,
+        FakeConfig,
     ):
         """Check that unattached status is emitted to console"""
         cfg = FakeConfig()
@@ -240,6 +257,8 @@ class TestActionStatus:
         m_subp,
         m_getuid,
         m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
         capsys,
         FakeConfig,
     ):
@@ -259,12 +278,12 @@ class TestActionStatus:
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
     @pytest.mark.parametrize("use_all", (True, False))
-    @mock.patch(M_PATH + "util.should_reboot", return_value=False)
     def test_unattached_json(
         self,
         m_getuid,
         m_get_avail_resources,
-        m_should_reboot,
+        _m_should_reboot,
+        _m_remove_notice,
         use_all,
         capsys,
         FakeConfig,
@@ -298,12 +317,12 @@ class TestActionStatus:
         assert expected == json.loads(capsys.readouterr()[0])
 
     @pytest.mark.parametrize("use_all", (True, False))
-    @mock.patch(M_PATH + "util.should_reboot", return_value=False)
     def test_attached_json(
         self,
         m_getuid,
         m_get_avail_resources,
-        m_should_reboot,
+        _m_should_reboot,
+        _m_remove_notice,
         use_all,
         capsys,
         FakeConfig,
@@ -343,7 +362,13 @@ class TestActionStatus:
         assert expected == json.loads(capsys.readouterr()[0])
 
     def test_error_on_connectivity_errors(
-        self, m_getuid, m_get_avail_resources, capsys, FakeConfig
+        self,
+        m_getuid,
+        m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        capsys,
+        FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
         m_get_avail_resources.side_effect = util.UrlError(
@@ -363,6 +388,8 @@ class TestActionStatus:
         self,
         _m_getuid,
         _m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
         encoding,
         expected_dash,
         FakeConfig,
