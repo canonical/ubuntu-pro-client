@@ -525,6 +525,8 @@ class TestDeleteCache:
         )
 
 
+@mock.patch("uaclient.config.UAConfig.remove_notice")
+@mock.patch("uaclient.util.should_reboot", return_value=False)
 class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
     cc_eal_desc = ENTITLEMENT_CLASS_BY_NAME["cc-eal"].description
@@ -582,6 +584,8 @@ class TestStatus:
         self,
         _m_getuid,
         m_get_available_resources,
+        _m_should_reboot,
+        m_remove_notice,
         show_beta,
         expected_services,
         FakeConfig,
@@ -599,6 +603,17 @@ class TestStatus:
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == cfg.status(show_beta=show_beta)
+
+            expected_calls = [
+                mock.call(
+                    "",
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="fix operation"
+                    ),
+                )
+            ]
+
+            assert expected_calls == m_remove_notice.call_args_list
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
@@ -639,6 +654,8 @@ class TestStatus:
         self,
         _m_getuid,
         m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
         avail_res,
         entitled_res,
         uf_entitled,
@@ -727,14 +744,18 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_unattached_is_same_as_unattached_root(
-        self, m_getuid, m_get_available_resources, FakeConfig
+        self,
+        m_getuid,
+        m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        FakeConfig,
     ):
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True}
         ]
         m_getuid.return_value = 1000
         cfg = FakeConfig()
-
         nonroot_status = cfg.status()
 
         m_getuid.return_value = 0
@@ -745,7 +766,13 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_root_followed_by_nonroot(
-        self, m_getuid, m_get_available_resources, tmpdir, FakeConfig
+        self,
+        m_getuid,
+        m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        tmpdir,
+        FakeConfig,
     ):
         """Ensure that non-root run after root returns data"""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
@@ -771,7 +798,12 @@ class TestStatus:
     @mock.patch("uaclient.contract.get_available_resources", return_value=[])
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_cache_file_is_written_world_readable(
-        self, _m_getuid, _m_get_available_resources, tmpdir
+        self,
+        _m_getuid,
+        _m_get_available_resources,
+        _m_should_reboot,
+        m_remove_notice,
+        tmpdir,
     ):
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         cfg.status()
@@ -779,6 +811,17 @@ class TestStatus:
         assert 0o644 == stat.S_IMODE(
             os.lstat(cfg.data_path("status-cache")).st_mode
         )
+
+        expected_calls = [
+            mock.call(
+                "",
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                ),
+            )
+        ]
+
+        assert expected_calls == m_remove_notice.call_args_list
 
     @pytest.mark.parametrize("show_beta", (True, False))
     @pytest.mark.parametrize(
@@ -813,6 +856,8 @@ class TestStatus:
         m_livepatch_contract_status,
         m_livepatch_uf_status,
         _m_getuid,
+        _m_should_reboot,
+        m_remove_notice,
         entitlements,
         features_override,
         show_beta,
@@ -896,13 +941,30 @@ class TestStatus:
         ) as m_get_cfg_status:
             m_get_cfg_status.return_value = DEFAULT_CFG_STATUS
             assert expected == cfg.status(show_beta=show_beta)
+
         assert len(ENTITLEMENT_CLASSES) - 2 == m_repo_uf_status.call_count
         assert 1 == m_livepatch_uf_status.call_count
+
+        expected_calls = [
+            mock.call(
+                "",
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                ),
+            )
+        ]
+
+        assert expected_calls == m_remove_notice.call_args_list
 
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid")
     def test_expires_handled_appropriately(
-        self, m_getuid, _m_get_available_resources, FakeConfig
+        self,
+        m_getuid,
+        _m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        FakeConfig,
     ):
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -932,27 +994,39 @@ class TestStatus:
 
     @mock.patch("uaclient.config.os.getuid")
     def test_nonroot_user_uses_cache_and_updates_if_available(
-        self, m_getuid, tmpdir
+        self, m_getuid, _m_should_reboot, m_remove_notice, tmpdir
     ):
         m_getuid.return_value = 1000
 
-        status = {"pass": True}
+        expected_status = {"pass": True}
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
-        cfg.write_cache("status-cache", status)
+        cfg.write_cache("status-cache", expected_status)
 
         # Even non-root users can update configStatus details
         details = MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation="configuration changes"
         )
-        status.update(
+        expected_status.update(
             {
                 "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
                 "configStatusDetails": details,
                 "notices": [],
             }
         )
-        assert status == cfg.status()
+
+        assert expected_status == cfg.status()
+
+        expected_calls = [
+            mock.call(
+                "",
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                ),
+            )
+        ]
+
+        assert expected_calls == m_remove_notice.call_args_list
 
 
 ATTACHED_SERVICE_STATUS_PARAMETERS = [
