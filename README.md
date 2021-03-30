@@ -20,6 +20,15 @@ The client comes pre-installed on all Ubuntu systems in the debian packages
 images will also contain `ubuntu-advantage-pro` which automates machine attach
 on custom AWS and Azure images.
 
+Additionally, there are 3 PPAs with different release channels of the Ubuntu Advantage Client:
+
+1. Stable: This contains stable builds only.
+    - add with `sudo add-apt-repository ppa:ua-client/stable`
+2. Staging: This contains builds that are being prepared for release to stable.
+    - add with `sudo add-apt-repository ppa:ua-client/staging`
+3. Daily: This PPA is updated every day with the latest changes.
+    - add with `sudo add-apt-repository ppa:ua-client/daily`
+
 Users can manually run the `ua` command to learn more or view the manpage.
 
 ## Terminology
@@ -37,7 +46,7 @@ Ubuntu Advantage Client performs:
 
 
 ## Architecture
-Ubuntu Advantage client, hereafter "UA client", is python3-based command line
+Ubuntu Advantage client, hereafter "UA client", is a python3-based command line
 utility. It provides a CLI to attach, detach, enable,
 disable and check status of support related services.
 
@@ -83,7 +92,7 @@ enabled or disabled.
 
 If a contract entitles a machine to a service, `root` user can enable the
 service with `ua enable <service>`.  If a service can be disabled
-`ua disabled <service>` will be permitted.
+`ua disable <service>` will be permitted.
 
 The goal of the UA client is to remain simple and flexible and let the
 contracts backend drive dynamic changes in contract offerings and constraints.
@@ -120,7 +129,15 @@ The following describes the intent of UA client related directories:
 
 ## Testing
 
-All unit and lint tests are run using tox:
+All unit and lint tests are run using `tox`. We also use `tox-pip-version` to specify an older pip version as a workaround: we have some required dependencies that can't meet the strict compatibility checks of current pip versions.
+
+First, install `tox` and `tox-pip-version` - you'll only have to do this once.
+
+```shell
+make testdeps
+```
+
+Then you can run the unit and lint tests:
 
 ```shell
 tox
@@ -181,9 +198,9 @@ Furthermore, when developing/debugging a new scenario:
 
  1. Add a `@wip` tag decorator on the scenario
  2. To only run @wip scenarios run: `tox -e behave-20.04 -- -w`
- 4. If you want to use a debugger:
-    a. Add ipdb to integration-requirements.txt
-    b. Add ipdb.set_trace() in the code block you wish to debug
+ 3. If you want to use a debugger:
+    1. Add ipdb to integration-requirements.txt
+    2. Add ipdb.set_trace() in the code block you wish to debug
 
 (If you're getting started with behave, we recommend at least reading
 through [the behave
@@ -295,13 +312,13 @@ The following tox environments allow for testing focal on Azure:
 ```
 
 To run the test for a different release, just update the release version string. For example,
-to run AWS pro xenial tests, you can run:
+to run Azure pro xenial tests, you can run:
 
 ```
 tox -e behave-azurepro-16.04
 ```
 
-In order to run EC2 tests the following environment variables are required:
+In order to run Azure tests the following environment variables are required:
   - UACLIENT_BEHAVE_AZ_CLIENT_ID
   - UACLIENT_BEHAVE_AZ_CLIENT_SECRET
   - UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID
@@ -337,7 +354,7 @@ dpkg-buildpackage -us -uc
 ```
 
 **Note** It will build the package with dependencies for the Ubuntu release on
-which you are building, so it's best to build in a container of kvm for the
+which you are building, so it's best to build in a container or kvm for the
 release you are targeting.
 
 OR, if you want to build for a target release other than the release
