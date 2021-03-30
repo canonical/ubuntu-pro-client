@@ -1,8 +1,73 @@
-ubuntu-advantage-tools (27.0) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (27.0~21.04.1~beta) hirsute; urgency=medium
 
-  * Open 27.0 for active development
+  * d/*: prefix all the debhelper conf files with the package name
+  * d/control:
+    - add Rules-Requires-Root: no
+    - bump Standards-Version to 4.5.1
+    - make ubuntu-advantage-pro Architecture: all
+  * d/lintian-overrides:
+    - override maintainer-script-calls-service
+    - package-supports-alternative-init-but-no-init.d-script
+  * d/postinst: move the u-a-pro note to a config script
+  * d/ubuntu-advantage-tools.templates: suggest the use of apt
+  * New upstream release 27.0~beta:
+    - apt: add retry for apt-helper command (GH: #1431)
+    - cli: drop subcommand repeated help output, fix enable & refresh
+      (GH: #1440)
+    - config:
+      + allow parsing yaml delivered from env values
+      + environment variable support for feature overrides (GH: #1395)
+      + create config to add extra params to security url
+    - docs:
+      + add ppas and fix typos
+      + use Ubuntu Pro not Ubuntu PRO
+      + add stop "." punctuation to messages (GH: #1320)
+    - fips: fix FIPS message when disable operation fails
+    - fix:
+      + add basic UASecurityClient to which queries CVE and USNs
+      + add security_url to config
+      + check if service is enabled during ua fix (GH: #1462)
+      + closer representation of cve and usn responses
+      + filter usns by cve details (GH: #1470)
+      + fix regex to be more permissive and strict
+      + get_cve_affected_source_packages_status won't list not-affected
+        (GH: #1467)
+      + handle other package status when running ua fix (GH: #1435)
+      + improve error message for ua fix (GH: #1420)
+      + install pkg fixes when they are on standard pocket (GH: #1401)
+      + move timeout and retries to security client only
+      + only prompt for subscription attach for UA-related pkg updates
+      + parse all related USNS to a given CVE when fixing
+      + parse full API responses for related CVEs and USNs
+      + prefer USN.release_packages binary pkg versions to CVE src ver
+        (GH: #1436)
+      + prompt for new ua token when expired one is used (GH: #1475)
+      + prompt to emit pro suggestion on pro_clouds if unattached (GH: #1386)
+      + prompt to enable service during ua fix (GH: #1455)
+      + provide related CVE URLs instead of USNs (GH: #1456)
+      + raise errors when source_link is null or unexpected format
+      + show packages that were not fixed in the output
+      + update output for released packages in ua fix (GH: #1438)
+      + update message for invalid issue in ua fix (GH: #1433)
+      + use pocket values from USNs (GH: #1439)
+    - logs: emit error response on API errors and redact sensitive logs
+      (GH: #1424)
+    - serviceclient: add 10 second timeout and two retries to API calls
+      (GH: #1374)
+    - util:
+      + add error prompts on invalid selection
+      + add timeout to readurl
+    - tests:
+      + Add disable_auto_attach config to all test PRO vms
+      + add merge_usn_released_binary_package_versions tests
+      + add unittest coverage for override_usn_release_package_status
+      + drop traceback checks on fips integration tests
+      + refactor integration tests for ua fix cmd
+      + run status wait before detach in PRO tests
+      + use ssh to run commands on lxd containers
+    - jenkins: archiveArtifacts can only reference paths within workspace
 
- -- Lucas Moura <lucas.moura@canonical.com>  Fri, 15 Jan 2021 10:44:55 -0300
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 30 Mar 2021 14:16:03 -0300
 
 ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
 
