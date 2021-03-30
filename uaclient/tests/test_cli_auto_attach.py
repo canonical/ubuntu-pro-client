@@ -314,12 +314,16 @@ class TestActionAutoAttach:
             "Operation in progress: ua disable (pid:123)"
         ) == err.value.msg
 
+    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
     def test_happy_path_on_aws_non_auto_attach(
         self,
         get_contract_token_from_cloud_identity,
         request_updated_contract,
+        _m_should_reboot,
+        _m_remove_notice,
         _m_getuid,
         FakeConfig,
     ):
