@@ -34,6 +34,7 @@ from uaclient.status import (
     MESSAGE_SECURITY_SERVICE_DISABLED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
     MESSAGE_ATTACH_EXPIRED_TOKEN,
+    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
     UserFacingStatus,
@@ -1940,6 +1941,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.config.UAConfig.add_notice")
     @mock.patch("uaclient.util.should_reboot", return_value=True)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("os.getuid", return_value=0)
@@ -1950,6 +1952,7 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_os_getuid,
         _m_run_apt_command,
         _m_should_reboot,
+        m_add_notice,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1969,6 +1972,15 @@ A fix is available in Ubuntu standard updates.\n"""
         )
         out, err = capsys.readouterr()
         assert expected in out
+
+        assert [
+            mock.call(
+                "",
+                MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                ),
+            )
+        ] == m_add_notice.call_args_list
 
 
 class TestUpgradePackagesAndAttach:
