@@ -870,11 +870,11 @@ def prompt_for_affected_packages(
         print(_format_unfixed_packages_msg(unfixed_pkgs))
 
     if util.should_reboot():
-        print(
-            status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                operation="fix operation"
-            )
+        reboot_msg = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+            operation="fix operation"
         )
+        print(reboot_msg)
+        cfg.add_notice("", reboot_msg)
         print(
             status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
         )
