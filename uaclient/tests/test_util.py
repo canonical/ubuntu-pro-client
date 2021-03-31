@@ -727,3 +727,74 @@ class TestRedactSensitiveLogs:
     def test_redact_all_matching_regexs(self, raw_log, expected):
         """Redact all sensitive matches from log messages."""
         assert expected == util.redact_sensitive_logs(raw_log)
+
+
+class TestWrapText:
+    @pytest.mark.parametrize(
+        "text,kwargs,expected",
+        (
+            (
+                "Found CVEs: CVE-2018-14661, CVE-2018-14660, "
+                + "CVE-2018-14659, CVE-2018-14654, CVE-2018-14653, "
+                + "CVE-2018-14652, CVE-2018-14651, CVE-2018-10930, "
+                + "CVE-2018-10929, CVE-2018-10928, CVE-2018-10927, "
+                + "CVE-2018-10926, CVE-2018-10924, CVE-2018-10923, "
+                + "CVE-2018-10914, CVE-2018-10913, CVE-2018-10911, "
+                + "CVE-2018-10907, CVE-2018-10904, CVE-2018-1088, "
+                + "CVE-2018-10841, CVE-2014-3619",
+                {},
+                "Found CVEs: CVE-2018-14661, CVE-2018-14660, CVE-2018-14659, CVE-2018-14654,\n"  # noqa: E501
+                + "CVE-2018-14653, CVE-2018-14652, CVE-2018-14651, CVE-2018-10930, CVE-2018-10929,\n"  # noqa: E501
+                + "CVE-2018-10928, CVE-2018-10927, CVE-2018-10926, CVE-2018-10924, CVE-2018-10923,\n"  # noqa: E501
+                + "CVE-2018-10914, CVE-2018-10913, CVE-2018-10911, CVE-2018-10907, CVE-2018-10904,\n"  # noqa: E501
+                + "CVE-2018-1088, CVE-2018-10841, CVE-2014-3619",
+            ),
+            (
+                "Found CVEs: CVE-2018-14661, CVE-2018-14660, "
+                + "CVE-2018-14659, CVE-2018-14654, CVE-2018-14653, "
+                + "CVE-2018-14652, CVE-2018-14651, CVE-2018-10930, "
+                + "CVE-2018-10929, CVE-2018-10928, CVE-2018-10927, "
+                + "CVE-2018-10926, CVE-2018-10924, CVE-2018-10923, "
+                + "CVE-2018-10914, CVE-2018-10913, CVE-2018-10911, "
+                + "CVE-2018-10907, CVE-2018-10904, CVE-2018-1088, "
+                + "CVE-2018-10841, CVE-2014-3619",
+                {"width": 35},
+                "Found CVEs: CVE-2018-14661,\n"
+                + "CVE-2018-14660, CVE-2018-14659,\n"
+                + "CVE-2018-14654, CVE-2018-14653,\n"
+                + "CVE-2018-14652, CVE-2018-14651,\n"
+                + "CVE-2018-10930, CVE-2018-10929,\n"
+                + "CVE-2018-10928, CVE-2018-10927,\n"
+                + "CVE-2018-10926, CVE-2018-10924,\n"
+                + "CVE-2018-10923, CVE-2018-10914,\n"
+                + "CVE-2018-10913, CVE-2018-10911,\n"
+                + "CVE-2018-10907, CVE-2018-10904,\n"
+                + "CVE-2018-1088, CVE-2018-10841,\n"
+                + "CVE-2014-3619",
+            ),
+            (
+                "Found CVEs: CVE-2018-14661, CVE-2018-14660, "
+                + "CVE-2018-14659, CVE-2018-14654, CVE-2018-14653, "
+                + "CVE-2018-14652, CVE-2018-14651, CVE-2018-10930, "
+                + "CVE-2018-10929, CVE-2018-10928, CVE-2018-10927, "
+                + "CVE-2018-10926, CVE-2018-10924, CVE-2018-10923, "
+                + "CVE-2018-10914, CVE-2018-10913, CVE-2018-10911, "
+                + "CVE-2018-10907, CVE-2018-10904, CVE-2018-1088, "
+                + "CVE-2018-10841, CVE-2014-3619",
+                {"subsequent_indent": "            "},
+                "Found CVEs: CVE-2018-14661, CVE-2018-14660, CVE-2018-14659, CVE-2018-14654,\n"  # noqa: E501
+                + "            CVE-2018-14653, CVE-2018-14652, CVE-2018-14651, CVE-2018-10930,\n"  # noqa: E501
+                + "            CVE-2018-10929, CVE-2018-10928, CVE-2018-10927, CVE-2018-10926,\n"  # noqa: E501
+                + "            CVE-2018-10924, CVE-2018-10923, CVE-2018-10914, CVE-2018-10913,\n"  # noqa: E501
+                + "            CVE-2018-10911, CVE-2018-10907, CVE-2018-10904, CVE-2018-1088,\n"  # noqa: E501
+                + "            CVE-2018-10841, CVE-2014-3619",
+            ),
+        ),
+    )
+    def test_wrap_text(self, text, kwargs, expected):
+        """
+        Because the wrap_text function is a very thin wrapper around
+        textwrap.wrap, we mostly just test that the default width is
+        correct and that the kwargs are passed along appropriately.
+        """
+        assert expected == util.wrap_text(text, **kwargs)
