@@ -550,7 +550,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
             usn=usn, installed_packages=installed_packages
         )
         usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
-        print(usn.get_url_header())
+        print(util.wrap_text(usn.get_url_header()))
         related_cves = set(itertools.chain(*[u.cves_ids for u in usns]))
         if not related_cves:
             raise exceptions.SecurityAPIMetadataError(

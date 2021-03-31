@@ -1873,6 +1873,7 @@ class TestFixSecurityIssueId:
                 return_value={"a": {}}
             )
             type(usn_mock).cves_ids = mock.PropertyMock(return_value=[])
+            type(usn_mock).get_url_header = USN.get_url_header
             m_notice.return_value = usn_mock
 
             with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
@@ -1914,6 +1915,7 @@ class TestFixSecurityIssueId:
                     return_value=["cve-123"]
                 )
                 type(usn_mock).id = mock.PropertyMock(return_value="id")
+                type(usn_mock).get_url_header = USN.get_url_header
 
                 m_notice.return_value = usn_mock
                 m_notices.return_value = [usn_mock]
