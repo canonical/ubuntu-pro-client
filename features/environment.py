@@ -515,7 +515,9 @@ def after_step(context, step):
 
 
 def after_all(context):
-    if context.config.image_clean:
+    if context.config.ppa == "":
+        print(" No custom images to delete. UACLIENT_BEHAVE_PPA is unset.")
+    elif context.config.image_clean:
         for key, image in context.series_image_name.items():
             if key == context.series_reuse_image:
                 print(
@@ -630,6 +632,17 @@ def create_uat_image(context: Context, series: str) -> None:
             context.reuse_container[series],
         )
         return
+    ppa = context.config.ppa
+    if ppa == "":
+        image_name = context.config.cloud_manager.locate_image_name(series)
+        print(
+            "--- Unset UACLIENT_BEHAVE_PPA. Using ubuntu-advantage-tools from image: {}".format(
+                image_name
+            )
+        )
+        context.series_image_name[series] = image_name
+        return
+
     time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_paths = []
     if context.config.build_pr:
