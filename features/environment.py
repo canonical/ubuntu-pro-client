@@ -635,11 +635,11 @@ def create_uat_image(context: Context, series: str) -> None:
     ppa = context.config.ppa
     if ppa == "":
         image_name = context.config.cloud_manager.locate_image_name(series)
-        print(
-            "--- Unset UACLIENT_BEHAVE_PPA. Using ubuntu-advantage-tools from image: {}".format(
-                image_name
-            )
-        )
+        msg = (
+            "--- Unset UACLIENT_BEHAVE_PPA. "
+            "Using ubuntu-advantage-tools from image: {}"
+        ).format(image_name)
+        print(msg)
         context.series_image_name[series] = image_name
         return
 
