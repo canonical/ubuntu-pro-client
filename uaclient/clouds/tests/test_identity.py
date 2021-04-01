@@ -97,6 +97,37 @@ class TestGetCloudType:
     ):
         assert get_cloud_type() is None
 
+    @pytest.mark.parametrize(
+        "settings_overrides",
+        (
+            (
+                """
+                settings_overrides:
+                  cloud_type: "azure"
+                """
+            ),
+            (
+                """
+                settings_overrides:
+                  other_setting: "blah"
+                """
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.load_file")
+    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
+    @mock.patch(M_PATH + "util.subp", return_value=("test", ""))
+    def test_cloud_type_when_using_settings_override(
+        self, m_subp, m_which, m_load_file, settings_overrides
+    ):
+        if "azure" in settings_overrides:
+            expected_value = "azure"
+        else:
+            expected_value = "test"
+
+        m_load_file.return_value = settings_overrides
+        assert get_cloud_type() == expected_value
+
 
 @mock.patch(M_PATH + "get_cloud_type")
 class TestCloudInstanceFactory:
