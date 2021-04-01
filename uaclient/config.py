@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime
+from functools import wraps
 import json
 import logging
 import os
@@ -47,6 +48,7 @@ MERGE_ID_KEY_MAP = {
     "availableResources": "name",
     "resourceEntitlements": "type",
 }
+UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
 
 # A data path is a filename, and an attribute ("private") indicating whether it
@@ -681,6 +683,37 @@ def parse_config(config_path=None):
                 "Invalid url in config. {}: {}".format(key, cfg[key])
             )
     return cfg
+
+
+def apply_config_settings_override(override_key: str):
+    """Decorator used to override function return by config settings.
+
+    To identify if we should override the function return, we check
+    if the config object has the expected override key, we use it
+    has, we will use the key value as the function return. Otherwise
+    we will call the function normally.
+
+    @param override_key: key to be looked for in the settings_override
+     entry in the config dict. If that key is present, we will return
+     its value as the function return.
+    """
+
+    def wrapper(f):
+        @wraps(f)
+        def new_f():
+            cfg = parse_config()
+            value_override = cfg.get("settings_overrides", {}).get(
+                override_key, UNSET_SETTINGS_OVERRIDE_KEY
+            )
+
+            if value_override != UNSET_SETTINGS_OVERRIDE_KEY:
+                return value_override
+
+            return f()
+
+        return new_f
+
+    return wrapper
 
 
 def depth_first_merge_overlay_dict(base_dict, overlay_dict):
