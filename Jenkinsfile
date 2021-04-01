@@ -37,35 +37,28 @@ pipeline {
                 '''
             }
         }
-        stage ('Lint and Style') {
-            parallel {
-                stage("flake8") {
-                    steps {
-                        sh '''
-                        set +x
-                        . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e flake8
-                        '''
-                    }
-                }
-                stage("style") {
-                    steps {
-                        sh '''
-                        set +x
-                        . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e black
-                        '''
-                    }
-                }
-                stage("mypy") {
-                    steps {
-                        sh '''
-                        set +x
-                        . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e mypy
-                        '''
-                    }
-                }
+        stage("flake8") {
+            steps {
+                sh '''
+                set +x
+                tox -e flake8
+                '''
+            }
+        }
+        stage("style") {
+            steps {
+                sh '''
+                set +x
+                tox -e black
+                '''
+            }
+        }
+        stage("mypy") {
+            steps {
+                sh '''
+                set +x
+                tox -e mypy
+                '''
             }
         }
         stage ('Unit Tests') {
