@@ -6,6 +6,7 @@ from uaclient import exceptions
 from uaclient import clouds
 from uaclient import status
 from uaclient import util
+from uaclient.config import apply_config_settings_override
 
 try:
     from typing import Dict, Optional, Type  # noqa: F401
@@ -57,6 +58,7 @@ def get_cloud_type_from_result_file(
     return DATASOURCE_TO_CLOUD_ID.get(dsname, dsname)
 
 
+@apply_config_settings_override("cloud_type")
 def get_cloud_type() -> "Optional[str]":
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
