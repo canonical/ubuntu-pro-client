@@ -5,7 +5,6 @@ import logging
 import os
 import re
 import subprocess
-import textwrap
 import time
 from urllib import error, request
 from urllib.parse import urlparse
@@ -43,8 +42,6 @@ DROPPED_KEY = object()
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
-
-DEFAULT_PRINT_WRAP_WIDTH = 80
 
 
 class LogFormatter(logging.Formatter):
@@ -690,20 +687,3 @@ def redact_sensitive_logs(
 def should_reboot() -> bool:
     """Check if the system needs to be rebooted."""
     return os.path.exists(REBOOT_FILE_CHECK_PATH)
-
-
-def wrap_text(
-    text: str, width: int = DEFAULT_PRINT_WRAP_WIDTH, **kwargs
-) -> str:
-    """
-    Wrap text to 80 characters by default. Result is ready to be printed.
-
-    Additional kwargs are passed on to textwrap.wrap
-
-    @param text: The long string that needs to be printed but wrapped at a
-                    given width.
-    @param width: The maximum line length allowed in the result.
-    @return: The text with newlines inserted appropriately so that it never
-                    exceeds the given width.
-    """
-    return "\n".join(textwrap.wrap(text, width=width, **kwargs))

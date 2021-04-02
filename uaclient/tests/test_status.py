@@ -3,7 +3,7 @@ import pytest
 import string
 
 from uaclient import config
-from uaclient.status import format_tabular, TxtColor
+from uaclient.status import format_tabular, TxtColor, colorize_commands
 
 
 @pytest.fixture
@@ -32,6 +32,51 @@ def status_dict_unattached():
     ]
 
     return status
+
+
+class TestColorizeCommands:
+    @pytest.mark.parametrize(
+        "commands,expected",
+        [
+            (
+                [
+                    ["apt", "update"],
+                    ["apt", "install", "--only-upgrade", "-y", "pkg"],
+                ],
+                TxtColor.DISABLEGREY
+                + "{ apt update && apt install --only-upgrade -y pkg }"
+                + TxtColor.ENDC,
+            ),
+            (
+                [
+                    ["apt", "update"],
+                    [
+                        "apt",
+                        "install",
+                        "--only-upgrade",
+                        "-y",
+                        "longpackagename1",
+                        "longpackagename2",
+                        "longpackagename3",
+                        "longpackagename4",
+                        "longpackagename5",
+                        "longpackagename6",
+                        "longpackagename7",
+                        "longpackagename8",
+                        "longpackagename9",
+                        "longpackagename10",
+                    ],
+                ],
+                TxtColor.DISABLEGREY
+                + "{ apt update && apt install --only-upgrade -y longpackagename1 longpackagename2 \\\n"  # noqa: E501
+                + "  longpackagename3 longpackagename4 longpackagename5 longpackagename6 \\\n"  # noqa: E501
+                + "  longpackagename7 longpackagename8 longpackagename9 longpackagename10 }"  # noqa: E501
+                + TxtColor.ENDC,
+            ),
+        ],
+    )
+    def test_colorize_commands(self, commands, expected):
+        assert colorize_commands(commands) == expected
 
 
 class TestFormatTabular:

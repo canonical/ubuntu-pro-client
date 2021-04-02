@@ -1,7 +1,8 @@
 import enum
 import sys
+import textwrap
 
-from uaclient.defaults import BASE_UA_URL
+from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
 
 try:
     from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
@@ -392,8 +393,14 @@ def colorize_commands(commands: "List[List[str]]") -> str:
         if content:
             content += " && "
         content += " ".join(cmd)
+    # subtract 2 from print width to make room for space and backslash
+    wrapped_content = " \\\n".join(
+        textwrap.wrap(
+            content, width=(PRINT_WRAP_WIDTH - 2), subsequent_indent="  "
+        )
+    )
     return "{color}{{ {content} }}{end}".format(
-        color=TxtColor.DISABLEGREY, content=content, end=TxtColor.ENDC
+        color=TxtColor.DISABLEGREY, content=wrapped_content, end=TxtColor.ENDC
     )
 
 

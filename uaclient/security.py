@@ -2,6 +2,7 @@ import copy
 import itertools
 import os
 import socket
+import textwrap
 
 from collections import defaultdict
 
@@ -17,7 +18,7 @@ from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
-from uaclient.defaults import BASE_UA_URL
+from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
 
 try:
     from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
@@ -368,9 +369,13 @@ class USN:
         """Return a string representing the URL for this notice."""
         lines = [
             "{issue}: {title}".format(issue=self.id, title=self.title),
-            util.wrap_text("Found CVEs: {}".format(
-                ", ".join(sorted(self.cves_ids, reverse=True))
-            ), subsequent_indent="            "),
+            *textwrap.wrap(
+                "Found CVEs: {}".format(
+                    ", ".join(sorted(self.cves_ids, reverse=True))
+                ),
+                width=PRINT_WRAP_WIDTH,
+                subsequent_indent="            ",
+            ),
         ]
         for cve in self.cves_ids:
             lines.append("https://ubuntu.com/security/{}".format(cve))
@@ -637,10 +642,14 @@ def print_affected_packages_header(
         plural_str = " is"
     else:
         plural_str = "s are"
-    msg = status.MESSAGE_SECURITY_AFFECTED_PKGS.format(
-        count=count, plural_str=plural_str
+    msg = (
+        status.MESSAGE_SECURITY_AFFECTED_PKGS.format(
+            count=count, plural_str=plural_str
+        )
+        + ": "
+        + ", ".join(sorted(affected_pkg_status.keys()))
     )
-    print(msg + ": " + ", ".join(sorted(affected_pkg_status.keys())))
+    print(textwrap.fill(msg, width=PRINT_WRAP_WIDTH, subsequent_indent="    "))
 
 
 def override_usn_release_package_status(
@@ -708,11 +717,14 @@ def _format_packages_message(
         msg_index.append("{}/{}".format(pkg_index, num_pkgs))
         src_pkgs.append(src_pkg)
 
-    return "{} {}:\n{}".format(
-        "(" + ", ".join(msg_index) + ")",
-        ", ".join(sorted(src_pkgs)),
-        pkg_status.status_message,
+    msg_header = textwrap.fill(
+        "{} {}:".format(
+            "(" + ", ".join(msg_index) + ")", ", ".join(sorted(src_pkgs))
+        ),
+        width=PRINT_WRAP_WIDTH,
+        subsequent_indent="    ",
     )
+    return "{}\n{}".format(msg_header, pkg_status.status_message)
 
 
 def _handle_released_package_fixes(
@@ -771,11 +783,15 @@ def _format_unfixed_packages_msg(unfixed_pkgs: "List[str]") -> str:
               packages.
     """
     num_pkgs_unfixed = len(unfixed_pkgs)
-    return "{} package{} {} still affected: {}".format(
-        num_pkgs_unfixed,
-        "s" if num_pkgs_unfixed > 1 else "",
-        "are" if num_pkgs_unfixed > 1 else "is",
-        ", ".join(sorted(unfixed_pkgs)),
+    return textwrap.fill(
+        "{} package{} {} still affected: {}".format(
+            num_pkgs_unfixed,
+            "s" if num_pkgs_unfixed > 1 else "",
+            "are" if num_pkgs_unfixed > 1 else "is",
+            ", ".join(sorted(unfixed_pkgs)),
+        ),
+        width=PRINT_WRAP_WIDTH,
+        subsequent_indent="    ",
     )
 
 
