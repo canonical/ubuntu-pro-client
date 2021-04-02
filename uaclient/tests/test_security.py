@@ -162,6 +162,12 @@ SAMPLE_USN_RESPONSE = {
 }
 
 
+def shallow_merge_dicts(a, b):
+    c = a.copy()
+    c.update(b)
+    return c
+
+
 class TestGetCVEAffectedPackageStatus:
     @pytest.mark.parametrize(
         "series,installed_packages,expected_status",
@@ -479,10 +485,10 @@ class TestUSN:
                 ),
             ),
             (
-                {
-                    **SAMPLE_USN_RESPONSE,
-                    "cves_ids": SAMPLE_USN_RESPONSE["cves_ids"] * 8,
-                },
+                shallow_merge_dicts(
+                    SAMPLE_USN_RESPONSE,
+                    {"cves_ids": SAMPLE_USN_RESPONSE["cves_ids"] * 8},
+                ),
                 """\
 USN-4510-2: Samba vulnerability
 Found CVEs: CVE-2020-1473, CVE-2020-1473, CVE-2020-1473, CVE-2020-1473,
