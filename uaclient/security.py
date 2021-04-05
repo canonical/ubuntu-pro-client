@@ -5,6 +5,7 @@ import socket
 import textwrap
 
 from collections import defaultdict
+from datetime import datetime
 
 from uaclient import apt
 from uaclient.config import UAConfig
@@ -1039,15 +1040,10 @@ def _check_subscription_is_expired(cfg: UAConfig) -> bool:
 
     :returns: True if subscription is expired and not renewed.
     """
-    from uaclient import cli
-
-    try:
-        cli.action_refresh(args=None, cfg=cfg, verbose=False)
-    except exceptions.UserFacingError as e:
-        if status.MESSAGE_ATTACH_EXPIRED_TOKEN in str(e):
-            return not _prompt_for_new_token(cfg)
-        else:
-            raise e
+    contract_expiry_datetime = cfg.contract_expiry_datetime
+    tzinfo = contract_expiry_datetime.tzinfo
+    if contract_expiry_datetime < datetime.now(tzinfo):
+        return not _prompt_for_new_token(cfg)
 
     return False
 
