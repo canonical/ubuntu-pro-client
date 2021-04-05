@@ -18,7 +18,7 @@ from hamcrest import (
 from features.environment import create_uat_image
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
-from uaclient.defaults import DEFAULT_CONFIG_FILE
+from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
 
 
 CONTAINER_PREFIX = "ubuntu-behave-test-"
@@ -168,6 +168,33 @@ def when_i_fix_a_issue_by_enabling_service(context, issue):
         command="ua fix {}".format(issue),
         user_spec="with sudo",
         stdin="e\n",
+    )
+
+
+@when("I fix `{issue}` by updating expired token")
+def when_i_fix_a_issue_by_updating_expired_token(context, issue):
+    token = getattr(context.config, "contract_token")
+    when_i_run_command(
+        context=context,
+        command="ua fix {}".format(issue),
+        user_spec="with sudo",
+        stdin="r\n{}\n".format(token),
+    )
+
+
+@when("I update contract to use `{contract_field}` as `{new_value}`")
+def when_i_update_contract_field_to_new_value(
+    context, contract_field, new_value
+):
+    when_i_run_command(
+        context,
+        'sed -i \'s/"{}": "[^"]*"/"{}": "{}"/g\' {}'.format(
+            contract_field,
+            contract_field,
+            new_value,
+            DEFAULT_MACHINE_TOKEN_PATH,
+        ),
+        user_spec="with sudo",
     )
 
 
