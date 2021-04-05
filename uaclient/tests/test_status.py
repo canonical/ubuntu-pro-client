@@ -68,9 +68,12 @@ class TestColorizeCommands:
                     ],
                 ],
                 TxtColor.DISABLEGREY
-                + "{ apt update && apt install --only-upgrade -y longpackagename1 longpackagename2 \\\n"  # noqa: E501
-                + "  longpackagename3 longpackagename4 longpackagename5 longpackagename6 \\\n"  # noqa: E501
-                + "  longpackagename7 longpackagename8 longpackagename9 longpackagename10 }"  # noqa: E501
+                + "{\n"
+                + "  apt update && apt install --only-upgrade -y longpackagename1 \\\n"  # noqa: E501
+                + "  longpackagename2 longpackagename3 longpackagename4 longpackagename5 \\\n"  # noqa: E501
+                + "  longpackagename6 longpackagename7 longpackagename8 longpackagename9 \\\n"  # noqa: E501
+                + "  longpackagename10"
+                + "\n}"
                 + TxtColor.ENDC,
             ),
         ],

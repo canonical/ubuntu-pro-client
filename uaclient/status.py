@@ -393,14 +393,25 @@ def colorize_commands(commands: "List[List[str]]") -> str:
         if content:
             content += " && "
         content += " ".join(cmd)
-    # subtract 2 from print width to make room for space and backslash
+    # subtract 4 from print width to account for leading and trailing braces
+    # and spaces
     wrapped_content = " \\\n".join(
         textwrap.wrap(
-            content, width=(PRINT_WRAP_WIDTH - 2), subsequent_indent="  "
+            content, width=(PRINT_WRAP_WIDTH - 4), subsequent_indent="  "
         )
     )
-    return "{color}{{ {content} }}{end}".format(
-        color=TxtColor.DISABLEGREY, content=wrapped_content, end=TxtColor.ENDC
+    if "\n" in wrapped_content:
+        prefix = "{\n  "
+        suffix = "\n}"
+    else:
+        prefix = "{ "
+        suffix = " }"
+    return "{color}{prefix}{content}{suffix}{end}".format(
+        color=TxtColor.DISABLEGREY,
+        prefix=prefix,
+        content=wrapped_content,
+        suffix=suffix,
+        end=TxtColor.ENDC,
     )
 
 
