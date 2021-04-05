@@ -162,6 +162,12 @@ SAMPLE_USN_RESPONSE = {
 }
 
 
+def shallow_merge_dicts(a, b):
+    c = a.copy()
+    c.update(b)
+    return c
+
+
 class TestGetCVEAffectedPackageStatus:
     @pytest.mark.parametrize(
         "series,installed_packages,expected_status",
@@ -465,20 +471,51 @@ class TestUSN:
             usn.release_packages
         assert error_msg == str(exc.value)
 
-    def test_get_url_header(self, FakeConfig):
+    @pytest.mark.parametrize(
+        "usn_response,expected",
+        (
+            (
+                SAMPLE_USN_RESPONSE,
+                textwrap.dedent(
+                    """\
+                    USN-4510-2: Samba vulnerability
+                    Found CVEs:
+                    https://ubuntu.com/security/CVE-2020-1473
+                    https://ubuntu.com/security/CVE-2020-1472"""
+                ),
+            ),
+            (
+                shallow_merge_dicts(
+                    SAMPLE_USN_RESPONSE,
+                    {"cves_ids": SAMPLE_USN_RESPONSE["cves_ids"] * 8},
+                ),
+                """\
+USN-4510-2: Samba vulnerability
+Found CVEs:
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472
+https://ubuntu.com/security/CVE-2020-1473
+https://ubuntu.com/security/CVE-2020-1472""",
+            ),
+        ),
+    )
+    def test_get_url_header(self, FakeConfig, usn_response, expected):
         """USN.get_url_header returns a string based on the USN response."""
         client = UASecurityClient(FakeConfig())
-        usn = USN(client, SAMPLE_USN_RESPONSE)
-        assert (
-            textwrap.dedent(
-                """\
-                USN-4510-2: Samba vulnerability
-                Found CVEs: CVE-2020-1473, CVE-2020-1472
-                https://ubuntu.com/security/CVE-2020-1473
-                https://ubuntu.com/security/CVE-2020-1472"""
-            )
-            == usn.get_url_header()
-        )
+        usn = USN(client, usn_response)
+        assert expected == usn.get_url_header()
 
     @pytest.mark.parametrize(
         "cves_response,expected",
@@ -1135,8 +1172,9 @@ class TestPromptForAffectedPackages:
                     """
                 ).format(
                     (
-                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg14, pkg15, "
-                        "pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg14,\n"
+                        "    pkg15, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, "
+                        "pkg9"
                     )
                 )
                 + colorize_commands(
@@ -1165,8 +1203,8 @@ class TestPromptForAffectedPackages:
                 + "\n"
                 + "13 packages are still affected: {}".format(
                     (
-                        "pkg1, pkg12, pkg13, pkg14, pkg15, pkg2, pkg3,"
-                        " pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                        "pkg1, pkg12, pkg13, pkg14, pkg15, pkg2, pkg3,\n"
+                        "    pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
                     )
                 ),
             ),
@@ -1198,13 +1236,77 @@ class TestPromptForAffectedPackages:
                     A fix is coming soon. Try again tomorrow.
                     """
                 ).format(
-                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7,\n"
+                    "    pkg8, pkg9"
                 )
                 + "9 packages are still affected: {}".format(
-                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
+                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8,\n"
+                    "    pkg9"
                 )
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+            ),
+            (  # text wrapping required in several places
+                {
+                    "longpackagename1": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED
+                    ),
+                    "longpackagename2": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED
+                    ),
+                    "longpackagename3": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED
+                    ),
+                    "longpackagename4": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED
+                    ),
+                    "longpackagename5": CVEPackageStatus(
+                        CVE_PKG_STATUS_RELEASED
+                    ),
+                },
+                {
+                    "longpackagename1": {"longpackagename1": "2.0"},
+                    "longpackagename2": {"longpackagename2": "2.0"},
+                    "longpackagename3": {"longpackagename3": "2.0"},
+                    "longpackagename4": {"longpackagename4": "2.0"},
+                    "longpackagename5": {"longpackagename5": "2.0"},
+                },
+                {
+                    "longpackagename1": {
+                        "longpackagename1": {"version": "2.1"}
+                    },
+                    "longpackagename2": {
+                        "longpackagename2": {"version": "2.1"}
+                    },
+                    "longpackagename3": {
+                        "longpackagename3": {"version": "2.1"}
+                    },
+                    "longpackagename4": {
+                        "longpackagename4": {"version": "2.1"}
+                    },
+                    "longpackagename5": {
+                        "longpackagename5": {"version": "2.1"}
+                    },
+                },
+                "gcp",
+                """\
+5 affected packages are installed: longpackagename1, longpackagename2,
+    longpackagename3, longpackagename4, longpackagename5
+(1/5, 2/5, 3/5, 4/5, 5/5) longpackagename1, longpackagename2, longpackagename3,
+    longpackagename4, longpackagename5:
+A fix is available in Ubuntu standard updates.\n"""
+                + colorize_commands(
+                    [
+                        [
+                            "apt update && apt install --only-upgrade"
+                            " -y longpackagename1 longpackagename2 "
+                            "longpackagename3 longpackagename4 "
+                            "longpackagename5"
+                        ]
+                    ]
+                )
+                + "\n"
+                + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
             ),
         ),
     )
