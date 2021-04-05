@@ -352,11 +352,23 @@ def get_platform_info() -> "Dict[str, str]":
 @lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
+
+    # We may mistake schroot environments for containers by just relying
+    # in the other checks present in that function. To guarantee that
+    # we do not identify a schroot as a container, we are explicitly
+    # using the 'ischroot' command here.
+    try:
+        subp(["ischroot"])
+        return False
+    except ProcessExecutionError:
+        pass
+
     try:
         subp(["systemd-detect-virt", "--quiet", "--container"])
         return True
     except (IOError, OSError):
         pass
+
     for filename in ("container_type", "systemd/container"):
         path = os.path.join(run_path, filename)
         if os.path.exists(path):
