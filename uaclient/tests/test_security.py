@@ -1067,7 +1067,14 @@ class TestPromptForAffectedPackages:
                     A fix is available in UA Apps.
                     """
                 )
-                + MSG_SUBSCRIPTION,
+                + "\n".join(
+                    [
+                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                            title="GCP", cloud="gcp"
+                        ),
+                        MSG_SUBSCRIPTION,
+                    ]
+                ),
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1147,7 +1154,14 @@ class TestPromptForAffectedPackages:
                     A fix is available in UA Apps.
                     """
                 )
-                + MSG_SUBSCRIPTION
+                + "\n".join(
+                    [
+                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                            title="GCP", cloud="gcp"
+                        ),
+                        MSG_SUBSCRIPTION,
+                    ]
+                )
                 + "\n"
                 + "13 packages are still affected: {}".format(
                     (

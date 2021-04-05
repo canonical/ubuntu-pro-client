@@ -29,7 +29,7 @@ CLOUD_TYPE_TO_TITLE = {
     "gcp": "GCP",
 }
 
-PRO_CLOUDS = ["aws", "azure"]
+PRO_CLOUDS = ["aws", "azure", "gcp"]
 
 
 def get_instance_id(
