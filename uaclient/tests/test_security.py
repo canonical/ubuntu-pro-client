@@ -479,7 +479,7 @@ class TestUSN:
                 textwrap.dedent(
                     """\
                     USN-4510-2: Samba vulnerability
-                    Found CVEs: CVE-2020-1473, CVE-2020-1472
+                    Found CVEs:
                     https://ubuntu.com/security/CVE-2020-1473
                     https://ubuntu.com/security/CVE-2020-1472"""
                 ),
@@ -491,10 +491,7 @@ class TestUSN:
                 ),
                 """\
 USN-4510-2: Samba vulnerability
-Found CVEs: CVE-2020-1473, CVE-2020-1473, CVE-2020-1473, CVE-2020-1473,
-            CVE-2020-1473, CVE-2020-1473, CVE-2020-1473, CVE-2020-1473,
-            CVE-2020-1472, CVE-2020-1472, CVE-2020-1472, CVE-2020-1472,
-            CVE-2020-1472, CVE-2020-1472, CVE-2020-1472, CVE-2020-1472
+Found CVEs:
 https://ubuntu.com/security/CVE-2020-1473
 https://ubuntu.com/security/CVE-2020-1472
 https://ubuntu.com/security/CVE-2020-1473

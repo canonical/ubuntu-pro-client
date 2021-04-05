@@ -367,16 +367,10 @@ class USN:
 
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
-        lines = ["{issue}: {title}".format(issue=self.id, title=self.title)]
-        lines.extend(
-            textwrap.wrap(
-                "Found CVEs: {}".format(
-                    ", ".join(sorted(self.cves_ids, reverse=True))
-                ),
-                width=PRINT_WRAP_WIDTH,
-                subsequent_indent="            ",
-            )
-        )
+        lines = [
+            "{issue}: {title}".format(issue=self.id, title=self.title),
+            "Found CVEs:",
+        ]
         for cve in self.cves_ids:
             lines.append("https://ubuntu.com/security/{}".format(cve))
         return "\n".join(lines)

@@ -152,7 +152,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            Found CVEs: CVE-2020-11728
+            Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
@@ -184,7 +184,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            Found CVEs: CVE-2020-11728
+            Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
@@ -232,7 +232,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            Found CVEs: CVE-2020-11728
+            Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
             No affected packages are installed.
             .*✔.* USN-4539-1 does not affect your system.
@@ -262,7 +262,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4747-2: GNU Screen vulnerability
-            Found CVEs: CVE-2021-26937
+            Found CVEs:
             https://ubuntu.com/security/CVE-2021-26937
             1 affected package is installed: screen
             \(1/1\) screen:
@@ -287,7 +287,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4747-2: GNU Screen vulnerability
-            Found CVEs: CVE-2021-26937
+            Found CVEs:
             https://ubuntu.com/security/CVE-2021-26937
             1 affected package is installed: screen
             \(1/1\) screen:
@@ -341,7 +341,7 @@ Feature: Command behaviour when unattached
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
-            Found CVEs: CVE-2020-11728
+            Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
