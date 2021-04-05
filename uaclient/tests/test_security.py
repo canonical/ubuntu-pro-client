@@ -33,7 +33,6 @@ from uaclient.status import (
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
     MESSAGE_SECURITY_SERVICE_DISABLED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
-    MESSAGE_ATTACH_EXPIRED_TOKEN,
     MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
@@ -1816,7 +1815,6 @@ A fix is available in Ubuntu standard updates.\n"""
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("uaclient.cli.action_detach")
-    @mock.patch("uaclient.cli.action_refresh")
     @mock.patch("uaclient.security._check_subscription_for_required_service")
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
@@ -1827,7 +1825,6 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type,
         _m_os_getuid,
         m_check_subscription_for_service,
-        m_cli_refresh,
         _m_cli_detach,
         _m_input,
         m_cli_attach,
@@ -1842,13 +1839,16 @@ A fix is available in Ubuntu standard updates.\n"""
     ):
         m_get_cloud_type.return_value = "cloud"
         m_check_subscription_for_service.return_value = True
-        m_cli_refresh.side_effect = exceptions.UserFacingError(
-            MESSAGE_ATTACH_EXPIRED_TOKEN
-        )
         m_cli_attach.return_value = 0
 
         cfg = FakeConfig()
-        cfg.for_attached_machine()
+        cfg.for_attached_machine(
+            machine_token={
+                "machineTokenInfo": {
+                    "contractInfo": {"effectiveTo": "1999-12-01T00:00:00Z"}
+                }
+            }
+        )
         prompt_for_affected_packages(
             cfg=cfg,
             issue_id="USN-###",
@@ -1882,7 +1882,6 @@ A fix is available in Ubuntu standard updates.\n"""
         ),
     )
     @mock.patch("uaclient.util.should_reboot", return_value=False)
-    @mock.patch("uaclient.cli.action_refresh")
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
     @mock.patch("uaclient.security.util.prompt_choices", return_value="c")
@@ -1891,7 +1890,6 @@ A fix is available in Ubuntu standard updates.\n"""
         m_prompt_choices,
         m_get_cloud_type,
         _m_os_getuid,
-        m_cli_refresh,
         _m_should_reboot,
         affected_pkg_status,
         installed_packages,
@@ -1901,12 +1899,15 @@ A fix is available in Ubuntu standard updates.\n"""
         capsys,
     ):
         m_get_cloud_type.return_value = "cloud"
-        m_cli_refresh.side_effect = exceptions.UserFacingError(
-            MESSAGE_ATTACH_EXPIRED_TOKEN
-        )
 
         cfg = FakeConfig()
-        cfg.for_attached_machine()
+        cfg.for_attached_machine(
+            machine_token={
+                "machineTokenInfo": {
+                    "contractInfo": {"effectiveTo": "1999-12-01T00:00:00Z"}
+                }
+            }
+        )
         prompt_for_affected_packages(
             cfg=cfg,
             issue_id="USN-###",

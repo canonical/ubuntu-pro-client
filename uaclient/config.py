@@ -69,6 +69,7 @@ class UAConfig:
 
     _entitlements = None  # caching to avoid repetitive file reads
     _machine_token = None  # caching to avoid repetitive file reading
+    _contract_expiry_datetime = None
 
     def __init__(
         self, cfg: "Dict[str, Any]" = None, series: str = None
@@ -211,6 +212,18 @@ class UAConfig:
             util.apply_series_overrides(entitlement_cfg, self.series)
             self._entitlements[entitlement_name] = entitlement_cfg
         return self._entitlements
+
+    @property
+    def contract_expiry_datetime(self) -> "datetime":
+        if not self._contract_expiry_datetime:
+            contractInfo = self.machine_token["machineTokenInfo"][
+                "contractInfo"
+            ]
+            self._contract_expiry_datetime = datetime.strptime(
+                contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
+            )
+
+        return self._contract_expiry_datetime
 
     @property
     def is_attached(self):
