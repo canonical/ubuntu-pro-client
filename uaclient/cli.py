@@ -924,7 +924,7 @@ def print_version(_args=None, _cfg=None):
 @assert_root
 @assert_attached()
 @assert_lock_file("ua refresh")
-def action_refresh(args, cfg, verbose=True):
+def action_refresh(args, cfg):
     try:
         contract.request_updated_contract(cfg)
     except util.UrlError as exc:
@@ -932,8 +932,7 @@ def action_refresh(args, cfg, verbose=True):
             logging.exception(exc)
         raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
 
-    if verbose:
-        print(ua_status.MESSAGE_REFRESH_SUCCESS)
+    print(ua_status.MESSAGE_REFRESH_SUCCESS)
     return 0
 
 

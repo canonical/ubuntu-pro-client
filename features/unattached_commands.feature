@@ -346,6 +346,36 @@ Feature: Command behaviour when unattached
             .*\{ apt update && apt install --only-upgrade -y screen \}.*
             .*✔.* USN-4747-2 is resolved.
             """
+        When I run `apt-get install -y screen=4.1.0~20120320gitdb59704-9 --force-yes` with sudo
+        And I update contract to use `effectiveTo` as `1999-12-01T00:00:00Z`
+        And I fix `USN-4747-2` by updating expired token
+        Then stdout matches regexp:
+            """
+            USN-4747-2: GNU Screen vulnerability
+            Found CVEs:
+            https://ubuntu.com/security/CVE-2021-26937
+            1 affected package is installed: screen
+            \(1/1\) screen:
+            A fix is available in UA Infra.
+            The update is not installed because this system is attached to an
+            expired subscription.
+
+            Choose: \[R\]enew your subscription \(at https://ubuntu.com/advantage\) \[C\]ancel
+            > Enter your new token to renew UA subscription on this system:
+            > .*\{ ua detach \}.*
+            Detach will disable the following service:
+                esm-infra
+            Updating package lists
+            This machine is now detached.
+            .*\{ ua attach .* \}.*
+            Updating package lists
+            ESM Infra enabled
+            """
+        And stdout matches regexp:
+            """
+            .*\{ apt update && apt install --only-upgrade -y screen \}.*
+            .*✔.* USN-4747-2 is resolved.
+            """
 
         Examples: ubuntu release
            | release |
