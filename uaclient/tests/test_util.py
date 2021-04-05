@@ -123,31 +123,59 @@ class TestIsContainer:
     @mock.patch("uaclient.util.subp")
     def test_true_systemd_detect_virt_success(self, m_subp):
         """Return True when systemd-detect virt exits success."""
-        m_subp.return_value = "", ""
+        util.is_container.cache_clear()
+        m_subp.side_effect = [
+            util.ProcessExecutionError(
+                "Failed running command 'ischroot' [exit(1)]"
+            ),
+            "",
+            "",
+        ]
         assert True is util.is_container()
         # Second call for lru_cache test
         util.is_container()
-        calls = [mock.call(["systemd-detect-virt", "--quiet", "--container"])]
+        calls = [
+            mock.call(["ischroot"]),
+            mock.call(["systemd-detect-virt", "--quiet", "--container"]),
+        ]
         assert calls == m_subp.call_args_list
 
     @mock.patch("uaclient.util.subp")
     def test_true_on_run_container_type(self, m_subp, tmpdir):
         """Return True when /run/container_type exists."""
-        m_subp.side_effect = OSError("No systemd-detect-virt utility")
+        util.is_container.cache_clear()
+        m_subp.side_effect = [
+            util.ProcessExecutionError(
+                "Failed running command 'ischroot' [exit(1)]"
+            ),
+            OSError("No systemd-detect-virt utility"),
+        ]
         tmpdir.join("container_type").write("")
 
         assert True is util.is_container(run_path=tmpdir.strpath)
-        calls = [mock.call(["systemd-detect-virt", "--quiet", "--container"])]
+        calls = [
+            mock.call(["ischroot"]),
+            mock.call(["systemd-detect-virt", "--quiet", "--container"]),
+        ]
         assert calls == m_subp.call_args_list
 
     @mock.patch("uaclient.util.subp")
     def test_true_on_run_systemd_container(self, m_subp, tmpdir):
         """Return True when /run/systemd/container exists."""
-        m_subp.side_effect = OSError("No systemd-detect-virt utility")
+        util.is_container.cache_clear()
+        m_subp.side_effect = [
+            util.ProcessExecutionError(
+                "Failed running command 'ischroot' [exit(1)]"
+            ),
+            OSError("No systemd-detect-virt utility"),
+        ]
         tmpdir.join("systemd/container").write("", ensure=True)
 
         assert True is util.is_container(run_path=tmpdir.strpath)
-        calls = [mock.call(["systemd-detect-virt", "--quiet", "--container"])]
+        calls = [
+            mock.call(["ischroot"]),
+            mock.call(["systemd-detect-virt", "--quiet", "--container"]),
+        ]
         assert calls == m_subp.call_args_list
 
     @mock.patch("uaclient.util.subp")
@@ -155,18 +183,37 @@ class TestIsContainer:
         self, m_subp, tmpdir
     ):
         """Return False when sytemd-detect-virt erros and no /run/* files."""
-        m_subp.side_effect = OSError("No systemd-detect-virt utility")
+        util.is_container.cache_clear()
+        m_subp.side_effect = [
+            util.ProcessExecutionError(
+                "Failed running command 'ischroot' [exit(1)]"
+            ),
+            OSError("No systemd-detect-virt utility"),
+        ]
+        tmpdir.join("systemd/container").write("", ensure=True)
 
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             m_exists.return_value = False
             assert False is util.is_container(run_path=tmpdir.strpath)
-        calls = [mock.call(["systemd-detect-virt", "--quiet", "--container"])]
+        calls = [
+            mock.call(["ischroot"]),
+            mock.call(["systemd-detect-virt", "--quiet", "--container"]),
+        ]
         assert calls == m_subp.call_args_list
         exists_calls = [
             mock.call(tmpdir.join("container_type").strpath),
             mock.call(tmpdir.join("systemd/container").strpath),
         ]
         assert exists_calls == m_exists.call_args_list
+
+    @mock.patch("uaclient.util.subp")
+    def test_false_on_chroot_system(self, m_subp):
+        util.is_container.cache_clear()
+        m_subp.return_value = ("", "")
+        assert False is util.is_container()
+
+        calls = [mock.call(["ischroot"])]
+        assert calls == m_subp.call_args_list
 
 
 class TestSubp:
