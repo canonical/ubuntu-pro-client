@@ -220,6 +220,25 @@ class TestSubp:
 
         assert expected_sleeps == sleeps
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch("uaclient.util._subp")
+    @mock.patch("uaclient.util.time.sleep")
+    def test_retry_logs_remaining_retries(self, m_sleep, m_subp, caplog_text):
+        """When retry_sleeps given, use defined sleeps between each retry."""
+        sleeps = [1, 3, 0.4]
+        m_subp.side_effect = util.ProcessExecutionError("Funky apt %d error")
+        with pytest.raises(util.ProcessExecutionError):
+            util.subp(["apt", "dostuff"], retry_sleeps=sleeps)
+
+        logs = caplog_text()
+        expected_logs = [
+            "'Funky apt %d error'. Retrying 3 more times.",
+            "'Funky apt %d error'. Retrying 2 more times.",
+            "'Funky apt %d error'. Retrying 1 more times.",
+        ]
+        for log in expected_logs:
+            assert log in logs
+
 
 class TestParseOSRelease:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
