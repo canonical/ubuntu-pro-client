@@ -61,3 +61,56 @@ Manually perform a binary package copy from Daily PPA to Premium PPA and notify 
  5. Copy options: "Copy existing binaries"
  6. Click Copy packages
  7. Notify Pro Image creators about expected Premium PPA version (patviafore/rcj/powersj)
+
+
+## Release to PPA
+
+We manually upload the packages to our staging/stable PPAs. If you want to cut a new release and
+upload to one of these PPAs, follow these steps:
+
+ 1. Do a `git cherry-pick` on the commits that should be included in the release
+ 2. Update the debian/changelog file:
+    * Create a new entry in the `debian/changelog` file:
+      * You can do that by running ` dch --newversion <version-name>`
+      * Remember to update the release from `UNRELEASED` to the most recently supported
+        ubuntu release
+    * Populate `debian/changelog` with the commits you have cherry-picked
+      * You can do that by running `git log <first-cherry-pick-commit>..<last-cherry-pick-commit> | log2dch`
+      * This will generate a list of commits that could be included in the changelog. If you don't
+        have `log2dch`, you can get it from the [uss-tableflip](https://github.com/canonical/uss-tableflip)
+      * You don't need to include all of the commits generated. Remember that the changelog should
+        be read by the user to understand the new features/modifications in the package. If you
+        think a commit will not add that much to the user experience, you can drop it from the
+        changelog
+      * To structure the changelog you can use the other entries as example. But we basically try
+        keep this order: debian changes, new features/modifications, testing
+ 3. Start building the package:
+    * *WARNING* Build the package in a clean environment. The reason for that is because the package
+      will contain everything that it is present in the folder. If you are storing credentials or
+      other sensible development information in your folder, they will be upload too when we send
+      the package to the ppa. A clean environment is the safest way to perform this.
+    * Build the necessary artifacts that allow building the package
+      * Guarantee that you have a gpg key in the system. You will use that gpg key to sign the
+        package.
+      * We can achieve that by running the `build-package` command. This script is also found on the
+        [uss-tableflip](https://github.com/canonical/uss-tableflip) repo.
+      * This script will generate all the package artifacts in a folder named `out`. This will be a
+        top level folder than the one you are running `build-package` command.
+    * Verify if we can build the package:
+      * We can achieve that by running the `sbuild-it` command. This script is also found on the
+        [uss-tableflip](https://github.com/canonical/uss-tableflip) repo.
+      * To use it, you can just run `sbuild-it ../out/<package_name>.dsc
+      * If the package was built sucessfully, you can move to the next step.
+  4. Repeat that for older ubuntu releases:
+     * Currently, we test this build process for `Trusty(14.04)`, `Xenial(16.04)`, `Bionic(18.04)`,
+       `Focal(20.10)`, `Groovy(20.10)` and `Hirsute(21.04)`
+     * To test this other releases, just change the changelog to target those releases.
+       PS: remember to also change the version number on the changelog. For example, suppose
+       the new version is `1.1~20.04.1`. If you want to test Bionic now, change it to
+       `1.1~18.04.1`.
+     * Commit those changes and perform the `build-package` and `sbuild-it` steps for the release
+  5. After all of the releases are tested, we can start uploading to the ppa. For each release, run
+     the command `dput ppa:ua-client/stable ../out/<package_name>_source.changes`
+     * Run this command for each release you are going to upload
+     * Remember to have launchpad already properly configured in your system to allow you uploading
+       packages to the ppa.
