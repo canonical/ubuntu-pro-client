@@ -250,9 +250,8 @@ def retry(exception, retry_sleeps):
                 except exception as e:
                     if not sleeps:
                         raise e
-                    logging.debug(
-                        str(e) + " Retrying %d more times.", len(sleeps)
-                    )
+                    retry_msg = " Retrying %d more times." % len(sleeps)
+                    logging.debug(str(e) + retry_msg)
                     time.sleep(sleeps.pop(0))
 
         return decorator
@@ -582,9 +581,8 @@ def subp(
                 logging.debug(str(e))
             if not retry_sleeps:
                 raise
-            logging.debug(
-                str(e) + " Retrying %d more times.", len(retry_sleeps)
-            )
+            retry_msg = " Retrying %d more times." % len(retry_sleeps)
+            logging.debug(str(e) + retry_msg)
             time.sleep(retry_sleeps.pop(0))
     return out, err
 
