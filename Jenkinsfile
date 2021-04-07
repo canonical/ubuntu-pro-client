@@ -86,7 +86,7 @@ pipeline {
                         mkdir ${ARTIFACT_DIR}
                         cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
                         # grab dh-systemd build-deps for xenial and earlier
-                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control-${SERIES_VERSION}
+                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control.${BUILD_SERIES}
                         sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
                         dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -c${WORKSPACE}/debian/control.${BUILD_SERIES} -b .
                         sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
@@ -109,7 +109,7 @@ pipeline {
                         mkdir ${ARTIFACT_DIR}
                         # grab dh-systemd build-deps for xenial and earlier
                         cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
-                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control-${SERIES_VERSION}
+                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control.${BUILD_SERIES}
                         sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
                         dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -c${WORKSPACE}/debian/control.${BUILD_SERIES} -b .
                         sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
