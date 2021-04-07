@@ -245,6 +245,9 @@ Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
 MESSAGE_LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
 PROMPT_YES_NO = """Are you sure? (y/N) """
+MESSAGE_REBOOT_SCRIPT_FAILED = (
+    "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
+)
 MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED = (
     "Livepatch support requires a system reboot across LTS upgrade."
 )

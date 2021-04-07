@@ -2,9 +2,15 @@ import logging
 import mock
 import pytest
 
+from uaclient.status import MESSAGE_REBOOT_SCRIPT_FAILED
 from uaclient.util import ProcessExecutionError
 
-from lib.reboot_cmds import main, fix_pro_pkg_holds, run_command
+from lib.reboot_cmds import (
+    main,
+    fix_pro_pkg_holds,
+    run_command,
+    process_reboot_operations,
+)
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
@@ -122,3 +128,44 @@ class TestRunCommand:
             mock.call("marker-reboot-cmds")
         ]
         assert m_exit.call_args_list == [mock.call(1)]
+
+
+class TestProcessRebootOperations:
+    @pytest.mark.parametrize("caplog_text", [logging.ERROR], indirect=True)
+    @mock.patch("uaclient.config.UAConfig.delete_cache_key")
+    @mock.patch("uaclient.config.UAConfig.check_lock_info")
+    @mock.patch("uaclient.config.UAConfig.add_notice")
+    @mock.patch("lib.reboot_cmds.fix_pro_pkg_holds")
+    def test_process_reboot_operations_create_notice_when_it_fails(
+        self,
+        m_fix_pro_pkg_holds,
+        m_add_notice,
+        m_check_lock_info,
+        _m_delete_cache_key,
+        FakeConfig,
+        caplog_text,
+    ):
+        m_check_lock_info.return_value = (0, 0)
+        m_fix_pro_pkg_holds.side_effect = ProcessExecutionError("error")
+        args = mock.MagicMock()
+
+        cfg = FakeConfig()
+        cfg.for_attached_machine()
+        with mock.patch("os.path.exists", return_value=True):
+            with mock.patch("uaclient.config.UAConfig.write_cache"):
+                process_reboot_operations(args, cfg)
+
+        expected_calls = [
+            mock.call("", "Operation in progress: ua-reboot-cmds"),
+            mock.call("", MESSAGE_REBOOT_SCRIPT_FAILED),
+        ]
+
+        assert expected_calls == m_add_notice.call_args_list
+
+        expected_msgs = [
+            "Failed running commands on reboot.",
+            "Invalid command specified 'error'.",
+        ]
+        assert all(
+            expected_msg in caplog_text() for expected_msg in expected_msgs
+        )
