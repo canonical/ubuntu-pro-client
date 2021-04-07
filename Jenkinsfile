@@ -85,8 +85,10 @@ pipeline {
                         set -x
                         mkdir ${ARTIFACT_DIR}
                         cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        # grab dh-systemd build-deps for xenial and earlier
+                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control-${SERIES_VERSION}
                         sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
-                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -c${WORKSPACE}/debian/control.${BUILD_SERIES} -b .
                         sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
                         cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
@@ -105,9 +107,11 @@ pipeline {
                         sh '''
                         set -x
                         mkdir ${ARTIFACT_DIR}
+                        # grab dh-systemd build-deps for xenial and earlier
                         cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
+                        sed "s/dh-python,/dh-python,\\n               dh-systemd,/" debian/control > ${WORKSPACE}/debian/control-${SERIES_VERSION}
                         sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
-                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
+                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -c${WORKSPACE}/debian/control.${BUILD_SERIES} -b .
                         sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
                         cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
