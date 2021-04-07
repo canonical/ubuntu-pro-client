@@ -635,7 +635,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     """
     to_disable = []
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls(cfg)
+        ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
         if ent.can_disable(silent=True):
             to_disable.append(ent)
     if to_disable:
