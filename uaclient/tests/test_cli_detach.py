@@ -99,6 +99,10 @@ class TestActionDetach:
                 mock.call(silent=True)
             ] == ent_cls.return_value.can_disable.call_args_list
 
+            assert [
+                mock.call(cfg=cfg, assume_yes=assume_yes)
+            ] == ent_cls.call_args_list
+
         # Check that disable is only called when can_disable is true
         for undisabled_cls in [
             m_entitlements.ENTITLEMENT_CLASSES[0],
