@@ -3,8 +3,9 @@ ubuntu-advantage-tools (26.3~21.04.1) hirsute; urgency=medium
   * d/control: add new debianutils dependency
   * New upstream release 26.3
     - util: improve is_container check for chroot
+    - cli: pass assume_yes param to services on detach (GH: #1530)
 
- -- Lucas Moura <lucas.moura@canonical.com>  Tue, 06 Apr 2021 14:26:20 -0300
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 06 Apr 2021 14:26:20 -0300
 
 ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
 
