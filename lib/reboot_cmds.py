@@ -120,15 +120,19 @@ def process_reboot_operations(args, cfg):
     if os.path.exists(reboot_cmd_marker_file):
         logging.debug("Running process contract deltas on reboot ...")
 
-        fix_pro_pkg_holds(cfg)
-        refresh_contract(cfg)
-        process_remaining_deltas(cfg)
+        try:
+            fix_pro_pkg_holds(cfg)
+            refresh_contract(cfg)
+            process_remaining_deltas(cfg)
 
-        cfg.delete_cache_key("marker-reboot-cmds")
-
-        logging.debug(
-            "Completed running process contract deltas on reboot ..."
-        )
+            cfg.delete_cache_key("marker-reboot-cmds")
+            cfg.remove_notice("", status.MESSAGE_REBOOT_SCRIPT_FAILED)
+            logging.debug("Successfully ran all commands on reboot.")
+        except Exception as e:
+            msg = "Failed running commands on reboot."
+            msg += str(e)
+            logging.error(msg)
+            cfg.add_notice("", status.MESSAGE_REBOOT_SCRIPT_FAILED)
 
 
 def main(cfg):
