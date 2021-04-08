@@ -12,17 +12,20 @@ APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
 
 ESM_INFRA_KEY_TRUSTY="ubuntu-advantage-esm-infra-trusty.gpg"
+ESM_APPS_KEY="ubuntu-advantage-esm-apps.gpg"
 
 APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
 ESM_APT_SOURCE_FILE_PRECISE="$APT_SRC_DIR/ubuntu-esm-precise.list"
 ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
 ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
-ESM_INFRA_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra.list"
+ESM_INFRA_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-infra.list"
+ESM_APPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-apps.list"
 
-ESM_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-trusty"
-ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra-trusty"
-ESM_INFRA_APT_PREF_FILE_TRUSTY="/etc/apt/preferences.d/ubuntu-esm-infra"
+ESM_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-trusty"
+ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-infra-trusty"
+ESM_INFRA_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-infra"
+ESM_APPS_APT_PREF_FILE="$APT_PREFERENCES_DIR/ubuntu-esm-apps"
 
 MYARCH="$(dpkg --print-architecture)"
 ESM_SUPPORTED_ARCHS="i386 amd64"
@@ -95,45 +98,97 @@ if status:
 
 unconfigure_esm() {
     if ! check_service_is_enabled esm-infra; then
-        rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
-        rm -f $APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY
-        rm -f $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
-        rm -f $ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY
-        rm -f $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY
-        rm -f $ESM_INFRA_APT_PREF_FILE_TRUSTY
+        rm -f "$APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg"  # Remove previous esm keys
+        rm -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY"
+        rm -f "$ESM_INFRA_APT_SOURCE_FILE"
+        rm -f "$ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY"
+        rm -f "$ESM_APT_PREF_FILE_TRUSTY" "$ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY"
+        rm -f "$ESM_INFRA_APT_PREF_FILE"
+    fi
+    if ! check_service_is_enabled esm-apps; then
+        rm -f "$APT_TRUSTED_KEY_DIR/$ESM_APPS_KEY"
+        rm -f "$ESM_APPS_APT_SOURCE_FILE"
+        rm -f "$ESM_APPS_APT_PREF_FILE"
     fi
 }
 
 
-configure_esm() {
-    rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove previous esm keys
-    if [ ! -f "$APT_TRUSTED_KEY_DIR/$ESM_INFRA_KEY_TRUSTY" ]; then
-        cp $UA_KEYRING_DIR/$ESM_INFRA_KEY_TRUSTY $APT_TRUSTED_KEY_DIR
+# Add visibility to a disabled ESM APT source by installing a GPG key and
+# preferences file to Pin never so packages won't get installed by apt update.
+install_esm_apt_key_and_source() {
+    service=$1 release=$2
+    apt_suite="${release}-${service}";
+    case "${service}" in
+        apps)
+            apt_origin="UbuntuESMApps"
+            apt_pref_file=${ESM_APPS_APT_PREF_FILE};
+            apt_source_file=${ESM_APPS_APT_SOURCE_FILE};
+            apt_key=${ESM_APPS_KEY};
+            ;;
+        infra)
+            apt_origin="UbuntuESM"
+            apt_pref_file=${ESM_INFRA_APT_PREF_FILE};
+            apt_source_file=${ESM_INFRA_APT_SOURCE_FILE};
+            apt_key=${ESM_INFRA_KEY_TRUSTY};
+            ;;
+    esac
+
+    # GPG key setup to avoid apt gpg key warnings
+    if [ ! -f "$APT_TRUSTED_KEY_DIR/$apt_key" ]; then
+        cp $UA_KEYRING_DIR/$apt_key $APT_TRUSTED_KEY_DIR
     fi
 
-    if [ -e "$ESM_APT_SOURCE_FILE_TRUSTY" ]; then
-        mv $ESM_APT_SOURCE_FILE_TRUSTY $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
+    # Migrate trusty legacy source list and preference file names
+    if [ "14.04" = "$VERSION_ID" ]; then
+        if [ -e "$ESM_APT_SOURCE_FILE_TRUSTY" ]; then
+            mv $ESM_APT_SOURCE_FILE_TRUSTY $ESM_INFRA_APT_SOURCE_FILE
+        fi
+        if [ -e "$ESM_APT_PREF_FILE_TRUSTY" ]; then
+            mv "$ESM_APT_PREF_FILE_TRUSTY" "$ESM_INFRA_APT_PREF_FILE"
+        fi
     fi
-    if [ -e "$ESM_APT_PREF_FILE_TRUSTY" ]; then
-        mv $ESM_APT_PREF_FILE_TRUSTY $ESM_INFRA_APT_PREF_FILE_TRUSTY
-    fi
-    if [ ! -e "$ESM_INFRA_APT_SOURCE_FILE_TRUSTY" ]; then
-        cat > $ESM_INFRA_APT_SOURCE_FILE_TRUSTY <<EOF
+    # If preference file doesn't already exist, we aren't attached.
+    # Setup unauthenticated apt source list file and never-pin preference
+    if [ ! -e "${apt_source_file}" ]; then
+        # Unconfigured repo, so set it up as never-pinned
+        cat > ${apt_source_file} <<EOF
 # Written by ubuntu-advantage-tools
-deb https://esm.ubuntu.com/ubuntu trusty-infra-security main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-infra-security main
+deb https://esm.ubuntu.com/${service}/ubuntu ${apt_suite}-security main
+# deb-src https://esm.ubuntu.com/${service}/ubuntu ${apt_suite}-security main
 
-deb https://esm.ubuntu.com/ubuntu trusty-infra-updates main
-# deb-src https://esm.ubuntu.com/ubuntu trusty-infra-updates main
+deb https://esm.ubuntu.com/${service}/ubuntu ${apt_suite}-updates main
+# deb-src https://esm.ubuntu.com/${service}/ubuntu ${apt_suite}-updates main
 EOF
+
         # Automatically disable esm sources via apt preferences until enabled
-        cat > $ESM_INFRA_APT_PREF_FILE_TRUSTY <<EOF
+        cat > "${apt_pref_file}" <<EOF
 # Written by ubuntu-advantage-tools
 Package: *
-Pin: release o=UbuntuESM, n=trusty
+Pin: release o=${apt_origin}, n=${release}
 Pin-Priority: never
 EOF
     fi
+
+}
+
+configure_esm() {
+    rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove legacy esm keys
+    case "${VERSION_ID}" in
+        14.04)
+            enable_apps="false" enable_infra="true" release="trusty" ;;
+        16.04)
+            enable_apps="true" enable_infra="true" release="xenial" ;;
+        *)
+            enable_apps="false" enable_infra="false" release="DONOTCONFIGESM" ;;
+    esac
+
+    if [ "${enable_apps}" = "true" ]; then
+        install_esm_apt_key_and_source "apps" $release
+    fi
+    if [ "${enable_infra}" = "true" ]; then
+        install_esm_apt_key_and_source "infra" $release
+    fi
+
 }
 
 
@@ -168,7 +223,7 @@ case "$1" in
       # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/693
       if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
           mv $ESM_APT_SOURCE_FILE_PRECISE \
-              $ESM_INFRA_APT_SOURCE_FILE_TRUSTY
+              $ESM_INFRA_APT_SOURCE_FILE
       fi
 
       # We changed the way we store public files in 19.5
@@ -198,12 +253,12 @@ case "$1" in
       # machine-access cache files no longer present or used since 20.1
       rm -f /var/lib/ubuntu-advantage/private/machine-access-*.json
 
-      if [ "14.04" = "$VERSION_ID" ]; then
+      if [ "14.04" = "$VERSION_ID" ]  || [ "16.04" = "$VERSION_ID" ]; then
         if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
-          # 14.04 and supported arch
+          # 14.04 or 16.04 and supported arch
           configure_esm
         else
-          # 14.04 and unsupported arch
+          # 14.04 or 16.04 and unsupported arch
           unconfigure_esm
         fi
       fi
