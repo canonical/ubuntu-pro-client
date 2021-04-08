@@ -109,6 +109,10 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         \d+ of the updates (is|are) from UA Infra: ESM
         """
+        Then if `<release>` in `xenial` and stdout matches regexp:
+        """
+        \d+ additional updates (is|are) available with UA Apps: ESM
+        """
         When I run `ua disable esm-infra` with sudo
         And I run `apt update` with sudo
         Then stdout does not match regexp
