@@ -20,6 +20,18 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
     is_beta = True
 
+    @property
+    def repo_pin_priority(self) -> "Optional[str]":
+        """Only Xenial esm-apps should perform repo pinning"""
+        if "xenial" == util.get_platform_info()["series"]:
+            return "never"
+        return None  # No pinning on >= trusty
+
+    @property
+    def disable_apt_auth_only(self) -> bool:
+        """Only xenial esm-apps should remove apt auth files upon disable"""
+        return bool("xenial" == util.get_platform_info()["series"])
+
 
 class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
@@ -30,12 +42,12 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
 
     @property
     def repo_pin_priority(self) -> "Optional[str]":
-        """Only trusty esm-infra should peform repo pinning"""
-        if "trusty" == util.get_platform_info()["series"]:
+        """Xenial and Trusty esm-infra should perform repo pinning"""
+        if util.get_platform_info()["series"] in ("trusty", "xenial"):
             return "never"
-        return None  # No pinning on >= trusty
+        return None  # No pinning on >= bionic
 
     @property
     def disable_apt_auth_only(self) -> bool:
         """Only trusty esm-infra should remove apt auth files upon disable"""
-        return bool("trusty" == util.get_platform_info()["series"])
+        return bool(util.get_platform_info()["series"] in ("trusty", "xenial"))
