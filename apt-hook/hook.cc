@@ -121,27 +121,22 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
    {
       for (pkgCache::VerFileIterator pf = ver.FileList(); !pf.end(); pf++)
       {
-	 // TODO: Just look at the origin, not pinning.
 	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
 	 {
-            // Xenial and later should not be advertising unauthenticated ESM Infra apt repos
-	    if (policy->GetPriority(pf.File()) == -32768)
+            // Pin-Priority: never unauthenticated APT repos == -32768
+            if (policy->GetPriority(pf.File()) == -32768)
 	       res.disabled_esms_i++;
 	    else
 	       res.enabled_esms_i++;
-
-	    return;
 	 }
 
 	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
 	 {
-            // Xenial and later should not be advertising unauthenticated ESM Apps apt repos
+            // Pin-Priority: never unauthenticated APT repos == -32768
 	    if (policy->GetPriority(pf.File()) == -32768)
 	       res.disabled_esms_a++;
 	    else
 	       res.enabled_esms_a++;
-
-	    return;
 	 }
       }
    }
@@ -259,7 +254,7 @@ int main(int argc, char *argv[])
       {
          ioprintf(std::cout,
                   ngettext("%d additional update is available with UA Apps: ESM.",
-                           "%d additional updates are available with UA Apps ESM.",
+                           "%d additional updates are available with UA Apps: ESM.",
                            res.disabled_esms_a),
                   res.disabled_esms_a);
          ioprintf(std::cout, "\n");
