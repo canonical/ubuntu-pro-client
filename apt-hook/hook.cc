@@ -186,6 +186,8 @@ bool has_arg(char **argv, const char *arg)
 int main(int argc, char *argv[])
 {
    (void) argc;   // unused
+   std::string hook;
+
    setlocale(LC_ALL, "");
    textdomain("ubuntu-advantage");
    // Self testing
@@ -204,8 +206,12 @@ int main(int argc, char *argv[])
    result res = {0, 0, 0, 0};
 
    // useful for testing
-   if (has_arg(argv, "test"))
+   if (has_arg(argv, "test")) {
       command_used = "update";
+   }
+   if (has_arg(argv, "apt-install-pre-invoke")) {
+      hook = "apt-install-pre-invoke";
+   }
 
    if (has_arg(argv, "test") || cmdline_eligible(getcmdline(getppid_of(getppid_of("self")))))
       get_update_count(res);
@@ -264,6 +270,33 @@ int main(int argc, char *argv[])
       ioprintf(std::cout, "\n");
       ioprintf(std::cout, gettext("See https://ubuntu.com/advantage or run: sudo ua status"));
       ioprintf(std::cout, "\n");
+   }
+
+
+   if (hook == "apt-install-pre-invoke") {
+      // Print static message if present. Used for "Expiring soon" and "Expired but in grace period" messages.
+      if (command_used == "upgrade" || command_used == "dist-upgrade") {
+         std::ifstream message_file("/var/lib/ubuntu-advantage/apt-install-pre-invoke-message");
+         if (message_file.is_open()) {
+            ioprintf(std::cout, "\n");
+            std::cout << message_file.rdbuf();
+            message_file.close();
+            ioprintf(std::cout, "\n");
+         }
+      }
+
+      bool is_expired = true; // TODO
+      if (is_expired) {
+         // TODO
+         // When truly expired, print computed message of what packages won't get installed.
+         if (command_used == "upgrade") {
+            ioprintf(std::cout, gettext("pre-invoke upgrade hook"));
+            ioprintf(std::cout, "\n");
+         } else if (command_used == "dist-upgrade") {
+            ioprintf(std::cout, gettext("pre-invoke dist-upgrade hook"));
+            ioprintf(std::cout, "\n");
+         }
+      }
    }
 
    return 0;
