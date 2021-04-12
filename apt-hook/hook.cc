@@ -24,19 +24,34 @@
 #include <apt-pkg/strutl.h>
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <assert.h>
 #include <sys/stat.h>
 #include <libintl.h>
 #include <locale.h>
 
+#define UACLIENT_CONTRACT_EXPIRY_STATUS_MESSAGE_PATH "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
+#define UACLIENT_CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH "/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl"
+#define UACLIENT_ESM_APPS_UPDATES_COUNT_PATH "/var/lib/ubuntu-advantage/messages/esm-apps-updates-count"
+#define UACLIENT_ESM_INFRA_UPDATES_COUNT_PATH "/var/lib/ubuntu-advantage/messages/esm-infra-updates-count"
+
+#define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
+#define ESM_APPS_PACKAGES_TEMPLATE_VAR "{ESM_APPS_PACKAGES}"
+#define ESM_INFRA_PKGS_COUNT_TEMPLATE_VAR "{ESM_INFRA_PKG_COUNT}"
+#define ESM_INFRA_PACKAGES_TEMPLATE_VAR "{ESM_INFRA_PACKAGES}"
+
 struct result {
    int enabled_esms_i;
    int disabled_esms_i;
+   std::vector<std::string> esm_i_packages;
+
    int enabled_esms_a;
    int disabled_esms_a;
+   std::vector<std::string> esm_a_packages;
 };
 
 // Return parent pid of specified pid, using /proc (pid might be self)
@@ -56,7 +71,7 @@ static std::string getppid_of(std::string pid)
       getline(stream, line);
 
       if (line.find("PPid:") != 0)
-	 continue;
+         continue;
 
       // Erase everything before a number
       line.erase(0, line.find_first_of("0123456789"));
@@ -121,23 +136,34 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
    {
       for (pkgCache::VerFileIterator pf = ver.FileList(); !pf.end(); pf++)
       {
-	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
-	 {
+         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
+         {
+            res.esm_i_packages.push_back(pf.File().FileName());
+
             // Pin-Priority: never unauthenticated APT repos == -32768
             if (policy->GetPriority(pf.File()) == -32768)
-	       res.disabled_esms_i++;
-	    else
-	       res.enabled_esms_i++;
-	 }
+            {
+               res.disabled_esms_i++;
+            }
+            else
+            {
+               res.enabled_esms_i++;
+            }
+         }
+         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
+         {
+            res.esm_a_packages.push_back(pkg.Name());
 
-	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
-	 {
             // Pin-Priority: never unauthenticated APT repos == -32768
-	    if (policy->GetPriority(pf.File()) == -32768)
-	       res.disabled_esms_a++;
-	    else
-	       res.enabled_esms_a++;
-	 }
+            if (policy->GetPriority(pf.File()) == -32768)
+            {
+               res.disabled_esms_a++;
+            }
+            else
+            {
+               res.enabled_esms_a++;
+            }
+         }
       }
    }
 }
@@ -165,6 +191,48 @@ static int get_update_count(result &res)
       check_esm_upgrade(pkg, policy, res);
    }
    return count;
+}
+
+
+static void process_template_file(
+   std::string template_file_name,
+   std::string esm_a_pkgs_count,
+   std::string esm_a_pkgs,
+   std::string esm_i_pkgs_count,
+   std::string esm_i_pkgs
+) {
+   std::ifstream message_tmpl_file(UACLIENT_CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH);
+   if (message_tmpl_file.is_open()) {
+      std::string message_tmpl((std::istreambuf_iterator<char>(message_tmpl_file)), (std::istreambuf_iterator<char>()));
+      message_tmpl_file.close();
+
+      // Process all template variables
+      std::string tmpl_var_names[] = {
+         ESM_APPS_PKGS_COUNT_TEMPLATE_VAR,
+         ESM_APPS_PACKAGES_TEMPLATE_VAR,
+         ESM_INFRA_PKGS_COUNT_TEMPLATE_VAR,
+         ESM_INFRA_PACKAGES_TEMPLATE_VAR
+      };
+      std::string tmpl_var_vals[] = {
+         esm_a_pkgs_count,
+         esm_a_pkgs,
+         esm_i_pkgs_count,
+         esm_i_pkgs
+      };
+      for (uint i = 0; i < tmpl_var_names->size(); i++) {
+         std::string toReplace(tmpl_var_names[i]);
+         size_t pos = message_tmpl.find(toReplace);
+         message_tmpl.replace(pos, toReplace.size(), tmpl_var_vals[i]);
+      }
+
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, "%s", message_tmpl.c_str());
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, "\n");
+      ioprintf(std::cout, "\n");
+   }
 }
 
 // Preserves \0 bytes in a string literal
@@ -203,18 +271,24 @@ int main(int argc, char *argv[])
    assert(cmdline_eligible(make_cmdline("aptitude\0update\0")));
    command_used = "";
 
-   result res = {0, 0, 0, 0};
+   std::vector<std::string> esm_i_packages;
+   std::vector<std::string> esm_a_packages;
+   result res = {0, 0, esm_i_packages, 0, 0, esm_a_packages};
 
    // useful for testing
    if (has_arg(argv, "test")) {
       command_used = "update";
    }
-   if (has_arg(argv, "apt-install-pre-invoke")) {
-      hook = "apt-install-pre-invoke";
+
+   if (has_arg(argv, "pre-invoke")) {
+      hook = "pre-invoke";
+   } else if (has_arg(argv, "post-invoke-success")) {
+      hook = "post-invoke-success";
    }
 
    if (has_arg(argv, "test") || cmdline_eligible(getcmdline(getppid_of(getppid_of("self")))))
       get_update_count(res);
+
    if (_error->PendingError())
    {
       _error->DumpErrors();
@@ -272,29 +346,94 @@ int main(int argc, char *argv[])
       ioprintf(std::cout, "\n");
    }
 
-
-   if (hook == "apt-install-pre-invoke") {
-      // Print static message if present. Used for "Expiring soon" and "Expired but in grace period" messages.
+   if (hook == "pre-invoke") {
       if (command_used == "upgrade" || command_used == "dist-upgrade") {
-         std::ifstream message_file("/var/lib/ubuntu-advantage/apt-install-pre-invoke-message");
+
+
+         // Compute all strings necessary to fill in templates
+         std::string space_separated_esm_i_packages = "";
+         if (res.esm_i_packages.size() > 0) {
+            for (uint i = 0; i < res.esm_i_packages.size() - 1; i++) {
+               space_separated_esm_i_packages.append(res.esm_i_packages[i]);
+               space_separated_esm_i_packages.append(" ");
+            }
+            space_separated_esm_i_packages.append(res.esm_i_packages[res.esm_i_packages.size() - 1]);
+         }
+         std::string space_separated_esm_a_packages = "";
+         if (res.esm_a_packages.size() > 0) {
+            for (uint i = 0; i < res.esm_a_packages.size() - 1; i++) {
+               space_separated_esm_a_packages.append(res.esm_a_packages[i]);
+               space_separated_esm_a_packages.append(" ");
+            }
+            space_separated_esm_a_packages.append(res.esm_a_packages[res.esm_a_packages.size() - 1]);
+         }
+
+         // Print static message if present. Used for "Expiring soon" and "Expired but in grace period" messages.
+         std::ifstream message_file(UACLIENT_CONTRACT_EXPIRY_STATUS_MESSAGE_PATH);
          if (message_file.is_open()) {
             ioprintf(std::cout, "\n");
             std::cout << message_file.rdbuf();
+            ioprintf(std::cout, "\n");
             message_file.close();
+         } else {
+            process_template_file(
+               UACLIENT_CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH, 
+               std::to_string(res.esm_a_packages.size()),
+               space_separated_esm_a_packages,
+               std::to_string(res.esm_i_packages.size()),
+               space_separated_esm_i_packages
+            );
+         }
+
+
+         // enumerating cases
+         bool esm_a_not_enabled = res.disabled_esms_a > 0;
+         if (esm_a_not_enabled) {
+            ioprintf(std::cout, "UA Apps not enabled scenario\n");
+
+            ioprintf(std::cout, gettext("*The following packages could receive security updates with UA Apps: ESM service enabled:"));
+            ioprintf(std::cout, "\n");
+            ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
+            ioprintf(std::cout, gettext("Learn more about UA Apps: ESM service at https://ubuntu.com/esm"));
             ioprintf(std::cout, "\n");
          }
-      }
+         bool esm_i_not_enabled = res.disabled_esms_i > 0;
+         if (esm_i_not_enabled) {
+            ioprintf(std::cout, "UA Infra not enabled scenario\n");
 
-      bool is_expired = true; // TODO
-      if (is_expired) {
-         // TODO
-         // When truly expired, print computed message of what packages won't get installed.
-         if (command_used == "upgrade") {
-            ioprintf(std::cout, gettext("pre-invoke upgrade hook"));
+            ioprintf(std::cout, gettext("*The following packages could receive security updates with UA Infra: ESM service enabled:"));
             ioprintf(std::cout, "\n");
-         } else if (command_used == "dist-upgrade") {
-            ioprintf(std::cout, gettext("pre-invoke dist-upgrade hook"));
+            ioprintf(std::cout, "  %s", space_separated_esm_i_packages.c_str());
+            ioprintf(std::cout, gettext("Learn more about UA Infra: ESM service at https://ubuntu.com/esm"));
             ioprintf(std::cout, "\n");
+         }
+         bool expired = true; // TODO
+         if (expired) {
+            if (command_used == "upgrade") {
+               ioprintf(std::cout, "Expired upgrade scenario\n");
+
+               ioprintf(std::cout, gettext("*YOUR UA APPS: ESM SUBSCRIPTION HAS EXPIRED.*"));
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, gettext("Enabling UA Apps: ESM service would provide security updates for following packages:"));
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, "%ld esm-apps security updates NOT APPLIED. Renew your UA services at https://ubuntu.com/advantage", res.esm_a_packages.size());
+               ioprintf(std::cout, "\n");
+            } else if (command_used == "dist-upgrade") {
+               ioprintf(std::cout, "Expired dist-upgrade scenario\n");
+
+               ioprintf(std::cout, gettext("The following packages could receive security updates with ESM Apps service enabled:"));
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, "%ld esm-apps security updates NOT APPLIED.", res.esm_a_packages.size());
+               ioprintf(std::cout, "\n");
+               ioprintf(std::cout, gettext("Your UA subscription has expired. Renew your UA services including ESM Apps at https://ubuntu.com/advantage"));
+               ioprintf(std::cout, "\n");
+
+            }
+
          }
       }
    }
