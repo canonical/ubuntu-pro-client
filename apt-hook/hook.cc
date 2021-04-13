@@ -302,8 +302,6 @@ int main(int argc, char *argv[])
    }
 
    // Iterate over apt cache looking for esm packages
-   // std::vector<std::string> esm_i_packages;
-   // std::vector<std::string> esm_a_packages;
    result res = {0, 0, std::vector<std::string>(), 0, 0, std::vector<std::string>()};
    get_update_count(res);
    if (_error->PendingError())
@@ -332,6 +330,7 @@ int main(int argc, char *argv[])
    std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
    std::string esm_i_packages_count = std::to_string(res.esm_i_packages.size());
 
+   // Execute specified subcommand
    if (subcommand == ProcessTemplates) {
       std::array<std::string, 4> template_file_names = {
          CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
@@ -345,7 +344,6 @@ int main(int argc, char *argv[])
          ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
          ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH
       };
-
       for (uint i = 0; i < template_file_names.size(); i++) {
          process_template_file(
             template_file_names[i], 
