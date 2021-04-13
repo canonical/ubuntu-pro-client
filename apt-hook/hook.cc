@@ -34,16 +34,16 @@
 #include <libintl.h>
 #include <locale.h>
 
-#define CONTRACT_EXPIRY_STATUS_MESSAGE_PATH "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
-
-#define CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH "/var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl"
-#define CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH "/var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade"
-#define CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH "/var/lib/ubuntu-advantage/messages/contract-expired-apt-dist-upgrade.tmpl"
-#define CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH "/var/lib/ubuntu-advantage/messages/contract-expired-apt-dist-upgrade"
-#define ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled.tmpl"
-#define ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled"
-#define ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled.tmpl"
-#define ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled"
+#define CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH              "/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl"
+#define CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH                "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
+#define CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH        "/var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl"
+#define CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH          "/var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade"
+#define CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH   "/var/lib/ubuntu-advantage/messages/contract-expired-apt-dist-upgrade.tmpl"
+#define CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH     "/var/lib/ubuntu-advantage/messages/contract-expired-apt-dist-upgrade"
+#define ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH                "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled.tmpl"
+#define ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH                  "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled"
+#define ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH               "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled.tmpl"
+#define ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH                 "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled"
 
 #define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
 #define ESM_APPS_PACKAGES_TEMPLATE_VAR "{ESM_APPS_PACKAGES}"
@@ -212,7 +212,9 @@ static void process_template_file(
 ) {
    std::ifstream message_tmpl_file(template_file_name.c_str());
    if (message_tmpl_file.is_open()) {
+      // This line loads the whole file contents into a string
       std::string message_tmpl((std::istreambuf_iterator<char>(message_tmpl_file)), (std::istreambuf_iterator<char>()));
+
       message_tmpl_file.close();
 
       // Process all template variables
@@ -332,13 +334,15 @@ int main(int argc, char *argv[])
 
    // Execute specified subcommand
    if (subcommand == ProcessTemplates) {
-      std::array<std::string, 4> template_file_names = {
+      std::array<std::string, 5> template_file_names = {
+         CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
          CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
          CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH,
          ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
          ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH
       };
-      std::array<std::string, 4> static_file_names = {
+      std::array<std::string, 5> static_file_names = {
+         CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
          CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH,
          CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH,
          ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
@@ -408,12 +412,15 @@ int main(int argc, char *argv[])
       }
    } else if (subcommand == PreInvoke) {
       if (command_used == "upgrade" || command_used == "dist-upgrade") {
-         // Print static message if present. Used for "Expiring soon" and "Expired but in grace period" messages.
-         std::ifstream message_file(CONTRACT_EXPIRY_STATUS_MESSAGE_PATH);
-         if (message_file.is_open()) {
-            std::cout << message_file.rdbuf();
-            message_file.close();
-         }
+         // Try expiry status message
+         process_template_file(
+            CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
+            CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
+            esm_a_packages_count,
+            space_separated_esm_a_packages,
+            esm_i_packages_count,
+            space_separated_esm_i_packages
+         );
 
          // Try not enabled messages
          process_template_file(
@@ -453,58 +460,6 @@ int main(int argc, char *argv[])
                space_separated_esm_i_packages
             );
          }
-
-         /*
-         // TODO remove
-         // This was me enumerating cases, but this will be done in uaclient-proper
-         bool esm_a_not_enabled = res.disabled_esms_a > 0;
-         if (esm_a_not_enabled) {
-            ioprintf(std::cout, "UA Apps not enabled scenario\n");
-
-            ioprintf(std::cout, gettext("*The following packages could receive security updates with UA Apps: ESM service enabled:"));
-            ioprintf(std::cout, "\n");
-            ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
-            ioprintf(std::cout, gettext("Learn more about UA Apps: ESM service at https://ubuntu.com/esm"));
-            ioprintf(std::cout, "\n");
-         }
-         bool esm_i_not_enabled = res.disabled_esms_i > 0;
-         if (esm_i_not_enabled) {
-            ioprintf(std::cout, "UA Infra not enabled scenario\n");
-
-            ioprintf(std::cout, gettext("*The following packages could receive security updates with UA Infra: ESM service enabled:"));
-            ioprintf(std::cout, "\n");
-            ioprintf(std::cout, "  %s", space_separated_esm_i_packages.c_str());
-            ioprintf(std::cout, gettext("Learn more about UA Infra: ESM service at https://ubuntu.com/esm"));
-            ioprintf(std::cout, "\n");
-         }
-         bool expired = true; // TODO
-         if (expired) {
-            if (command_used == "upgrade") {
-               ioprintf(std::cout, "Expired upgrade scenario\n");
-
-               ioprintf(std::cout, gettext("*YOUR UA APPS: ESM SUBSCRIPTION HAS EXPIRED.*"));
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, gettext("Enabling UA Apps: ESM service would provide security updates for following packages:"));
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, "%ld esm-apps security updates NOT APPLIED. Renew your UA services at https://ubuntu.com/advantage", res.esm_a_packages.size());
-               ioprintf(std::cout, "\n");
-            } else if (command_used == "dist-upgrade") {
-               ioprintf(std::cout, "Expired dist-upgrade scenario\n");
-
-               ioprintf(std::cout, gettext("The following packages could receive security updates with ESM Apps service enabled:"));
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, "  %s", space_separated_esm_a_packages.c_str());
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, "%ld esm-apps security updates NOT APPLIED.", res.esm_a_packages.size());
-               ioprintf(std::cout, "\n");
-               ioprintf(std::cout, gettext("Your UA subscription has expired. Renew your UA services including ESM Apps at https://ubuntu.com/advantage"));
-               ioprintf(std::cout, "\n");
-
-            }
-         }
-         */
       }
    }
 
