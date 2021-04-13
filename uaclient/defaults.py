@@ -14,7 +14,10 @@ DEFAULT_UPGRADE_CONTRACT_FLAG_FILE = UAC_ETC_PATH + "request-update-contract"
 BASE_CONTRACT_URL = "https://contracts.canonical.com"
 BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_UA_URL = "https://ubuntu.com/advantage"
+BASE_ESM_URL = "https://ubuntu.com/esm"
 PRINT_WRAP_WIDTH = 80
+CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
+CONTRACT_EXPIRY_PENDING_DAYS = 20
 
 CONFIG_DEFAULTS = {
     "contract_url": BASE_CONTRACT_URL,

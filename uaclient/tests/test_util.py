@@ -144,7 +144,6 @@ class TestIsActiveESM:
     @pytest.mark.parametrize(
         "series, is_lts, days_until_esm,expected",
         (
-            ("trusty", True, 1, False),
             ("trusty", True, 0, True),
             ("xenial", True, 1, False),
             ("xenial", True, 0, True),
@@ -166,7 +165,7 @@ class TestIsActiveESM:
 
         # Use __wrapped__ to avoid hitting the lru_cached value across tests
         calls = []
-        if is_lts:
+        if is_lts and series != "trusty":
             calls.append(
                 mock.call(
                     [

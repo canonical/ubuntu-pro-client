@@ -68,6 +68,24 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
+        When I append the following on uaclient config:
+            """
+            features:
+              allow_beta: true
+            """
+        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `run-parts /etc/update-motd.d/` with sudo
+        Then if `<release>` in `xenial` and stdout matches regexp:
+        """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
+        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
+
+        """
 
         Examples: ubuntu release
            | release | esm-infra-url                       | esm-apps-url |
