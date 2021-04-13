@@ -64,6 +64,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
         UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ update(s)? can be installed immediately.
@@ -73,6 +79,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
+        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
+
         \d+ package(s)? can be updated.
         \d+ of these updates (is a|are) security update(s)?.
         """

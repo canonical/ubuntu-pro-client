@@ -395,9 +395,9 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             raise exceptions.MissingAptURLDirective(self.name)
         if self.disable_apt_auth_only:
-            # We only remove the repo from the apt auth file, because ESM Infra
-            # is a special-case: we want to be able to report on the
-            # available ESM Infra updates even when it's disabled
+            # We only remove the repo from the apt auth file, because
+            # UA Infra: ESM is a special-case: we want to be able to report on
+            # the available UA Infra: ESM updates even when it's disabled
             apt.remove_repo_from_apt_auth_file(repo_url)
             apt.restore_commented_apt_list_file(repo_filename)
         else:

@@ -359,6 +359,8 @@ def is_active_esm(series: str) -> bool:
     """Return True when Ubuntu series supports ESM and is actively in ESM."""
     if not is_lts(series):
         return False
+    if series == "trusty":
+        return True  # Trusty doesn't have a --series param
     out, _err = subp(
         ["/usr/bin/ubuntu-distro-info", "--series", series, "-yeol"]
     )
