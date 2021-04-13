@@ -242,8 +242,46 @@ static void process_template_file(
          message_static_file << message_tmpl;
          message_static_file.close();
       }
+   }
+}
 
-      std::cout << message_tmpl << "\n";
+static void process_all_templates(
+   std::string esm_a_pkgs_count,
+   std::string esm_a_pkgs,
+   std::string esm_i_pkgs_count,
+   std::string esm_i_pkgs
+) {
+   std::array<std::string, 5> template_file_names = {
+      CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
+      CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
+      CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH,
+      ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
+      ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH
+   };
+   std::array<std::string, 5> static_file_names = {
+      CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
+      CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH,
+      CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH,
+      ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
+      ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH
+   };
+   for (uint i = 0; i < template_file_names.size(); i++) {
+      process_template_file(
+         template_file_names[i], 
+         static_file_names[i], 
+         esm_a_pkgs_count,
+         esm_a_pkgs,
+         esm_i_pkgs_count,
+         esm_i_pkgs
+      );
+   }
+}
+
+static void output_file_if_present(std::string file_name) {
+   std::ifstream message_file(file_name);
+   if (message_file.is_open()) {
+      std::cout << message_file.rdbuf();
+      message_file.close();
    }
 }
 
@@ -287,8 +325,9 @@ int main(int argc, char *argv[])
    if (has_arg(argv, "test")) {
       // useful for testing
       test_run = true;
-      command_used = "update";
-   } else if (has_arg(argv, "pre-invoke")) {
+      command_used = "upgrade";
+   }
+   if (has_arg(argv, "pre-invoke")) {
       subcommand = PreInvoke;
    } else if (has_arg(argv, "post-invoke-stats")) {
       subcommand = PostInvokeStats;
@@ -329,136 +368,31 @@ int main(int argc, char *argv[])
       }
       space_separated_esm_a_packages.append(res.esm_a_packages[res.esm_a_packages.size() - 1]);
    }
-   std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
    std::string esm_i_packages_count = std::to_string(res.esm_i_packages.size());
+   std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
+
+   process_all_templates(
+      esm_a_packages_count,
+      space_separated_esm_a_packages,
+      esm_i_packages_count,
+      space_separated_esm_i_packages
+   );
 
    // Execute specified subcommand
-   if (subcommand == ProcessTemplates) {
-      std::array<std::string, 5> template_file_names = {
-         CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
-         CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
-         CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH,
-         ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
-         ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH
-      };
-      std::array<std::string, 5> static_file_names = {
-         CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
-         CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH,
-         CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH,
-         ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
-         ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH
-      };
-      for (uint i = 0; i < template_file_names.size(); i++) {
-         process_template_file(
-            template_file_names[i], 
-            static_file_names[i], 
-            esm_a_packages_count,
-            space_separated_esm_a_packages,
-            esm_i_packages_count,
-            space_separated_esm_i_packages
-         );
-      }
-   } else if (subcommand == PostInvokeStats || subcommand == PostInvokeSuccess || test_run) {
-      // TODO this was the existing functionality - how much of this are we keeping?
-      if (command_used == "update")
-      {
-         if (res.enabled_esms_i > 0)
-         {
-            ioprintf(std::cout,
-                     ngettext("%d of the updates is from UA Infra: ESM.",
-                              "%d of the updates are from UA Infra: ESM.",
-                              res.enabled_esms_i),
-                     res.enabled_esms_i);
-            ioprintf(std::cout, "\n");
-         }
-         if (res.enabled_esms_a > 0)
-         {
-            ioprintf(std::cout,
-                     ngettext("%d of the updates is from UA Apps: ESM.",
-                              "%d of the updates are from UA Apps: ESM.",
-                              res.enabled_esms_a),
-                     res.enabled_esms_a);
-            ioprintf(std::cout, "\n");
-         }
-      }
-
-      if (res.disabled_esms_i > 0 || res.disabled_esms_a > 0)
-      {
-         if (command_used != "update")
-            std::cout << std::endl;
-         if (res.disabled_esms_i > 0)
-         {
-            ioprintf(std::cout,
-                     ngettext("%d additional update is available with UA Infra: ESM.",
-                              "%d additional updates are available with UA Infra: ESM.",
-                              res.disabled_esms_i),
-                     res.disabled_esms_i);
-            ioprintf(std::cout, "\n");
-         }
-         if (res.disabled_esms_a > 0)
-         {
-            ioprintf(std::cout,
-                     ngettext("%d additional update is available with UA Apps: ESM.",
-                              "%d additional updates are available with UA Apps: ESM.",
-                              res.disabled_esms_a),
-                     res.disabled_esms_a);
-            ioprintf(std::cout, "\n");
-         }
-
-         ioprintf(std::cout, gettext("To see these additional updates run: apt list --upgradable"));
-         ioprintf(std::cout, "\n");
-         ioprintf(std::cout, gettext("See https://ubuntu.com/advantage or run: sudo ua status"));
-         ioprintf(std::cout, "\n");
-      }
-   } else if (subcommand == PreInvoke) {
+   if (subcommand == PreInvoke) {
       if (command_used == "upgrade" || command_used == "dist-upgrade") {
          // Try expiry status message
-         process_template_file(
-            CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
-            CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
-            esm_a_packages_count,
-            space_separated_esm_a_packages,
-            esm_i_packages_count,
-            space_separated_esm_i_packages
-         );
+         output_file_if_present(CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH);
 
          // Try not enabled messages
-         process_template_file(
-            ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
-            ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
-            esm_a_packages_count,
-            space_separated_esm_a_packages,
-            esm_i_packages_count,
-            space_separated_esm_i_packages
-         );
-         process_template_file(
-            ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
-            ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH,
-            esm_a_packages_count,
-            space_separated_esm_a_packages,
-            esm_i_packages_count,
-            space_separated_esm_i_packages
-         );
+         output_file_if_present(ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH);
+         output_file_if_present(ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH);
 
          // Try command specific messages
          if (command_used == "upgrade") {
-            process_template_file(
-               CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
-               CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH,
-               esm_a_packages_count,
-               space_separated_esm_a_packages,
-               esm_i_packages_count,
-               space_separated_esm_i_packages
-            );
+            output_file_if_present(CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH);
          } else if (command_used == "dist-upgrade") {
-            process_template_file(
-               CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH,
-               CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH,
-               esm_a_packages_count,
-               space_separated_esm_a_packages,
-               esm_i_packages_count,
-               space_separated_esm_i_packages
-            );
+            output_file_if_present(CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH);
          }
       }
    }
