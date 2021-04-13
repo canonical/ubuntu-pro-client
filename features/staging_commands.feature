@@ -46,6 +46,31 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         \s*\*\*\* .* 500
         \s*500 https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        When I run `echo "esm-apps {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES}; esm-infra {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl` with sudo
+        When I run `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` with sudo
+        When I run `cat /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps \d+ .*; esm-infra \d+ .*
+        """
+        When I run `echo "contract-expiring-soon {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl` with sudo
+        When I run `apt upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        contract-expiring-soon \d+ .* \d+ .*
+        """
+        When I run `echo "contract-expired-upgrade {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl` with sudo
+        When I run `apt upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        contract-expired-upgrade \d+ .* \d+ .*
+        """
+        When I run `echo "contract-expired-dist-upgrade {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expired-apt-dist-upgrade.tmpl` with sudo
+        When I run `apt dist-upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        contract-expired-dist-upgrade \d+ .* \d+ .*
+        """
 
         Examples: ubuntu release
            | release | apps-pkg |
