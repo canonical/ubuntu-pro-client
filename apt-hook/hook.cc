@@ -216,34 +216,24 @@ static void process_template_file(
       message_tmpl_file.close();
 
       // Process all template variables
-      std::string tmpl_var_names[] = {
+      std::array<std::string, 4> tmpl_var_names = {
          ESM_APPS_PKGS_COUNT_TEMPLATE_VAR,
          ESM_APPS_PACKAGES_TEMPLATE_VAR,
          ESM_INFRA_PKGS_COUNT_TEMPLATE_VAR,
          ESM_INFRA_PACKAGES_TEMPLATE_VAR
       };
-      std::string tmpl_var_vals[] = {
+      std::array<std::string, 4> tmpl_var_vals = {
          esm_a_pkgs_count,
          esm_a_pkgs,
          esm_i_pkgs_count,
          esm_i_pkgs
       };
-      for (uint i = 0; i < tmpl_var_names->size(); i++) {
+      for (uint i = 0; i < tmpl_var_names.size(); i++) {
          size_t pos = message_tmpl.find(tmpl_var_names[i]);
          if (pos != std::string::npos) {
             message_tmpl.replace(pos, tmpl_var_names[i].size(), tmpl_var_vals[i]);
          }
       }
-
-      // TODO remove
-      // for manual testing/debugging
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, "%s", message_tmpl.c_str());
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, "\n");
 
       std::ofstream message_static_file(static_file_name.c_str());
       if (message_static_file.is_open()) {
@@ -306,7 +296,7 @@ int main(int argc, char *argv[])
       subcommand = ProcessTemplates;
    }
 
-   if (!cmdline_eligible(getcmdline(getppid_of(getppid_of("self")))) && subcommand != ProcessTemplates && !test_run) {
+   if (!test_run && subcommand != ProcessTemplates && !cmdline_eligible(getcmdline(getppid_of(getppid_of("self"))))) {
       // Only run on valid apt commands, or when being used to process templates
       return 0;
    }
@@ -339,30 +329,24 @@ int main(int argc, char *argv[])
       }
       space_separated_esm_a_packages.append(res.esm_a_packages[res.esm_a_packages.size() - 1]);
    }
-   // TODO better way to convert int to string?
-   // Get complaint when trying to use std::to_string
-   std::stringstream temp;
-   temp << res.esm_a_packages.size();
-   std::string esm_a_packages_count = temp.str();
-   std::stringstream temp2;
-   temp2 << res.esm_i_packages.size();
-   std::string esm_i_packages_count = temp2.str();
+   std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
+   std::string esm_i_packages_count = std::to_string(res.esm_i_packages.size());
 
    if (subcommand == ProcessTemplates) {
-      std::string template_file_names[] = {
+      std::array<std::string, 4> template_file_names = {
          CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_TEMPLATE_PATH,
          CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_TEMPLATE_PATH,
          ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
          ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH
       };
-      std::string static_file_names[] = {
+      std::array<std::string, 4> static_file_names = {
          CONTRACT_EXPIRED_APT_UPGRADE_MESSAGE_STATIC_PATH,
          CONTRACT_EXPIRED_APT_DIST_UPGRADE_MESSAGE_STATIC_PATH,
          ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
          ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH
       };
 
-      for (uint i = 0; i < template_file_names->size(); i++) {
+      for (uint i = 0; i < template_file_names.size(); i++) {
          process_template_file(
             template_file_names[i], 
             static_file_names[i], 
@@ -429,9 +413,7 @@ int main(int argc, char *argv[])
          // Print static message if present. Used for "Expiring soon" and "Expired but in grace period" messages.
          std::ifstream message_file(CONTRACT_EXPIRY_STATUS_MESSAGE_PATH);
          if (message_file.is_open()) {
-            ioprintf(std::cout, "\n");
             std::cout << message_file.rdbuf();
-            ioprintf(std::cout, "\n");
             message_file.close();
          }
 
