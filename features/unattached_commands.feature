@@ -344,7 +344,7 @@ Feature: Command behaviour when unattached
             > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
             > .*\{ ua attach .*\}.*
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
@@ -369,7 +369,7 @@ Feature: Command behaviour when unattached
             > .*\{ ua enable esm-infra \}.*
             One moment, checking your subscription first
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
@@ -399,7 +399,7 @@ Feature: Command behaviour when unattached
             This machine is now detached.
             .*\{ ua attach .* \}.*
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
