@@ -196,6 +196,11 @@ def when_i_fix_a_issue_by_updating_expired_token(context, issue):
 def when_i_update_contract_field_to_new_value(
     context, contract_field, new_value
 ):
+    if contract_field == "effectiveTo":
+        if "days=" in new_value:  # Set timedelta offset from current day
+            now = datetime.datetime.utcnow()
+            contract_expiry = now + datetime.timedelta(days=int(new_value[5:]))
+            new_value = contract_expiry.strftime("%Y-%m-%dT00:00:00Z")
     when_i_run_command(
         context,
         'sed -i \'s/"{}": "[^"]*"/"{}": "{}"/g\' {}'.format(
