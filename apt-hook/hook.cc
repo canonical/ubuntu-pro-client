@@ -36,10 +36,8 @@
 
 #define CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH              "/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl"
 #define CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH                "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
-#define ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH                "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled.tmpl"
-#define ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH                  "/var/lib/ubuntu-advantage/messages/esm-apps-not-enabled"
-#define ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH               "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled.tmpl"
-#define ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH                 "/var/lib/ubuntu-advantage/messages/esm-infra-not-enabled"
+#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH          "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl"
+#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH            "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt"
 
 #define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
 #define ESM_APPS_PACKAGES_TEMPLATE_VAR "{ESM_APPS_PACKAGES}"
@@ -249,13 +247,11 @@ static void process_all_templates(
 ) {
    std::array<std::string, 5> template_file_names = {
       CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
-      ESM_APPS_NOT_ENABLED_MESSAGE_TEMPLATE_PATH,
-      ESM_INFRA_NOT_ENABLED_MESSAGE_TEMPLATE_PATH
+      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH
    };
    std::array<std::string, 5> static_file_names = {
       CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
-      ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH,
-      ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH
+      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH
    };
    for (uint i = 0; i < template_file_names.size(); i++) {
       process_template_file(
@@ -373,12 +369,7 @@ int main(int argc, char *argv[])
    // Execute specified subcommand
    if (subcommand == PreInvoke) {
       if (command_used == "upgrade" || command_used == "dist-upgrade") {
-         // Try expiry status message
-         output_file_if_present(CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH);
-
-         // Try not enabled messages
-         output_file_if_present(ESM_APPS_NOT_ENABLED_MESSAGE_STATIC_PATH);
-         output_file_if_present(ESM_INFRA_NOT_ENABLED_MESSAGE_STATIC_PATH);
+         output_file_if_present(CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH);
       }
    }
 
