@@ -1111,7 +1111,9 @@ class TestPromptForAffectedPackages:
                         ),
                         MSG_SUBSCRIPTION,
                     ]
-                ),
+                )
+                + "\n"
+                + "1 package is still affected: slsrc",
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1188,8 +1190,8 @@ class TestPromptForAffectedPackages:
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (12/15, 13/15) pkg14, pkg15:
-                    A fix is available in UA Apps.
+                    (12/15, 13/15) pkg12, pkg13:
+                    A fix is available in UA Infra.
                     """
                 )
                 + "\n".join(
@@ -1310,6 +1312,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.entitlements.base.UAEntitlement.user_facing_status")
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
@@ -1322,6 +1325,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_run_apt_cmd,
         _m_os_getuid,
         _m_should_reboot,
+        m_user_facing_status,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1332,6 +1336,7 @@ A fix is available in Ubuntu standard updates.\n"""
     ):
         """Messaging is based on affected status and installed packages."""
         get_cloud_type.return_value = cloud_type
+        m_user_facing_status.return_value = (UserFacingStatus.INACTIVE, "")
         cfg = FakeConfig()
         prompt_for_affected_packages(
             cfg=cfg,
@@ -1341,6 +1346,8 @@ A fix is available in Ubuntu standard updates.\n"""
             usn_released_pkgs=usn_released_pkgs,
         )
         out, err = capsys.readouterr()
+        print(out)
+        print(expected)
         assert expected in out
 
     @pytest.mark.parametrize(
@@ -1377,8 +1384,8 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (2/3) pkg1:
-                    A fix is available in UA Apps.
+                    (2/3) pkg3:
+                    A fix is available in UA Infra.
                     """
                 )
                 + MSG_SUBSCRIPTION
@@ -1388,23 +1395,24 @@ A fix is available in Ubuntu standard updates.\n"""
                 + colorize_commands([["ua attach token"]])
                 + "\n"
                 + colorize_commands(
-                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
+                    [["apt update && apt install --only-upgrade" " -y pkg3"]]
                 )
                 + "\n"
                 + textwrap.dedent(
                     """\
-                    (3/3) pkg3:
-                    A fix is available in UA Infra.
+                    (3/3) pkg1:
+                    A fix is available in UA Apps.
                     """
                 )
                 + colorize_commands(
-                    [["apt update && apt install --only-upgrade" " -y pkg3"]]
+                    [["apt update && apt install --only-upgrade" " -y pkg1"]]
                 )
                 + "\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
             ),
         ),
     )
+    @mock.patch("uaclient.util.is_config_value_true", return_value=True)
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.security._check_subscription_for_required_service")
@@ -1425,6 +1433,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_check_subscription_for_service,
         m_check_subscription_expired,
         _m_should_reboot,
+        _m_is_config_value_true,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1525,22 +1534,14 @@ A fix is available in Ubuntu standard updates.\n"""
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
         (
             (
-                {
-                    "pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS),
-                    "pkg2": CVEPackageStatus(
-                        CVE_PKG_STATUS_RELEASED_ESM_INFRA
-                    ),
-                },
-                {"pkg1": {"pkg1": "1.8"}, "pkg2": {"pkg2": "1.8"}},
-                {
-                    "pkg1": {"pkg1": {"version": "2.0"}},
-                    "pkg2": {"pkg2": {"version": "2.0"}},
-                },
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
+                {"pkg1": {"pkg1": "1.8"}},
+                {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    2 affected packages are installed: pkg1, pkg2
-                    (1/2) pkg1:
-                    A fix is available in UA Apps.
+                    1 affected package is installed: pkg1
+                    (1/1) pkg1:
+                    A fix is available in UA Infra.
                     """
                 )
                 + MSG_SUBSCRIPTION
@@ -1550,15 +1551,16 @@ A fix is available in Ubuntu standard updates.\n"""
                 + colorize_commands([["ua attach token"]])
                 + "\n"
                 + MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
-                    service="esm-apps"
+                    service="esm-infra"
                 )
                 + "\n"
-                + "2 packages are still affected: pkg1, pkg2"
+                + "1 package is still affected: pkg1"
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
             ),
         ),
     )
+    @mock.patch("uaclient.util.is_config_value_true", return_value=True)
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
@@ -1573,6 +1575,7 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_input,
         m_action_attach,
         _m_should_reboot,
+        _m_is_config_value_true,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1601,12 +1604,12 @@ A fix is available in Ubuntu standard updates.\n"""
             "",
         )
         type(m_entitlement_obj).name = mock.PropertyMock(
-            return_value="esm-apps"
+            return_value="esm-infra"
         )
 
         cfg = FakeConfig()
         with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
             prompt_for_affected_packages(
                 cfg=cfg,
@@ -1622,19 +1625,19 @@ A fix is available in Ubuntu standard updates.\n"""
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
         (
             (
-                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"pkg1": {"pkg1": "1.8"}},
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
                     1 affected package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Apps.
+                    A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-apps")
+                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-infra")
                 + "\n"
-                + colorize_commands([["ua enable esm-apps"]])
+                + colorize_commands([["ua enable esm-infra"]])
                 + "\n"
                 + colorize_commands(
                     [["apt update && apt install --only-upgrade" " -y pkg1"]]
@@ -1644,6 +1647,8 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("uaclient.cli.action_enable", return_value=0)
@@ -1660,6 +1665,8 @@ A fix is available in Ubuntu standard updates.\n"""
         m_action_enable,
         m_check_subscription_expired,
         _m_should_reboot,
+        _m_is_config_value_true,
+        m_is_pocket_beta_service,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1671,6 +1678,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         m_get_cloud_type.return_value = "cloud"
         m_check_subscription_expired.return_value = False
+        m_is_pocket_beta_service.return_value = False
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -1683,13 +1691,13 @@ A fix is available in Ubuntu standard updates.\n"""
             "",
         )
         type(m_entitlement_obj).name = mock.PropertyMock(
-            return_value="esm-apps"
+            return_value="esm-infra"
         )
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
         with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
             prompt_for_affected_packages(
                 cfg=cfg,
@@ -1705,20 +1713,20 @@ A fix is available in Ubuntu standard updates.\n"""
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
         (
             (
-                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"pkg1": {"pkg1": "1.8"}},
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
                     1 affected package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Apps.
+                    A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-apps")
+                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-infra")
                 + "\n"
                 + MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
-                    service="esm-apps"
+                    service="esm-infra"
                 )
                 + "\n"
                 + "1 package is still affected: pkg1"
@@ -1727,6 +1735,8 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.security._check_subscription_is_expired")
     @mock.patch("os.getuid", return_value=0)
@@ -1739,6 +1749,8 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_os_getuid,
         m_check_subscription_expired,
         _m_should_reboot,
+        _m_is_config_value_true,
+        m_is_pocket_beta_service,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1750,6 +1762,7 @@ A fix is available in Ubuntu standard updates.\n"""
 
         m_get_cloud_type.return_value = "cloud"
         m_check_subscription_expired.return_value = False
+        m_is_pocket_beta_service.return_value = False
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -1762,13 +1775,13 @@ A fix is available in Ubuntu standard updates.\n"""
             "",
         )
         type(m_entitlement_obj).name = mock.PropertyMock(
-            return_value="esm-apps"
+            return_value="esm-infra"
         )
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
         with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-apps": m_entitlement_cls}
+            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
             prompt_for_affected_packages(
                 cfg=cfg,
@@ -1784,14 +1797,14 @@ A fix is available in Ubuntu standard updates.\n"""
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
         (
             (
-                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"pkg1": {"pkg1": "1.8"}},
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
                     1 affected package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Apps.
+                    A fix is available in UA Infra.
                     """
                 )
                 + MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
@@ -1810,6 +1823,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.apt.run_apt_command", return_value="")
     @mock.patch("uaclient.cli.action_attach")
@@ -1830,6 +1844,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_cli_attach,
         _m_run_apt_command,
         _m_should_reboot,
+        m_is_pocket_beta_service,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1840,6 +1855,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type.return_value = "cloud"
         m_check_subscription_for_service.return_value = True
         m_cli_attach.return_value = 0
+        m_is_pocket_beta_service.return_value = False
 
         cfg = FakeConfig()
         cfg.for_attached_machine(
@@ -1863,14 +1879,14 @@ A fix is available in Ubuntu standard updates.\n"""
         "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
         (
             (
-                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_APPS)},
+                {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"pkg1": {"pkg1": "1.8"}},
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
                     1 affected package is installed: pkg1
                     (1/1) pkg1:
-                    A fix is available in UA Apps.
+                    A fix is available in UA Infra.
                     """
                 )
                 + MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
@@ -1881,6 +1897,7 @@ A fix is available in Ubuntu standard updates.\n"""
             ),
         ),
     )
+    @mock.patch("uaclient.security._is_pocket_used_by_beta_service")
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("os.getuid", return_value=0)
     @mock.patch("uaclient.security.get_cloud_type")
@@ -1891,6 +1908,7 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type,
         _m_os_getuid,
         _m_should_reboot,
+        m_is_pocket_beta_service,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
@@ -1899,6 +1917,7 @@ A fix is available in Ubuntu standard updates.\n"""
         capsys,
     ):
         m_get_cloud_type.return_value = "cloud"
+        m_is_pocket_beta_service.return_value = False
 
         cfg = FakeConfig()
         cfg.for_attached_machine(
@@ -2166,12 +2185,42 @@ class TestMergeUSNReleasedBinaryPackageVersions:
                     }
                 },
             ),
+            (
+                [
+                    {
+                        "pkg1": {
+                            "libpkg1": {"version": "1.0", "name": "libpkg1"},
+                            "source": {"version": "2.0", "name": "pkg1"},
+                        },
+                        "pkg2": {
+                            "libpkg2": {
+                                "version": "2.0",
+                                "name": "libpkg2",
+                                "pocket": "esm-apps",
+                            },
+                            "source": {
+                                "version": "2.0",
+                                "name": "pkg2",
+                                "pocket": "esm-apps",
+                            },
+                        },
+                    }
+                ],
+                {
+                    "pkg1": {
+                        "libpkg1": {"version": "1.0", "name": "libpkg1"},
+                        "source": {"version": "2.0", "name": "pkg1"},
+                    }
+                },
+            ),
         ),
     )
     def test_merge_usn_released_binary_package_versions(
         self, usns_released_packages, expected_pkgs_dict
     ):
         usns = []
+        beta_packages = {"esm-infra": False, "esm-apps": True}
+
         for usn_released_pkgs in usns_released_packages:
             usn = mock.MagicMock()
             type(usn).release_packages = mock.PropertyMock(
@@ -2179,7 +2228,9 @@ class TestMergeUSNReleasedBinaryPackageVersions:
             )
             usns.append(usn)
 
-        usn_pkgs_dict = merge_usn_released_binary_package_versions(usns)
+        usn_pkgs_dict = merge_usn_released_binary_package_versions(
+            usns, beta_packages
+        )
         assert expected_pkgs_dict == usn_pkgs_dict
 
 
