@@ -245,11 +245,11 @@ static void process_all_templates(
    std::string esm_i_pkgs_count,
    std::string esm_i_pkgs
 ) {
-   std::array<std::string, 5> template_file_names = {
+   std::array<std::string, 2> template_file_names = {
       CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
       CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH
    };
-   std::array<std::string, 5> static_file_names = {
+   std::array<std::string, 2> static_file_names = {
       CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
       CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH
    };
