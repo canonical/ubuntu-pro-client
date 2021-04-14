@@ -473,7 +473,7 @@ def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
 
 
 def merge_usn_released_binary_package_versions(
-    usns: "List[USN]"
+    usns: "List[USN]", beta_pockets: "Dict[str, bool]"
 ) -> "Dict[str,  Dict[str, Dict[str, str]]]":
     """Walk related USNs, merging the released binary package versions.
 
@@ -481,6 +481,11 @@ def merge_usn_released_binary_package_versions(
         package names and required fix version. If multiple related USNs
         require differnt version fixes to the same binary package, track the
         maximum version required across all USNs.
+
+    :param usns: List of USN response instances from which to calculate merge.
+    :param beta_pockets: Dict keyed on service name: esm-infra, esm-apps
+        the values of which will be true of USN response instances
+        from which to calculate merge.
 
     :return: Dict keyed by source package name. Under each source package will
         be a dict with binary package name as keys and binary package metadata
@@ -490,21 +495,27 @@ def merge_usn_released_binary_package_versions(
     for usn in usns:
         # Aggregate USN.release_package binary versions into usn_pkg_versions
         for src_pkg, binary_pkg_versions in usn.release_packages.items():
-            if src_pkg not in usn_pkg_versions:
-                usn_pkg_versions[src_pkg] = binary_pkg_versions
-            else:
+            public_bin_pkg_versions = {
+                bin_pkg_name: bin_pkg_md
+                for bin_pkg_name, bin_pkg_md in binary_pkg_versions.items()
+                if False
+                is beta_pockets.get(bin_pkg_md.get("pocket", "None"), False)
+            }
+            if src_pkg not in usn_pkg_versions and public_bin_pkg_versions:
+                usn_pkg_versions[src_pkg] = public_bin_pkg_versions
+            elif src_pkg in usn_pkg_versions:
                 # Since src_pkg exists, only record this USN's binary version
                 # when it is greater than the previous version in usn_src_pkg.
                 usn_src_pkg = usn_pkg_versions[src_pkg]
-                for binary_pkg, binary_pkg_md in binary_pkg_versions.items():
-                    if binary_pkg not in usn_src_pkg:
-                        usn_src_pkg[binary_pkg] = binary_pkg_md
+                for bin_pkg, binary_pkg_md in public_bin_pkg_versions.items():
+                    if bin_pkg not in usn_src_pkg:
+                        usn_src_pkg[bin_pkg] = binary_pkg_md
                     else:
-                        prev_version = usn_src_pkg[binary_pkg]["version"]
+                        prev_version = usn_src_pkg[bin_pkg]["version"]
                         current_version = binary_pkg_md["version"]
                         if not version_cmp_le(current_version, prev_version):
                             # binary_version is greater than prev_version
-                            usn_src_pkg[binary_pkg] = binary_pkg_md
+                            usn_src_pkg[bin_pkg] = binary_pkg_md
     return usn_pkg_versions
 
 
@@ -512,6 +523,13 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
     issue_id = issue_id.upper()
     client = UASecurityClient(cfg=cfg)
     installed_packages = query_installed_source_pkg_versions()
+
+    # Used to filter out beta pockets during merge_usns
+    beta_pockets = {
+        "esm-apps": _is_pocket_used_by_beta_service("esm-apps", cfg),
+        "esm-infra": _is_pocket_used_by_beta_service("esm-infra", cfg),
+    }
+
     if "CVE" in issue_id:
         try:
             cve = client.get_cve(cve_id=issue_id)
@@ -527,7 +545,9 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
             cve=cve, installed_packages=installed_packages
         )
         print(cve.get_url_header())
-        usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
+        usn_released_pkgs = merge_usn_released_binary_package_versions(
+            usns, beta_pockets
+        )
     else:  # USN
         related_usns = {}
         try:
@@ -549,7 +569,9 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
         affected_pkg_status = get_usn_affected_packages_status(
             usn=usn, installed_packages=installed_packages
         )
-        usn_released_pkgs = merge_usn_released_binary_package_versions(usns)
+        usn_released_pkgs = merge_usn_released_binary_package_versions(
+            usns, beta_pockets
+        )
         print(usn.get_url_header())
         related_cves = set(itertools.chain(*[u.cves_ids for u in usns]))
         if not related_cves:
@@ -719,7 +741,39 @@ def _format_packages_message(
         width=PRINT_WRAP_WIDTH,
         subsequent_indent="    ",
     )
+
     return "{}\n{}".format(msg_header, pkg_status.status_message)
+
+
+def _get_service_for_pocket(pocket: str, cfg: UAConfig):
+    service_to_check = "no-service-needed"
+    if pocket == UA_INFRA_POCKET:
+        service_to_check = "esm-infra"
+    elif pocket == UA_APPS_POCKET:
+        service_to_check = "esm-apps"
+
+    ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(service_to_check)
+    return ent_cls(cfg) if ent_cls else None
+
+
+def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
+    """Check if the pocket where the fix is at belongs to a beta service."""
+    ent = _get_service_for_pocket(pocket, cfg)
+    if ent:
+        ent_status, _ = ent.user_facing_status()
+
+        # If the service is already enabled, we proceed with the fix
+        # even if the service is a beta stage.
+        if ent_status == status.UserFacingStatus.ACTIVE:
+            return False
+
+        config_allow_beta = util.is_config_value_true(
+            config=cfg.cfg, path_to_value="features.allow_beta"
+        )
+
+        return all([ent.is_beta, not config_allow_beta])
+
+    return False
 
 
 def _handle_released_package_fixes(
@@ -740,8 +794,8 @@ def _handle_released_package_fixes(
     if src_pocket_pkgs:
         for pocket in [
             UBUNTU_STANDARD_UPDATES_POCKET,
-            UA_APPS_POCKET,
             UA_INFRA_POCKET,
+            UA_APPS_POCKET,
         ]:
             pkg_src_group = src_pocket_pkgs[pocket]
             binary_pkgs = binary_pocket_pkgs[pocket]
@@ -972,18 +1026,12 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
 
 def _check_subscription_for_required_service(
-    cfg: UAConfig, pocket: str
+    pocket: str, cfg: UAConfig
 ) -> bool:
     """Verify if the ua subscription has the required service enabled."""
-    if pocket == UA_INFRA_POCKET:
-        service_to_check = "esm-infra"
-    else:
-        service_to_check = "esm-apps"
+    ent = _get_service_for_pocket(pocket, cfg)
 
-    ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(service_to_check)
-
-    if ent_cls:
-        ent = ent_cls(cfg)
+    if ent:
         ent_status, _ = ent.user_facing_status()
 
         if ent_status == status.UserFacingStatus.ACTIVE:
@@ -991,7 +1039,7 @@ def _check_subscription_for_required_service(
 
         applicability_status, _ = ent.applicability_status()
         if applicability_status == status.ApplicabilityStatus.APPLICABLE:
-            if _prompt_for_enable(cfg, service_to_check):
+            if _prompt_for_enable(cfg, ent.name):
                 return True
             else:
                 print(
@@ -1074,7 +1122,7 @@ def upgrade_packages_and_attach(
             # renewed it
             return False
 
-        if not _check_subscription_for_required_service(cfg, pocket):
+        if not _check_subscription_for_required_service(pocket, cfg):
             # User subscription does not have required service enabled
             return False
 
