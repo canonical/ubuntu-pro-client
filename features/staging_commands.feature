@@ -16,6 +16,8 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             One moment, checking your subscription first
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
             """ 
+
+    @wip
     @series.xenial
     @series.bionic
     @series.focal
@@ -46,7 +48,8 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         \s*\*\*\* .* 500
         \s*500 https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
-        When I run `echo "esm-apps {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES}; esm-infra {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl` with sudo
+        When I run `mkdir -p /var/lib/ubuntu-advantage/messages` with sudo
+        When I run `sh -c 'echo "esm-apps {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES}; esm-infra {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}" > /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade.tmpl'` with sudo
         When I run `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` with sudo
         When I run `cat /var/lib/ubuntu-advantage/messages/contract-expired-apt-upgrade` with sudo
         Then stdout matches regexp:
