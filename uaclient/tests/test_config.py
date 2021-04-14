@@ -1017,17 +1017,6 @@ class TestStatus:
 
         assert expected_status == cfg.status()
 
-        expected_calls = [
-            mock.call(
-                "",
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
-            )
-        ]
-
-        assert expected_calls == m_remove_notice.call_args_list
-
 
 ATTACHED_SERVICE_STATUS_PARAMETERS = [
     # ENTITLED => display the given user-facing status
