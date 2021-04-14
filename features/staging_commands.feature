@@ -58,7 +58,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         esm-apps \d+:.*; esm-infra \d+:.*
         """
-        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl` with the following
+        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl` with the following
         """
         contract-expiring-soon {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}
         """
