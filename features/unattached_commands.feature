@@ -22,7 +22,6 @@ Feature: Command behaviour when unattached
            | trusty  | nocloudnet |
            | xenial  | lxd        |
 
-    @wip
     @series.trusty
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps

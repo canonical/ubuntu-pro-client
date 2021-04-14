@@ -17,7 +17,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
             """ 
 
-    @wip
     @series.xenial
     @series.bionic
     @series.focal
