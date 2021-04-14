@@ -540,15 +540,6 @@ class UAConfig:
         Write the status-cache when called by root.
         """
 
-        # Try to remove fix reboot notices if not applicable
-        if not util.should_reboot():
-            self.remove_notice(
-                "",
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
-            )
-
         if os.getuid() != 0:
             response = cast("Dict[str, Any]", self.read_cache("status-cache"))
             if not response:
@@ -560,6 +551,15 @@ class UAConfig:
         response.update(self._get_config_status())
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
+
+            # Try to remove fix reboot notices if not applicable
+            if not util.should_reboot():
+                self.remove_notice(
+                    "",
+                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation="fix operation"
+                    ),
+                )
 
         config_allow_beta = util.is_config_value_true(
             config=self.cfg, path_to_value="features.allow_beta"
