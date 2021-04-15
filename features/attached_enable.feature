@@ -90,41 +90,43 @@ Feature: Enable command behaviour when attached to an UA subscription
            | trusty  | libgit2-0 | https://esm.ubuntu.com/ubuntu/      |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
-    Scenario Outline: Attached enable of a know service shows update in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable esm-infra` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            ESM Infra is already enabled.
-            See: sudo ua status
-            """
-        When I run `apt install -y <pkg-version>` with sudo, retrying exit [100]
-        And I run `apt update` with sudo
-        Then stdout matches regexp
-        """
-        \d+ of the updates (is|are) from UA Infra: ESM
-        """
-        Then if `<release>` in `xenial` and stdout matches regexp:
-        """
-        \d+ additional updates (is|are) available with UA Apps: ESM
-        """
-        When I run `ua disable esm-infra` with sudo
-        And I run `apt update` with sudo
-        Then stdout does not match regexp
-        """
-        \d+ of the updates (is|are) from UA Infra: ESM
-        """
-
-        Examples: ubuntu release
-           | release | pkg-version            |
-           | bionic  | libkrad0=1.16-2build1  |
-           | focal   | hello=2.10-2ubuntu2    |
-           | xenial  | libkrad0=1.13.2+dfsg-5 |
+# TODO Add back equivalent once these messages are in apt upgrade
+# Will be something like: "6 upgraded, including 4 esm-apps security updates and 1 esm-infra update"
+#    @series.xenial
+#    @series.bionic
+#    @series.focal
+#    Scenario Outline: Attached enable of a know service shows update in a ubuntu machine
+#        Given a `<release>` machine with ubuntu-advantage-tools installed
+#        When I attach `contract_token` with sudo
+#        Then I verify that running `ua enable esm-infra` `with sudo` exits `1`
+#        And I will see the following on stdout:
+#            """
+#            One moment, checking your subscription first
+#            ESM Infra is already enabled.
+#            See: sudo ua status
+#            """
+#        When I run `apt install -y <pkg-version>` with sudo, retrying exit [100]
+#        And I run `apt update` with sudo
+#        Then stdout matches regexp
+#        """
+#        \d+ of the updates (is|are) from UA Infra: ESM
+#        """
+#        Then if `<release>` in `xenial` and stdout matches regexp:
+#        """
+#        \d+ additional updates (is|are) available with UA Apps: ESM
+#        """
+#        When I run `ua disable esm-infra` with sudo
+#        And I run `apt update` with sudo
+#        Then stdout does not match regexp
+#        """
+#        \d+ of the updates (is|are) from UA Infra: ESM
+#        """
+#
+#        Examples: ubuntu release
+#           | release | pkg-version            |
+#           | bionic  | libkrad0=1.16-2build1  |
+#           | focal   | hello=2.10-2ubuntu2    |
+#           | xenial  | libkrad0=1.13.2+dfsg-5 |
 
     @series.all
     @uses.config.machine_type.lxd.container

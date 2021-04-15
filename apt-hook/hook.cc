@@ -24,19 +24,36 @@
 #include <apt-pkg/strutl.h>
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <assert.h>
 #include <sys/stat.h>
 #include <libintl.h>
 #include <locale.h>
 
+#define CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH              "/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl"
+#define CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH                "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
+#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH          "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl"
+#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH            "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt"
+
+#define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
+#define ESM_APPS_PACKAGES_TEMPLATE_VAR "{ESM_APPS_PACKAGES}"
+#define ESM_INFRA_PKGS_COUNT_TEMPLATE_VAR "{ESM_INFRA_PKG_COUNT}"
+#define ESM_INFRA_PACKAGES_TEMPLATE_VAR "{ESM_INFRA_PACKAGES}"
+
+enum Subcommand { PreInvoke, PostInvokeStats, PostInvokeSuccess, ProcessTemplates };
+
 struct result {
    int enabled_esms_i;
    int disabled_esms_i;
+   std::vector<std::string> esm_i_packages;
+
    int enabled_esms_a;
    int disabled_esms_a;
+   std::vector<std::string> esm_a_packages;
 };
 
 // Return parent pid of specified pid, using /proc (pid might be self)
@@ -56,7 +73,7 @@ static std::string getppid_of(std::string pid)
       getline(stream, line);
 
       if (line.find("PPid:") != 0)
-	 continue;
+         continue;
 
       // Erase everything before a number
       line.erase(0, line.find_first_of("0123456789"));
@@ -121,23 +138,34 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
    {
       for (pkgCache::VerFileIterator pf = ver.FileList(); !pf.end(); pf++)
       {
-	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
-	 {
+         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
+         {
+            res.esm_i_packages.push_back(pf.File().FileName());
+
             // Pin-Priority: never unauthenticated APT repos == -32768
             if (policy->GetPriority(pf.File()) == -32768)
-	       res.disabled_esms_i++;
-	    else
-	       res.enabled_esms_i++;
-	 }
+            {
+               res.disabled_esms_i++;
+            }
+            else
+            {
+               res.enabled_esms_i++;
+            }
+         }
+         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
+         {
+            res.esm_a_packages.push_back(pkg.Name());
 
-	 if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
-	 {
             // Pin-Priority: never unauthenticated APT repos == -32768
-	    if (policy->GetPriority(pf.File()) == -32768)
-	       res.disabled_esms_a++;
-	    else
-	       res.enabled_esms_a++;
-	 }
+            if (policy->GetPriority(pf.File()) == -32768)
+            {
+               res.disabled_esms_a++;
+            }
+            else
+            {
+               res.enabled_esms_a++;
+            }
+         }
       }
    }
 }
@@ -167,6 +195,84 @@ static int get_update_count(result &res)
    return count;
 }
 
+
+static void process_template_file(
+   std::string template_file_name,
+   std::string static_file_name,
+   std::string esm_a_pkgs_count,
+   std::string esm_a_pkgs,
+   std::string esm_i_pkgs_count,
+   std::string esm_i_pkgs
+) {
+   std::ifstream message_tmpl_file(template_file_name.c_str());
+   if (message_tmpl_file.is_open()) {
+      // This line loads the whole file contents into a string
+      std::string message_tmpl((std::istreambuf_iterator<char>(message_tmpl_file)), (std::istreambuf_iterator<char>()));
+
+      message_tmpl_file.close();
+
+      // Process all template variables
+      std::array<std::string, 4> tmpl_var_names = {
+         ESM_APPS_PKGS_COUNT_TEMPLATE_VAR,
+         ESM_APPS_PACKAGES_TEMPLATE_VAR,
+         ESM_INFRA_PKGS_COUNT_TEMPLATE_VAR,
+         ESM_INFRA_PACKAGES_TEMPLATE_VAR
+      };
+      std::array<std::string, 4> tmpl_var_vals = {
+         esm_a_pkgs_count,
+         esm_a_pkgs,
+         esm_i_pkgs_count,
+         esm_i_pkgs
+      };
+      for (uint i = 0; i < tmpl_var_names.size(); i++) {
+         size_t pos = message_tmpl.find(tmpl_var_names[i]);
+         if (pos != std::string::npos) {
+            message_tmpl.replace(pos, tmpl_var_names[i].size(), tmpl_var_vals[i]);
+         }
+      }
+
+      std::ofstream message_static_file(static_file_name.c_str());
+      if (message_static_file.is_open()) {
+         message_static_file << message_tmpl;
+         message_static_file.close();
+      }
+   }
+}
+
+static void process_all_templates(
+   std::string esm_a_pkgs_count,
+   std::string esm_a_pkgs,
+   std::string esm_i_pkgs_count,
+   std::string esm_i_pkgs
+) {
+   std::array<std::string, 2> template_file_names = {
+      CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
+      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH
+   };
+   std::array<std::string, 2> static_file_names = {
+      CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
+      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH
+   };
+   for (uint i = 0; i < template_file_names.size(); i++) {
+      process_template_file(
+         template_file_names[i], 
+         static_file_names[i], 
+         esm_a_pkgs_count,
+         esm_a_pkgs,
+         esm_i_pkgs_count,
+         esm_i_pkgs
+      );
+   }
+}
+
+static void output_file_if_present(std::string file_name) {
+   std::ifstream message_file(file_name);
+   if (message_file.is_open()) {
+      std::cout << message_file.rdbuf();
+      message_file.close();
+   }
+}
+
 // Preserves \0 bytes in a string literal
 template<std::size_t n>
 std::string make_cmdline(const char (&s)[n])
@@ -186,6 +292,9 @@ bool has_arg(char **argv, const char *arg)
 int main(int argc, char *argv[])
 {
    (void) argc;   // unused
+   Subcommand subcommand = ProcessTemplates;
+   bool test_run = false;
+
    setlocale(LC_ALL, "");
    textdomain("ubuntu-advantage");
    // Self testing
@@ -201,69 +310,67 @@ int main(int argc, char *argv[])
    assert(cmdline_eligible(make_cmdline("aptitude\0update\0")));
    command_used = "";
 
-   result res = {0, 0, 0, 0};
+   if (has_arg(argv, "test")) {
+      // useful for testing
+      test_run = true;
+      command_used = "upgrade";
+   }
+   if (has_arg(argv, "pre-invoke")) {
+      subcommand = PreInvoke;
+   } else if (has_arg(argv, "post-invoke-stats")) {
+      subcommand = PostInvokeStats;
+   } else if (has_arg(argv, "post-invoke-success")) {
+      subcommand = PostInvokeSuccess;
+   } else if (has_arg(argv, "process-templates")) {
+      subcommand = ProcessTemplates;
+   }
 
-   // useful for testing
-   if (has_arg(argv, "test"))
-      command_used = "update";
+   if (!test_run && subcommand != ProcessTemplates && !cmdline_eligible(getcmdline(getppid_of(getppid_of("self"))))) {
+      // Only run on valid apt commands, or when being used to process templates
+      return 0;
+   }
 
-   if (has_arg(argv, "test") || cmdline_eligible(getcmdline(getppid_of(getppid_of("self")))))
-      get_update_count(res);
+   // Iterate over apt cache looking for esm packages
+   result res = {0, 0, std::vector<std::string>(), 0, 0, std::vector<std::string>()};
+   get_update_count(res);
    if (_error->PendingError())
    {
       _error->DumpErrors();
       return 1;
    }
 
-   if (command_used == "update")
-   {
-      if (res.enabled_esms_i > 0)
-      {
-         ioprintf(std::cout,
-                  ngettext("%d of the updates is from UA Infra: ESM.",
-                           "%d of the updates are from UA Infra: ESM.",
-                           res.enabled_esms_i),
-                  res.enabled_esms_i);
-         ioprintf(std::cout, "\n");
+   // Compute all strings necessary to fill in templates
+   std::string space_separated_esm_i_packages = "";
+   if (res.esm_i_packages.size() > 0) {
+      for (uint i = 0; i < res.esm_i_packages.size() - 1; i++) {
+         space_separated_esm_i_packages.append(res.esm_i_packages[i]);
+         space_separated_esm_i_packages.append(" ");
       }
-      if (res.enabled_esms_a > 0)
-      {
-         ioprintf(std::cout,
-                  ngettext("%d of the updates is from UA Apps: ESM.",
-                           "%d of the updates are from UA Apps: ESM.",
-                           res.enabled_esms_a),
-                  res.enabled_esms_a);
-         ioprintf(std::cout, "\n");
-      }
+      space_separated_esm_i_packages.append(res.esm_i_packages[res.esm_i_packages.size() - 1]);
    }
-
-   if (res.disabled_esms_i > 0 || res.disabled_esms_a > 0)
-   {
-      if (command_used != "update")
-         std::cout << std::endl;
-      if (res.disabled_esms_i > 0)
-      {
-         ioprintf(std::cout,
-                  ngettext("%d additional update is available with UA Infra: ESM.",
-                           "%d additional updates are available with UA Infra: ESM.",
-                           res.disabled_esms_i),
-                  res.disabled_esms_i);
-         ioprintf(std::cout, "\n");
+   std::string space_separated_esm_a_packages = "";
+   if (res.esm_a_packages.size() > 0) {
+      for (uint i = 0; i < res.esm_a_packages.size() - 1; i++) {
+         space_separated_esm_a_packages.append(res.esm_a_packages[i]);
+         space_separated_esm_a_packages.append(" ");
       }
-      if (res.disabled_esms_a > 0)
-      {
-         ioprintf(std::cout,
-                  ngettext("%d additional update is available with UA Apps: ESM.",
-                           "%d additional updates are available with UA Apps: ESM.",
-                           res.disabled_esms_a),
-                  res.disabled_esms_a);
-         ioprintf(std::cout, "\n");
-      }
+      space_separated_esm_a_packages.append(res.esm_a_packages[res.esm_a_packages.size() - 1]);
+   }
+   std::string esm_i_packages_count = std::to_string(res.esm_i_packages.size());
+   std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
 
-      ioprintf(std::cout, gettext("To see these additional updates run: apt list --upgradable"));
-      ioprintf(std::cout, "\n");
-      ioprintf(std::cout, gettext("See https://ubuntu.com/advantage or run: sudo ua status"));
-      ioprintf(std::cout, "\n");
+   process_all_templates(
+      esm_a_packages_count,
+      space_separated_esm_a_packages,
+      esm_i_packages_count,
+      space_separated_esm_i_packages
+   );
+
+   // Execute specified subcommand
+   if (subcommand == PreInvoke) {
+      if (command_used == "upgrade" || command_used == "dist-upgrade") {
+         output_file_if_present(CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH);
+      }
    }
 
    return 0;

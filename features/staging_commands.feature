@@ -16,6 +16,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             One moment, checking your subscription first
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
             """ 
+
     @series.xenial
     @series.bionic
     @series.focal
@@ -45,6 +46,26 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Version table:
         \s*\*\*\* .* 500
         \s*500 https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
+        """
+        When I run `mkdir -p /var/lib/ubuntu-advantage/messages` with sudo
+        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl` with the following
+        """
+        esm-apps {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}; esm-infra {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}
+        """
+        When I run `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` with sudo
+        When I run `cat /var/lib/ubuntu-advantage/messages/contract-expiry-status` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps \d+:.*; esm-infra \d+:.*
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl` with the following
+        """
+        contract-expiring-soon {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}
+        """
+        When I run `apt upgrade --dry-run` with sudo
+        Then stdout matches regexp:
+        """
+        contract-expiring-soon \d+ .* \d+ .*
         """
 
         Examples: ubuntu release
