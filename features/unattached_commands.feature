@@ -26,6 +26,7 @@ Feature: Command behaviour when unattached
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt update` with sudo
         When I run `apt-cache policy` with sudo
         Then if `<release>` in `trusty` and stdout matches regexp:
         """
