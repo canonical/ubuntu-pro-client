@@ -22,6 +22,7 @@ Feature: Command behaviour when unattached
            | trusty  | nocloudnet |
            | xenial  | lxd        |
 
+    @wip
     @series.trusty
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
@@ -43,6 +44,29 @@ Feature: Command behaviour when unattached
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
         -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
+        """
+        Then if `<release>` in `trusty or xenial` and stdout does not match regexp:
+        """
+        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
+        """
+        Then if `<release>` in `trusty or xenial` and stdout does not match regexp:
+        """
+        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
+        """
+        When I append the following on uaclient config:
+            """
+            features:
+              allow_beta: true
+            """
+        And I run `apt update` with sudo
+        When I run `apt-cache policy` with sudo
+        Then if `<release>` in `trusty` and stdout does not match regexp:
+        """
+        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
+        """
+        Then if `<release>` in `trusty` and stdout does not match regexp:
+        """
+        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
