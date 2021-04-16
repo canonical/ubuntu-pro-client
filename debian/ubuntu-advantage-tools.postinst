@@ -4,6 +4,14 @@ set -e
 
 . /etc/os-release  # For VERSION_ID
 
+# Since UBUNTU_CODENAME isn't on trusty set it set a default if unknown
+if [ "" = "${UBUNTU_CODENAME}" ]; then
+   case "$VERSION_ID" in
+       14.04) UBUNTU_CODENAME="trusty";;
+       *) UBUNTU_CODENAME="NO-UBUNTU_CODENAME-$VERSION_ID";;
+   esac
+fi
+
 # Needed even if this script doesn't call debconf, see:
 # https://lintian.debian.org/tags/postinst-does-not-load-confmodule.html
 . /usr/share/debconf/confmodule
@@ -71,6 +79,44 @@ print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
              done
          fi
     done
+}
+
+
+# Check whether a given distro has esm support
+check_release_supports_esm() {
+   release_name=$1
+    _IS_ESM_SUPPORTED=$(python3 -c "
+from distro_info import UbuntuDistroInfo
+di = UbuntuDistroInfo()
+print('${release_name}' in di.supported_esm())
+")
+if [ "${_IS_ESM_SUPPORTED}" = "True" ]; then
+    return 0
+else
+    return 1
+fi
+}
+
+
+# Check whether a given service is beta
+check_service_is_beta() {
+    service_name=$1
+    _IS_BETA_SVC=$(python3 -c "
+from uaclient.config import UAConfig
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+ent_cls = ENTITLEMENT_CLASS_BY_NAME.get('${service_name}')
+if ent_cls:
+    cfg = UAConfig()
+    allow_beta = cfg.features.get('allow_beta', False)
+    print(all([ent_cls.is_beta, not allow_beta]))
+else:
+    print(True)
+")
+if [ "${_IS_BETA_SVC}" = "True" ]; then
+    return 0
+else
+    return 1
+fi
 }
 
 
@@ -168,27 +214,21 @@ Pin: release o=${apt_origin}, n=${release}
 Pin-Priority: never
 EOF
     fi
-
 }
 
 configure_esm() {
     rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove legacy esm keys
-    case "${VERSION_ID}" in
-        14.04)
-            enable_apps="false" enable_infra="true" release="trusty" ;;
-        16.04)
-            enable_apps="true" enable_infra="true" release="xenial" ;;
-        *)
-            enable_apps="false" enable_infra="false" release="DONOTCONFIGESM" ;;
-    esac
-
+    if [ "14.04" = "${VERSION_ID}" ]; then
+            enable_apps="false"
+    else
+            enable_apps="true"
+    fi
     if [ "${enable_apps}" = "true" ]; then
-        install_esm_apt_key_and_source "apps" $release
+        if ! check_service_is_beta esm-apps; then
+            install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
+        fi
     fi
-    if [ "${enable_infra}" = "true" ]; then
-        install_esm_apt_key_and_source "infra" $release
-    fi
-
+    install_esm_apt_key_and_source "infra" "$UBUNTU_CODENAME"
 }
 
 
@@ -253,12 +293,11 @@ case "$1" in
       # machine-access cache files no longer present or used since 20.1
       rm -f /var/lib/ubuntu-advantage/private/machine-access-*.json
 
-      if [ "14.04" = "$VERSION_ID" ]  || [ "16.04" = "$VERSION_ID" ]; then
+      if check_release_supports_esm "${UBUNTU_CODENAME}"; then
         if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
-          # 14.04 or 16.04 and supported arch
           configure_esm
         else
-          # 14.04 or 16.04 and unsupported arch
+          # ESM supported release but unsupported arch
           unconfigure_esm
         fi
       fi
