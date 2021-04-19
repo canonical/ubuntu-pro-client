@@ -74,6 +74,16 @@ def given_a_machine(context, series):
         context.instance
     )
 
+    if series == "trusty":
+        # On trusty, the distro-info package is not directly
+        # installed when we install the ubuntu-advantage-client
+        # deb. This is fixing that problem on trusty
+        when_i_run_command(
+            context=context,
+            command="apt-get install -f -y",
+            user_spec="with sudo",
+        )
+
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
             print(
@@ -273,6 +283,13 @@ def then_conditional_stdout_matches_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
         then_stdout_matches_regexp(context)
+
+
+@then("if `{value1}` in `{value2}` and stdout does not match regexp")
+def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
+    """Only apply regex assertion if value1 in value2."""
+    if value1 in value2.split(" or "):
+        then_stdout_does_not_match_regexp(context)
 
 
 @then("stdout matches regexp")

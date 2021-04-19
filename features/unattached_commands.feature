@@ -44,9 +44,7 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
-        # Trusty only issue
-        When I run `apt-get install -f -y` with sudo
-        And I append the following on uaclient config:
+        When I append the following on uaclient config:
             """
             features:
               allow_beta: true
