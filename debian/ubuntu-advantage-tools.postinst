@@ -82,13 +82,6 @@ print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
 }
 
 
-# Check whether a given distro has esm support
-check_release_supports_esm() {
-    release_name=$1
-    ubuntu-distro-info --supported-esm | grep -q "${release_name}"
-}
-
-
 # Check whether a given service is beta
 check_service_is_beta() {
     service_name=$1
@@ -284,7 +277,7 @@ case "$1" in
       # machine-access cache files no longer present or used since 20.1
       rm -f /var/lib/ubuntu-advantage/private/machine-access-*.json
 
-      if check_release_supports_esm "${UBUNTU_CODENAME}"; then
+      if [ "14.04" = "$VERSION_ID" ] || [ "16.04" = "$VERSION_ID" ]; then
         if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
           configure_esm
         else
