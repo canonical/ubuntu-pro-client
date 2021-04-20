@@ -29,6 +29,9 @@ ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
 ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
 ESM_INFRA_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-infra.list"
 ESM_APPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-apps.list"
+FIPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-fips.list"
+
+OLD_CLIENT_FIPS_PPA="private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu"
 
 ESM_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-trusty"
 ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-infra-trusty"
@@ -225,17 +228,22 @@ mark_reboot_for_fips_pro() {
 }
 
 
-mark_reboot_cmds_as_needed() {
+add_notice() {
     msg_name=$1
-    if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
-      touch $REBOOT_CMD_MARKER_FILE
-    fi
     python3 -c "
 from uaclient.config import UAConfig
 from uaclient.status import ${msg_name}
 cfg = UAConfig()
 cfg.add_notice(label='', description=${msg_name})
 "
+}
+
+mark_reboot_cmds_as_needed() {
+    msg_name=$1
+    if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
+      touch $REBOOT_CMD_MARKER_FILE
+    fi
+    add_notice "$msg_name"
 }
 
 case "$1" in
@@ -271,6 +279,13 @@ case "$1" in
       # specialize apt config filenames per ubuntu release.
       redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
       redact_ubuntu_release_from_ua_apt_filenames $APT_PREFERENCES_DIR
+
+      # Repo for FIPS packages changed from old client
+      if [ -f $FIPS_APT_SOURCE_FILE ]; then
+        if grep -q $OLD_CLIENT_FIPS_PPA $FIPS_APT_SOURCE_FILE; then
+            add_notice MESSAGE_FIPS_INSTALL_OUT_OF_DATE
+        fi
+      fi
 
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools

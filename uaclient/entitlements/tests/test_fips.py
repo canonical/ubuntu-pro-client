@@ -226,6 +226,28 @@ class TestFIPSEntitlementEnable:
             ["", status.MESSAGE_FIPS_REBOOT_REQUIRED]
         ] == entitlement.cfg.read_cache("notices")
 
+    @pytest.mark.parametrize(
+        "repo_enable_return_value, expected_remove_notice_calls",
+        [
+            (True, [mock.call("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)]),
+            (False, []),
+        ],
+    )
+    @mock.patch("uaclient.entitlements.repo.RepoEntitlement.enable")
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    def test_enable_removes_out_of_date_notice_on_success(
+        self,
+        m_remove_notice,
+        m_repo_enable,
+        repo_enable_return_value,
+        expected_remove_notice_calls,
+        entitlement_factory,
+    ):
+        m_repo_enable.return_value = repo_enable_return_value
+        fips_entitlement = entitlement_factory(FIPSEntitlement)
+        assert repo_enable_return_value is fips_entitlement.enable()
+        assert expected_remove_notice_calls == m_remove_notice.call_args_list
+
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
