@@ -85,6 +85,28 @@ print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
 }
 
 
+# Ubuntu LTS release all support-esm
+check_is_lts() {
+    release_name=$1
+    ubuntu-distro-info --supported-esm | grep -q "${release_name}"
+}
+
+
+# Check whether this series is under active ESM
+check_is_active_esm() {
+    release_name=$1
+    # Trusty doesn't support --series param
+    if [ "${release_name}" = "trusty" ]; then
+        return 0
+    else
+        _DAYS_UNTIL_ESM=$(ubuntu-distro-info --series "${release_name}" -yeol)
+        if [ "${_DAYS_UNTIL_ESM}" -lt "1" ]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
 # Check whether a given service is beta
 check_service_is_beta() {
     service_name=$1
@@ -205,17 +227,14 @@ EOF
 
 configure_esm() {
     rm -f $APT_TRUSTED_KEY_DIR/ubuntu-esm*gpg  # Remove legacy esm keys
-    if [ "14.04" = "${VERSION_ID}" ]; then
-            enable_apps="false"
-    else
-            enable_apps="true"
+    if check_is_active_esm "${UBUNTU_CODENAME}"; then
+        install_esm_apt_key_and_source "infra" "$UBUNTU_CODENAME"
     fi
-    if [ "${enable_apps}" = "true" ]; then
-        if ! check_service_is_beta esm-apps; then
+    if ! check_service_is_beta esm-apps; then
+        if [ "${UBUNTU_CODENAME}" != "trusty" ]; then
             install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
         fi
     fi
-    install_esm_apt_key_and_source "infra" "$UBUNTU_CODENAME"
 }
 
 
@@ -292,7 +311,7 @@ case "$1" in
       # machine-access cache files no longer present or used since 20.1
       rm -f /var/lib/ubuntu-advantage/private/machine-access-*.json
 
-      if [ "14.04" = "$VERSION_ID" ] || [ "16.04" = "$VERSION_ID" ]; then
+      if check_is_lts "${UBUNTU_CODENAME}"; then
         if echo "$ESM_SUPPORTED_ARCHS" | grep -qw "$MYARCH"; then
           configure_esm
         else
