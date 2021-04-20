@@ -251,6 +251,9 @@ MESSAGE_REBOOT_SCRIPT_FAILED = (
 MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED = (
     "Livepatch support requires a system reboot across LTS upgrade."
 )
+MESSAGE_FIPS_INSTALL_OUT_OF_DATE = (
+    "This FIPS install is out of date, run: sudo ua enable fips"
+)
 MESSAGE_FIPS_REBOOT_REQUIRED = (
     "FIPS support requires system reboot to complete configuration."
 )
