@@ -1,0 +1,11 @@
+[Unit]
+Description=Ubuntu Advantage update messaging
+
+[Timer]
+OnCalendar=*-*-* 3,15:00
+RandomizedDelaySec=1h
+Persistent=true
+OnStartupSec=1min
+
+[Install]
+WantedBy=timers.target
