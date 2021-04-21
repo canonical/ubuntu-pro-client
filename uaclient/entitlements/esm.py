@@ -22,15 +22,30 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
 
     @property
     def repo_pin_priority(self) -> "Optional[str]":
-        """Only Xenial esm-apps should perform repo pinning"""
-        if "xenial" == util.get_platform_info()["series"]:
-            return "never"
-        return None  # No pinning on >= trusty
+        """All LTS with the exception of Trusty should pin esm-apps."""
+        series = util.get_platform_info()["series"]
+        if series == "trusty":
+            return None
+        config_allow_beta = util.is_config_value_true(
+            config=self.cfg.cfg, path_to_value="features.allow_beta"
+        )
+        if config_allow_beta or self.is_beta is False:
+            if util.is_lts(series):
+                return "never"
+        return None
 
     @property
     def disable_apt_auth_only(self) -> bool:
-        """Only xenial esm-apps should remove apt auth files upon disable"""
-        return bool("xenial" == util.get_platform_info()["series"])
+        """All LTSexcept Trusty remove APT auth files upon disable"""
+        series = util.get_platform_info()["series"]
+        if series == "trusty":
+            return False
+        config_allow_beta = util.is_config_value_true(
+            config=self.cfg.cfg, path_to_value="features.allow_beta"
+        )
+        if config_allow_beta or self.is_beta is False:
+            return util.is_lts(series)
+        return False
 
 
 class ESMInfraEntitlement(ESMBaseEntitlement):
@@ -42,12 +57,16 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
 
     @property
     def repo_pin_priority(self) -> "Optional[str]":
-        """Xenial and Trusty esm-infra should perform repo pinning"""
-        if util.get_platform_info()["series"] in ("trusty", "xenial"):
+        """Once a release goes into EOL it is entitled to ESM Infra."""
+        if util.is_active_esm(util.get_platform_info()["series"]):
             return "never"
-        return None  # No pinning on >= bionic
+        return None  # No pinning on non-ESM releases
 
     @property
     def disable_apt_auth_only(self) -> bool:
-        """Only trusty esm-infra should remove apt auth files upon disable"""
-        return bool(util.get_platform_info()["series"] in ("trusty", "xenial"))
+        """Ubuntu EOL releases are in active ESM.
+
+        Leave unauthenticated APT sources on disk with never pinning to ensure
+        visibility to UA ESM: Infra packages for MOTD/APT messaging.
+        """
+        return util.is_active_esm(util.get_platform_info()["series"])
