@@ -206,30 +206,30 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert False is os.path.exists(no_pkgs_file.strpath)
 
     @pytest.mark.parametrize(
-        "contract_status, remaining_days, series",
+        "contract_status, remaining_days, is_active_esm",
         (
-            (ContractExpiryStatus.ACTIVE, 21, "xenial"),
-            (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10, "xenial"),
-            (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -5, "xenial"),
-            (ContractExpiryStatus.EXPIRED, -20, "xenial"),
-            (ContractExpiryStatus.EXPIRED, -20, "bionic"),
+            (ContractExpiryStatus.ACTIVE, 21, True),
+            (ContractExpiryStatus.ACTIVE_EXPIRED_SOON, 10, True),
+            (ContractExpiryStatus.EXPIRED_GRACE_PERIOD, -5, True),
+            (ContractExpiryStatus.EXPIRED, -20, True),
+            (ContractExpiryStatus.EXPIRED, -20, False),
         ),
     )
-    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "util.is_active_esm")
     @mock.patch(
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
     def test_apt_templates_written_for_enabled_services_by_contract_status(
         self,
         app_status,
-        get_platform_info,
+        util_is_active_esm,
         contract_status,
         remaining_days,
-        series,
+        is_active_esm,
         FakeConfig,
         tmpdir,
     ):
-        get_platform_info.return_value = {"series": series}
+        util_is_active_esm.return_value = is_active_esm
         m_entitlement_cls = mock.MagicMock()
         m_ent_obj = m_entitlement_cls.return_value
         disabled_status = ApplicationStatus.ENABLED, ""
@@ -306,7 +306,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             no_pkgs_msg = MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
                 title="UA Apps: ESM", url=BASE_ESM_URL
             )
-            if series == "xenial":
+            if is_active_esm:
                 assert MESSAGE_UBUNTU_NO_WARRANTY == no_warranty_file.read()
             else:
                 assert False is os.path.exists(no_warranty_file.strpath)

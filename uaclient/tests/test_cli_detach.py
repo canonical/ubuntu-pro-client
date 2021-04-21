@@ -59,8 +59,10 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.config.update_ua_messages")
     def test_entitlements_disabled_appropriately(
         self,
+        update_ua_messages,
         m_client,
         m_entitlements,
         m_getuid,
@@ -122,8 +124,16 @@ class TestActionDetach:
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.config.update_ua_messages")
     def test_config_cache_deleted(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
+        self,
+        update_ua_messages,
+        m_client,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -137,11 +147,14 @@ class TestActionDetach:
         action_detach(mock.MagicMock(), m_cfg)
 
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
+        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.config.update_ua_messages")
     def test_correct_message_emitted(
         self,
+        update_ua_messages,
         m_client,
         m_entitlements,
         m_getuid,
@@ -164,11 +177,20 @@ class TestActionDetach:
         out, _err = capsys.readouterr()
 
         assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
+        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.config.update_ua_messages")
     def test_returns_zero(
-        self, m_client, m_entitlements, m_getuid, _m_prompt, FakeConfig, tmpdir
+        self,
+        update_ua_messages,
+        m_client,
+        m_entitlements,
+        m_getuid,
+        _m_prompt,
+        FakeConfig,
+        tmpdir,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = []
@@ -182,6 +204,7 @@ class TestActionDetach:
         ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
+        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
 
     @pytest.mark.parametrize(
         "classes,expected_message",
@@ -214,8 +237,10 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
+    @mock.patch("uaclient.config.update_ua_messages")
     def test_informational_message_emitted(
         self,
+        m_update_ua_messages,
         m_client,
         m_entitlements,
         m_getuid,

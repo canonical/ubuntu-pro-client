@@ -652,6 +652,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
     contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
+    config.update_ua_messages(cfg)
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
@@ -669,10 +670,12 @@ def _attach_with_token(
             logging.exception(exc)
         print(ua_status.MESSAGE_ATTACH_FAILURE)
         cfg.status()  # Persist updated status in the event of partial attach
+        config.update_ua_messages(cfg)
         return 1
     except exceptions.UserFacingError as exc:
         logging.warning(exc.msg)
         cfg.status()  # Persist updated status in the event of partial attach
+        config.update_ua_messages(cfg)
         return 1
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
@@ -683,6 +686,7 @@ def _attach_with_token(
         )
     )
 
+    config.update_ua_messages(cfg)
     action_status(args=None, cfg=cfg)
     return 0
 
