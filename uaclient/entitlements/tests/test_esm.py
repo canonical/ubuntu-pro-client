@@ -21,57 +21,156 @@ def entitlement(request, entitlement_factory):
 
 class TestESMRepoPinPriority:
     @pytest.mark.parametrize(
-        "esm_class, series, repo_pin_priority",
+        "series, is_active_esm, repo_pin_priority",
         (
-            (ESMInfraEntitlement, "trusty", "never"),
-            (ESMInfraEntitlement, "xenial", "never"),
-            (ESMInfraEntitlement, "bionic", None),
-            (ESMInfraEntitlement, "focal", None),
-            (ESMAppsEntitlement, "trusty", None),
-            (ESMAppsEntitlement, "xenial", "never"),
-            (ESMAppsEntitlement, "bionic", None),
-            (ESMAppsEntitlement, "focal", None),
+            ("trusty", True, "never"),
+            ("xenial", True, "never"),
+            ("bionic", False, None),
+            ("focal", False, None),
         ),
     )
+    @mock.patch("uaclient.util.is_active_esm")
     @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
-    def test_esm_infra_repo_pin_priority_never_on_trusty(
-        self, m_get_platform_info, esm_class, series, repo_pin_priority
+    def test_esm_infra_repo_pin_priority_never_on_active_esm(
+        self,
+        m_get_platform_info,
+        m_is_active_esm,
+        series,
+        is_active_esm,
+        repo_pin_priority,
     ):
-        """Repository pinning priority for ESMInfra will be 'never' on trusty.
+        """Repository pinning priority for ESMInfra is 'never' when active ESM
 
-        A pin priority of 'never' means we setup and advertize ESM Infra
-        packages without allowing them to be installed until someone attaches
+        A pin priority of 'never' means we advertize those service packages
+        without allowing them to be installed until someone attaches
         the machine to Ubuntu Advantage. This is only done for ESM Infra
-        on Trusty. We won't want/need to advertize ESM packages on Xenial or
-        later. Since we don't advertize ESM Apps on any series,
-        repo_pin_priority is None on all series.
+        when the release is EOL and supports ESM. We won't want/need to
+        advertize ESM Infra packages on releases that are not EOL.
         """
+        m_is_active_esm.return_value = is_active_esm
         m_get_platform_info.return_value = {"series": series}
-        inst = esm_class({})
+        inst = ESMInfraEntitlement({})
         assert repo_pin_priority == inst.repo_pin_priority
+        assert [mock.call(series)] == m_is_active_esm.call_args_list
+
+    @pytest.mark.parametrize(
+        "series, is_lts, is_beta, cfg_allow_beta, repo_pin_priority",
+        (
+            # When esm non-beta pin it on non-trusty
+            ("trusty", True, False, None, None),
+            ("xenial", True, False, None, "never"),
+            ("bionic", True, False, None, "never"),
+            ("focal", True, False, None, "never"),
+            # when ESM beta don't pin
+            ("trusty", True, True, None, None),
+            ("xenial", True, True, None, None),
+            ("bionic", True, True, None, None),
+            ("focal", True, True, None, None),
+        ),
+    )
+    @mock.patch("uaclient.util.is_lts")
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_apps_repo_pin_priority_never_on_on_lts(
+        self,
+        m_get_platform_info,
+        m_is_lts,
+        series,
+        is_lts,
+        is_beta,
+        cfg_allow_beta,
+        repo_pin_priority,
+        FakeConfig,
+    ):
+        """Repository pinning priority for ESMApps is 'never' when on LTS.
+
+        A pin priority of 'never' means we advertize those service packages
+        without allowing them to be installed until someone attaches
+        the machine to Ubuntu Advantage. This is only done for ESM Apps
+        when the release is an Ubuntu LTS release. We won't want/need to
+        advertize ESM Apps packages on non-LTS releases or if ESM Apps is beta.
+        """
+        m_is_lts.return_value = is_lts
+        m_get_platform_info.return_value = {"series": series}
+        cfg = FakeConfig.for_attached_machine()
+        if cfg_allow_beta:
+            cfg.override_features({"allow_beta": cfg_allow_beta})
+
+        inst = ESMAppsEntitlement(cfg)
+        inst.is_beta = is_beta
+        assert repo_pin_priority == inst.repo_pin_priority
+        is_lts_calls = []
+        if series != "trusty":
+            if cfg_allow_beta or not is_beta:
+                is_lts_calls = [mock.call(series)]
+        assert is_lts_calls == m_is_lts.call_args_list
 
 
 class TestESMDisableAptAuthOnly:
     @pytest.mark.parametrize(
-        "esm_class, series, disable_apt_auth_only",
+        "series, is_active_esm, disable_apt_auth_only",
         (
-            (ESMInfraEntitlement, "trusty", True),
-            (ESMInfraEntitlement, "xenial", True),
-            (ESMInfraEntitlement, "bionic", False),
-            (ESMInfraEntitlement, "focal", False),
-            (ESMAppsEntitlement, "trusty", False),
-            (ESMAppsEntitlement, "xenial", True),
-            (ESMAppsEntitlement, "bionic", False),
-            (ESMAppsEntitlement, "focal", False),
+            ("trusty", True, True),
+            ("xenial", True, True),
+            ("bionic", False, False),
+            ("focal", False, False),
         ),
     )
+    @mock.patch("uaclient.util.is_active_esm")
     @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
-    def test_esm_infra_disable_apt_auth_only_is_true_on_trusty(
-        self, m_get_platform_info, esm_class, series, disable_apt_auth_only
+    def test_esm_infra_disable_apt_auth_only_is_true_when_active_esm(
+        self,
+        m_get_platform_info,
+        m_is_active_esm,
+        series,
+        is_active_esm,
+        disable_apt_auth_only,
     ):
+        m_is_active_esm.return_value = is_active_esm
         m_get_platform_info.return_value = {"series": series}
-        inst = esm_class({})
+        inst = ESMInfraEntitlement({})
         assert disable_apt_auth_only is inst.disable_apt_auth_only
+        assert [mock.call(series)] == m_is_active_esm.call_args_list
+
+    @pytest.mark.parametrize(
+        "series, is_lts, is_beta, cfg_allow_beta, disable_apt_auth_only",
+        (
+            ("trusty", True, True, None, False),
+            ("trusty", True, False, True, False),  # trusty always false
+            ("xenial", True, True, None, False),  # is_beta disables
+            ("xenial", True, False, False, True),  # not beta service succeeds
+            ("xenial", True, True, True, True),  # cfg allow_true overrides
+            ("bionic", True, True, None, False),
+            ("focal", True, True, None, False),
+            ("groovy", False, False, True, False),  # not is_lts fails
+        ),
+    )
+    @mock.patch("uaclient.util.is_lts")
+    @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
+    def test_esm_apps_disable_apt_auth_only_is_true_on_lts(
+        self,
+        m_get_platform_info,
+        m_is_lts,
+        series,
+        is_lts,
+        is_beta,
+        cfg_allow_beta,
+        disable_apt_auth_only,
+        FakeConfig,
+    ):
+        m_is_lts.return_value = is_lts
+        m_get_platform_info.return_value = {"series": series}
+        cfg = FakeConfig.for_attached_machine()
+        if cfg_allow_beta:
+            cfg.override_features({"allow_beta": cfg_allow_beta})
+
+        inst = ESMAppsEntitlement(cfg)
+        inst.is_beta = is_beta
+        assert disable_apt_auth_only is inst.disable_apt_auth_only
+        is_lts_calls = []
+        if series != "trusty":
+            if cfg_allow_beta or not is_beta:
+                is_lts_calls = [mock.call(series)]
+        assert is_lts_calls == m_is_lts.call_args_list
 
 
 class TestESMInfraEntitlementEnable:
@@ -94,6 +193,7 @@ class TestESMInfraEntitlementEnable:
             m_add_apt = stack.enter_context(
                 mock.patch("uaclient.apt.add_auth_apt_repo")
             )
+            stack.enter_context(mock.patch("uaclient.util.is_active_esm"))
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
@@ -197,6 +297,7 @@ class TestESMInfraEntitlementEnable:
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
+            stack.enter_context(mock.patch("uaclient.util.is_active_esm"))
             m_subp = stack.enter_context(
                 mock.patch("uaclient.util.subp", side_effect=fake_subp)
             )
