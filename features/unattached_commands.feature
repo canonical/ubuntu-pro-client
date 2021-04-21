@@ -84,7 +84,17 @@ Feature: Command behaviour when unattached
             +https:\/\/ubuntu.com\/esm
 
         UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
-
+        """
+        # Check that json hook is installed properly
+        When I run `ls /usr/lib/ubuntu-advantage` with sudo
+        Then stdout matches regexp:
+        """
+        apt-esm-json-hook
+        """
+        When I run `cat /etc/apt/apt.conf.d/20apt-esm-hook.conf` with sudo
+        Then stdout matches regexp:
+        """
+        apt-esm-json-hook
         """
 
         Examples: ubuntu release
