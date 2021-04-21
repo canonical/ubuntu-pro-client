@@ -173,8 +173,11 @@ class TestESMDisableAptAuthOnly:
         assert is_lts_calls == m_is_lts.call_args_list
 
 
+@mock.patch("uaclient.entitlements.esm.update_ua_messages")
 class TestESMInfraEntitlementEnable:
-    def test_enable_configures_apt_sources_and_auth_files(self, entitlement):
+    def test_enable_configures_apt_sources_and_auth_files(
+        self, update_ua_messages, entitlement
+    ):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
         original_exists = os.path.exists
@@ -266,9 +269,12 @@ class TestESMInfraEntitlementEnable:
         else:
             unlink_calls = []  # esm-apps doesn't write an apt pref file
         assert unlink_calls == m_unlink.call_args_list
+        assert [
+            mock.call(entitlement.cfg)
+        ] == update_ua_messages.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
-        self, entitlement, caplog_text
+        self, _update_ua_messages, entitlement, caplog_text
     ):
         """When setup_apt_config fails, cleanup any apt artifacts."""
         original_exists = os.path.exists
@@ -365,12 +371,13 @@ class TestESMInfraEntitlementEnable:
         ] == m_remove_apt_config.call_args_list
 
 
+@mock.patch("uaclient.entitlements.esm.update_ua_messages")
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch(M_PATH + "can_disable", return_value=False)
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
-        self, m_can_disable, m_platform_info, silent
+        self, m_can_disable, m_platform_info, _update_ua_messages, silent
     ):
         """When can_disable is false disable returns false and noops."""
         entitlement = ESMInfraEntitlement({})
@@ -384,7 +391,7 @@ class TestESMEntitlementDisable:
         "uaclient.util.get_platform_info", return_value={"series": "trusty"}
     )
     def test_disable_on_can_disable_true_removes_apt_config(
-        self, _m_platform_info, entitlement, tmpdir
+        self, _m_platform_info, update_ua_messages, entitlement, tmpdir
     ):
         """When can_disable, disable removes apt configuration"""
 
@@ -394,3 +401,6 @@ class TestESMEntitlementDisable:
             ) as m_remove_apt_config:
                 assert entitlement.disable(True)
         assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [
+            mock.call(entitlement.cfg)
+        ] == update_ua_messages.call_args_list

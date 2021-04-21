@@ -341,8 +341,10 @@ class TestActionAutoAttach:
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "_get_contract_token_from_cloud_identity")
     @mock.patch(M_PATH + "action_status")
+    @mock.patch(M_PATH + "config.update_ua_messages")
     def test_happy_path_on_aws_auto_attach(
         self,
+        update_ua_messages,
         action_status,
         get_contract_token_from_cloud_identity,
         request_updated_contract,
