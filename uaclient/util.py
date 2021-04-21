@@ -349,6 +349,23 @@ def get_platform_info() -> "Dict[str, str]":
 
 
 @lru_cache(maxsize=None)
+def is_lts(series: str) -> bool:
+    out, _err = subp(["/usr/bin/ubuntu-distro-info", "--supported-esm"])
+    return series in out
+
+
+@lru_cache(maxsize=None)
+def is_active_esm(series: str) -> bool:
+    """Return True when Ubuntu series supports ESM and is actively in ESM."""
+    if not is_lts(series):
+        return False
+    out, _err = subp(
+        ["/usr/bin/ubuntu-distro-info", "--series", series, "-yeol"]
+    )
+    return int(out) <= 0
+
+
+@lru_cache(maxsize=None)
 def is_container(run_path: str = "/run") -> bool:
     """Checks to see if this code running in a container of some sort"""
 

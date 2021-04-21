@@ -119,6 +119,68 @@ class TestGetDictDeltas:
         assert expected == util.get_dict_deltas(orig_dict, new_dict)
 
 
+class TestIsLTS:
+    @pytest.mark.parametrize(
+        "series, supported_esm, expected",
+        (
+            ("trusty", "trusty\nxenial\nbionic\nfocal", True),
+            ("xenial", "trusty\nxenial\nbionic\nfocal", True),
+            ("groovy", "trusty\nxenial\nbionic\nfocal", False),
+        ),
+    )
+    @mock.patch("uaclient.util.subp")
+    def test_is_lts_if_distro_info_supported_esm(
+        self, subp, series, supported_esm, expected
+    ):
+        subp.return_value = supported_esm, ""
+        # Use __wrapped__ to avoid hitting the lru_cached value across tests
+        assert expected is util.is_lts.__wrapped__(series)
+        assert [
+            mock.call(["/usr/bin/ubuntu-distro-info", "--supported-esm"])
+        ] == subp.call_args_list
+
+
+class TestIsActiveESM:
+    @pytest.mark.parametrize(
+        "series, is_lts, days_until_esm,expected",
+        (
+            ("trusty", True, 1, False),
+            ("trusty", True, 0, True),
+            ("xenial", True, 1, False),
+            ("xenial", True, 0, True),
+            ("bionic", True, 1, False),
+            ("bionic", True, 0, True),
+            ("focal", True, 1, False),
+            ("focal", True, 0, True),
+            ("groovy", False, 0, False),
+        ),
+    )
+    @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.is_lts")
+    def test_true_when_supported_esm_release_and_active(
+        self, util_is_lts, subp, series, is_lts, days_until_esm, expected
+    ):
+        """Return True when series is --suported-esm and days until esm < 1."""
+        util_is_lts.return_value = is_lts
+        subp.return_value = str(days_until_esm), ""
+
+        # Use __wrapped__ to avoid hitting the lru_cached value across tests
+        calls = []
+        if is_lts:
+            calls.append(
+                mock.call(
+                    [
+                        "/usr/bin/ubuntu-distro-info",
+                        "--series",
+                        series,
+                        "-yeol",
+                    ]
+                )
+            )
+        assert expected is util.is_active_esm.__wrapped__(series)
+        assert calls == subp.call_args_list
+
+
 class TestIsContainer:
     @mock.patch("uaclient.util.subp")
     def test_true_systemd_detect_virt_success(self, m_subp):
