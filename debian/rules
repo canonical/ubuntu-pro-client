@@ -19,8 +19,7 @@ APT_PKG_DEPS="apt (>= 1.8.1), apt-utils (>= 1.8.1), libapt-pkg5.90 (>= 1.8.1)"
 endif
 
 %:
-	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild \
-		--no-start
+	dh $@ --with python3,bash-completion,systemd --buildsystem=pybuild
 
 override_dh_auto_build:
 	dh_auto_build
@@ -41,6 +40,15 @@ endif
 override_dh_gencontrol:
 	echo extra:Depends=$(APT_PKG_DEPS) >> debian/ubuntu-advantage-tools.substvars
 	dh_gencontrol
+
+override_dh_systemd_enable:
+	dh_systemd_enable -pubuntu-advantage-pro ua-auto-attach.service
+	dh_systemd_enable -pubuntu-advantage-tools ua-reboot-cmds.service
+	dh_systemd_enable -pubuntu-advantage-tools ua-messaging.timer
+	dh_systemd_enable -pubuntu-advantage-tools ua-messaging.service
+
+override_dh_systemd_start:
+	dh_systemd_start -pubuntu-advantage-tools ua-messaging.timer
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
