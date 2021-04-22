@@ -1,7 +1,8 @@
 ubuntu-advantage-tools (27.0~21.04.1~beta2) hirsute; urgency=medium
 
-  * d/control: add distro-info dependency
-    - d/control: add new debianutils dependency
+  * d/control:
+    - add distro-info dependency
+    - add new debianutils dependency
   * d/rules: enable and start ua-messaging.timer on package install
   * d/postinst:
     - configure esm on any LTS release avoid beta services
@@ -11,33 +12,30 @@ ubuntu-advantage-tools (27.0~21.04.1~beta2) hirsute; urgency=medium
     - apt-hook:
       + adapt hook to process separate message templates
       + esm-apps and esm-infra pkg counts not mutually-exclusive
-      + print static messages on apt upgrade/dist-upgrade (#1540)
-    - cli: pass assume_yes param to services on detach
-    - config: create settings_overrides on config
+      + print static messages on apt upgrade/dist-upgrade (GH: #1546)
+    - config: create settings_overrides on config (GH: #1507)
     - docs: add entry for uploading new version to ppa
     - esm:
       + add pin never when disabling esm-infra/apps on xenial
-      + enable infra when EOL LTS and apps on all LTS
+      + enable infra when EOL LTS and apps on all LTS (GH: #1558)
     - fips: add notice when installing over old fips
     - fix:
-      + add links to ubuntu.com/gcp/aws in messaging when on non-PRO (#1512)
+      + add links to ubuntu.com/gcp/aws in messaging when on non-PRO
       + add notice to reboot operation on ua fix
-      + do not prompt user for beta services
-      + notify users if reboot is required
-      + update how the expired token logic works [Lucas Moura]
-      + wrap output greater than 80 chars (#1501)
+      + do not prompt user for beta services (GH: #1544)
+      + notify users if reboot is required  (GH: #1476)
+      + update how the expired token logic works
+      + wrap output greater than 80 chars (GH: #1487)
     - lib: fix notice handling on reboot script
     - messages
       + provide static message files for use in APT and MOTD
       + update_ua_messages on attach/detach/disable
     - mypy: add lib/ dir for coverage
-    - status: do not remove notices on non-root call
-    - subp: separate % format strings when logging
+    - status: do not remove notices on non-root call (GH: #1518)
+    - subp: separate % format strings when logging (GH: #1520)
     - systemd: add ua-messaging.timer to update ua MOTD and APT msgs
     - update-motd.d: add conditional hooks for motd to source ua messages
-    - util:
-      + add is_lts and is_active_esm funtions to support ESM
-      + improve is_container check for chroot
+    - util: add is_lts and is_active_esm funtions to support ESM
     - test
       + add integration tests asserting esm-apps setup due to postinst
       + manual test script for xenial upgrade
@@ -117,6 +115,15 @@ ubuntu-advantage-tools (27.0~21.04.1~beta) hirsute; urgency=medium
     - jenkins: archiveArtifacts can only reference paths within workspace
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 30 Mar 2021 14:16:03 -0300
+
+ubuntu-advantage-tools (26.3~21.04.1) hirsute; urgency=medium
+
+  * d/control: add new debianutils dependency
+  * New upstream release 26.3
+    - util: improve is_container check for chroot
+    - cli: pass assume_yes param to services on detach (GH: #1530)
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 06 Apr 2021 14:26:20 -0300
 
 ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
 
