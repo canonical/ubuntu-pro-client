@@ -48,24 +48,51 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         \s*500 https://esm.staging.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
         When I run `mkdir -p /var/lib/ubuntu-advantage/messages` with sudo
-        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl` with the following
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-infra.tmpl` with the following
         """
-        esm-apps {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}; esm-infra {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}
+        esm-infra-no {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl` with the following
+        """
+        esm-infra {ESM_INFRA_PKG_COUNT}:{ESM_INFRA_PACKAGES}
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps.tmpl` with the following
+        """
+        esm-apps {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-apps.tmpl` with the following
+        """
+        esm-apps-no {ESM_APPS_PKG_COUNT}:{ESM_APPS_PACKAGES}
         """
         When I run `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` with sudo
-        When I run `cat /var/lib/ubuntu-advantage/messages/contract-expiry-status` with sudo
+        When I run `cat /var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps` with sudo
         Then stdout matches regexp:
         """
-        esm-apps \d+:.*; esm-infra \d+:.*
+        esm-apps(-no)? \d+:(.*)?
         """
-        When I create the file `/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl` with the following
+        When I run `cat /var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra` with sudo
+        Then stdout matches regexp:
         """
-        contract-expiring-soon {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES} {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}
+        esm-infra(-no)? \d+:(.*)?
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl` with the following
+        """
+        esm-infra {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-infra.tmpl` with the following
+        """
+        esm-infra-no {ESM_INFRA_PKG_COUNT} {ESM_INFRA_PACKAGES}
+        """
+        When I create the file `/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps.tmpl` with the following
+        """
+        esm-apps {ESM_APPS_PKG_COUNT} {ESM_APPS_PACKAGES}
         """
         When I run `apt upgrade --dry-run` with sudo
         Then stdout matches regexp:
         """
-        contract-expiring-soon \d+ .* \d+ .*
+        esm-apps(-no)? \d+.*
+
+        esm-infra(-no)? \d+.*
         """
 
         Examples: ubuntu release

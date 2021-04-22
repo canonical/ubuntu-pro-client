@@ -34,10 +34,22 @@
 #include <libintl.h>
 #include <locale.h>
 
-#define CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH              "/var/lib/ubuntu-advantage/messages/contract-expiry-status.tmpl"
-#define CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH                "/var/lib/ubuntu-advantage/messages/contract-expiry-status"
-#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH          "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt.tmpl"
-#define CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH            "/var/lib/ubuntu-advantage/messages/contract-expiry-status-apt"
+#define MOTD_ESM_SERVICE_STATUS_MESSAGE_STATIC_PATH      "/var/lib/ubuntu-advantage/messages/motd-esm-service-status"
+#define MOTD_APPS_NO_PKGS_TEMPLATE_PATH                  "/var/lib/ubuntu-advantage/messages/motd-no-packages-apps.tmpl"
+#define MOTD_INFRA_NO_PKGS_TEMPLATE_PATH                 "/var/lib/ubuntu-advantage/messages/motd-no-packages-infra.tmpl"
+#define MOTD_APPS_PKGS_TEMPLATE_PATH                     "/var/lib/ubuntu-advantage/messages/motd-packages-apps.tmpl"
+#define MOTD_INFRA_PKGS_TEMPLATE_PATH                    "/var/lib/ubuntu-advantage/messages/motd-packages-infra.tmpl"
+#define MOTD_APPS_PKGS_STATIC_PATH                       "/var/lib/ubuntu-advantage/messages/motd-packages-apps"
+#define MOTD_INFRA_PKGS_STATIC_PATH                      "/var/lib/ubuntu-advantage/messages/motd-packages-infra"
+#define APT_PRE_INVOKE_APPS_NO_PKGS_TEMPLATE_PATH        "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-apps.tmpl"
+#define APT_PRE_INVOKE_INFRA_NO_PKGS_TEMPLATE_PATH       "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-no-packages-infra.tmpl"
+#define APT_PRE_INVOKE_APPS_PKGS_TEMPLATE_PATH           "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps.tmpl"
+#define APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH             "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-apps"
+#define APT_PRE_INVOKE_INFRA_PKGS_TEMPLATE_PATH          "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra.tmpl"
+#define APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH            "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-packages-infra"
+#define APT_PRE_INVOKE_MESSAGE_STATIC_PATH               "/var/lib/ubuntu-advantage/messages/apt-pre-invoke-esm-service-status"
+#define UBUNTU_NO_WARRANTY_STATIC_PATH                   "/var/lib/ubuntu-advantage/messages/ubuntu-no-warranty"
+
 
 #define ESM_APPS_PKGS_COUNT_TEMPLATE_VAR "{ESM_APPS_PKG_COUNT}"
 #define ESM_APPS_PACKAGES_TEMPLATE_VAR "{ESM_APPS_PACKAGES}"
@@ -140,7 +152,7 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
       {
          if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
          {
-            res.esm_i_packages.push_back(pf.File().FileName());
+            res.esm_i_packages.push_back(pkg.Name());
 
             // Pin-Priority: never unauthenticated APT repos == -32768
             if (policy->GetPriority(pf.File()) == -32768)
@@ -240,29 +252,81 @@ static void process_template_file(
 }
 
 static void process_all_templates(
-   std::string esm_a_pkgs_count,
+   int esm_a_pkgs_count,
    std::string esm_a_pkgs,
-   std::string esm_i_pkgs_count,
+   int esm_i_pkgs_count,
    std::string esm_i_pkgs
 ) {
-   std::array<std::string, 2> template_file_names = {
-      CONTRACT_EXPIRY_STATUS_MESSAGE_TEMPLATE_PATH,
-      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_TEMPLATE_PATH
+   std::array<std::string, 4> static_file_names = {
+      APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH,
+      MOTD_APPS_PKGS_STATIC_PATH,
+      APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH,
+      MOTD_INFRA_PKGS_STATIC_PATH,
    };
-   std::array<std::string, 2> static_file_names = {
-      CONTRACT_EXPIRY_STATUS_MESSAGE_STATIC_PATH,
-      CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH
+   std::array<std::string, 3> apt_static_files = {
+      APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH,
+      APT_PRE_INVOKE_INFRA_PKGS_STATIC_PATH,
+      UBUNTU_NO_WARRANTY_STATIC_PATH
    };
+   std::array<std::string, 3> motd_static_files = {
+      MOTD_APPS_PKGS_STATIC_PATH,
+      MOTD_INFRA_PKGS_STATIC_PATH,
+      UBUNTU_NO_WARRANTY_STATIC_PATH
+   };
+
+   std::vector<std::string> template_file_names;
+   if (esm_a_pkgs_count > 0) {
+      template_file_names.push_back(APT_PRE_INVOKE_APPS_PKGS_TEMPLATE_PATH);
+      template_file_names.push_back(MOTD_APPS_PKGS_TEMPLATE_PATH);
+   } else {
+      template_file_names.push_back(APT_PRE_INVOKE_APPS_NO_PKGS_TEMPLATE_PATH);
+      template_file_names.push_back(MOTD_APPS_NO_PKGS_TEMPLATE_PATH);
+   }
+   if (esm_i_pkgs_count > 0) {
+      template_file_names.push_back(APT_PRE_INVOKE_INFRA_PKGS_TEMPLATE_PATH);
+      template_file_names.push_back(MOTD_INFRA_PKGS_TEMPLATE_PATH);
+   } else {
+      template_file_names.push_back(APT_PRE_INVOKE_INFRA_NO_PKGS_TEMPLATE_PATH);
+      template_file_names.push_back(MOTD_INFRA_NO_PKGS_TEMPLATE_PATH);
+   }
    for (uint i = 0; i < template_file_names.size(); i++) {
       process_template_file(
          template_file_names[i], 
          static_file_names[i], 
-         esm_a_pkgs_count,
+         std::to_string(esm_a_pkgs_count),
          esm_a_pkgs,
-         esm_i_pkgs_count,
+         std::to_string(esm_i_pkgs_count),
          esm_i_pkgs
       );
    }
+
+   std::ofstream apt_pre_invoke_msg;
+   apt_pre_invoke_msg.open(APT_PRE_INVOKE_MESSAGE_STATIC_PATH);
+   for (uint i = 0; i < apt_static_files.size(); i++) {
+       std::ifstream message_file(apt_static_files[i]);
+       if (message_file.is_open()) {
+           apt_pre_invoke_msg << std::endl;
+           apt_pre_invoke_msg << message_file.rdbuf();
+           message_file.close();
+       };
+   }
+   apt_pre_invoke_msg << std::endl;
+   apt_pre_invoke_msg.close();
+
+   std::ofstream motd_msg;
+   motd_msg.open(MOTD_ESM_SERVICE_STATUS_MESSAGE_STATIC_PATH);
+   for (uint i = 0; i < motd_static_files.size(); i++) {
+       std::ifstream message_file(motd_static_files[i]);
+       if (message_file.is_open()) {
+           if ( i > 0 ) {
+               motd_msg << std::endl;
+           }
+           motd_msg << message_file.rdbuf();
+           message_file.close();
+       };
+   }
+   motd_msg << std::endl;
+   motd_msg.close();
 }
 
 static void output_file_if_present(std::string file_name) {
@@ -360,16 +424,16 @@ int main(int argc, char *argv[])
    std::string esm_a_packages_count = std::to_string(res.esm_a_packages.size());
 
    process_all_templates(
-      esm_a_packages_count,
+      res.esm_a_packages.size(),
       space_separated_esm_a_packages,
-      esm_i_packages_count,
+      res.esm_i_packages.size(),
       space_separated_esm_i_packages
    );
 
    // Execute specified subcommand
    if (subcommand == PreInvoke) {
       if (command_used == "upgrade" || command_used == "dist-upgrade") {
-         output_file_if_present(CONTRACT_EXPIRY_STATUS_APT_MESSAGE_STATIC_PATH);
+         output_file_if_present(APT_PRE_INVOKE_MESSAGE_STATIC_PATH);
       }
    }
 

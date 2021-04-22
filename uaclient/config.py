@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import sys
 import yaml
 from collections import namedtuple, OrderedDict
 
@@ -217,6 +218,7 @@ class UAConfig:
 
     @property
     def contract_expiry_datetime(self) -> "datetime":
+        """Return a datetime of the attached contract expiration."""
         if not self._contract_expiry_datetime:
             contractInfo = self.machine_token["machineTokenInfo"][
                 "contractInfo"
@@ -231,6 +233,17 @@ class UAConfig:
     def is_attached(self):
         """Report whether this machine configuration is attached to UA."""
         return bool(self.machine_token)  # machine_token is removed on detach
+
+    @property
+    def contract_remaining_days(self) -> int:
+        """Report num days until contract expiration based on effectiveTo
+
+        :return: A positive int representing the number of days the attached
+            contract remains in effect. Return a negative int for the number
+            of days beyond contract's effectiveTo date.
+        """
+        delta = self.contract_expiry_datetime.date() - datetime.utcnow().date()
+        return delta.days
 
     @property
     def features(self):
@@ -761,3 +774,25 @@ def depth_first_merge_overlay_dict(base_dict, overlay_dict):
                 base_dict[key] = value
         else:
             base_dict[key] = value
+
+
+def update_ua_messages(cfg: UAConfig):
+    """Helper to load and run ua_update_messaging.
+
+    This is needed because we don't have /usr/lib/ubuntu-advantage
+    python scripts in our path and we don't want to shell out with
+    subp to call python3 /path/to/ua_update_messaging.py.
+    """
+    sys.path.append("/usr/lib/ubuntu-advantage")
+    try:
+        __import__("ua_update_messaging")
+        update_msgs = getattr(
+            sys.modules["ua_update_messaging"], "update_apt_and_motd_messages"
+        )
+        update_msgs(cfg)
+    except ImportError:
+        logging.debug(
+            "Unable to update UA messages. Cannot import ua_update_messaging."
+        )
+    finally:
+        sys.path.pop()

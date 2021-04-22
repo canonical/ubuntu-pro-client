@@ -8,8 +8,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
         And I run `apt-get install -y <downrev_pkg>` with sudo, retrying exit [100]
-        When I verify that running ` --assume-yes --beta` `with sudo` exits `1`
-        And I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
+        And I run `run-parts /etc/update-motd.d/` with sudo
         Then if `<release>` in `trusty` and stdout matches regexp:
         """
         UA Infrastructure Extended Security Maintenance \(ESM\) is not enabled.
@@ -35,7 +34,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        ESM Infra enabled
+        UA Infra: ESM enabled
         """
         And stdout matches regexp:
         """
@@ -53,7 +52,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
-        When I run `/usr/lib/update-notifier/apt-check  --human-readable` as non-root
+        When I append the following on uaclient config:
+            """
+            features:
+              allow_beta: true
+            """
+        And I run `apt update` with sudo
+        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `run-parts /etc/update-motd.d/` with sudo
         Then if `<release>` in `trusty` and stdout matches regexp:
         """
         UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
@@ -64,6 +70,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
         UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ update(s)? can be installed immediately.
@@ -73,8 +85,51 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
+        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
+
         \d+ package(s)? can be updated.
         \d+ of these updates (is a|are) security update(s)?.
+        To see these additional updates run: apt list --upgradable
+
+        Enable UA Infra: ESM to receive \d+ additional security updates?.
+        See https:\/\/ubuntu.com\/security\/esm or run: sudo ua status
+        """
+        When I update contract to use `effectiveTo` as `days=-20`
+        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `run-parts /etc/update-motd.d` with sudo
+        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
+        """
+
+        \*Your UA Infra: ESM subscription has EXPIRED\*
+
+        \d+ additional security updates could have been applied via UA Infra: ESM.
+
+        Renew your UA services at https:\/\/ubuntu.com\/esm
+
+        """
+        Then if `<release>` in `xenial` and stdout matches regexp:
+        """
+
+        Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+        applicable law.
+
+        """
+        When I run `apt upgrade --dry-run` with sudo
+        Then if `<release>` in `xenial` and stdout matches regexp:
+        """
+        \*Your UA Infra: ESM subscription has EXPIRED\*
+        Enabling UA Infra: ESM service would provide security updates for following
+        packages:
+          .*libkrad.*
+        \d+ esm-infra security updates NOT APPLIED. Renew your UA services at
+        https:\/\/ubuntu.com\/advantage
+
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                 |
@@ -85,12 +140,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
     @series.all
     @uses.config.machine_type.aws.generic
-    Scenario Outline: Attach command in a ubuntu lxd container
+    Scenario Outline: Attach command in an generic AWS Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        ESM Infra enabled
+        UA Infra: ESM enabled
         """
         And stdout matches regexp:
         """
@@ -123,7 +178,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        ESM Infra enabled
+        UA Infra: ESM enabled
         """
         And stdout matches regexp:
         """
@@ -156,7 +211,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        ESM Infra enabled
+        UA Infra: ESM enabled
         """
         And stdout matches regexp:
         """

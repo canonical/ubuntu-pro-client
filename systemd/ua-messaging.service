@@ -1,0 +1,8 @@
+[Unit]
+Description=Ubuntu Advantage APT and MOTD Messages
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
+Wants=ua-auto-attach.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py

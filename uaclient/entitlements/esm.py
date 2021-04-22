@@ -1,5 +1,6 @@
 from uaclient.entitlements import repo
 from uaclient import util
+from uaclient.config import update_ua_messages
 
 try:
     from typing import Optional  # noqa: F401
@@ -11,11 +12,25 @@ except ImportError:
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
 
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+        enable_performed = super().enable(
+            silent_if_inapplicable=silent_if_inapplicable
+        )
+        if enable_performed:
+            update_ua_messages(self.cfg)
+        return enable_performed
+
+    def disable(self, silent=False) -> bool:
+        disable_performed = super().disable(silent=silent)
+        if disable_performed:
+            update_ua_messages(self.cfg)
+        return disable_performed
+
 
 class ESMAppsEntitlement(ESMBaseEntitlement):
     origin = "UbuntuESMApps"
     name = "esm-apps"
-    title = "ESM Apps"
+    title = "UA Apps: ESM"
     description = "UA Apps: Extended Security Maintenance (ESM)"
     repo_key_file = "ubuntu-advantage-esm-apps.gpg"
     is_beta = True
@@ -51,7 +66,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
 class ESMInfraEntitlement(ESMBaseEntitlement):
     name = "esm-infra"
     origin = "UbuntuESM"
-    title = "ESM Infra"
+    title = "UA Infra: ESM"
     description = "UA Infra: Extended Security Maintenance (ESM)"
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
 

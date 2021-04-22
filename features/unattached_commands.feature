@@ -68,6 +68,24 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
+        When I append the following on uaclient config:
+            """
+            features:
+              allow_beta: true
+            """
+        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `run-parts /etc/update-motd.d/` with sudo
+        Then if `<release>` in `xenial` and stdout matches regexp:
+        """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
+        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
+
+        """
 
         Examples: ubuntu release
            | release | esm-infra-url                       | esm-apps-url |
@@ -326,7 +344,7 @@ Feature: Command behaviour when unattached
             > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
             > .*\{ ua attach .*\}.*
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
@@ -351,7 +369,7 @@ Feature: Command behaviour when unattached
             > .*\{ ua enable esm-infra \}.*
             One moment, checking your subscription first
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
@@ -381,7 +399,7 @@ Feature: Command behaviour when unattached
             This machine is now detached.
             .*\{ ua attach .* \}.*
             Updating package lists
-            ESM Infra enabled
+            UA Infra: ESM enabled
             """
         And stdout matches regexp:
             """
