@@ -780,6 +780,8 @@ class TestIsConfigValueTrue:
         [
             ({}, False),
             ({}, False),
+            (None, False),
+            ({None}, False),
             ({"allow_beta": "true"}, True),
             ({"allow_beta": "True"}, True),
             ({"allow_beta": "false"}, False),
