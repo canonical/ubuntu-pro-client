@@ -443,11 +443,6 @@ MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL = (
 )
 
 
-MESSAGE_DISABLED_MOTD_PKGS_TMPL = """\
-{pkg_num} additional security updates can be applied with {title}
-Learn more about enabling {title} service at {url}
-"""
-
 MESSAGE_DISABLED_APT_PKGS_TMPL = """\
 *The following packages could receive security updates with
  {title} service enabled:

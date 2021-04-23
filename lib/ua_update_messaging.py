@@ -29,7 +29,6 @@ from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
     MESSAGE_CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_SOON_TMPL,
-    MESSAGE_DISABLED_MOTD_PKGS_TMPL,
     MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
     MESSAGE_DISABLED_APT_PKGS_TMPL,
     MESSAGE_UBUNTU_NO_WARRANTY,
@@ -163,14 +162,6 @@ def _write_esm_service_msg_templates(
         no_pkgs_msg = MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL.format(
             title=ent.title, url=defaults.BASE_ESM_URL
         )
-        motd_pkgs_msg = MESSAGE_DISABLED_MOTD_PKGS_TMPL.format(
-            title=ent.title,
-            pkg_num=tmpl_pkg_count_var,
-            url=defaults.BASE_ESM_URL,
-        )
-        motd_no_pkgs_msg = MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL.format(
-            title=ent.title, url=defaults.BASE_ESM_URL
-        )
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     _write_template_or_remove(
@@ -225,7 +216,14 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
             motd_apps_no_pkg_file,
             no_warranty_file,
         )
-    if util.is_active_esm(series):
+
+    # We only have esm-infra apt alerts for esm distros.
+    # However, if we have expired credentials, we will
+    # produce esm-infra message showing that the contract is
+    # expiring/expired.
+    infra_status, _ = infra_inst.application_status()
+    is_infra_enabled = infra_status == ApplicationStatus.ENABLED
+    if is_infra_enabled or util.is_active_esm(series):
         _write_esm_service_msg_templates(
             cfg,
             infra_inst,

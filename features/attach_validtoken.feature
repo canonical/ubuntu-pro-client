@@ -2,25 +2,15 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
-    @series.all
+    @series.xenial
+    @series.bionic
+    @series.focal
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
         And I run `apt-get install -y <downrev_pkg>` with sudo, retrying exit [100]
         And I run `run-parts /etc/update-motd.d/` with sudo
-        Then if `<release>` in `trusty` and stdout matches regexp:
-        """
-        UA Infrastructure Extended Security Maintenance \(ESM\) is not enabled.
-
-        \d+ update(s)? can be installed immediately.
-        \d+ of these updates (is a|are) security update(s)?.
-        """
-        Then if `<release>` in `trusty` and stdout matches regexp:
-        """
-        Enable UA Infrastructure ESM to receive \d+ additional security update(s)?.
-        See https://ubuntu.com/advantage or run: sudo ua status
-        """
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
         \d+ package(s)? can be updated.
@@ -59,15 +49,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             """
         And I run `apt update` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
-        And I run `run-parts /etc/update-motd.d/` with sudo
-        Then if `<release>` in `trusty` and stdout matches regexp:
-        """
-        UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
-
-        \d+ update(s)? can be installed immediately.
-        \d+ of these updates (is|are) (fixed|provided) through UA (Infra:|Infrastructure) ESM.
-        \d+ of these updates (is a|are) security update(s)?.
-        """
+        And I run `apt install update-motd` with sudo, retrying exit [100]
+        And I run `update-motd` with sudo
         Then if `<release>` in `focal` and stdout matches regexp:
         """
         \* Introducing Extended Security Maintenance for Applications.
@@ -91,18 +74,15 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
             +https:\/\/ubuntu.com\/esm
 
-        UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
+        UA Infra: Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ package(s)? can be updated.
         \d+ of these updates (is a|are) security update(s)?.
         To see these additional updates run: apt list --upgradable
-
-        Enable UA Infra: ESM to receive \d+ additional security updates?.
-        See https:\/\/ubuntu.com\/security\/esm or run: sudo ua status
         """
         When I update contract to use `effectiveTo` as `days=-20`
         And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
-        And I run `run-parts /etc/update-motd.d` with sudo
+        And I run `update-motd` with sudo
         Then if `<release>` in `xenial or bionic` and stdout matches regexp:
         """
 

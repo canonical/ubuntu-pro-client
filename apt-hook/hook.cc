@@ -248,6 +248,8 @@ static void process_template_file(
          message_static_file << message_tmpl;
          message_static_file.close();
       }
+   } else {
+      remove(static_file_name.c_str());
    }
 }
 
@@ -257,6 +259,7 @@ static void process_all_templates(
    int esm_i_pkgs_count,
    std::string esm_i_pkgs
 ) {
+   int bytes_written;
    std::array<std::string, 4> static_file_names = {
       APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH,
       MOTD_APPS_PKGS_STATIC_PATH,
@@ -310,8 +313,16 @@ static void process_all_templates(
            message_file.close();
        };
    }
-   apt_pre_invoke_msg << std::endl;
+   bytes_written = apt_pre_invoke_msg.tellp();
+   if (bytes_written > 0) {
+       // Then we wrote some content add trailing newline
+       apt_pre_invoke_msg << std::endl;
+   }
    apt_pre_invoke_msg.close();
+   if (bytes_written == 0) {
+       // We added nothing. Remove the file
+       remove(APT_PRE_INVOKE_MESSAGE_STATIC_PATH);
+   }
 
    std::ofstream motd_msg;
    motd_msg.open(MOTD_ESM_SERVICE_STATUS_MESSAGE_STATIC_PATH);
@@ -325,8 +336,16 @@ static void process_all_templates(
            message_file.close();
        };
    }
-   motd_msg << std::endl;
+   bytes_written = motd_msg.tellp();
+   if (bytes_written > 0) {
+       // Then we wrote some content add trailing newline
+       motd_msg << std::endl;
+   }
    motd_msg.close();
+   if (bytes_written == 0) {
+       // We added nothing. Remove the file
+       remove(MOTD_ESM_SERVICE_STATUS_MESSAGE_STATIC_PATH);
+   }
 }
 
 static void output_file_if_present(std::string file_name) {

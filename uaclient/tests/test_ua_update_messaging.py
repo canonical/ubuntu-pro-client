@@ -65,12 +65,14 @@ class TestGetContractExpiryStatus:
 
 class TestWriteAPTAndMOTDTemplates:
     @pytest.mark.parametrize(
-        "series, is_active_esm, esm_apps_beta, cfg_allow_beta",
+        "series,is_active_esm,esm_apps_beta,esm_infra_enabled,cfg_allow_beta",
         (
-            ("xenial", True, True, None),
-            ("xenial", True, False, None),
-            ("xenial", False, True, None),
-            ("xenial", True, True, True),
+            ("xenial", True, True, True, None),
+            ("xenial", True, True, False, None),
+            ("xenial", True, False, True, None),
+            ("xenial", False, True, False, None),
+            ("xenial", True, True, True, True),
+            ("xenial", True, True, False, True),
         ),
     )
     @mock.patch(M_PATH + "entitlements")
@@ -86,6 +88,7 @@ class TestWriteAPTAndMOTDTemplates:
         series,
         is_active_esm,
         esm_apps_beta,
+        esm_infra_enabled,
         cfg_allow_beta,
         FakeConfig,
     ):
@@ -94,9 +97,15 @@ class TestWriteAPTAndMOTDTemplates:
             ContractExpiryStatus.ACTIVE,
             21,
         )
+
+        infra_status = ApplicationStatus.DISABLED
+        if esm_infra_enabled:
+            infra_status = ApplicationStatus.ENABLED
+
         util_is_active_esm.return_value = is_active_esm
         infra_cls = mock.MagicMock()
         infra_obj = infra_cls.return_value
+        infra_obj.application_status.return_value = (infra_status, "")
         type(infra_obj).name = mock.PropertyMock(return_value="esm-infra")
         apps_cls = mock.MagicMock()
         type(apps_cls).is_beta = esm_apps_beta
@@ -125,7 +134,7 @@ class TestWriteAPTAndMOTDTemplates:
             ]
         else:
             write_calls = []
-        if is_active_esm:
+        if esm_infra_enabled or is_active_esm:
             write_calls.append(
                 mock.call(
                     cfg,
