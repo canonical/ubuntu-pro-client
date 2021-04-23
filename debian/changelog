@@ -1,3 +1,13 @@
+ubuntu-advantage-tools (27.0~21.04.1~beta3) hirsute; urgency=medium
+
+  * New upstream beta3 release:
+    - config: avoid tracebacks on invalid features value in uaclient.conf
+      (GH: #1564)
+    - apt-hook: new json hook for security update counts
+    - Remove redundant messaging from uaclient
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 23 Apr 2021 15:28:44 -0600
+
 ubuntu-advantage-tools (27.0~21.04.1~beta2) hirsute; urgency=medium
 
   * d/control:
