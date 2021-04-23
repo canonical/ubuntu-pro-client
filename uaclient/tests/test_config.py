@@ -2,6 +2,7 @@ import copy
 import datetime
 import itertools
 import json
+import logging
 import os
 import stat
 
@@ -1161,25 +1162,34 @@ class TestParseConfig:
 
 
 class TestFeatures:
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @pytest.mark.parametrize(
-        "cfg_features,expected",
+        "cfg_features,expected, warnings",
         (
-            ({}, {}),
-            (None, {}),
-            ({"feature1": "value1"}, {"feature1": "value1"}),
+            ({}, {}, None),
+            (None, {}, None),
+            (
+                "badstring",
+                {},
+                "Unexpected uaclient.conf features value."
+                " Expected dict, but found badstring",
+            ),
+            ({"feature1": "value1"}, {"feature1": "value1"}, None),
             (
                 {"feature1": "value1", "feature2": False},
                 {"feature1": "value1", "feature2": False},
+                None,
             ),
         ),
     )
-    def test_features_are_a_property_of_uaconfig(self, cfg_features, expected):
-        if cfg_features is None:
-            user_cfg = None
-        else:
-            user_cfg = {"features": cfg_features}
+    def test_features_are_a_property_of_uaconfig(
+        self, cfg_features, expected, warnings, caplog_text
+    ):
+        user_cfg = {"features": cfg_features}
         cfg = UAConfig(cfg=user_cfg)
         assert expected == cfg.features
+        if warnings:
+            assert warnings in caplog_text()
 
 
 class TestMachineTokenOverlay:
