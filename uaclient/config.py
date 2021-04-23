@@ -248,7 +248,17 @@ class UAConfig:
     @property
     def features(self):
         """Return a dictionary of any features provided in uaclient.conf."""
-        return self.cfg.get("features", {})
+        features = self.cfg.get("features")
+        if features:
+            if isinstance(features, dict):
+                return features
+            else:
+                logging.warning(
+                    "Unexpected uaclient.conf features value."
+                    " Expected dict, but found %s",
+                    features,
+                )
+        return {}
 
     @property
     def machine_token(self):

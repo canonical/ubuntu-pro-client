@@ -678,7 +678,10 @@ def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
         if key == leaf_value:
             default_value = "false"
 
-        value = value.get(key, default_value)
+        if isinstance(value, dict):
+            value = value.get(key, default_value)
+        else:
+            return False
 
     value_str = str(value)
     if value_str.lower() == "true":
