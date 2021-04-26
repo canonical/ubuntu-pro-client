@@ -22,3 +22,8 @@ ubuntu_advantage_tools.dsc
 # test/jenkins artifacts
 pytest_results.xml
 reports/
+
+# apt-hook build artifacts
+apt-hook/hook
+apt-hook/ubuntu-advantage.pot
+apt-hook/json-hook-src/json-hook
