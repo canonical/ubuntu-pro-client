@@ -1,3 +1,3 @@
 module json-hook
 
-go 1.2
+go 1.7
