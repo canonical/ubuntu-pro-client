@@ -219,6 +219,6 @@ function test_upgrade_with_fips_in_vm() {
     teardown_vm
 }
 
-# test_upgrade_in_container
-# test_upgrade_with_livepatch_in_vm
+test_upgrade_in_container
+test_upgrade_with_livepatch_in_vm
 test_upgrade_with_fips_in_vm
