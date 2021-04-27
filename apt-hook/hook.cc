@@ -23,6 +23,7 @@
 #include <apt-pkg/policy.h>
 #include <apt-pkg/strutl.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -152,30 +153,34 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
       {
          if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
          {
-            res.esm_i_packages.push_back(pkg.Name());
+            if (std::find(res.esm_i_packages.begin(), res.esm_i_packages.end(), pkg.Name()) == res.esm_i_packages.end()) {
+                res.esm_i_packages.push_back(pkg.Name());
 
-            // Pin-Priority: never unauthenticated APT repos == -32768
-            if (policy->GetPriority(pf.File()) == -32768)
-            {
-               res.disabled_esms_i++;
-            }
-            else
-            {
-               res.enabled_esms_i++;
+                // Pin-Priority: never unauthenticated APT repos == -32768
+                if (policy->GetPriority(pf.File()) == -32768)
+                {
+                   res.disabled_esms_i++;
+                }
+                else
+                {
+                   res.enabled_esms_i++;
+                }
             }
          }
          if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
          {
-            res.esm_a_packages.push_back(pkg.Name());
+            if (std::find(res.esm_a_packages.begin(), res.esm_a_packages.end(), pkg.Name()) == res.esm_a_packages.end()) {
+                res.esm_a_packages.push_back(pkg.Name());
 
-            // Pin-Priority: never unauthenticated APT repos == -32768
-            if (policy->GetPriority(pf.File()) == -32768)
-            {
-               res.disabled_esms_a++;
-            }
-            else
-            {
-               res.enabled_esms_a++;
+                // Pin-Priority: never unauthenticated APT repos == -32768
+                if (policy->GetPriority(pf.File()) == -32768)
+                {
+                   res.disabled_esms_a++;
+                }
+                else
+                {
+                   res.enabled_esms_a++;
+                }
             }
          }
       }
