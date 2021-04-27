@@ -88,7 +88,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \*Your UA Infra: ESM subscription has EXPIRED\*
 
-        \d+ additional security updates could have been applied via UA Infra: ESM.
+        \d+ additional security update\(s\) could have been applied via UA Infra: ESM.
 
         Renew your UA services at https:\/\/ubuntu.com\/esm
 
@@ -106,8 +106,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         \*Your UA Infra: ESM subscription has EXPIRED\*
         Enabling UA Infra: ESM service would provide security updates for following
         packages:
-          .*libkrad.*
-        \d+ esm-infra security updates NOT APPLIED. Renew your UA services at
+          libkrad0
+        1 esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
         https:\/\/ubuntu.com\/advantage
 
         """
