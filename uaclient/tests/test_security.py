@@ -1522,6 +1522,7 @@ A fix is available in Ubuntu standard updates.\n"""
         out, err = capsys.readouterr()
         assert expected in out
 
+    @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize(
         "service_status",
         (
@@ -1561,7 +1562,7 @@ A fix is available in Ubuntu standard updates.\n"""
         ),
     )
     @mock.patch("uaclient.util.is_config_value_true", return_value=True)
-    @mock.patch("uaclient.util.should_reboot", return_value=False)
+    @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.cli.action_attach")
     @mock.patch("builtins.input", return_value="token")
     @mock.patch("os.getuid", return_value=0)
@@ -1574,18 +1575,20 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_os_getuid,
         _m_input,
         m_action_attach,
-        _m_should_reboot,
+        m_should_reboot,
         _m_is_config_value_true,
         affected_pkg_status,
         installed_packages,
         usn_released_pkgs,
         expected,
         service_status,
+        should_reboot,
         FakeConfig,
         capsys,
     ):
         import uaclient.security as sec
 
+        m_should_reboot.return_value = should_reboot
         m_get_cloud_type.return_value = "cloud"
 
         def fake_attach(args, cfg):
@@ -2001,6 +2004,59 @@ A fix is available in Ubuntu standard updates.\n"""
                 ),
             )
         ] == m_add_notice.call_args_list
+
+    @pytest.mark.parametrize(
+        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        (
+            (
+                {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
+                {"slsrc": {"sl": "2.1"}},
+                {"slsrc": {"sl": {"version": "2.1"}}},
+                textwrap.dedent(
+                    """\
+                    1 affected package is installed: slsrc
+                    (1/1) slsrc:
+                    A fix is available in Ubuntu standard updates.
+                    The update is already installed.
+                    {check} USN-### is resolved.
+                    """.format(
+                        check=OKGREEN_CHECK  # noqa: E126
+                    )  # noqa: E126
+                ),
+            ),
+        ),
+    )
+    @mock.patch("uaclient.config.UAConfig.add_notice")
+    @mock.patch("uaclient.util.should_reboot", return_value=True)
+    @mock.patch("uaclient.apt.run_apt_command", return_value="")
+    @mock.patch("os.getuid", return_value=0)
+    @mock.patch("uaclient.security.get_cloud_type")
+    def test_messages_for_affected_packages_when_reboot_required_but_update_already_installed(  # noqa: E501
+        self,
+        m_get_cloud_type,
+        _m_os_getuid,
+        _m_run_apt_command,
+        _m_should_reboot,
+        m_add_notice,
+        affected_pkg_status,
+        installed_packages,
+        usn_released_pkgs,
+        expected,
+        FakeConfig,
+        capsys,
+    ):
+        m_get_cloud_type.return_value = "cloud"
+
+        cfg = FakeConfig()
+        prompt_for_affected_packages(
+            cfg=cfg,
+            issue_id="USN-###",
+            affected_pkg_status=affected_pkg_status,
+            installed_packages=installed_packages,
+            usn_released_pkgs=usn_released_pkgs,
+        )
+        out, err = capsys.readouterr()
+        assert expected in out
 
 
 class TestUpgradePackagesAndAttach:
