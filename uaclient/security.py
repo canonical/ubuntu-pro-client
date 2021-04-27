@@ -782,13 +782,15 @@ def _handle_released_package_fixes(
     binary_pocket_pkgs: "Dict[str, List[str]]",
     pkg_index: int,
     num_pkgs: int,
-) -> "Tuple[bool, List[str]]":
+) -> "Tuple[bool, List[str], bool]":
     """Handle the packages that could be fixed and have a released status.
 
     :returns: Tuple of
         boolean whether all packages were successfully upgraded,
-        list of strings containing the packages that were not upgraded
+        list of strings containing the packages that were not upgraded,
+        boolean whether all packages were already installed
     """
+    all_already_installed = True
     upgrade_status = True
     unfixed_pkgs = []
     if src_pocket_pkgs:
@@ -813,6 +815,11 @@ def _handle_released_package_fixes(
                     if not binary_pkgs:
                         print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
                         continue
+                    else:
+                        # if even one pocket has binary_pkgs to install
+                        # then we can't say that everything was already
+                        # installed.
+                        all_already_installed = False
 
                 pkg_index += len(pkg_src_group)
                 upgrade_status &= upgrade_packages_and_attach(
@@ -822,7 +829,7 @@ def _handle_released_package_fixes(
             if not upgrade_status:
                 unfixed_pkgs += [src_pkg for src_pkg, _ in pkg_src_group]
 
-    return upgrade_status, unfixed_pkgs
+    return upgrade_status, unfixed_pkgs, all_already_installed
 
 
 def _format_unfixed_packages_msg(unfixed_pkgs: "List[str]") -> str:
@@ -911,7 +918,11 @@ def prompt_for_affected_packages(
                             binary_pkg
                         )
 
-    fix_status, unfixed_pkgs_released = _handle_released_package_fixes(
+    (
+        fix_status,
+        unfixed_pkgs_released,
+        all_already_installed,
+    ) = _handle_released_package_fixes(
         cfg=cfg,
         src_pocket_pkgs=src_pocket_pkgs,
         binary_pocket_pkgs=binary_pocket_pkgs,
@@ -924,19 +935,32 @@ def prompt_for_affected_packages(
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
 
-    if util.should_reboot():
-        reboot_msg = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-            operation="fix operation"
-        )
-        print(reboot_msg)
-        cfg.add_notice("", reboot_msg)
-        print(
-            status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
-        )
-        return
-
     if fix_status:
-        print(fix_message)
+        # fix_status is True if either:
+        #  (1) we successfully installed all the packages we needed to
+        #  (2) we didn't need to install any packages
+        # In case (2), then all_already_installed is also True
+        if all_already_installed:
+            # we didn't install any packages, so we're good
+            print(fix_message)
+        elif util.should_reboot():
+            # we successfully installed some packages, but
+            # system reboot-required. This might be because
+            # or our installations.
+            reboot_msg = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                operation="fix operation"
+            )
+            print(reboot_msg)
+            cfg.add_notice("", reboot_msg)
+            print(
+                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id
+                )
+            )
+        else:
+            # we successfully installed some packages, and the system
+            # reboot-required flag is not set, so we're good
+            print(fix_message)
     else:
         print(
             status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
