@@ -415,7 +415,7 @@ Your grace period will expire in {remaining_days} days.
 MESSAGE_CONTRACT_EXPIRED_MOTD_PKGS_TMPL = """\
 *Your {title} subscription has EXPIRED*
 
-{pkg_num} additional security updates could have been applied via {title}.
+{pkg_num} additional security update(s) could have been applied via {title}.
 
 Renew your UA services at {url}
 """
@@ -425,7 +425,7 @@ MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL = """\
 Enabling {title} service would provide security updates for following
 packages:
   {pkg_names}
-{pkg_num} {name} security updates NOT APPLIED. Renew your UA services at
+{pkg_num} {name} security update(s) NOT APPLIED. Renew your UA services at
 {url}
 """
 
