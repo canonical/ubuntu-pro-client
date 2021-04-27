@@ -1,6 +1,7 @@
 ubuntu-advantage-tools (27.0) impish; urgency=medium
 
   * New upstream release 27.0:
+    - apt-hook: mitigate failures with true
     - messages: add optional (s) to apt messaging to include
       singular/plural pkgs
     - apt-hook: avoid reporting and counting duplicate package
@@ -25,6 +26,8 @@ ubuntu-advantage-tools (27.0~21.04.1~beta2) hirsute; urgency=medium
   * d/control:
     - add distro-info dependency
     - add new debianutils dependency
+    - add optional dh-systemd | debhelper (>= 13.3) to fallback on hirsute
+      and later when dh-systemd is not present
   * d/rules: enable and start ua-messaging.timer on package install
   * d/postinst:
     - configure esm on any LTS release avoid beta services
@@ -146,6 +149,12 @@ ubuntu-advantage-tools (26.3~21.04.1) hirsute; urgency=medium
     - cli: pass assume_yes param to services on detach (GH: #1530)
 
  -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 06 Apr 2021 14:26:20 -0300
+
+ubuntu-advantage-tools (26.2) hirsute; urgency=medium
+
+  * Drop dh-systemd build dependency.
+
+ -- Matthias Klose <doko@ubuntu.com>  Wed, 10 Mar 2021 16:54:12 +0100
 
 ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
 
