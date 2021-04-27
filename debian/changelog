@@ -1,3 +1,15 @@
+ubuntu-advantage-tools (27.0) impish; urgency=medium
+
+  * New upstream release 27.0:
+    - messages: add optional (s) to apt messaging to include
+      singular/plural pkgs
+    - apt-hook: avoid reporting and counting duplicate package
+      names (GH: #1578)
+    - fix: dont say reboot required when unnecessary (LP: #1926183)
+    - test: uncomment additional xenial upgrade tests
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 27 Apr 2021 15:31:06 -0300
+
 ubuntu-advantage-tools (27.0~21.04.1~beta3) hirsute; urgency=medium
 
   * New upstream beta3 release:
