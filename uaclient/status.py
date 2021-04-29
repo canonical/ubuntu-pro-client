@@ -332,6 +332,9 @@ Failed to enable default services, check: sudo ua status"""
 MESSAGE_ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'
 """
+MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME = """\
+This machine is now successfully attached'
+"""
 
 MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL = """\
 Cannot {operation} unknown service '{name}'.
