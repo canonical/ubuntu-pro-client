@@ -6,15 +6,20 @@ from uaclient import config
 from uaclient.status import format_tabular, TxtColor, colorize_commands
 
 
-@pytest.fixture
-def status_dict_attached():
+@pytest.fixture(params=[True, False])
+def status_dict_attached(request):
     status = config.DEFAULT_STATUS.copy()
 
     # The following are required so we don't get an "unattached" error
     status["attached"] = True
-    status["account"] = "account"
-    status["subscription"] = "subscription"
     status["expires"] = "expires"
+
+    if request.param:
+        status["account"] = "account"
+        status["subscription"] = "subscription"
+    else:
+        status["account"] = ""
+        status["subscription"] = ""
 
     return status
 
@@ -139,22 +144,19 @@ class TestFormatTabular:
     @pytest.mark.parametrize(
         "origin,expected_headers",
         [
-            ("free", ("Account", "Subscription")),
-            (
-                "not-free",
-                (
-                    "Account",
-                    "Subscription",
-                    "Valid until",
-                    "Technical support level",
-                ),
-            ),
+            ("free", ()),
+            ("not-free", ("Valid until", "Technical support level")),
         ],
     )
     def test_correct_header_keys_included(
         self, origin, expected_headers, status_dict_attached
     ):
         status_dict_attached["origin"] = origin
+
+        if status_dict_attached["subscription"]:
+            expected_headers = ("Subscription",) + expected_headers
+        if status_dict_attached["account"]:
+            expected_headers = ("Account",) + expected_headers
 
         tabular_output = format_tabular(status_dict_attached)
 
