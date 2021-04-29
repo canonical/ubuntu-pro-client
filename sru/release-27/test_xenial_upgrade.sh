@@ -3,6 +3,7 @@
 set -x
 set -e
 name=test-xenial-ua-upgrade
+series=xenial
 
 function h1() {
     set +x
@@ -65,7 +66,8 @@ function teardown_vm() {
 function install_new_ua() {
     tool=$1
     h2 "Set up to use daily ppa"
-    $tool exec $name -- sudo add-apt-repository ppa:ua-client/daily -y
+    $tool exec $name -- sudo sh -c "cat <<EOF >/etc/apt/sources.list.d/ubuntu-$series-proposed.list
+    deb http://archive.ubuntu.com/ubuntu/ $series-proposed restricted main multiverse universe"
     $tool exec $name -- sudo apt update
 
     h2 "Actually install - verify there are no errors"
