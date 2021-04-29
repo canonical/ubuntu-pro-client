@@ -677,14 +677,19 @@ def _attach_with_token(
         cfg.status()  # Persist updated status in the event of partial attach
         config.update_ua_messages(cfg)
         return 1
+
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
     ]
-    print(
-        ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
-            contract_name=contract_name
+
+    if contract_name:
+        print(
+            ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
+                contract_name=contract_name
+            )
         )
-    )
+    else:
+        print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     config.update_ua_messages(cfg)
     action_status(args=None, cfg=cfg)
