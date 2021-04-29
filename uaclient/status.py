@@ -548,12 +548,19 @@ def format_tabular(status: "Dict[str, Any]") -> str:
             )
         )
     content.append("\nEnable services with: ua enable <service>")
-    pairs = [
-        ("Account", status["account"]),
-        ("Subscription", status["subscription"]),
-    ]
+    pairs = []
+
+    if status["account"]:
+        pairs.append(("Account", status["account"]))
+
+    if status["subscription"]:
+        pairs.append(("Subscription", status["subscription"]))
+
     if status["origin"] != "free":
         pairs.append(("Valid until", str(status["expires"])))
         pairs.append(("Technical support level", colorize(tech_support_level)))
-    content.extend(get_section_column_content(column_data=pairs))
+
+    if pairs:
+        content.extend(get_section_column_content(column_data=pairs))
+
     return "\n".join(content)
