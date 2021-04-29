@@ -128,6 +128,7 @@ class UAClientBehaveConfig:
         "artifact_dir",
         "ppa",
         "ppa_keyid",
+        "userdata_file",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -170,6 +171,7 @@ class UAClientBehaveConfig:
         artifact_dir: str = None,
         ppa: str = DAILY_PPA,
         ppa_keyid: str = DAILY_PPA_KEYID,
+        userdata_file: str = None,
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
@@ -195,6 +197,7 @@ class UAClientBehaveConfig:
         self.artifact_dir = artifact_dir
         self.ppa = ppa
         self.ppa_keyid = ppa_keyid
+        self.userdata_file = userdata_file
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -658,8 +661,13 @@ def create_uat_image(context: Context, series: str) -> None:
     )
 
     user_data = ""
+    ud_file = context.config.userdata_file
+    if ud_file and os.path.exists(ud_file):
+        with open(ud_file, "r") as stream:
+            user_data = stream.read()
     if "pro" in context.config.machine_type:
-        user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
+        if not user_data:
+            user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
     if not deb_paths:
         if not user_data:
             user_data = "#cloud-config\n"
