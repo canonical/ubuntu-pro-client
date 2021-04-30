@@ -45,6 +45,18 @@ type jsonRPC struct {
 	} `json:"params"`
 }
 
+func updatesFromSource(count int, source string, first bool) string {
+	security := ""
+	if first {
+		security = "security "
+	}
+	updates := "updates"
+	if count == 1 {
+		updates = "update"
+	}
+	return fmt.Sprintf("%d %s %s%s", count, source, security, updates)
+}
+
 func createUpdateMessage(standardSecurityCount int, esmInfraCount int, esmAppsCount int) string {
 	displayStandard := true
 	displayEsmInfra := true
@@ -72,52 +84,30 @@ func createUpdateMessage(standardSecurityCount int, esmInfraCount int, esmAppsCo
 	}
 
 	standardUpdates := ""
+	afterStandard := ""
 	esmInfraUpdates := ""
+	afterInfra := ""
 	esmAppsUpdates := ""
+
 	if displayStandard {
-		standardUpdates = fmt.Sprintf("%d standard security ", standardSecurityCount)
-		if standardSecurityCount > 1 {
-			standardUpdates += "updates"
-		} else {
-			standardUpdates += "update"
-		}
+		standardUpdates = updatesFromSource(standardSecurityCount, "standard", true)
 		if displayEsmInfra && displayEsmApps {
-			standardUpdates += ","
-		}
-		if displayEsmInfra || displayEsmApps {
-			standardUpdates += " "
-		}
-		if (displayEsmInfra && !displayEsmApps) || (!displayEsmInfra && displayEsmApps) {
-			standardUpdates += "and "
+			afterStandard = ", "
+		} else if displayEsmInfra || displayEsmApps {
+			afterStandard = " and "
 		}
 	}
 	if displayEsmInfra {
-		esmInfraUpdates = fmt.Sprintf("%d esm-infra ", esmInfraCount)
-		if esmInfraFirst {
-			esmInfraUpdates += "security "
-		}
-		if esmInfraCount > 1 {
-			esmInfraUpdates += "updates"
-		} else {
-			esmInfraUpdates += "update"
-		}
+		esmInfraUpdates = updatesFromSource(esmInfraCount, "esm-infra", esmInfraFirst)
 		if displayEsmApps {
-			esmInfraUpdates += " and "
+			afterInfra = " and "
 		}
 	}
 	if displayEsmApps {
-		esmAppsUpdates = fmt.Sprintf("%d esm-apps ", esmAppsCount)
-		if esmAppsFirst {
-			esmAppsUpdates += "security "
-		}
-		if esmAppsCount > 1 {
-			esmAppsUpdates += "updates"
-		} else {
-			esmAppsUpdates += "update"
-		}
+		esmAppsUpdates = updatesFromSource(esmAppsCount, "esm-apps", esmAppsFirst)
 	}
 
-	return standardUpdates + esmInfraUpdates + esmAppsUpdates
+	return standardUpdates + afterStandard + esmInfraUpdates + afterInfra + esmAppsUpdates
 }
 
 func fromOriginAndArchive(pkgVersion jsonRPCPackageVersion, origin string, archive string) bool {
