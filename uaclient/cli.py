@@ -1004,7 +1004,7 @@ def main_error_handler(func):
             return func(*args, **kwargs)
         except KeyboardInterrupt:
             with util.disable_log_to_console():
-                logging.exception("KeyboardInterrupt")
+                logging.error("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
             if _CLEAR_LOCK_FILE:
                 _CLEAR_LOCK_FILE("lock")
@@ -1023,7 +1023,7 @@ def main_error_handler(func):
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
-                logging.exception(exc.msg)
+                logging.error(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
             if _CLEAR_LOCK_FILE:
                 if not isinstance(exc, exceptions.LockHeldError):
