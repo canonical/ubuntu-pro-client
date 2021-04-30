@@ -262,7 +262,7 @@ def process_entitlements_delta(
         except exceptions.UserFacingError:
             delta_error = True
             with util.disable_log_to_console():
-                logging.exception(
+                logging.error(
                     "Failed to process contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_entitlement)
                 )

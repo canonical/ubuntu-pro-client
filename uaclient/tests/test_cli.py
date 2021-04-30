@@ -437,21 +437,6 @@ class TestMain:
         "exception,expected_error_msg,expected_log",
         (
             (
-                LockHeldError(
-                    pid="123",
-                    lock_request="ua reboot-cmds",
-                    lock_holder="ua auto-attach",
-                ),
-                "Unable to perform: ua reboot-cmds.\nOperation in progress:"
-                " ua auto-attach (pid:123)\n",
-                "LockHeldError",
-            ),
-            (
-                KeyboardInterrupt,
-                "Interrupt received; exiting.\n",
-                "KeyboardInterrupt",
-            ),
-            (
                 TypeError("'NoneType' object is not subscriptable"),
                 status.MESSAGE_UNEXPECTED_ERROR + "\n",
                 "Unhandled exception, please file a bug",
@@ -492,10 +477,60 @@ class TestMain:
         assert expected_log in error_log
 
     @pytest.mark.parametrize(
+        "exception,expected_error_msg,expected_log",
+        (
+            (
+                KeyboardInterrupt,
+                "Interrupt received; exiting.\n",
+                "KeyboardInterrupt",
+            ),
+        ),
+    )
+    @mock.patch(M_PATH_UACONFIG + "delete_cache_key")
+    @mock.patch("uaclient.cli.setup_logging")
+    @mock.patch("uaclient.cli.get_parser")
+    def test_interrupt_errors_handled_gracefully(
+        self,
+        m_get_parser,
+        _m_setup_logging,
+        m_delete_cache_key,
+        capsys,
+        logging_sandbox,
+        caplog_text,
+        exception,
+        expected_error_msg,
+        expected_log,
+    ):
+        m_args = m_get_parser.return_value.parse_args.return_value
+        m_args.action.side_effect = exception
+
+        with pytest.raises(SystemExit) as excinfo:
+            with mock.patch("sys.argv", ["/usr/bin/ua", "subcmd"]):
+                main()
+        assert 0 == m_delete_cache_key.call_count
+
+        exc = excinfo.value
+        assert 1 == exc.code
+
+        out, err = capsys.readouterr()
+        assert "" == out
+        assert expected_error_msg == err
+        error_log = caplog_text()
+        assert expected_log in error_log
+
+    @pytest.mark.parametrize(
         "exception,expected_exit_code",
         [
             (UserFacingError("You need to know about this."), 1),
             (AlreadyAttachedError(mock.MagicMock()), 0),
+            (
+                LockHeldError(
+                    pid="123",
+                    lock_request="ua reboot-cmds",
+                    lock_holder="ua auto-attach",
+                ),
+                1,
+            ),
         ],
     )
     @mock.patch("uaclient.cli.setup_logging")
@@ -533,7 +568,7 @@ class TestMain:
             [line.strip() for line in error_log.splitlines()]
         )
         assert expected_msg in error_log
-        assert "Traceback (most recent call last):" in error_log
+        assert "Traceback (most recent call last):" not in error_log
 
     @pytest.mark.parametrize(
         "error_url,expected_log",
