@@ -78,7 +78,7 @@ def fix_pro_pkg_holds(cfg):
                 try:
                     entitlement.install_packages(cleanup_on_failure=False)
                 except UserFacingError as e:
-                    logging.exception(e)
+                    logging.error(e.msg)
                     logging.warning(
                         "Failed to install packages at boot: {}".format(
                             ", ".join(entitlement.packages)
