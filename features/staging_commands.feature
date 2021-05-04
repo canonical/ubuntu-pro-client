@@ -99,7 +99,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | release | apps-pkg |
            | bionic  | bundler  |
            | focal   | ant      |
-           | trusty  | ant      |
            | xenial  | jq       |
 
     @series.xenial

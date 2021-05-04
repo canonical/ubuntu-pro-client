@@ -152,9 +152,7 @@ class Cloud:
             except Exception as e:
                 print("--- Retrying instance.wait on {}".format(str(e)))
 
-        if series != "trusty":
-            self._check_cloudinit_status(inst)
-
+        self._check_cloudinit_status(inst)
         return inst
 
     def get_instance_id(
