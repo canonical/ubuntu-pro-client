@@ -20,7 +20,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -43,7 +42,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -85,7 +83,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.all
-    Scenario Outline: Attached detach in a trusty machine
+    Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua detach` `as non-root` exits `1`
@@ -123,7 +121,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release | esm-apps | cc-eal | cis | fips | fips-update |
            | bionic  | yes      | no     | yes | yes  | yes         |
            | focal   | yes      | no     | no  | no   | no          |
-           | trusty  | no       | no     | no  | no   | no          |
            | xenial  | yes      | yes    | yes | yes  | yes         |
 
     @series.all
@@ -145,7 +142,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -165,7 +161,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -214,7 +209,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -248,49 +242,7 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
-
-    @series.trusty
-    Scenario: Attached disable of an already enabled service in a trusty machine
-        Given a `trusty` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua disable foobar` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\).
-            """
-        And I verify that running `ua disable foobar` `with sudo` exits `1`
-        And stderr matches regexp:
-            """
-            Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
-            """
-        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
-        And stderr matches regexp:
-            """
-            This command must be run as root \(try using sudo\)
-            """
-        When I run `ua disable esm-infra` with sudo
-        Then I will see the following on stdout:
-            """
-            Updating package lists
-            """
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-            """
-            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-        When I run `apt-cache policy` with sudo
-        Then apt-cache policy for the following url has permission `-32768`
-        """
-        https://esm.ubuntu.com/ubuntu/ trusty-infra-security/main amd64 Packages
-        """
-        And apt-cache policy for the following url has permission `-32768`
-        """
-        https://esm.ubuntu.com/ubuntu/ trusty-infra-updates/main amd64 Packages
-        """
 
     @series.all
     Scenario Outline: Help command on an attached machine
@@ -377,7 +329,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -407,7 +358,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -429,8 +379,7 @@ Feature: Command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release | ppa_file                        |
-           | trusty  | ua-client-staging-trusty        |
-           | xenial  | ua-client-ubuntu-staging-xenial |
-           | bionic  | ua-client-ubuntu-staging-bionic |
-           | focal   | ua-client-ubuntu-staging-focal  |
+           | release | ppa_file                         |
+           | xenial  | ua-client-ubuntu-staging-xenial  |
+           | bionic  | ua-client-ubuntu-staging-bionic  |
+           | focal   | ua-client-ubuntu-staging-focal   |

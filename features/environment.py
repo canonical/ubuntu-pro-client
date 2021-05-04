@@ -20,7 +20,7 @@ import features.cloud as cloud
 
 from features.util import emit_spinner_on_travis, lxc_get_property, build_debs
 
-ALL_SUPPORTED_SERIES = ["bionic", "focal", "trusty", "xenial"]
+ALL_SUPPORTED_SERIES = ["bionic", "focal", "xenial"]
 
 DAILY_PPA = "http://ppa.launchpad.net/ua-client/daily/ubuntu"
 DAILY_PPA_KEYID = "6E34E7116C0BC933"
@@ -31,13 +31,6 @@ bootcmd:
  - cp /usr/bin/ua /usr/bin/ua.orig
  - 'echo "#!/bin/sh\ndate >> /root/ua-calls\n" > /usr/bin/ua'
  - chmod 755 /usr/bin/ua
-"""
-
-USERDATA_APT_SOURCE_PPA_TRUSTY = """\
-apt_sources:  # for trusty
-  - source: deb {ppa_url} $RELEASE main
-    keyid: {ppa_keyid}
-packages: [{packages}]
 """
 
 USERDATA_APT_SOURCE_PPA = """\
@@ -675,24 +668,15 @@ def create_uat_image(context: Context, series: str) -> None:
         ppa_keyid = context.config.ppa_keyid
         if context.config.ppa.startswith("ppa:"):
             ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
-        if series == "trusty":
-            packages = ["ubuntu-advantage-tools"]
 
-            if "pro" in context.config.machine_type:
-                packages.append("ubuntu-advantage-pro")
+        packages = ["openssh-server", "ubuntu-advantage-tools"]
 
-            user_data += USERDATA_APT_SOURCE_PPA_TRUSTY.format(
-                ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
-            )
-        else:
-            packages = ["openssh-server", "ubuntu-advantage-tools"]
+        if "pro" in context.config.machine_type:
+            packages.append("ubuntu-advantage-pro")
 
-            if "pro" in context.config.machine_type:
-                packages.append("ubuntu-advantage-pro")
-
-            user_data += USERDATA_APT_SOURCE_PPA.format(
-                ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
-            )
+        user_data += USERDATA_APT_SOURCE_PPA.format(
+            ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
+        )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
     )
@@ -748,10 +732,7 @@ def _install_uat_in_container(
             deb_files.append("/tmp/" + deb_name)
             inst.push_file(deb_file, "/tmp/" + deb_name)
 
-        if series == "trusty":
-            cmds.append(["sudo", "dpkg", "-i"] + deb_files)
-        else:
-            cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
+        cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
 
     if "pro" in config.machine_type:
         features = "features:\n  disable_auto_attach: true\n"

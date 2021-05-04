@@ -34,7 +34,6 @@ Feature: Upgrade between releases when uaclient is attached
         | release | next_release | devel_release   |
         | focal  | groovy        | --devel-release |
 
-   @series.trusty
    @series.xenial
    @series.bionic
    @upgrade
@@ -66,6 +65,5 @@ Feature: Upgrade between releases when uaclient is attached
 
         Examples: ubuntu release
         | release | next_release | devel_release   |
-        | trusty  | xenial       |                 |
         | xenial  | bionic       |                 |
         | bionic  | focal        | --devel-release |
