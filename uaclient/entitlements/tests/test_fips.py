@@ -122,7 +122,7 @@ class TestFIPSEntitlementCanEnable:
                 "application_status",
                 return_value=(status.ApplicationStatus.DISABLED, ""),
             ):
-                assert True is entitlement.can_enable()
+                assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
 
 
@@ -157,7 +157,7 @@ class TestFIPSEntitlementEnable:
                 mock.patch.object(type(entitlement), "packages", m_packages)
             )
 
-            m_can_enable.return_value = True
+            m_can_enable.return_value = (True, None)
 
             assert True is entitlement.enable()
 
@@ -255,7 +255,9 @@ class TestFIPSEntitlementEnable:
         self, m_platform_info, entitlement
     ):
         """When can_enable is false enable returns false and noops."""
-        with mock.patch.object(entitlement, "can_enable", return_value=False):
+        with mock.patch.object(
+            entitlement, "can_enable", return_value=(False, None)
+        ):
             with mock.patch(M_REPOPATH + "handle_message_operations"):
                 assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
@@ -270,7 +272,9 @@ class TestFIPSEntitlementEnable:
         """When directives do not contain suites returns false."""
         entitlement = fips_entitlement_factory(suites=[])
 
-        with mock.patch.object(entitlement, "can_enable", return_value=True):
+        with mock.patch.object(
+            entitlement, "can_enable", return_value=(True, None)
+        ):
             with mock.patch(M_REPOPATH + "handle_message_operations"):
                 with pytest.raises(exceptions.UserFacingError) as excinfo:
                     entitlement.enable()
@@ -291,7 +295,11 @@ class TestFIPSEntitlementEnable:
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
             )
-            stack.enter_context(mock.patch.object(entitlement, "can_enable"))
+            stack.enter_context(
+                mock.patch.object(
+                    entitlement, "can_enable", return_value=(True, None)
+                )
+            )
             stack.enter_context(
                 mock.patch(M_REPOPATH + "handle_message_operations")
             )
@@ -330,7 +338,9 @@ class TestFIPSEntitlementEnable:
                 mock.patch("uaclient.util.subp", side_effect=fake_subp)
             )
             stack.enter_context(
-                mock.patch.object(entitlement, "can_enable", return_value=True)
+                mock.patch.object(
+                    entitlement, "can_enable", return_value=(True, None)
+                )
             )
             stack.enter_context(
                 mock.patch(M_REPOPATH + "handle_message_operations")

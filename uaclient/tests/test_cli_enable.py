@@ -5,7 +5,7 @@ import textwrap
 
 import pytest
 
-from uaclient.cli import _perform_enable, action_enable, main
+from uaclient.cli import action_enable, main
 from uaclient import entitlements
 from uaclient import exceptions
 from uaclient import status
@@ -183,18 +183,24 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj.can_enable.return_value = (True, None)
         m_ent1_obj.enable.return_value = False
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
+        m_ent2_obj.can_enable.return_value = (
+            False,
+            status.CanEnableFailureReason.IS_BETA,
+        )
         m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
+        m_ent3_obj.can_enable.return_value = (True, None)
         m_ent3_obj.enable.return_value = True
 
         m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
@@ -237,7 +243,7 @@ class TestActionEnable:
                 mock.call(cfg, assume_yes=assume_yes, allow_beta=False)
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call(silent_if_inapplicable=False)
+        expected_enable_call = mock.call()
         for m_ent in [m_ent2_obj, m_ent3_obj]:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
@@ -264,18 +270,27 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
+        m_ent1_obj.can_enable.return_value = (True, None)
         m_ent1_obj.enable.return_value = False
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls)._is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
+        if beta_flag:
+            m_ent2_obj.can_enable.return_value = (True, None)
+        else:
+            m_ent2_obj.can_enable.return_value = (
+                False,
+                status.CanEnableFailureReason.IS_BETA,
+            )
         m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls)._is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
+        m_ent3_obj.can_enable.return_value = (True, None)
         m_ent3_obj.enable.return_value = True
 
         m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
@@ -327,11 +342,70 @@ class TestActionEnable:
                 mock.call(cfg, assume_yes=assume_yes, allow_beta=beta_flag)
             ] == m_ent_cls.call_args_list
 
-        expected_enable_call = mock.call(silent_if_inapplicable=False)
+        expected_enable_call = mock.call()
         for m_ent in mock_obj_list:
             assert [expected_enable_call] == m_ent.enable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
+
+    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch(
+        "uaclient.entitlements.is_config_value_true", return_value=False
+    )
+    def test_entitlement_beta_and_already_enabled(
+        self,
+        _m_is_config_value_true,
+        _m_get_available_resources,
+        _m_request_updated_contract,
+        m_getuid,
+        FakeConfig,
+    ):
+        m_getuid.return_value = 0
+
+        class Ent1(entitlements.base.UAEntitlement):
+            description = ""
+            name = ""
+            title = "ent1"
+            is_beta = True
+
+            def is_access_expired(self):
+                return False
+
+            def contract_status(self):
+                return status.ContractStatus.ENTITLED
+
+            def application_status(self):
+                return (status.ApplicationStatus.ENABLED, None)
+
+            def enable(self, *, silent_if_inapplicable: bool = False):
+                self.can_enable()
+                return False
+
+            def disable(self):
+                return False
+
+        m_ents_dict = {"ent1": Ent1}
+
+        cfg = FakeConfig.for_attached_machine()
+        args_mock = mock.Mock()
+        args_mock.service = ["ent1"]
+        args_mock.assume_yes = False
+        args_mock.beta = False
+
+        with mock.patch.object(
+            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
+        ):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg)
+
+            print(fake_stdout.getvalue())
+            assert (
+                "One moment, checking your subscription first\n"
+                + status.MESSAGE_ALREADY_ENABLED_TMPL.format(title="ent1")
+                + "\n"
+                == fake_stdout.getvalue()
+            )
 
     @pytest.mark.parametrize(
         "service, beta",
@@ -372,21 +446,7 @@ class TestActionEnable:
             == err.value.msg
         )
 
-
-class TestPerformEnable:
-    @mock.patch("uaclient.entitlements.valid_services")
-    def test_missing_entitlement_raises_keyerror(self, m_valid_services):
-        """We raise a KeyError on missing entitlements
-
-        (This isn't a problem because any callers of _perform_enable should
-        already have rejected invalid names.)
-        """
-        m_valid_services.return_value = "entitlement"
-        with pytest.raises(KeyError):
-            _perform_enable("entitlement", mock.Mock())
-
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
-    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
     @mock.patch(
         "uaclient.entitlements.is_config_value_true", return_value=False
@@ -395,33 +455,36 @@ class TestPerformEnable:
         self,
         _m_is_config_value_true,
         _m_get_available_resources,
-        silent_if_inapplicable,
+        _m_request_updated_contract,
+        m_getuid,
         allow_beta,
+        FakeConfig,
     ):
+        m_getuid.return_value = 0
         m_entitlement_cls = mock.Mock()
-        m_cfg = mock.Mock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.can_enable.return_value = (True, None)
+        m_entitlement_obj.enable.return_value = True
+
+        cfg = FakeConfig.for_attached_machine()
 
         m_ents_dict = {"testitlement": m_entitlement_cls}
 
-        kwargs = {"allow_beta": allow_beta}
-        if silent_if_inapplicable is not None:
-            kwargs["silent_if_inapplicable"] = silent_if_inapplicable
+        args = mock.MagicMock()
+        args.assume_yes = False
+        args.beta = allow_beta
+        args.service = ["testitlement"]
 
         with mock.patch.object(
             entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
         ):
-            ret = _perform_enable("testitlement", m_cfg, **kwargs)
+            ret = action_enable(args, cfg)
 
         assert [
-            mock.call(m_cfg, assume_yes=False, allow_beta=allow_beta)
+            mock.call(cfg, assume_yes=False, allow_beta=allow_beta)
         ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value
-        if silent_if_inapplicable:
-            expected_enable_call = mock.call(silent_if_inapplicable=True)
-        else:
-            expected_enable_call = mock.call(silent_if_inapplicable=False)
+        expected_enable_call = mock.call()
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
-        assert ret == m_entitlement.enable.return_value
-
-        assert 1 == m_cfg.status.call_count
+        assert ret == 0
