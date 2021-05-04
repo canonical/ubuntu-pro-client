@@ -515,37 +515,6 @@ def action_disable(args, cfg, **kwargs):
     return 0 if ret else 1
 
 
-def _perform_enable(
-    entitlement_name: str,
-    cfg: config.UAConfig,
-    *,
-    assume_yes: bool = False,
-    silent_if_inapplicable: bool = False,
-    allow_beta: bool = False
-) -> bool:
-    """Perform the enable action on a named entitlement.
-
-    (This helper excludes any messaging, so that different enablement code
-    paths can message themselves.)
-
-    :param entitlement_name: the name of the entitlement to enable
-    :param cfg: the UAConfig to pass to the entitlement
-    :param assume_yes:
-        Assume a yes response for any prompts during service enable
-    :param silent_if_inapplicable:
-        don't output messages when determining if an entitlement can be
-        enabled on this system
-    :param allow_beta: Allow enabling beta services
-
-    @return: True on success, False otherwise
-    """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
-    entitlement = ent_cls(cfg, assume_yes=assume_yes, allow_beta=allow_beta)
-    ret = entitlement.enable(silent_if_inapplicable=silent_if_inapplicable)
-    cfg.status()  # Update the status cache
-    return ret
-
-
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
@@ -568,17 +537,24 @@ def action_enable(args, cfg, **kwargs):
     valid_services_names = entitlements.valid_services(allow_beta=args.beta)
     ret = True
 
-    for entitlement in entitlements_found:
+    for ent_name in entitlements_found:
         try:
-            ent_ret = _perform_enable(
-                entitlement,
-                cfg,
-                assume_yes=args.assume_yes,
-                allow_beta=args.beta,
+            ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[ent_name]
+            entitlement = ent_cls(
+                cfg, assume_yes=args.assume_yes, allow_beta=args.beta
             )
+            ent_ret = entitlement.enable()
+            cfg.status()  # Update the status cache
 
-            if not ent_ret and entitlement not in valid_services_names:
-                entitlements_not_found.append(entitlement)
+            if not ent_ret:
+                can_enable, reason = entitlement.can_enable(silent=True)
+                if (
+                    not can_enable
+                    and reason == ua_status.CanEnableFailureReason.IS_BETA
+                ):
+                    # if we failed because ent is in beta and there was no
+                    # allow_beta flag/config, pretend it doesn't exist
+                    entitlements_not_found.append(ent_name)
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:

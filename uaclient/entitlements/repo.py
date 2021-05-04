@@ -107,7 +107,8 @@ class RepoEntitlement(base.UAEntitlement):
         msg_ops = self.messaging.get("pre_enable", [])
         if not handle_message_operations(msg_ops):
             return False
-        if not self.can_enable(silent=silent_if_inapplicable):
+        can_enable, _ = self.can_enable(silent=silent_if_inapplicable)
+        if not can_enable:
             return False
         self.setup_apt_config()
         if self.packages:

@@ -23,6 +23,7 @@ from uaclient.status import (
     ApplicabilityStatus,
     ContractStatus,
     UserFacingStatus,
+    CanEnableFailureReason,
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
@@ -157,14 +158,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def can_enable(self, silent: bool = False) -> bool:
+    def can_enable(
+        self, silent: bool = False
+    ) -> "Tuple[bool, Optional[CanEnableFailureReason]]":
         """
         Report whether or not enabling is possible for the entitlement.
 
         :param silent: if True, suppress output
+        :return:
+            tuple of (bool, CanEnableFailureReason).
+            (True, None) if can enable
+            (False, Reason) if can't enable
         """
-        if not self.valid_service:
-            return False
 
         if self.is_access_expired():
             logging.debug(
@@ -174,7 +179,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not self.contract_status() == ContractStatus.ENTITLED:
             if not silent:
                 print(status.MESSAGE_UNENTITLED_TMPL.format(title=self.title))
-            return False
+            return (False, CanEnableFailureReason.NOT_ENTITLED)
 
         application_status, _ = self.application_status()
         if application_status != status.ApplicationStatus.DISABLED:
@@ -184,17 +189,23 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         title=self.title
                     )
                 )
-            return False
+            return (False, CanEnableFailureReason.ALREADY_ENABLED)
+
+        if not self.valid_service:
+            return (False, CanEnableFailureReason.IS_BETA)
+
         applicability_status, details = self.applicability_status()
         if applicability_status == status.ApplicabilityStatus.INAPPLICABLE:
             if not silent:
                 print(details)
-            return False
+            return (False, CanEnableFailureReason.INAPPLICABLE)
 
         if self.incompatible_services:
-            return self.handle_incompatible_services()
+            handle_incompat_ret = self.handle_incompatible_services()
+            if not handle_incompat_ret:
+                return (False, CanEnableFailureReason.INCOMPATIBLE_SERVICE)
 
-        return True
+        return (True, None)
 
     def handle_incompatible_services(self) -> bool:
         """
@@ -473,7 +484,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if enable_by_default:
             self.allow_beta = True
 
-        can_enable = self.can_enable(silent=True)
+        can_enable, _ = self.can_enable(silent=True)
         if can_enable and enable_by_default:
             if allow_enable:
                 msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
