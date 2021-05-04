@@ -113,7 +113,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Examples: ubuntu release packages
            | release | downrev_pkg                 |
-           | trusty  | libgit2-0=0.19.0-2          |
            | xenial  | libkrad0=1.13.2+dfsg-5      |
            | bionic  | libkrad0=1.16-2build1       |
            | focal   | hello=2.10-2ubuntu2         |
@@ -146,7 +145,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | fips_status |lp_status | lp_desc                       |
-           | trusty  | n/a         |n/a       | Available with the HWE kernel |
            | xenial  | disabled    |enabled   | Canonical Livepatch service   |
            | bionic  | disabled    |enabled   | Canonical Livepatch service   |
            | focal   | n/a         |enabled   | Canonical Livepatch service   |
@@ -179,7 +177,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status |
-           | trusty  | disabled  | n/a         |
            | xenial  | n/a       | n/a         |
            | bionic  | n/a       | disabled    |
            | focal   | n/a       | n/a         |
@@ -212,7 +209,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status |
-           | trusty  | disabled  | n/a         |
            | xenial  | n/a       | n/a         |
            | bionic  | n/a       | n/a         |
            | focal   | n/a       | n/a         |

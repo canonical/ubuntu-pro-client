@@ -16,7 +16,7 @@ function cleanup {
 
 if (($# != 2)); then
     echo "Usage: $0 <release> <command>"
-    echo "Example: $0 trusty 'tox -e flake8-trusty'"
+    echo "Example: $0 xenial 'tox -e flake8-xenial'"
     exit 1
 fi
 
