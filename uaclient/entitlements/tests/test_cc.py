@@ -97,7 +97,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         assert status.UserFacingStatus.INACTIVE == uf_status
         details = "{} is not configured".format(entitlement.title)
         assert details == uf_status_details
-        assert True is entitlement.can_enable()
+        assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
 
 

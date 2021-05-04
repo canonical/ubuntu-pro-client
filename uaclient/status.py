@@ -100,6 +100,19 @@ class UserFacingStatus(enum.Enum):
     UNAVAILABLE = "—"
 
 
+@enum.unique
+class CanEnableFailureReason(enum.Enum):
+    """
+    An enum representing the reasons an entitlement can't be enabled.
+    """
+
+    NOT_ENTITLED = object()
+    ALREADY_ENABLED = object()
+    INAPPLICABLE = object()
+    IS_BETA = object()
+    INCOMPATIBLE_SERVICE = object()
+
+
 ESSENTIAL = "essential"
 STANDARD = "standard"
 ADVANCED = "advanced"

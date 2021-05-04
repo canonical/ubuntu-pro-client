@@ -393,7 +393,9 @@ class TestProcessContractDeltas:
 
 class TestRepoEnable:
     @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
-    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=False)
+    @mock.patch.object(
+        RepoTestEntitlement, "can_enable", return_value=(False, None)
+    )
     def test_enable_passes_silent_if_inapplicable_through(
         self, m_can_enable, caplog_text, tmpdir, silent_if_inapplicable
     ):
@@ -416,7 +418,9 @@ class TestRepoEnable:
             (["msg1", (lambda: True, {}), "msg2"], "msg1\nmsg2\n", 1),
         ),
     )
-    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=False)
+    @mock.patch.object(
+        RepoTestEntitlement, "can_enable", return_value=(False, None)
+    )
     def test_enable_can_exit_on_pre_enable_messaging_hooks(
         self,
         m_can_enable,
@@ -497,7 +501,9 @@ class TestRepoEnable:
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "os.path.exists", return_value=True)
     @mock.patch(M_PATH + "util.get_platform_info")
-    @mock.patch.object(RepoTestEntitlement, "can_enable", return_value=True)
+    @mock.patch.object(
+        RepoTestEntitlement, "can_enable", return_value=(True, None)
+    )
     def test_enable_calls_adds_apt_repo_and_calls_apt_update(
         self,
         m_can_enable,
@@ -614,7 +620,7 @@ class TestRepoEnable:
         packages = ["fake_pkg", "and_another"]
         with mock.patch.object(entitlement, "setup_apt_config"):
             with mock.patch.object(
-                entitlement, "can_enable", return_value=True
+                entitlement, "can_enable", return_value=(True, None)
             ):
                 with mock.patch.object(
                     type(entitlement), "packages", packages

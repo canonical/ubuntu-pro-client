@@ -233,7 +233,7 @@ class TestESMInfraEntitlementEnable:
                 mock.patch.object(type(entitlement), "packages", m_packages)
             )
 
-            m_can_enable.return_value = True
+            m_can_enable.return_value = (True, None)
 
             assert True is entitlement.enable()
 
@@ -334,7 +334,7 @@ class TestESMInfraEntitlementEnable:
                 mock.patch("uaclient.apt.os.unlink")
             )
 
-            m_can_enable.return_value = True
+            m_can_enable.return_value = (True, None)
 
             with pytest.raises(exceptions.UserFacingError) as excinfo:
                 entitlement.enable()
