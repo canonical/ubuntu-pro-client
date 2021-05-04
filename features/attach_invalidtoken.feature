@@ -19,3 +19,5 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | xenial  |
            | bionic  |
            | focal   |
+           | groovy  |
+           | hirsute |
