@@ -20,6 +20,8 @@ Feature: Command behaviour when unattached
            | bionic  | lxd        |
            | focal   | lxd        |
            | xenial  | lxd        |
+           | groovy  | lxd        |
+           | hirsute | lxd        |
 
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
@@ -110,6 +112,10 @@ Feature: Command behaviour when unattached
            | focal   | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
+           | groovy  | detach  |
+           | groovy  | refresh |
+           | hirsute | detach  |
+           | hirsute | refresh |
 
     @series.all
     Scenario Outline: Unattached command known and unknown services in a ubuntu machine
@@ -141,6 +147,14 @@ Feature: Command behaviour when unattached
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
+           | groovy  | enable   | livepatch |
+           | groovy  | disable  | livepatch |
+           | groovy  | enable   | unknown   |
+           | groovy  | disable  | unknown   |
+           | hirsute | enable   | livepatch |
+           | hirsute | disable  | livepatch |
+           | hirsute | enable   | unknown   |
+           | hirsute | disable  | unknown   |
 
     @series.all
     Scenario Outline: Help command on an unattached machine
@@ -152,7 +166,7 @@ Feature: Command behaviour when unattached
             esm-infra
 
             Available:
-            yes
+            <infra-status>
 
             Help:
             esm-infra provides access to a private ppa which includes available high
@@ -166,7 +180,7 @@ Feature: Command behaviour when unattached
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "available": "yes", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
+            {"name": "esm-infra", "available": "<infra-status>", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
             """
         When I verify that running `ua help invalid-service` `with sudo` exits `1`
         Then I will see the following on stderr:
@@ -175,10 +189,12 @@ Feature: Command behaviour when unattached
             """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
+           | release  | infra-status |
+           | bionic   | yes          |
+           | focal    | yes          |
+           | xenial   | yes          |
+           | groovy   | no           |
+           | hirsute  | no           |
 
     @series.focal
     Scenario Outline: Fix command on an unattached machine

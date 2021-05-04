@@ -21,6 +21,8 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | hirsute |
+           | groovy  |
 
     @series.all
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
@@ -43,8 +45,10 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | hirsute |
+           | groovy  |
 
-    @series.all
+    @series.lts
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -82,7 +86,30 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
-    @series.all
+    @series.groovy
+    @series.hirsute
+    Scenario Outline: Attached detach in an ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua status --all` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+            cis           +yes      +n/a      +Center for Internet Security Audit Tools
+            esm-apps      +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes      +n/a      +NIST-certified FIPS modules
+            fips-updates  +yes      +n/a      +Uncertified security updates to FIPS modules
+            livepatch     +yes      +n/a      +Canonical Livepatch service
+            """
+
+        Examples: ubuntu release
+            | release |
+            | groovy  |
+            | hirsute |
+
+    @series.lts
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -143,6 +170,8 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | hirsute |
+           | groovy  |
 
     @series.all
     Scenario Outline: Attached show version in a ubuntu machine
@@ -162,6 +191,8 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | hirsute |
+           | groovy  |
 
     @series.all
     Scenario Outline: Unattached status in a ubuntu machine with feature overrides
@@ -210,8 +241,10 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | hirsute |
+           | groovy  |
 
-    @series.all
+    @series.lts
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -258,7 +291,7 @@ Feature: Command behaviour when attached to an UA subscription
             yes
 
             Status:
-            enabled
+            <infra-status>
 
             Help:
             esm-infra provides access to a private ppa which includes available high
@@ -272,7 +305,7 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua help esm-infra --format json` with sudo
         Then I will see the following on stdout:
             """
-            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
+            {"name": "esm-infra", "entitled": "yes", "status": "<infra-status>", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
             """
         And I verify that running `ua help invalid-service` `with sudo` exits `1`
         And I will see the following on stderr:
@@ -326,12 +359,14 @@ Feature: Command behaviour when attached to an UA subscription
         """
 
         Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
+           | release | infra-status |
+           | bionic  | enabled      |
+           | focal   | enabled      |
+           | xenial  | enabled      |
+           | hirsute | n/a          |
+           | groovy  | n/a          |
 
-    @series.all
+    @series.lts
     Scenario Outline: Purge package after attaching it to a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -360,7 +395,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
-    @series.all
+    @series.lts
     Scenario Outline: Enable command with invalid repositories in user machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
