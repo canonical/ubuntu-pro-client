@@ -31,8 +31,10 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release | msg                                                            |
            | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
            | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
+           | groovy  | CC EAL2 is not available for Ubuntu 20.10 (Groovy Gorilla).    |
+           | hirsute | CC EAL2 is not available for Ubuntu 21.04 (Hirsute Hippo).     |
 
-    @series.all
+    @series.lts
     Scenario Outline: Attached enable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -122,22 +124,17 @@ Feature: Enable command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
+           | groovy  |
+           | hirsute |
 
-    @series.all
+    @series.lts
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        Then I verify that running `ua enable <service>` `as non-root` exits `1`
+        Then I verify that running `ua enable esm-apps` `as non-root` exits `1`
         And I will see the following on stderr:
             """
             This command must be run as root (try using sudo).
-            """
-        And I verify that running `ua enable cis --beta` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            This subscription is not entitled to CIS Audit
-            For more information see: https://ubuntu.com/advantage.
             """
         And I verify that running `ua enable esm-apps --beta` `with sudo` exits `1`
         And I will see the following on stdout:
