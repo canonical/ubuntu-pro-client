@@ -340,6 +340,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
     @series.xenial
     @series.bionic
+    @series.focal
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
@@ -372,6 +373,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
         Examples: not entitled services
            | release |
+           | focal   |
            | bionic  |
            | xenial  |
 
