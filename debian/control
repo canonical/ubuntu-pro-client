@@ -4,7 +4,7 @@ Priority: important
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: bash-completion,
                debhelper (>=9),
-               debianutils,
+               debianutils (>= 4.7),
                dh-python,
                debhelper (>= 13.3) | dh-systemd,
                gettext,
