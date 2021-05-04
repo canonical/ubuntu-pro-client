@@ -159,7 +159,9 @@ class TestUaEntitlement:
         kwargs = {}
         if silent is not None:
             kwargs["silent"] = silent
-        assert not entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable(**kwargs)
+        assert not can_enable
+        assert reason == status.CanEnableFailureReason.NOT_ENTITLED
 
         expected_stdout = (
             "This subscription is not entitled to Test Concrete Entitlement\n"
@@ -184,7 +186,7 @@ class TestUaEntitlement:
         ent = concrete_entitlement_factory(entitled=False)
 
         with mock.patch.object(ent, "is_access_expired", return_value=True):
-            assert not ent.can_enable()
+            assert not ent.can_enable()[0]
 
         assert [
             mock.call(ent.cfg)
@@ -207,7 +209,9 @@ class TestUaEntitlement:
         kwargs = {}
         if silent is not None:
             kwargs["silent"] = silent
-        assert not entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable(**kwargs)
+        assert not can_enable
+        assert reason == status.CanEnableFailureReason.ALREADY_ENABLED
 
         expected_stdout = (
             "Test Concrete Entitlement is already enabled.\n"
@@ -235,7 +239,9 @@ class TestUaEntitlement:
         kwargs = {}
         if silent is not None:
             kwargs["silent"] = silent
-        assert not entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable(**kwargs)
+        assert not can_enable
+        assert reason == status.CanEnableFailureReason.INAPPLICABLE
 
         expected_stdout = "msg\n"
         if silent:
@@ -257,7 +263,9 @@ class TestUaEntitlement:
         kwargs = {}
         if silent is not None:
             kwargs["silent"] = silent
-        assert entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable(**kwargs)
+        assert can_enable
+        assert reason is None
 
         stdout, _ = capsys.readouterr()
         assert "" == stdout
@@ -278,12 +286,14 @@ class TestUaEntitlement:
             allow_beta=allow_beta,
         )
         entitlement.is_beta = is_beta
-        can_enable = entitlement.can_enable()
+        can_enable, reason = entitlement.can_enable()
 
         if not is_beta or allow_beta or allow_beta_cfg:
             assert can_enable
+            assert reason is None
         else:
             assert not can_enable
+            assert reason == status.CanEnableFailureReason.IS_BETA
 
     def test_contract_status_entitled(self, concrete_entitlement_factory):
         """The contract_status returns ENTITLED when entitlement enabled."""
@@ -351,15 +361,18 @@ class TestUaEntitlement:
             with mock.patch.object(
                 ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
             ):
-                ret = base_ent.can_enable()
+                ret, reason = base_ent.can_enable()
 
         expected_prompt_call = 0 if block_disable_on_enable else 1
         expected_ret = False
+        expected_reason = status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
         if assume_yes and not block_disable_on_enable:
             expected_ret = True
+            expected_reason = None
         expected_disable_call = 1 if expected_ret else 0
 
         assert ret == expected_ret
+        assert reason == expected_reason
         assert m_prompt.call_count == expected_prompt_call
         assert m_is_config_value_true.call_count == 1
         assert m_entitlement_obj.disable.call_count == expected_disable_call

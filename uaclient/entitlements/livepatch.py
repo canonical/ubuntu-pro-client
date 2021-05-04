@@ -76,7 +76,8 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not self.can_enable(silent=silent_if_inapplicable):
+        can_enable, _ = self.can_enable(silent=silent_if_inapplicable)
+        if not can_enable:
             return False
         if not util.which("/snap/bin/canonical-livepatch"):
             if not util.which(SNAP_CMD):
