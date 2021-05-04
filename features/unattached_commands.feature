@@ -19,28 +19,22 @@ Feature: Command behaviour when unattached
            | release | data       |
            | bionic  | lxd        |
            | focal   | lxd        |
-           | trusty  | nocloudnet |
            | xenial  | lxd        |
 
-    @series.trusty
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo
         When I run `apt-cache policy` with sudo
-        Then if `<release>` in `trusty` and stdout matches regexp:
-        """
-        -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
-        """
-        Then if `<release>` in `xenial` and stdout matches regexp:
+        Then stdout matches regexp:
         """
         -32768 <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
-        Then if `<release>` in `trusty or xenial` and stdout does not match regexp:
+        And stdout does not match regexp:
         """
         -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
         """
-        Then if `<release>` in `trusty or xenial` and stdout does not match regexp:
+        And stdout does not match regexp:
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
@@ -52,19 +46,11 @@ Feature: Command behaviour when unattached
         And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         And I run `apt-get update` with sudo
         When I run `apt-cache policy` with sudo
-        Then if `<release>` in `trusty` and stdout does not match regexp:
+        Then stdout matches regexp:
         """
         -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
         """
-        Then if `<release>` in `trusty` and stdout does not match regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
-        """
-        Then if `<release>` in `xenial` and stdout matches regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
-        """
-        Then if `<release>` in `xenial` and stdout matches regexp:
+        And stdout matches regexp:
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
@@ -75,7 +61,7 @@ Feature: Command behaviour when unattached
             """
         And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
-        Then if `<release>` in `xenial` and stdout matches regexp:
+        Then stdout matches regexp:
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
@@ -99,7 +85,6 @@ Feature: Command behaviour when unattached
 
         Examples: ubuntu release
            | release | esm-infra-url                       | esm-apps-url |
-           | trusty  | https://esm.ubuntu.com/ubuntu/      | NOTTESTED                           |
            | xenial  | https://esm.ubuntu.com/infra/ubuntu | https://esm.ubuntu.com/apps/ubuntu |
 
     @series.all
@@ -123,8 +108,6 @@ Feature: Command behaviour when unattached
            | bionic  | refresh |
            | focal   | detach  |
            | focal   | refresh |
-           | trusty  | detach  |
-           | trusty  | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
 
@@ -154,10 +137,6 @@ Feature: Command behaviour when unattached
            | focal   | disable  | livepatch |
            | focal   | enable   | unknown   |
            | focal   | disable  | unknown   |
-           | trusty  | enable   | livepatch |
-           | trusty  | disable  | livepatch |
-           | trusty  | enable   | unknown   |
-           | trusty  | disable  | unknown   |
            | xenial  | enable   | livepatch |
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
@@ -199,7 +178,6 @@ Feature: Command behaviour when unattached
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.focal
@@ -256,6 +234,7 @@ Feature: Command behaviour when unattached
            | release |
            | focal   |
 
+    @uses.config.contract_token
     @series.xenial
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -268,9 +247,17 @@ Feature: Command behaviour when unattached
             https://ubuntu.com/security/CVE-2020-11728
             1 affected package is installed: awl
             \(1/1\) awl:
-            Ubuntu security engineers are investigating this issue.
+            Sorry, no fix is available.
             1 package is still affected: awl
             .*✘.* USN-4539-1 is not resolved.
+            """
+        When I run `ua fix CVE-2020-15180` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2020-15180: MariaDB vulnerabilities
+            https://ubuntu.com/security/CVE-2020-15180
+            No affected packages are installed.
+            .*✔.* CVE-2020-15180 does not affect your system.
             """
         When I run `ua fix CVE-2020-28196` as non-root
         Then stdout matches regexp:
@@ -291,7 +278,7 @@ Feature: Command behaviour when unattached
             https://ubuntu.com/security/CVE-2017-9233
             3 affected packages are installed: expat, matanza, swish-e
             \(1/3, 2/3\) matanza, swish-e:
-            Ubuntu security engineers are investigating this issue.
+            Sorry, no fix is available.
             """
         And stderr matches regexp:
             """
@@ -303,123 +290,6 @@ Feature: Command behaviour when unattached
         Examples: ubuntu release details
            | release |
            | xenial  |
-
-    @uses.config.contract_token
-    @series.trusty
-    Scenario Outline: Fix command on an unattached machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua fix USN-4539-1` as non-root
-        Then stdout matches regexp:
-            """
-            USN-4539-1: AWL vulnerability
-            Found CVEs:
-            https://ubuntu.com/security/CVE-2020-11728
-            No affected packages are installed.
-            .*✔.* USN-4539-1 does not affect your system.
-            """
-        When I run `ua fix CVE-2020-15180` as non-root
-        Then stdout matches regexp:
-            """
-            CVE-2020-15180: MariaDB vulnerabilities
-            https://ubuntu.com/security/CVE-2020-15180
-            No affected packages are installed.
-            .*✔.* CVE-2020-15180 does not affect your system.
-            """
-        When I run `ua fix CVE-2020-28196` as non-root
-        Then stdout matches regexp:
-            """
-            CVE-2020-28196: Kerberos vulnerability
-            https://ubuntu.com/security/CVE-2020-28196
-            1 affected package is installed: krb5
-            \(1/1\) krb5:
-            A fix is available in UA Infra.
-            Package fixes cannot be installed.
-            To install them, run this command as root \(try using sudo\)
-            1 package is still affected: krb5
-            .*✘.* CVE-2020-28196 is not resolved.
-            """
-        When I fix `USN-4747-2` by attaching to a subscription with `contract_token`
-        Then stdout matches regexp:
-            """
-            USN-4747-2: GNU Screen vulnerability
-            Found CVEs:
-            https://ubuntu.com/security/CVE-2021-26937
-            1 affected package is installed: screen
-            \(1/1\) screen:
-            A fix is available in UA Infra.
-            The update is not installed because this system is not attached to a
-            subscription.
-
-            Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
-            > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
-            > .*\{ ua attach .*\}.*
-            Updating package lists
-            UA Infra: ESM enabled
-            """
-        And stdout matches regexp:
-            """
-            .*\{ apt update && apt install --only-upgrade -y screen \}.*
-            .*✔.* USN-4747-2 is resolved.
-            """
-        When I run `apt-get install -y screen=4.1.0~20120320gitdb59704-9 --force-yes` with sudo
-        And I run `ua disable esm-infra` with sudo
-        And I fix `USN-4747-2` by enabling required service
-        Then stdout matches regexp:
-            """
-            USN-4747-2: GNU Screen vulnerability
-            Found CVEs:
-            https://ubuntu.com/security/CVE-2021-26937
-            1 affected package is installed: screen
-            \(1/1\) screen:
-            A fix is available in UA Infra.
-            The update is not installed because this system does not have
-            esm-infra enabled.
-
-            Choose: \[E\]nable esm-infra \[C\]ancel
-            > .*\{ ua enable esm-infra \}.*
-            One moment, checking your subscription first
-            Updating package lists
-            UA Infra: ESM enabled
-            """
-        And stdout matches regexp:
-            """
-            .*\{ apt update && apt install --only-upgrade -y screen \}.*
-            .*✔.* USN-4747-2 is resolved.
-            """
-        When I run `apt-get install -y screen=4.1.0~20120320gitdb59704-9 --force-yes` with sudo
-        And I update contract to use `effectiveTo` as `1999-12-01T00:00:00Z`
-        And I fix `USN-4747-2` by updating expired token
-        Then stdout matches regexp:
-            """
-            USN-4747-2: GNU Screen vulnerability
-            Found CVEs:
-            https://ubuntu.com/security/CVE-2021-26937
-            1 affected package is installed: screen
-            \(1/1\) screen:
-            A fix is available in UA Infra.
-            The update is not installed because this system is attached to an
-            expired subscription.
-
-            Choose: \[R\]enew your subscription \(at https://ubuntu.com/advantage\) \[C\]ancel
-            > Enter your new token to renew UA subscription on this system:
-            > .*\{ ua detach \}.*
-            Detach will disable the following service:
-                esm-infra
-            Updating package lists
-            This machine is now detached.
-            .*\{ ua attach .* \}.*
-            Updating package lists
-            UA Infra: ESM enabled
-            """
-        And stdout matches regexp:
-            """
-            .*\{ apt update && apt install --only-upgrade -y screen \}.*
-            .*✔.* USN-4747-2 is resolved.
-            """
-
-        Examples: ubuntu release
-           | release |
-           | trusty  |
 
     @series.bionic
     Scenario: Fix command on an unattached machine

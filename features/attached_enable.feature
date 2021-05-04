@@ -31,7 +31,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release | msg                                                            |
            | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
            | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
-           | trusty  | CC EAL2 is not available for Ubuntu 14.04 LTS (Trusty Tahr).   |
 
     @series.all
     Scenario Outline: Attached enable of a service in a ubuntu machine
@@ -87,7 +86,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release | infra-pkg | esm-infra-url                       |
            | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
            | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu |
-           | trusty  | libgit2-0 | https://esm.ubuntu.com/ubuntu/      |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
     @series.all
@@ -123,7 +121,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.all
@@ -154,7 +151,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release |
            | bionic  |
            | focal   |
-           | trusty  |
            | xenial  |
 
     @series.focal

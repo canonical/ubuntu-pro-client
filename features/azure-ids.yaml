@@ -1,4 +1,3 @@
 bionic: "Canonical:0001-com-ubuntu-pro-bionic:pro-18_04-lts"
 focal: "Canonical:0001-com-ubuntu-pro-focal:pro-20_04-lts"
-trusty: "Canonical:0001-com-ubuntu-pro-trusty:pro-14_04-lts"
 xenial: "Canonical:0001-com-ubuntu-pro-xenial:pro-16_04-lts"

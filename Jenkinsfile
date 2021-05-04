@@ -72,27 +72,6 @@ pipeline {
         }
         stage ('Package builds') {
             parallel {
-                stage ('Package build: 14.04') {
-                    environment {
-                        BUILD_SERIES = "trusty"
-                        SERIES_VERSION = "14.04"
-                        PKG_VERSION = sh(returnStdout: true, script: "dpkg-parsechangelog --show-field Version").trim()
-                        NEW_PKG_VERSION = "${PKG_VERSION}~${SERIES_VERSION}~${JOB_SUFFIX}"
-                        ARTIFACT_DIR = "${TMPDIR}${BUILD_SERIES}"
-                    }
-                    steps {
-                        sh '''
-                        set -x
-                        mkdir ${ARTIFACT_DIR}
-                        cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
-                        sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
-                        dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
-                        cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
-                        cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
-                        '''
-                    }
-                }
                 stage ('Package build: 16.04') {
                     environment {
                         BUILD_SERIES = "xenial"
@@ -160,19 +139,6 @@ pipeline {
         }
         stage ('Integration Tests') {
             parallel {
-                stage("lxc 14.04") {
-                    environment {
-                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}trusty/"
-                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-14.04"
-                    }
-                    steps {
-                        sh '''
-                        set +x
-                        . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-lxd-14.04
-                        '''
-                    }
-                }
                 stage("lxc 16.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"

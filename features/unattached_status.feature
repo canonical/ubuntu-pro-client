@@ -82,5 +82,4 @@ Feature: Unattached status
            | release | esm-apps | cc-eal | cis | fips | fips-update |
            | bionic  | yes      | no     | yes | yes  | yes         |
            | focal   | yes      | no     | no  | no   | no          |
-           | trusty  | no       | no     | no  | no   | no          |
            | xenial  | yes      | yes    | yes | yes  | yes         |

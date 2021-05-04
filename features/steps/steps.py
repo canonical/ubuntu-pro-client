@@ -74,16 +74,6 @@ def given_a_machine(context, series):
         context.instance
     )
 
-    if series == "trusty":
-        # On trusty, the distro-info package is not directly
-        # installed when we install the ubuntu-advantage-client
-        # deb. This is fixing that problem on trusty
-        when_i_run_command(
-            context=context,
-            command="apt-get install -f -y",
-            user_spec="with sudo",
-        )
-
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
             print(
@@ -264,18 +254,7 @@ def when_i_create_file_with_content(context, file_path):
 
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
-    if series == "trusty":
-        # TODO(LP: #1899299: LTS upgrade T->X pickled ds breaks Paths.run_dir)
-        # When Fix is SRUd to Xenial, we can drop the trusty clause
-        logging.warning(
-            "LP: #1899299: Not raising cloud-init-errors across Trusty reboot"
-        )
-        context.instance.shutdown(wait=True)
-        context.instance.start(wait=False)
-        # Trusty -> Xenial upgrades would raise a Paths no run_dir attr failure
-        context.instance.wait()
-    else:
-        context.instance.restart(wait=True)
+    context.instance.restart(wait=True)
 
 
 @then("I will see the following on stdout")
