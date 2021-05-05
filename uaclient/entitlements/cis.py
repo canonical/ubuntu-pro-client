@@ -1,5 +1,13 @@
 from uaclient.entitlements import repo
 
+try:
+    from typing import Callable, Dict, List, Tuple, Union  # noqa
+except ImportError:
+    # typing isn't available on trusty, so ignore its absence
+    pass
+
+CIS_DOCS_URL = "https://ubuntu.com/security/cis"
+
 
 class CISEntitlement(repo.RepoEntitlement):
 
@@ -10,3 +18,15 @@ class CISEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-advantage-cis.gpg"
     is_beta = True
     apt_noninteractive = True
+
+    @property
+    def messaging(
+        self,
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {
+            "post_enable": [
+                "Visit {} to learn how to use the CIS packages".format(
+                    CIS_DOCS_URL
+                )
+            ]
+        }
