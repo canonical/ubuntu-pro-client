@@ -291,11 +291,12 @@ class TestSubp:
         with pytest.raises(util.ProcessExecutionError) as excinfo:
             util.subp(["ls", "--bogus"])
 
-        expected_error = (
-            "Failed running command 'ls --bogus' [exit(2)]."
-            " Message: ls: unrecognized option"
-        )
-        assert expected_error in str(excinfo.value)
+        expected_errors = [
+            "Failed running command 'ls --bogus' [exit(2)].",
+            "ls: unrecognized option '--bogus'",
+        ]
+        for msg in expected_errors:
+            assert msg in str(excinfo.value)
         assert 0 == m_sleep.call_count  # no retries
 
     @mock.patch("uaclient.util.time.sleep")
