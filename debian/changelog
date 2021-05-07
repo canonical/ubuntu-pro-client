@@ -1,3 +1,22 @@
+ubuntu-advantage-tools (27.0.2) impish; urgency=medium
+
+  * d/control:
+    - order build-depends alternatives newer first (LP: #1926949)
+    - apt-hook: do not attempt to package go APT JSON hook on some
+      architectures (GH: #1603)
+  * Bug-fix release 27.0.2: autopkg build failures on riscv64 and powerpc
+    - apt-hook: refactor json hook messaging to be dry
+    - tests: fix subp ls error case for powerpc builds
+    - jenkinsfile: add --resolve-alternatives for trusty builds
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:58:03 -0600
+
+ubuntu-advantage-tools (27.0.1) impish; urgency=medium
+
+  * Add .gitignore and cleanup ignored directory .pytest_cache
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:55:07 -0600
+
 ubuntu-advantage-tools (27.0) impish; urgency=medium
 
   * New upstream release 27.0:
