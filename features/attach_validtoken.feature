@@ -11,15 +11,20 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `apt-get update` with sudo, retrying exit [100]
         And I run `apt-get install -y <downrev_pkg>` with sudo, retrying exit [100]
         And I run `run-parts /etc/update-motd.d/` with sudo
-        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
+        Then if `<release>` in `xenial` and stdout matches regexp:
         """
         \d+ package(s)? can be updated.
         \d+ of these updates (is a|are) security update(s)?.
         """
+        Then if `<release>` in `bionic` and stdout matches regexp:
+        """
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is a|are) standard security update(s)?.
+        """
         Then if `<release>` in `focal` and stdout matches regexp:
         """
-        \d+ update(s)? can be installed immediately.
-        \d+ of these updates (is a|are) security update(s)?.
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is a|are) standard security update(s)?.
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -59,14 +64,24 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
             +https:\/\/ubuntu.com\/esm
 
-        UA (Infra:|Infrastructure) Extended Security Maintenance \(ESM\) is enabled.
-
-        \d+ update(s)? can be installed immediately.
-        \d+ of these updates (is|are) (fixed|provided) through UA (Infra:|Infrastructure) ESM.
-        \d+ of these updates (is a|are) security update(s)?.
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is|are) (a|an)? UA Infra: ESM security update(s)?.
+        \d+ of these updates (is a|are) standard security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
-        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
+        Then if `<release>` in `bionic` and stdout matches regexp:
+        """
+        \* Introducing Extended Security Maintenance for Applications.
+          +Receive updates to over 30,000 software packages with your
+          +Ubuntu Advantage subscription. Free for personal use.
+
+            +https:\/\/ubuntu.com\/esm
+
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is a|are) standard security update(s)?.
+        To see these additional updates run: apt list --upgradable
+        """
+        Then if `<release>` in `xenial` and stdout matches regexp:
         """
         \* Introducing Extended Security Maintenance for Applications.
           +Receive updates to over 30,000 software packages with your
