@@ -87,7 +87,7 @@ pipeline {
                         cp debian/changelog ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
                         sed -i "s/${PKG_VERSION}/${NEW_PKG_VERSION}/" ${WORKSPACE}/debian/changelog-${SERIES_VERSION}
                         dpkg-source -l${WORKSPACE}/debian/changelog-${SERIES_VERSION} -b .
-                        sbuild --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
+                        sbuild --resolve-alternatives --nolog --verbose --dist=${BUILD_SERIES} --no-run-lintian --append-to-version=~${SERIES_VERSION}  ../ubuntu-advantage-tools*${NEW_PKG_VERSION}*dsc
                         cp ./ubuntu-advantage-tools*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-tools-${BUILD_SERIES}.deb
                         cp ./ubuntu-advantage-pro*${SERIES_VERSION}*.deb ${ARTIFACT_DIR}/ubuntu-advantage-pro-${BUILD_SERIES}.deb
                         '''
