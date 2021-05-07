@@ -1,4 +1,4 @@
-ubuntu-advantage-tools (27.0.2) impish; urgency=medium
+ubuntu-advantage-tools (27.0.2) trusty; urgency=medium
 
   * d/control:
     - order build-depends alternatives newer first (LP: #1926949)
