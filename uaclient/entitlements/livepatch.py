@@ -1,9 +1,11 @@
 import logging
+import re
 
 from uaclient.entitlements import base
 from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
+
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -100,9 +102,19 @@ class LivepatchEntitlement(base.UAEntitlement):
                     "/usr/bin/snap is present but snapd is not installed;"
                     " cannot enable {}".format(self.title)
                 )
-            util.subp(
-                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
-            )
+
+            try:
+                util.subp(
+                    [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+                )
+            except util.ProcessExecutionError as e:
+                if re.search(r"unknown command .*wait", str(e).lower()):
+                    logging.warning(
+                        status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD
+                    )
+                else:
+                    raise
+
             print("Installing canonical-livepatch snap")
             try:
                 util.subp(

@@ -251,6 +251,11 @@ MESSAGE_REBOOT_SCRIPT_FAILED = (
 MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED = (
     "Livepatch support requires a system reboot across LTS upgrade."
 )
+MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
+    "snapd does not have wait command.\n"
+    "Enabling Livepatch can fail under this scenario\n"
+    "Please, upgrade snapd if Livepatch enable fails and try again."
+)
 MESSAGE_FIPS_INSTALL_OUT_OF_DATE = (
     "This FIPS install is out of date, run: sudo ua enable fips"
 )

@@ -686,6 +686,90 @@ class TestLivepatchEntitlementEnable:
         )
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
+    @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
+    @mock.patch("uaclient.util.which")
+    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("uaclient.util.subp")
+    def test_enable_alerts_user_that_snapd_does_not_wait_command(
+        self,
+        m_subp,
+        m_installed_pkgs,
+        m_which,
+        entitlement,
+        capsys,
+        caplog_text,
+    ):
+        m_which.side_effect = [False, True]
+        m_installed_pkgs.return_value = ["snapd"]
+        stderr_msg = (
+            "error: Unknown command `wait'. Please specify one command of: "
+            "abort, ack, buy, change, changes, connect, create-user, disable,"
+            " disconnect, download, enable, find, help, install, interfaces, "
+            "known, list, login, logout, refresh, remove, run or try"
+        )
+
+        m_subp.side_effect = [
+            ProcessExecutionError(
+                cmd="snapd wait system seed.loaded",
+                exit_code=-1,
+                stdout="",
+                stderr=stderr_msg,
+            ),
+            True,
+        ]
+
+        fake_stdout = io.StringIO()
+
+        with mock.patch.object(entitlement, "can_enable") as m_can_enable:
+            m_can_enable.return_value = True
+            with mock.patch.object(
+                entitlement, "setup_livepatch_config"
+            ) as m_setup_livepatch:
+                with contextlib.redirect_stdout(fake_stdout):
+                    entitlement.enable()
+
+                assert 1 == m_can_enable.call_count
+                assert 1 == m_setup_livepatch.call_count
+
+        assert (
+            "Installing canonical-livepatch snap"
+            in fake_stdout.getvalue().strip()
+        )
+
+        for msg in status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD.split("\n"):
+            assert msg in caplog_text()
+
+    @mock.patch("uaclient.util.which")
+    @mock.patch("uaclient.apt.get_installed_packages")
+    @mock.patch("uaclient.util.subp")
+    def test_enable_raise_exception_for_unexpected_error_on_snapd_wait(
+        self, m_subp, m_installed_pkgs, m_which, entitlement
+    ):
+        m_which.side_effect = [False, True]
+        m_installed_pkgs.return_value = ["snapd"]
+        stderr_msg = "test error"
+
+        m_subp.side_effect = ProcessExecutionError(
+            cmd="snapd wait system seed.loaded",
+            exit_code=-1,
+            stdout="",
+            stderr=stderr_msg,
+        )
+
+        with mock.patch.object(entitlement, "can_enable") as m_can_enable:
+            m_can_enable.return_value = True
+            with mock.patch.object(
+                entitlement, "setup_livepatch_config"
+            ) as m_setup_livepatch:
+                with pytest.raises(ProcessExecutionError) as excinfo:
+                    entitlement.enable()
+
+            assert 1 == m_can_enable.call_count
+            assert 0 == m_setup_livepatch.call_count
+
+        expected_msg = "test error"
+        assert expected_msg in str(excinfo)
+
 
 class TestLivepatchApplicationStatus:
     @pytest.mark.parametrize("which_result", ((True), (False)))
