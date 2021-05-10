@@ -3,8 +3,8 @@ ubuntu-advantage-tools (27.0.2) impish; urgency=medium
   * d/control:
     - order build-depends alternatives newer first (LP: #1926949)
     - apt-hook: do not attempt to package go APT JSON hook on some
-      architectures (GH: #1603)
-  * Bug-fix release 27.0.2: autopkg build failures on riscv64 and powerpc
+      architectures (GH: #1603) (LP: #1927886, LP: #1927795)
+  * Bug-fix release 27.0.2: build failures on riscv64 and powerpc
     - apt-hook: refactor json hook messaging to be dry
     - tests: fix subp ls error case for powerpc builds
     - jenkinsfile: add --resolve-alternatives for trusty builds
