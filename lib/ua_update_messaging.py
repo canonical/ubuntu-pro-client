@@ -23,7 +23,7 @@ from uaclient import config
 from uaclient import entitlements
 from uaclient import defaults
 from uaclient.status import (
-    MESSAGE_ANNOUNCE_ESM,
+    MESSAGE_ANNOUNCE_ESM_TMPL,
     MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
@@ -133,7 +133,7 @@ def _write_esm_service_msg_templates(
     if is_active_esm and ent.name == "esm-infra":
         release = platform_info["release"]
         ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
-            hyphenatedrelease=platform_info["release"].replace(".", "-")
+            hyphenatedrelease=release.replace(".", "-")
         )
         eol_release = "for Ubuntu {release} ".format(release=release)
     else:
@@ -314,8 +314,19 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
 
     msg_dir = os.path.join(cfg.data_dir, "messages")
     esm_news_file = os.path.join(msg_dir, ExternalMessage.ESM_ANNOUNCE.value)
+    platform_info = util.get_platform_info()
+    is_active_esm = util.is_active_esm(platform_info["series"])
+    if is_active_esm:
+        ua_esm_url = defaults.EOL_UA_URL_TMPL.format(
+            hyphenatedrelease=platform_info["release"].replace(".", "-")
+        )
+    else:
+        ua_esm_url = defaults.BASE_ESM_URL
     if all([series != "trusty", apps_not_beta, apps_not_enabled]):
-        util.write_file(esm_news_file, "\n" + MESSAGE_ANNOUNCE_ESM)
+        util.write_file(
+            esm_news_file,
+            "\n" + MESSAGE_ANNOUNCE_ESM_TMPL.format(url=ua_esm_url),
+        )
     else:
         util.remove_file(esm_news_file)
 
