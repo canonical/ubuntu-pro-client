@@ -10,7 +10,7 @@ from uaclient.defaults import (
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
 )
 from uaclient.status import (
-    MESSAGE_ANNOUNCE_ESM,
+    MESSAGE_ANNOUNCE_ESM_TMPL,
     MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
@@ -499,40 +499,103 @@ class Test_WriteESMServiceAPTMsgTemplates:
 
 class TestWriteESMAnnouncementMessage:
     @pytest.mark.parametrize(
-        "series,is_beta,cfg_allow_beta,apps_enabled,expected",
+        "series,release,is_active_esm,is_beta,cfg_allow_beta,"
+        "apps_enabled,expected",
         (
             # No ESM announcement when trusty
-            ("trusty", False, True, False, None),
+            ("trusty", "14.04", True, False, True, False, None),
             # ESMApps.is_beta == True no Announcement
-            ("xenial", True, None, False, None),
+            ("xenial", "16.04", True, True, None, False, None),
             # Once release begins ESM and ESMApps.is_beta is false announce
-            ("xenial", False, None, False, "\n" + MESSAGE_ANNOUNCE_ESM),
+            (
+                "xenial",
+                "16.04",
+                True,
+                False,
+                None,
+                False,
+                "\n"
+                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
+                    url="https://ubuntu.com/16-04"
+                ),
+            ),
             # allow_beta uaclient.config overrides is_beta and days_until_esm
-            ("xenial", True, True, False, "\n" + MESSAGE_ANNOUNCE_ESM),
+            (
+                "xenial",
+                "16.04",
+                True,
+                True,
+                True,
+                False,
+                "\n"
+                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
+                    url="https://ubuntu.com/16-04"
+                ),
+            ),
             # when esm-apps already enabled don't show
-            ("xenial", False, True, True, None),
-            ("bionic", False, None, False, "\n" + MESSAGE_ANNOUNCE_ESM),
-            ("focal", False, None, False, "\n" + MESSAGE_ANNOUNCE_ESM),
+            ("xenial", "16.04", True, False, True, True, None),
+            (
+                "bionic",
+                "18.04",
+                False,
+                False,
+                None,
+                False,
+                "\n"
+                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
+                    url="https://ubuntu.com/esm"
+                ),
+            ),
+            # Once Bionic transitions to ESM support, emit 18-04 messaging
+            (
+                "bionic",
+                "18.04",
+                True,
+                False,
+                None,
+                False,
+                "\n"
+                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
+                    url="https://ubuntu.com/18-04"
+                ),
+            ),
+            (
+                "focal",
+                "20.04",
+                False,
+                False,
+                None,
+                False,
+                "\n"
+                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
+                    url="https://ubuntu.com/esm"
+                ),
+            ),
         ),
     )
     @mock.patch(
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
     @mock.patch(M_PATH + "entitlements")
+    @mock.patch(M_PATH + "util.is_active_esm")
     @mock.patch(M_PATH + "util.get_platform_info")
     def test_message_based_on_beta_status_and_count_until_active_esm(
         self,
         get_platform_info,
+        util_is_active_esm,
         entitlements,
         esm_application_status,
         series,
+        release,
+        is_active_esm,
         is_beta,
         cfg_allow_beta,
         apps_enabled,
         expected,
         FakeConfig,
     ):
-        get_platform_info.return_value = {"series": series}
+        get_platform_info.return_value = {"series": series, "release": release}
+        util.is_active_esm.return_value = is_active_esm
 
         cfg = FakeConfig.for_attached_machine()
         msg_dir = os.path.join(cfg.data_dir, "messages")
