@@ -2,7 +2,7 @@ import enum
 import sys
 import textwrap
 
-from uaclient.defaults import BASE_ESM_URL, BASE_UA_URL, PRINT_WRAP_WIDTH
+from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
 
 try:
     from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
@@ -391,15 +391,13 @@ Package fixes cannot be installed.
 To install them, run this command as root (try using sudo)"""
 
 # MOTD and APT command messaging
-MESSAGE_ANNOUNCE_ESM = """\
+MESSAGE_ANNOUNCE_ESM_TMPL = """\
  * Introducing Extended Security Maintenance for Applications.
    Receive updates to over 30,000 software packages with your
    Ubuntu Advantage subscription. Free for personal use.
 
      {url}
-""".format(
-    url=BASE_ESM_URL
-)
+"""
 
 MESSAGE_CONTRACT_EXPIRED_SOON_TMPL = """\
 CAUTION: Your {title} service will expire in {remaining_days} days.
@@ -409,7 +407,6 @@ continued security coverage for your applications.
 
 MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL = """\
 CAUTION: Your {title} service expired on {expired_date}.
-
 Renew UA subscription at {url} to ensure
 continued security coverage for your applications.
 Your grace period will expire in {remaining_days} days.
