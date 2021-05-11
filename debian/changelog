@@ -8,24 +8,27 @@ ubuntu-advantage-tools (27.0.2) impish; urgency=medium
     - apt-hook: refactor json hook messaging to be dry
     - tests: fix subp ls error case for powerpc builds
     - jenkinsfile: add --resolve-alternatives for trusty builds
+    - amend changelog: add omitted apt-hook message for 27.0.1 stanza
 
  -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:58:03 -0600
 
 ubuntu-advantage-tools (27.0.1) impish; urgency=medium
 
   * Add .gitignore and cleanup ignored directory .pytest_cache
+  * apt-hook: mitigate failures with true
 
- -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:55:07 -0600
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 28 Apr 2021 13:55:28 -0600
 
 ubuntu-advantage-tools (27.0) impish; urgency=medium
 
   * New upstream release 27.0:
-    - apt-hook: mitigate failures with true
+    - [redacted: actually landed in 27.0.1] apt-hook: mitigate failures with
+      true
     - messages: add optional (s) to apt messaging to include
       singular/plural pkgs
     - apt-hook: avoid reporting and counting duplicate package
       names (GH: #1578)
-    - fix: dont say reboot required when unnecessary (LP: #1926183)
+    - fix: don't say reboot required when unnecessary (LP: #1926183)
     - test: uncomment additional xenial upgrade tests
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 27 Apr 2021 15:31:06 -0300
@@ -409,9 +412,9 @@ ubuntu-advantage-tools (25.0~20.10.1~beta) groovy; urgency=medium
 ubuntu-advantage-tools (24.4) groovy; urgency=medium
 
   * New bug-fix-only release 24.4:
-     - uaclient.version bump to 24.4
-     - fips: honor additionalPackage directive from contract for bionic
-       (GH #1173)
+    - uaclient.version bump to 24.4
+    - fips: honor additionalPackage directive from contract for bionic
+      (GH #1173)
 
  -- Chad Smith <chad.smith@canonical.com>  Tue, 01 Sep 2020 11:14:39 -0600
 
