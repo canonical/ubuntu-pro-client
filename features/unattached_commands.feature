@@ -196,6 +196,36 @@ Feature: Command behaviour when unattached
            | groovy   | no           |
            | hirsute  | no           |
 
+
+    @series.all
+    Scenario Outline: Useful SSL failure message when there aren't any ca-certs
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I run `apt remove ca-certificates -y` with sudo
+        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Failed to access URL: https://ubuntu.com/security/cves/CVE-1800-123456.json
+            Cannot verify certificate of server
+            Please install "ca-certificates" and try again.
+            """
+        When I run `apt install ca-certificates -y` with sudo
+        When I run `mv /etc/ssl/certs /etc/ssl/wronglocation` with sudo
+        When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            Failed to access URL: https://ubuntu.com/security/cves/CVE-1800-123456.json
+            Cannot verify certificate of server
+            Please check your openssl configuration.
+            """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | groovy  |
+           | hirsute |
+
+
     @series.focal
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed

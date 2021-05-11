@@ -1006,14 +1006,24 @@ def main_error_handler(func):
                 _CLEAR_LOCK_FILE("lock")
             sys.exit(1)
         except util.UrlError as exc:
-            with util.disable_log_to_console():
-                msg_args = {"url": exc.url, "error": exc}
-                if exc.url:
-                    msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
-                else:
-                    msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
-                logging.exception(msg_tmpl.format(**msg_args))
-            print(ua_status.MESSAGE_CONNECTIVITY_ERROR, file=sys.stderr)
+            if "CERTIFICATE_VERIFY_FAILED" in str(exc):
+                tmpl = ua_status.MESSAGE_SSL_VERIFICATION_ERROR_CA_CERTIFICATES
+                if util.is_installed("ca-certificates"):
+                    tmpl = (
+                        ua_status.MESSAGE_SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
+                    )
+                print(tmpl.format(url=exc.url), file=sys.stderr)
+            else:
+                with util.disable_log_to_console():
+                    msg_args = {"url": exc.url, "error": exc}
+                    if exc.url:
+                        msg_tmpl = (
+                            ua_status.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
+                        )
+                    else:
+                        msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
+                    logging.exception(msg_tmpl.format(**msg_args))
+                print(ua_status.MESSAGE_CONNECTIVITY_ERROR, file=sys.stderr)
             if _CLEAR_LOCK_FILE:
                 _CLEAR_LOCK_FILE("lock")
             sys.exit(1)
