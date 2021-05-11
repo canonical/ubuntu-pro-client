@@ -272,12 +272,26 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             fips_update.application_status()[0] == enabled_status
         )
 
+        services_once_enabled = (
+            self.cfg.read_cache("services-once-enabled") or {}
+        )
+        fips_updates_once_enabled = services_once_enabled.get(
+            fips_update.name, False
+        )
+
         return static_affordances + (
             (
                 "Cannot enable {} when {} is enabled.".format(
                     self.title, fips_update.title
                 ),
                 lambda: is_fips_update_enabled,
+                False,
+            ),
+            (
+                "Cannot enable {} because {} was once enabled.".format(
+                    self.title, fips_update.title
+                ),
+                lambda: fips_updates_once_enabled,
                 False,
             ),
         )
@@ -332,6 +346,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         if super().enable(silent_if_inapplicable=silent_if_inapplicable):
             self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
             return True
+
         return False
 
 
@@ -366,3 +381,17 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                 )
             ],
         }
+
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+        if super().enable(silent_if_inapplicable=silent_if_inapplicable):
+            services_once_enabled = (
+                self.cfg.read_cache("services-once-enabled") or {}
+            )
+            services_once_enabled.update({self.name: True})
+            self.cfg.write_cache(
+                key="services-once-enabled", content=services_once_enabled
+            )
+
+            return True
+
+        return False

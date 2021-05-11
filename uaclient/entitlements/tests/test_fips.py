@@ -433,6 +433,37 @@ class TestFIPSEntitlementEnable:
         expected_msg = "Cannot enable FIPS when FIPS Updates is enabled."
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
+    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch(
+        M_LIVEPATCH_PATH + "application_status",
+        return_value=((status.ApplicationStatus.DISABLED, "")),
+    )
+    @mock.patch("uaclient.util.is_container", return_value=False)
+    def test_enable_fails_when_fips_updates_service_once_enabled(
+        self,
+        m_is_container,
+        m_livepatch,
+        m_handle_message_op,
+        entitlement_factory,
+    ):
+        m_handle_message_op.return_value = True
+        fips_entitlement = entitlement_factory(
+            FIPSEntitlement, services_once_enabled={"fips-updates": True}
+        )
+
+        with mock.patch.object(
+            fips_entitlement, "_allow_fips_on_cloud_instance"
+        ) as m_allow_fips_on_cloud:
+            m_allow_fips_on_cloud.return_value = True
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                fips_entitlement.enable()
+
+        expected_msg = (
+            "Cannot enable FIPS because FIPS Updates was once enabled."
+        )
+        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
     @mock.patch("uaclient.entitlements.repo.handle_message_operations")
@@ -936,3 +967,34 @@ class TestFipsEntitlementPackages:
             ]
         else:
             assert packages == additional_packages
+
+
+class TestFIPSUpdatesEntitlementEnable:
+    @pytest.mark.parametrize("enable_ret", ((True), (False)))
+    @mock.patch("uaclient.entitlements.fips.FIPSCommonEntitlement.enable")
+    def test_fips_updates_enable_write_service_once_enable_file(
+        self, m_enable, enable_ret, entitlement_factory
+    ):
+        m_enable.return_value = enable_ret
+        m_write_cache = mock.MagicMock()
+        m_read_cache = mock.MagicMock()
+        m_read_cache.return_value = {}
+
+        cfg = mock.MagicMock()
+        cfg.read_cache = m_read_cache
+        cfg.write_cache = m_write_cache
+
+        fips_updates_ent = entitlement_factory(FIPSUpdatesEntitlement, cfg=cfg)
+        assert fips_updates_ent.enable() == enable_ret
+
+        if enable_ret:
+            assert 1 == m_read_cache.call_count
+            assert 1 == m_write_cache.call_count
+            assert [
+                mock.call(
+                    key="services-once-enabled", content={"fips-updates": True}
+                )
+            ] == m_write_cache.call_args_list
+        else:
+            assert not m_read_cache.call_count
+            assert not m_write_cache.call_count

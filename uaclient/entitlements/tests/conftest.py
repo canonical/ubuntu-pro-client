@@ -100,21 +100,28 @@ def entitlement_factory(tmpdir):
         allow_beta: bool = False,
         assume_yes: "Optional[bool]" = None,
         suites: "List[str]" = None,
-        additional_packages: "List[str]" = None
+        additional_packages: "List[str]" = None,
+        services_once_enabled: "Dict[str, bool]" = None,
+        cfg: "Optional[config.UAConfig]" = None
     ):
-        cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
-        cfg.write_cache(
-            "machine-token",
-            machine_token(
-                cls.name,
-                affordances=affordances,
-                directives=directives,
-                obligations=obligations,
-                entitled=entitled,
-                suites=suites,
-                additional_packages=additional_packages,
-            ),
-        )
+        if not cfg:
+            cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+            cfg.write_cache(
+                "machine-token",
+                machine_token(
+                    cls.name,
+                    affordances=affordances,
+                    directives=directives,
+                    obligations=obligations,
+                    entitled=entitled,
+                    suites=suites,
+                    additional_packages=additional_packages,
+                ),
+            )
+
+        if services_once_enabled:
+            cfg.write_cache("services-once-enabled", services_once_enabled)
+
         args = {"allow_beta": allow_beta}
         if assume_yes is not None:
             args["assume_yes"] = assume_yes
