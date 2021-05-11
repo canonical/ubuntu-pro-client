@@ -721,3 +721,11 @@ def redact_sensitive_logs(
 def should_reboot() -> bool:
     """Check if the system needs to be rebooted."""
     return os.path.exists(REBOOT_FILE_CHECK_PATH)
+
+
+def is_installed(package_name: str) -> bool:
+    try:
+        out, _ = subp(["dpkg", "-l", package_name])
+        return "ii  {} ".format(package_name) in out
+    except ProcessExecutionError:
+        return False
