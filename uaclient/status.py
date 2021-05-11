@@ -186,6 +186,14 @@ LOG_CONNECTIVITY_ERROR_TMPL = MESSAGE_CONNECTIVITY_ERROR + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
     MESSAGE_CONNECTIVITY_ERROR + " Failed to access URL: {url}. {error}"
 )
+MESSAGE_SSL_VERIFICATION_ERROR_CA_CERTIFICATES = """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please install "ca-certificates" and try again."""
+MESSAGE_SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please check your openssl configuration."""
 MESSAGE_NONROOT_USER = "This command must be run as root (try using sudo)."
 MESSAGE_ALREADY_DISABLED_TMPL = """\
 {title} is not currently enabled\nSee: sudo ua status"""
