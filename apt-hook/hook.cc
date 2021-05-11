@@ -265,6 +265,7 @@ static void process_all_templates(
    std::string esm_i_pkgs
 ) {
    int bytes_written;
+   int length;
    std::array<std::string, 4> static_file_names = {
       APT_PRE_INVOKE_APPS_PKGS_STATIC_PATH,
       MOTD_APPS_PKGS_STATIC_PATH,
@@ -334,10 +335,15 @@ static void process_all_templates(
    for (uint i = 0; i < motd_static_files.size(); i++) {
        std::ifstream message_file(motd_static_files[i]);
        if (message_file.is_open()) {
-           if ( i > 0 ) {
-               motd_msg << std::endl;
+           message_file.seekg(0, message_file.end);
+           length = message_file.tellg();
+           if ( length > 0 ) {
+               message_file.seekg(0, message_file.beg);
+               if ( motd_msg.tellp() > 0 ) {
+                   motd_msg << std::endl;
+               }
+               motd_msg << message_file.rdbuf();
            }
-           motd_msg << message_file.rdbuf();
            message_file.close();
        };
    }
