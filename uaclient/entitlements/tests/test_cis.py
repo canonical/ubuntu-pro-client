@@ -107,8 +107,6 @@ class TestCISEntitlementEnable:
             "Updating package lists\n"
             "Installing CIS Audit packages\n"
             "CIS Audit enabled\n"
-            "Visit {} to learn how to use the CIS packages\n".format(
-                CIS_DOCS_URL
-            )
+            "Visit {} to learn how to use CIS\n".format(CIS_DOCS_URL)
         )
         assert (expected_stdout, "") == capsys.readouterr()

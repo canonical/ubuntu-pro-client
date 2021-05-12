@@ -6,7 +6,7 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-CIS_DOCS_URL = "https://ubuntu.com/security/cis"
+CIS_DOCS_URL = "https://security-certs.docs.ubuntu.com/en/cis"
 
 
 class CISEntitlement(repo.RepoEntitlement):
@@ -25,8 +25,6 @@ class CISEntitlement(repo.RepoEntitlement):
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
             "post_enable": [
-                "Visit {} to learn how to use the CIS packages".format(
-                    CIS_DOCS_URL
-                )
+                "Visit {} to learn how to use CIS".format(CIS_DOCS_URL)
             ]
         }
