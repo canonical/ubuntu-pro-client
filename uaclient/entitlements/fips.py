@@ -241,7 +241,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
     name = "fips"
     title = "FIPS"
-    description = "NIST-certified FIPS modules"
+    description = "NIST-certified core packages"
     origin = "UbuntuFIPS"
 
     fips_pro_package_holds = [
@@ -340,7 +340,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     name = "fips-updates"
     title = "FIPS Updates"
     origin = "UbuntuFIPSUpdates"
-    description = "Uncertified security updates to FIPS modules"
+    description = "NIST-certified core packages with priority security updates"
 
     @property
     def messaging(

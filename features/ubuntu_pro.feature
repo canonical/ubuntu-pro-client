@@ -21,8 +21,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `ua status --all` as non-root
@@ -33,8 +33,8 @@ Feature: Command behaviour when attached to an UA subscription
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `apt-cache policy` with sudo
@@ -112,8 +112,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `ua status --all` as non-root
@@ -124,8 +124,8 @@ Feature: Command behaviour when attached to an UA subscription
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `apt-cache policy` with sudo
@@ -203,8 +203,8 @@ Feature: Command behaviour when attached to an UA subscription
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +<fips-s> +NIST-certified FIPS modules
-            fips-updates  +yes +<fips-s> +Uncertified security updates to FIPS modules
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `ua status --all` as non-root
@@ -215,8 +215,8 @@ Feature: Command behaviour when attached to an UA subscription
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +n/a +NIST-certified FIPS modules
-            fips-updates  +yes +n/a +Uncertified security updates to FIPS modules
+            fips          +yes +n/a +NIST-certified core packages
+            fips-updates  +yes +n/a +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
             """
         When I run `apt-cache policy` with sudo

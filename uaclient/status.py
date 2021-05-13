@@ -271,15 +271,14 @@ FIPS kernel is running in a disabled state.
 """
 PROMPT_FIPS_PRE_ENABLE = (
     """\
-Installation of additional packages are required to make this system FIPS
-compliant.
+This will install the FIPS core packages.
 """
     + PROMPT_YES_NO
 )
 PROMPT_FIPS_UPDATES_PRE_ENABLE = (
     """\
-This system will NOT be considered FIPS certified, but will include security
-and bug fixes to the FIPS packages.
+This will install the FIPS core packages and will include priority updates
+with security fixes.
 """
     + PROMPT_YES_NO
 )

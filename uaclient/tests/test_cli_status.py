@@ -34,9 +34,9 @@ esm-apps      no        {dash}         UA Apps: Extended Security Maintenance\
  (ESM)
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
  (ESM)
-fips          no        {dash}         NIST-certified FIPS modules
-fips-updates  no        {dash}         Uncertified security updates to FIPS\
- modules
+fips          no        {dash}         NIST-certified core packages
+fips-updates  no        {dash}         NIST-certified core packages with\
+ priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
 {notices}
 Enable services with: ua enable <service>
@@ -52,9 +52,9 @@ ATTACHED_STATUS_NOBETA = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
  (ESM)
-fips          no        {dash}         NIST-certified FIPS modules
-fips-updates  no        {dash}         Uncertified security updates to FIPS\
- modules
+fips          no        {dash}         NIST-certified core packages
+fips-updates  no        {dash}         NIST-certified core packages with\
+ priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
 {notices}
 Enable services with: ua enable <service>
@@ -101,7 +101,7 @@ SERVICES_JSON_ALL = [
         "statusDetails": "",
     },
     {
-        "description": "NIST-certified FIPS modules",
+        "description": "NIST-certified core packages",
         "description_override": None,
         "entitled": "no",
         "name": "fips",
@@ -109,7 +109,9 @@ SERVICES_JSON_ALL = [
         "statusDetails": "",
     },
     {
-        "description": "Uncertified security updates to FIPS modules",
+        "description": (
+            "NIST-certified core packages with priority security updates"
+        ),
         "description_override": None,
         "entitled": "no",
         "name": "fips-updates",

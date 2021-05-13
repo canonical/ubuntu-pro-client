@@ -178,8 +178,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +disabled +NIST-certified FIPS modules
-        fips-updates +yes      +disabled +Uncertified security updates to FIPS modules
+        fips         +yes      +disabled +NIST-certified core packages
+        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +enabled  +Canonical Livepatch service
         """
         When I run `ua disable livepatch` with sudo
@@ -193,8 +193,8 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +disabled +NIST-certified FIPS modules
-        fips-updates +yes      +disabled +Uncertified security updates to FIPS modules
+        fips         +yes      +disabled +NIST-certified core packages
+        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +disabled +Canonical Livepatch service
         """
 
