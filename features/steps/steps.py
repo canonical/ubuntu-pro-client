@@ -204,9 +204,14 @@ def when_i_update_contract_field_to_new_value(
 
 
 @when("I attach `{token_type}` {user_spec}")
-def when_i_attach_staging_token(context, token_type, user_spec):
+def when_i_attach_staging_token(
+    context, token_type, user_spec, verify_return=True
+):
     token = getattr(context.config, token_type)
-    if token_type == "contract_token_staging":
+    if (
+        token_type == "contract_token_staging"
+        or token_type == "contract_token_staging_expired"
+    ):
         when_i_run_command(
             context,
             "sed -i 's/contracts.can/contracts.staging.can/' {}".format(
@@ -217,19 +222,27 @@ def when_i_attach_staging_token(context, token_type, user_spec):
     cmd = "ua attach {}".format(token)
     when_i_run_command(context, cmd, user_spec, verify_return=False)
 
-    retries = [5, 5, 10]  # Sleep times to wait between retries
-    while context.process.returncode != 0:
-        try:
-            time.sleep(retries.pop(0))
-        except IndexError:  # no more timeouts
-            logging.warning("Exhausted retries waiting for exit code: 0")
-            break
-        print(
-            "--- Retrying on exit {exit_code}: {cmd}".format(
-                exit_code=context.process.returncode, cmd=cmd
+    if verify_return:
+        retries = [5, 5, 10]  # Sleep times to wait between retries
+        while context.process.returncode != 0:
+            try:
+                time.sleep(retries.pop(0))
+            except IndexError:  # no more timeouts
+                logging.warning("Exhausted retries waiting for exit code: 0")
+                break
+            print(
+                "--- Retrying on exit {exit_code}: {cmd}".format(
+                    exit_code=context.process.returncode, cmd=cmd
+                )
             )
-        )
-        when_i_run_command(context, cmd, user_spec, verify_return=False)
+            when_i_run_command(context, cmd, user_spec, verify_return=False)
+
+
+@when("I attempt to attach `{token_type}` {user_spec}")
+def when_i_attempt_to_attach_staging_token(context, token_type, user_spec):
+    when_i_attach_staging_token(
+        context, token_type, user_spec, verify_return=False
+    )
 
 
 @when("I append the following on uaclient config")

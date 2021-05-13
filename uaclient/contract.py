@@ -332,6 +332,40 @@ def process_entitlement_delta(
     return deltas
 
 
+def _parse_and_format_datetime(dt_str: str) -> str:
+    dt = util.parse_rfc3339_date(dt_str)
+    return dt.strftime("%B %d, %Y")
+
+
+def _create_attach_forbidden_message(e: ContractAPIError) -> str:
+    msg = status.MESSAGE_ATTACH_EXPIRED_TOKEN
+    if (
+        hasattr(e, "api_errors")
+        and len(e.api_errors) > 0
+        and "info" in e.api_errors[0]
+    ):
+        info = e.api_errors[0]["info"]
+        contract_id = info["contractId"]
+        reason = info["reason"]
+        reason_msg = ""
+        if reason == "no-longer-effective":
+            date = _parse_and_format_datetime(info["time"])
+            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+                contract_id=contract_id, date=date
+            )
+        elif reason == "not-effective-yet":
+            date = _parse_and_format_datetime(info["time"])
+            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+                contract_id=contract_id, date=date
+            )
+        elif reason == "never-effective":
+            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_NEVER.format(
+                contract_id=contract_id
+            )
+        msg = status.MESSAGE_ATTACH_FORBIDDEN.format(reason=reason_msg)
+    return msg
+
+
 def request_updated_contract(
     cfg, contract_token: "Optional[str]" = None, allow_enable=False
 ):
@@ -369,9 +403,8 @@ def request_updated_contract(
                             status.MESSAGE_ATTACH_INVALID_TOKEN
                         )
                     elif e.code == 403:
-                        raise exceptions.UserFacingError(
-                            status.MESSAGE_ATTACH_EXPIRED_TOKEN
-                        )
+                        msg = _create_attach_forbidden_message(e)
+                        raise exceptions.UserFacingError(msg)
                 raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))
