@@ -232,13 +232,13 @@ def disable_log_to_console():
 def retry(exception, retry_sleeps):
     """Decorator to retry on exception for retry_sleeps.
 
-     @param retry_sleeps: List of sleep lengths to apply between
-        retries. Specifying a list of [0.5, 1] tells subp to retry twice
-        on failure; sleeping half a second before the first retry and 1 second
-        before the second retry.
-     @param exception: The exception class to catch and retry for the provided
-        retry_sleeps. Any other exception types will not be caught by the
-        decorator.
+    @param retry_sleeps: List of sleep lengths to apply between
+       retries. Specifying a list of [0.5, 1] tells subp to retry twice
+       on failure; sleeping half a second before the first retry and 1 second
+       before the second retry.
+    @param exception: The exception class to catch and retry for the provided
+       retry_sleeps. Any other exception types will not be caught by the
+       decorator.
     """
 
     def wrapper(f):
@@ -733,7 +733,7 @@ def is_installed(package_name: str) -> bool:
 
 
 def handle_message_operations(
-    msg_ops: "List[Union[str, Tuple[Callable, Dict]]]"
+    msg_ops: "List[Union[str, Tuple[Callable, Dict]]]",
 ) -> bool:
     """Emit messages to the console for user interaction
 
@@ -752,3 +752,29 @@ def handle_message_operations(
             if not functor(**args):
                 return False
     return True
+
+
+def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
+    """
+    Parse a datestring in rfc3339 format. Originally written for compatibility
+    with golang's time.MarshalJSON function.
+
+    This drops subseconds.
+
+
+    :param dt_str: a date string in rfc3339 format
+
+    :return: datetime.datetime object of time represented by dt_str
+    """
+    dt_str_without_z = dt_str.replace("Z", "+00:00")
+    dt_str_with_pythonish_tz = re.sub(
+        r"(-|\+)(\d{2}):(\d{2})$", r"\g<1>\g<2>\g<3>", dt_str_without_z
+    )
+    dt_str_without_microseconds = re.sub(
+        r"(\d{2}:\d{2}:\d{2})\.\d+(-|\+)",
+        r"\g<1>\g<2>",
+        dt_str_with_pythonish_tz,
+    )
+    return datetime.datetime.strptime(
+        dt_str_without_microseconds, "%Y-%m-%dT%H:%M:%S%z"
+    )

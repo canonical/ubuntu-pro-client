@@ -20,6 +20,10 @@ from uaclient import util
 from uaclient.status import (
     MESSAGE_ATTACH_EXPIRED_TOKEN,
     MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
+    MESSAGE_ATTACH_FORBIDDEN,
+    MESSAGE_ATTACH_FORBIDDEN_EXPIRED,
+    MESSAGE_ATTACH_FORBIDDEN_NOT_YET,
+    MESSAGE_ATTACH_FORBIDDEN_NEVER,
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
 )
@@ -241,16 +245,75 @@ class TestRequestUpdatedContract:
         assert expected_msg == str(exc.value)
 
     @pytest.mark.parametrize(
-        "error_code, error_msg",
+        "error_code, error_msg, error_response",
         (
-            (401, MESSAGE_ATTACH_INVALID_TOKEN),
-            (403, MESSAGE_ATTACH_EXPIRED_TOKEN),
+            (401, MESSAGE_ATTACH_INVALID_TOKEN, {"message": "unauthorized"}),
+            (403, MESSAGE_ATTACH_EXPIRED_TOKEN, {}),
+            (
+                403,
+                MESSAGE_ATTACH_FORBIDDEN.format(
+                    reason=MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+                        contract_id="contract-id", date="May 07, 2021"
+                    )
+                ),
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "no-longer-effective",
+                        "time": "2021-05-07T09:46:37.791Z",
+                    },
+                    "message": 'contract "contract-id" is no longer effective',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                },
+            ),
+            (
+                403,
+                MESSAGE_ATTACH_FORBIDDEN.format(
+                    reason=MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+                        contract_id="contract-id", date="May 07, 2021"
+                    )
+                ),
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "not-effective-yet",
+                        "time": "2021-05-07T09:46:37.791Z",
+                    },
+                    "message": 'contract "contract-id" is not effective yet',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                },
+            ),
+            (
+                403,
+                MESSAGE_ATTACH_FORBIDDEN.format(
+                    reason=MESSAGE_ATTACH_FORBIDDEN_NEVER.format(
+                        contract_id="contract-id"
+                    )
+                ),
+                {
+                    "code": "forbidden",
+                    "info": {
+                        "contractId": "contract-id",
+                        "reason": "never-effective",
+                    },
+                    "message": 'contract "contract-id" is was never effective',
+                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                },
+            ),
         ),
     )
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
     def test_invalid_token_user_facing_error_on_invalid_token_refresh_failure(
-        self, client, get_machine_id, FakeConfig, error_code, error_msg
+        self,
+        client,
+        get_machine_id,
+        FakeConfig,
+        error_code,
+        error_msg,
+        error_response,
     ):
         """When attaching, invalid token errors result in proper user error."""
 
@@ -264,7 +327,7 @@ class TestRequestUpdatedContract:
                         url="http://me",
                         headers={},
                     ),
-                    error_response={"message": "unauthorized"},
+                    error_response=error_response,
                 )
             }
             return fake_client
