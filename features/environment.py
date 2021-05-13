@@ -133,6 +133,7 @@ class UAClientBehaveConfig:
         "gcp_project",
         "contract_token",
         "contract_token_staging",
+        "contract_token_staging_expired",
         "machine_type",
         "private_key_file",
         "private_key_name",
@@ -152,6 +153,7 @@ class UAClientBehaveConfig:
         "az_subscription_id",
         "contract_token",
         "contract_token_staging",
+        "contract_token_staging_expired",
     ]
 
     # This variable is used in .from_environ() but also to emit the "Config
@@ -181,6 +183,7 @@ class UAClientBehaveConfig:
         reuse_image: str = None,
         contract_token: str = None,
         contract_token_staging: str = None,
+        contract_token_staging_expired: str = None,
         debs_path: str = None,
         artifact_dir: str = None,
         ppa: str = DAILY_PPA,
@@ -201,6 +204,7 @@ class UAClientBehaveConfig:
         self.cache_source = cache_source
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
+        self.contract_token_staging_expired = contract_token_staging_expired
         self.image_clean = image_clean
         self.destroy_instances = destroy_instances
         self.machine_type = machine_type
@@ -236,6 +240,7 @@ class UAClientBehaveConfig:
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING",
+                "UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED",
             )
         for env_name in ignore_vars:
             attr_name = env_name.replace("UACLIENT_BEHAVE_", "").lower()

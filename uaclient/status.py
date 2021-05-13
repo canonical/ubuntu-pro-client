@@ -330,6 +330,18 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
 
+MESSAGE_ATTACH_FORBIDDEN_EXPIRED = """\
+Contract \"{contract_id}\" expired on {date}"""
+MESSAGE_ATTACH_FORBIDDEN_NOT_YET = """\
+Contract \"{contract_id}\" is not effective until {date}"""
+MESSAGE_ATTACH_FORBIDDEN_NEVER = """\
+Contract \"{contract_id}\" has never been effective"""
+MESSAGE_ATTACH_FORBIDDEN = """\
+Attach denied:
+{{reason}}
+Visit {url} to manage contract tokens.""".format(
+    url=BASE_UA_URL
+)
 MESSAGE_ATTACH_EXPIRED_TOKEN = (
     """\
 Expired token or contract. To obtain a new token visit: """
