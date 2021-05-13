@@ -22,6 +22,9 @@ pipeline {
         UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING = credentials(
             'ua-contract-token-staging'
         )
+        UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED = credentials(
+            'ua-contract-token-staging-expired'
+        )
         JOB_SUFFIX = sh(returnStdout: true, script: "basename ${JOB_NAME}| cut -d'-' -f2").trim()
     }
 

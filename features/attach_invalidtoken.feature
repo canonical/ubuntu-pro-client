@@ -21,3 +21,22 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | focal   |
            | groovy  |
            | hirsute |
+
+    @uses.config.contract_token_staging_expired
+    @series.all
+    Scenario Outline: Attach command failure on expired token
+       Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attempt to attach `contract_token_staging_expired` with sudo
+        Then stderr matches regexp:
+             """
+             Attach denied:
+             Contract ".*" .*
+             Visit https://ubuntu.com/advantage to manage contract tokens.
+             """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | groovy  |
+           | hirsute |
