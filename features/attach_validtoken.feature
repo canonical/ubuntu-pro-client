@@ -39,8 +39,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +n/a      +NIST-certified FIPS modules
-        fips-updates +yes      +n/a      +Uncertified security updates to FIPS modules
+        fips         +yes      +n/a      +NIST-certified core packages
+        fips-updates +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch    +yes      +n/a      +Canonical Livepatch service
         """
         And stderr matches regexp:
@@ -149,8 +149,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +<fips_status>      +NIST-certified FIPS modules
-        fips-updates +yes      +<fips_status>      +Uncertified security updates to FIPS modules
+        fips         +yes      +<fips_status>      +NIST-certified core packages
+        fips-updates +yes      +<fips_status>      +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +<lp_desc>
         """
         And stderr matches regexp:
@@ -181,8 +181,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +<fips_status> +NIST-certified FIPS modules
-        fips-updates +yes      +<fips_status> +Uncertified security updates to FIPS modules
+        fips         +yes      +<fips_status> +NIST-certified core packages
+        fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
         """
         And stderr matches regexp:
@@ -213,8 +213,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +<fips_status> +NIST-certified FIPS modules
-        fips-updates +yes      +<fips_status> +Uncertified security updates to FIPS modules
+        fips         +yes      +<fips_status> +NIST-certified core packages
+        fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
         """
         And stderr matches regexp:

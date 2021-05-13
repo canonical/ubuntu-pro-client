@@ -8,8 +8,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified FIPS modules
-            fips-updates  <fips>      +Uncertified security updates to FIPS modules
+            fips          <fips>      +NIST-certified core packages
+            fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -23,8 +23,8 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>    +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>     +NIST-certified FIPS modules
-            fips-updates  <fips>     +Uncertified security updates to FIPS modules
+            fips          <fips>     +NIST-certified core packages
+            fips-updates  <fips>     +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -35,8 +35,8 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified FIPS modules
-            fips-updates  <fips>      +Uncertified security updates to FIPS modules
+            fips          <fips>      +NIST-certified core packages
+            fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -50,8 +50,8 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified FIPS modules
-            fips-updates  <fips>      +Uncertified security updates to FIPS modules
+            fips          <fips>      +NIST-certified core packages
+            fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
@@ -70,8 +70,8 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified FIPS modules
-            fips-updates  <fips>      +Uncertified security updates to FIPS modules
+            fips          <fips>      +NIST-certified core packages
+            fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
 
             This machine is not attached to a UA subscription.
