@@ -44,7 +44,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         )
         return self._disable
 
-    def enable(self, silent_if_inapplicable: bool = False):
+    def _perform_enable(self, silent_if_inapplicable: bool = False):
         return self._enable
 
     def applicability_status(self):
@@ -100,8 +100,8 @@ class TestUaEntitlement:
             base.UAEntitlement()
         expected_msg = (
             "Can't instantiate abstract class UAEntitlement with abstract"
-            " methods application_status, description, disable, enable, name,"
-            " title"
+            " methods _perform_enable, application_status, description,"
+            " disable, name, title"
         )
         assert expected_msg == str(excinfo.value)
 

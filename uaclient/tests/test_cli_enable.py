@@ -352,7 +352,7 @@ class TestActionEnable:
     @mock.patch(
         "uaclient.entitlements.is_config_value_true", return_value=False
     )
-    def test_entitlement_beta_and_already_enabled(
+    def test_dont_print_any_result_when_enable_fails(
         self,
         _m_is_config_value_true,
         _m_get_available_resources,
@@ -360,31 +360,19 @@ class TestActionEnable:
         m_getuid,
         FakeConfig,
     ):
+        # When enable fails, the reason is printed by can_enable or
+        # enable. Their output is tested in their respective unit tests.
         m_getuid.return_value = 0
+        m_entitlement_cls = mock.Mock()
+        type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.can_enable.return_value = (
+            False,
+            status.CanEnableFailureReason.ALREADY_ENABLED,
+        )
+        m_entitlement_obj.enable.return_value = False
 
-        class Ent1(entitlements.base.UAEntitlement):
-            description = ""
-            name = ""
-            title = "ent1"
-            is_beta = True
-
-            def is_access_expired(self):
-                return False
-
-            def contract_status(self):
-                return status.ContractStatus.ENTITLED
-
-            def application_status(self):
-                return (status.ApplicationStatus.ENABLED, None)
-
-            def enable(self, *, silent_if_inapplicable: bool = False):
-                self.can_enable()
-                return False
-
-            def disable(self):
-                return False
-
-        m_ents_dict = {"ent1": Ent1}
+        m_ents_dict = {"ent1": m_entitlement_cls}
 
         cfg = FakeConfig.for_attached_machine()
         args_mock = mock.Mock()
@@ -402,8 +390,6 @@ class TestActionEnable:
             print(fake_stdout.getvalue())
             assert (
                 "One moment, checking your subscription first\n"
-                + status.MESSAGE_ALREADY_ENABLED_TMPL.format(title="ent1")
-                + "\n"
                 == fake_stdout.getvalue()
             )
 
@@ -467,6 +453,7 @@ class TestActionEnable:
         m_entitlement_obj.enable.return_value = True
 
         cfg = FakeConfig.for_attached_machine()
+        cfg.status = mock.Mock()
 
         m_ents_dict = {"testitlement": m_entitlement_cls}
 
@@ -488,3 +475,5 @@ class TestActionEnable:
         expected_enable_call = mock.call()
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert ret == 0
+
+        assert 1 == cfg.status.call_count
