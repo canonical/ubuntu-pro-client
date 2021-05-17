@@ -8,7 +8,15 @@ import yaml
 from uaclient.util import is_config_value_true
 
 try:
-    from typing import Any, Callable, Dict, List, Optional, Tuple  # noqa: F401
+    from typing import (  # noqa: F401
+        Any,
+        Callable,
+        Dict,
+        List,
+        Optional,
+        Tuple,
+        Union,
+    )
 
     StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
@@ -100,6 +108,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         return self._incompatible_services
 
+    # Any custom messages to emit to the console or callables which are
+    # handled at pre_enable, pre_disable, pre_install or post_enable stages
+    @property
+    def messaging(
+        self
+    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+        return {}
+
     def __init__(
         self,
         cfg: "Optional[config.UAConfig]" = None,
@@ -129,9 +145,40 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return self._valid_service
 
-    @abc.abstractmethod
     def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
+
+        :param silent_if_inapplicable:
+            Don't emit any messages until after it has been determined that
+            this entitlement is applicable to the current machine.
+
+        @return: True on success, False otherwise.
+        """
+        msg_ops = self.messaging.get("pre_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False
+        can_enable, _ = self.can_enable(silent=silent_if_inapplicable)
+        if not can_enable:
+            return False
+
+        ret = self._perform_enable(
+            silent_if_inapplicable=silent_if_inapplicable
+        )
+        if not ret:
+            return False
+
+        msg_ops = self.messaging.get("post_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False
+
+        return True
+
+    @abc.abstractmethod
+    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+        """
+        Enable specific entitlement. This should be implemented by subclasses.
+        This method does the actual enablement, and does not check can_enable
+        or handle pre_enable or post_enable messaging.
 
         :param silent_if_inapplicable:
             Don't emit any messages until after it has been determined that
