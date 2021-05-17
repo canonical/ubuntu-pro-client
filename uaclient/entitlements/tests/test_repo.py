@@ -6,10 +6,7 @@ from types import MappingProxyType
 
 from uaclient import apt
 from uaclient import config
-from uaclient.entitlements.repo import (
-    RepoEntitlement,
-    handle_message_operations,
-)
+from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import exceptions
 from uaclient import status
@@ -1043,6 +1040,6 @@ class TestHandleMessageOperations:
     def test_handle_message_operations_for_strings_and_callables(
         self, msg_ops, retval, output, capsys
     ):
-        assert retval is handle_message_operations(msg_ops)
+        assert retval is util.handle_message_operations(msg_ops)
         out, _err = capsys.readouterr()
         assert output == out

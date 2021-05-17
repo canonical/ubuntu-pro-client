@@ -67,7 +67,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             ),
         )
 
-    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
         """Enable specific entitlement.
 
         :param silent_if_inapplicable:
@@ -76,9 +76,6 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        can_enable, _ = self.can_enable(silent=silent_if_inapplicable)
-        if not can_enable:
-            return False
         if not util.which("/snap/bin/canonical-livepatch"):
             if not util.which(SNAP_CMD):
                 print("Installing snapd")

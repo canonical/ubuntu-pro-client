@@ -687,7 +687,7 @@ class TestLivepatchEntitlementEnable:
             ("FIPSUpdatesEntitlement", "FIPS Updates"),
         ),
     )
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_blocking_service_is_enabled(
         self,
@@ -750,7 +750,7 @@ class TestLivepatchEntitlementEnable:
         fake_stdout = io.StringIO()
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
-            m_can_enable.return_value = True
+            m_can_enable.return_value = (True, None)
             with mock.patch.object(
                 entitlement, "setup_livepatch_config"
             ) as m_setup_livepatch:
@@ -786,7 +786,7 @@ class TestLivepatchEntitlementEnable:
         )
 
         with mock.patch.object(entitlement, "can_enable") as m_can_enable:
-            m_can_enable.return_value = True
+            m_can_enable.return_value = (True, None)
             with mock.patch.object(
                 entitlement, "setup_livepatch_config"
             ) as m_setup_livepatch:

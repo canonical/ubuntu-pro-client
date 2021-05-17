@@ -144,7 +144,7 @@ class TestFIPSEntitlementEnable:
                 mock.patch.object(entitlement, "can_enable")
             )
             stack.enter_context(
-                mock.patch(M_REPOPATH + "handle_message_operations")
+                mock.patch("uaclient.util.handle_message_operations")
             )
             stack.enter_context(
                 mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
@@ -233,7 +233,7 @@ class TestFIPSEntitlementEnable:
             (False, []),
         ],
     )
-    @mock.patch("uaclient.entitlements.repo.RepoEntitlement.enable")
+    @mock.patch("uaclient.entitlements.repo.RepoEntitlement._perform_enable")
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     def test_enable_removes_out_of_date_notice_on_success(
         self,
@@ -245,7 +245,7 @@ class TestFIPSEntitlementEnable:
     ):
         m_repo_enable.return_value = repo_enable_return_value
         fips_entitlement = entitlement_factory(FIPSEntitlement)
-        assert repo_enable_return_value is fips_entitlement.enable()
+        assert repo_enable_return_value is fips_entitlement._perform_enable()
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
 
     @mock.patch(
@@ -258,7 +258,7 @@ class TestFIPSEntitlementEnable:
         with mock.patch.object(
             entitlement, "can_enable", return_value=(False, None)
         ):
-            with mock.patch(M_REPOPATH + "handle_message_operations"):
+            with mock.patch("uaclient.util.handle_message_operations"):
                 assert False is entitlement.enable()
         assert 0 == m_platform_info.call_count
 
@@ -275,7 +275,7 @@ class TestFIPSEntitlementEnable:
         with mock.patch.object(
             entitlement, "can_enable", return_value=(True, None)
         ):
-            with mock.patch(M_REPOPATH + "handle_message_operations"):
+            with mock.patch("uaclient.util.handle_message_operations"):
                 with pytest.raises(exceptions.UserFacingError) as excinfo:
                     entitlement.enable()
         error_msg = "Empty {} apt suites directive from {}".format(
@@ -301,7 +301,7 @@ class TestFIPSEntitlementEnable:
                 )
             )
             stack.enter_context(
-                mock.patch(M_REPOPATH + "handle_message_operations")
+                mock.patch("uaclient.util.handle_message_operations")
             )
             m_remove_apt_config = stack.enter_context(
                 mock.patch.object(entitlement, "remove_apt_config")
@@ -343,7 +343,7 @@ class TestFIPSEntitlementEnable:
                 )
             )
             stack.enter_context(
-                mock.patch(M_REPOPATH + "handle_message_operations")
+                mock.patch("uaclient.util.handle_message_operations")
             )
             stack.enter_context(
                 mock.patch.object(
@@ -371,7 +371,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_livepatch_service_is_enabled(
         self,
@@ -408,7 +408,7 @@ class TestFIPSEntitlementEnable:
         )
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
         M_LIVEPATCH_PATH + "application_status",
         return_value=((status.ApplicationStatus.DISABLED, "")),
@@ -445,7 +445,7 @@ class TestFIPSEntitlementEnable:
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_on_xenial_cloud_instance(
         self,
@@ -475,7 +475,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_on_gcp_instance_with_default_fips(
         self,
@@ -634,7 +634,7 @@ class TestFIPSEntitlementRemovePackages:
         assert exc_info.value.msg.strip() == expected_msg
 
 
-@mock.patch(M_REPOPATH + "handle_message_operations", return_value=True)
+@mock.patch("uaclient.util.handle_message_operations", return_value=True)
 @mock.patch("uaclient.util.should_reboot", return_value=True)
 @mock.patch(
     "uaclient.util.get_platform_info", return_value={"series": "xenial"}

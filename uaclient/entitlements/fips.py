@@ -328,8 +328,10 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             )
         super().setup_apt_config()
 
-    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
-        if super().enable(silent_if_inapplicable=silent_if_inapplicable):
+    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+        if super()._perform_enable(
+            silent_if_inapplicable=silent_if_inapplicable
+        ):
             self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
             return True
         return False
