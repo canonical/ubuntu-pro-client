@@ -588,11 +588,13 @@ class TestIsServiceUrl:
 class TestReadurl:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize(
-        "headers,data,response,expected_logs",
+        "headers,data,method,url,response,expected_logs",
         (
             (
                 {},
                 None,
+                None,
+                "http://some_url",
                 None,
                 [
                     "URL [GET]: http://some_url, headers: {}, data: None",
@@ -600,9 +602,32 @@ class TestReadurl:
                     " data: response\n",
                 ],
             ),
+            # AWS PRO redacts IMDSv2 token
+            (
+                {
+                    "X-aws-ec2-metadata-token-ttl-seconds": "21600",
+                    "X-aws-ec2-metadata-token": "SEKRET",
+                },
+                None,
+                "PUT",
+                "http://169.254.169.254/latest/api/token",
+                b"SECRET==",
+                [
+                    "URL [PUT]: http://169.254.169.254/latest/api/token,"
+                    " headers: {'X-aws-ec2-metadata-token': '<REDACTED>',"
+                    " 'X-aws-ec2-metadata-token-ttl-seconds': '21600'}",
+                    "URL [PUT] response:"
+                    " http://169.254.169.254/latest/api/token, headers:"
+                    " {'X-aws-ec2-metadata-token': '<REDACTED>',"
+                    " 'X-aws-ec2-metadata-token-ttl-seconds': '21600'},"
+                    " data: <REDACTED>\n",
+                ],
+            ),
             (
                 {"key1": "Bearcat", "Authorization": "Bearer SEKRET"},
                 b"{'token': 'HIDEME', 'tokenInfo': 'SHOWME'}",
+                None,
+                "http://some_url",
                 b"{'machineToken': 'HIDEME', 'machineTokenInfo': 'SHOWME'}",
                 [
                     "URL [POST]: http://some_url, headers: {'Authorization':"
@@ -618,7 +643,15 @@ class TestReadurl:
     )
     @mock.patch("uaclient.util.request.urlopen")
     def test_readurl_redacts_call_and_response(
-        self, urlopen, headers, data, response, expected_logs, caplog_text
+        self,
+        urlopen,
+        headers,
+        data,
+        method,
+        url,
+        response,
+        expected_logs,
+        caplog_text,
     ):
         """Log and redact sensitive data from logs for url interactions."""
 
@@ -635,7 +668,7 @@ class TestReadurl:
         urlopen.return_value = FakeHTTPResponse(
             headers=headers, content=response
         )
-        util.readurl("http://some_url", headers=headers, data=data)
+        util.readurl(url, method=method, headers=headers, data=data)
         logs = caplog_text()
         for log in expected_logs:
             assert log in logs
