@@ -703,6 +703,8 @@ REDACT_SENSITIVE_LOGS = [
     r"(\'attach\', \')[^\']+",
     r"(\'machineToken\': \')[^\']+",
     r"(\'token\': \')[^\']+",
+    r"(\'X-aws-ec2-metadata-token\': \')[^\']+",
+    r"(.*\[PUT\] response.*api/token,.*data: ).*",
 ]
 
 
