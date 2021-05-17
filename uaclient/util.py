@@ -23,6 +23,7 @@ REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 try:
     from typing import (  # noqa: F401
         Any,
+        Callable,
         Dict,
         List,
         Mapping,
@@ -729,3 +730,25 @@ def is_installed(package_name: str) -> bool:
         return "ii  {} ".format(package_name) in out
     except ProcessExecutionError:
         return False
+
+
+def handle_message_operations(
+    msg_ops: "List[Union[str, Tuple[Callable, Dict]]]"
+) -> bool:
+    """Emit messages to the console for user interaction
+
+    :param msg_op: A list of strings or tuples. Any string items are printed.
+        Any tuples will contain a callable and a dict of args to pass to the
+        callable. Callables are expected to return True on success and
+        False upon failure.
+
+    :return: True upon success, False on failure.
+    """
+    for msg_op in msg_ops:
+        if isinstance(msg_op, str):
+            print(msg_op)
+        else:  # Then we are a callable and dict of args
+            functor, args = msg_op
+            if not functor(**args):
+                return False
+    return True
