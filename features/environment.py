@@ -33,13 +33,28 @@ bootcmd:
  - chmod 755 /usr/bin/ua
 """
 
+"""
+Package: *
+Pin: release o=LP-PPA-ua-client-daily
+Pin-Priority: 1001
+"""
+UACLIENT_PPA_PIN = (
+    "UGFja2FnZTogKgpQaW46IHJlbGVhc2Ugbz1MUC1QUE"
+    "EtdWEtY2xpZW50LWRhaWx5ClBpbi1Qcmlvcml0eTogMTAwMQo="
+)
+
 USERDATA_APT_SOURCE_PPA = """\
+write_files:
+  - encoding: b64
+    content: {preference_pin}
+    owner: root:root
+    path: /etc/apt/preferences.d/uaclient
+    permissions: 0644
 apt:
   sources:
     ua-tools-ppa:
         source: deb {ppa_url} $RELEASE main
         keyid: {ppa_keyid}
-packages: [{packages}]
 """
 
 PROCESS_LOG_TMPL = """\
@@ -669,13 +684,8 @@ def create_uat_image(context: Context, series: str) -> None:
         if context.config.ppa.startswith("ppa:"):
             ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
 
-        packages = ["openssh-server", "ubuntu-advantage-tools"]
-
-        if "pro" in context.config.machine_type:
-            packages.append("ubuntu-advantage-pro")
-
         user_data += USERDATA_APT_SOURCE_PPA.format(
-            ppa_url=ppa, ppa_keyid=ppa_keyid, packages=", ".join(packages)
+            ppa_url=ppa, ppa_keyid=ppa_keyid, preference_pin=UACLIENT_PPA_PIN
         )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
@@ -686,6 +696,7 @@ def create_uat_image(context: Context, series: str) -> None:
         build_container_name,
         series=series,
         config=context.config,
+        machine_type=context.config.machine_type,
         deb_paths=deb_paths,
     )
 
@@ -702,6 +713,7 @@ def _install_uat_in_container(
     container_name: str,
     series: str,
     config: UAClientBehaveConfig,
+    machine_type: str,
     deb_paths: "Optional[List[str]]" = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
@@ -732,7 +744,18 @@ def _install_uat_in_container(
             deb_files.append("/tmp/" + deb_name)
             inst.push_file(deb_file, "/tmp/" + deb_name)
 
-        cmds.append(["sudo", "apt-get", "install", "-y"] + deb_files)
+        cmds.append(
+            ["sudo", "apt-get", "install", "-y", "--allow-downgrades"]
+            + deb_files
+        )
+    else:
+        ua_pkg = ["ubuntu-advantage-tools"]
+        if "pro" in machine_type:
+            ua_pkg.append("ubuntu-advantage-pro")
+
+        cmds.append(
+            ["sudo", "apt-get", "install", "-y", "--allow-downgrades"] + ua_pkg
+        )
 
     if "pro" in config.machine_type:
         features = "features:\n  disable_auto_attach: true\n"
