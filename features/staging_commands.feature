@@ -266,6 +266,12 @@ Feature: Enable command behaviour when attached to an UA staging subscription
             """
             <fips-service> +yes                disabled
             """
+        When I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        Then stdout matches regexp:
+            """
+            Cannot enable FIPS because FIPS Updates was once enabled.
+            """
+        And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                                        |
