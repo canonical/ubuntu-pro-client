@@ -68,6 +68,7 @@ class UAConfig:
         "status-cache": DataPath("status.json", False),
         "notices": DataPath("notices.json", False),
         "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
+        "services-once-enabled": DataPath("services-once-enabled", False),
     }  # type: Dict[str, DataPath]
 
     _entitlements = None  # caching to avoid repetitive file reads
