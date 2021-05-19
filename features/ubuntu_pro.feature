@@ -19,6 +19,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
