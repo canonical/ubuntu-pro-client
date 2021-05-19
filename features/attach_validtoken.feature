@@ -38,6 +38,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cis          +yes      +disabled        +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +n/a      +NIST-certified core packages
         fips-updates +yes      +n/a      +NIST-certified core packages with priority security updates
@@ -87,7 +88,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           +Receive updates to over 30,000 software packages with your
           +Ubuntu Advantage subscription. Free for personal use.
 
-            +https:\/\/ubuntu.com\/esm
+            +https:\/\/ubuntu.com\/16-04
 
         UA Infra: Extended Security Maintenance \(ESM\) is enabled.
 
@@ -98,14 +99,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I update contract to use `effectiveTo` as `days=-20`
         And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
         And I run `update-motd` with sudo
-        Then if `<release>` in `xenial or bionic` and stdout matches regexp:
+        Then if `<release>` in `xenial` and stdout matches regexp:
         """
 
         \*Your UA Infra: ESM subscription has EXPIRED\*
 
         \d+ additional security update\(s\) could have been applied via UA Infra: ESM.
 
-        Renew your UA services at https:\/\/ubuntu.com\/esm
+        Renew your UA services at https:\/\/ubuntu.com\/advantage
 
         """
         Then if `<release>` in `xenial` and stdout matches regexp:
@@ -119,8 +120,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
         \*Your UA Infra: ESM subscription has EXPIRED\*
-        Enabling UA Infra: ESM service would provide security updates for following
-        packages:
+        Enabling UA Infra: ESM service would provide security updates for following packages:
           libkrad0
         1 esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
         https:\/\/ubuntu.com\/advantage

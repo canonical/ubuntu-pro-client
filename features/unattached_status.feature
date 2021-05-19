@@ -7,6 +7,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cis           <cis>       +Center for Internet Security Audit Tools
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
@@ -34,6 +35,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cis           <cis>       +Center for Internet Security Audit Tools
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
