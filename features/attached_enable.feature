@@ -24,7 +24,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'cc-eal'.
-            Try esm-infra, fips, fips-updates, livepatch.
+            Try cis, esm-infra, fips, fips-updates, livepatch.
             """
 
         Examples: ubuntu release
@@ -51,7 +51,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try esm-infra, fips, fips-updates, livepatch.
+            Try cis, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua enable cc-eal foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -61,7 +61,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar, cc-eal'.
-            Try esm-infra, fips, fips-updates, livepatch.
+            Try cis, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -150,6 +150,80 @@ Feature: Enable command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
+    @series.lts
+    Scenario Outline: Attached enable of cis service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I verify that running `ua enable cis` `with sudo` exits `0`
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            Installing CIS Audit packages
+            CIS Audit enabled
+            Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
+            """
+        When I run `apt-cache policy usg-cisbenchmark` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+        When I run `apt-cache policy usg-common` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+        When I verify that running `ua enable cis` `with sudo` exits `1`
+        Then stdout matches regexp
+        """
+        One moment, checking your subscription first
+        CIS Audit is already enabled.
+        See: sudo ua status
+        """
+        When I run `cis-audit level1_server` with sudo
+        Then stdout matches regexp
+        """
+        Title.*Ensure no duplicate UIDs exist
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*pass
+        """
+        And stdout matches regexp:
+        """
+        Title.*Ensure default user umask is 027 or more restrictive
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*fail
+        """
+        And stdout matches regexp
+        """
+        CIS audit scan completed
+        """
+        When I verify that running `/usr/share/ubuntu-scap-security-guides/cis-hardening/<cis_script> lvl1_server` `with sudo` exits `0`
+        And I run `cis-audit level1_server` with sudo
+        Then stdout matches regexp:
+        """
+        Title.*Ensure default user umask is 027 or more restrictive
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*pass
+        """
+        And stdout matches regexp
+        """
+        CIS audit scan completed
+        """
+
+        Examples: not entitled services
+           | release | cis_script                                  |
+           | focal   | Canonical_Ubuntu_20.04_CIS-harden.sh        |
+           | bionic  | Canonical_Ubuntu_18.04_CIS-harden.sh        |
+           | xenial  | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
+
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario: Attached enable of vm-based services in a focal lxd vm
@@ -177,6 +251,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
+        cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
@@ -192,6 +267,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
+        cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
