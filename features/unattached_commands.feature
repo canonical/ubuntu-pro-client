@@ -69,7 +69,7 @@ Feature: Command behaviour when unattached
           +Receive updates to over 30,000 software packages with your
           +Ubuntu Advantage subscription. Free for personal use.
 
-            +https:\/\/ubuntu.com\/esm
+            +https:\/\/ubuntu.com\/16-04
 
         UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
         """
