@@ -6,53 +6,93 @@ Below are the versioning schemes used for publishing debs:
 
 | Build target | Version Format |
 | -------- | -------- |
-| Devel series upstream release | XX.YY |
-| Devel series bugfix release | XX.YY.Z~ubuntu1|
-| Stable series release | XX.YY~ubuntu1~18.04.1|
-| [Daily Build Recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | XX.YY+<revtime>-g<commitish>~ubuntu1~18.04.1 |
+| Devel series upstream release | `XX.YY` |
+| Devel series bugfix release | `XX.YY.Z~ubuntu1`|
+| Stable series release | `XX.YY~ubuntu1~18.04.1`|
+| [Daily Build Recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | `XX.YY+<revtime>-g<commitish>~ubuntu1~18.04.1` |
 | Ubuntu PRO series release | binary copies of Daily PPA |
+| -------- | -------- |
 
 ## Supported upgrade use-cases based on version formats
 
 | Upgrade path | Version diffs |
-| LTS to LTS | 20.3~ubuntu1~14.04.1 -> 20.3~ubuntu1~16.04.1 |
-| LTS to Daily PPA | 20.3~ubuntu1~14.04.1 -> 20.3+202004011202~ubuntu1~14.04.1 |
-| Ubuntu PRO to latest <series>-updates | 20.3+202004011202~ubuntu1~14.04.1 -> 20.4~ubuntu1~14.04.1 |
-| Ubuntu PRO to Daily PPA | 20.3+202004011202~ubuntu1~14.04.1 -> 20.4+202004021202~ubuntu1~14.04.1 |
-
+| -------- | -------- |
+| LTS to LTS | `20.3~ubuntu1~14.04.1 -> 20.3~ubuntu1~16.04.1` |
+| LTS to Daily PPA | `20.3~ubuntu1~14.04.1 -> 20.3+202004011202~ubuntu1~14.04.1` |
+| Ubuntu PRO to latest <series>-updates | `20.3+202004011202~ubuntu1~14.04.1` -> `20.4~ubuntu1~14.04.1` |
+| Ubuntu PRO to Daily PPA | `20.3+202004011202~ubuntu1~14.04.1` -> `20.4+202004021202~ubuntu1~14.04.1` |
 
 ## Devel Release Process
 
-Below is the procedure used to release ubuntu-advantage-client to an Ubuntu series:
+Below is the procedure used to release ubuntu-advantage-client to an Ubuntu series. It makes the following assumptions:
+* The current ubuntu devel release is impish
+* We are releasing version 27.1
+* The previous release was 27.0.2
+* The commits for 27.0.2 and 27.1 on https://github.com/canonical/ubuntu-advantage-client are tagged with `27.0.2` and `27.1` respectively.
+  * These tags should be on the correct commits on the `release-27` branch
+  * `27.1`, which is the tag of the release we are making, has not yet been uploaded to `pkg/ubuntu/devel`
 
  1. git-ubuntu clone ubuntu-advantage-tools; cd ubuntu-advantage-tools
  2. git remote add upstream git@github.com:canonical/ubuntu-advantage-client.git
  3. git fetch upstream
- 4. git checkout upstream/release-24
- 5. git tag -a 24.3
- 6. git rebase --onto pkg/ubuntu/devel 24.2 24.3
- 7. git checkout -b pkg-upload-24.3
- 8. debuild -S
- 9. dput  ppa:chad.smith/ua-client-uploads ./ubuntu-advantage-tools_24.3_source.changes
- 10. create a release tarfile/changes file using uss-tableflip's build-package script
+ 4. git rebase --onto pkg/ubuntu/devel 27.0.2 27.1
+ 5. git checkout -B upload-27.1-impish # to create a new local branch name based on your detached branch in step 4
+ 6. git push `<your_launchpad_user>` upload-27.1-impish
+ 7. Create a PPA for upload reviewers at `https://launchpad.net/~<YOUR_LP_USER>/+activate-ppa`
+ 8. Push to your test PPA so upload reviewers can install easily test packages easily during review
+ ```bash
+    debuild -S
+    dput  ppa:<YOUR_LAUNCHPAD_USER>/ua-client-uploads ./ubuntu-advantage-tools_*_source.changes
 ```
- ./tools/make-release --series <SERIES> --ppa <PPA_URL_FOR_TEST_UPLOADS>
- # follow printed procedure for dput to test PPA, and tag the released commitish
-```
- 11. Create a merge proposal such as [24.2 PR](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/385073), [24.3 PR](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/389745)
- 11. For SRUs: Create an "upload a new version bug" in https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bugs
- 12. Describe the need, provide testing PPA and describe test instructions
- 13. Ping appropriate maintainer about upload and verification
- 14. Validate tests, accept upload and ship it
+ 9. Create a merge proposal for 27.1 which targets `ubuntu/devel`
+     * For an example, see the [27.0.2 merge proposal](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/402459)
+ 10. Add 2 review slots for `canonical-server` and `canonical-server-core-reviewers`
 
-Previous release bugs:
-| ------- |
-| [20.3 Focal](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1869980) |
+## SRU Release Process
+Below is the procedure used to SRU ubuntu-advantage-client to a stable Ubuntu series. It makes the following assumptions:
+* The procedure for the Devel Release Process has just completed
+* A local git branch representing the MP most recently released to the Ubuntu devel release is `release-27.1-impish`
 
+ 1. Create an "upload a new version bug" in https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bugs
+   * Describe the need, provide testing PPA and describe test instructions
+   * For examples, see [27.0](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1926361) or [20.3](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1869980)
+ 2. Create a PR for each target series based off your local `release-${UA_VERSION}-impish` branch:
+ ```bash
+ UA_VERSION=27.1
+ SRU_BUG=TODO_FROM_STEP_11
+ rm -rf ../out
+ for release in xenial bionic focal groovy hirsute do
+  git checkout release-${UA_VERSION}-impish -B upload-${UA_VERSION}-$release
+  case "${release}" in
+      xenial) version=${UA_VERSION}~16.04.1;;
+      bionic) version=${UA_VERSION}~18.04.1;;
+      focal) version=${UA_VERSION}~20.04.1;;
+      groovy) version=${UA_VERSION}~20.10.1;;
+      hirsute) version=${UA_VERSION}~21.04.1;;
+  esac
+  dch -v ${version} -D ${release} Backport new upstream release: (LP: #${SRU_BUG}) to $release
+  git commit -m 'changelog backport to ${release}' debian/changelog
+  git push <your_launchpad_username> upload-${UA_VERSION}-$release
+  build-package # to create release-specific dsc files used to upload in step 16
+ ```
+ 3. Create merge proposals for each SRU target release @ `https://code.launchpad.net/~<YOUR_LP_USER></YOUR_LAUNCHPAD_USER>/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/`. Make sure each PR targets your `release-${UA_VERSION}-impish` branch.
+ 4. Add both `canonical-server` and `canonical-server-core-reviewers` as review slots on the MP.
+ 5. Upload each release (including impish) to `ppa:ua-client/staging`
+ ```bash
+ for changes_file in ../out/*changes; do
+   dput ppa:ua-client/staging $changes_file
+ done
+ ```
+ 6. Ping ~Server channel member with upload rights for a review of your MR
+ 7. Address MR review comments or file issues for future until MR accepted and uploaded to the [proper upload release queue](https://launchpad.net/ubuntu/hirsute/+queue?queue_state=1&queue_text=ubuntu-advantage-tools)
+ 8. Ping [appropriate daily SRU vanguard for acceptance of ua-tools into -proposed](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing)FreeNode #ubuntu-release
+ 9. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates)
+10. When SRU verification is complete, mark any SRU-related bugs with 'verification-done' tags as each bug, task, or release verified and completes successfully
+11. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html). It is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates
 
 ## Ubuntu PRO Release Process
 
-Manually perform a binary package copy from Daily PPA to Premium PPA and notify image creators
+Below is the procedure used to release ubuntu-advantage-tools to Ubuntu PRO images:
 
  1. [Open Daily PPA copy-package operation](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily/+copy-packages)
  2. Check Trusty, Xenial, Bionic package
