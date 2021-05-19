@@ -50,6 +50,7 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
+cis           no        {dash}         Center for Internet Security Audit Tools
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
  (ESM)
 fips          no        {dash}         NIST-certified core packages
@@ -65,7 +66,7 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
-BETA_SVC_NAMES = ["cc-eal", "cis", "esm-apps"]
+BETA_SVC_NAMES = ["cc-eal", "esm-apps"]
 
 SERVICES_JSON_ALL = [
     {

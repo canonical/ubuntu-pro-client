@@ -61,6 +61,8 @@ Client to manage Ubuntu Advantage services on a machine.
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
+ - cis: Center for Internet Security Audit Tools
+   (https://ubuntu.com/security/certifications#cis)
  - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
  - fips-updates: NIST-certified core packages with priority security updates

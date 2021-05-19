@@ -352,53 +352,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
     @series.xenial
     @series.bionic
-    @series.focal
-    Scenario Outline: Attached enable of cis service in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
-        And I verify that running `ua enable cis --beta` `with sudo` exits `0`
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Updating package lists
-            Installing CIS Audit packages
-            CIS Audit enabled
-            Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
-            """
-        When I run `apt-cache policy usg-cisbenchmark` as non-root
-        Then stdout does not match regexp:
-        """
-        .*Installed: \(none\)
-        """
-        And stdout matches regexp:
-        """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
-        """
-        When I run `apt-cache policy usg-common` as non-root
-        Then stdout does not match regexp:
-        """
-        .*Installed: \(none\)
-        """
-        And stdout matches regexp:
-        """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
-        """
-        When I verify that running `ua enable cis` `with sudo` exits `1`
-        Then stdout matches regexp
-        """
-        One moment, checking your subscription first
-        CIS Audit is already enabled.
-        See: sudo ua status
-        """
-
-        Examples: not entitled services
-           | release |
-           | focal   |
-           | bionic  |
-           | xenial  |
-
-    @series.xenial
-    @series.bionic
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable fips-updates on fips enabled vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
