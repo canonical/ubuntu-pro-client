@@ -148,6 +148,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status>      +NIST-certified core packages
         fips-updates +yes      +<fips_status>      +NIST-certified core packages with priority security updates
@@ -180,6 +181,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
@@ -212,6 +214,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
