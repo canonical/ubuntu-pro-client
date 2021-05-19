@@ -34,6 +34,7 @@ pipeline {
                 python3 -m venv $TMPDIR
                 . $TMPDIR/bin/activate
                 pip install tox  # for tox supporting --parallel--safe-build
+                pip install tox-pip-version  # To freeze pip version on some tests
                 '''
             }
         }
@@ -67,6 +68,8 @@ pipeline {
                 set +x
                 . $TMPDIR/bin/activate
                 tox --parallel--safe-build -e py3
+                tox --parallel--safe-build -e py3-xenial
+                tox --parallel--safe-build -e py3-bionic
                 '''
             }
         }
