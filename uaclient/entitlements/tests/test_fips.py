@@ -443,7 +443,7 @@ class TestFIPSEntitlementEnable:
         expected_msg = "Cannot enable FIPS when FIPS Updates is enabled."
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
 
-    @mock.patch("uaclient.entitlements.repo.handle_message_operations")
+    @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
         M_LIVEPATCH_PATH + "application_status",
         return_value=((status.ApplicationStatus.DISABLED, "")),
