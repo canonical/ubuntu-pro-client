@@ -151,7 +151,7 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
    {
       for (pkgCache::VerFileIterator pf = ver.FileList(); !pf.end(); pf++)
       {
-         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESM"))
+         if (pf.File().Archive() != 0 && DeNull(pf.File().Origin()) == std::string("UbuntuESM"))
          {
             if (std::find(res.esm_i_packages.begin(), res.esm_i_packages.end(), pkg.Name()) == res.esm_i_packages.end()) {
                 res.esm_i_packages.push_back(pkg.Name());
@@ -167,7 +167,7 @@ static void check_esm_upgrade(pkgCache::PkgIterator pkg, pkgPolicy *policy, resu
                 }
             }
          }
-         if (pf.File().Archive() != 0 && pf.File().Origin() == std::string("UbuntuESMApps"))
+         if (pf.File().Archive() != 0 && DeNull(pf.File().Origin()) == std::string("UbuntuESMApps"))
          {
             if (std::find(res.esm_a_packages.begin(), res.esm_a_packages.end(), pkg.Name()) == res.esm_a_packages.end()) {
                 res.esm_a_packages.push_back(pkg.Name());
