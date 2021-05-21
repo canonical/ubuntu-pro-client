@@ -1,8 +1,166 @@
-ubuntu-advantage-tools (27.0) UNRELEASED; urgency=medium
+ubuntu-advantage-tools (27.0.2) impish; urgency=medium
 
-  * Open 27.0 for active development
+  * d/control:
+    - order build-depends alternatives newer first (LP: #1926949)
+    - apt-hook: do not attempt to package go APT JSON hook on some
+      architectures (GH: #1603) (LP: #1927886, LP: #1927795)
+  * Bug-fix release 27.0.2: build failures on riscv64 and powerpc
+    - apt-hook: refactor json hook messaging to be dry
+    - tests: fix subp ls error case for powerpc builds
+    - jenkinsfile: add --resolve-alternatives for trusty builds
+    - ammend changelog: add ommitted apt-hook message for 27.0.1 stanza
 
- -- Lucas Moura <lucas.moura@canonical.com>  Fri, 15 Jan 2021 10:44:55 -0300
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:58:03 -0600
+
+ubuntu-advantage-tools (27.0.1) impish; urgency=medium
+
+  * Add .gitignore and cleanup ignored directory .pytest_cache
+  * apt-hook: mitigate failures with true
+
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 28 Apr 2021 13:55:28 -0600
+
+ubuntu-advantage-tools (27.0) impish; urgency=medium
+
+  * New upstream release 27.0:
+    - apt-hook: mitigate failures with true
+    - messages: add optional (s) to apt messaging to include
+      singular/plural pkgs
+    - apt-hook: avoid reporting and counting duplicate package
+      names (GH: #1578)
+    - fix: don't say reboot required when unnecessary (LP: #1926183)
+    - test: uncomment additional xenial upgrade tests
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 27 Apr 2021 15:31:06 -0300
+
+ubuntu-advantage-tools (27.0~21.04.1~beta3) hirsute; urgency=medium
+
+  * New upstream beta3 release:
+    - config: avoid tracebacks on invalid features value in uaclient.conf
+      (GH: #1564)
+    - apt-hook: new json hook for security update counts
+    - Remove redundant messaging from uaclient
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 23 Apr 2021 15:28:44 -0600
+
+ubuntu-advantage-tools (27.0~21.04.1~beta2) hirsute; urgency=medium
+
+  * d/control:
+    - add distro-info dependency
+    - add new debianutils dependency
+    - add optional dh-systemd | debhelper (>= 13.3) to fallback on hirsute
+      and later when dh-systemd is not present
+  * d/rules: enable and start ua-messaging.timer on package install
+  * d/postinst:
+    - configure esm on any LTS release avoid beta services
+    - configure esm-infra when is_active_esm and apps on LTS
+    - xenial enable unauthenticated apt source for apps/infra
+  * New upstream release 27.0~beta:
+    - apt-hook:
+      + adapt hook to process separate message templates
+      + esm-apps and esm-infra pkg counts not mutually-exclusive
+      + print static messages on apt upgrade/dist-upgrade (GH: #1546)
+    - config: create settings_overrides on config (GH: #1507)
+    - docs: add entry for uploading new version to ppa
+    - esm:
+      + add pin never when disabling esm-infra/apps on xenial
+      + enable infra when EOL LTS and apps on all LTS (GH: #1558)
+    - fips: add notice when installing over old fips
+    - fix:
+      + add links to ubuntu.com/gcp/aws in messaging when on non-PRO
+      + add notice to reboot operation on ua fix
+      + do not prompt user for beta services (GH: #1544)
+      + notify users if reboot is required  (GH: #1476)
+      + update how the expired token logic works
+      + wrap output greater than 80 chars (GH: #1487)
+    - lib: fix notice handling on reboot script
+    - messages
+      + provide static message files for use in APT and MOTD
+      + update_ua_messages on attach/detach/disable
+    - mypy: add lib/ dir for coverage
+    - status: do not remove notices on non-root call (GH: #1518)
+    - subp: separate % format strings when logging (GH: #1520)
+    - systemd: add ua-messaging.timer to update ua MOTD and APT msgs
+    - update-motd.d: add conditional hooks for motd to source ua messages
+    - util: add is_lts and is_active_esm funtions to support ESM
+    - test
+      + add integration tests asserting esm-apps setup due to postinst
+      + manual test script for xenial upgrade
+      + trusty and xenial infra and apps disabled in pkg install
+    - behave: use unaltered cloud images unsetting UACLIENT_BEHAVE_PPA
+    - jenkins: make lint and style stage run sequentially
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 22 Apr 2021 14:16:26 -0300
+
+ubuntu-advantage-tools (27.0~21.04.1~beta) hirsute; urgency=medium
+
+  * d/*: prefix all the debhelper conf files with the package name
+  * d/control:
+    - add Rules-Requires-Root: no
+    - bump Standards-Version to 4.5.1
+    - make ubuntu-advantage-pro Architecture: all
+  * d/lintian-overrides:
+    - override maintainer-script-calls-service
+    - package-supports-alternative-init-but-no-init.d-script
+  * d/postinst: move the u-a-pro note to a config script
+  * d/ubuntu-advantage-tools.templates: suggest the use of apt
+  * New upstream release 27.0~beta:
+    - apt: add retry for apt-helper command (GH: #1431)
+    - cli: drop subcommand repeated help output, fix enable & refresh
+      (GH: #1440)
+    - config:
+      + allow parsing yaml delivered from env values
+      + environment variable support for feature overrides (GH: #1395)
+      + create config to add extra params to security url
+    - docs:
+      + add ppas and fix typos
+      + use Ubuntu Pro not Ubuntu PRO
+      + add stop "." punctuation to messages (GH: #1320)
+    - fips: fix FIPS message when disable operation fails
+    - fix:
+      + add basic UASecurityClient to which queries CVE and USNs
+      + add security_url to config
+      + check if service is enabled during ua fix (GH: #1462)
+      + closer representation of cve and usn responses
+      + filter usns by cve details (GH: #1470)
+      + fix regex to be more permissive and strict
+      + get_cve_affected_source_packages_status won't list not-affected
+        (GH: #1467)
+      + handle other package status when running ua fix (GH: #1435)
+      + improve error message for ua fix (GH: #1420)
+      + install pkg fixes when they are on standard pocket (GH: #1401)
+      + move timeout and retries to security client only
+      + only prompt for subscription attach for UA-related pkg updates
+      + parse all related USNS to a given CVE when fixing
+      + parse full API responses for related CVEs and USNs
+      + prefer USN.release_packages binary pkg versions to CVE src ver
+        (GH: #1436)
+      + prompt for new ua token when expired one is used (GH: #1475)
+      + prompt to emit pro suggestion on pro_clouds if unattached (GH: #1386)
+      + prompt to enable service during ua fix (GH: #1455)
+      + provide related CVE URLs instead of USNs (GH: #1456)
+      + raise errors when source_link is null or unexpected format
+      + show packages that were not fixed in the output
+      + update output for released packages in ua fix (GH: #1438)
+      + update message for invalid issue in ua fix (GH: #1433)
+      + use pocket values from USNs (GH: #1439)
+    - logs: emit error response on API errors and redact sensitive logs
+      (GH: #1424)
+    - serviceclient: add 10 second timeout and two retries to API calls
+      (GH: #1374)
+    - util:
+      + add error prompts on invalid selection
+      + add timeout to readurl
+    - tests:
+      + Add disable_auto_attach config to all test PRO vms
+      + add merge_usn_released_binary_package_versions tests
+      + add unittest coverage for override_usn_release_package_status
+      + drop traceback checks on fips integration tests
+      + refactor integration tests for ua fix cmd
+      + run status wait before detach in PRO tests
+      + use ssh to run commands on lxd containers
+    - jenkins: archiveArtifacts can only reference paths within workspace
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Tue, 30 Mar 2021 14:16:03 -0300
 
 ubuntu-advantage-tools (26.3~21.04.1) hirsute; urgency=medium
 
@@ -12,6 +170,12 @@ ubuntu-advantage-tools (26.3~21.04.1) hirsute; urgency=medium
     - cli: pass assume_yes param to services on detach (GH: #1530)
 
  -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 06 Apr 2021 14:26:20 -0300
+
+ubuntu-advantage-tools (26.2) hirsute; urgency=medium
+
+  * Drop dh-systemd build dependency.
+
+ -- Matthias Klose <doko@ubuntu.com>  Wed, 10 Mar 2021 16:54:12 +0100
 
 ubuntu-advantage-tools (26.2~21.04.1) hirsute; urgency=medium
 
@@ -247,9 +411,9 @@ ubuntu-advantage-tools (25.0~20.10.1~beta) groovy; urgency=medium
 ubuntu-advantage-tools (24.4) groovy; urgency=medium
 
   * New bug-fix-only release 24.4:
-     - uaclient.version bump to 24.4
-     - fips: honor additionalPackage directive from contract for bionic
-       (GH #1173)
+    - uaclient.version bump to 24.4
+    - fips: honor additionalPackage directive from contract for bionic
+      (GH #1173)
 
  -- Chad Smith <chad.smith@canonical.com>  Tue, 01 Sep 2020 11:14:39 -0600
 
