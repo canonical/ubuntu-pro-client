@@ -1,8 +1,0 @@
-# False positive
-ubuntu-advantage-tools: maintainer-script-calls-service postinst:*
-
-# Ubuntu doesn't require init.d scripts
-ubuntu-advantage-tools: package-supports-alternative-init-but-no-init.d-script
-
-# Avoid warning on wanted-by-target
-ubuntu-advantage-pro: systemd-service-file-refers-to-unusual-wantedby-target
