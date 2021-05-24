@@ -90,7 +90,7 @@ Feature: Command behaviour when attached to an UA subscription
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       |
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | n/a      | hello     | ant      |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      |
 
     @series.xenial
     @series.bionic
@@ -111,6 +111,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cis           +yes +<cis-s> +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
@@ -181,7 +182,7 @@ Feature: Command behaviour when attached to an UA subscription
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       |
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | n/a      | hello     | ant      |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      |
 
     @series.xenial
     @series.bionic
@@ -202,6 +203,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cis           +yes +<cis-s> +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
@@ -272,4 +274,4 @@ Feature: Command behaviour when attached to an UA subscription
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       |
            | bionic  | n/a      | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | n/a      | hello     | ant      |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      |
