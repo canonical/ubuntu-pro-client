@@ -168,6 +168,19 @@ pipeline {
                         '''
                     }
                 }
+                stage("lxc 20.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-20.04"
+                    }
+                    steps {
+                        sh '''
+                        set +x
+                        . $TMPDIR/bin/activate
+                        tox --parallel--safe-build -e behave-lxd-20.04
+                        '''
+                    }
+                }
                 stage("lxc vm 20.04") {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
