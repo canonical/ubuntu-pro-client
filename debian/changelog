@@ -4,6 +4,60 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.1) impish; urgency=medium
+
+  * d/control:
+    - specify debianutils min version
+  * d/changelog:
+    - fix lintian typos amend and redact incorrect 27.0 entry (GH: #1624)
+  * lintian:
+    - override ubuntu-advantage-pro wanted-by-target cloud-init
+    - override xenial specific errors
+    - rename package-specific overrides for pro vs tools
+  * New upstream release 27.1:
+    - apt-hook:
+      + avoid segfault when comparing null Apt file origin to esm
+        (LP: #1929123)
+      + avoid wrapping static message formats at 80 chars
+      + update go build flags based on lintian warnings (GH: #1626)
+      + only add newlines for MOTD if message file length is non-zero
+    - attach: do not print contract name if empty
+    - autocomplete: Do not show beta services in autocomplete (GH: #1594)
+    - cis:
+      + make service non-beta
+      + post enable message pointing to docs
+      + update cis help url
+    - docs: update releases.md per SRU review feedback on branch structuring
+    - enable: correct messaging for beta service (GH: #1588)
+    - errors: print a more helpful message when ssl fails (GH: #1618)
+    - fips:
+      + Block enabling fips if fips-updates once enabled (GH: #1600)
+      + Update output of fips commands (GH: #1631)
+    - livepatch: alert when snapd does not have wait cmd (LP: #1927329)
+    - logging: remove tracebacks for UserFacingErrors (GH: #1586)
+    - messaging:
+      + Infra and Apps messaging is mutually exclusive (GH: #1573)
+      + point to u.com/16-04 instead of u.com/advantage on ESM (GH: #1584)
+      + separate _remove_msg_template. emit no warranty on infra disabled
+    - pro: obtain AWS IMDSv2 API token before trying to grab pkcs7 doc
+      (GH: #1608)
+    - status: do not show info if not on contract (GH: #1592)
+    - tests:
+      + drop trusty specific tests
+      + fix mock for handle_message_operations
+      + fix motd message for bionic (GH: #1615)
+      + integration tests for hirsute and groovy
+      + manual test for trusty upgrade to xenial
+      + reboot after dist-upgrade for upgrade test
+      + test enabling CIS on focal (GH: #1582)
+      + update messages in integration tests (GH: #1635)
+      + use proposed pocket on xenial upgrade test
+    - jenkins:
+      + add pytest runs for xenial and bionic
+      + run focal lxd integration tests
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 24 May 2021 14:50:47 -0400
+
 ubuntu-advantage-tools (27.0.2) impish; urgency=medium
 
   * d/control:
