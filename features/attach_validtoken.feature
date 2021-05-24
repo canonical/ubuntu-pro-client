@@ -24,7 +24,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Then if `<release>` in `focal` and stdout matches regexp:
         """
         \d+ update(s)? can be applied immediately.
-        \d+ of these updates (is a|are) standard security update(s)?.
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -67,7 +66,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ update(s)? can be applied immediately.
         \d+ of these updates (is|are) (a|an)? UA Infra: ESM security update(s)?.
-        \d+ of these updates (is a|are) standard security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
         Then if `<release>` in `bionic` and stdout matches regexp:
