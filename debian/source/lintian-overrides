@@ -1,0 +1,6 @@
+# Lintian doesn't see dh-systemd alternative when building on xenial
+ubuntu-advantage-tools: missing-build-dependency-for-dh_-command dh_systemd_start => dh-systemd
+ubuntu-advantage-tools: missing-build-dependency-for-dh-addon systemd => dh-systemd
+
+# Lintian doesn't like mentioning riscv64 for older go package
+ubuntu-advantage-tools: invalid-arch-string-in-source-relation riscv64 [build-depends: golang-1.10-go [!powerpc !riscv64]]
