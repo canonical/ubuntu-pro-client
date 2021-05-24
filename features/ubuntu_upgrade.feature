@@ -41,6 +41,8 @@ Feature: Upgrade between releases when uaclient is attached
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt-get dist-upgrade --assume-yes` with sudo
+        # Some packages upgrade may require a reboot
+        And I reboot the `<release>` machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
         """
         [Sources]
