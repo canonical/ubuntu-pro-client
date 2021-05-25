@@ -206,12 +206,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True
 
     def can_enable(
-        self, silent: bool = False
+        self, silent: bool = False, allow_disable: bool = True
     ) -> "Tuple[bool, Optional[CanEnableFailureReason]]":
         """
         Report whether or not enabling is possible for the entitlement.
 
         :param silent: if True, suppress output
+        :param allow_disable: if True, allow disabling incompatible services
+
         :return:
             tuple of (bool, CanEnableFailureReason).
             (True, None) if can enable
@@ -248,13 +250,17 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return (False, CanEnableFailureReason.INAPPLICABLE)
 
         if self.incompatible_services:
-            handle_incompat_ret = self.handle_incompatible_services()
+            handle_incompat_ret = self.handle_incompatible_services(
+                silent=silent, allow_disable=allow_disable
+            )
             if not handle_incompat_ret:
                 return (False, CanEnableFailureReason.INCOMPATIBLE_SERVICE)
 
         return (True, None)
 
-    def handle_incompatible_services(self) -> bool:
+    def handle_incompatible_services(
+        self, silent: bool = False, allow_disable: bool = True
+    ) -> bool:
         """
         Prompt user when incompatible services are found during enable.
 
@@ -269,9 +275,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         features:
           block_disable_on_enable: true
 
-        We can also use the --allow-disable flag during enable to
-        automatically disable any incompatible service during
-        enable.
+        We can also control this behavior by calling this method with
+        allow_disable as False
+
+        :param silent: if True, suppress output
+        :param allow_disable: if True, allow disabling incompatible services
         """
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -301,8 +309,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         incompatible_service=ent.title,
                     )
 
-                    if cfg_block_disable_on_enable:
-                        logging.info(e_msg)
+                    if cfg_block_disable_on_enable or not allow_disable:
+                        if not silent:
+                            logging.info(e_msg)
                         return False
 
                     if not util.prompt_for_confirmation(
