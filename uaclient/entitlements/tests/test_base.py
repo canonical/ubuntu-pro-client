@@ -323,8 +323,17 @@ class TestUaEntitlement:
         assert 0 == m_can_disable.call_count
 
     @pytest.mark.parametrize(
-        "block_disable_on_enable,assume_yes",
-        ((True, True), (False, False), (True, False), (False, True)),
+        "block_disable_on_enable,allow_disable,assume_yes",
+        (
+            (True, True, True),
+            (True, False, True),
+            (False, True, False),
+            (False, False, False),
+            (True, True, False),
+            (True, False, False),
+            (False, True, True),
+            (False, False, True),
+        ),
     )
     @mock.patch("uaclient.util.is_config_value_true")
     @mock.patch("uaclient.util.prompt_for_confirmation")
@@ -333,6 +342,7 @@ class TestUaEntitlement:
         m_prompt,
         m_is_config_value_true,
         block_disable_on_enable,
+        allow_disable,
         assume_yes,
         concrete_entitlement_factory,
     ):
@@ -361,12 +371,15 @@ class TestUaEntitlement:
             with mock.patch.object(
                 ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
             ):
-                ret, reason = base_ent.can_enable()
+                ret, reason = base_ent.can_enable(allow_disable=allow_disable)
 
-        expected_prompt_call = 0 if block_disable_on_enable else 1
+        expected_prompt_call = 1
+        if block_disable_on_enable or not allow_disable:
+            expected_prompt_call = 0
+
         expected_ret = False
         expected_reason = status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
-        if assume_yes and not block_disable_on_enable:
+        if assume_yes and not block_disable_on_enable and allow_disable:
             expected_ret = True
             expected_reason = None
         expected_disable_call = 1 if expected_ret else 0
