@@ -404,7 +404,7 @@ Feature: Command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua disable esm-infra` with sudo
-        And I run `add-apt-repository ppa:ua-client/staging -y` with sudo, retrying exit [1]
+        And I run `add-apt-repository ppa:cloud-init-dev/daily -y` with sudo, retrying exit [1]
         And I run `apt update` with sudo
         And I run `sed -i 's/ubuntu/ubun/' /etc/apt/sources.list.d/<ppa_file>.list` with sudo
         And I run `ua enable esm-infra` with sudo
@@ -414,11 +414,11 @@ Feature: Command behaviour when attached to an UA subscription
         Updating package lists
         APT update failed.
         APT update failed to read APT config for the following URL:
-        - http://ppa.launchpad.net/ua-client/staging/ubun
+        - http://ppa.launchpad.net/cloud-init-dev/daily/ubun
         """
 
         Examples: ubuntu release
-           | release | ppa_file                         |
-           | xenial  | ua-client-ubuntu-staging-xenial  |
-           | bionic  | ua-client-ubuntu-staging-bionic  |
-           | focal   | ua-client-ubuntu-staging-focal   |
+           | release | ppa_file                           |
+           | xenial  | cloud-init-dev-ubuntu-daily-xenial |
+           | bionic  | cloud-init-dev-ubuntu-daily-bionic |
+           | focal   | cloud-init-dev-ubuntu-daily-focal  |
