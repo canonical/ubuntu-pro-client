@@ -66,6 +66,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         \d+ update(s)? can be applied immediately.
         \d+ of these updates (is|are) (a|an)? UA Infra: ESM security update(s)?.
+        \d+ of these updates (is a|are) standard security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
         Then if `<release>` in `bionic` and stdout matches regexp:
@@ -91,6 +92,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         UA Infra: Extended Security Maintenance \(ESM\) is enabled.
 
         \d+ package(s)? can be updated.
+        \d+ of these updates (is|are) fixed through UA Infra: ESM.
         \d+ of these updates (is a|are) security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
@@ -119,8 +121,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         \*Your UA Infra: ESM subscription has EXPIRED\*
         Enabling UA Infra: ESM service would provide security updates for following packages:
-          libkrad0
-        1 esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
+          .*
+        \d+ esm-infra security update\(s\) NOT APPLIED. Renew your UA services at
         https:\/\/ubuntu.com\/advantage
 
         """
