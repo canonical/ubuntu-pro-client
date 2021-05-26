@@ -87,6 +87,7 @@ def build_debs(
     container_name: str,
     output_deb_dir: str,
     cloud_api: "pycloudlib.cloud.BaseCloud",
+    cache_source: bool,
 ) -> "List[str]":
     """
     Push source PR code .tar.gz to the container.
@@ -110,7 +111,7 @@ def build_debs(
         )
         if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
             os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
-        if not os.path.exists(SOURCE_PR_TGZ):
+        if not os.path.exists(SOURCE_PR_TGZ) or not cache_source:
             cwd = os.getcwd()
             os.chdir("..")
             subprocess.run(

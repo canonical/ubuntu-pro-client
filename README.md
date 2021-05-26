@@ -167,8 +167,10 @@ By default, integration tests will do the folowing on a given cloud platform:
    test runs
  * Launch a fresh instance based on the boot-image created and exercise tests
 
-The testing can be overridden to run using a local copy of the ubuntu-advantage-client source code instead of the daily PPA by providing the following environment variable to the behave test runner.
+The testing can be overridden to run using a local copy of the ubuntu-advantage-client source code instead of the daily PPA by providing the following environment variable to the behave test runner:
 ```UACLIENT_BEHAVE_BUILD_PR=1```
+
+> Note that, by default, we cache the source even when `UACLIENT_BEHAVE_BUILD_PR=1`. This means that if you change the python code locally and want to run the behave tests against your new version, you need to either delete the cache (`rm /tmp/pr_source.tar.gz`) or also set `UACLIENT_BEHAVE_CACHE_SOURCE=0`.
 
 To run the tests, you can use `tox`:
 
