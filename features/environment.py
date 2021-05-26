@@ -116,7 +116,12 @@ class UAClientBehaveConfig:
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
     # the test framework
-    boolean_options = ["build_pr", "image_clean", "destroy_instances"]
+    boolean_options = [
+        "build_pr",
+        "image_clean",
+        "destroy_instances",
+        "cache_source",
+    ]
     str_options = [
         "aws_access_key_id",
         "aws_secret_access_key",
@@ -169,6 +174,7 @@ class UAClientBehaveConfig:
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
+        cache_source: bool = True,
         machine_type: str = "lxd.container",
         private_key_file: str = None,
         private_key_name: str = "uaclient-integration",
@@ -192,6 +198,7 @@ class UAClientBehaveConfig:
         self.gcp_credentials_path = gcp_credentials_path
         self.gcp_project = gcp_project
         self.build_pr = build_pr
+        self.cache_source = cache_source
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.image_clean = image_clean
@@ -615,6 +622,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
                 build_container_name,
                 output_deb_dir=os.path.join(tempfile.gettempdir(), series),
                 cloud_api=context.config.cloud_api,
+                cache_source=context.config.cache_source,
             )
 
     if "pro" in context.config.machine_type:
