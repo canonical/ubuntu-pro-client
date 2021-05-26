@@ -27,7 +27,7 @@ ubuntu-advantage-tools (27.1) impish; urgency=medium
     - fips:
       + Block enabling fips if fips-updates once enabled (GH: #1600)
       + Update output of fips commands (GH: #1631)
-    - livepatch: alert when snapd does not have wait cmd (LP: #1927905)
+    - livepatch: alert when snapd does not have wait cmd (LP: #1927329)
     - logging: remove tracebacks for UserFacingErrors (GH: #1586)
     - messaging:
       + Infra and Apps messaging is mutually exclusive (GH: #1573)
