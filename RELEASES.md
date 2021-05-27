@@ -37,32 +37,37 @@ Below is the procedure used to release ubuntu-advantage-client to an Ubuntu seri
  3. git fetch upstream
  4. git rebase --onto pkg/ubuntu/devel 27.0.2 27.1
  5. git checkout -B upload-27.1-impish # to create a new local branch name based on your detached branch in step 4
- 6. git push `<your_launchpad_user>` upload-27.1-impish
- 7. Create a PPA for upload reviewers at `https://launchpad.net/~<YOUR_LP_USER>/+activate-ppa`
- 8. Push to your test PPA so upload reviewers can install easily test packages easily during review
+ 6. Make sure the changelog version contains the release version on the name (For example, 27.1~21.10.1)
+ 7. git push `<your_launchpad_user>` upload-27.1-impish
+ 8. Create a PPA for upload reviewers at `https://launchpad.net/~<YOUR_LP_USER>/+activate-ppa`
+ 9. Push to your test PPA so upload reviewers can easily install and test packages during review
  ```bash
     debuild -S
     dput  ppa:<YOUR_LAUNCHPAD_USER>/ua-client-uploads ./ubuntu-advantage-tools_*_source.changes
 ```
- 9. Create a merge proposal for 27.1 which targets `ubuntu/devel`
+ 10. Create a merge proposal for 27.1 which targets `ubuntu/devel`
      * For an example, see the [27.0.2 merge proposal](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/402459)
- 10. Add 2 review slots for `canonical-server` and `canonical-server-core-reviewers`
+ 11. Add 2 review slots for `canonical-server` and `canonical-server-core-reviewers`
 
 ## SRU Release Process
 Below is the procedure used to SRU ubuntu-advantage-client to a stable Ubuntu series. It makes the following assumptions:
 * The procedure for the Devel Release Process has just completed
-* A local git branch representing the MP most recently released to the Ubuntu devel release is `release-27.1-impish`
+* A local git branch representing the MP most recently released to the Ubuntu devel release is `upload-27.1-impish`
 
  1. Create an "upload a new version bug" in https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bugs
    * Describe the need, provide testing PPA and describe test instructions
    * For examples, see [27.0](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1926361) or [20.3](https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1869980)
  2. Create a PR for each target series based off your local `release-${UA_VERSION}-impish` branch:
  ```bash
- UA_VERSION=27.1
- SRU_BUG=TODO_FROM_STEP_11
- rm -rf ../out
- for release in xenial bionic focal groovy hirsute do
-  git checkout release-${UA_VERSION}-impish -B upload-${UA_VERSION}-$release
+ UA_VERSION=<UA-VERSION>
+ SRU_BUG=<SRU-BUG>
+ LP_USER=<LAUNCHPAD-USERNAME>
+
+ for release in xenial bionic focal groovy hirsute
+ do
+  rm -rf ../out
+  rm ubuntu-advantage-*
+  git checkout upload-${UA_VERSION}-impish -B upload-${UA_VERSION}-$release
   case "${release}" in
       xenial) version=${UA_VERSION}~16.04.1;;
       bionic) version=${UA_VERSION}~18.04.1;;
@@ -70,12 +75,14 @@ Below is the procedure used to SRU ubuntu-advantage-client to a stable Ubuntu se
       groovy) version=${UA_VERSION}~20.10.1;;
       hirsute) version=${UA_VERSION}~21.04.1;;
   esac
-  dch -v ${version} -D ${release} Backport new upstream release: (LP: #${SRU_BUG}) to $release
-  git commit -m 'changelog backport to ${release}' debian/changelog
-  git push <your_launchpad_username> upload-${UA_VERSION}-$release
+  dch -v ${version} -D ${release} -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release"
+  git commit -m "changelog backport to ${release}" debian/changelog
   build-package # to create release-specific dsc files used to upload in step 16
+  sbuild-it ../out/ubuntu-*.dsc
+  git push $LP_USER upload-${UA_VERSION}-$release
+ done
  ```
- 3. Create merge proposals for each SRU target release @ `https://code.launchpad.net/~<YOUR_LP_USER></YOUR_LAUNCHPAD_USER>/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/`. Make sure each PR targets your `release-${UA_VERSION}-impish` branch.
+ 3. Create merge proposals for each SRU target release @ `https://code.launchpad.net/~<YOUR_LP_USER></YOUR_LAUNCHPAD_USER>/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/`. Make sure each PR targets your `upload-${UA_VERSION}-impish` branch.
  4. Add both `canonical-server` and `canonical-server-core-reviewers` as review slots on the MP.
  5. Upload each release (including impish) to `ppa:ua-client/staging`
  ```bash
