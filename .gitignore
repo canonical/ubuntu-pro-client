@@ -23,6 +23,13 @@ ubuntu_advantage_tools.dsc
 pytest_results.xml
 reports/
 
+# integration test artifacts
+azure-priv-*.pem
+azure-pub-*.txt
+*-privkey
+*-pubkey
+build-from-source.sh
+
 # apt-hook build artifacts
 apt-hook/hook
 apt-hook/ubuntu-advantage.pot
