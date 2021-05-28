@@ -88,6 +88,7 @@ class TestCISEntitlementEnable:
                     "apt-get",
                     "install",
                     "--assume-yes",
+                    "--allow-downgrades",
                     '-o Dpkg::Options::="--force-confdef"',
                     '-o Dpkg::Options::="--force-confold"',
                 ]
