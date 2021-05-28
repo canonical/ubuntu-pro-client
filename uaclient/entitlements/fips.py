@@ -1,4 +1,5 @@
 import os
+import re
 
 from itertools import groupby
 
@@ -153,8 +154,12 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if series != "bionic":
             return packages
 
-        cloud_id = get_cloud_type()
-        if not cloud_id or cloud_id not in ("azure", "aws"):
+        cloud_match = re.match(
+            r"^(?P<cloud>(azure|aws)).*", get_cloud_type() or ""
+        )
+        cloud_id = cloud_match.group("cloud") if cloud_match else ""
+
+        if cloud_id not in ("azure", "aws"):
             return packages
 
         cloud_metapkg = "ubuntu-{}-fips".format(cloud_id)
