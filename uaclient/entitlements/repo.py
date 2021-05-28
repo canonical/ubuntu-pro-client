@@ -239,6 +239,7 @@ class RepoEntitlement(base.UAEntitlement):
         if self.apt_noninteractive:
             env = {"DEBIAN_FRONTEND": "noninteractive"}
             apt_options = [
+                "--allow-downgrades",
                 '-o Dpkg::Options::="--force-confdef"',
                 '-o Dpkg::Options::="--force-confold"',
             ]
