@@ -937,7 +937,18 @@ class TestFipsEntitlementPackages:
     @pytest.mark.parametrize(
         "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
     )
-    @pytest.mark.parametrize("cloud_id", (("azure"), ("aws"), ("gce"), (None)))
+    @pytest.mark.parametrize(
+        "cloud_id",
+        (
+            ("azure-china"),
+            ("aws-gov"),
+            ("aws-china"),
+            ("azure"),
+            ("aws"),
+            ("gce"),
+            (None),
+        ),
+    )
     @mock.patch("uaclient.util.is_config_value_true")
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch("uaclient.util.get_platform_info")
@@ -967,10 +978,12 @@ class TestFipsEntitlementPackages:
         if all(
             [
                 series == "bionic",
-                cloud_id in ("azure", "aws"),
+                cloud_id
+                in ("azure", "aws", "aws-china", "aws-gov", "azure-china"),
                 not cfg_disable_fips_metapckage_override,
             ]
         ):
+            cloud_id = cloud_id.split("-")[0]
             assert packages == [
                 "test1",
                 "ubuntu-{}-fips".format(cloud_id),
