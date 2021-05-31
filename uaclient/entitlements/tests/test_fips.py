@@ -249,6 +249,30 @@ class TestFIPSEntitlementEnable:
         assert repo_enable_return_value is fips_entitlement._perform_enable()
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
 
+    @pytest.mark.parametrize(
+        "repo_enable_return_value, expected_remove_notice_calls",
+        [
+            (
+                True,
+                [mock.call("", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD)],
+            ),
+            (False, []),
+        ],
+    )
+    @mock.patch("uaclient.entitlements.repo.RepoEntitlement.enable")
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
+    def test_enable_removes_wrong_met_notice_on_success(
+        self,
+        m_remove_notice,
+        m_repo_enable,
+        repo_enable_return_value,
+        expected_remove_notice_calls,
+        entitlement,
+    ):
+        m_repo_enable.return_value = repo_enable_return_value
+        assert repo_enable_return_value is entitlement.enable()
+        assert expected_remove_notice_calls == m_remove_notice.call_args_list
+
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )

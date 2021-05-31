@@ -241,6 +241,15 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 env=env,
             )
 
+    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+        if super().enable(silent_if_inapplicable=silent_if_inapplicable):
+            self.cfg.remove_notice(
+                "", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+            )
+            return True
+
+        return False
+
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 
