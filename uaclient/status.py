@@ -290,6 +290,15 @@ NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
   To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
 """
+NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
+Warning: FIPS kernel is not optimized for your specific cloud.
+To fix it, run the following commands:
+
+    1. sudo ua disable fips
+    2. sudo apt-get remove ubuntu-fips
+    3. sudo ua enable fips --assume-yes
+    4. sudo reboot
+"""
 PROMPT_FIPS_PRE_ENABLE = (
     """\
 This will install the FIPS core packages.

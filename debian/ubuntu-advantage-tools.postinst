@@ -265,6 +265,33 @@ mark_reboot_cmds_as_needed() {
     add_notice "$msg_name"
 }
 
+notify_wrong_fips_metapackage_on_cloud() {
+
+    # On xenial, we don't have FIPS optimized kernels on the clouds.
+    # Because of that, we block enabling FIPS on xenial clouds. However,
+    # we do have a config override that allows users to install the generic
+    # FIPS packages into the cloud instance. We don't want to notify those users
+    if [ "$VERSION_ID" = "16.04" ]; then
+        return
+    fi
+
+    fips_metapkg="ubuntu-fips"
+
+    cloud_id=""
+    if command -v "cloud-id" > /dev/null ; then
+      cloud_id=$(cloud-id)
+    fi
+
+    # If the package is not installed, we don't want the postinst script to fail
+    fips_installed=$(dpkg-query -W --showformat='${db:Status-Status}\n' $fips_metapkg 2>/dev/null || true)
+
+    if echo "$cloud_id" | grep -E -q "^(azure|aws)"; then
+      if echo "$fips_installed" | grep -E -q "installed"; then
+        add_notice NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+      fi
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -305,6 +332,8 @@ case "$1" in
             add_notice MESSAGE_FIPS_INSTALL_OUT_OF_DATE
         fi
       fi
+
+      notify_wrong_fips_metapackage_on_cloud
 
       # CACHE_DIR is no longer present or used since 19.1
       rm -rf /var/cache/ubuntu-advantage-tools
