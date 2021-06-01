@@ -759,8 +759,12 @@ JSON_TEST_PAIRS = (
     # See the note in DatetimeAwareJSONDecoder for why this datetime is in a
     # dict
     (
-        {"dt": datetime.datetime(2019, 7, 25, 14, 35, 51)},
-        '{"dt": "2019-07-25T14:35:51"}',
+        {
+            "dt": datetime.datetime(
+                2019, 7, 25, 14, 35, 51, tzinfo=datetime.timezone.utc
+            )
+        },
+        '{"dt": "2019-07-25T14:35:51+00:00"}',
     ),
 )
 
@@ -896,6 +900,12 @@ class TestParseRFC3339Date:
     @pytest.mark.parametrize(
         "datestring,expected",
         [
+            (
+                "2001-02-03T04:05:06",
+                datetime.datetime(
+                    2001, 2, 3, 4, 5, 6, tzinfo=datetime.timezone.utc
+                ),
+            ),
             (
                 "2001-02-03T04:05:06Z",
                 datetime.datetime(

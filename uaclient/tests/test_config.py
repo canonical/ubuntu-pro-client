@@ -366,7 +366,11 @@ class TestReadCache:
             f.write('{"dt": "2019-07-25T14:35:51"}')
 
         actual = cfg.read_cache("dt_test")
-        assert {"dt": datetime.datetime(2019, 7, 25, 14, 35, 51)} == actual
+        assert {
+            "dt": datetime.datetime(
+                2019, 7, 25, 14, 35, 51, tzinfo=datetime.timezone.utc
+            )
+        } == actual
 
 
 class TestDeleteCacheKey:
@@ -985,7 +989,9 @@ class TestStatus:
 
         # Test that root's status works as expected (including the cache write)
         m_getuid.return_value = 0
-        expected_dt = datetime.datetime(2020, 7, 18, 0, 0, 0)
+        expected_dt = datetime.datetime(
+            2020, 7, 18, 0, 0, 0, tzinfo=datetime.timezone.utc
+        )
         assert expected_dt == cfg.status()["expires"]
 
         # Test that the read from the status cache work properly for non-root
