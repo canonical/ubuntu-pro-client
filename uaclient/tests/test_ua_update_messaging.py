@@ -55,7 +55,7 @@ class TestGetContractExpiryStatus:
         m_token = cfg.machine_token
         m_token["machineTokenInfo"]["contractInfo"][
             "effectiveTo"
-        ] = expire_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        ] = expire_date
 
         assert (
             expected_status,
@@ -444,7 +444,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
         m_token = cfg.machine_token
         m_token["machineTokenInfo"]["contractInfo"][
             "effectiveTo"
-        ] = expire_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+        ] = expire_date
 
         _write_esm_service_msg_templates(
             cfg,

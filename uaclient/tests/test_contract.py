@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 import mock
 import pytest
@@ -247,8 +248,8 @@ class TestRequestUpdatedContract:
     @pytest.mark.parametrize(
         "error_code, error_msg, error_response",
         (
-            (401, MESSAGE_ATTACH_INVALID_TOKEN, {"message": "unauthorized"}),
-            (403, MESSAGE_ATTACH_EXPIRED_TOKEN, {}),
+            (401, MESSAGE_ATTACH_INVALID_TOKEN, '{"message": "unauthorized"}'),
+            (403, MESSAGE_ATTACH_EXPIRED_TOKEN, "{}"),
             (
                 403,
                 MESSAGE_ATTACH_FORBIDDEN.format(
@@ -256,16 +257,16 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id", date="May 07, 2021"
                     )
                 ),
-                {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "no-longer-effective",
-                        "time": "2021-05-07T09:46:37.791Z",
-                    },
-                    "message": 'contract "contract-id" is no longer effective',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                """{
+                "code": "forbidden",
+                "info": {
+                    "contractId": "contract-id",
+                    "reason": "no-longer-effective",
+                    "time": "2021-05-07T09:46:37.791Z"
                 },
+                "message": "contract \\"contract-id\\" is no longer effective",
+                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
+                }""",
             ),
             (
                 403,
@@ -274,16 +275,16 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id", date="May 07, 2021"
                     )
                 ),
-                {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "not-effective-yet",
-                        "time": "2021-05-07T09:46:37.791Z",
-                    },
-                    "message": 'contract "contract-id" is not effective yet',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                """{
+                "code": "forbidden",
+                "info": {
+                    "contractId": "contract-id",
+                    "reason": "not-effective-yet",
+                    "time": "2021-05-07T09:46:37.791Z"
                 },
+                "message": "contract \\"contract-id\\" is not effective yet",
+                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
+                }""",
             ),
             (
                 403,
@@ -292,15 +293,15 @@ class TestRequestUpdatedContract:
                         contract_id="contract-id"
                     )
                 ),
-                {
-                    "code": "forbidden",
-                    "info": {
-                        "contractId": "contract-id",
-                        "reason": "never-effective",
-                    },
-                    "message": 'contract "contract-id" is was never effective',
-                    "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f",
+                """{
+                "code": "forbidden",
+                "info": {
+                    "contractId": "contract-id",
+                    "reason": "never-effective"
                 },
+                "message": "contract \\"contract-id\\" is was never effective",
+                "traceId": "7f58c084-f753-455d-9bdc-65b839d6536f"
+            }""",
             ),
         ),
     )
@@ -327,7 +328,9 @@ class TestRequestUpdatedContract:
                         url="http://me",
                         headers={},
                     ),
-                    error_response=error_response,
+                    error_response=json.loads(
+                        error_response, cls=util.DatetimeAwareJSONDecoder
+                    ),
                 )
             }
             return fake_client
