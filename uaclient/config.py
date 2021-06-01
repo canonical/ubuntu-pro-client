@@ -221,12 +221,9 @@ class UAConfig:
     def contract_expiry_datetime(self) -> "datetime":
         """Return a datetime of the attached contract expiration."""
         if not self._contract_expiry_datetime:
-            contractInfo = self.machine_token["machineTokenInfo"][
-                "contractInfo"
-            ]
-            self._contract_expiry_datetime = datetime.strptime(
-                contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
-            )
+            self._contract_expiry_datetime = self.machine_token[
+                "machineTokenInfo"
+            ]["contractInfo"]["effectiveTo"]
 
         return self._contract_expiry_datetime
 
@@ -529,9 +526,7 @@ class UAConfig:
             }
         )
         if contractInfo.get("effectiveTo"):
-            response["expires"] = datetime.strptime(
-                contractInfo["effectiveTo"], "%Y-%m-%dT%H:%M:%SZ"
-            )
+            response["expires"] = self.contract_expiry_datetime
 
         resources = self.machine_token.get("availableResources")
         if not resources:
