@@ -21,6 +21,7 @@ API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
 API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
+ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
 
 
 class ContractAPIError(util.UrlError):
@@ -332,11 +333,6 @@ def process_entitlement_delta(
     return deltas
 
 
-def _parse_and_format_datetime(dt_str: str) -> str:
-    dt = util.parse_rfc3339_date(dt_str)
-    return dt.strftime("%B %d, %Y")
-
-
 def _create_attach_forbidden_message(e: ContractAPIError) -> str:
     msg = status.MESSAGE_ATTACH_EXPIRED_TOKEN
     if (
@@ -349,12 +345,12 @@ def _create_attach_forbidden_message(e: ContractAPIError) -> str:
         reason = info["reason"]
         reason_msg = ""
         if reason == "no-longer-effective":
-            date = _parse_and_format_datetime(info["time"])
+            date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
             reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
                 contract_id=contract_id, date=date
             )
         elif reason == "not-effective-yet":
-            date = _parse_and_format_datetime(info["time"])
+            date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
             reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
                 contract_id=contract_id, date=date
             )

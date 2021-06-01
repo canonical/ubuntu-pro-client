@@ -133,9 +133,7 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         for key, value in o.items():
             if isinstance(value, str):
                 try:
-                    new_value = datetime.datetime.strptime(
-                        value, "%Y-%m-%dT%H:%M:%S"
-                    )
+                    new_value = parse_rfc3339_date(value)
                 except ValueError:
                     # This isn't a string containing a valid ISO 8601 datetime
                     new_value = value
@@ -757,19 +755,24 @@ def handle_message_operations(
 def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
     """
     Parse a datestring in rfc3339 format. Originally written for compatibility
-    with golang's time.MarshalJSON function.
+    with golang's time.MarshalJSON function. Also handles output of pythons
+    isoformat datetime method.
 
     This drops subseconds.
-
 
     :param dt_str: a date string in rfc3339 format
 
     :return: datetime.datetime object of time represented by dt_str
     """
-    dt_str_without_z = dt_str.replace("Z", "+00:00")
+    # if there is no timezone info, assume UTC
+    dt_str_with_z = re.sub(r"(\d{2}:\d{2}:\d{2})$", r"\g<1>Z", dt_str)
+    # replace Z with offset for UTC
+    dt_str_without_z = dt_str_with_z.replace("Z", "+00:00")
+    # change offset format to not include colon `:`
     dt_str_with_pythonish_tz = re.sub(
         r"(-|\+)(\d{2}):(\d{2})$", r"\g<1>\g<2>\g<3>", dt_str_without_z
     )
+    # remove sub-seconds
     dt_str_without_microseconds = re.sub(
         r"(\d{2}:\d{2}:\d{2})\.\d+(-|\+)",
         r"\g<1>\g<2>",

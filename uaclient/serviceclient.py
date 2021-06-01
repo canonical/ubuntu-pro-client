@@ -71,7 +71,10 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         except error.URLError as e:
             if hasattr(e, "read"):
                 try:
-                    error_details = json.loads(e.read().decode("utf-8"))
+                    error_details = json.loads(
+                        e.read().decode("utf-8"),
+                        cls=util.DatetimeAwareJSONDecoder,
+                    )
                 except ValueError:
                     error_details = None
                 if error_details:
