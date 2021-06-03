@@ -33,29 +33,18 @@ bootcmd:
  - chmod 755 /usr/bin/ua
 """
 
-"""
-Package: *
-Pin: release o=LP-PPA-ua-client-daily
-Pin-Priority: 1001
-"""
-UACLIENT_PPA_PIN = (
-    "UGFja2FnZTogKgpQaW46IHJlbGVhc2Ugbz1MUC1QUE"
-    "EtdWEtY2xpZW50LWRhaWx5ClBpbi1Qcmlvcml0eTogMTAwMQo="
-)
-
+# we can't use write_files because it will clash with the
+# lxd vendor-data write_files that is necessary to set up
+# the lxd_agent on some releases
 USERDATA_APT_SOURCE_PPA = """\
-write_files:
-  - encoding: b64
-    content: {preference_pin}
-    owner: root:root
-    path: /etc/apt/preferences.d/uaclient
-    permissions: 0644
+runcmd:
+  - "printf \\"Package: *\\nPin: release o=LP-PPA-ua-client-daily\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient"
 apt:
   sources:
     ua-tools-ppa:
         source: deb {ppa_url} $RELEASE main
         keyid: {ppa_keyid}
-"""
+"""  # noqa: E501
 
 PROCESS_LOG_TMPL = """\
 returncode: {}
@@ -698,7 +687,7 @@ def create_uat_image(context: Context, series: str) -> None:
             ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
 
         user_data += USERDATA_APT_SOURCE_PPA.format(
-            ppa_url=ppa, ppa_keyid=ppa_keyid, preference_pin=UACLIENT_PPA_PIN
+            ppa_url=ppa, ppa_keyid=ppa_keyid
         )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
