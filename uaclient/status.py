@@ -113,6 +113,14 @@ class CanEnableFailureReason(enum.Enum):
     INCOMPATIBLE_SERVICE = object()
 
 
+class CanEnableFailure:
+    def __init__(
+        self, reason: CanEnableFailureReason, message: Optional[str] = None
+    ) -> None:
+        self.reason = reason
+        self.message = message
+
+
 ESSENTIAL = "essential"
 STANDARD = "standard"
 ADVANCED = "advanced"

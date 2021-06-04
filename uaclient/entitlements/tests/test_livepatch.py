@@ -207,7 +207,7 @@ class TestLivepatchEntitlementCanEnable:
         assert [mock.call()] == m_container.call_args_list
 
     def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, _m_is_container, _m_livepatch_status, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, entitlement
     ):
         """"False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -215,18 +215,17 @@ class TestLivepatchEntitlementCanEnable:
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_min_kernel
             entitlement = LivepatchEntitlement(entitlement.cfg)
-            assert (
-                False,
-                status.CanEnableFailureReason.INAPPLICABLE,
-            ) == entitlement.can_enable()
-        msg = (
-            "Livepatch is not available for kernel 4.2.9-00-generic.\n"
-            "Minimum kernel version required: 4.4.\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+            result, reason = entitlement.can_enable()
+            assert False is result
+            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            msg = (
+                "Livepatch is not available for kernel 4.2.9-00-generic.\n"
+                "Minimum kernel version required: 4.4."
+            )
+            assert msg == reason.message
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, _m_is_container, _m_livepatch_status, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, entitlement
     ):
         """"When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -234,15 +233,14 @@ class TestLivepatchEntitlementCanEnable:
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_kernel
             entitlement = LivepatchEntitlement(entitlement.cfg)
-            assert (
-                False,
-                status.CanEnableFailureReason.INAPPLICABLE,
-            ) == entitlement.can_enable()
-        msg = (
-            "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
-            "Supported flavors are: generic, lowlatency.\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+            result, reason = entitlement.can_enable()
+            assert False is result
+            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            msg = (
+                "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
+                "Supported flavors are: generic, lowlatency."
+            )
+            assert msg == reason.message
 
     @pytest.mark.parametrize(
         "kernel_version,meets_min_version",
@@ -260,7 +258,6 @@ class TestLivepatchEntitlementCanEnable:
         _m_livepatch_status,
         kernel_version,
         meets_min_version,
-        capsys,
         entitlement,
     ):
         """"When on an unsupported kernel version, can_enable returns False."""
@@ -272,41 +269,38 @@ class TestLivepatchEntitlementCanEnable:
             if meets_min_version:
                 assert (True, None) == entitlement.can_enable()
             else:
+                result, reason = entitlement.can_enable()
+                assert False is result
                 assert (
-                    False,
-                    status.CanEnableFailureReason.INAPPLICABLE,
-                ) == entitlement.can_enable()
-        if meets_min_version:
-            msg = ""
-        else:
-            msg = (
-                "Livepatch is not available for kernel {}.\n"
-                "Minimum kernel version required: 4.4.\n".format(
-                    kernel_version
+                    status.CanEnableFailureReason.INAPPLICABLE == reason.reason
                 )
-            )
-        assert (msg, "") == capsys.readouterr()
+                msg = (
+                    "Livepatch is not available for kernel {}.\n"
+                    "Minimum kernel version required: 4.4.".format(
+                        kernel_version
+                    )
+                )
+                assert msg == reason.message
 
     def test_can_enable_false_on_unsupported_architecture(
-        self, _m_is_container, _m_livepatch_status, capsys, entitlement
+        self, _m_is_container, _m_livepatch_status, entitlement
     ):
         """"When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_kernel["arch"] = "ppc64le"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
             m_platform.return_value = unsupported_kernel
-            assert (
-                False,
-                status.CanEnableFailureReason.INAPPLICABLE,
-            ) == entitlement.can_enable()
-        msg = (
-            "Livepatch is not available for platform ppc64le.\n"
-            "Supported platforms are: x86_64.\n"
-        )
-        assert (msg, "") == capsys.readouterr()
+            result, reason = entitlement.can_enable()
+            assert False is result
+            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            msg = (
+                "Livepatch is not available for platform ppc64le.\n"
+                "Supported platforms are: x86_64."
+            )
+            assert msg == reason.message
 
     def test_can_enable_false_on_containers(
-        self, m_is_container, _m_livepatch_status, capsys, entitlement
+        self, m_is_container, _m_livepatch_status, entitlement
     ):
         """When is_container is True, can_enable returns False."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -315,12 +309,11 @@ class TestLivepatchEntitlementCanEnable:
             m_platform.return_value = unsupported_min_kernel
             m_is_container.return_value = True
             entitlement = LivepatchEntitlement(entitlement.cfg)
-            assert (
-                False,
-                status.CanEnableFailureReason.INAPPLICABLE,
-            ) == entitlement.can_enable()
-        msg = "Cannot install Livepatch on a container.\n"
-        assert (msg, "") == capsys.readouterr()
+            result, reason = entitlement.can_enable()
+            assert False is result
+            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            msg = "Cannot install Livepatch on a container."
+            assert msg == reason.message
 
 
 class TestLivepatchProcessContractDeltas:
@@ -466,34 +459,6 @@ class TestLivepatchEntitlementEnable:
             capture=True,
         ),
     ]
-
-    @mock.patch(
-        M_PATH + "LivepatchEntitlement.can_enable", return_value=(False, None)
-    )
-    def test_enable_false_when_can_enable_false(
-        self, m_can_enable, caplog_text, capsys, entitlement
-    ):
-        """When can_enable returns False enable returns False."""
-        assert not entitlement.enable()
-        assert "" == caplog_text()
-        assert ("", "") == capsys.readouterr()  # No additional prints
-        assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
-
-    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
-    @mock.patch(
-        M_PATH + "LivepatchEntitlement.can_enable", return_value=(False, None)
-    )
-    def test_enable_passes_silent_if_inapplicable_through(
-        self, m_can_enable, caplog_text, entitlement, silent_if_inapplicable
-    ):
-        """When can_enable returns False enable returns False."""
-        kwargs = {}
-        if silent_if_inapplicable is not None:
-            kwargs["silent_if_inapplicable"] = silent_if_inapplicable
-        entitlement.enable(**kwargs)
-
-        expected_call = mock.call(silent=bool(silent_if_inapplicable))
-        assert [expected_call] == m_can_enable.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("apt_update_success", (True, False))
