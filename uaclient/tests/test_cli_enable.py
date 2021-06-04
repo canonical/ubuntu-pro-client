@@ -168,14 +168,12 @@ class TestActionEnable:
             mock.call(cfg, assume_yes=assume_yes, allow_beta=False)
         ] == m_entitlement_cls.call_args_list
 
-    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
     def test_entitlements_not_found_disabled_and_enabled(
         self,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
-        silent_if_inapplicable,
         FakeConfig,
     ):
         m_getuid.return_value = 0
@@ -250,7 +248,6 @@ class TestActionEnable:
         assert 0 == m_ent1_obj.call_count
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
-    @pytest.mark.parametrize("silent_if_inapplicable", (True, False, None))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
     @mock.patch(
         "uaclient.entitlements.is_config_value_true", return_value=False
@@ -261,7 +258,6 @@ class TestActionEnable:
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
-        silent_if_inapplicable,
         beta_flag,
         FakeConfig,
     ):

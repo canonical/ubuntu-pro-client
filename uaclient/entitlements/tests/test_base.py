@@ -44,7 +44,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         )
         return self._disable
 
-    def _perform_enable(self, silent_if_inapplicable: bool = False):
+    def _perform_enable(self):
         return self._enable
 
     def applicability_status(self):
