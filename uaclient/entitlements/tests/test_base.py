@@ -148,29 +148,18 @@ class TestUaEntitlement:
         stdout, _ = capsys.readouterr()
         assert "" == stdout
 
-    @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_false_on_unentitled(
-        self, capsys, concrete_entitlement_factory, silent
+        self, concrete_entitlement_factory
     ):
         """When entitlement contract is not enabled, can_enable is False."""
-
         entitlement = concrete_entitlement_factory(entitled=False)
 
-        kwargs = {}
-        if silent is not None:
-            kwargs["silent"] = silent
-        can_enable, reason = entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason == status.CanEnableFailureReason.NOT_ENTITLED
-
-        expected_stdout = (
-            "This subscription is not entitled to Test Concrete Entitlement\n"
-            "For more information see: https://ubuntu.com/advantage.\n"
+        assert reason.reason == status.CanEnableFailureReason.NOT_ENTITLED
+        assert reason.message == status.MESSAGE_UNENTITLED_TMPL.format(
+            title=ConcreteTestEntitlement.title
         )
-        if silent:
-            expected_stdout = ""
-        stdout, _ = capsys.readouterr()
-        assert expected_stdout == stdout
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch("uaclient.contract.request_updated_contract")
@@ -178,7 +167,6 @@ class TestUaEntitlement:
         self,
         m_request_updated_contract,
         caplog_text,
-        capsys,
         concrete_entitlement_factory,
     ):
         """When entitlement contract is not enabled, can_enable is False."""
@@ -196,9 +184,8 @@ class TestUaEntitlement:
             in caplog_text()
         )
 
-    @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_false_on_entitlement_active(
-        self, capsys, concrete_entitlement_factory, silent
+        self, concrete_entitlement_factory
     ):
         """When entitlement is ENABLED, can_enable returns False."""
         application_status = status.ApplicationStatus.ENABLED
@@ -206,25 +193,15 @@ class TestUaEntitlement:
             entitled=True, application_status=(application_status, "")
         )
 
-        kwargs = {}
-        if silent is not None:
-            kwargs["silent"] = silent
-        can_enable, reason = entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason == status.CanEnableFailureReason.ALREADY_ENABLED
-
-        expected_stdout = (
-            "Test Concrete Entitlement is already enabled.\n"
-            "See: sudo ua status\n"
+        assert reason.reason == status.CanEnableFailureReason.ALREADY_ENABLED
+        assert reason.message == status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+            title=ConcreteTestEntitlement.title
         )
-        if silent:
-            expected_stdout = ""
-        stdout, _ = capsys.readouterr()
-        assert expected_stdout == stdout
 
-    @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_false_on_entitlement_inapplicable(
-        self, capsys, concrete_entitlement_factory, silent
+        self, concrete_entitlement_factory
     ):
         """When entitlement is INAPPLICABLE, can_enable returns False."""
         entitlement = concrete_entitlement_factory(
@@ -236,22 +213,13 @@ class TestUaEntitlement:
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
 
-        kwargs = {}
-        if silent is not None:
-            kwargs["silent"] = silent
-        can_enable, reason = entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason == status.CanEnableFailureReason.INAPPLICABLE
+        assert reason.reason == status.CanEnableFailureReason.INAPPLICABLE
+        assert reason.message == "msg"
 
-        expected_stdout = "msg\n"
-        if silent:
-            expected_stdout = ""
-        stdout, _ = capsys.readouterr()
-        assert expected_stdout == stdout
-
-    @pytest.mark.parametrize("silent", (True, False, None))
     def test_can_enable_true_on_entitlement_inactive(
-        self, capsys, concrete_entitlement_factory, silent
+        self, concrete_entitlement_factory
     ):
         """When an entitlement is applicable and disabled, we can_enable"""
         entitlement = concrete_entitlement_factory(
@@ -260,15 +228,9 @@ class TestUaEntitlement:
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
 
-        kwargs = {}
-        if silent is not None:
-            kwargs["silent"] = silent
-        can_enable, reason = entitlement.can_enable(**kwargs)
+        can_enable, reason = entitlement.can_enable()
         assert can_enable
         assert reason is None
-
-        stdout, _ = capsys.readouterr()
-        assert "" == stdout
 
     @pytest.mark.parametrize("is_beta", (True, False))
     @pytest.mark.parametrize("allow_beta", (True, False))
@@ -293,7 +255,8 @@ class TestUaEntitlement:
             assert reason is None
         else:
             assert not can_enable
-            assert reason == status.CanEnableFailureReason.IS_BETA
+            assert reason.reason == status.CanEnableFailureReason.IS_BETA
+            assert reason.message is None
 
     def test_contract_status_entitled(self, concrete_entitlement_factory):
         """The contract_status returns ENTITLED when entitlement enabled."""
@@ -322,34 +285,11 @@ class TestUaEntitlement:
             entitlement.process_contract_deltas(orig_access, delta)
         assert 0 == m_can_disable.call_count
 
-    @pytest.mark.parametrize(
-        "block_disable_on_enable,allow_disable,assume_yes",
-        (
-            (True, True, True),
-            (True, False, True),
-            (False, True, False),
-            (False, False, False),
-            (True, True, False),
-            (True, False, False),
-            (False, True, True),
-            (False, False, True),
-        ),
-    )
-    @mock.patch("uaclient.util.is_config_value_true")
-    @mock.patch("uaclient.util.prompt_for_confirmation")
     def test_can_enable_when_incompatible_service_found(
-        self,
-        m_prompt,
-        m_is_config_value_true,
-        block_disable_on_enable,
-        allow_disable,
-        assume_yes,
-        concrete_entitlement_factory,
+        self, concrete_entitlement_factory
     ):
         import uaclient.entitlements as ent
 
-        m_prompt.return_value = assume_yes
-        m_is_config_value_true.return_value = block_disable_on_enable
         base_ent = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
@@ -371,24 +311,80 @@ class TestUaEntitlement:
             with mock.patch.object(
                 ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
             ):
-                ret, reason = base_ent.can_enable(allow_disable=allow_disable)
+                ret, reason = base_ent.can_enable()
 
-        expected_prompt_call = 1
-        if block_disable_on_enable or not allow_disable:
-            expected_prompt_call = 0
+        assert ret is False
+        assert (
+            reason.reason == status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
+        )
+        assert reason.message is None
 
-        expected_ret = False
-        expected_reason = status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
-        if assume_yes and not block_disable_on_enable and allow_disable:
-            expected_ret = True
-            expected_reason = None
-        expected_disable_call = 1 if expected_ret else 0
-
-        assert ret == expected_ret
-        assert reason == expected_reason
-        assert m_prompt.call_count == expected_prompt_call
-        assert m_is_config_value_true.call_count == 1
-        assert m_entitlement_obj.disable.call_count == expected_disable_call
+    @pytest.mark.parametrize(
+        "can_enable_fail,expected_out,handle_incompat_calls",
+        [
+            (
+                status.CanEnableFailure(
+                    status.CanEnableFailureReason.NOT_ENTITLED, message="msg"
+                ),
+                "msg\n",
+                0,
+            ),
+            (
+                status.CanEnableFailure(
+                    status.CanEnableFailureReason.ALREADY_ENABLED,
+                    message="msg",
+                ),
+                "msg\n",
+                0,
+            ),
+            (
+                status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
+                "",
+                0,
+            ),
+            (
+                status.CanEnableFailure(
+                    status.CanEnableFailureReason.INAPPLICABLE, "msg"
+                ),
+                "msg\n",
+                0,
+            ),
+            (
+                status.CanEnableFailure(
+                    status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
+                ),
+                "",
+                1,
+            ),
+        ],
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.handle_incompatible_services",  # noqa: E501
+        return_value=False,
+    )
+    @mock.patch("uaclient.entitlements.base.UAEntitlement.can_enable")
+    def test_enable_false_when_can_enable_false(
+        self,
+        m_can_enable,
+        m_handle_incompat,
+        can_enable_fail,
+        expected_out,
+        handle_incompat_calls,
+        caplog_text,
+        capsys,
+        concrete_entitlement_factory,
+    ):
+        """When can_enable returns False enable returns False."""
+        m_can_enable.return_value = (False, can_enable_fail)
+        entitlement = concrete_entitlement_factory(entitled=True)
+        entitlement._perform_enable = mock.Mock()
+        assert not entitlement.enable()
+        assert [mock.call()] == m_can_enable.call_args_list
+        assert 0 == entitlement._perform_enable.call_count
+        assert handle_incompat_calls == m_handle_incompat.call_count
+        out, err = capsys.readouterr()
+        assert "" == err
+        assert expected_out == out
 
     @pytest.mark.parametrize(
         "orig_access,delta",

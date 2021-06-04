@@ -547,13 +547,12 @@ def action_enable(args, cfg, **kwargs):
             cfg.status()  # Update the status cache
 
             if not ent_ret:
-                can_enable, reason = entitlement.can_enable(
-                    silent=True, allow_disable=False
-                )
+                can_enable, reason = entitlement.can_enable()
 
                 if (
                     not can_enable
-                    and reason == ua_status.CanEnableFailureReason.IS_BETA
+                    and reason is not None
+                    and reason.reason == ua_status.CanEnableFailureReason.IS_BETA
                 ):
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist

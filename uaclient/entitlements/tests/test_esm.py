@@ -265,7 +265,7 @@ class TestESMInfraEntitlementEnable:
             install_cmd,
         ]
 
-        assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
+        assert [mock.call()] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
@@ -361,7 +361,7 @@ class TestESMInfraEntitlementEnable:
 
         error_msg = "APT update failed. Another process is running APT."
         assert error_msg == excinfo.value.msg
-        assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
+        assert [mock.call()] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list

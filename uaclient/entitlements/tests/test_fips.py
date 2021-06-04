@@ -219,7 +219,7 @@ class TestFIPSEntitlementEnable:
             ]
         )
 
-        assert [mock.call(silent=mock.ANY)] == m_can_enable.call_args_list
+        assert [mock.call()] == m_can_enable.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
@@ -272,20 +272,6 @@ class TestFIPSEntitlementEnable:
         m_repo_enable.return_value = repo_enable_return_value
         assert repo_enable_return_value is entitlement.enable()
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
-
-    @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
-    )
-    def test_enable_returns_false_on_can_enable_false(
-        self, m_platform_info, entitlement
-    ):
-        """When can_enable is false enable returns false and noops."""
-        with mock.patch.object(
-            entitlement, "can_enable", return_value=(False, None)
-        ):
-            with mock.patch("uaclient.util.handle_message_operations"):
-                assert False is entitlement.enable()
-        assert 0 == m_platform_info.call_count
 
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(
