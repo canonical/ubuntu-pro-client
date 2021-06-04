@@ -241,8 +241,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 env=env,
             )
 
-    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
-        if super().enable(silent_if_inapplicable=silent_if_inapplicable):
+    def _perform_enable(self) -> bool:
+        if super()._perform_enable():
             self.cfg.remove_notice(
                 "", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
@@ -356,10 +356,8 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             )
         super().setup_apt_config()
 
-    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
-        if super()._perform_enable(
-            silent_if_inapplicable=silent_if_inapplicable
-        ):
+    def _perform_enable(self) -> bool:
+        if super()._perform_enable():
             self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
             return True
 
@@ -398,8 +396,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
-        if super().enable(silent_if_inapplicable=silent_if_inapplicable):
+    def enable(self) -> bool:
+        if super().enable():
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )

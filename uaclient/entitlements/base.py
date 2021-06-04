@@ -146,12 +146,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return self._valid_service
 
-    def enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+    def enable(self) -> bool:
         """Enable specific entitlement.
-
-        :param silent_if_inapplicable:
-            Don't emit any messages until after it has been determined that
-            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
@@ -172,13 +168,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     return False
             else:
                 # every other reason means we can't continue
-                if fail.message is not None and not silent_if_inapplicable:
+                if fail.message is not None:
                     print(fail.message)
                 return False
 
-        ret = self._perform_enable(
-            silent_if_inapplicable=silent_if_inapplicable
-        )
+        ret = self._perform_enable()
         if not ret:
             return False
 
@@ -189,15 +183,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True
 
     @abc.abstractmethod
-    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
+    def _perform_enable(self) -> bool:
         """
         Enable specific entitlement. This should be implemented by subclasses.
         This method does the actual enablement, and does not check can_enable
         or handle pre_enable or post_enable messaging.
-
-        :param silent_if_inapplicable:
-            Don't emit any messages until after it has been determined that
-            this entitlement is applicable to the current machine.
 
         @return: True on success, False otherwise.
         """
@@ -300,9 +290,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def handle_incompatible_services(
-        self, silent: bool = False, allow_disable: bool = True
-    ) -> bool:
+    def handle_incompatible_services(self) -> bool:
         """
         Prompt user when incompatible services are found during enable.
 
@@ -316,12 +304,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         features:
           block_disable_on_enable: true
-
-        We can also control this behavior by calling this method with
-        allow_disable as False
-
-        :param silent: if True, suppress output
-        :param allow_disable: if True, allow disabling incompatible services
         """
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -351,9 +333,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                         incompatible_service=ent.title,
                     )
 
-                    if cfg_block_disable_on_enable or not allow_disable:
-                        if not silent:
-                            logging.info(e_msg)
+                    if cfg_block_disable_on_enable:
+                        logging.info(e_msg)
                         return False
 
                     if not util.prompt_for_confirmation(
