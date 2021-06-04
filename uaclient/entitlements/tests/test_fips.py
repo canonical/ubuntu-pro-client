@@ -228,25 +228,30 @@ class TestFIPSEntitlementEnable:
         ] == entitlement.cfg.read_cache("notices")
 
     @pytest.mark.parametrize(
-        "repo_enable_return_value, expected_remove_notice_calls",
+        "fips_common_enable_return_value, expected_remove_notice_calls",
         [
             (True, [mock.call("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)]),
             (False, []),
         ],
     )
-    @mock.patch("uaclient.entitlements.repo.RepoEntitlement._perform_enable")
+    @mock.patch(
+        "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
+    )
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     def test_enable_removes_out_of_date_notice_on_success(
         self,
         m_remove_notice,
-        m_repo_enable,
-        repo_enable_return_value,
+        m_fips_common_enable,
+        fips_common_enable_return_value,
         expected_remove_notice_calls,
         entitlement_factory,
     ):
-        m_repo_enable.return_value = repo_enable_return_value
+        m_fips_common_enable.return_value = fips_common_enable_return_value
         fips_entitlement = entitlement_factory(FIPSEntitlement)
-        assert repo_enable_return_value is fips_entitlement._perform_enable()
+        assert (
+            fips_common_enable_return_value
+            is fips_entitlement._perform_enable()
+        )
         assert expected_remove_notice_calls == m_remove_notice.call_args_list
 
     @pytest.mark.parametrize(
@@ -259,7 +264,7 @@ class TestFIPSEntitlementEnable:
             (False, []),
         ],
     )
-    @mock.patch("uaclient.entitlements.repo.RepoEntitlement.enable")
+    @mock.patch("uaclient.entitlements.repo.RepoEntitlement._perform_enable")
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     def test_enable_removes_wrong_met_notice_on_success(
         self,
@@ -270,8 +275,10 @@ class TestFIPSEntitlementEnable:
         entitlement,
     ):
         m_repo_enable.return_value = repo_enable_return_value
-        assert repo_enable_return_value is entitlement.enable()
-        assert expected_remove_notice_calls == m_remove_notice.call_args_list
+        assert repo_enable_return_value is entitlement._perform_enable()
+        assert (
+            expected_remove_notice_calls == m_remove_notice.call_args_list[:1]
+        )
 
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(

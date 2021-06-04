@@ -12,10 +12,8 @@ except ImportError:
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
 
-    def _perform_enable(self, *, silent_if_inapplicable: bool = False) -> bool:
-        enable_performed = super()._perform_enable(
-            silent_if_inapplicable=silent_if_inapplicable
-        )
+    def _perform_enable(self) -> bool:
+        enable_performed = super()._perform_enable()
         if enable_performed:
             update_ua_messages(self.cfg)
         return enable_performed
