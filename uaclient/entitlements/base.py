@@ -174,8 +174,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     return False, fail
             else:
                 # every other reason means we can't continue
-                if fail.message is not None:
-                    print(fail.message)
                 return False, fail
 
         ret = self._perform_enable()

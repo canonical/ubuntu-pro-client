@@ -454,12 +454,12 @@ class TestFIPSEntitlementEnable:
                     status.ApplicationStatus.ENABLED,
                     "",
                 )
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    fips_entitlement.enable()
-
-        expected_msg = "Cannot enable FIPS when FIPS Updates is enabled."
-        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+                result, reason = fips_entitlement.enable()
+                assert not result
+                expected_msg = (
+                    "Cannot enable FIPS when FIPS Updates is enabled."
+                )
+                assert expected_msg.strip() == reason.message.strip()
 
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
@@ -483,14 +483,12 @@ class TestFIPSEntitlementEnable:
             fips_entitlement, "_allow_fips_on_cloud_instance"
         ) as m_allow_fips_on_cloud:
             m_allow_fips_on_cloud.return_value = True
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                fips_entitlement.enable()
-
-        expected_msg = (
-            "Cannot enable FIPS because FIPS Updates was once enabled."
-        )
-        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+            result, reason = fips_entitlement.enable()
+            assert not result
+            expected_msg = (
+                "Cannot enable FIPS because FIPS Updates was once enabled."
+            )
+            assert expected_msg.strip() == reason.message.strip()
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
@@ -513,13 +511,11 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_livepatch:
             m_livepatch.return_value = (status.ApplicationStatus.DISABLED, "")
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                entitlement.enable()
-
-        expected_msg = """\
-        Ubuntu Xenial does not provide an Azure optimized FIPS kernel"""
-        assert expected_msg.strip() in fake_stdout.getvalue().strip()
+            result, reason = entitlement.enable()
+            assert not result
+            expected_msg = """\
+            Ubuntu Xenial does not provide an Azure optimized FIPS kernel"""
+            assert expected_msg.strip() in reason.message.strip()
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
@@ -552,13 +548,11 @@ class TestFIPSEntitlementEnable:
                 status.ApplicationStatus.DISABLED,
                 "",
             )
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                entitlement.enable()
-
-        expected_msg = """\
-        Ubuntu Test does not provide a GCP optimized FIPS kernel"""
-        assert expected_msg.strip() in fake_stdout.getvalue().strip()
+            result, reason = entitlement.enable()
+            assert not result
+            expected_msg = """\
+            Ubuntu Test does not provide a GCP optimized FIPS kernel"""
+            assert expected_msg.strip() in reason.message.strip()
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
     @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
