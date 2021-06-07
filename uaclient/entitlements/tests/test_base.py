@@ -320,13 +320,12 @@ class TestUaEntitlement:
         assert reason.message is None
 
     @pytest.mark.parametrize(
-        "can_enable_fail,expected_out,handle_incompat_calls",
+        "can_enable_fail,handle_incompat_calls",
         [
             (
                 status.CanEnableFailure(
                     status.CanEnableFailureReason.NOT_ENTITLED, message="msg"
                 ),
-                "msg\n",
                 0,
             ),
             (
@@ -334,26 +333,22 @@ class TestUaEntitlement:
                     status.CanEnableFailureReason.ALREADY_ENABLED,
                     message="msg",
                 ),
-                "msg\n",
                 0,
             ),
             (
                 status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
-                "",
                 0,
             ),
             (
                 status.CanEnableFailure(
                     status.CanEnableFailureReason.INAPPLICABLE, "msg"
                 ),
-                "msg\n",
                 0,
             ),
             (
                 status.CanEnableFailure(
                     status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
                 ),
-                "",
                 1,
             ),
         ],
@@ -368,23 +363,19 @@ class TestUaEntitlement:
         m_can_enable,
         m_handle_incompat,
         can_enable_fail,
-        expected_out,
         handle_incompat_calls,
-        caplog_text,
-        capsys,
         concrete_entitlement_factory,
     ):
         """When can_enable returns False enable returns False."""
         m_can_enable.return_value = (False, can_enable_fail)
         entitlement = concrete_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
+
         assert (False, can_enable_fail) == entitlement.enable()
-        assert [mock.call()] == m_can_enable.call_args_list
-        assert 0 == entitlement._perform_enable.call_count
+
+        assert 1 == m_can_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count
-        out, err = capsys.readouterr()
-        assert "" == err
-        assert expected_out == out
+        assert 0 == entitlement._perform_enable.call_count
 
     @pytest.mark.parametrize(
         "orig_access,delta",

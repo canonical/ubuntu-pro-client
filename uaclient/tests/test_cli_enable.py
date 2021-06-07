@@ -342,7 +342,7 @@ class TestActionEnable:
     @mock.patch(
         "uaclient.entitlements.is_config_value_true", return_value=False
     )
-    def test_dont_print_any_result_when_enable_fails(
+    def test_print_message_when_can_enable_fails(
         self,
         _m_is_config_value_true,
         _m_get_available_resources,
@@ -350,8 +350,6 @@ class TestActionEnable:
         m_getuid,
         FakeConfig,
     ):
-        # When enable fails, the reason is printed by can_enable or
-        # enable. Their output is tested in their respective unit tests.
         m_getuid.return_value = 0
         m_entitlement_cls = mock.Mock()
         type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
@@ -359,7 +357,7 @@ class TestActionEnable:
         m_entitlement_obj.enable.return_value = (
             False,
             status.CanEnableFailure(
-                status.CanEnableFailureReason.ALREADY_ENABLED
+                status.CanEnableFailureReason.ALREADY_ENABLED, "msg"
             ),
         )
 
@@ -378,9 +376,8 @@ class TestActionEnable:
             with contextlib.redirect_stdout(fake_stdout):
                 action_enable(args_mock, cfg)
 
-            print(fake_stdout.getvalue())
             assert (
-                "One moment, checking your subscription first\n"
+                "One moment, checking your subscription first\nmsg\n"
                 == fake_stdout.getvalue()
             )
 
