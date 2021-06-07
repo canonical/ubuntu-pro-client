@@ -146,41 +146,47 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return self._valid_service
 
-    def enable(self) -> bool:
+    # using Union instead of Optional here to signal that it may expand to
+    # support additional reason types in the future.
+    def enable(self) -> Tuple[bool, Union[None, CanEnableFailure]]:
         """Enable specific entitlement.
 
-        @return: True on success, False otherwise.
+        @return: tuple of (success, optional reason)
+            (True, None) on success.
+            (False, reason) otherwise. reason is only non-None if it is a
+                populated CanEnableFailure reason. This may expand to
+                include other types of reasons in the future.
         """
         msg_ops = self.messaging.get("pre_enable", [])
         if not util.handle_message_operations(msg_ops):
-            return False
+            return False, None
 
         can_enable, fail = self.can_enable()
         if not can_enable:
             if fail is None:
                 # this shouldn't happen, but if it does we shouldn't continue
-                return False
+                return False, None
             elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
                 # this is the only reason that won't necessarily stop us from
                 # enabling
                 handle_incompat_ret = self.handle_incompatible_services()
                 if not handle_incompat_ret:
-                    return False
+                    return False, fail
             else:
                 # every other reason means we can't continue
                 if fail.message is not None:
                     print(fail.message)
-                return False
+                return False, fail
 
         ret = self._perform_enable()
         if not ret:
-            return False
+            return False, None
 
         msg_ops = self.messaging.get("post_enable", [])
         if not util.handle_message_operations(msg_ops):
-            return False
+            return False, None
 
-        return True
+        return True, None
 
     @abc.abstractmethod
     def _perform_enable(self) -> bool:

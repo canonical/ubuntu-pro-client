@@ -235,7 +235,7 @@ class TestESMInfraEntitlementEnable:
 
             m_can_enable.return_value = (True, None)
 
-            assert True is entitlement.enable()
+            assert (True, None) == entitlement.enable()
 
         add_apt_calls = [
             mock.call(

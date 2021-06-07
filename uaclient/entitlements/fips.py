@@ -396,8 +396,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def enable(self) -> bool:
-        if super().enable():
+    def _perform_enable(self) -> bool:
+        if super()._perform_enable():
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )
