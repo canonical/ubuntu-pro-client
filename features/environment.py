@@ -36,14 +36,9 @@ bootcmd:
 # we can't use write_files because it will clash with the
 # lxd vendor-data write_files that is necessary to set up
 # the lxd_agent on some releases
-USERDATA_APT_SOURCE_PPA = """\
+USERDATA_RUNCMD_PIN_PPA = """\
 runcmd:
   - "printf \\"Package: *\\nPin: release o=LP-PPA-ua-client-daily\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient"
-apt:
-  sources:
-    ua-tools-ppa:
-        source: deb {ppa_url} $RELEASE main
-        keyid: {ppa_keyid}
 """  # noqa: E501
 
 USERDATA_RUNCMD_ENABLE_PROPOSED = """
@@ -51,6 +46,14 @@ runcmd:
   - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed restricted main multiverse universe\" > /etc/apt/sources.list.d/uaclient-proposed.list
   - apt-get update
 """  # noqa: E501
+
+USERDATA_APT_SOURCE_PPA = """\
+apt:
+  sources:
+    ua-tools-ppa:
+        source: deb {ppa_url} $RELEASE main
+        keyid: {ppa_keyid}
+"""
 
 PROCESS_LOG_TMPL = """\
 returncode: {}
@@ -701,6 +704,9 @@ def create_uat_image(context: Context, series: str) -> None:
                     ppa.replace("ppa:", "http://ppa.launchpad.net/")
                     + "/ubuntu"
                 )
+
+            if ppa == DAILY_PPA:
+                user_data += USERDATA_RUNCMD_PIN_PPA
 
             user_data += USERDATA_APT_SOURCE_PPA.format(
                 ppa_url=ppa, ppa_keyid=ppa_keyid
