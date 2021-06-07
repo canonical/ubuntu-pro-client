@@ -543,20 +543,18 @@ def action_enable(args, cfg, **kwargs):
             entitlement = ent_cls(
                 cfg, assume_yes=args.assume_yes, allow_beta=args.beta
             )
-            ent_ret = entitlement.enable()
+            ent_ret, reason = entitlement.enable()
             cfg.status()  # Update the status cache
 
-            if not ent_ret:
-                can_enable, reason = entitlement.can_enable()
-
-                if (
-                    not can_enable
-                    and reason is not None
-                    and reason.reason == ua_status.CanEnableFailureReason.IS_BETA
-                ):
-                    # if we failed because ent is in beta and there was no
-                    # allow_beta flag/config, pretend it doesn't exist
-                    entitlements_not_found.append(ent_name)
+            if (
+                not ent_ret
+                and reason is not None
+                and isinstance(reason, ua_status.CanEnableFailure)
+                and reason.reason == ua_status.CanEnableFailureReason.IS_BETA
+            ):
+                # if we failed because ent is in beta and there was no
+                # allow_beta flag/config, pretend it doesn't exist
+                entitlements_not_found.append(ent_name)
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:

@@ -151,7 +151,7 @@ class TestActionEnable:
         m_ents_dict = {"testitlement": m_entitlement_cls}
         m_valid_services.return_value = list(m_ents_dict.keys())
         m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.enable.return_value = True
+        m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -181,25 +181,22 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
-        m_ent1_obj.can_enable.return_value = (True, None)
-        m_ent1_obj.enable.return_value = False
+        m_ent1_obj.enable.return_value = (False, None)
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
-        m_ent2_obj.can_enable.return_value = (
+        m_ent2_obj.enable.return_value = (
             False,
-            status.CanEnableFailureReason.IS_BETA,
+            status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
         )
-        m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
-        m_ent3_obj.can_enable.return_value = (True, None)
-        m_ent3_obj.enable.return_value = True
+        m_ent3_obj.enable.return_value = (True, None)
 
         m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
 
@@ -266,28 +263,25 @@ class TestActionEnable:
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
-        m_ent1_obj.can_enable.return_value = (True, None)
-        m_ent1_obj.enable.return_value = False
+        m_ent1_obj.enable.return_value = (False, None)
 
         m_ent2_cls = mock.Mock()
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls)._is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
         if beta_flag:
-            m_ent2_obj.can_enable.return_value = (True, None)
+            m_ent2_obj.enable.return_value = (True, None)
         else:
-            m_ent2_obj.can_enable.return_value = (
+            m_ent2_obj.enable.return_value = (
                 False,
-                status.CanEnableFailureReason.IS_BETA,
+                status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
             )
-        m_ent2_obj.enable.return_value = False
 
         m_ent3_cls = mock.Mock()
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls)._is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
-        m_ent3_obj.can_enable.return_value = (True, None)
-        m_ent3_obj.enable.return_value = True
+        m_ent3_obj.enable.return_value = (True, None)
 
         m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
 
@@ -362,11 +356,12 @@ class TestActionEnable:
         m_entitlement_cls = mock.Mock()
         type(m_entitlement_cls).is_beta = mock.PropertyMock(return_value=False)
         m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.can_enable.return_value = (
+        m_entitlement_obj.enable.return_value = (
             False,
-            status.CanEnableFailureReason.ALREADY_ENABLED,
+            status.CanEnableFailure(
+                status.CanEnableFailureReason.ALREADY_ENABLED
+            ),
         )
-        m_entitlement_obj.enable.return_value = False
 
         m_ents_dict = {"ent1": m_entitlement_cls}
 
@@ -445,8 +440,7 @@ class TestActionEnable:
         m_getuid.return_value = 0
         m_entitlement_cls = mock.Mock()
         m_entitlement_obj = m_entitlement_cls.return_value
-        m_entitlement_obj.can_enable.return_value = (True, None)
-        m_entitlement_obj.enable.return_value = True
+        m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
         cfg.status = mock.Mock()
