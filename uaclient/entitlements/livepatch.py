@@ -243,7 +243,8 @@ class LivepatchEntitlement(base.UAEntitlement):
         )
 
         if process_enable_default:
-            return self.enable()
+            enable_success, _ = self.enable()
+            return enable_success
 
         application_status, _ = self.application_status()
         if application_status == status.ApplicationStatus.DISABLED:

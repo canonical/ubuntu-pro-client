@@ -159,7 +159,7 @@ class TestFIPSEntitlementEnable:
 
             m_can_enable.return_value = (True, None)
 
-            assert True is entitlement.enable()
+            assert (True, None) == entitlement.enable()
 
         repo_url = "http://{}".format(entitlement.name.upper())
         add_apt_calls = [
@@ -1012,11 +1012,13 @@ class TestFipsEntitlementPackages:
 
 class TestFIPSUpdatesEntitlementEnable:
     @pytest.mark.parametrize("enable_ret", ((True), (False)))
-    @mock.patch("uaclient.entitlements.fips.FIPSCommonEntitlement.enable")
+    @mock.patch(
+        "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
+    )
     def test_fips_updates_enable_write_service_once_enable_file(
-        self, m_enable, enable_ret, entitlement_factory
+        self, m_perform_enable, enable_ret, entitlement_factory
     ):
-        m_enable.return_value = enable_ret
+        m_perform_enable.return_value = enable_ret
         m_write_cache = mock.MagicMock()
         m_read_cache = mock.MagicMock()
         m_read_cache.return_value = {}
@@ -1026,7 +1028,7 @@ class TestFIPSUpdatesEntitlementEnable:
         cfg.write_cache = m_write_cache
 
         fips_updates_ent = entitlement_factory(FIPSUpdatesEntitlement, cfg=cfg)
-        assert fips_updates_ent.enable() == enable_ret
+        assert fips_updates_ent._perform_enable() == enable_ret
 
         if enable_ret:
             assert 1 == m_read_cache.call_count
