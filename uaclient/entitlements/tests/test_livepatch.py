@@ -664,7 +664,6 @@ class TestLivepatchEntitlementEnable:
     ):
         m_handle_message_op.return_value = True
 
-        fake_stdout = io.StringIO()
         with mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS):
             with mock.patch(
                 "uaclient.entitlements.fips.{}.application_status".format(
@@ -672,13 +671,13 @@ class TestLivepatchEntitlementEnable:
                 )
             ) as m_fips:
                 m_fips.return_value = (status.ApplicationStatus.ENABLED, "")
-                with contextlib.redirect_stdout(fake_stdout):
-                    entitlement.enable()
+                result, reason = entitlement.enable()
+                assert not result
 
-        expected_msg = "Cannot enable Livepatch when {} is enabled.".format(
-            cls_title
-        )
-        assert expected_msg.strip() == fake_stdout.getvalue().strip()
+                msg = "Cannot enable Livepatch when {} is enabled.".format(
+                    cls_title
+                )
+                assert msg.strip() == reason.message.strip()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARN], indirect=True)
     @mock.patch("uaclient.util.which")
