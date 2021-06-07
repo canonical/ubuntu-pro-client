@@ -378,7 +378,7 @@ class TestUaEntitlement:
         m_can_enable.return_value = (False, can_enable_fail)
         entitlement = concrete_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
-        assert not entitlement.enable()
+        assert (False, can_enable_fail) == entitlement.enable()
         assert [mock.call()] == m_can_enable.call_args_list
         assert 0 == entitlement._perform_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count

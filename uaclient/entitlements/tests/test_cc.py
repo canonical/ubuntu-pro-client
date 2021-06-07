@@ -152,7 +152,7 @@ class TestCommonCriteriaEntitlementEnable:
                 with mock.patch(
                     M_REPOPATH + "os.path.exists", side_effect=exists
                 ):
-                    assert True is entitlement.enable()
+                    assert (True, None) == entitlement.enable()
 
         add_apt_calls = [
             mock.call(
