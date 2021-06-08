@@ -1095,36 +1095,57 @@ class TestParseConfig:
         }
         assert expected_default_config == config
 
+    @pytest.mark.parametrize(
+        "envvar_name,envvar_val,field,expected_val",
+        [
+            # not on allowlist
+            (
+                "UA_CONTRACT_URL",
+                "https://contract",
+                "contract_url",
+                "https://contracts.canonical.com",
+            ),
+            # on allowlist
+            (
+                "UA_security_URL",
+                "https://security",
+                "security_url",
+                "https://security",
+            ),
+            (
+                "ua_data_dir",
+                "~/somedir",
+                "data_dir",
+                "{}/somedir".format(os.path.expanduser("~")),
+            ),
+            ("Ua_LoG_FiLe", "some.log", "log_file", "some.log"),
+            ("UA_LOG_LEVEL", "debug", "log_level", "DEBUG"),
+        ],
+    )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_parse_config_scrubs_user_environ_values(self, m_exists):
+    def test_parse_config_scrubs_user_environ_values(
+        self, m_exists, envvar_name, envvar_val, field, expected_val
+    ):
+        user_values = {envvar_name: envvar_val}
+        with mock.patch.dict("uaclient.config.os.environ", values=user_values):
+            config = parse_config()
+        assert expected_val == config[field]
+
+    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    def test_parse_config_scrubs_user_environ_values_features(self, m_exists):
         user_values = {
-            "UA_CONTRACT_URL": "https://contract",
-            "UA_security_URL": "https://security",
-            "ua_data_dir": "~/somedir",
-            "Ua_LoG_FiLe": "some.log",
-            "UA_LOG_LEVEL": "debug",
             "UA_FEATURES_X_Y_Z": "XYZ_VAL",
             "UA_FEATURES_A_B_C": "ABC_VAL",
         }
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
             config = parse_config()
-        expanded_dir = os.path.expanduser("~")
         expected_config = {
-            "contract_url": "https://contract",
-            "security_url": "https://security",
-            "data_dir": "{}/somedir".format(expanded_dir),
-            "log_file": "some.log",
-            "log_level": "DEBUG",
-            "features": {"a_b_c": "ABC_VAL", "x_y_z": "XYZ_VAL"},
+            "features": {"a_b_c": "ABC_VAL", "x_y_z": "XYZ_VAL"}
         }
-        assert expected_config == config
+        assert expected_config["features"] == config["features"]
 
     @pytest.mark.parametrize(
-        "env_var,env_value",
-        (
-            ("UA_CONTRACT_URL", "htp:/contract"),
-            ("UA_SECURITY_URL", "ht://security"),
-        ),
+        "env_var,env_value", [("UA_SECURITY_URL", "ht://security")]
     )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
     def test_parse_raises_errors_on_invalid_urls(
