@@ -100,6 +100,10 @@ The following configuration options are available:
 The ubuntu advantage contract server URL
 .TP
 .B
+\fBsecurity_url\fP
+The ubuntu advantage security server URL
+.TP
+.B
 \fBdata_dir\fP
 Where Ubuntu Advantage client stores its data files
 .TP
@@ -112,9 +116,10 @@ The logging level used when writing to \fBlog_file\fP
 The log file for the Ubuntu Advantage client
 
 .P
-Additionally, any configuration option can be overridden in the environment
+Additionally, some configuration options can be overridden in the environment
 by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
-uppercase and lowercase environment variables are allowed.
+uppercase and lowercase environment variables are allowed. The configuration
+options that support this are: data_dir, log_file, log_level, and security_url.
 
 For example, the following overrides the log_level found in uaclient.conf:
 .PP
