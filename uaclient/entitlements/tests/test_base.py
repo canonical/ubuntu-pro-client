@@ -62,7 +62,8 @@ def concrete_entitlement_factory(tmpdir):
         applicability_status: "Tuple[status.ApplicabilityStatus, str]" = None,
         application_status: "Tuple[status.ApplicationStatus, str]" = None,
         feature_overrides: "Optional[Dict[str, str]]" = None,
-        allow_beta: bool = False
+        allow_beta: bool = False,
+        enable: bool = False
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         machineToken = {
@@ -88,6 +89,7 @@ def concrete_entitlement_factory(tmpdir):
             applicability_status=applicability_status,
             application_status=application_status,
             allow_beta=allow_beta,
+            enable=enable,
         )
 
     return factory
@@ -318,6 +320,68 @@ class TestUaEntitlement:
             reason.reason == status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
         )
         assert reason.message is None
+
+    @pytest.mark.parametrize(
+        "block_disable_on_enable,assume_yes",
+        [(False, False), (False, True), (True, False), (True, True)],
+    )
+    @mock.patch("uaclient.util.is_config_value_true")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_enable_when_incompatible_service_found(
+        self,
+        m_prompt,
+        m_is_config_value_true,
+        block_disable_on_enable,
+        assume_yes,
+        concrete_entitlement_factory,
+    ):
+        import uaclient.entitlements as ent
+
+        m_prompt.return_value = assume_yes
+        m_is_config_value_true.return_value = block_disable_on_enable
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            enable=True,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(status.ApplicationStatus.DISABLED, ""),
+        )
+        base_ent._incompatible_services = ["test"]
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.ENABLED,
+            "",
+        ]
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+
+        with mock.patch.object(
+            base_ent, "is_access_expired", return_value=False
+        ):
+            with mock.patch.object(
+                ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+            ):
+                ret, reason = base_ent.enable()
+
+        expected_prompt_call = 1
+        if block_disable_on_enable:
+            expected_prompt_call = 0
+
+        expected_ret = False
+        expected_reason = status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
+        if assume_yes and not block_disable_on_enable:
+            expected_ret = True
+            expected_reason = None
+        expected_disable_call = 1 if expected_ret else 0
+
+        assert ret == expected_ret
+        if expected_reason is None:
+            assert reason is None
+        else:
+            assert reason.reason == expected_reason
+        assert m_prompt.call_count == expected_prompt_call
+        assert m_is_config_value_true.call_count == 1
+        assert m_entitlement_obj.disable.call_count == expected_disable_call
 
     @pytest.mark.parametrize(
         "can_enable_fail,handle_incompat_calls",
