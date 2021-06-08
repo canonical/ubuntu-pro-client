@@ -51,6 +51,13 @@ MERGE_ID_KEY_MAP = {
 }
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
+CONFIG_FIELD_ENVVAR_ALLOWLIST = [
+    "data_dir",
+    "log_file",
+    "log_level",
+    "security_url",
+]
+
 
 # A data path is a filename, and an attribute ("private") indicating whether it
 # should only be readable by root
@@ -672,8 +679,11 @@ def parse_config(config_path=None):
     for key, value in os.environ.items():
         key = key.lower()
         if key.startswith("ua_"):
-            if "ua_features_" in key:
-                key = key[12:]  # String leading UA_FEATURES_
+            # Strip leading UA_
+            field_name = key[3:]
+            if field_name.startswith("features_"):
+                # Strip leading UA_FEATURES_
+                feature_field_name = field_name[9:]
 
                 # Users can provide a yaml file to override
                 # config behavor. If they do, we are going
@@ -688,11 +698,11 @@ def parse_config(config_path=None):
                         )
 
                 if "features" not in cfg:
-                    cfg["features"] = {key: value}
+                    cfg["features"] = {feature_field_name: value}
                 else:
-                    cfg["features"][key] = value
-            else:
-                env_keys[key[3:]] = value  # Strip leading UA_
+                    cfg["features"][feature_field_name] = value
+            elif field_name in CONFIG_FIELD_ENVVAR_ALLOWLIST:
+                env_keys[field_name] = value
     cfg.update(env_keys)
     cfg["log_level"] = cfg["log_level"].upper()
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
