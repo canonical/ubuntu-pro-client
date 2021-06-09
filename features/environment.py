@@ -41,6 +41,12 @@ runcmd:
   - "printf \\"Package: *\\nPin: release o=LP-PPA-ua-client-daily\\nPin-Priority: 1001\\n\\" > /etc/apt/preferences.d/uaclient"
 """  # noqa: E501
 
+USERDATA_RUNCMD_ENABLE_PROPOSED = """
+runcmd:
+  - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed restricted main multiverse universe\" > /etc/apt/sources.list.d/uaclient-proposed.list
+  - apt-get update
+"""  # noqa: E501
+
 USERDATA_APT_SOURCE_PPA = """\
 apt:
   sources:
@@ -113,6 +119,7 @@ class UAClientBehaveConfig:
         "image_clean",
         "destroy_instances",
         "cache_source",
+        "enable_proposed",
     ]
     str_options = [
         "aws_access_key_id",
@@ -169,6 +176,7 @@ class UAClientBehaveConfig:
         image_clean: bool = True,
         destroy_instances: bool = True,
         cache_source: bool = True,
+        enable_proposed: bool = False,
         machine_type: str = "lxd.container",
         private_key_file: str = None,
         private_key_name: str = "uaclient-integration",
@@ -194,6 +202,7 @@ class UAClientBehaveConfig:
         self.gcp_project = gcp_project
         self.build_pr = build_pr
         self.cache_source = cache_source
+        self.enable_proposed = enable_proposed
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
@@ -684,17 +693,24 @@ def create_uat_image(context: Context, series: str) -> None:
     if not deb_paths:
         if not user_data:
             user_data = "#cloud-config\n"
-        ppa = context.config.ppa
-        ppa_keyid = context.config.ppa_keyid
-        if context.config.ppa.startswith("ppa:"):
-            ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
 
-        if ppa == DAILY_PPA:
-            user_data += USERDATA_RUNCMD_PIN_PPA
+        if context.config.enable_proposed:
+            user_data += USERDATA_RUNCMD_ENABLE_PROPOSED.format(series=series)
+        else:
+            ppa = context.config.ppa
+            ppa_keyid = context.config.ppa_keyid
+            if context.config.ppa.startswith("ppa:"):
+                ppa = (
+                    ppa.replace("ppa:", "http://ppa.launchpad.net/")
+                    + "/ubuntu"
+                )
 
-        user_data += USERDATA_APT_SOURCE_PPA.format(
-            ppa_url=ppa, ppa_keyid=ppa_keyid
-        )
+            if ppa == DAILY_PPA:
+                user_data += USERDATA_RUNCMD_PIN_PPA
+
+            user_data += USERDATA_APT_SOURCE_PPA.format(
+                ppa_url=ppa, ppa_keyid=ppa_keyid
+            )
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
     )
