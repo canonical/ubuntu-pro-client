@@ -472,6 +472,31 @@ def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
     return False
 
 
+def configure_web_proxy(
+    http_proxy: "Optional[str]", https_proxy: "Optional[str]"
+) -> None:
+    """
+    Configure urllib to use http and https proxies.
+
+    :param http_proxy: http proxy to be used by urllib. If None, it will
+                       not be configured
+    :param https_proxy: https proxy to be used by urllib. If None, it will
+                        not be configured
+    """
+    proxy_dict = {}
+
+    if http_proxy:
+        proxy_dict["http"] = http_proxy
+
+    if https_proxy:
+        proxy_dict["https"] = https_proxy
+
+    if proxy_dict:
+        proxy_handler = request.ProxyHandler(proxy_dict)
+        opener = request.build_opener(proxy_handler)
+        request.install_opener(opener)
+
+
 def readurl(
     url: str,
     data: "Optional[bytes]" = None,
