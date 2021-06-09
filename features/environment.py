@@ -43,6 +43,12 @@ UACLIENT_PPA_PIN = (
     "EtdWEtY2xpZW50LWRhaWx5ClBpbi1Qcmlvcml0eTogMTAwMQo="
 )
 
+USERDATA_RUNCMD_ENABLE_PROPOSED = """
+runcmd:
+  - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed restricted main multiverse universe\" > /etc/apt/sources.list.d/uaclient-proposed.list
+  - apt-get update
+"""  # noqa: E501
+
 USERDATA_APT_SOURCE_PPA = """\
 write_files:
   - encoding: b64
@@ -116,7 +122,13 @@ class UAClientBehaveConfig:
     # These variables are used in .from_environ() to convert the string
     # environment variable input to the appropriate Python types for use within
     # the test framework
-    boolean_options = ["build_pr", "image_clean", "destroy_instances"]
+    boolean_options = [
+        "build_pr",
+        "image_clean",
+        "destroy_instances",
+        "enable_proposed",
+    ]
+
     str_options = [
         "aws_access_key_id",
         "aws_secret_access_key",
@@ -169,6 +181,7 @@ class UAClientBehaveConfig:
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
+        enable_proposed: bool = False,
         machine_type: str = "lxd.container",
         private_key_file: str = None,
         private_key_name: str = "uaclient-integration",
@@ -192,6 +205,7 @@ class UAClientBehaveConfig:
         self.gcp_credentials_path = gcp_credentials_path
         self.gcp_project = gcp_project
         self.build_pr = build_pr
+        self.enable_proposed = enable_proposed
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.image_clean = image_clean
@@ -679,14 +693,24 @@ def create_uat_image(context: Context, series: str) -> None:
     if not deb_paths:
         if not user_data:
             user_data = "#cloud-config\n"
-        ppa = context.config.ppa
-        ppa_keyid = context.config.ppa_keyid
-        if context.config.ppa.startswith("ppa:"):
-            ppa = ppa.replace("ppa:", "http://ppa.launchpad.net/") + "/ubuntu"
 
-        user_data += USERDATA_APT_SOURCE_PPA.format(
-            ppa_url=ppa, ppa_keyid=ppa_keyid, preference_pin=UACLIENT_PPA_PIN
-        )
+        if context.config.enable_proposed:
+            user_data += USERDATA_RUNCMD_ENABLE_PROPOSED.format(series=series)
+        else:
+            ppa = context.config.ppa
+            ppa_keyid = context.config.ppa_keyid
+            if context.config.ppa.startswith("ppa:"):
+                ppa = (
+                    ppa.replace("ppa:", "http://ppa.launchpad.net/")
+                    + "/ubuntu"
+                )
+
+            user_data += USERDATA_APT_SOURCE_PPA.format(
+                ppa_url=ppa,
+                ppa_keyid=ppa_keyid,
+                preference_pin=UACLIENT_PPA_PIN,
+            )
+
     inst = context.config.cloud_manager.launch(
         instance_name=build_container_name, series=series, user_data=user_data
     )
