@@ -38,14 +38,15 @@ def given_a_machine(context, series):
         )
         return
     if series in context.reuse_container:
+        context.instances = {}
         context.container_name = context.reuse_container[series]
-        context.instance = context.config.cloud_api.get_instance(
+        context.instances["uaclient"] = context.config.cloud_api.get_instance(
             context.container_name
         )
         if "pro" in context.config.machine_type:
-            context.instance = context.config.cloud_api.get_instance(
-                context.container_name
-            )
+            context.instances[
+                "uaclient"
+            ] = context.config.cloud_api.get_instance(context.container_name)
         return
 
     if series not in context.series_image_name:
@@ -64,36 +65,116 @@ def given_a_machine(context, series):
         CONTAINER_PREFIX + pr_prefix + vm_prefix + series + date_prefix
     )
 
-    context.instance = context.config.cloud_manager.launch(
-        series=series,
-        instance_name=instance_name,
-        image_name=context.series_image_name[series],
-    )
+    context.instances = {
+        "uaclient": context.config.cloud_manager.launch(
+            series=series,
+            instance_name=instance_name,
+            image_name=context.series_image_name[series],
+        )
+    }
 
     context.container_name = context.config.cloud_manager.get_instance_id(
-        context.instance
+        context.instances["uaclient"]
     )
 
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
             print(
                 "--- Leaving instance running: {}".format(
-                    context.instance.name
+                    context.instances["uaclient"].name
                 )
             )
         else:
             try:
-                context.instance.delete(wait=False)
+                context.instances["uaclient"].delete(wait=False)
             except RuntimeError as e:
                 print(
                     "Failed to delete instance: {}\n{}".format(
-                        context.instance.name, str(e)
+                        context.instances["uaclient"].name, str(e)
                     )
                 )
 
     context.add_cleanup(cleanup_instance)
-    logging.warning("--- instance ip: {}".format(context.instance.ip))
-    print("--- instance ip: {}".format(context.instance.ip))
+    logging.warning(
+        "--- instance ip: {}".format(context.instances["uaclient"].ip)
+    )
+    print("--- instance ip: {}".format(context.instances["uaclient"].ip))
+
+
+@when("I launch a `{series}` `{instance_name}` machine")
+def launch_machine(context, series, instance_name):
+    now = datetime.datetime.now()
+    date_prefix = now.strftime("-%s%f")
+    name = CONTAINER_PREFIX + series + date_prefix + instance_name
+
+    context.instances[instance_name] = context.config.cloud_manager.launch(
+        series=series, instance_name=name
+    )
+
+    def cleanup_instance() -> None:
+        try:
+            context.instances[instance_name].delete(wait=False)
+        except RuntimeError as e:
+            print(
+                "Failed to delete instance: {}\n{}".format(
+                    context.instances[instance_name].name, str(e)
+                )
+            )
+
+    context.add_cleanup(cleanup_instance)
+
+
+@when("I add this text on `{file_name}` on `{instance_name}` above `{line}`")
+def when_i_add_this_text_on_file_above_line(
+    context, file_name, instance_name, line
+):
+    command = 'sed -i "s/{}/{}\\n{}/" {}'.format(
+        line, context.text, line, file_name
+    )
+    when_i_run_command(
+        context, command, "with sudo", instance_name=instance_name
+    )
+
+
+@when("I run `{command}` `{user_spec}` on the `{instance_name}` machine")
+def when_i_run_command_on_machine(context, command, user_spec, instance_name):
+    when_i_run_command(
+        context, command, user_spec, instance_name=instance_name
+    )
+
+
+@when(
+    "I configure uaclient `{proxy_cfg}` proxy to use `{instance_name}` machine"
+)
+def when_i_configure_uaclient_using_proxy_machine(
+    context, proxy_cfg, instance_name
+):
+    proxy_ip = context.instances[instance_name].ip
+
+    # We can modify this code to get this info directly from squid.conf,
+    # But I don't think we need this at this moment.
+    port = "3128"
+
+    proxy_type = "http"
+    if "https" in proxy_cfg:
+        proxy_type = "https"
+
+    proxy_cfg_entry = "{}: {}://{}:{}".format(
+        proxy_cfg + "_proxy", proxy_type, proxy_ip, port
+    )
+    context.text = proxy_cfg_entry
+
+    when_i_append_to_uaclient_config(context)
+
+
+@when("I verify `{file_name}` is empty on `{instance_name}` machine")
+def when_i_verify_file_is_empty_on_machine(context, file_name, instance_name):
+    command = 'sh -c "cat {} | wc -l"'
+    when_i_run_command(
+        context, command, user_spec="with sudo", instance_name=instance_name
+    )
+
+    assert_that(context.process.stdout.strip(), matches_regexp("0"))
 
 
 @when("I run `{command}` {user_spec}, retrying exit [{exit_codes}]")
@@ -119,7 +200,12 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
 
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(
-    context, command, user_spec, verify_return=True, stdin=None
+    context,
+    command,
+    user_spec,
+    verify_return=True,
+    stdin=None,
+    instance_name="uaclient",
 ):
     prefix = get_command_prefix_for_user_spec(user_spec)
     slow_cmd_spinner = nullcontext
@@ -130,7 +216,9 @@ def when_i_run_command(
 
     full_cmd = prefix + shlex.split(command)
     with slow_cmd_spinner():
-        result = context.instance.execute(full_cmd, stdin=stdin)
+        result = context.instances[instance_name].execute(
+            full_cmd, stdin=stdin
+        )
 
     process = subprocess.CompletedProcess(
         args=full_cmd,
@@ -267,7 +355,7 @@ def when_i_create_file_with_content(context, file_path):
 
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
-    context.instance.restart(wait=True)
+    context.instances["uaclient"].restart(wait=True)
 
 
 @then("I will see the following on stdout")
