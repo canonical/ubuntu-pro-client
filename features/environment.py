@@ -523,7 +523,7 @@ def after_step(context, step):
                 )
                 print("-- pull instance:{} {}".format(log_file, artifact_file))
                 try:
-                    result = context.instance.execute(
+                    result = context.instances["uaclient"].execute(
                         ["cat", log_file], use_sudo=True
                     )
                     content = result.stdout if result.ok else ""
@@ -532,7 +532,9 @@ def after_step(context, step):
                 with open(artifact_file, "w") as stream:
                     stream.write(content)
             for artifact_file, cmd in FAILURE_CMDS.items():
-                result = context.instance.execute(cmd, use_sudo=True)
+                result = context.instances["uaclient"].execute(
+                    cmd, use_sudo=True
+                )
                 artifact_file = os.path.join(artifacts_dir, artifact_file)
                 with open(artifact_file, "w") as stream:
                     stream.write(result.stdout)

@@ -109,6 +109,14 @@ class UAConfig:
     def security_url(self):
         return self.cfg.get("security_url", "https://ubuntu.com/security")
 
+    @property
+    def http_proxy(self):
+        return self.cfg.get("http_proxy")
+
+    @property
+    def https_proxy(self):
+        return self.cfg.get("https_proxy")
+
     def check_lock_info(self) -> "Tuple[int, str]":
         """Return lock info if config lock file is present the lock is active.
 
