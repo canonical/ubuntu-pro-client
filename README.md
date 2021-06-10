@@ -120,7 +120,7 @@ The following describes the intent of UA client related directories:
 | uaclient.contract | Module for interacting with the Contract Server API |
 | ./demo | Various stale developer scripts for setting up one-off demo environments. (Not needed often)
 | ./apt-hook/ | the C++ apt-hook delivering MOTD and apt command notifications about UA support services |
-| ./apt-conf.d/ | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM  security-related components |
+| ./apt-conf.d/ | apt config files delivered to /etc/apt/apt-conf.d to automatically allow unattended upgrades of ESM security-related components. If apt proxy settings are configured, an additional apt config file will be placed here to configure the apt proxy. |
 | /etc/ubuntu-advantage/uaclient.conf | Configuration file for the UA client.|
 | /var/lib/ubuntu-advantage/private | `root` read-only directory containing Contract API responses, machine-tokens and service credentials |
 | /var/log/ubuntu-advantage.log | `root` read-only log of ubuntu-advantage operations |

@@ -902,7 +902,7 @@ def print_version(_args=None, _cfg=None):
 @assert_root
 @assert_attached()
 @assert_lock_file("ua refresh")
-def action_refresh(args, cfg):
+def action_refresh(args, cfg: config.UAConfig):
     try:
         contract.request_updated_contract(cfg)
     except util.UrlError as exc:

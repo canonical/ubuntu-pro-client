@@ -114,6 +114,16 @@ The logging level used when writing to \fBlog_file\fP
 .B
 \fBlog_file\fP
 The log file for the Ubuntu Advantage client
+.TP
+.B
+\fBapt_http_proxy\fP
+If set, ua will configure apt to use the specified http proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
+.TP
+.B
+\fBapt_https_proxy\fP
+If set, ua will configure apt to use the specified https proxy by writing a apt
+config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
 
 .P
 Additionally, some configuration options can be overridden in the environment
