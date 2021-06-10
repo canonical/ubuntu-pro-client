@@ -35,11 +35,18 @@ class TestCISEntitlementCanEnable:
 
 
 class TestCISEntitlementEnable:
+    @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.get_platform_info")
     def test_enable_configures_apt_sources_and_auth_files(
-        self, m_platform_info, m_subp, m_should_reboot, capsys, entitlement
+        self,
+        m_platform_info,
+        m_subp,
+        m_should_reboot,
+        m_setup_apt_proxy,
+        capsys,
+        entitlement,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
 
@@ -102,6 +109,7 @@ class TestCISEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cis
         assert [] == m_add_pin.call_args_list
+        assert 1 == m_setup_apt_proxy.call_count
         assert subp_apt_cmds == m_subp.call_args_list
         assert 1 == m_should_reboot.call_count
         expected_stdout = (
