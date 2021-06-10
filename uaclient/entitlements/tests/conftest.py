@@ -102,10 +102,14 @@ def entitlement_factory(tmpdir):
         suites: "List[str]" = None,
         additional_packages: "List[str]" = None,
         services_once_enabled: "Dict[str, bool]" = None,
-        cfg: "Optional[config.UAConfig]" = None
+        cfg: "Optional[config.UAConfig]" = None,
+        cfg_extension: "Optional[Dict[str, Any]]" = None
     ):
         if not cfg:
-            cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
+            cfg_arg = {"data_dir": tmpdir.strpath}
+            if cfg_extension is not None:
+                cfg_arg.update(cfg_extension)
+            cfg = config.UAConfig(cfg=cfg_arg)
             cfg.write_cache(
                 "machine-token",
                 machine_token(

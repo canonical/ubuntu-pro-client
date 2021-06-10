@@ -183,11 +183,27 @@ class TestESMDisableAptAuthOnly:
 
 
 @mock.patch("uaclient.entitlements.esm.update_ua_messages")
+@mock.patch("uaclient.apt.setup_apt_proxy")
 class TestESMInfraEntitlementEnable:
+    @pytest.mark.parametrize(
+        "esm_cls", [ESMAppsEntitlement, ESMInfraEntitlement]
+    )
     def test_enable_configures_apt_sources_and_auth_files(
-        self, update_ua_messages, entitlement
+        self,
+        m_setup_apt_proxy,
+        update_ua_messages,
+        esm_cls,
+        entitlement_factory,
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
+        entitlement = entitlement_factory(
+            esm_cls,
+            cfg_extension={
+                "apt_http_proxy": "apt_http_proxy_value",
+                "apt_https_proxy": "apt_https_proxy_value",
+            },
+            suites=["trusty"],
+        )
         patched_packages = ["a", "b"]
         original_exists = os.path.exists
 
@@ -266,6 +282,12 @@ class TestESMInfraEntitlementEnable:
         ]
 
         assert [mock.call()] == m_can_enable.call_args_list
+        assert [
+            mock.call(
+                http_proxy="apt_http_proxy_value",
+                https_proxy="apt_https_proxy_value",
+            )
+        ] == m_setup_apt_proxy.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
@@ -283,7 +305,7 @@ class TestESMInfraEntitlementEnable:
         ] == update_ua_messages.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
-        self, _update_ua_messages, entitlement, caplog_text
+        self, _m_setup_apt_proxy, _update_ua_messages, entitlement, caplog_text
     ):
         """When setup_apt_config fails, cleanup any apt artifacts."""
         original_exists = os.path.exists
