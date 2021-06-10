@@ -259,10 +259,15 @@ class RepoEntitlement(base.UAEntitlement):
 
     def setup_apt_config(self) -> None:
         """Setup apt config based on the resourceToken and directives.
+        Also sets up apt proxy if necessary.
 
         :raise UserFacingError: on failure to setup any aspect of this apt
            configuration
         """
+        apt.setup_apt_proxy(
+            http_proxy=self.cfg.apt_http_proxy,
+            https_proxy=self.cfg.apt_https_proxy,
+        )
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         resource_cfg = self.cfg.entitlements.get(self.name)
         directives = resource_cfg["entitlement"].get("directives", {})

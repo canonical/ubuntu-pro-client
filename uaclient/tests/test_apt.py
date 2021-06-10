@@ -14,6 +14,7 @@ from uaclient.apt import (
     APT_KEYS_DIR,
     APT_AUTH_COMMENT,
     KEYRINGS_DIR,
+    APT_PROXY_CONF_FILE,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
@@ -25,6 +26,7 @@ from uaclient.apt import (
     remove_repo_from_apt_auth_file,
     assert_valid_apt_credentials,
     run_apt_command,
+    setup_apt_proxy,
 )
 from uaclient import apt, exceptions, util, status
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
@@ -915,3 +917,70 @@ class TestRunAptCommand:
 
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg
+
+
+class TestAptProxyConfig:
+    @pytest.mark.parametrize(
+        "kwargs, expected_remove_calls, expected_write_calls",
+        [
+            ({}, [mock.call(APT_PROXY_CONF_FILE)], []),
+            (
+                {"http_proxy": "mock_http_proxy"},
+                [],
+                [
+                    mock.call(
+                        APT_PROXY_CONF_FILE,
+                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        + status.MESSAGE_APT_PROXY_HTTP.format(
+                            proxy_url="mock_http_proxy"
+                        ),
+                    )
+                ],
+            ),
+            (
+                {"https_proxy": "mock_https_proxy"},
+                [],
+                [
+                    mock.call(
+                        APT_PROXY_CONF_FILE,
+                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        + status.MESSAGE_APT_PROXY_HTTPS.format(
+                            proxy_url="mock_https_proxy"
+                        ),
+                    )
+                ],
+            ),
+            (
+                {
+                    "http_proxy": "mock_http_proxy",
+                    "https_proxy": "mock_https_proxy",
+                },
+                [],
+                [
+                    mock.call(
+                        APT_PROXY_CONF_FILE,
+                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        + status.MESSAGE_APT_PROXY_HTTP.format(
+                            proxy_url="mock_http_proxy"
+                        )
+                        + status.MESSAGE_APT_PROXY_HTTPS.format(
+                            proxy_url="mock_https_proxy"
+                        ),
+                    )
+                ],
+            ),
+        ],
+    )
+    @mock.patch("uaclient.util.write_file")
+    @mock.patch("uaclient.util.remove_file")
+    def test_setup_apt_proxy_config(
+        self,
+        m_util_remove_file,
+        m_util_write_file,
+        kwargs,
+        expected_remove_calls,
+        expected_write_calls,
+    ):
+        setup_apt_proxy(**kwargs)
+        assert expected_remove_calls == m_util_remove_file.call_args_list
+        assert expected_write_calls == m_util_write_file.call_args_list

@@ -25,6 +25,7 @@ APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
 KEYRINGS_DIR = "/usr/share/keyrings"
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
 CA_CERTIFICATES_FILE = "/usr/sbin/update-ca-certificates"
+APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 
 # Since we generally have a person at the command line prompt. Don't loop
 # for 5 minutes like charmhelpers because we expect the human to notice and
@@ -391,3 +392,37 @@ def clean_apt_files(*, _entitlements=None):
 def get_installed_packages() -> "List[str]":
     out, _ = util.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
     return out.splitlines()
+
+
+def setup_apt_proxy(
+    http_proxy: Optional[str] = None, https_proxy: Optional[str] = None
+) -> None:
+    """
+    Writes an apt conf file that configures apt to use the proxies provided as
+    args.
+    If both args are None, then no apt conf file is written. If this function
+    previously wrote a conf file, and was run again with both args as None,
+    the existing file is removed.
+
+    :param http_proxy: the url of the http proxy apt should use, or None
+    :param https_proxy: the url of the https proxy apt should use, or None
+    :return: None
+    """
+    apt_proxy_config = ""
+    if http_proxy is not None:
+        apt_proxy_config += status.MESSAGE_APT_PROXY_HTTP.format(
+            proxy_url=http_proxy
+        )
+    if https_proxy is not None:
+        apt_proxy_config += status.MESSAGE_APT_PROXY_HTTPS.format(
+            proxy_url=https_proxy
+        )
+    if apt_proxy_config != "":
+        apt_proxy_config = (
+            status.MESSAGE_APT_PROXY_CONFIG_HEADER + apt_proxy_config
+        )
+
+    if apt_proxy_config == "":
+        util.remove_file(APT_PROXY_CONF_FILE)
+    else:
+        util.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)

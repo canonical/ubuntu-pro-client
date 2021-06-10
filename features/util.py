@@ -133,7 +133,12 @@ def build_debs(
     for filepath in (buildscript, SOURCE_PR_TGZ):
         print("--- Push {} -> {}:/tmp".format(filepath, instance.name))
         instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
-    instance.execute(["sudo", "bash", "/tmp/" + buildscript])
+    result = instance.execute(["sudo", "bash", "/tmp/" + buildscript])
+    if result.failed:
+        print("--- ERROR: Building PR failed")
+        raise Exception(
+            "stdout: {}\nstderr: {}".format(result.stdout, result.stderr)
+        )
     deb_artifacts = []
     if not os.path.exists(output_deb_dir):
         os.makedirs(output_deb_dir)
