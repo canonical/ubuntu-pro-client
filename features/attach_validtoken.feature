@@ -9,7 +9,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
-        And I run `apt-get install -y <downrev_pkg>` with sudo, retrying exit [100]
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y <downrev_pkg>` with sudo, retrying exit [100]
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
@@ -236,7 +236,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
@@ -315,7 +315,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
