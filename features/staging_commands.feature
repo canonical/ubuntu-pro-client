@@ -115,7 +115,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo, retrying exit [100]
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
@@ -209,7 +209,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo, retrying exit [100]
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
@@ -357,7 +357,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `ua disable livepatch` with sudo
-        And I run `apt-get install openssh-client openssh-server strongswan -y` with sudo, retrying exit [100]
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         And I run `ua enable fips --assume-yes` with sudo
         Then stdout matches regexp:
             """
