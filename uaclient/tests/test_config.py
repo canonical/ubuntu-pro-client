@@ -1096,6 +1096,132 @@ class TestAttachedServiceStatus:
         assert expected_status == ret["status"]
 
 
+class TestProcessConfig:
+    @pytest.mark.parametrize(
+        "http_proxy, https_proxy, snap_is_installed, snap_http_val, "
+        "snap_https_val, livepatch_enabled, livepatch_http_val, "
+        "livepatch_https_val, snap_livepatch_msg",
+        [
+            ("http", "https", False, None, None, False, None, None, ""),
+            ("http", "https", True, None, None, False, None, None, ""),
+            ("http", "https", False, None, None, True, None, None, ""),
+            ("http", "https", True, None, None, True, None, None, ""),
+            (None, None, True, None, None, True, None, None, ""),
+            (None, None, True, "one", None, True, None, None, "snap"),
+            (None, None, True, "one", "two", True, None, None, "snap"),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                "three",
+                None,
+                "snap, livepatch",
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                "three",
+                "four",
+                "snap, livepatch",
+            ),
+            (
+                None,
+                None,
+                False,
+                None,
+                None,
+                True,
+                "three",
+                "four",
+                "livepatch",
+            ),
+        ],
+    )
+    @mock.patch("uaclient.entitlements.livepatch.get_config_option_value")
+    @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
+    @mock.patch(
+        "uaclient.entitlements.livepatch.LivepatchEntitlement.application_status"  # noqa: E501
+    )
+    @mock.patch("uaclient.snap.get_config_option_value")
+    @mock.patch("uaclient.snap.configure_snap_proxy")
+    @mock.patch("uaclient.snap.is_installed")
+    @mock.patch("uaclient.apt.setup_apt_proxy")
+    def test_process_config(
+        self,
+        m_apt_configure_proxy,
+        m_snap_is_installed,
+        m_snap_configure_proxy,
+        m_snap_get_config_option,
+        m_livepatch_status,
+        m_livepatch_configure_proxy,
+        m_livepatch_get_config_option,
+        http_proxy,
+        https_proxy,
+        snap_is_installed,
+        snap_http_val,
+        snap_https_val,
+        livepatch_enabled,
+        livepatch_http_val,
+        livepatch_https_val,
+        snap_livepatch_msg,
+        capsys,
+    ):
+        m_snap_is_installed.return_value = snap_is_installed
+        m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
+        m_livepatch_status.return_value = (
+            (status.ApplicationStatus.ENABLED, None)
+            if livepatch_enabled
+            else (None, None)
+        )
+        m_livepatch_get_config_option.side_effect = [
+            livepatch_http_val,
+            livepatch_https_val,
+        ]
+        cfg = UAConfig(
+            {
+                "ua_config": {
+                    "apt_http_proxy": "apt_http",
+                    "apt_https_proxy": "apt_https",
+                    "http_proxy": http_proxy,
+                    "https_proxy": https_proxy,
+                }
+            }
+        )
+
+        cfg.process_config()
+
+        assert [
+            mock.call("apt_http", "apt_https")
+        ] == m_apt_configure_proxy.call_args_list
+
+        if snap_is_installed:
+            assert [
+                mock.call(http_proxy, https_proxy)
+            ] == m_snap_configure_proxy.call_args_list
+
+        if livepatch_enabled:
+            assert [
+                mock.call(http_proxy, https_proxy)
+            ] == m_livepatch_configure_proxy.call_args_list
+
+        expected_out = ""
+        if snap_livepatch_msg:
+            expected_out = status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(  # noqa: E501
+                services=snap_livepatch_msg
+            )
+
+        out, err = capsys.readouterr()
+        assert expected_out.strip() == out.strip()
+        assert "" == err
+
+
 class TestParseConfig:
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
     def test_parse_config_uses_defaults_when_no_config_present(self, m_exists):

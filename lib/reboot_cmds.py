@@ -93,7 +93,7 @@ def refresh_contract(cfg):
         contract.request_updated_contract(cfg)
     except UrlError as exc:
         logging.exception(exc)
-        logging.warning(status.MESSAGE_REFRESH_FAILURE)
+        logging.warning(status.MESSAGE_REFRESH_CONTRACT_FAILURE)
         sys.exit(1)
 
 

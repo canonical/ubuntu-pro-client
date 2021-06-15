@@ -20,12 +20,12 @@ import pytest
 from uaclient import apt
 from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
-    SNAP_CMD,
     LivepatchEntitlement,
     process_config_directives,
-    configure_snap_proxy,
     configure_livepatch_proxy,
+    get_config_option_value,
 )
+from uaclient.snap import SNAP_CMD
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
 from uaclient.status import ApplicationStatus, ContractStatus
@@ -68,59 +68,6 @@ def livepatch_entitlement_factory(entitlement_factory):
 @pytest.fixture
 def entitlement(livepatch_entitlement_factory):
     return livepatch_entitlement_factory()
-
-
-class TestConfigureSnapProxy:
-    @pytest.mark.parametrize(
-        "http_proxy,https_proxy,snap_retries",
-        (
-            ("http_proxy", "https_proxy", [1, 2]),
-            ("http_proxy", "", None),
-            ("", "https_proxy", [1, 2]),
-            ("http_proxy", None, [1, 2]),
-            (None, "https_proxy", None),
-            (None, None, [1, 2]),
-        ),
-    )
-    @mock.patch("uaclient.util.subp")
-    def test_configure_snap_proxy(
-        self, m_subp, http_proxy, https_proxy, snap_retries, capsys
-    ):
-        configure_snap_proxy(http_proxy, https_proxy, snap_retries)
-        expected_calls = []
-        if http_proxy:
-            expected_calls.append(
-                mock.call(
-                    [
-                        "snap",
-                        "set",
-                        "system",
-                        "proxy.http={}".format(http_proxy),
-                    ],
-                    retry_sleeps=snap_retries,
-                )
-            )
-
-        if https_proxy:
-            expected_calls.append(
-                mock.call(
-                    [
-                        "snap",
-                        "set",
-                        "system",
-                        "proxy.https={}".format(https_proxy),
-                    ],
-                    retry_sleeps=snap_retries,
-                )
-            )
-
-        assert m_subp.call_args_list == expected_calls
-
-        out, _ = capsys.readouterr()
-        if http_proxy or https_proxy:
-            assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
-                service="snap"
-            )
 
 
 class TestConfigureLivepatchProxy:
@@ -172,6 +119,80 @@ class TestConfigureLivepatchProxy:
             assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
                 service=LivepatchEntitlement.title
             )
+
+    @pytest.mark.parametrize(
+        "key, subp_return_value, expected_ret",
+        [
+            ("http-proxy", ("nonsense", ""), None),
+            ("http-proxy", ("", "nonsense"), None),
+            (
+                "http-proxy",
+                (
+                    """\
+http-proxy: ""
+https-proxy: ""
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                None,
+            ),
+            (
+                "http-proxy",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                "one",
+            ),
+            (
+                "https-proxy",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                "two",
+            ),
+            (
+                "nonexistentkey",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                None,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.util.subp")
+    def test_get_config_option_value(
+        self, m_util_subp, key, subp_return_value, expected_ret
+    ):
+        m_util_subp.return_value = subp_return_value
+        ret = get_config_option_value(key)
+        assert ret == expected_ret
+        assert [
+            mock.call(["canonical-livepatch", "config"])
+        ] == m_util_subp.call_args_list
 
 
 class TestLivepatchContractStatus:
@@ -524,7 +545,7 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
-@mock.patch("uaclient.entitlements.livepatch.configure_snap_proxy")
+@mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
 

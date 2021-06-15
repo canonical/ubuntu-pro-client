@@ -9,7 +9,7 @@ import sys
 import yaml
 from collections import namedtuple, OrderedDict
 
-from uaclient import status, util
+from uaclient import apt, exceptions, snap, status, util
 from uaclient.defaults import (
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
@@ -17,7 +17,6 @@ from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
 )
-from uaclient import exceptions
 
 try:
     from typing import (  # noqa: F401
@@ -680,6 +679,51 @@ class UAConfig:
 
         response_dict["help"] = help_ent.help_info
         return response_dict
+
+    def process_config(self):
+        services_with_proxies = []
+        apt.setup_apt_proxy(self.apt_http_proxy, self.apt_https_proxy)
+
+        if snap.is_installed():
+            snap.configure_snap_proxy(self.http_proxy, self.https_proxy)
+            if (
+                not self.http_proxy
+                and snap.get_config_option_value(snap.HTTP_PROXY_OPTION)
+            ) or (
+                not self.https_proxy
+                and snap.get_config_option_value(snap.HTTPS_PROXY_OPTION)
+            ):
+                services_with_proxies.append("snap")
+
+        from uaclient.entitlements import livepatch
+
+        livepatch_ent = livepatch.LivepatchEntitlement()
+        livepatch_status, _ = livepatch_ent.application_status()
+
+        if livepatch_status == status.ApplicationStatus.ENABLED:
+            livepatch.configure_livepatch_proxy(
+                self.http_proxy, self.https_proxy
+            )
+            if (
+                not self.http_proxy
+                and livepatch.get_config_option_value(
+                    livepatch.HTTP_PROXY_OPTION
+                )
+            ) or (
+                not self.https_proxy
+                and livepatch.get_config_option_value(
+                    livepatch.HTTPS_PROXY_OPTION
+                )
+            ):
+                services_with_proxies.append("livepatch")
+
+        if len(services_with_proxies) > 0:
+            services = ", ".join(services_with_proxies)
+            print(
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    services=services
+                )
+            )
 
 
 def parse_config(config_path=None):
