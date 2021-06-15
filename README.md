@@ -344,6 +344,30 @@ a daily ubuntu-advantage-tools image.
 UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-image-id tox -e behave-awspro-20.04
 ```
 
+### MOTD Messages
+
+Since ubuntu-advantage-tools is responsible for enabling ESM services, we advertise them on different
+applications thorough the system, such as MOTD and apt commands like upgrade.
+
+To verify that the MOTD message is advertising the ESM packages, ensure that we have ESM source list
+files in the system. If that is the case, please run the following commands to update the state of
+MOTD and display the message:
+
+```sh
+# Make sure ubuntu-advantage-tools version >= 27.0
+ua version
+# Make apt aware of the ESM source files
+sudo apt update
+# Generates ubuntu-advantage-tools messages that should be delivered to MOTD
+# This script is trigged by a systemd timer once a day. To test it, we need to
+# enforce that it was already executed.
+sudo systemctl start ua-messaging.service
+# Force updating MOTD messages related to update-notifier
+/usr/lib/update-notifier/update-motd-updates-available --force
+# Update MOTD and display the message
+run-parts /etc/update-motd.d/
+```
+
 ## Building
 
 Creating ubuntu-advantage-tools and ubuntu-advantage-pro is created from the
