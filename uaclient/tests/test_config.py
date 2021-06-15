@@ -9,7 +9,7 @@ import stat
 import mock
 import pytest
 
-from uaclient import entitlements, exceptions, status
+from uaclient import entitlements, exceptions, livepatch, snap, status
 from uaclient.config import (
     DataPath,
     DEFAULT_STATUS,
@@ -1073,6 +1073,159 @@ class TestAttachedServiceStatus:
         ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
 
         assert expected_status == ret["status"]
+
+
+class TestProcessConfig:
+    @pytest.mark.parametrize(
+        "http_proxy, https_proxy, snap_is_installed, snap_http_val, "
+        "snap_https_val, livepatch_is_installed, livepatch_http_val, "
+        "livepatch_https_val, expected_out",
+        [
+            ("http", "https", False, None, None, False, None, None, ""),
+            ("http", "https", True, None, None, False, None, None, ""),
+            ("http", "https", False, None, None, True, None, None, ""),
+            ("http", "https", True, None, None, True, None, None, ""),
+            (None, None, True, None, None, True, None, None, ""),
+            (
+                None,
+                None,
+                True,
+                "one",
+                None,
+                True,
+                None,
+                None,
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    commands=("    snap unset system proxy.http\n")
+                ),
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                None,
+                None,
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    commands=(
+                        "    snap unset system proxy.http\n"
+                        "    snap unset system proxy.https\n"
+                    )
+                ),
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                "three",
+                None,
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    commands=(
+                        "    snap unset system proxy.http\n"
+                        "    snap unset system proxy.https\n"
+                        "    canonical-livepatch config http-proxy=\n"
+                    )
+                ),
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                "three",
+                "four",
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    commands=(
+                        "    snap unset system proxy.http\n"
+                        "    snap unset system proxy.https\n"
+                        "    canonical-livepatch config http-proxy=\n"
+                        "    canonical-livepatch config https-proxy=\n"
+                    )
+                ),
+            ),
+        ],
+    )
+    @mock.patch("uaclient.livepatch.get_config_option_value")
+    @mock.patch("uaclient.livepatch.configure_livepatch_proxy_with_prompts")
+    @mock.patch("uaclient.livepatch.is_installed")
+    @mock.patch("uaclient.snap.get_config_option_value")
+    @mock.patch("uaclient.snap.configure_snap_proxy_with_prompts")
+    @mock.patch("uaclient.snap.is_installed")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
+    def test_process_config(
+        self,
+        m_apt_configure_proxy,
+        m_snap_is_installed,
+        m_snap_configure_proxy,
+        m_snap_get_config_option,
+        m_livepatch_is_installed,
+        m_livepatch_configure_proxy,
+        m_livepatch_get_config_option,
+        http_proxy,
+        https_proxy,
+        snap_is_installed,
+        snap_http_val,
+        snap_https_val,
+        livepatch_is_installed,
+        livepatch_http_val,
+        livepatch_https_val,
+        expected_out,
+        capsys,
+    ):
+        m_snap_is_installed.return_value = snap_is_installed
+        m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
+        m_livepatch_is_installed.return_value = livepatch_is_installed
+        m_livepatch_get_config_option.side_effect = [
+            livepatch_http_val,
+            livepatch_https_val,
+        ]
+        cfg = UAConfig(
+            {
+                "ua_config": {
+                    "apt_http_proxy": "apt_http",
+                    "apt_https_proxy": "apt_https",
+                    "http_proxy": http_proxy,
+                    "https_proxy": https_proxy,
+                }
+            }
+        )
+
+        cfg.process_config(assume_yes=True)
+
+        assert [
+            mock.call("apt_http", "apt_https", assume_yes=True)
+        ] == m_apt_configure_proxy.call_args_list
+        if snap_is_installed:
+            assert [
+                mock.call(http_proxy, https_proxy, assume_yes=True)
+            ] == m_snap_configure_proxy.call_args_list
+            calls = []
+            if http_proxy is None:
+                calls.append(mock.call(snap.HTTP_PROXY_OPTION))
+            if https_proxy is None:
+                calls.append(mock.call(snap.HTTPS_PROXY_OPTION))
+            assert calls == m_snap_get_config_option.call_args_list
+        if livepatch_is_installed:
+            assert [
+                mock.call(http_proxy, https_proxy, assume_yes=True)
+            ] == m_livepatch_configure_proxy.call_args_list
+            calls = []
+            if http_proxy is None:
+                calls.append(mock.call(livepatch.HTTP_PROXY_OPTION))
+            if https_proxy is None:
+                calls.append(mock.call(livepatch.HTTPS_PROXY_OPTION))
+            assert calls == m_livepatch_get_config_option.call_args_list
+
+        out, err = capsys.readouterr()
+        assert expected_out.strip() == out.strip()
+        assert "" == err
 
 
 class TestParseConfig:

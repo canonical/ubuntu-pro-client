@@ -9,7 +9,7 @@ import sys
 import yaml
 from collections import namedtuple, OrderedDict
 
-from uaclient import status, util
+from uaclient import apt, exceptions, livepatch, snap, status, util
 from uaclient.defaults import (
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
@@ -17,7 +17,6 @@ from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
 )
-from uaclient import exceptions
 
 try:
     from typing import (  # noqa: F401
@@ -664,6 +663,56 @@ class UAConfig:
 
         response_dict["help"] = help_ent.help_info
         return response_dict
+
+    def process_config(self, assume_yes: bool = False):
+        apt.setup_apt_proxy_with_prompts(
+            self.apt_http_proxy, self.apt_https_proxy, assume_yes=assume_yes
+        )
+
+        suggested_proxy_clearing_cmds = []
+        if snap.is_installed():
+            snap.configure_snap_proxy_with_prompts(
+                self.http_proxy, self.https_proxy, assume_yes=assume_yes
+            )
+            if not self.http_proxy and snap.get_config_option_value(
+                snap.HTTP_PROXY_OPTION
+            ):
+                suggested_proxy_clearing_cmds.append(
+                    "snap unset system proxy.http"
+                )
+            if not self.https_proxy and snap.get_config_option_value(
+                snap.HTTPS_PROXY_OPTION
+            ):
+                suggested_proxy_clearing_cmds.append(
+                    "snap unset system proxy.https"
+                )
+
+        if livepatch.is_installed():
+            livepatch.configure_livepatch_proxy_with_prompts(
+                self.http_proxy, self.https_proxy, assume_yes=assume_yes
+            )
+            if not self.http_proxy and livepatch.get_config_option_value(
+                livepatch.HTTP_PROXY_OPTION
+            ):
+                suggested_proxy_clearing_cmds.append(
+                    "canonical-livepatch config http-proxy="
+                )
+            if not self.https_proxy and livepatch.get_config_option_value(
+                livepatch.HTTPS_PROXY_OPTION
+            ):
+                suggested_proxy_clearing_cmds.append(
+                    "canonical-livepatch config https-proxy="
+                )
+
+        if len(suggested_proxy_clearing_cmds) > 0:
+            cmd_str = ""
+            for cmd in suggested_proxy_clearing_cmds:
+                cmd_str += "    {}\n".format(cmd)
+            print(
+                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                    commands=cmd_str
+                )
+            )
 
 
 def parse_config(config_path=None):

@@ -1,9 +1,5 @@
 import mock
-import textwrap
-
 import pytest
-
-from uaclient import exceptions
 
 try:
     from typing import Any, Dict, Optional  # noqa: F401
@@ -11,24 +7,31 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
+from uaclient import exceptions
 from uaclient import status
+from uaclient import util
 from uaclient.cli import action_refresh, main
 
-M_PATH = "uaclient.cli."
-
-HELP_OUTPUT = textwrap.dedent(
-    """\
-usage: ua refresh [flags]
+HELP_OUTPUT = """\
+usage: ua refresh [contract|config] [flags]
 
 Refresh existing Ubuntu Advantage contract and update services.
 
+positional arguments:
+  {contract,config}  Target to refresh. `ua refresh contract` will update
+                     contract details from the server and perform any updates
+                     necessary. `ua refresh config` will reload /etc/ubuntu-
+                     advantage/uaclient.conf and perform any changes
+                     necessary. `ua refresh` is the equivalent of `ua refresh
+                     config && ua refresh contract`.
+
 Flags:
-  -h, --help  show this help message and exit
+  -h, --help         show this help message and exit
+  --assume-yes       do not prompt before performing refresh actions
 """
-)
 
 
-@mock.patch(M_PATH + "os.getuid", return_value=0)
+@mock.patch("os.getuid", return_value=0)
 class TestActionRefresh:
     def test_refresh_help(self, _getuid, capsys):
         with pytest.raises(SystemExit):
@@ -45,12 +48,20 @@ class TestActionRefresh:
         with pytest.raises(exceptions.NonRootUserError):
             action_refresh(mock.MagicMock(), cfg)
 
-    def test_not_attached_errors(self, getuid, FakeConfig):
+    @pytest.mark.parametrize(
+        "target, expect_unattached_error",
+        [(None, True), ("contract", True), ("config", False)],
+    )
+    def test_not_attached_errors(
+        self, getuid, target, expect_unattached_error, FakeConfig
+    ):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
-
-        with pytest.raises(exceptions.UnattachedError):
-            action_refresh(mock.MagicMock(), cfg)
+        if expect_unattached_error:
+            with pytest.raises(exceptions.UnattachedError):
+                action_refresh(mock.MagicMock(target=target), cfg)
+        else:
+            action_refresh(mock.MagicMock(target=target), cfg)
 
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
@@ -66,24 +77,22 @@ class TestActionRefresh:
             "Operation in progress: ua disable (pid:123)"
         ) == err.value.msg
 
-    @mock.patch(M_PATH + "logging.error")
-    @mock.patch(M_PATH + "contract.request_updated_contract")
+    @mock.patch("logging.exception")
+    @mock.patch("uaclient.contract.request_updated_contract")
     def test_refresh_contract_error_on_failure_to_update_contract(
         self, request_updated_contract, logging_error, getuid, FakeConfig
     ):
         """On failure in request_updates_contract emit an error."""
-        request_updated_contract.side_effect = exceptions.UserFacingError(
-            "Failure to refresh"
-        )
+        request_updated_contract.side_effect = util.UrlError(mock.MagicMock())
 
         cfg = FakeConfig.for_attached_machine()
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
-            action_refresh(mock.MagicMock(), cfg)
+            action_refresh(mock.MagicMock(target="contract"), cfg)
 
-        assert "Failure to refresh" == excinfo.value.msg
+        assert status.MESSAGE_REFRESH_CONTRACT_FAILURE == excinfo.value.msg
 
-    @mock.patch(M_PATH + "contract.request_updated_contract")
+    @mock.patch("uaclient.contract.request_updated_contract")
     def test_refresh_contract_happy_path(
         self, request_updated_contract, getuid, capsys, FakeConfig
     ):
@@ -91,8 +100,65 @@ class TestActionRefresh:
         request_updated_contract.return_value = True
 
         cfg = FakeConfig.for_attached_machine()
-        ret = action_refresh(mock.MagicMock(), cfg)
+        ret = action_refresh(mock.MagicMock(target="contract"), cfg)
 
         assert 0 == ret
-        assert status.MESSAGE_REFRESH_SUCCESS in capsys.readouterr()[0]
+        assert (
+            status.MESSAGE_REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
+        )
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
+
+    @mock.patch("logging.exception")
+    @mock.patch(
+        "uaclient.config.UAConfig.process_config", side_effect=RuntimeError()
+    )
+    def test_refresh_config_error_on_failure_to_process_config(
+        self, _m_process_config, _m_logging_error, getuid, FakeConfig
+    ):
+        """On failure in process_config emit an error."""
+
+        cfg = FakeConfig.for_attached_machine()
+
+        with pytest.raises(exceptions.UserFacingError) as excinfo:
+            action_refresh(mock.MagicMock(target="config"), cfg)
+
+        assert status.MESSAGE_REFRESH_CONFIG_FAILURE == excinfo.value.msg
+
+    @mock.patch("uaclient.config.UAConfig.process_config")
+    def test_refresh_config_happy_path(
+        self, m_process_config, getuid, capsys, FakeConfig
+    ):
+        """On success from process_config root user gets success message."""
+
+        cfg = FakeConfig.for_attached_machine()
+        ret = action_refresh(mock.MagicMock(target="config"), cfg)
+
+        assert 0 == ret
+        assert status.MESSAGE_REFRESH_CONFIG_SUCCESS in capsys.readouterr()[0]
+        assert [
+            mock.call(assume_yes=mock.ANY)
+        ] == m_process_config.call_args_list
+
+    @mock.patch("uaclient.contract.request_updated_contract")
+    @mock.patch("uaclient.config.UAConfig.process_config")
+    def test_refresh_all_happy_path(
+        self,
+        m_process_config,
+        m_request_updated_contract,
+        getuid,
+        capsys,
+        FakeConfig,
+    ):
+        """On success from process_config root user gets success message."""
+
+        cfg = FakeConfig.for_attached_machine()
+        ret = action_refresh(mock.MagicMock(target=None), cfg)
+        out, err = capsys.readouterr()
+
+        assert 0 == ret
+        assert status.MESSAGE_REFRESH_CONFIG_SUCCESS in out
+        assert status.MESSAGE_REFRESH_CONTRACT_SUCCESS in out
+        assert [
+            mock.call(assume_yes=mock.ANY)
+        ] == m_process_config.call_args_list
+        assert [mock.call(cfg)] == m_request_updated_contract.call_args_list

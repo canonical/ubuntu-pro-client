@@ -13,6 +13,17 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua refresh` with sudo
         Then I will see the following on stdout:
             """
+            Successfully processed your ua configuration.
+            Successfully refreshed your subscription.
+            """
+        When I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            Successfully processed your ua configuration.
+            """
+        When I run `ua refresh contract` with sudo
+        Then I will see the following on stdout:
+            """
             Successfully refreshed your subscription.
             """
 
@@ -23,6 +34,37 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | groovy  |
+
+    @series.xenial
+    @series.bionic
+    @series.focal
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached refresh config in a ubuntu machine vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `snap install canonical-livepatch` with sudo
+        And I run `snap set system proxy.https=http://localhost:1234` with sudo
+        And I run `canonical-livepatch config http-proxy=http://localhost:12345` with sudo
+        And I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            We noticed you have some system proxies set but did not configure them
+            with ubuntu-advantage-tools. If you wish to remove them, run the following
+            commands:
+
+                snap unset system proxy.https
+                canonical-livepatch config http-proxy=
+
+            Or, if you want ua to stop showing this message, you can add the proxy
+            information to /etc/ubuntu-advantage/uaclient.conf
+
+            Successfully processed your ua configuration.
+            """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
 
     @series.all
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
