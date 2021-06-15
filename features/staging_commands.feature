@@ -310,7 +310,12 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         1
         """
-        When I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
+        # Since this test runs dist-upgrade. Let's make sure we are not sourcing
+        # -proposed. Otherwise bad things happen due to upgrade/removal of all
+        # packages  in -proposed.
+        When I run `rm -f /etc/apt/sources.list.d/uaclient-proposed.list` with sudo
+        And I run `apt update` with sudo
+        And I run `apt-get dist-upgrade -y --allow-downgrades` with sudo
         # A package may need a reboot after running dist-upgrade
         And I reboot the `<release>` machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
