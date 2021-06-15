@@ -26,8 +26,10 @@ reports/
 # integration test artifacts
 azure-priv-*.pem
 azure-pub-*.txt
-*-privkey
-*-pubkey
+ec2-*.pem
+gcp-pub-*
+gcp-priv-*
+lxd-*-uaclient-ci-*
 build-from-source.sh
 
 # apt-hook build artifacts
