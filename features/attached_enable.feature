@@ -282,7 +282,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Attached enable livepatch on a machine with fips active
+    Scenario Outline: Attached enable livepatch and set/unset proxies via uaclient.conf
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `canonical-livepatch status` `with sudo` exits `1`
         Then I will see the following on stderr:
@@ -304,6 +304,33 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
             """
             running: true
+            """
+        When I append the following on uaclient config
+            """
+            ua_config:
+                http_proxy: "http://localhost:1234"
+                https_proxy: "http://localhost:12345"
+            """
+        When I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            Setting snap proxy
+            Setting Livepatch proxy
+            Successfully processed your ua configuration.
+            """
+        When I append the following on uaclient config
+            """
+            ua_config:
+                http_proxy: ""
+                https_proxy: ""
+            """
+        And I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            No proxy set in config; however, proxy is configured for: snap, livepatch.
+            See https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788 for more information on ua proxy configuration.
+
+            Successfully processed your ua configuration.
             """
 
         Examples: ubuntu release

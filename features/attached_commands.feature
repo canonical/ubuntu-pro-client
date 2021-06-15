@@ -13,7 +13,30 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua refresh` with sudo
         Then I will see the following on stdout:
             """
+            Successfully processed your ua configuration.
             Successfully refreshed your subscription.
+            """
+        When I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            Successfully processed your ua configuration.
+            """
+        When I run `ua refresh contract` with sudo
+        Then I will see the following on stdout:
+            """
+            Successfully refreshed your subscription.
+            """
+        When I append the following on uaclient config
+            """
+            ua_config:
+                apt_http_proxy: "http://localhost:1234"
+                apt_https_proxy: "http://localhost:12345"
+            """
+        When I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            Setting APT proxy
+            Successfully processed your ua configuration.
             """
 
         Examples: ubuntu release

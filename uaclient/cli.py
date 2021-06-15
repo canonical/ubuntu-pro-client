@@ -250,8 +250,24 @@ def refresh_parser(parser):
     parser.description = (
         "Refresh existing Ubuntu Advantage contract and update services."
     )
-    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser.usage = USAGE_TMPL.format(
+        name=NAME, command="refresh [contract|config]"
+    )
     parser._optionals.title = "Flags"
+    parser.add_argument(
+        "target",
+        choices=["contract", "config"],
+        nargs="?",
+        default=None,
+        help=(
+            "Target to refresh. `ua refresh contract` will update contract"
+            " details from the server and perform any updates necessary."
+            " `ua refresh config` will reload"
+            " /etc/ubuntu-advantage/uaclient.conf and perform any changes"
+            " necessary. `ua refresh` is the equivalent of `ua refresh"
+            " config && ua refresh contract`."
+        ),
+    )
     return parser
 
 
@@ -523,12 +539,14 @@ def action_enable(args, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    print(ua_status.MESSAGE_REFRESH_ENABLE)
+    print(ua_status.MESSAGE_REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
     except (util.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
-        logging.debug(ua_status.MESSAGE_REFRESH_FAILURE, exc_info=True)
+        logging.debug(
+            ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE, exc_info=True
+        )
 
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
@@ -833,8 +851,7 @@ def get_parser():
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
     parser_refresh = subparsers.add_parser(
-        "refresh",
-        help="refresh Ubuntu Advantage services from contracts server",
+        "refresh", help="refresh Ubuntu Advantage services"
     )
     parser_refresh.set_defaults(action=action_refresh)
     refresh_parser(parser_refresh)
@@ -897,18 +914,40 @@ def print_version(_args=None, _cfg=None):
     print(get_version(_args, _cfg))
 
 
-@assert_root
+def _action_refresh_config(args, cfg: config.UAConfig):
+    try:
+        cfg.process_config()
+    except RuntimeError as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc)
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_REFRESH_CONFIG_FAILURE
+        )
+    print(ua_status.MESSAGE_REFRESH_CONFIG_SUCCESS)
+
+
 @assert_attached()
-@assert_lock_file("ua refresh")
-def action_refresh(args, cfg: config.UAConfig):
+def _action_refresh_contract(_args, cfg: config.UAConfig):
     try:
         contract.request_updated_contract(cfg)
     except util.UrlError as exc:
         with util.disable_log_to_console():
             logging.exception(exc)
-        raise exceptions.UserFacingError(ua_status.MESSAGE_REFRESH_FAILURE)
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE
+        )
+    print(ua_status.MESSAGE_REFRESH_CONTRACT_SUCCESS)
 
-    print(ua_status.MESSAGE_REFRESH_SUCCESS)
+
+@assert_root
+@assert_lock_file("ua refresh")
+def action_refresh(args, cfg: config.UAConfig):
+    if args.target is None or args.target == "config":
+        _action_refresh_config(args, cfg)
+
+    if args.target is None or args.target == "contract":
+        _action_refresh_contract(args, cfg)
+
     return 0
 
 
