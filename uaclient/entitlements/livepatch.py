@@ -2,13 +2,13 @@ import logging
 import re
 
 from uaclient.entitlements import base
-from uaclient import apt, exceptions, status
+from uaclient import apt, exceptions, snap, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
-SNAP_CMD = "/usr/bin/snap"
-SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 LIVEPATCH_RETRIES = [0.5, 1.0]
+HTTP_PROXY_OPTION = "http-proxy"
+HTTPS_PROXY_OPTION = "https-proxy"
 
 try:
     from typing import Any, Callable, Dict, Tuple, List, Optional  # noqa: F401
@@ -22,37 +22,6 @@ ERROR_MSG_MAP = {
     "Unknown Auth-Token": "Invalid Auth-Token provided to livepatch.",
     "unsupported kernel": "Your running kernel is not supported by Livepatch.",
 }
-
-
-def configure_snap_proxy(
-    http_proxy: "Optional[str]",
-    https_proxy: "Optional[str]",
-    snap_retries: "Optional[List[float]]" = None,
-) -> None:
-    """
-    Configure snap to use http and https proxies.
-
-    :param http_proxy: http proxy to be used by snap. If None, it will
-                       not be configured
-    :param https_proxy: https proxy to be used by snap. If None, it will
-                        not be configured
-    :@param snap_retries: Optional list of sleep lengths to apply between
-                          snap calls
-    """
-    if http_proxy or https_proxy:
-        print(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="snap"))
-
-    if http_proxy:
-        util.subp(
-            ["snap", "set", "system", "proxy.http={}".format(http_proxy)],
-            retry_sleeps=snap_retries,
-        )
-
-    if https_proxy:
-        util.subp(
-            ["snap", "set", "system", "proxy.https={}".format(https_proxy)],
-            retry_sleeps=snap_retries,
-        )
 
 
 def configure_livepatch_proxy(
@@ -96,6 +65,21 @@ def configure_livepatch_proxy(
             ],
             retry_sleeps=livepatch_retries,
         )
+
+
+def get_config_option_value(key: str) -> Optional[str]:
+    """
+    Gets the config value from livepatch.
+    :param protocol: can be any valid livepatch config option
+    :return: the value of the livepatch config option, or None if not set
+    """
+    out, _ = util.subp(["canonical-livepatch", "config"])
+    match = re.search("^{}: (.*)$".format(key), out, re.MULTILINE)
+    value = match.group(1) if match else None
+    if value:
+        # remove quotes if present
+        value = re.sub(r"\"(.*)\"", r"\g<1>", value)
+    return value.strip() if value else None
 
 
 class LivepatchEntitlement(base.UAEntitlement):
@@ -145,7 +129,7 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which(SNAP_CMD):
+        if not util.which(snap.SNAP_CMD):
             print("Installing snapd")
             print(status.MESSAGE_APT_UPDATING_LISTS)
             try:
@@ -171,7 +155,7 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         try:
             util.subp(
-                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+                [snap.SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
             )
         except util.ProcessExecutionError as e:
             if re.search(r"unknown command .*wait", str(e).lower()):
@@ -181,17 +165,17 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         http_proxy = self.cfg.http_proxy
         https_proxy = self.cfg.https_proxy
-        configure_snap_proxy(
-            http_proxy, https_proxy, snap_retries=SNAP_INSTALL_RETRIES
+        snap.configure_snap_proxy(
+            http_proxy, https_proxy, snap_retries=snap.SNAP_INSTALL_RETRIES
         )
 
         if not util.which("/snap/bin/canonical-livepatch"):
             print("Installing canonical-livepatch snap")
             try:
                 util.subp(
-                    [SNAP_CMD, "install", "canonical-livepatch"],
+                    [snap.SNAP_CMD, "install", "canonical-livepatch"],
                     capture=True,
-                    retry_sleeps=SNAP_INSTALL_RETRIES,
+                    retry_sleeps=snap.SNAP_INSTALL_RETRIES,
                 )
             except util.ProcessExecutionError as e:
                 msg = "Unable to install Livepatch client: " + str(e)

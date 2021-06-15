@@ -16,6 +16,9 @@ BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_UA_URL = "https://ubuntu.com/advantage"
 EOL_UA_URL_TMPL = "https://ubuntu.com/{hyphenatedrelease}"
 BASE_ESM_URL = "https://ubuntu.com/esm"
+DOCUMENTATION_URL = (
+    "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
+)
 PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
 CONTRACT_EXPIRY_PENDING_DAYS = 20
