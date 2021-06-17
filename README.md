@@ -62,8 +62,7 @@ By default, Ubuntu machines are deployed in an unattached state. A machine can
 get manually or automatically attached to a specific contract by interacting
 with the Contract Server REST API. Any change in state of services or machine
 attach results in additional interactions with the Contract Server API to
-validate such operations. The contract server API is described by the
-[ua-contracts openapi spec](https://github.com/CanonicalLtd/ua-contracts/blob/develop/docs/contracts.yaml).
+validate such operations.
 
 ### Attaching a machine
 Each Ubuntu SSO account holder has access to one or more contracts. To attach
