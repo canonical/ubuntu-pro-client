@@ -110,11 +110,11 @@ class UAConfig:
         return self.cfg.get("security_url", "https://ubuntu.com/security")
 
     @property
-    def http_proxy(self):
+    def http_proxy(self) -> "Optional[str]":
         return self.cfg.get("http_proxy")
 
     @property
-    def https_proxy(self):
+    def https_proxy(self) -> "Optional[str]":
         return self.cfg.get("https_proxy")
 
     @property
