@@ -107,7 +107,7 @@ def given_a_machine(context, series):
 def launch_machine(context, series, instance_name):
     now = datetime.datetime.now()
     date_prefix = now.strftime("-%s%f")
-    name = CONTAINER_PREFIX + series + date_prefix + instance_name
+    name = CONTAINER_PREFIX + series + date_prefix + "-" + instance_name
 
     context.instances[instance_name] = context.config.cloud_manager.launch(
         series=series, instance_name=name
@@ -157,9 +157,8 @@ def when_i_configure_uaclient_using_proxy_machine(
     # But I don't think we need this at this moment.
     port = "3128"
 
+    # we are not configuring a full https proxy for the tests
     proxy_type = "http"
-    if "https" in proxy_cfg:
-        proxy_type = "https"
 
     proxy_cfg_value = "{}://{}:{}".format(proxy_type, proxy_ip, port)
 

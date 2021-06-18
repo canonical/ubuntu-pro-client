@@ -6,13 +6,12 @@ from uaclient import apt, exceptions, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
-
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 LIVEPATCH_RETRIES = [0.5, 1.0]
 
 try:
-    from typing import Any, Callable, Dict, Tuple  # noqa: F401
+    from typing import Any, Callable, Dict, Tuple, List, Optional  # noqa: F401
 
     StaticAffordance = Tuple[str, Callable[[], Any], bool]
 except ImportError:
@@ -23,6 +22,70 @@ ERROR_MSG_MAP = {
     "Unknown Auth-Token": "Invalid Auth-Token provided to livepatch.",
     "unsupported kernel": "Your running kernel is not supported by Livepatch.",
 }
+
+
+def configure_snap_proxy(
+    http_proxy: "Optional[str]",
+    https_proxy: "Optional[str]",
+    snap_retries: "Optional[List[float]]" = None,
+) -> None:
+    """
+    Configure snap to use http and https proxies.
+
+    :param http_proxy: http proxy to be used by snap. If None, it will
+                       not be configured
+    :param https_proxy: https proxy to be used by snap. If None, it will
+                        not be configured
+    :@param snap_retries: Optional list of sleep lengths to apply between
+                          snap calls
+    """
+    if http_proxy:
+        util.subp(
+            ["snap", "set", "system", "proxy.http={}".format(http_proxy)],
+            retry_sleeps=snap_retries,
+        )
+
+    if https_proxy:
+        util.subp(
+            ["snap", "set", "system", "proxy.https={}".format(https_proxy)],
+            retry_sleeps=snap_retries,
+        )
+
+
+def configure_livepatch_proxy(
+    http_proxy: "Optional[str]",
+    https_proxy: "Optional[str]",
+    livepatch_retries: "Optional[List[float]]" = None,
+) -> None:
+    """
+    Configure livepatch to use http and https proxies.
+
+    :param http_proxy: http proxy to be used by livepatch. If None, it will
+                       not be configured
+    :param https_proxy: https proxy to be used by livepatch. If None, it will
+                        not be configured
+    :@param livepatch_retries: Optional list of sleep lengths to apply between
+                               snap calls
+    """
+    if http_proxy:
+        util.subp(
+            [
+                "canonical-livepatch",
+                "config",
+                "http-proxy={}".format(http_proxy),
+            ],
+            retry_sleeps=livepatch_retries,
+        )
+
+    if https_proxy:
+        util.subp(
+            [
+                "canonical-livepatch",
+                "config",
+                "https-proxy={}".format(https_proxy),
+            ],
+            retry_sleeps=livepatch_retries,
+        )
 
 
 class LivepatchEntitlement(base.UAEntitlement):
@@ -110,6 +173,12 @@ class LivepatchEntitlement(base.UAEntitlement):
                     raise
 
             print("Installing canonical-livepatch snap")
+            http_proxy = self.cfg.http_proxy
+            https_proxy = self.cfg.https_proxy
+            configure_snap_proxy(
+                http_proxy, https_proxy, snap_retries=SNAP_INSTALL_RETRIES
+            )
+
             try:
                 util.subp(
                     [SNAP_CMD, "install", "canonical-livepatch"],
@@ -133,6 +202,10 @@ class LivepatchEntitlement(base.UAEntitlement):
         :param process_token: Boolean set True when token should be
             processsed.
         """
+        http_proxy = self.cfg.http_proxy
+        https_proxy = self.cfg.https_proxy
+        configure_livepatch_proxy(http_proxy, https_proxy)
+
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if process_directives:
             try:
