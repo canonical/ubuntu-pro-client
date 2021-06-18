@@ -10,7 +10,12 @@ import yaml
 from collections import namedtuple, OrderedDict
 
 from uaclient import status, util
-from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
+from uaclient.defaults import (
+    CONFIG_DEFAULTS,
+    DEFAULT_CONFIG_FILE,
+    BASE_CONTRACT_URL,
+    BASE_SECURITY_URL,
+)
 from uaclient import exceptions
 
 try:
@@ -102,12 +107,12 @@ class UAConfig:
         return []
 
     @property
-    def contract_url(self):
-        return self.cfg.get("contract_url", "https://contracts.canonical.com")
+    def contract_url(self) -> str:
+        return self.cfg.get("contract_url", BASE_CONTRACT_URL)
 
     @property
-    def security_url(self):
-        return self.cfg.get("security_url", "https://ubuntu.com/security")
+    def security_url(self) -> str:
+        return self.cfg.get("security_url", BASE_SECURITY_URL)
 
     @property
     def http_proxy(self) -> "Optional[str]":
