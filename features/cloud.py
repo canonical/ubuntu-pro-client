@@ -214,16 +214,22 @@ class Cloud:
 
         return image_name
 
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+    def manage_ssh_key(
+        self,
+        private_key_path: "Optional[str]" = None,
+        key_name: "Optional[str]" = None,
+    ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
         :param private_key_path:
             Location of the private key path to use. If None, the location
             will be a default location.
         """
+        if key_name:
+            self.key_name = key_name
         cloud_name = self.name.lower().replace("_", "-")
-        pub_key_path = "{}-pubkey".format(cloud_name)
-        priv_key_path = "{}-privkey".format(cloud_name)
+        pub_key_path = "{}-pub-{}".format(cloud_name, self.key_name)
+        priv_key_path = "{}-priv-{}".format(cloud_name, self.key_name)
         pub_key, priv_key = self.api.create_key_pair()
 
         with open(pub_key_path, "w") as f:
@@ -456,7 +462,11 @@ class Azure(Cloud):
         # instead of the instance id
         return instance.name
 
-    def manage_ssh_key(self, private_key_path: "Optional[str]" = None) -> None:
+    def manage_ssh_key(
+        self,
+        private_key_path: "Optional[str]" = None,
+        key_name: "Optional[str]" = None,
+    ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
         :param private_key_path:
