@@ -5,6 +5,7 @@ import subprocess
 import re
 import shlex
 import time
+import yaml
 
 from behave import given, then, when
 from hamcrest import (
@@ -19,6 +20,7 @@ from features.environment import create_uat_image
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
+from uaclient.util import load_file
 
 
 CONTAINER_PREFIX = "ubuntu-behave-test-"
@@ -159,11 +161,19 @@ def when_i_configure_uaclient_using_proxy_machine(
     if "https" in proxy_cfg:
         proxy_type = "https"
 
-    proxy_cfg_entry = "{}: {}://{}:{}".format(
-        proxy_cfg + "_proxy", proxy_type, proxy_ip, port
-    )
-    context.text = proxy_cfg_entry
+    proxy_cfg_value = "{}://{}:{}".format(proxy_type, proxy_ip, port)
 
+    tmp_local_conf = "/tmp/uaclient.conf"
+    context.instances["uaclient"].pull_file(
+        DEFAULT_CONFIG_FILE, tmp_local_conf
+    )
+    cfg = yaml.safe_load(load_file(tmp_local_conf))
+
+    if "ua_config" not in cfg:
+        cfg["ua_config"] = {}
+    cfg["ua_config"][proxy_cfg + "_proxy"] = proxy_cfg_value
+
+    context.text = yaml.dump(cfg)
     when_i_append_to_uaclient_config(context)
 
 
