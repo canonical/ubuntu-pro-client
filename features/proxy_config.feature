@@ -49,8 +49,9 @@ Feature: Proxy configuration
         """
         When I append the following on uaclient config
         """
-        apt_http_proxy: ""
-        apt_https_proxy: ""
+        ua_config:
+            apt_http_proxy: ""
+            apt_https_proxy: ""
         """
         And I run `ua enable cis` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
