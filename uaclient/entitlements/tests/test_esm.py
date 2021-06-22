@@ -199,8 +199,10 @@ class TestESMInfraEntitlementEnable:
         entitlement = entitlement_factory(
             esm_cls,
             cfg_extension={
-                "apt_http_proxy": "apt_http_proxy_value",
-                "apt_https_proxy": "apt_https_proxy_value",
+                "ua_config": {
+                    "apt_http_proxy": "apt_http_proxy_value",
+                    "apt_https_proxy": "apt_https_proxy_value",
+                }
             },
             suites=["trusty"],
         )
