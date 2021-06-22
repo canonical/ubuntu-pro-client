@@ -116,19 +116,19 @@ class UAConfig:
 
     @property
     def http_proxy(self) -> "Optional[str]":
-        return self.cfg.get("http_proxy")
+        return self.cfg.get("ua_config", {}).get("http_proxy")
 
     @property
     def https_proxy(self) -> "Optional[str]":
-        return self.cfg.get("https_proxy")
+        return self.cfg.get("ua_config", {}).get("https_proxy")
 
     @property
     def apt_http_proxy(self) -> "Optional[str]":
-        return self.cfg.get("apt_http_proxy")
+        return self.cfg.get("ua_config", {}).get("apt_http_proxy")
 
     @property
     def apt_https_proxy(self) -> "Optional[str]":
-        return self.cfg.get("apt_https_proxy")
+        return self.cfg.get("ua_config", {}).get("apt_https_proxy")
 
     def check_lock_info(self) -> "Tuple[int, str]":
         """Return lock info if config lock file is present the lock is active.
