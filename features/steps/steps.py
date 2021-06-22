@@ -207,6 +207,11 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
     assert_that(context.process.returncode, equal_to(0))
 
 
+@when("I run `{command}` {user_spec}, and provide the following stdin")
+def when_i_run_command_with_stdin(context, command, user_spec):
+    when_i_run_command(context, command, user_spec, stdin=context.text)
+
+
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(
     context,

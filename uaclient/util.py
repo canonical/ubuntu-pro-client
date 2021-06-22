@@ -806,3 +806,90 @@ def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
     return datetime.datetime.strptime(
         dt_str_without_microseconds, "%Y-%m-%dT%H:%M:%S%z"
     )
+
+
+def prompt_for_proxy_change(
+    service: str,
+    protocol: str,
+    curr_proxy: Optional[str] = None,
+    new_proxy: Optional[str] = None,
+    assume_yes: bool = False,
+) -> Optional[str]:
+    """
+    Prompts to confirm a proxy overwrite if the new value is non-None and
+    the old value is non-None, and the new value is different from the old
+    value.
+    If the user denies a prompt, then None is returned. None is intended to be
+    treated as a noop by the caller.
+    If the user accepts a prompt, then the new value is returned.
+    If no prompt was necessary, then the new value is returned.
+
+    :param service: the service this proxy is for
+    :param protocol: the protocol this proxy is for ("http" or "https")
+    :param curr_proxy: the current proxy value set
+    :param new_proxy: the new proxy value that may overwrite the current value
+    :param assume_yes: if True, will skip prompts if necessary
+    :return: None if the user denied the prompt, new_proxy otherwise
+    """
+    if (
+        curr_proxy is not None
+        and new_proxy is not None
+        and curr_proxy != new_proxy
+        and not prompt_for_confirmation(
+            status.MESSAGE_PROXY_OVERRIDE_PROMPT.format(
+                service=service,
+                protocol=protocol,
+                curr_value=curr_proxy,
+                new_value=new_proxy,
+            ),
+            assume_yes=assume_yes,
+        )
+    ):
+        return None
+    return new_proxy
+
+
+def prompt_for_proxy_changes(
+    service: str,
+    curr_http_proxy: Optional[str] = None,
+    curr_https_proxy: Optional[str] = None,
+    new_http_proxy: Optional[str] = None,
+    new_https_proxy: Optional[str] = None,
+    assume_yes: bool = False,
+) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Calls prompt_for_proxy_change for http and https curr/new values
+
+    :param service: the service this proxy is for
+    :param curr_http_proxy: the current http proxy value set
+    :param curr_https_proxy: the current https proxy value set
+    :param new_http_proxy: the new http proxy value that may overwrite the
+                           current value
+    :param new_https_proxy: the new https proxy value that may overwrite the
+                            current value
+    :param assume_yes: if True, will skip prompts if necessary
+    :return: tuple of
+             (None, None) if the caller should not configure any proxies
+             (new_http_proxy, None) if the caller should configure only the
+                                    new http proxy
+             (None, new_https_proxy) if the caller should configure only the
+                                     new https proxy
+             (new_http_proxy, new_https_proxy) if the caller should configure
+                                               both new proxies
+    """
+    return (
+        prompt_for_proxy_change(
+            service,
+            "http",
+            curr_proxy=curr_http_proxy,
+            new_proxy=new_http_proxy,
+            assume_yes=assume_yes,
+        ),
+        prompt_for_proxy_change(
+            service,
+            "https",
+            curr_proxy=curr_https_proxy,
+            new_proxy=new_https_proxy,
+            assume_yes=assume_yes,
+        ),
+    )

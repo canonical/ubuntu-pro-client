@@ -264,9 +264,10 @@ class RepoEntitlement(base.UAEntitlement):
         :raise UserFacingError: on failure to setup any aspect of this apt
            configuration
         """
-        apt.setup_apt_proxy(
+        apt.setup_apt_proxy_with_prompts(
             http_proxy=self.cfg.apt_http_proxy,
             https_proxy=self.cfg.apt_https_proxy,
+            assume_yes=self.assume_yes,
         )
         repo_filename = self.repo_list_file_tmpl.format(name=self.name)
         resource_cfg = self.cfg.entitlements.get(self.name)

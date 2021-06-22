@@ -395,7 +395,7 @@ def get_installed_packages() -> "List[str]":
 
 
 def setup_apt_proxy(
-    http_proxy: Optional[str] = None, https_proxy: Optional[str] = None
+    http_proxy: Optional[str], https_proxy: Optional[str]
 ) -> None:
     """
     Writes an apt conf file that configures apt to use the proxies provided as
@@ -426,3 +426,43 @@ def setup_apt_proxy(
         util.remove_file(APT_PROXY_CONF_FILE)
     else:
         util.write_file(APT_PROXY_CONF_FILE, apt_proxy_config)
+
+
+def get_current_proxy_value(protocol: str) -> Optional[str]:
+    """
+    Gets the current proxy that apt is configured to use. Can get the http
+    or https proxy value, depending on the argument.
+
+    :param protocol: can be "http" or "https", the proxy to get the value of
+    :return: the value of the apt proxy, or None if not set
+    """
+    apt_config_key = "Acquire::{}::Proxy".format(protocol)
+    out, _ = util.subp(["apt-config", "shell", "key", apt_config_key])
+    match = re.search("key='(.*)'", out)
+    return match.group(1).strip() if match else None
+
+
+def setup_apt_proxy_with_prompts(
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    assume_yes: bool = False,
+) -> None:
+    """
+    First checks existing values of apt proxies. Then prompts if provied args
+    are different. Then writes an apt conf file that configures apt to use the
+    proxies provided as args if prompts are passed.
+
+    :param http_proxy: the url of the http proxy apt should use, or None
+    :param https_proxy: the url of the https proxy apt should use, or None
+    :param assume_yes: if True, will skip prompts if necessary
+    :return: None
+    """
+    http_proxy_to_set, https_proxy_to_set = util.prompt_for_proxy_changes(
+        "apt",
+        curr_http_proxy=get_current_proxy_value("http"),
+        curr_https_proxy=get_current_proxy_value("https"),
+        new_http_proxy=http_proxy,
+        new_https_proxy=https_proxy,
+        assume_yes=assume_yes,
+    )
+    setup_apt_proxy(http_proxy_to_set, https_proxy_to_set)

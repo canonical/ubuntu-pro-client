@@ -20,10 +20,15 @@ import pytest
 from uaclient import apt
 from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
+    SNAP_CMD,
     LivepatchEntitlement,
     process_config_directives,
     configure_snap_proxy,
+    get_snap_config_option_value,
+    configure_snap_proxy_with_prompts,
     configure_livepatch_proxy,
+    get_livepatch_config_option_value,
+    configure_livepatch_proxy_with_prompts,
 )
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient import status
@@ -115,6 +120,59 @@ class TestConfigureSnapProxy:
 
         assert m_subp.call_args_list == expected_calls
 
+    @pytest.mark.parametrize(
+        "key, subp_side_effect, expected_ret",
+        [
+            ("proxy.http", ProcessExecutionError("doesn't matter"), None),
+            ("proxy.https", ("value", ""), "value"),
+        ],
+    )
+    @mock.patch("uaclient.util.subp")
+    def test_get_snap_config_option_value(
+        self, m_util_subp, key, subp_side_effect, expected_ret
+    ):
+        m_util_subp.side_effect = [subp_side_effect]
+        ret = get_snap_config_option_value(key)
+        assert ret == expected_ret
+        assert [
+            mock.call(["snap", "get", "system", key])
+        ] == m_util_subp.call_args_list
+
+    @mock.patch("uaclient.entitlements.livepatch.configure_snap_proxy")
+    @mock.patch(
+        "uaclient.util.prompt_for_proxy_changes",
+        return_value=("prompt_ret_1", "prompt_ret_2"),
+    )
+    @mock.patch(
+        "uaclient.entitlements.livepatch.get_snap_config_option_value",
+        side_effect=["curr_ret_1", "curr_ret_2"],
+    )
+    def test_configure_snap_proxy_with_prompts(
+        self,
+        m_get_snap_config_option_value,
+        m_prompt_for_proxy_changes,
+        m_configure_snap_proxy,
+    ):
+        configure_snap_proxy_with_prompts(
+            http_proxy="http",
+            https_proxy="https",
+            snap_retries=[1],
+            assume_yes=True,
+        )
+        assert [
+            mock.call(
+                "snap",
+                curr_http_proxy="curr_ret_1",
+                curr_https_proxy="curr_ret_2",
+                new_http_proxy="http",
+                new_https_proxy="https",
+                assume_yes=True,
+            )
+        ] == m_prompt_for_proxy_changes.call_args_list
+        assert [
+            mock.call("prompt_ret_1", "prompt_ret_2", snap_retries=[1])
+        ] == m_configure_snap_proxy.call_args_list
+
 
 class TestConfigureLivepatchProxy:
     @pytest.mark.parametrize(
@@ -159,6 +217,115 @@ class TestConfigureLivepatchProxy:
             )
 
         assert m_subp.call_args_list == expected_calls
+
+    @pytest.mark.parametrize(
+        "key, subp_return_value, expected_ret",
+        [
+            ("http-proxy", ("nonsense", ""), None),
+            ("http-proxy", ("", "nonsense"), None),
+            (
+                "http-proxy",
+                (
+                    """\
+http-proxy: ""
+https-proxy: ""
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                None,
+            ),
+            (
+                "http-proxy",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                "one",
+            ),
+            (
+                "https-proxy",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                "two",
+            ),
+            (
+                "nonexistentkey",
+                (
+                    """\
+http-proxy: one
+https-proxy: two
+no-proxy: ""
+remote-server: https://livepatch.canonical.com
+ca-certs: ""
+check-interval: 60  # minutes""",
+                    "",
+                ),
+                None,
+            ),
+        ],
+    )
+    @mock.patch("uaclient.util.subp")
+    def test_get_livepatch_config_option_value(
+        self, m_util_subp, key, subp_return_value, expected_ret
+    ):
+        m_util_subp.return_value = subp_return_value
+        ret = get_livepatch_config_option_value(key)
+        assert ret == expected_ret
+        assert [
+            mock.call(["canonical-livepatch", "config"])
+        ] == m_util_subp.call_args_list
+
+    @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
+    @mock.patch(
+        "uaclient.util.prompt_for_proxy_changes",
+        return_value=("prompt_ret_1", "prompt_ret_2"),
+    )
+    @mock.patch(
+        "uaclient.entitlements.livepatch.get_livepatch_config_option_value",
+        side_effect=["curr_ret_1", "curr_ret_2"],
+    )
+    def test_configure_livepatch_proxy_with_prompts(
+        self,
+        m_get_livepatch_config_option_value,
+        m_prompt_for_proxy_changes,
+        m_configure_livepatch_proxy,
+    ):
+        configure_livepatch_proxy_with_prompts(
+            http_proxy="http",
+            https_proxy="https",
+            livepatch_retries=[1],
+            assume_yes=True,
+        )
+        assert [
+            mock.call(
+                "livepatch",
+                curr_http_proxy="curr_ret_1",
+                curr_https_proxy="curr_ret_2",
+                new_http_proxy="http",
+                new_https_proxy="https",
+                assume_yes=True,
+            )
+        ] == m_prompt_for_proxy_changes.call_args_list
+        assert [
+            mock.call("prompt_ret_1", "prompt_ret_2", livepatch_retries=[1])
+        ] == m_configure_livepatch_proxy.call_args_list
 
 
 class TestLivepatchContractStatus:
@@ -511,8 +678,12 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
-@mock.patch("uaclient.entitlements.livepatch.configure_snap_proxy")
-@mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
+@mock.patch(
+    "uaclient.entitlements.livepatch.configure_snap_proxy_with_prompts"
+)
+@mock.patch(
+    "uaclient.entitlements.livepatch.configure_livepatch_proxy_with_prompts"
+)
 class TestLivepatchEntitlementEnable:
 
     mocks_apt_update = [
@@ -611,8 +782,8 @@ class TestLivepatchEntitlementEnable:
         else:
             assert expected_log in caplog_text()
         expected_calls = [
-            mock.call("/snap/bin/canonical-livepatch"),
             mock.call("/usr/bin/snap"),
+            mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
         assert m_snap_proxy.call_count == 1
@@ -655,8 +826,8 @@ class TestLivepatchEntitlementEnable:
         )
         assert (msg, "") == capsys.readouterr()
         expected_calls = [
-            mock.call("/snap/bin/canonical-livepatch"),
             mock.call("/usr/bin/snap"),
+            mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
         assert m_snap_proxy.call_count == 1
@@ -697,9 +868,10 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
+    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -711,6 +883,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_subp,
         _m_get_platform_info,
+        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         capsys,
@@ -720,14 +893,33 @@ class TestLivepatchEntitlementEnable:
         application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
-        assert self.mocks_config == m_subp.call_args_list
+        subp_calls = [
+            mock.call(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            ),
+            mock.call(
+                [
+                    "/snap/bin/canonical-livepatch",
+                    "config",
+                    "remote-server=https://alt.livepatch.com",
+                ],
+                capture=True,
+            ),
+            mock.call(["/snap/bin/canonical-livepatch", "disable"]),
+            mock.call(
+                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
+                capture=True,
+            ),
+        ]
+        assert subp_calls == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
-        assert m_snap_proxy.call_count == 0
+        assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
+    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -739,6 +931,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_subp,
         _m_get_platform_info,
+        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         capsys,
@@ -749,6 +942,9 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = status.ApplicationStatus.DISABLED, "nope"
         assert entitlement.enable()
         subp_no_livepatch_disable = [
+            mock.call(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            ),
             mock.call(
                 [
                     "/snap/bin/canonical-livepatch",
@@ -764,7 +960,7 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
-        assert m_snap_proxy.call_count == 0
+        assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
     @pytest.mark.parametrize(
@@ -821,7 +1017,7 @@ class TestLivepatchEntitlementEnable:
         capsys,
         caplog_text,
     ):
-        m_which.side_effect = [False, True]
+        m_which.side_effect = [True, False]
         m_installed_pkgs.return_value = ["snapd"]
         stderr_msg = (
             "error: Unknown command `wait'. Please specify one command of: "
