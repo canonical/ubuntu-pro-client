@@ -27,6 +27,8 @@ from uaclient.apt import (
     assert_valid_apt_credentials,
     run_apt_command,
     setup_apt_proxy,
+    get_current_proxy_value,
+    setup_apt_proxy_with_prompts,
 )
 from uaclient import apt, exceptions, util, status
 from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
@@ -921,11 +923,11 @@ class TestRunAptCommand:
 
 class TestAptProxyConfig:
     @pytest.mark.parametrize(
-        "kwargs, expected_remove_calls, expected_write_calls",
+        "args, expected_remove_calls, expected_write_calls",
         [
-            ({}, [mock.call(APT_PROXY_CONF_FILE)], []),
+            ((None, None), [mock.call(APT_PROXY_CONF_FILE)], []),
             (
-                {"http_proxy": "mock_http_proxy"},
+                ("mock_http_proxy", None),
                 [],
                 [
                     mock.call(
@@ -938,7 +940,7 @@ class TestAptProxyConfig:
                 ],
             ),
             (
-                {"https_proxy": "mock_https_proxy"},
+                (None, "mock_https_proxy"),
                 [],
                 [
                     mock.call(
@@ -951,10 +953,7 @@ class TestAptProxyConfig:
                 ],
             ),
             (
-                {
-                    "http_proxy": "mock_http_proxy",
-                    "https_proxy": "mock_https_proxy",
-                },
+                ("mock_http_proxy", "mock_https_proxy"),
                 [],
                 [
                     mock.call(
@@ -977,10 +976,71 @@ class TestAptProxyConfig:
         self,
         m_util_remove_file,
         m_util_write_file,
-        kwargs,
+        args,
         expected_remove_calls,
         expected_write_calls,
     ):
-        setup_apt_proxy(**kwargs)
+        setup_apt_proxy(*args)
         assert expected_remove_calls == m_util_remove_file.call_args_list
         assert expected_write_calls == m_util_write_file.call_args_list
+
+    @pytest.mark.parametrize(
+        "subp_return_value, expected_ret",
+        [
+            (("", ""), None),
+            (("nonsense", ""), None),
+            (("", "nonsense"), None),
+            (("key='value'", ""), "value"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "protocol, expected_apt_key",
+        [("http", "Acquire::http::Proxy"), ("https", "Acquire::https::Proxy")],
+    )
+    @mock.patch("uaclient.util.subp")
+    def test_get_current_proxy_value(
+        self,
+        m_util_subp,
+        protocol,
+        expected_apt_key,
+        subp_return_value,
+        expected_ret,
+    ):
+        m_util_subp.return_value = subp_return_value
+        ret = get_current_proxy_value(protocol)
+        assert ret == expected_ret
+        assert [
+            mock.call(["apt-config", "shell", "key", expected_apt_key])
+        ] == m_util_subp.call_args_list
+
+    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch(
+        "uaclient.util.prompt_for_proxy_changes",
+        return_value=("prompt_ret_1", "prompt_ret_2"),
+    )
+    @mock.patch(
+        "uaclient.apt.get_current_proxy_value",
+        side_effect=["curr_ret_1", "curr_ret_2"],
+    )
+    def test_setup_apt_proxy_with_prompts(
+        self,
+        m_get_current_proxy_value,
+        m_prompt_for_proxy_changes,
+        m_setup_apt_proxy,
+    ):
+        setup_apt_proxy_with_prompts(
+            http_proxy="http", https_proxy="https", assume_yes=True
+        )
+        assert [
+            mock.call(
+                "apt",
+                curr_http_proxy="curr_ret_1",
+                curr_https_proxy="curr_ret_2",
+                new_http_proxy="http",
+                new_https_proxy="https",
+                assume_yes=True,
+            )
+        ] == m_prompt_for_proxy_changes.call_args_list
+        assert [
+            mock.call("prompt_ret_1", "prompt_ret_2")
+        ] == m_setup_apt_proxy.call_args_list

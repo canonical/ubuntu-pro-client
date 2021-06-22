@@ -52,6 +52,52 @@ def configure_snap_proxy(
         )
 
 
+def get_snap_config_option_value(key: str) -> Optional[str]:
+    """
+    Gets the config value from snap.
+
+    :param protocol: can be any valid snap config option
+    :return: the value of the snap config option, or None if not set
+    """
+    try:
+        out, _ = util.subp(["snap", "get", "system", key])
+        return out.strip()
+    except util.ProcessExecutionError:
+        return None
+
+
+def configure_snap_proxy_with_prompts(
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    snap_retries: Optional[List[float]] = None,
+    assume_yes: bool = False,
+) -> None:
+    """
+    First checks existing values of snap proxies. Then prompts if provied args
+    are different. Then configures snap to use proxies, if prompts are passed.
+
+    :param http_proxy: http proxy to be used by snap. If None, it will
+                       not be configured
+    :param https_proxy: https proxy to be used by snap. If None, it will
+                        not be configured
+    :param snap_retries: Optional list of sleep lengths to apply between
+                          snap calls
+    :param assume_yes: if True, will skip prompts if necessary
+    :return: None
+    """
+    http_proxy_to_set, https_proxy_to_set = util.prompt_for_proxy_changes(
+        "snap",
+        curr_http_proxy=get_snap_config_option_value("proxy.http"),
+        curr_https_proxy=get_snap_config_option_value("proxy.https"),
+        new_http_proxy=http_proxy,
+        new_https_proxy=https_proxy,
+        assume_yes=assume_yes,
+    )
+    configure_snap_proxy(
+        http_proxy_to_set, https_proxy_to_set, snap_retries=snap_retries
+    )
+
+
 def configure_livepatch_proxy(
     http_proxy: "Optional[str]",
     https_proxy: "Optional[str]",
@@ -86,6 +132,57 @@ def configure_livepatch_proxy(
             ],
             retry_sleeps=livepatch_retries,
         )
+
+
+def get_livepatch_config_option_value(key: str) -> Optional[str]:
+    """
+    Gets the config value from livepatch.
+
+    :param protocol: can be any valid livepatch config option
+    :return: the value of the livepatch config option, or None if not set
+    """
+    out, _ = util.subp(["canonical-livepatch", "config"])
+    match = re.search("^{}: (.*)$".format(key), out, re.MULTILINE)
+    value = match.group(1) if match else None
+    if value:
+        # remove quotes if present
+        value = re.sub(r"\"(.*)\"", r"\g<1>", value)
+    return value.strip() if value else None
+
+
+def configure_livepatch_proxy_with_prompts(
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    livepatch_retries: Optional[List[float]] = None,
+    assume_yes: bool = False,
+) -> None:
+    """
+    First checks existing values of livepatch proxies. Then prompts if provied
+    args are different. Then configures livepatch to use proxies, if prompts
+    are passed.
+
+    :param http_proxy: http proxy to be used by livepatch. If None, it will
+                       not be configured
+    :param https_proxy: https proxy to be used by livepatch. If None, it will
+                        not be configured
+    :param livepatch_retries: Optional list of sleep lengths to apply between
+                               livepatch calls
+    :param assume_yes: if True, will skip prompts if necessary
+    :return: None
+    """
+    http_proxy_to_set, https_proxy_to_set = util.prompt_for_proxy_changes(
+        "livepatch",
+        curr_http_proxy=get_livepatch_config_option_value("http-proxy"),
+        curr_https_proxy=get_livepatch_config_option_value("https-proxy"),
+        new_http_proxy=http_proxy,
+        new_https_proxy=https_proxy,
+        assume_yes=assume_yes,
+    )
+    configure_livepatch_proxy(
+        http_proxy_to_set,
+        https_proxy_to_set,
+        livepatch_retries=livepatch_retries,
+    )
 
 
 class LivepatchEntitlement(base.UAEntitlement):
@@ -135,50 +232,51 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which("/snap/bin/canonical-livepatch"):
-            if not util.which(SNAP_CMD):
-                print("Installing snapd")
-                print(status.MESSAGE_APT_UPDATING_LISTS)
-                try:
-                    apt.run_apt_command(
-                        ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
-                    )
-                except exceptions.UserFacingError as e:
-                    logging.debug(
-                        "Trying to install snapd."
-                        " Ignoring apt-get update failure: %s",
-                        str(e),
-                    )
-                util.subp(
-                    ["apt-get", "install", "--assume-yes", "snapd"],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                )
-            elif "snapd" not in apt.get_installed_packages():
-                raise exceptions.UserFacingError(
-                    "/usr/bin/snap is present but snapd is not installed;"
-                    " cannot enable {}".format(self.title)
-                )
-
+        if not util.which(SNAP_CMD):
+            print("Installing snapd")
+            print(status.MESSAGE_APT_UPDATING_LISTS)
             try:
-                util.subp(
-                    [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+                apt.run_apt_command(
+                    ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
                 )
-            except util.ProcessExecutionError as e:
-                if re.search(r"unknown command .*wait", str(e).lower()):
-                    logging.warning(
-                        status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD
-                    )
-                else:
-                    raise
-
-            print("Installing canonical-livepatch snap")
-            http_proxy = self.cfg.http_proxy
-            https_proxy = self.cfg.https_proxy
-            configure_snap_proxy(
-                http_proxy, https_proxy, snap_retries=SNAP_INSTALL_RETRIES
+            except exceptions.UserFacingError as e:
+                logging.debug(
+                    "Trying to install snapd."
+                    " Ignoring apt-get update failure: %s",
+                    str(e),
+                )
+            util.subp(
+                ["apt-get", "install", "--assume-yes", "snapd"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+            )
+        elif "snapd" not in apt.get_installed_packages():
+            raise exceptions.UserFacingError(
+                "/usr/bin/snap is present but snapd is not installed;"
+                " cannot enable {}".format(self.title)
             )
 
+        try:
+            util.subp(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            )
+        except util.ProcessExecutionError as e:
+            if re.search(r"unknown command .*wait", str(e).lower()):
+                logging.warning(status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+            else:
+                raise
+
+        http_proxy = self.cfg.http_proxy
+        https_proxy = self.cfg.https_proxy
+        configure_snap_proxy_with_prompts(
+            http_proxy,
+            https_proxy,
+            snap_retries=SNAP_INSTALL_RETRIES,
+            assume_yes=self.assume_yes,
+        )
+
+        if not util.which("/snap/bin/canonical-livepatch"):
+            print("Installing canonical-livepatch snap")
             try:
                 util.subp(
                     [SNAP_CMD, "install", "canonical-livepatch"],
@@ -188,6 +286,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             except util.ProcessExecutionError as e:
                 msg = "Unable to install Livepatch client: " + str(e)
                 raise exceptions.UserFacingError(msg)
+
         return self.setup_livepatch_config(
             process_directives=True, process_token=True
         )
@@ -204,7 +303,9 @@ class LivepatchEntitlement(base.UAEntitlement):
         """
         http_proxy = self.cfg.http_proxy
         https_proxy = self.cfg.https_proxy
-        configure_livepatch_proxy(http_proxy, https_proxy)
+        configure_livepatch_proxy_with_prompts(
+            http_proxy, https_proxy, assume_yes=self.assume_yes
+        )
 
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if process_directives:

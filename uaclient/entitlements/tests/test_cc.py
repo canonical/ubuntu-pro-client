@@ -108,7 +108,7 @@ class TestCommonCriteriaEntitlementEnable:
         "apt_transport_https,ca_certificates",
         itertools.product([False, True], repeat=2),
     )
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.util.subp")
     @mock.patch("uaclient.util.get_platform_info")
@@ -117,7 +117,7 @@ class TestCommonCriteriaEntitlementEnable:
         m_platform_info,
         m_subp,
         m_should_reboot,
-        m_setup_apt_proxy,
+        m_setup_apt_proxy_with_prompts,
         capsys,
         tmpdir,
         apt_transport_https,
@@ -217,7 +217,7 @@ class TestCommonCriteriaEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         # No apt pinning for cc
         assert [] == m_add_pin.call_args_list
-        assert 1 == m_setup_apt_proxy.call_count
+        assert 1 == m_setup_apt_proxy_with_prompts.call_count
         assert 1 == m_should_reboot.call_count
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout += "\n".join(

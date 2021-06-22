@@ -127,9 +127,9 @@ class TestFIPSEntitlementCanEnable:
 
 
 class TestFIPSEntitlementEnable:
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     def test_enable_configures_apt_sources_and_auth_files(
-        self, m_setup_apt_proxy, entitlement
+        self, m_setup_apt_proxy_with_prompts, entitlement
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
@@ -223,7 +223,7 @@ class TestFIPSEntitlementEnable:
         )
 
         assert [mock.call()] == m_can_enable.call_args_list
-        assert 1 == m_setup_apt_proxy.call_count
+        assert 1 == m_setup_apt_proxy_with_prompts.call_count
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
@@ -284,7 +284,7 @@ class TestFIPSEntitlementEnable:
             expected_remove_notice_calls == m_remove_notice.call_args_list[:1]
         )
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch(
         "uaclient.util.get_platform_info", return_value={"series": "xenial"}
@@ -293,7 +293,7 @@ class TestFIPSEntitlementEnable:
         self,
         m_platform_info,
         m_add_apt,
-        _m_setup_apt_proxy,
+        _m_setup_apt_proxy_with_prompts,
         fips_entitlement_factory,
     ):
         """When directives do not contain suites returns false."""
@@ -311,9 +311,9 @@ class TestFIPSEntitlementEnable:
         assert error_msg == excinfo.value.msg
         assert 0 == m_add_apt.call_count
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     def test_enable_errors_on_repo_pin_but_invalid_origin(
-        self, _m_setup_apt_proxy, entitlement
+        self, _m_setup_apt_proxy_with_prompts, entitlement
     ):
         """Error when no valid origin is provided on a pinned entitlemnt."""
         entitlement.origin = None  # invalid value
@@ -353,9 +353,9 @@ class TestFIPSEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert 0 == m_remove_apt_config.call_count
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     def test_failure_to_install_removes_apt_auth(
-        self, _m_setup_apt_proxy, entitlement, tmpdir
+        self, _m_setup_apt_proxy_with_prompts, entitlement, tmpdir
     ):
 
         authfile = tmpdir.join("90ubuntu-advantage")

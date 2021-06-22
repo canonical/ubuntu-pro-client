@@ -475,7 +475,7 @@ class TestRepoEnable:
     @pytest.mark.parametrize("should_reboot", (False, True))
     @pytest.mark.parametrize("with_pre_install_msg", (False, True))
     @pytest.mark.parametrize("packages", (["a"], [], None))
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch(M_PATH + "util.should_reboot")
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
@@ -492,7 +492,7 @@ class TestRepoEnable:
         m_apt_add,
         m_subp,
         m_should_reboot,
-        m_setup_apt_proxy,
+        m_setup_apt_proxy_with_prompts,
         entitlement,
         capsys,
         caplog_text,
@@ -585,14 +585,14 @@ class TestRepoEnable:
         ]
         assert add_apt_calls == m_apt_add.call_args_list
         assert 1 == m_should_reboot.call_count
-        assert 1 == m_setup_apt_proxy.call_count
+        assert 1 == m_setup_apt_proxy_with_prompts.call_count
         stdout, _ = capsys.readouterr()
         assert expected_output == stdout
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch(M_PATH + "util.subp")
     def test_failed_install_removes_apt_config_and_packages(
-        self, m_subp, _m_setup_apt_proxy, entitlement
+        self, m_subp, _m_setup_apt_proxy_with_prompts, entitlement
     ):
         def fake_subp(args, *other_args, **kwargs):
             if "install" in args:
@@ -834,32 +834,32 @@ class TestSetupAptConfig:
                 mock.call("blah", "repotest")
             ] == request_resource_machine_access.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch("os.path.exists", return_value=False)
     @mock.patch("uaclient.apt.add_auth_apt_repo")
     @mock.patch("uaclient.apt.run_apt_command")
-    def test_calls_setup_apt_proxy(
+    def test_calls_setup_apt_proxy_with_prompts(
         self,
         _m_run_apt_command,
         _m_add_auth_repo,
         _m_exists,
-        m_setup_apt_proxy,
+        m_setup_apt_proxy_with_prompts,
         entitlement,
     ):
-        """Calls apt.setup_apt_proxy()"""
+        """Calls apt.setup_apt_proxy_with_prompts()"""
         entitlement.setup_apt_config()
         assert [
-            mock.call(http_proxy=None, https_proxy=None)
-        ] == m_setup_apt_proxy.call_args_list
+            mock.call(http_proxy=None, https_proxy=None, assume_yes=mock.ANY)
+        ] == m_setup_apt_proxy_with_prompts.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
     def test_install_prerequisite_packages(
         self,
         m_run_apt_command,
         m_add_auth_repo,
-        _m_setup_apt_proxy,
+        _m_setup_apt_proxy_with_prompts,
         entitlement,
     ):
         """Install apt-transport-https and ca-certificates debs if absent.
@@ -902,7 +902,7 @@ class TestSetupAptConfig:
             in str(excinfo.value)
         )
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch(M_PATH + "os.unlink")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -913,7 +913,7 @@ class TestSetupAptConfig:
         m_run_apt_command,
         m_add_auth_repo,
         m_unlink,
-        _m_setup_apt_proxy,
+        _m_setup_apt_proxy_with_prompts,
         entitlement_factory,
     ):
         """When repo_pin_priority is never, disable repo in apt preferences."""
@@ -934,7 +934,7 @@ class TestSetupAptConfig:
             mock.call("/etc/apt/preferences.d/ubuntu-repotest")
         ] == m_unlink.call_args_list
 
-    @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.apt.setup_apt_proxy_with_prompts")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
@@ -945,7 +945,7 @@ class TestSetupAptConfig:
         m_add_ppa_pinning,
         m_run_apt_command,
         m_add_auth_repo,
-        _m_setup_apt_proxy,
+        _m_setup_apt_proxy_with_prompts,
         entitlement_factory,
     ):
         """When repo_pin_priority is an int, set pin in apt preferences."""

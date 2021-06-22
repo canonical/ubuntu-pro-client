@@ -525,6 +525,10 @@ MESSAGE_APT_PROXY_CONFIG_HEADER = """\
 MESSAGE_APT_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
 MESSAGE_APT_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
 
+MESSAGE_PROXY_OVERRIDE_PROMPT = """\
+Existing {service} {protocol} proxy set to "{curr_value}".
+Do you want to change it to "{new_value}"? (y/N) """
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
