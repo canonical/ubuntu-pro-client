@@ -280,6 +280,18 @@ class TestActionStatus:
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @pytest.mark.parametrize(
+        "environ",
+        (
+            {},
+            {
+                "UA_DATA_DIR": "data_dir",
+                "UA_TEST": "test",
+                "UA_FEATURES_ALLOW_BETA": True,
+                "UA_CONFIG_FILE": "config_file",
+            },
+        ),
+    )
     @pytest.mark.parametrize("use_all", (True, False))
     def test_unattached_json(
         self,
@@ -288,6 +300,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         use_all,
+        environ,
         capsys,
         FakeConfig,
     ):
@@ -295,7 +308,16 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         args = mock.MagicMock(format="json", all=use_all)
-        assert 0 == action_status(args, cfg)
+        with mock.patch.object(os, "environ", environ):
+            assert 0 == action_status(args, cfg)
+
+        expected_environment = []
+        if environ:
+            expected_environment = [
+                {"name": "UA_CONFIG_FILE", "value": "config_file"},
+                {"name": "UA_DATA_DIR", "value": "data_dir"},
+                {"name": "UA_FEATURES_ALLOW_BETA", "value": True},
+            ]
 
         expected = {
             "_doc": (
@@ -316,9 +338,22 @@ class TestActionStatus:
                 }
             ],
             "techSupportLevel": "n/a",
+            "environment_vars": expected_environment,
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @pytest.mark.parametrize(
+        "environ",
+        (
+            {},
+            {
+                "UA_DATA_DIR": "data_dir",
+                "UA_TEST": "test",
+                "UA_FEATURES_ALLOW_BETA": True,
+                "UA_CONFIG_FILE": "config_file",
+            },
+        ),
+    )
     @pytest.mark.parametrize("use_all", (True, False))
     def test_attached_json(
         self,
@@ -327,6 +362,7 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         use_all,
+        environ,
         capsys,
         FakeConfig,
     ):
@@ -334,7 +370,17 @@ class TestActionStatus:
         cfg = FakeConfig.for_attached_machine()
 
         args = mock.MagicMock(format="json", all=use_all)
-        assert 0 == action_status(args, cfg)
+
+        with mock.patch.object(os, "environ", environ):
+            assert 0 == action_status(args, cfg)
+
+        expected_environment = []
+        if environ:
+            expected_environment = [
+                {"name": "UA_CONFIG_FILE", "value": "config_file"},
+                {"name": "UA_DATA_DIR", "value": "data_dir"},
+                {"name": "UA_FEATURES_ALLOW_BETA", "value": True},
+            ]
 
         if use_all:
             services = SERVICES_JSON_ALL
@@ -361,6 +407,7 @@ class TestActionStatus:
             "subscription": "test_contract",
             "subscription-id": "cid",
             "techSupportLevel": "n/a",
+            "environment_vars": expected_environment,
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
