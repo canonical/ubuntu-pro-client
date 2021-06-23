@@ -871,9 +871,7 @@ def action_status(args, cfg):
             status = cfg.status(show_beta=show_beta)
         print("")
     if args and args.format == "json":
-        if status["expires"] != ua_status.UserFacingStatus.INAPPLICABLE.value:
-            status["expires"] = str(status["expires"])
-        print(json.dumps(status))
+        print(ua_status.format_json_status(status))
     else:
         output = ua_status.format_tabular(status)
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
