@@ -12,6 +12,7 @@ from collections import namedtuple, OrderedDict
 from uaclient import status, util
 from uaclient.defaults import (
     CONFIG_DEFAULTS,
+    CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -55,13 +56,6 @@ MERGE_ID_KEY_MAP = {
     "resourceEntitlements": "type",
 }
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
-
-CONFIG_FIELD_ENVVAR_ALLOWLIST = [
-    "data_dir",
-    "log_file",
-    "log_level",
-    "security_url",
-]
 
 
 # A data path is a filename, and an attribute ("private") indicating whether it
@@ -722,7 +716,7 @@ def parse_config(config_path=None):
                     cfg["features"] = {feature_field_name: value}
                 else:
                     cfg["features"][feature_field_name] = value
-            elif field_name in CONFIG_FIELD_ENVVAR_ALLOWLIST:
+            elif key in CONFIG_FIELD_ENVVAR_ALLOWLIST:
                 env_keys[field_name] = value
     cfg.update(env_keys)
     cfg["log_level"] = cfg["log_level"].upper()
