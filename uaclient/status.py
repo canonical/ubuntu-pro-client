@@ -1,8 +1,14 @@
 import enum
+import json
 import sys
 import textwrap
+import os
 
-from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
+from uaclient.defaults import (
+    BASE_UA_URL,
+    CONFIG_FIELD_ENVVAR_ALLOWLIST,
+    PRINT_WRAP_WIDTH,
+)
 
 try:
     from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
@@ -628,3 +634,18 @@ def format_tabular(status: "Dict[str, Any]") -> str:
         content.extend(get_section_column_content(column_data=pairs))
 
     return "\n".join(content)
+
+
+def format_json_status(status: "Dict[str, Any]") -> str:
+    if status["expires"] != UserFacingStatus.INAPPLICABLE.value:
+        status["expires"] = str(status["expires"])
+
+    status["environment_vars"] = [
+        {"name": name, "value": value}
+        for name, value in sorted(os.environ.items())
+        if name.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
+        or name.startswith("UA_FEATURES")
+        or name == "UA_CONFIG_FILE"
+    ]
+
+    return json.dumps(status)
