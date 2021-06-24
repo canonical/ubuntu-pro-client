@@ -815,11 +815,6 @@ def get_parser():
         title="Available Commands", dest="command", metavar=""
     )
     subparsers.required = True
-    parser_status = subparsers.add_parser(
-        "status", help="current status of all Ubuntu Advantage services"
-    )
-    parser_status.set_defaults(action=action_status)
-    status_parser(parser_status)
     parser_attach = subparsers.add_parser(
         "attach",
         help="attach this machine to an Ubuntu Advantage subscription",
@@ -828,49 +823,62 @@ def get_parser():
     parser_attach.set_defaults(action=action_attach)
     parser_auto_attach = subparsers.add_parser(
         "auto-attach",
-        help="automatically attach Ubuntu Advantage on supported platforms",
+        help="automatically attach on supported platforms",
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
+
     parser_detach = subparsers.add_parser(
         "detach",
         help="remove this machine from an Ubuntu Advantage subscription",
     )
     detach_parser(parser_detach)
     parser_detach.set_defaults(action=action_detach)
-    parser_enable = subparsers.add_parser(
-        "enable",
-        help="enable a specific Ubuntu Advantage service on this machine",
-    )
-    enable_parser(parser_enable)
-    parser_enable.set_defaults(action=action_enable)
+
     parser_disable = subparsers.add_parser(
         "disable",
         help="disable a specific Ubuntu Advantage service on this machine",
     )
     disable_parser(parser_disable)
     parser_disable.set_defaults(action=action_disable)
-    parser_refresh = subparsers.add_parser(
-        "refresh", help="refresh Ubuntu Advantage services"
+
+    parser_enable = subparsers.add_parser(
+        "enable",
+        help="enable a specific Ubuntu Advantage service on this machine",
     )
-    parser_refresh.set_defaults(action=action_refresh)
-    refresh_parser(parser_refresh)
+    enable_parser(parser_enable)
+    parser_enable.set_defaults(action=action_enable)
+
     parser_fix = subparsers.add_parser(
         "fix",
         help="check for and mitigate the impact of a CVE/USN on this system",
     )
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
-    parser_version = subparsers.add_parser(
-        "version", help="show version of {}".format(NAME)
-    )
-    parser_version.set_defaults(action=print_version)
+
     parser_help = subparsers.add_parser(
-        "help", help="show this help message and exit"
+        "help",
+        help="show detailed information about Ubuntu Advantage services"
     )
     help_parser(parser_help)
     parser_help.set_defaults(action=action_help)
 
+    parser_refresh = subparsers.add_parser(
+        "refresh", help="refresh Ubuntu Advantage services"
+    )
+    parser_refresh.set_defaults(action=action_refresh)
+    refresh_parser(parser_refresh)
+
+    parser_status = subparsers.add_parser(
+        "status", help="current status of all Ubuntu Advantage services"
+    )
+    parser_status.set_defaults(action=action_status)
+    status_parser(parser_status)
+
+    parser_version = subparsers.add_parser(
+        "version", help="show version of {}".format(NAME)
+    )
+    parser_version.set_defaults(action=print_version)
     return parser
 
 
