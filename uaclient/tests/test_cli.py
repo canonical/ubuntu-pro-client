@@ -253,7 +253,7 @@ class TestCLIParser:
 
         status_msg = "enabled" if ent_msg == "yes" else "—"
         ufs_call_count = 1 if ent_msg == "yes" else 0
-        ent_name_call_count = 2 if ent_msg == "yes" else 1
+        ent_name_call_count = 3 if ent_msg == "yes" else 2
         is_beta_call_count = 1 if status_msg == "enabled" else 0
 
         expected_msgs = [

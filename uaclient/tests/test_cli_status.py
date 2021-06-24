@@ -16,9 +16,13 @@ from uaclient import status
 M_PATH = "uaclient.cli."
 
 
-RESPONSE_LIVEPATCH_AVAILABLE = [{"name": "livepatch", "available": True}]
+RESPONSE_AVAILABLE_SERVICES = [
+    {"name": "livepatch", "available": True},
+    {"name": "fips", "available": False},
+]
 UNATTACHED_STATUS = """\
 SERVICE       AVAILABLE  DESCRIPTION
+fips          no         NIST-certified core packages
 livepatch     yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
@@ -76,6 +80,7 @@ SERVICES_JSON_ALL = [
         "name": "cc-eal",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
     {
         "description": "Center for Internet Security Audit Tools",
@@ -84,6 +89,7 @@ SERVICES_JSON_ALL = [
         "name": "cis",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
     {
         "description": "UA Apps: Extended Security Maintenance (ESM)",
@@ -92,6 +98,7 @@ SERVICES_JSON_ALL = [
         "name": "esm-apps",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
     {
         "description": "UA Infra: Extended Security Maintenance (ESM)",
@@ -100,6 +107,7 @@ SERVICES_JSON_ALL = [
         "name": "esm-infra",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
     {
         "description": "NIST-certified core packages",
@@ -108,6 +116,7 @@ SERVICES_JSON_ALL = [
         "name": "fips",
         "status": "—",
         "statusDetails": "",
+        "available": "no",
     },
     {
         "description": (
@@ -118,6 +127,7 @@ SERVICES_JSON_ALL = [
         "name": "fips-updates",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
     {
         "description": "Canonical Livepatch service",
@@ -126,6 +136,7 @@ SERVICES_JSON_ALL = [
         "name": "livepatch",
         "status": "—",
         "statusDetails": "",
+        "available": "yes",
     },
 ]
 
@@ -173,7 +184,7 @@ Flags:
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch(
     M_PATH + "contract.get_available_resources",
-    return_value=RESPONSE_LIVEPATCH_AVAILABLE,
+    return_value=RESPONSE_AVAILABLE_SERVICES,
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
@@ -390,6 +401,19 @@ class TestActionStatus:
                 for svc in SERVICES_JSON_ALL
                 if svc["name"] not in BETA_SVC_NAMES
             ]
+
+        inapplicable_services = [
+            service["name"]
+            for service in RESPONSE_AVAILABLE_SERVICES
+            if not service["available"]
+        ]
+
+        filtered_services = [
+            service
+            for service in services
+            if service["name"] not in inapplicable_services
+        ]
+
         expected = {
             "_doc": (
                 "Content provided in json response is currently "
@@ -401,7 +425,7 @@ class TestActionStatus:
             "expires": "n/a",
             "notices": [],
             "origin": None,
-            "services": services,
+            "services": filtered_services,
             "account": "test_account",
             "account-id": "acct-1",
             "subscription": "test_contract",
