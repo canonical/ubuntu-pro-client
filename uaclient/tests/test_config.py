@@ -715,6 +715,7 @@ class TestStatus:
                 else default_status,
                 "statusDetails": mock.ANY,
                 "description_override": None,
+                "available": mock.ANY,
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
             if not self.check_beta(cls, show_beta, cfg)
@@ -939,6 +940,7 @@ class TestStatus:
                     "status": expected_status,
                     "statusDetails": details,
                     "description_override": None,
+                    "available": mock.ANY,
                 }
             )
         with mock.patch(

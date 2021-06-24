@@ -650,4 +650,11 @@ def format_json_status(status: "Dict[str, Any]") -> str:
         or name == "UA_CONFIG_FILE"
     ]
 
+    available_services = [
+        service
+        for service in status.get("services", [])
+        if service.get("available", "yes") == "yes"
+    ]
+    status["services"] = available_services
+
     return json.dumps(status)
