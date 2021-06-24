@@ -520,6 +520,7 @@ class UAConfig:
                 description_override = inapplicable_resources[ent.name]
             else:
                 ent_status, details = ent.user_facing_status()
+
         return {
             "name": ent.name,
             "description": ent.description,
@@ -527,6 +528,9 @@ class UAConfig:
             "status": ent_status.value,
             "statusDetails": details,
             "description_override": description_override,
+            "available": "yes"
+            if ent.name not in inapplicable_resources
+            else "no",
         }
 
     def _attached_status(self) -> "Dict[str, Any]":
@@ -565,6 +569,7 @@ class UAConfig:
             response["services"].append(
                 self._attached_service_status(ent, inapplicable_resources)
             )
+
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:
             supportLevel = support.get("affordances", {}).get("supportLevel")
