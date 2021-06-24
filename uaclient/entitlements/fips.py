@@ -23,24 +23,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     repo_key_file = "ubuntu-advantage-fips.gpg"  # Same for fips & fips-updates
     FIPS_PROC_FILE = "/proc/sys/crypto/fips_enabled"
 
-    """
-    Dictionary of conditional packages to be installed when
-    enabling FIPS services. For example, if we are enabling
-    FIPS services in a machine that has openssh-client installed,
-    we will perform two actions:
-
-    1. Upgrade the package to the FIPS version
-    2. Install the correspinding hmac version of that package.
-    """
-    conditional_packages = [
-        "openssh-client",
-        "openssh-client-hmac",
-        "openssh-server",
-        "openssh-server-hmac",
-        "strongswan",
-        "strongswan-hmac",
-    ]
-
     # RELEASE_BLOCKER GH: #104, don't prompt for conf differences in FIPS
     # Review this fix to see if we want more general functionality for all
     # services. And security/CPC signoff on expected conf behavior.
@@ -48,6 +30,33 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
     _incompatible_services = ["livepatch"]
+
+    @property
+    def conditional_packages(self):
+        """
+        Dictionary of conditional packages to be installed when
+        enabling FIPS services. For example, if we are enabling
+        FIPS services in a machine that has openssh-client installed,
+        we will perform two actions:
+
+        1. Upgrade the package to the FIPS version
+        2. Install the correspinding hmac version of that package.
+        """
+        conditional_packages = ["strongswan", "strongswan-hmac"]
+
+        series = util.get_platform_info().get("series", "")
+        # On Focal, we don't have the openssh hmac packages.
+        # Therefore, we will not try to install them during
+        # when enabling any FIPS service
+        if series in ("xenial", "bionic"):
+            conditional_packages += [
+                "openssh-client",
+                "openssh-client-hmac",
+                "openssh-server",
+                "openssh-server-hmac",
+            ]
+
+        return conditional_packages
 
     def check_for_reboot_msg(self, operation: str) -> None:
         """Check if user should be alerted that a reboot must be performed.

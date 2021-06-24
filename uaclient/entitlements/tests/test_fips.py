@@ -46,6 +46,27 @@ class TestFIPSEntitlementDefaults:
         """GPG keyring file is the same for both FIPS and FIPS with Updates"""
         assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
 
+    @pytest.mark.parametrize("series", (("xenial"), ("bionic"), ("focal")))
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_condiotional_packages(
+        self, m_get_platform_info, series, entitlement
+    ):
+        """Test conditional package respect series restrictions"""
+        m_get_platform_info.return_value = {"series": series}
+
+        conditional_packages = entitlement.conditional_packages
+        if series == "focal":
+            assert ["strongswan", "strongswan-hmac"] == conditional_packages
+        else:
+            assert [
+                "strongswan",
+                "strongswan-hmac",
+                "openssh-client",
+                "openssh-client-hmac",
+                "openssh-server",
+                "openssh-server-hmac",
+            ] == conditional_packages
+
     def test_default_repo_pinning(self, entitlement):
         """FIPS and FIPS with Updates repositories are pinned."""
         assert entitlement.repo_pin_priority == 1001
@@ -932,7 +953,8 @@ class TestFipsEntitlementPackages:
 
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
-        m_platform_info.return_value = {"series": "test"}
+        # and xenial should not trigger that
+        m_platform_info.return_value = {"series": "xenial"}
 
         full_expected_installs = FIPS_ADDITIONAL_PACKAGES + expected_installs
         assert sorted(full_expected_installs) == sorted(entitlement.packages)
