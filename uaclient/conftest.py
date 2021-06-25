@@ -100,7 +100,9 @@ def FakeConfig(tmpdir):
                         "contractInfo": {
                             "id": "cid",
                             "name": "test_contract",
+                            "createdAt": "2020-05-08T19:02:26Z",
                             "resourceEntitlements": [],
+                            "products": ["free"],
                         },
                     },
                 }

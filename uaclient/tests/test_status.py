@@ -3,7 +3,12 @@ import pytest
 import string
 
 from uaclient import config
-from uaclient.status import format_tabular, TxtColor, colorize_commands
+from uaclient.status import (
+    format_tabular,
+    TxtColor,
+    colorize_commands,
+    UserFacingStatus,
+)
 
 
 @pytest.fixture(params=[True, False])
@@ -13,13 +18,15 @@ def status_dict_attached(request):
     # The following are required so we don't get an "unattached" error
     status["attached"] = True
     status["expires"] = "expires"
+    status["account"] = ""
+    status["contract"] = {
+        "name": "",
+        "tech_support_level": UserFacingStatus.INAPPLICABLE.value,
+    }
 
     if request.param:
         status["account"] = "account"
-        status["subscription"] = "subscription"
-    else:
-        status["account"] = ""
-        status["subscription"] = ""
+        status["contract"]["name"] = "subscription"
 
     return status
 
@@ -113,7 +120,7 @@ class TestFormatTabular:
         istty,
         status_dict_attached,
     ):
-        status_dict_attached["techSupportLevel"] = support_level
+        status_dict_attached["contract"]["tech_support_level"] = support_level
 
         m_isatty.return_value = istty
         tabular_output = format_tabular(status_dict_attached)
@@ -153,7 +160,7 @@ class TestFormatTabular:
     ):
         status_dict_attached["origin"] = origin
 
-        if status_dict_attached["subscription"]:
+        if status_dict_attached["contract"].get("name"):
             expected_headers = ("Subscription",) + expected_headers
         if status_dict_attached["account"]:
             expected_headers = ("Account",) + expected_headers
