@@ -28,17 +28,6 @@ CONTAINER_PREFIX = "ubuntu-behave-test-"
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
 def given_a_machine(context, series):
-    filter_series = context.config.filter_series
-    if filter_series and series not in filter_series:
-        context.scenario.skip(
-            reason=(
-                "Skipping scenario outline series {series}."
-                " Cmdline provided @series tags: {cmdline_series}".format(
-                    series=series, cmdline_series=filter_series
-                )
-            )
-        )
-        return
     if series in context.reuse_container:
         context.instances = {}
         context.container_name = context.reuse_container[series]
