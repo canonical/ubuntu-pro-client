@@ -680,7 +680,9 @@ class TestStatus:
                 "contractInfo": {
                     "id": "cid",
                     "name": "test_contract",
+                    "createdAt": "2020-05-08T19:02:26Z",
                     "resourceEntitlements": entitled_res,
+                    "products": ["free"],
                 },
             },
         }
@@ -727,8 +729,15 @@ class TestStatus:
                 "account": "test_account",
                 "attached": True,
                 "services": expected_services,
-                "subscription": "test_contract",
-                "subscription-id": "cid",
+                "contract": {
+                    "name": "test_contract",
+                    "id": "cid",
+                    "created_at": datetime.datetime(
+                        2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                    ),
+                    "products": ["free"],
+                    "tech_support_level": "n/a",
+                },
             }
         )
         with mock.patch(
@@ -894,7 +903,9 @@ class TestStatus:
                 "contractInfo": {
                     "id": "contract-1",
                     "name": "contractname",
+                    "createdAt": "2020-05-08T19:02:26Z",
                     "resourceEntitlements": entitlements,
+                    "products": ["free"],
                 },
             },
         }
@@ -913,9 +924,15 @@ class TestStatus:
                 "attached": True,
                 "account": "accountname",
                 "account-id": "1",
-                "subscription": "contractname",
-                "subscription-id": "contract-1",
-                "techSupportLevel": support_level,
+                "contract": {
+                    "name": "contractname",
+                    "id": "contract-1",
+                    "created_at": datetime.datetime(
+                        2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                    ),
+                    "products": ["free"],
+                    "tech_support_level": support_level,
+                },
             }
         )
         for cls in ENTITLEMENT_CLASSES:
@@ -981,7 +998,9 @@ class TestStatus:
                     "name": "contractname",
                     "id": "contract-1",
                     "effectiveTo": "2020-07-18T00:00:00Z",
+                    "createdAt": "2020-05-08T19:02:26Z",
                     "resourceEntitlements": [],
+                    "products": ["free"],
                 },
             },
         }
