@@ -611,7 +611,7 @@ def format_tabular(status: "Dict[str, Any]") -> str:
             "description": description,
         }
         content.append(STATUS_TMPL.format(**fmt_args))
-    tech_support_level = status["techSupportLevel"]
+    tech_support_level = status["contract"]["tech_support_level"]
 
     if status.get("notices"):
         content.extend(
@@ -625,8 +625,9 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     if status["account"]:
         pairs.append(("Account", status["account"]))
 
-    if status["subscription"]:
-        pairs.append(("Subscription", status["subscription"]))
+    contract_name = status["contract"]["name"]
+    if contract_name:
+        pairs.append(("Subscription", contract_name))
 
     if status["origin"] != "free":
         pairs.append(("Valid until", str(status["expires"])))
@@ -639,6 +640,8 @@ def format_tabular(status: "Dict[str, Any]") -> str:
 
 
 def format_json_status(status: "Dict[str, Any]") -> str:
+    from uaclient.util import DatetimeAwareJSONEncoder
+
     if status["expires"] != UserFacingStatus.INAPPLICABLE.value:
         status["expires"] = str(status["expires"])
 
@@ -657,4 +660,4 @@ def format_json_status(status: "Dict[str, Any]") -> str:
     ]
     status["services"] = available_services
 
-    return json.dumps(status)
+    return json.dumps(status, cls=DatetimeAwareJSONEncoder)
