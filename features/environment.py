@@ -1,6 +1,7 @@
 import datetime
 import os
 import itertools
+import re
 import tempfile
 import textwrap
 import logging
@@ -142,6 +143,7 @@ class UAClientBehaveConfig:
         "ppa",
         "ppa_keyid",
         "userdata_file",
+        "check_version",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -189,6 +191,7 @@ class UAClientBehaveConfig:
         ppa: str = DAILY_PPA,
         ppa_keyid: str = DAILY_PPA_KEYID,
         userdata_file: str = None,
+        check_version: str = None,
         cmdline_tags: "List" = []
     ) -> None:
         # First, store the values we've detected
@@ -218,6 +221,7 @@ class UAClientBehaveConfig:
         self.ppa = ppa
         self.ppa_keyid = ppa_keyid
         self.userdata_file = userdata_file
+        self.check_version = check_version
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -459,6 +463,35 @@ def before_scenario(context: Context, scenario: Scenario):
     reason = _should_skip_tags(context, scenario.effective_tags)
     if reason:
         scenario.skip(reason=reason)
+        return
+
+    filter_series = context.config.filter_series
+    given_a_series_match = re.match(
+        "a `(.*)` machine with ubuntu-advantage-tools installed",
+        scenario.steps[0].name,
+    )
+    if filter_series and given_a_series_match:
+        series = given_a_series_match.group(1)
+        if series and series not in filter_series:
+            scenario.skip(
+                reason=(
+                    "Skipping scenario outline series `{series}`."
+                    " Cmdline provided @series tags: {cmdline_series}".format(
+                        series=series, cmdline_series=filter_series
+                    )
+                )
+            )
+            return
+
+    if "uses.config.check_version" in scenario.effective_tags:
+        # before_step doesn't execute early enough to modify the step
+        # so we perform the version step surgery here
+        for step in scenario.steps:
+            if step.text:
+                step.text = step.text.replace(
+                    "{UACLIENT_BEHAVE_CHECK_VERSION}",
+                    context.config.check_version,
+                )
 
 
 FAILURE_FILES = (
