@@ -72,6 +72,26 @@ MERGE_ID_KEY_MAP = {
 }
 UNSET_SETTINGS_OVERRIDE_KEY = "_unset"
 
+# Keys visible and configurable using `ua config set|unset|show` subcommands
+UA_CONFIGURABLE_KEYS = (
+    "http_proxy",
+    "https_proxy",
+    "apt_http_proxy",
+    "apt_https_proxy",
+)
+
+# Basic schema validation top-level keys for parse_config handling
+VALID_UA_CONFIG_KEYS = (
+    "contract_url",
+    "data_dir",
+    "features",
+    "log_file",
+    "log_level",
+    "security_url",
+    "settings_overrides",
+    "ua_config",
+)
+
 
 # A data path is a filename, and an attribute ("private") indicating whether it
 # should only be readable by root
@@ -127,17 +147,45 @@ class UAConfig:
     def http_proxy(self) -> "Optional[str]":
         return self.cfg.get("ua_config", {}).get("http_proxy")
 
+    @http_proxy.setter
+    def http_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["http_proxy"] = value
+        self.write_cfg()
+
     @property
     def https_proxy(self) -> "Optional[str]":
         return self.cfg.get("ua_config", {}).get("https_proxy")
+
+    @https_proxy.setter
+    def https_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["https_proxy"] = value
+        self.write_cfg()
 
     @property
     def apt_http_proxy(self) -> "Optional[str]":
         return self.cfg.get("ua_config", {}).get("apt_http_proxy")
 
+    @apt_http_proxy.setter
+    def apt_http_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["apt_http_proxy"] = value
+        self.write_cfg()
+
     @property
     def apt_https_proxy(self) -> "Optional[str]":
         return self.cfg.get("ua_config", {}).get("apt_https_proxy")
+
+    @apt_https_proxy.setter
+    def apt_https_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["apt_https_proxy"] = value
+        self.write_cfg()
 
     def check_lock_info(self) -> "Tuple[int, str]":
         """Return lock info if config lock file is present the lock is active.
@@ -761,6 +809,26 @@ class UAConfig:
                 )
             )
 
+    def write_cfg(self, config_path=None):
+        """Write config values back to config_path or DEFAULT_CONFIG_FILE."""
+        if not config_path:
+            config_path = DEFAULT_CONFIG_FILE
+        content = status.MESSAGE_UACLIENT_CONF_HEADER
+        cfg_dict = copy.deepcopy(self.cfg)
+        if "log_level" not in cfg_dict:
+            cfg_dict["log_level"] = CONFIG_DEFAULTS["log_level"]
+        # Ensure defaults are present in uaclient.conf if absent
+        for attr in ("contract_url", "security_url", "data_dir", "log_file"):
+            cfg_dict[attr] = getattr(self, attr)
+
+        # Each UA_CONFIGURABLE_KEY needs to have a property on UAConfig
+        # which reads the proper key value or returns a default
+        cfg_dict["ua_config"] = {
+            key: getattr(self, key) for key in UA_CONFIGURABLE_KEYS
+        }
+        content += yaml.dump(cfg_dict, default_flow_style=False)
+        util.write_file(config_path, content)
+
 
 def parse_config(config_path=None):
     """Parse known UA config file
@@ -815,13 +883,17 @@ def parse_config(config_path=None):
             elif key in CONFIG_FIELD_ENVVAR_ALLOWLIST:
                 env_keys[field_name] = value
     cfg.update(env_keys)
-    cfg["log_level"] = cfg["log_level"].upper()
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
     for key in ("contract_url", "security_url"):
         if not util.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
                 "Invalid url in config. {}: {}".format(key, cfg[key])
             )
+    # log about invalid keys before ignoring
+    for key in sorted(set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS)):
+        logging.warning(
+            "Ignoring invalid uaclient.conf key: %s=%s", key, cfg.pop(key)
+        )
     return cfg
 
 
