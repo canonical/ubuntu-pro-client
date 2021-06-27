@@ -24,10 +24,30 @@ ERROR_MSG_MAP = {
 }
 
 
+def unconfigure_livepatch_proxy(
+    protocol_type: str, retry_sleeps: "Optional[List[float]]" = None
+) -> None:
+    """
+    Unset livepatch configuration settings for http and https proxies.
+
+    :param protocol_type: String either http or https
+    :param retry_sleeps: Optional list of sleep lengths to apply between
+        retries. Specifying a list of [0.5, 1] tells subp to retry twice
+        on failure; sleeping half a second before the first retry and 1 second
+        before the second retry.
+    """
+    if not util.which("/snap/bin/canonical-livepatch"):
+        return
+    util.subp(
+        ["canonical-livepatch", "config", "{}-proxy=".format(protocol_type)],
+        retry_sleeps=retry_sleeps,
+    )
+
+
 def configure_livepatch_proxy(
-    http_proxy: "Optional[str]",
-    https_proxy: "Optional[str]",
-    livepatch_retries: "Optional[List[float]]" = None,
+    http_proxy: "Optional[str]" = None,
+    https_proxy: "Optional[str]" = None,
+    retry_sleeps: "Optional[List[float]]" = None,
 ) -> None:
     """
     Configure livepatch to use http and https proxies.
@@ -36,7 +56,7 @@ def configure_livepatch_proxy(
                        not be configured
     :param https_proxy: https proxy to be used by livepatch. If None, it will
                         not be configured
-    :@param livepatch_retries: Optional list of sleep lengths to apply between
+    :@param retry_sleeps: Optional list of sleep lengths to apply between
                                snap calls
     """
     if http_proxy or https_proxy:
@@ -53,7 +73,7 @@ def configure_livepatch_proxy(
                 "config",
                 "http-proxy={}".format(http_proxy),
             ],
-            retry_sleeps=livepatch_retries,
+            retry_sleeps=retry_sleeps,
         )
 
     if https_proxy:
@@ -63,7 +83,7 @@ def configure_livepatch_proxy(
                 "config",
                 "https-proxy={}".format(https_proxy),
             ],
-            retry_sleeps=livepatch_retries,
+            retry_sleeps=retry_sleeps,
         )
 
 
@@ -170,7 +190,9 @@ class LivepatchEntitlement(base.UAEntitlement):
             "https", self.cfg.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
         )
         snap.configure_snap_proxy(
-            http_proxy, https_proxy, snap_retries=snap.SNAP_INSTALL_RETRIES
+            http_proxy=http_proxy,
+            https_proxy=https_proxy,
+            retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
 
         if not util.which("/snap/bin/canonical-livepatch"):

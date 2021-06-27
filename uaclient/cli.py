@@ -822,8 +822,7 @@ def get_parser():
     attach_parser(parser_attach)
     parser_attach.set_defaults(action=action_attach)
     parser_auto_attach = subparsers.add_parser(
-        "auto-attach",
-        help="automatically attach on supported platforms",
+        "auto-attach", help="automatically attach on supported platforms"
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
@@ -858,7 +857,7 @@ def get_parser():
 
     parser_help = subparsers.add_parser(
         "help",
-        help="show detailed information about Ubuntu Advantage services"
+        help="show detailed information about Ubuntu Advantage services",
     )
     help_parser(parser_help)
     parser_help.set_defaults(action=action_help)
