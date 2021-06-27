@@ -24,6 +24,7 @@ from uaclient.entitlements.livepatch import (
     process_config_directives,
     configure_livepatch_proxy,
     get_config_option_value,
+    unconfigure_livepatch_proxy,
 )
 from uaclient.snap import SNAP_CMD
 from uaclient.entitlements.tests.conftest import machine_token
@@ -72,7 +73,7 @@ def entitlement(livepatch_entitlement_factory):
 
 class TestConfigureLivepatchProxy:
     @pytest.mark.parametrize(
-        "http_proxy,https_proxy,livepatch_retries",
+        "http_proxy,https_proxy,retry_sleeps",
         (
             ("http_proxy", "https_proxy", [1, 2]),
             ("http_proxy", "", None),
@@ -84,9 +85,9 @@ class TestConfigureLivepatchProxy:
     )
     @mock.patch("uaclient.util.subp")
     def test_configure_livepatch_proxy(
-        self, m_subp, http_proxy, https_proxy, livepatch_retries, capsys
+        self, m_subp, http_proxy, https_proxy, retry_sleeps, capsys
     ):
-        configure_livepatch_proxy(http_proxy, https_proxy, livepatch_retries)
+        configure_livepatch_proxy(http_proxy, https_proxy, retry_sleeps)
         expected_calls = []
         if http_proxy:
             expected_calls.append(
@@ -96,7 +97,7 @@ class TestConfigureLivepatchProxy:
                         "config",
                         "http-proxy={}".format(http_proxy),
                     ],
-                    retry_sleeps=livepatch_retries,
+                    retry_sleeps=retry_sleeps,
                 )
             )
 
@@ -108,7 +109,7 @@ class TestConfigureLivepatchProxy:
                         "config",
                         "https-proxy={}".format(https_proxy),
                     ],
-                    retry_sleeps=livepatch_retries,
+                    retry_sleeps=retry_sleeps,
                 )
             )
 
@@ -193,6 +194,45 @@ check-interval: 60  # minutes""",
         assert [
             mock.call(["canonical-livepatch", "config"])
         ] == m_util_subp.call_args_list
+
+
+class TestUnconfigureLivepatchProxy:
+    @pytest.mark.parametrize(
+        "livepatch_installed, protocol_type, retry_sleeps",
+        (
+            (True, "http", None),
+            (True, "https", [1]),
+            (True, "http", []),
+            (False, "http", None),
+        ),
+    )
+    @mock.patch("uaclient.util.which")
+    @mock.patch("uaclient.util.subp")
+    def test_unconfigure_livepatch_proxy(
+        self, subp, which, livepatch_installed, protocol_type, retry_sleeps
+    ):
+        if livepatch_installed:
+            which.return_value = "/snap/bin/canonical-livepatch"
+        else:
+            which.return_value = None
+        kwargs = {"protocol_type": protocol_type}
+        if retry_sleeps is not None:
+            kwargs["retry_sleeps"] = retry_sleeps
+        assert None is unconfigure_livepatch_proxy(**kwargs)
+        if livepatch_installed:
+            expected_calls = [
+                mock.call(
+                    [
+                        "canonical-livepatch",
+                        "config",
+                        protocol_type + "-proxy=",
+                    ],
+                    retry_sleeps=retry_sleeps,
+                )
+            ]
+        else:
+            expected_calls = []
+        assert expected_calls == subp.call_args_list
 
 
 class TestLivepatchContractStatus:
