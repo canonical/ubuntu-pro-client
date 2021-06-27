@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import stat
+import yaml
 
 import mock
 import pytest
@@ -15,9 +16,12 @@ from uaclient.config import (
     DEFAULT_STATUS,
     PRIVATE_SUBDIR,
     UAConfig,
+    UA_CONFIGURABLE_KEYS,
+    VALID_UA_CONFIG_KEYS,
     parse_config,
     depth_first_merge_overlay_dict,
 )
+from uaclient.defaults import CONFIG_DEFAULTS
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
@@ -215,6 +219,125 @@ class TestDataPath:
         cfg = UAConfig({"data_dir": "/my/d"})
         cfg.data_paths["test_path"] = DataPath("test_path", False)
         assert "/my/d/test_path" == cfg.data_path("test_path")
+
+
+CFG_BASE_CONTENT = """\
+# Ubuntu-Advantage client config file.
+# If you modify this file, run "ua refresh config" to ensure changes are
+# picked up by Ubuntu-Advantage client.
+
+contract_url: https://contracts.canonical.com
+data_dir: /var/lib/ubuntu-advantage
+log_file: /var/log/ubuntu-advantage.log
+log_level: debug
+security_url: https://ubuntu.com/security
+"""
+
+CFG_FEATURES_CONTENT = """\
+# Ubuntu-Advantage client config file.
+# If you modify this file, run "ua refresh config" to ensure changes are
+# picked up by Ubuntu-Advantage client.
+
+contract_url: https://contracts.canonical.com
+data_dir: /var/lib/ubuntu-advantage
+features:
+  extra_security_params:
+    hide: true
+  new: 2
+  show_beta: true
+log_file: /var/log/ubuntu-advantage.log
+log_level: debug
+security_url: https://ubuntu.com/security
+settings_overrides:
+  c: 1
+  d: 2
+"""
+
+UA_CFG_DICT = {
+    "ua_config": {
+        "apt_http_proxy": None,
+        "apt_https_proxy": None,
+        "http_proxy": None,
+        "https_proxy": None,
+    }
+}
+
+
+class TestUAConfigKeys:
+    @pytest.mark.parametrize("attr_name", UA_CONFIGURABLE_KEYS)
+    @mock.patch("uaclient.config.UAConfig.write_cfg")
+    def test_ua_configurable_keys_set_ua_config_dict(
+        self, write_cfg, attr_name, tmpdir
+    ):
+        """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        assert None is getattr(cfg, attr_name)
+        setattr(cfg, attr_name, attr_name + "value")
+        assert attr_name + "value" == getattr(cfg, attr_name)
+        assert attr_name + "value" == cfg.cfg["ua_config"][attr_name]
+
+
+class TestWriteCfg:
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @pytest.mark.parametrize(
+        "orig_content, expected, warnings",
+        (
+            (
+                CFG_BASE_CONTENT,
+                CFG_BASE_CONTENT
+                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                [],
+            ),
+            (  # Yaml output is sorted alphabetically by key
+                "\n".join(sorted(CFG_BASE_CONTENT.splitlines(), reverse=True)),
+                CFG_BASE_CONTENT
+                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                [],
+            ),
+            # Any custom comments or unrecognized config keys are dropped
+            (
+                "unknown-keys-not-preserved: true\n# user comments are lost"
+                + CFG_BASE_CONTENT,
+                CFG_BASE_CONTENT
+                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                [
+                    "Ignoring invalid uaclient.conf key:"
+                    " unknown-keys-not-preserved=True"
+                ],
+            ),
+            # All features/settings_overrides ordered after ua_config
+            (
+                CFG_BASE_CONTENT
+                + "features:\n new: 2\n extra_security_params:\n  hide: true\n"
+                " show_beta: true\nsettings_overrides:\n d: 2\n c: 1\n",
+                CFG_FEATURES_CONTENT
+                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                [],
+            ),
+            (
+                "settings_overrides:\n c: 1\n d: 2\nfeatures:\n"
+                " show_beta: true\n new: 2\n extra_security_params:\n"
+                "  hide: true\nsettings_overrides:\n d: 2\n c: 1\n"
+                + CFG_BASE_CONTENT,
+                CFG_FEATURES_CONTENT
+                + yaml.dump(UA_CFG_DICT, default_flow_style=False),
+                [],
+            ),
+        ),
+    )
+    def test_write_cfg_reads_cfg_andpersists_structured_content_to_config_path(
+        self, orig_content, warnings, expected, caplog_text, tmpdir
+    ):
+        """write_cfg writes structured, ordered config YAML to config_path."""
+        orig_conf = tmpdir.join("orig_uaclient.conf")
+        orig_conf.write(orig_content)
+        cfg = UAConfig(cfg=parse_config(orig_conf.strpath))
+        out_conf = tmpdir.join("uaclient.conf")
+        cfg.write_cfg(out_conf.strpath)
+        assert expected == out_conf.read()
+        warn_logs = caplog_text()
+        for warning in warnings:
+            assert warning in warn_logs
 
 
 class TestWriteCache:
@@ -1297,6 +1420,37 @@ class TestParseConfig:
         }
         assert expected_default_config == config
 
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @pytest.mark.parametrize(
+        "config_dict,warnings",
+        (
+            ({"contract_url": "http://abc", "security_url": "http:xyz"}, []),
+            (
+                {"contract_urs": "http://abc", "security_url": "http:xyz"},
+                [
+                    "Ignoring invalid uaclient.conf key:"
+                    " contract_urs=http://abc\n"
+                ],
+            ),
+        ),
+    )
+    def test_parse_config_warns_and_ignores_invalid_config(
+        self, config_dict, warnings, caplog_text, tmpdir
+    ):
+        config_file = tmpdir.join("uaclient.conf")
+        config_file.write(yaml.dump(config_dict))
+        env_vars = {"UA_CONFIG_FILE": config_file.strpath}
+        with mock.patch.dict("uaclient.config.os.environ", values=env_vars):
+            cfg = parse_config(config_file.strpath)
+        expected = copy.deepcopy(CONFIG_DEFAULTS)
+        for key, value in config_dict.items():
+            if key in VALID_UA_CONFIG_KEYS:
+                expected[key] = config_dict[key]
+        warn_logs = caplog_text()
+        for warning in warnings:
+            assert warning in warn_logs
+        assert expected == cfg
+
     @pytest.mark.parametrize(
         "envvar_name,envvar_val,field,expected_val",
         [
@@ -1321,7 +1475,7 @@ class TestParseConfig:
                 "{}/somedir".format(os.path.expanduser("~")),
             ),
             ("Ua_LoG_FiLe", "some.log", "log_file", "some.log"),
-            ("UA_LOG_LEVEL", "debug", "log_level", "DEBUG"),
+            ("UA_LOG_LEVEL", "debug", "log_level", "debug"),
         ],
     )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)

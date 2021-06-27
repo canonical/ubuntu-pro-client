@@ -533,6 +533,13 @@ MESSAGE_APT_PROXY_CONFIG_HEADER = """\
 MESSAGE_APT_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
 MESSAGE_APT_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
 
+MESSAGE_UACLIENT_CONF_HEADER = """\
+# Ubuntu-Advantage client config file.
+# If you modify this file, run "ua refresh config" to ensure changes are
+# picked up by Ubuntu-Advantage client.
+
+"""
+
 MESSAGE_SETTING_SERVICE_PROXY = "Setting {service} proxy"
 MESSAGE_NOT_SETTING_PROXY_INVALID_URL = (
     '"{proxy}" is not a valid url. Not setting as proxy.'
