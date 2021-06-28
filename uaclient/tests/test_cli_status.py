@@ -340,7 +340,6 @@ class TestActionStatus:
             "attached": False,
             "expires": "n/a",
             "notices": [],
-            "origin": None,
             "services": [
                 {
                     "name": "livepatch",
@@ -355,6 +354,12 @@ class TestActionStatus:
                 "created_at": "",
                 "products": [],
                 "tech_support_level": "n/a",
+            },
+            "account": {
+                "name": "",
+                "id": "",
+                "created_at": "",
+                "external_account_ids": [],
             },
         }
         assert expected == json.loads(capsys.readouterr()[0])
@@ -431,10 +436,7 @@ class TestActionStatus:
             "attached": True,
             "expires": "n/a",
             "notices": [],
-            "origin": None,
             "services": filtered_services,
-            "account": "test_account",
-            "account-id": "acct-1",
             "environment_vars": expected_environment,
             "contract": {
                 "id": "cid",
@@ -442,6 +444,12 @@ class TestActionStatus:
                 "created_at": "2020-05-08T19:02:26+00:00",
                 "products": ["free"],
                 "tech_support_level": tech_support_level,
+            },
+            "account": {
+                "id": "acct-1",
+                "name": "test_account",
+                "created_at": "2019-06-14T06:45:50+00:00",
+                "external_account_ids": [{"IDs": ["id1"], "Origin": "AWS"}],
             },
         }
         assert expected == json.loads(capsys.readouterr()[0])

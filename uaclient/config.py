@@ -52,6 +52,12 @@ DEFAULT_STATUS = {
         "products": [],
         "tech_support_level": status.UserFacingStatus.INAPPLICABLE.value,
     },
+    "account": {
+        "name": "",
+        "id": "",
+        "created_at": "",
+        "external_account_ids": [],
+    },
 }  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
@@ -550,8 +556,6 @@ class UAConfig:
         response.update(
             {
                 "attached": True,
-                "account": self.accounts[0]["name"],
-                "account-id": self.accounts[0]["id"],
                 "origin": contractInfo.get("origin"),
                 "notices": self.read_cache("notices") or [],
                 "contract": {
@@ -560,6 +564,14 @@ class UAConfig:
                     "created_at": contractInfo.get("createdAt", ""),
                     "products": contractInfo.get("products", []),
                     "tech_support_level": tech_support_level,
+                },
+                "account": {
+                    "name": self.accounts[0]["name"],
+                    "id": self.accounts[0]["id"],
+                    "created_at": self.accounts[0].get("createdAt", ""),
+                    "external_account_ids": self.accounts[0].get(
+                        "externalAccountIDs", []
+                    ),
                 },
             }
         )

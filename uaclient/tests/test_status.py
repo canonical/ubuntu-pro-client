@@ -18,14 +18,14 @@ def status_dict_attached(request):
     # The following are required so we don't get an "unattached" error
     status["attached"] = True
     status["expires"] = "expires"
-    status["account"] = ""
+    status["account"] = {"name": ""}
     status["contract"] = {
         "name": "",
         "tech_support_level": UserFacingStatus.INAPPLICABLE.value,
     }
 
     if request.param:
-        status["account"] = "account"
+        status["account"]["name"] = "account"
         status["contract"]["name"] = "subscription"
 
     return status
@@ -162,7 +162,7 @@ class TestFormatTabular:
 
         if status_dict_attached["contract"].get("name"):
             expected_headers = ("Subscription",) + expected_headers
-        if status_dict_attached["account"]:
+        if status_dict_attached["account"].get("name"):
             expected_headers = ("Account",) + expected_headers
 
         tabular_output = format_tabular(status_dict_attached)

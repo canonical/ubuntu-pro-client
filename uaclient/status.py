@@ -622,8 +622,9 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     content.append("\nEnable services with: ua enable <service>")
     pairs = []
 
-    if status["account"]:
-        pairs.append(("Account", status["account"]))
+    account_name = status["account"]["name"]
+    if account_name:
+        pairs.append(("Account", account_name))
 
     contract_name = status["contract"]["name"]
     if contract_name:
@@ -659,5 +660,8 @@ def format_json_status(status: "Dict[str, Any]") -> str:
         if service.get("available", "yes") == "yes"
     ]
     status["services"] = available_services
+
+    # We don't need the origin info in the json output
+    status.pop("origin", "")
 
     return json.dumps(status, cls=DatetimeAwareJSONEncoder)
