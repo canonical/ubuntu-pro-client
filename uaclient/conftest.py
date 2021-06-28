@@ -96,7 +96,14 @@ def FakeConfig(tmpdir):
                     "availableResources": [],
                     "machineToken": "not-null",
                     "machineTokenInfo": {
-                        "accountInfo": {"id": "acct-1", "name": account_name},
+                        "accountInfo": {
+                            "id": "acct-1",
+                            "name": account_name,
+                            "createdAt": "2019-06-14T06:45:50Z",
+                            "externalAccountIDs": [
+                                {"IDs": ["id1"], "Origin": "AWS"}
+                            ],
+                        },
                         "contractInfo": {
                             "id": "cid",
                             "name": "test_contract",
