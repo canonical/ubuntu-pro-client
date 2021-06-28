@@ -5,7 +5,6 @@ import subprocess
 import re
 import shlex
 import time
-import yaml
 
 from behave import given, then, when
 from hamcrest import (
@@ -20,7 +19,6 @@ from features.environment import create_uat_image
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
-from uaclient.util import load_file
 
 
 CONTAINER_PREFIX = "ubuntu-behave-test-"
@@ -134,37 +132,6 @@ def when_i_run_command_on_machine(context, command, user_spec, instance_name):
     )
 
 
-@when(
-    "I configure uaclient `{proxy_cfg}` proxy to use `{instance_name}` machine"
-)
-def when_i_configure_uaclient_using_proxy_machine(
-    context, proxy_cfg, instance_name
-):
-    proxy_ip = context.instances[instance_name].ip
-
-    # We can modify this code to get this info directly from squid.conf,
-    # But I don't think we need this at this moment.
-    port = "3128"
-
-    # we are not configuring a full https proxy for the tests
-    proxy_type = "http"
-
-    proxy_cfg_value = "{}://{}:{}".format(proxy_type, proxy_ip, port)
-
-    tmp_local_conf = "/tmp/uaclient.conf"
-    context.instances["uaclient"].pull_file(
-        DEFAULT_CONFIG_FILE, tmp_local_conf
-    )
-    cfg = yaml.safe_load(load_file(tmp_local_conf))
-
-    if "ua_config" not in cfg:
-        cfg["ua_config"] = {}
-    cfg["ua_config"][proxy_cfg + "_proxy"] = proxy_cfg_value
-
-    context.text = yaml.dump(cfg)
-    when_i_append_to_uaclient_config(context)
-
-
 @when("I verify `{file_name}` is empty on `{instance_name}` machine")
 def when_i_verify_file_is_empty_on_machine(context, file_name, instance_name):
     command = 'sh -c "cat {} | wc -l"'
@@ -205,6 +172,10 @@ def when_i_run_command(
     stdin=None,
     instance_name="uaclient",
 ):
+    if "<ci-proxy-ip>" in command:
+        command = command.replace(
+            "<ci-proxy-ip>", context.instances["proxy"].ip
+        )
     prefix = get_command_prefix_for_user_spec(user_spec)
     slow_cmd_spinner = nullcontext
     for slow_cmd in SLOW_CMDS:
@@ -345,7 +316,8 @@ def when_i_append_to_uaclient_config(context):
 @when("I create the file `{file_path}` with the following")
 def when_i_create_file_with_content(context, file_path):
     text = context.text.replace('"', '\\"')
-
+    if "<ci-proxy-ip>" in text:
+        text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
     cmd = "printf '{}\n' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
     when_i_run_command(context, cmd, "with sudo")
