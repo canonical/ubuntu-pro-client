@@ -39,6 +39,9 @@ def configure_snap_proxy(
     :@param snap_retries: Optional list of sleep lengths to apply between
                           snap calls
     """
+    if http_proxy or https_proxy:
+        print(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="snap"))
+
     if http_proxy:
         util.subp(
             ["snap", "set", "system", "proxy.http={}".format(http_proxy)],
@@ -67,6 +70,13 @@ def configure_livepatch_proxy(
     :@param livepatch_retries: Optional list of sleep lengths to apply between
                                snap calls
     """
+    if http_proxy or https_proxy:
+        print(
+            status.MESSAGE_SETTING_SERVICE_PROXY.format(
+                service=LivepatchEntitlement.title
+            )
+        )
+
     if http_proxy:
         util.subp(
             [
@@ -135,50 +145,48 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which("/snap/bin/canonical-livepatch"):
-            if not util.which(SNAP_CMD):
-                print("Installing snapd")
-                print(status.MESSAGE_APT_UPDATING_LISTS)
-                try:
-                    apt.run_apt_command(
-                        ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
-                    )
-                except exceptions.UserFacingError as e:
-                    logging.debug(
-                        "Trying to install snapd."
-                        " Ignoring apt-get update failure: %s",
-                        str(e),
-                    )
-                util.subp(
-                    ["apt-get", "install", "--assume-yes", "snapd"],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                )
-            elif "snapd" not in apt.get_installed_packages():
-                raise exceptions.UserFacingError(
-                    "/usr/bin/snap is present but snapd is not installed;"
-                    " cannot enable {}".format(self.title)
-                )
-
+        if not util.which(SNAP_CMD):
+            print("Installing snapd")
+            print(status.MESSAGE_APT_UPDATING_LISTS)
             try:
-                util.subp(
-                    [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+                apt.run_apt_command(
+                    ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
                 )
-            except util.ProcessExecutionError as e:
-                if re.search(r"unknown command .*wait", str(e).lower()):
-                    logging.warning(
-                        status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD
-                    )
-                else:
-                    raise
-
-            print("Installing canonical-livepatch snap")
-            http_proxy = self.cfg.http_proxy
-            https_proxy = self.cfg.https_proxy
-            configure_snap_proxy(
-                http_proxy, https_proxy, snap_retries=SNAP_INSTALL_RETRIES
+            except exceptions.UserFacingError as e:
+                logging.debug(
+                    "Trying to install snapd."
+                    " Ignoring apt-get update failure: %s",
+                    str(e),
+                )
+            util.subp(
+                ["apt-get", "install", "--assume-yes", "snapd"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+            )
+        elif "snapd" not in apt.get_installed_packages():
+            raise exceptions.UserFacingError(
+                "/usr/bin/snap is present but snapd is not installed;"
+                " cannot enable {}".format(self.title)
             )
 
+        try:
+            util.subp(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            )
+        except util.ProcessExecutionError as e:
+            if re.search(r"unknown command .*wait", str(e).lower()):
+                logging.warning(status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+            else:
+                raise
+
+        http_proxy = self.cfg.http_proxy
+        https_proxy = self.cfg.https_proxy
+        configure_snap_proxy(
+            http_proxy, https_proxy, snap_retries=SNAP_INSTALL_RETRIES
+        )
+
+        if not util.which("/snap/bin/canonical-livepatch"):
+            print("Installing canonical-livepatch snap")
             try:
                 util.subp(
                     [SNAP_CMD, "install", "canonical-livepatch"],
@@ -188,6 +196,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             except util.ProcessExecutionError as e:
                 msg = "Unable to install Livepatch client: " + str(e)
                 raise exceptions.UserFacingError(msg)
+
         return self.setup_livepatch_config(
             process_directives=True, process_token=True
         )

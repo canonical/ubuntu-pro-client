@@ -525,6 +525,8 @@ MESSAGE_APT_PROXY_CONFIG_HEADER = """\
 MESSAGE_APT_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
 MESSAGE_APT_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
 
+MESSAGE_SETTING_SERVICE_PROXY = "Setting {service} proxy"
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""

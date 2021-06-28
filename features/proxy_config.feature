@@ -27,6 +27,10 @@ Feature: Proxy configuration
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
         When I attach `contract_token` with sudo
+        Then stdout matches regexp:
+        """
+        Setting APT proxy
+        """
         Then I verify that files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
         When I run `cat /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy` with sudo
         Then stdout matches regexp:
@@ -78,7 +82,15 @@ Feature: Proxy configuration
         And I configure uaclient `https` proxy to use `proxy` machine
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
-        And I run `canonical-livepatch config check-interval=0` with sudo
+        Then stdout matches regexp:
+        """
+        Setting snap proxy
+        """
+        Then stdout matches regexp:
+        """
+        Setting Livepatch proxy
+        """
+        When I run `canonical-livepatch config check-interval=0` with sudo
         And I run `canonical-livepatch refresh` with sudo
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
