@@ -21,6 +21,8 @@ APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
 APT_CONFIG_AUTH_FILE = "Dir::Etc::netrc/"
 APT_CONFIG_AUTH_PARTS_DIR = "Dir::Etc::netrcparts/"
 APT_CONFIG_LISTS_DIR = "Dir::State::lists/"
+APT_CONFIG_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
+APT_CONFIG_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
 APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
 KEYRINGS_DIR = "/usr/share/keyrings"
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
@@ -413,11 +415,9 @@ def setup_apt_proxy(
 
     apt_proxy_config = ""
     if http_proxy:
-        apt_proxy_config += status.MESSAGE_APT_PROXY_HTTP.format(
-            proxy_url=http_proxy
-        )
+        apt_proxy_config += APT_CONFIG_PROXY_HTTP.format(proxy_url=http_proxy)
     if https_proxy:
-        apt_proxy_config += status.MESSAGE_APT_PROXY_HTTPS.format(
+        apt_proxy_config += APT_CONFIG_PROXY_HTTPS.format(
             proxy_url=https_proxy
         )
     if apt_proxy_config != "":

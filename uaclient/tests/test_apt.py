@@ -10,6 +10,8 @@ from textwrap import dedent
 import pytest
 
 from uaclient.apt import (
+    APT_CONFIG_PROXY_HTTP,
+    APT_CONFIG_PROXY_HTTPS,
     APT_RETRIES,
     APT_KEYS_DIR,
     APT_AUTH_COMMENT,
@@ -931,7 +933,7 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         status.MESSAGE_APT_PROXY_CONFIG_HEADER
-                        + status.MESSAGE_APT_PROXY_HTTP.format(
+                        + APT_CONFIG_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         ),
                     )
@@ -945,7 +947,7 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         status.MESSAGE_APT_PROXY_CONFIG_HEADER
-                        + status.MESSAGE_APT_PROXY_HTTPS.format(
+                        + APT_CONFIG_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
                     )
@@ -962,10 +964,10 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         status.MESSAGE_APT_PROXY_CONFIG_HEADER
-                        + status.MESSAGE_APT_PROXY_HTTP.format(
+                        + APT_CONFIG_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         )
-                        + status.MESSAGE_APT_PROXY_HTTPS.format(
+                        + APT_CONFIG_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
                     )
