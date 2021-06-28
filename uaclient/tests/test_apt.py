@@ -921,9 +921,9 @@ class TestRunAptCommand:
 
 class TestAptProxyConfig:
     @pytest.mark.parametrize(
-        "kwargs, expected_remove_calls, expected_write_calls",
+        "kwargs, expected_remove_calls, expected_write_calls, expected_out",
         [
-            ({}, [mock.call(APT_PROXY_CONF_FILE)], []),
+            ({}, [mock.call(APT_PROXY_CONF_FILE)], [], ""),
             (
                 {"http_proxy": "mock_http_proxy"},
                 [],
@@ -936,6 +936,7 @@ class TestAptProxyConfig:
                         ),
                     )
                 ],
+                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
             ),
             (
                 {"https_proxy": "mock_https_proxy"},
@@ -949,6 +950,7 @@ class TestAptProxyConfig:
                         ),
                     )
                 ],
+                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
             ),
             (
                 {
@@ -968,6 +970,7 @@ class TestAptProxyConfig:
                         ),
                     )
                 ],
+                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
             ),
         ],
     )
@@ -980,7 +983,12 @@ class TestAptProxyConfig:
         kwargs,
         expected_remove_calls,
         expected_write_calls,
+        expected_out,
+        capsys,
     ):
         setup_apt_proxy(**kwargs)
         assert expected_remove_calls == m_util_remove_file.call_args_list
         assert expected_write_calls == m_util_write_file.call_args_list
+        out, err = capsys.readouterr()
+        assert expected_out == out.strip()
+        assert "" == err

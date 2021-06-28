@@ -20,6 +20,7 @@ import pytest
 from uaclient import apt
 from uaclient import exceptions
 from uaclient.entitlements.livepatch import (
+    SNAP_CMD,
     LivepatchEntitlement,
     process_config_directives,
     configure_snap_proxy,
@@ -83,7 +84,7 @@ class TestConfigureSnapProxy:
     )
     @mock.patch("uaclient.util.subp")
     def test_configure_snap_proxy(
-        self, m_subp, http_proxy, https_proxy, snap_retries
+        self, m_subp, http_proxy, https_proxy, snap_retries, capsys
     ):
         configure_snap_proxy(http_proxy, https_proxy, snap_retries)
         expected_calls = []
@@ -115,6 +116,12 @@ class TestConfigureSnapProxy:
 
         assert m_subp.call_args_list == expected_calls
 
+        out, _ = capsys.readouterr()
+        if http_proxy or https_proxy:
+            assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
+                service="snap"
+            )
+
 
 class TestConfigureLivepatchProxy:
     @pytest.mark.parametrize(
@@ -130,7 +137,7 @@ class TestConfigureLivepatchProxy:
     )
     @mock.patch("uaclient.util.subp")
     def test_configure_livepatch_proxy(
-        self, m_subp, http_proxy, https_proxy, livepatch_retries
+        self, m_subp, http_proxy, https_proxy, livepatch_retries, capsys
     ):
         configure_livepatch_proxy(http_proxy, https_proxy, livepatch_retries)
         expected_calls = []
@@ -159,6 +166,12 @@ class TestConfigureLivepatchProxy:
             )
 
         assert m_subp.call_args_list == expected_calls
+
+        out, _ = capsys.readouterr()
+        if http_proxy or https_proxy:
+            assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
+                service=LivepatchEntitlement.title
+            )
 
 
 class TestLivepatchContractStatus:
@@ -611,8 +624,8 @@ class TestLivepatchEntitlementEnable:
         else:
             assert expected_log in caplog_text()
         expected_calls = [
-            mock.call("/snap/bin/canonical-livepatch"),
             mock.call("/usr/bin/snap"),
+            mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
         assert m_snap_proxy.call_count == 1
@@ -655,8 +668,8 @@ class TestLivepatchEntitlementEnable:
         )
         assert (msg, "") == capsys.readouterr()
         expected_calls = [
-            mock.call("/snap/bin/canonical-livepatch"),
             mock.call("/usr/bin/snap"),
+            mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
         assert m_snap_proxy.call_count == 1
@@ -697,9 +710,10 @@ class TestLivepatchEntitlementEnable:
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
+    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -711,6 +725,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_subp,
         _m_get_platform_info,
+        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         capsys,
@@ -720,14 +735,33 @@ class TestLivepatchEntitlementEnable:
         application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
-        assert self.mocks_config == m_subp.call_args_list
+        subp_calls = [
+            mock.call(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            ),
+            mock.call(
+                [
+                    "/snap/bin/canonical-livepatch",
+                    "config",
+                    "remote-server=https://alt.livepatch.com",
+                ],
+                capture=True,
+            ),
+            mock.call(["/snap/bin/canonical-livepatch", "disable"]),
+            mock.call(
+                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
+                capture=True,
+            ),
+        ]
+        assert subp_calls == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
-        assert m_snap_proxy.call_count == 0
+        assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
+    @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.util.which", return_value="/found/livepatch")
+    @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
         M_PATH + "LivepatchEntitlement.can_enable", return_value=(True, None)
@@ -739,6 +773,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_subp,
         _m_get_platform_info,
+        _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
         capsys,
@@ -749,6 +784,9 @@ class TestLivepatchEntitlementEnable:
         m_app_status.return_value = status.ApplicationStatus.DISABLED, "nope"
         assert entitlement.enable()
         subp_no_livepatch_disable = [
+            mock.call(
+                [SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
+            ),
             mock.call(
                 [
                     "/snap/bin/canonical-livepatch",
@@ -764,7 +802,7 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
-        assert m_snap_proxy.call_count == 0
+        assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
     @pytest.mark.parametrize(
@@ -821,7 +859,7 @@ class TestLivepatchEntitlementEnable:
         capsys,
         caplog_text,
     ):
-        m_which.side_effect = [False, True]
+        m_which.side_effect = [True, False]
         m_installed_pkgs.return_value = ["snapd"]
         stderr_msg = (
             "error: Unknown command `wait'. Please specify one command of: "
