@@ -198,6 +198,85 @@ def auto_attach_parser(parser):
     return parser
 
 
+def config_show_parser(parser):
+    """Build or extend an arg parser for 'config show' subcommand."""
+    parser.usage = USAGE_TMPL.format(name=NAME, command="show [key]")
+    parser.prog = "show"
+    parser.description = "Show customisable configuration settings"
+    parser.add_argument(
+        "key",
+        nargs="?",  # action_config_show handles this optional argument
+        help="Optional key or key(s) to show configuration settings.",
+    )
+    return parser
+
+
+def config_set_parser(parser):
+    """Build or extend an arg parser for 'config set' subcommand."""
+    parser.usage = USAGE_TMPL.format(name=NAME, command="set <key>=<value>")
+    parser.prog = "set"
+    parser.description = (
+        "Set and apply Ubuntu Advantage configuration settings"
+    )
+    parser._optionals.title = "Flags"
+    parser.add_argument(
+        "key_value_pair",
+        help=(
+            "key=value pair to configure for Ubuntu Advantage services."
+            " Key must be one of: {}".format(
+                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            )
+        ),
+    )
+    return parser
+
+
+def config_unset_parser(parser):
+    """Build or extend an arg parser for 'config unset' subcommand."""
+    parser.usage = USAGE_TMPL.format(name=NAME, command="unset <key>")
+    parser.prog = "unset"
+    parser.description = "Unset Ubuntu Advantage configuration setting"
+    parser.add_argument(
+        "key",
+        help=(
+            "configuration key to unset from Ubuntu Advantage services."
+            " One of: {}".format(", ".join(config.UA_CONFIGURABLE_KEYS))
+        ),
+        metavar="key",
+    )
+    parser._optionals.title = "Flags"
+    return parser
+
+
+def config_parser(parser):
+    """Build or extend an arg parser for config subcommand."""
+    parser.usage = USAGE_TMPL.format(name=NAME, command="config <command>")
+    parser.prog = "config"
+    parser.description = "Manage Ubuntu Advantage configuration"
+    parser._optionals.title = "Flags"
+    subparsers = parser.add_subparsers(
+        title="Available Commands", dest="command", metavar=""
+    )
+    parser_show = subparsers.add_parser(
+        "show", help="show all Ubuntu Advantage configuration setting(s)"
+    )
+    parser_show.set_defaults(action=action_config_show)
+    config_show_parser(parser_show)
+
+    parser_set = subparsers.add_parser(
+        "set", help="set Ubuntu Advantage configuration setting"
+    )
+    parser_set.set_defaults(action=action_config_set)
+    config_set_parser(parser_set)
+
+    parser_unset = subparsers.add_parser(
+        "unset", help="unset Ubuntu Advantage configuration setting"
+    )
+    parser_unset.set_defaults(action=action_config_unset)
+    config_unset_parser(parser_unset)
+    return parser
+
+
 def attach_parser(parser):
     """Build or extend an arg parser for attach subcommand."""
     parser.usage = USAGE_TMPL.format(name=NAME, command="attach <token>")
@@ -491,6 +570,152 @@ def get_valid_entitlement_names(names: "List[str]"):
     entitlements_not_found = sorted(set(names) - set(entitlements_found))
 
     return entitlements_found, entitlements_not_found
+
+
+def action_config(args, cfg, **kwargs):
+    """Perform the config action.
+
+    :return: 0 on success, 1 otherwise
+    """
+    parser = get_parser()
+    subparser = parser._get_positional_actions()[0].choices["config"]
+    valid_choices = subparser._get_positional_actions()[0].choices.keys()
+    if args.command not in valid_choices:
+        parser._get_positional_actions()[0].choices["config"].print_help()
+        raise exceptions.UserFacingError(
+            "\n<command> must be one of: {}".format(", ".join(valid_choices))
+        )
+
+
+def action_config_show(args, cfg, **kwargs):
+    """Perform the 'config show' action optionally limit output to a single key
+
+    :return: 0 on success
+    :raise UserFacingError: on invalid keys
+    """
+    if args.key:  # limit reporting config to a single config key
+        if args.key not in config.UA_CONFIGURABLE_KEYS:
+            msg = "\n'{}' must be one of: {}".format(
+                args.key, ", ".join(config.UA_CONFIGURABLE_KEYS)
+            )
+            indent_position = msg.find(":") + 2
+            raise exceptions.UserFacingError(
+                textwrap.fill(
+                    msg,
+                    width=ua_status.PRINT_WRAP_WIDTH,
+                    subsequent_indent=" " * indent_position,
+                )
+            )
+        print(
+            "{key} {value}".format(key=args.key, value=getattr(cfg, args.key))
+        )
+        return 0
+
+    col_width = str(max([len(x) for x in config.UA_CONFIGURABLE_KEYS]) + 1)
+    row_tmpl = "{key: <" + col_width + "} {value}"
+    for key in config.UA_CONFIGURABLE_KEYS:
+        print(row_tmpl.format(key=key, value=getattr(cfg, key)))
+
+
+@assert_root
+def action_config_set(args, cfg, **kwargs):
+    """Perform the 'config set' action.
+
+    @return: 0 on success, 1 otherwise
+    """
+    from uaclient.apt import setup_apt_proxy
+    from uaclient.entitlements.livepatch import configure_livepatch_proxy
+    from uaclient.snap import configure_snap_proxy
+
+    parser = get_parser()
+    config_parser = parser._get_positional_actions()[0].choices["config"]
+    subparser = config_parser._get_positional_actions()[0].choices["set"]
+    try:
+        set_key, set_value = args.key_value_pair.split("=")
+    except ValueError:
+        subparser.print_help()
+        raise exceptions.UserFacingError(
+            "\nExpected <key>=<value> but found: {}".format(
+                args.key_value_pair
+            )
+        )
+    if set_key not in config.UA_CONFIGURABLE_KEYS:
+        subparser.print_help()
+        raise exceptions.UserFacingError(
+            "\n<key> must be one of: {}".format(
+                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            )
+        )
+    if set_key in ("http_proxy", "https_proxy"):
+        protocol_type = set_key.split("_")[0]
+        if protocol_type == "http":
+            validate_url = util.PROXY_VALIDATION_SNAP_HTTP_URL
+        else:
+            validate_url = util.PROXY_VALIDATION_SNAP_HTTPS_URL
+        util.validate_proxy(protocol_type, set_value, validate_url)
+
+        kwargs = {set_key: set_value}
+        configure_snap_proxy(**kwargs)
+        # Only set livepatch proxy if livepatch is enabled
+        entitlement = entitlements.livepatch.LivepatchEntitlement(cfg)
+        livepatch_status, _ = entitlement.application_status()
+        if livepatch_status == ua_status.ApplicationStatus.ENABLED:
+            configure_livepatch_proxy(**kwargs)
+    elif set_key in ("apt_http_proxy", "apt_https_proxy"):
+        # setup_apt_proxy is destructive for unprovided values. Source complete
+        # current config values from uaclient.conf before applying set_value.
+        protocol_type = set_key.split("_")[1]
+        if protocol_type == "http":
+            validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
+        else:
+            validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
+        util.validate_proxy(protocol_type, set_value, validate_url)
+        kwargs = {
+            "http_proxy": cfg.apt_http_proxy,
+            "https_proxy": cfg.apt_https_proxy,
+        }
+        kwargs[set_key[4:]] = set_value
+        setup_apt_proxy(**kwargs)
+    setattr(cfg, set_key, set_value)
+
+
+@assert_root
+def action_config_unset(args, cfg, **kwargs):
+    """Perform the 'config unset' action.
+
+    @return: 0 on success, 1 otherwise
+    """
+    from uaclient.apt import setup_apt_proxy
+    from uaclient.entitlements.livepatch import unconfigure_livepatch_proxy
+    from uaclient.snap import unconfigure_snap_proxy
+
+    if args.key not in config.UA_CONFIGURABLE_KEYS:
+        parser = get_parser()
+        config_parser = parser._get_positional_actions()[0].choices["config"]
+        subparser = config_parser._get_positional_actions()[0].choices["unset"]
+        subparser.print_help()
+        raise exceptions.UserFacingError(
+            "\n<key> must be one of: {}".format(
+                ", ".join(config.UA_CONFIGURABLE_KEYS)
+            )
+        )
+    if args.key in ("http_proxy", "https_proxy"):
+        protocol_type = args.key.split("_")[0]
+        unconfigure_snap_proxy(protocol_type=protocol_type)
+        # Only unset livepatch proxy if livepatch is enabled
+        entitlement = entitlements.livepatch.LivepatchEntitlement(cfg)
+        livepatch_status, _ = entitlement.application_status()
+        if livepatch_status == ua_status.ApplicationStatus.ENABLED:
+            unconfigure_livepatch_proxy(protocol_type=protocol_type)
+    elif args.key in ("apt_http_proxy", "apt_https_proxy"):
+        kwargs = {
+            "http_proxy": cfg.apt_http_proxy,
+            "https_proxy": cfg.apt_https_proxy,
+        }
+        kwargs[args.key[4:]] = None
+        setup_apt_proxy(**kwargs)
+    setattr(cfg, args.key, None)
+    return 0
 
 
 @assert_root
@@ -793,8 +1018,8 @@ def get_parser():
     parser = UAArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        usage=USAGE_TMPL.format(name=NAME, command="[command]"),
-        epilog=EPILOG_TMPL.format(name=NAME, command="[command]"),
+        usage=USAGE_TMPL.format(name=NAME, command="<command>"),
+        epilog=EPILOG_TMPL.format(name=NAME, command="<command>"),
         base_desc=base_desc,
         non_beta_services_desc=non_beta_services_desc,
         beta_services_desc=beta_services_desc,
@@ -826,6 +1051,12 @@ def get_parser():
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
+
+    parser_config = subparsers.add_parser(
+        "config", help="manage Ubuntu Advantage configuration on this machine"
+    )
+    config_parser(parser_config)
+    parser_config.set_defaults(action=action_config)
 
     parser_detach = subparsers.add_parser(
         "detach",
