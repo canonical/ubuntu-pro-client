@@ -787,8 +787,15 @@ class TestSetupAptConfig:
             ),
         ),
     )
+    @mock.patch("uaclient.apt.setup_apt_proxy")
     def test_missing_directives(
-        self, repo_cls, directives, exc_cls, err_msg, entitlement_factory
+        self,
+        _setup_apt_proxy,
+        repo_cls,
+        directives,
+        exc_cls,
+        err_msg,
+        entitlement_factory,
     ):
         """Raise an error when missing any required directives."""
         entitlement = entitlement_factory(repo_cls, directives=directives)
@@ -798,6 +805,7 @@ class TestSetupAptConfig:
         assert err_msg in str(excinfo.value)
 
     @pytest.mark.parametrize("enable_by_default", (True, False))
+    @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_CONTRACT_PATH + "request_resource_machine_access")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
@@ -806,6 +814,7 @@ class TestSetupAptConfig:
         run_apt_command,
         add_auth_apt_repo,
         request_resource_machine_access,
+        _setup_apt_proxy,
         enable_by_default,
         entitlement_factory,
         caplog_text,
@@ -886,9 +895,10 @@ class TestSetupAptConfig:
         )
         assert install_call in m_run_apt_command.call_args_list
 
+    @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "util.get_platform_info")
     def test_setup_error_with_repo_pin_priority_and_missing_origin(
-        self, m_get_platform_info, entitlement_factory
+        self, m_get_platform_info, _setup_apt_proxy, entitlement_factory
     ):
         """Raise error when repo_pin_priority is set and origin is None."""
         m_get_platform_info.return_value = {"series": "xenial"}
