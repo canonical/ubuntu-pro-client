@@ -676,7 +676,12 @@ class TestStatus:
         token = {
             "availableResources": [],
             "machineTokenInfo": {
-                "accountInfo": {"id": "acct-1", "name": "test_account"},
+                "accountInfo": {
+                    "id": "acct-1",
+                    "name": "test_account",
+                    "createdAt": "2019-06-14T06:45:50Z",
+                    "externalAccountIDs": [{"IDs": ["id1"], "Origin": "AWS"}],
+                },
                 "contractInfo": {
                     "id": "cid",
                     "name": "test_contract",
@@ -725,8 +730,6 @@ class TestStatus:
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
-                "account-id": "acct-1",
-                "account": "test_account",
                 "attached": True,
                 "services": expected_services,
                 "contract": {
@@ -737,6 +740,16 @@ class TestStatus:
                     ),
                     "products": ["free"],
                     "tech_support_level": "n/a",
+                },
+                "account": {
+                    "name": "test_account",
+                    "id": "acct-1",
+                    "created_at": datetime.datetime(
+                        2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
+                    ),
+                    "external_account_ids": [
+                        {"IDs": ["id1"], "Origin": "AWS"}
+                    ],
                 },
             }
         )
@@ -899,7 +912,12 @@ class TestStatus:
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
-                "accountInfo": {"id": "1", "name": "accountname"},
+                "accountInfo": {
+                    "id": "1",
+                    "name": "accountname",
+                    "createdAt": "2019-06-14T06:45:50Z",
+                    "externalAccountIDs": [{"IDs": ["id1"], "Origin": "AWS"}],
+                },
                 "contractInfo": {
                     "id": "contract-1",
                     "name": "contractname",
@@ -922,8 +940,6 @@ class TestStatus:
         expected.update(
             {
                 "attached": True,
-                "account": "accountname",
-                "account-id": "1",
                 "contract": {
                     "name": "contractname",
                     "id": "contract-1",
@@ -932,6 +948,16 @@ class TestStatus:
                     ),
                     "products": ["free"],
                     "tech_support_level": support_level,
+                },
+                "account": {
+                    "name": "accountname",
+                    "id": "1",
+                    "created_at": datetime.datetime(
+                        2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
+                    ),
+                    "external_account_ids": [
+                        {"IDs": ["id1"], "Origin": "AWS"}
+                    ],
                 },
             }
         )
