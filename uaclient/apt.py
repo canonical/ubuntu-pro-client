@@ -408,12 +408,15 @@ def setup_apt_proxy(
     :param https_proxy: the url of the https proxy apt should use, or None
     :return: None
     """
+    if http_proxy or https_proxy:
+        print(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"))
+
     apt_proxy_config = ""
-    if http_proxy is not None:
+    if http_proxy:
         apt_proxy_config += status.MESSAGE_APT_PROXY_HTTP.format(
             proxy_url=http_proxy
         )
-    if https_proxy is not None:
+    if https_proxy:
         apt_proxy_config += status.MESSAGE_APT_PROXY_HTTPS.format(
             proxy_url=https_proxy
         )
