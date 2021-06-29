@@ -704,9 +704,22 @@ class UAConfig:
         return response_dict
 
     def process_config(self):
-        services_with_proxies = []
+        util.validate_proxy(
+            "http", self.apt_http_proxy, util.PROXY_VALIDATION_APT_HTTP_URL
+        )
+        util.validate_proxy(
+            "https", self.apt_https_proxy, util.PROXY_VALIDATION_APT_HTTPS_URL
+        )
+        util.validate_proxy(
+            "http", self.http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+        )
+        util.validate_proxy(
+            "https", self.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+        )
+
         apt.setup_apt_proxy(self.apt_http_proxy, self.apt_https_proxy)
 
+        services_with_proxies = []
         if snap.is_installed():
             snap.configure_snap_proxy(self.http_proxy, self.https_proxy)
             if (

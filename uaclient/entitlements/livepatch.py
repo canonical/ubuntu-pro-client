@@ -163,8 +163,12 @@ class LivepatchEntitlement(base.UAEntitlement):
             else:
                 raise
 
-        http_proxy = self.cfg.http_proxy
-        https_proxy = self.cfg.https_proxy
+        http_proxy = util.validate_proxy(
+            "http", self.cfg.http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+        )
+        https_proxy = util.validate_proxy(
+            "https", self.cfg.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+        )
         snap.configure_snap_proxy(
             http_proxy, https_proxy, snap_retries=snap.SNAP_INSTALL_RETRIES
         )
@@ -181,6 +185,8 @@ class LivepatchEntitlement(base.UAEntitlement):
                 msg = "Unable to install Livepatch client: " + str(e)
                 raise exceptions.UserFacingError(msg)
 
+        configure_livepatch_proxy(http_proxy, https_proxy)
+
         return self.setup_livepatch_config(
             process_directives=True, process_token=True
         )
@@ -195,10 +201,6 @@ class LivepatchEntitlement(base.UAEntitlement):
         :param process_token: Boolean set True when token should be
             processsed.
         """
-        http_proxy = self.cfg.http_proxy
-        https_proxy = self.cfg.https_proxy
-        configure_livepatch_proxy(http_proxy, https_proxy)
-
         entitlement_cfg = self.cfg.entitlements.get(self.name)
         if process_directives:
             try:

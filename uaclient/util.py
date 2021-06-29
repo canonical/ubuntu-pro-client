@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import socket
 import subprocess
 import time
 from urllib import error, request
@@ -43,6 +44,11 @@ DROPPED_KEY = object()
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
+
+PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
+PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
+PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
+PROXY_VALIDATION_SNAP_HTTPS_URL = "https://api.snapcraft.io"
 
 
 class LogFormatter(logging.Formatter):
@@ -806,3 +812,34 @@ def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
     return datetime.datetime.strptime(
         dt_str_without_microseconds, "%Y-%m-%dT%H:%M:%S%z"
     )
+
+
+def validate_proxy(
+    protocol: str, proxy: Optional[str], test_url: str
+) -> Optional[str]:
+    if not proxy:
+        return None
+
+    if not is_service_url(proxy):
+        raise exceptions.UserFacingError(
+            status.MESSAGE_NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy)
+        )
+
+    req = request.Request(test_url, method="HEAD")
+    proxy_handler = request.ProxyHandler({protocol: proxy})
+    opener = request.build_opener(proxy_handler)
+
+    try:
+        opener.open(req)
+        return proxy
+    except (socket.timeout, error.URLError) as e:
+        with disable_log_to_console():
+            msg = getattr(e, "reason", str(e))
+            logging.error(
+                status.MESSAGE_ERROR_USING_PROXY.format(
+                    proxy=proxy, test_url=test_url, error=msg
+                )
+            )
+        raise exceptions.UserFacingError(
+            status.MESSAGE_NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy)
+        )
