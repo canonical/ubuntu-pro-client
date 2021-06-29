@@ -182,6 +182,7 @@ class TestESMDisableAptAuthOnly:
         assert is_lts_calls == m_is_lts.call_args_list
 
 
+@mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.entitlements.esm.update_ua_messages")
 @mock.patch("uaclient.apt.setup_apt_proxy")
 class TestESMInfraEntitlementEnable:
@@ -192,6 +193,7 @@ class TestESMInfraEntitlementEnable:
         self,
         m_setup_apt_proxy,
         update_ua_messages,
+        m_validate_proxy,
         esm_cls,
         entitlement_factory,
     ):
@@ -307,7 +309,12 @@ class TestESMInfraEntitlementEnable:
         ] == update_ua_messages.call_args_list
 
     def test_enable_cleans_up_apt_sources_and_auth_files_on_error(
-        self, _m_setup_apt_proxy, _update_ua_messages, entitlement, caplog_text
+        self,
+        _m_setup_apt_proxy,
+        _update_ua_messages,
+        m_validate_proxy,
+        entitlement,
+        caplog_text,
     ):
         """When setup_apt_config fails, cleanup any apt artifacts."""
         original_exists = os.path.exists

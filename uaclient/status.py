@@ -534,6 +534,15 @@ MESSAGE_APT_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
 MESSAGE_APT_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
 
 MESSAGE_SETTING_SERVICE_PROXY = "Setting {service} proxy"
+MESSAGE_NOT_SETTING_PROXY_INVALID_URL = (
+    '"{proxy}" is not a valid url. Not setting as proxy.'
+)
+MESSAGE_NOT_SETTING_PROXY_NOT_WORKING = (
+    '"{proxy}" is not working. Not setting as proxy.'
+)
+MESSAGE_ERROR_USING_PROXY = (
+    'Error trying to use "{proxy}" as proxy to reach "{test_url}": {error}'
+)
 
 MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED = """\
 No proxy set in config; however, proxy is configured for: {{services}}.

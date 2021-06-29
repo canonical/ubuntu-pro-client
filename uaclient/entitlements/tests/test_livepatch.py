@@ -545,6 +545,7 @@ class TestLivepatchProcessContractDeltas:
         assert setup_calls == m_setup_livepatch_config.call_args_list
 
 
+@mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.snap.configure_snap_proxy")
 @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
@@ -610,6 +611,7 @@ class TestLivepatchEntitlementEnable:
         _m_get_platform_info,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         capsys,
         caplog_text,
         entitlement,
@@ -649,6 +651,7 @@ class TestLivepatchEntitlementEnable:
             mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
+        assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
@@ -670,6 +673,7 @@ class TestLivepatchEntitlementEnable:
         _m_get_platform_info,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         capsys,
         entitlement,
     ):
@@ -693,6 +697,7 @@ class TestLivepatchEntitlementEnable:
             mock.call("/snap/bin/canonical-livepatch"),
         ]
         assert expected_calls == m_which.call_args_list
+        assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
@@ -712,6 +717,7 @@ class TestLivepatchEntitlementEnable:
         m_subp,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         capsys,
         entitlement,
     ):
@@ -728,6 +734,7 @@ class TestLivepatchEntitlementEnable:
             " cannot enable {}".format(entitlement.title)
         )
         assert expected_msg == excinfo.value.msg
+        assert m_validate_proxy.call_count == 0
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
@@ -749,6 +756,7 @@ class TestLivepatchEntitlementEnable:
         _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         capsys,
         entitlement,
     ):
@@ -776,6 +784,7 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_calls == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+        assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
@@ -797,6 +806,7 @@ class TestLivepatchEntitlementEnable:
         _m_get_installed_packages,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         capsys,
         entitlement,
     ):
@@ -823,6 +833,7 @@ class TestLivepatchEntitlementEnable:
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
         assert ("Canonical livepatch enabled.\n", "") == capsys.readouterr()
+        assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
         assert m_livepatch_proxy.call_count == 1
 
@@ -841,6 +852,7 @@ class TestLivepatchEntitlementEnable:
         m_handle_message_op,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         cls_name,
         cls_title,
         entitlement,
@@ -862,6 +874,7 @@ class TestLivepatchEntitlementEnable:
                 )
                 assert msg.strip() == reason.message.strip()
 
+        assert m_validate_proxy.call_count == 0
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
@@ -876,6 +889,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         entitlement,
         capsys,
         caplog_text,
@@ -920,8 +934,9 @@ class TestLivepatchEntitlementEnable:
         for msg in status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD.split("\n"):
             assert msg in caplog_text()
 
+        assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
-        assert m_livepatch_proxy.call_count == 0
+        assert m_livepatch_proxy.call_count == 1
 
     @mock.patch("uaclient.util.which")
     @mock.patch("uaclient.apt.get_installed_packages")
@@ -933,6 +948,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_livepatch_proxy,
         m_snap_proxy,
+        m_validate_proxy,
         entitlement,
     ):
         m_which.side_effect = [False, True]
@@ -959,6 +975,7 @@ class TestLivepatchEntitlementEnable:
 
         expected_msg = "test error"
         assert expected_msg in str(excinfo)
+        assert m_validate_proxy.call_count == 0
         assert m_snap_proxy.call_count == 0
         assert m_livepatch_proxy.call_count == 0
 
