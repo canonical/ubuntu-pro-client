@@ -59,6 +59,27 @@ Feature: Proxy configuration
         """
         And I run `ua refresh config` with sudo
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
+        When I append the following on uaclient config
+        """
+        ua_config:
+            apt_http_proxy: "invalidurl"
+            apt_https_proxy: "invalidurls"
+        """
+        And I verify that running `ua refresh config` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        "invalidurl" is not a valid url. Not setting as proxy.
+        """
+        When I append the following on uaclient config
+        """
+        ua_config:
+            apt_https_proxy: "https://localhost:12345"
+        """
+        And I verify that running `ua refresh config` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        "https://localhost:12345" is not working. Not setting as proxy.
+        """
 
         Examples: ubuntu release
            | release |
@@ -107,6 +128,48 @@ Feature: Proxy configuration
         Then stdout matches regexp:
         """
         .*CONNECT livepatch.canonical.com:443.*
+        """
+        When I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+            """
+            Setting snap proxy
+            Setting Livepatch proxy
+            Successfully processed your ua configuration.
+            """
+        When I append the following on uaclient config
+        """
+        ua_config:
+            http_proxy: ""
+            https_proxy: ""
+        """
+        And I run `ua refresh config` with sudo
+        Then I will see the following on stdout:
+        """
+        No proxy set in config; however, proxy is configured for: snap, livepatch.
+        See https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788 for more information on ua proxy configuration.
+
+        Successfully processed your ua configuration.
+        """
+        When I append the following on uaclient config
+        """
+        ua_config:
+            http_proxy: "invalidurl"
+            https_proxy: "invalidurls"
+        """
+        And I verify that running `ua refresh config` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        "invalidurl" is not a valid url. Not setting as proxy.
+        """
+        When I append the following on uaclient config
+        """
+        ua_config:
+            https_proxy: "https://localhost:12345"
+        """
+        And I verify that running `ua refresh config` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        "https://localhost:12345" is not working. Not setting as proxy.
         """
 
         Examples: ubuntu release
