@@ -13,8 +13,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
-        \d+ package(s)? can be updated.
-        \d+ of these updates (is a|are) security update(s)?.
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is a|are) standard security update(s)?.
         """
         Then if `<release>` in `bionic` and stdout matches regexp:
         """
@@ -91,9 +91,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         UA Infra: Extended Security Maintenance \(ESM\) is enabled.
 
-        \d+ package(s)? can be updated.
-        \d+ of these updates (is|are) fixed through UA Infra: ESM.
-        \d+ of these updates (is a|are) security update(s)?.
+        \d+ update(s)? can be applied immediately.
+        \d+ of these updates (is|are) UA Infra: ESM security update(s)?.
+        \d+ of these updates (is a|are) standard security update(s)?.
         To see these additional updates run: apt list --upgradable
         """
         When I update contract to use `effectiveTo` as `days=-20`
