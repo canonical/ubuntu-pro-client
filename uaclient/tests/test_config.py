@@ -9,7 +9,7 @@ import stat
 import mock
 import pytest
 
-from uaclient import entitlements, exceptions, status, version
+from uaclient import entitlements, exceptions, status, util, version
 from uaclient.config import (
     DataPath,
     DEFAULT_STATUS,
@@ -1186,6 +1186,7 @@ class TestProcessConfig:
             ),
         ],
     )
+    @mock.patch("uaclient.util.validate_proxy")
     @mock.patch("uaclient.entitlements.livepatch.get_config_option_value")
     @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
     @mock.patch(
@@ -1204,6 +1205,7 @@ class TestProcessConfig:
         m_livepatch_status,
         m_livepatch_configure_proxy,
         m_livepatch_get_config_option,
+        m_validate_proxy,
         http_proxy,
         https_proxy,
         snap_is_installed,
@@ -1238,6 +1240,17 @@ class TestProcessConfig:
         )
 
         cfg.process_config()
+
+        assert [
+            mock.call("http", "apt_http", util.PROXY_VALIDATION_APT_HTTP_URL),
+            mock.call(
+                "https", "apt_https", util.PROXY_VALIDATION_APT_HTTPS_URL
+            ),
+            mock.call("http", http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL),
+            mock.call(
+                "https", https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+            ),
+        ] == m_validate_proxy.call_args_list
 
         assert [
             mock.call("apt_http", "apt_https")
