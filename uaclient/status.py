@@ -611,7 +611,7 @@ def format_tabular(status: "Dict[str, Any]") -> str:
             "description": description,
         }
         content.append(STATUS_TMPL.format(**fmt_args))
-    tech_support_level = status["contract"]["tech_support_level"]
+    tech_support_level = status["techSupportLevel"]
 
     if status.get("notices"):
         content.extend(
@@ -625,9 +625,8 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     if status["account"]:
         pairs.append(("Account", status["account"]))
 
-    contract_name = status["contract"]["name"]
-    if contract_name:
-        pairs.append(("Subscription", contract_name))
+    if status["subscription"]:
+        pairs.append(("Subscription", status["subscription"]))
 
     if status["origin"] != "free":
         pairs.append(("Valid until", str(status["expires"])))
@@ -659,5 +658,18 @@ def format_json_status(status: "Dict[str, Any]") -> str:
         if service.get("available", "yes") == "yes"
     ]
     status["services"] = available_services
+
+    contract_name = status.pop("subscription", "")
+    contract_id = status.pop("subscription-id", "")
+    contract_created_at = status.pop("contract-created-at", "")
+    contract_products = status.pop("contract-products", [])
+    tech_support_level = status.pop("techSupportLevel", "")
+    status["contract"] = {
+        "name": contract_name,
+        "id": contract_id,
+        "created_at": contract_created_at,
+        "products": contract_products,
+        "tech_support_level": tech_support_level,
+    }
 
     return json.dumps(status, cls=DatetimeAwareJSONEncoder)

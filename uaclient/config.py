@@ -45,13 +45,7 @@ DEFAULT_STATUS = {
     "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
     "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
     "notices": [],
-    "contract": {
-        "id": "",
-        "name": "",
-        "created_at": "",
-        "products": [],
-        "tech_support_level": status.UserFacingStatus.INAPPLICABLE.value,
-    },
+    "techSupportLevel": status.UserFacingStatus.INAPPLICABLE.value,
 }  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
@@ -546,21 +540,17 @@ class UAConfig:
 
         response = copy.deepcopy(DEFAULT_STATUS)
         contractInfo = self.machine_token["machineTokenInfo"]["contractInfo"]
-        tech_support_level = status.UserFacingStatus.INAPPLICABLE.value
         response.update(
             {
                 "attached": True,
                 "account": self.accounts[0]["name"],
                 "account-id": self.accounts[0]["id"],
                 "origin": contractInfo.get("origin"),
+                "subscription": contractInfo["name"],
+                "subscription-id": contractInfo["id"],
+                "contract-created-at": contractInfo.get("createdAt", ""),
+                "contract-products": contractInfo.get("products", []),
                 "notices": self.read_cache("notices") or [],
-                "contract": {
-                    "id": contractInfo["id"],
-                    "name": contractInfo["name"],
-                    "created_at": contractInfo.get("createdAt", ""),
-                    "products": contractInfo.get("products", []),
-                    "tech_support_level": tech_support_level,
-                },
             }
         )
         if contractInfo.get("effectiveTo"):
@@ -585,8 +575,9 @@ class UAConfig:
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:
             supportLevel = support.get("affordances", {}).get("supportLevel")
-            if supportLevel:
-                response["contract"]["tech_support_level"] = supportLevel
+            if not supportLevel:
+                supportLevel = DEFAULT_STATUS["techSupportLevel"]
+            response["techSupportLevel"] = supportLevel
         return response
 
     def status(self, show_beta=False) -> "Dict[str, Any]":

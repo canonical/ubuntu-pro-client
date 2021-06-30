@@ -348,14 +348,14 @@ class TestActionStatus:
                     "available": "yes",
                 }
             ],
-            "environment_vars": expected_environment,
             "contract": {
-                "id": "",
                 "name": "",
+                "id": "",
                 "created_at": "",
                 "products": [],
                 "tech_support_level": "n/a",
             },
+            "environment_vars": expected_environment,
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
@@ -420,7 +420,6 @@ class TestActionStatus:
             if service["name"] not in inapplicable_services
         ]
 
-        tech_support_level = status.UserFacingStatus.INAPPLICABLE.value
         expected = {
             "_doc": (
                 "Content provided in json response is currently "
@@ -437,11 +436,11 @@ class TestActionStatus:
             "account-id": "acct-1",
             "environment_vars": expected_environment,
             "contract": {
-                "id": "cid",
                 "name": "test_contract",
+                "id": "cid",
                 "created_at": "2020-05-08T19:02:26+00:00",
                 "products": ["free"],
-                "tech_support_level": tech_support_level,
+                "tech_support_level": "n/a",
             },
         }
         assert expected == json.loads(capsys.readouterr()[0])

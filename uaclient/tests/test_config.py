@@ -681,8 +681,8 @@ class TestStatus:
                     "id": "cid",
                     "name": "test_contract",
                     "createdAt": "2020-05-08T19:02:26Z",
-                    "resourceEntitlements": entitled_res,
                     "products": ["free"],
+                    "resourceEntitlements": entitled_res,
                 },
             },
         }
@@ -729,15 +729,12 @@ class TestStatus:
                 "account": "test_account",
                 "attached": True,
                 "services": expected_services,
-                "contract": {
-                    "name": "test_contract",
-                    "id": "cid",
-                    "created_at": datetime.datetime(
-                        2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
-                    ),
-                    "products": ["free"],
-                    "tech_support_level": "n/a",
-                },
+                "subscription": "test_contract",
+                "subscription-id": "cid",
+                "contract-products": ["free"],
+                "contract-created-at": datetime.datetime(
+                    2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                ),
             }
         )
         with mock.patch(
@@ -904,8 +901,8 @@ class TestStatus:
                     "id": "contract-1",
                     "name": "contractname",
                     "createdAt": "2020-05-08T19:02:26Z",
-                    "resourceEntitlements": entitlements,
                     "products": ["free"],
+                    "resourceEntitlements": entitlements,
                 },
             },
         }
@@ -924,15 +921,13 @@ class TestStatus:
                 "attached": True,
                 "account": "accountname",
                 "account-id": "1",
-                "contract": {
-                    "name": "contractname",
-                    "id": "contract-1",
-                    "created_at": datetime.datetime(
-                        2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
-                    ),
-                    "products": ["free"],
-                    "tech_support_level": support_level,
-                },
+                "subscription": "contractname",
+                "subscription-id": "contract-1",
+                "contract-products": ["free"],
+                "contract-created-at": datetime.datetime(
+                    2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                ),
+                "techSupportLevel": support_level,
             }
         )
         for cls in ENTITLEMENT_CLASSES:
@@ -998,9 +993,7 @@ class TestStatus:
                     "name": "contractname",
                     "id": "contract-1",
                     "effectiveTo": "2020-07-18T00:00:00Z",
-                    "createdAt": "2020-05-08T19:02:26Z",
                     "resourceEntitlements": [],
-                    "products": ["free"],
                 },
             },
         }

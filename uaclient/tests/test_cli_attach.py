@@ -28,9 +28,7 @@ BASIC_MACHINE_TOKEN = {
         "contractInfo": {
             "name": "mycontract",
             "id": "contract-1",
-            "createdAt": "2020-05-08T19:02:26Z",
             "resourceEntitlements": [],
-            "products": ["free"],
         },
         "accountInfo": {"id": "acct-1", "name": "accountName"},
     },
