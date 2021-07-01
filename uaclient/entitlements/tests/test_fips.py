@@ -56,14 +56,19 @@ class TestFIPSEntitlementDefaults:
 
         conditional_packages = entitlement.conditional_packages
         if series == "focal":
-            assert ["strongswan", "strongswan-hmac"] == conditional_packages
+            assert [
+                "strongswan",
+                "strongswan-hmac",
+                "openssh-client",
+                "openssh-server",
+            ] == conditional_packages
         else:
             assert [
                 "strongswan",
                 "strongswan-hmac",
                 "openssh-client",
-                "openssh-client-hmac",
                 "openssh-server",
+                "openssh-client-hmac",
                 "openssh-server-hmac",
             ] == conditional_packages
 
