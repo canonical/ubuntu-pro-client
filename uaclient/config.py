@@ -9,7 +9,7 @@ import sys
 import yaml
 from collections import namedtuple, OrderedDict
 
-from uaclient import apt, exceptions, snap, status, util
+from uaclient import apt, exceptions, snap, status, util, version
 from uaclient.defaults import (
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
@@ -37,12 +37,16 @@ except ImportError:
 DEFAULT_STATUS = {
     "_doc": "Content provided in json response is currently considered"
     " Experimental and may change",
+    "_schema_version": "0.1",
+    "version": version.get_version(),
+    "machine_id": None,
     "attached": False,
-    "expires": status.UserFacingStatus.INAPPLICABLE.value,
+    "effective": None,
+    "expires": None,  # TODO Will this break something?
     "origin": None,
     "services": [],
-    "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
-    "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+    "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
+    "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
     "notices": [],
     "contract": {
         "id": "",
@@ -452,11 +456,12 @@ class UAConfig:
     def _get_config_status(
         self
     ) -> "Dict[str, Union[str, List[Tuple[str,str]]]]":
-        """Return a dict with configStatus, configStatusDetails and notices.
+        """Return a dict with execution_status, execution_details and notices.
 
-            Values for configStatus will be one of UserFacingConfigStatus enum:
+            Values for execution_status will be one of UserFacingConfigStatus
+            enum:
                 inactive, active, reboot-required
-            configStatusDescription will provide more details about that state.
+            execution_details will provide more details about that state.
             notices is a list of tuples with label and description items.
         """
         userStatus = status.UserFacingConfigStatus
@@ -480,8 +485,8 @@ class UAConfig:
                 operation=operation
             )
         return {
-            "configStatus": status_val,
-            "configStatusDetails": status_desc,
+            "execution_status": status_val,
+            "execution_details": status_desc,
             "notices": notices,
         }
 
@@ -491,8 +496,9 @@ class UAConfig:
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         response = copy.deepcopy(DEFAULT_STATUS)
-        resources = get_available_resources(self)
+        response["version"] = version.get_version(features=self.features)
 
+        resources = get_available_resources(self)
         for resource in sorted(resources, key=lambda x: x["name"]):
             if resource["available"]:
                 available = status.UserFacingAvailability.AVAILABLE.value
@@ -537,7 +543,7 @@ class UAConfig:
             "description": ent.description,
             "entitled": contract_status.value,
             "status": ent_status.value,
-            "statusDetails": details,
+            "status_details": details,
             "description_override": description_override,
             "available": "yes"
             if ent.name not in inapplicable_resources
@@ -550,10 +556,13 @@ class UAConfig:
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
         response = copy.deepcopy(DEFAULT_STATUS)
-        contractInfo = self.machine_token["machineTokenInfo"]["contractInfo"]
+        machineTokenInfo = self.machine_token["machineTokenInfo"]
+        contractInfo = machineTokenInfo["contractInfo"]
         tech_support_level = status.UserFacingStatus.INAPPLICABLE.value
         response.update(
             {
+                "version": version.get_version(features=self.features),
+                "machine_id": machineTokenInfo["machineId"],
                 "attached": True,
                 "origin": contractInfo.get("origin"),
                 "notices": self.read_cache("notices") or [],
@@ -576,6 +585,8 @@ class UAConfig:
         )
         if contractInfo.get("effectiveTo"):
             response["expires"] = self.contract_expiry_datetime
+        if contractInfo.get("effectiveFrom"):
+            response["effective"] = contractInfo["effectiveFrom"]
 
         resources = self.machine_token.get("availableResources")
         if not resources:

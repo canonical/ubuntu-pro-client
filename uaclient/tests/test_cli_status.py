@@ -8,7 +8,7 @@ import textwrap
 
 import pytest
 
-from uaclient import util
+from uaclient import util, version
 
 from uaclient.cli import action_status, main
 from uaclient import status
@@ -47,7 +47,7 @@ Enable services with: ua enable <service>
 
                 Account: test_account
            Subscription: test_contract
-            Valid until: n/a
+            Valid until: 2040-05-08 19:02:26+00:00
 Technical support level: n/a
 """
 
@@ -66,7 +66,7 @@ Enable services with: ua enable <service>
 
                 Account: test_account
            Subscription: test_contract
-            Valid until: n/a
+            Valid until: 2040-05-08 19:02:26+00:00
 Technical support level: n/a
 """
 
@@ -79,7 +79,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "cc-eal",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
     {
@@ -88,7 +88,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "cis",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
     {
@@ -97,7 +97,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "esm-apps",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
     {
@@ -106,7 +106,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "esm-infra",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
     {
@@ -115,7 +115,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "fips",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "no",
     },
     {
@@ -126,7 +126,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "fips-updates",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
     {
@@ -135,7 +135,7 @@ SERVICES_JSON_ALL = [
         "entitled": "no",
         "name": "livepatch",
         "status": "—",
-        "statusDetails": "",
+        "status_details": "",
         "available": "yes",
     },
 ]
@@ -263,12 +263,14 @@ class TestActionStatus:
         assert 0 == action_status(mock.MagicMock(all=False), cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @mock.patch("uaclient.version.get_version", return_value="test_version")
     @mock.patch("uaclient.util.subp")
     @mock.patch(M_PATH + "time.sleep")
     def test_wait_blocks_until_lock_released(
         self,
         m_sleep,
         m_subp,
+        _m_get_version,
         m_getuid,
         m_get_avail_resources,
         _m_should_reboot,
@@ -335,10 +337,14 @@ class TestActionStatus:
                 "Content provided in json response is currently "
                 "considered Experimental and may change"
             ),
-            "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
-            "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+            "_schema_version": "0.1",
+            "version": version.get_version(features=cfg.features),
+            "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
+            "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": False,
-            "expires": "n/a",
+            "machine_id": None,
+            "effective": None,
+            "expires": None,
             "notices": [],
             "services": [
                 {
@@ -431,10 +437,14 @@ class TestActionStatus:
                 "Content provided in json response is currently "
                 "considered Experimental and may change"
             ),
-            "configStatus": status.UserFacingConfigStatus.INACTIVE.value,
-            "configStatusDetails": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+            "_schema_version": "0.1",
+            "version": version.get_version(features=cfg.features),
+            "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
+            "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": True,
-            "expires": "n/a",
+            "machine_id": "test_machine_id",
+            "effective": "2000-05-08T19:02:26+00:00",
+            "expires": "2040-05-08T19:02:26+00:00",
             "notices": [],
             "services": filtered_services,
             "environment_vars": expected_environment,

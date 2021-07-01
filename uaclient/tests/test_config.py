@@ -9,7 +9,7 @@ import stat
 import mock
 import pytest
 
-from uaclient import entitlements, exceptions, status
+from uaclient import entitlements, exceptions, status, version
 from uaclient.config import (
     DataPath,
     DEFAULT_STATUS,
@@ -37,8 +37,8 @@ KNOWN_DATA_PATHS = (
 M_PATH = "uaclient.entitlements."
 
 DEFAULT_CFG_STATUS = {
-    "configStatus": DEFAULT_STATUS["configStatus"],
-    "configStatusDetails": DEFAULT_STATUS["configStatusDetails"],
+    "execution_status": DEFAULT_STATUS["execution_status"],
+    "execution_details": DEFAULT_STATUS["execution_details"],
 }
 
 ALL_RESOURCES_AVAILABLE = [
@@ -676,6 +676,7 @@ class TestStatus:
         token = {
             "availableResources": [],
             "machineTokenInfo": {
+                "machineId": "test_machine_id",
                 "accountInfo": {
                     "id": "acct-1",
                     "name": "test_account",
@@ -686,6 +687,8 @@ class TestStatus:
                     "id": "cid",
                     "name": "test_contract",
                     "createdAt": "2020-05-08T19:02:26Z",
+                    "effectiveFrom": "2000-05-08T19:02:26Z",
+                    "effectiveTo": "2040-05-08T19:02:26Z",
                     "resourceEntitlements": entitled_res,
                     "products": ["free"],
                 },
@@ -720,7 +723,7 @@ class TestStatus:
                 "status": uf_status
                 if cls.name in resource_names
                 else default_status,
-                "statusDetails": mock.ANY,
+                "status_details": mock.ANY,
                 "description_override": None,
                 "available": mock.ANY,
             }
@@ -730,8 +733,16 @@ class TestStatus:
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
+                "version": version.get_version(features=cfg.features),
                 "attached": True,
+                "machine_id": "test_machine_id",
                 "services": expected_services,
+                "effective": datetime.datetime(
+                    2000, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                ),
+                "expires": datetime.datetime(
+                    2040, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+                ),
                 "contract": {
                     "name": "test_contract",
                     "id": "cid",
@@ -912,6 +923,7 @@ class TestStatus:
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
+                "machineId": "test_machine_id",
                 "accountInfo": {
                     "id": "1",
                     "name": "accountname",
@@ -939,7 +951,9 @@ class TestStatus:
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
+                "version": version.get_version(features=cfg.features),
                 "attached": True,
+                "machine_id": "test_machine_id",
                 "contract": {
                     "name": "contractname",
                     "id": "contract-1",
@@ -981,7 +995,7 @@ class TestStatus:
                     "description": cls.description,
                     "entitled": status.ContractStatus.ENTITLED.value,
                     "status": expected_status,
-                    "statusDetails": details,
+                    "status_details": details,
                     "description_override": None,
                     "available": mock.ANY,
                 }
@@ -1019,6 +1033,7 @@ class TestStatus:
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
             "machineTokenInfo": {
+                "machineId": "test_machine_id",
                 "accountInfo": {"id": "1", "name": "accountname"},
                 "contractInfo": {
                     "name": "contractname",
@@ -1057,14 +1072,15 @@ class TestStatus:
         cfg.write_cache("marker-reboot-cmds", "")  # To indicate a reboot reqd
         cfg.write_cache("status-cache", expected_status)
 
-        # Even non-root users can update configStatus details
+        # Even non-root users can update execution_status details
         details = MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation="configuration changes"
         )
+        reboot_required = UserFacingConfigStatus.REBOOTREQUIRED.value
         expected_status.update(
             {
-                "configStatus": UserFacingConfigStatus.REBOOTREQUIRED.value,
-                "configStatusDetails": details,
+                "execution_status": reboot_required,
+                "execution_details": details,
                 "notices": [],
             }
         )

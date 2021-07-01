@@ -880,9 +880,9 @@ def action_status(args, cfg):
     show_beta = args.all if args else False
     status = cfg.status(show_beta=show_beta)
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
-    config_active = bool(status["configStatus"] == active_value)
+    config_active = bool(status["execution_status"] == active_value)
     if args and args.wait and config_active:
-        while status["configStatus"] == active_value:
+        while status["execution_status"] == active_value:
             print(".", end="")
             time.sleep(1)
             status = cfg.status(show_beta=show_beta)
