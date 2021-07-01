@@ -96,6 +96,7 @@ def FakeConfig(tmpdir):
                     "availableResources": [],
                     "machineToken": "not-null",
                     "machineTokenInfo": {
+                        "machineId": "test_machine_id",
                         "accountInfo": {
                             "id": "acct-1",
                             "name": account_name,
@@ -108,6 +109,8 @@ def FakeConfig(tmpdir):
                             "id": "cid",
                             "name": "test_contract",
                             "createdAt": "2020-05-08T19:02:26Z",
+                            "effectiveFrom": "2000-05-08T19:02:26Z",
+                            "effectiveTo": "2040-05-08T19:02:26Z",
                             "resourceEntitlements": [],
                             "products": ["free"],
                         },

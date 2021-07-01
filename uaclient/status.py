@@ -658,9 +658,6 @@ def format_tabular(status: "Dict[str, Any]") -> str:
 def format_json_status(status: "Dict[str, Any]") -> str:
     from uaclient.util import DatetimeAwareJSONEncoder
 
-    if status["expires"] != UserFacingStatus.INAPPLICABLE.value:
-        status["expires"] = str(status["expires"])
-
     status["environment_vars"] = [
         {"name": name, "value": value}
         for name, value in sorted(os.environ.items())

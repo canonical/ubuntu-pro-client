@@ -25,6 +25,7 @@ BASIC_MACHINE_TOKEN = {
     "availableResources": [],
     "machineToken": "non-empty-token",
     "machineTokenInfo": {
+        "machineId": "test_machine_id",
         "contractInfo": {
             "name": "mycontract",
             "id": "contract-1",
