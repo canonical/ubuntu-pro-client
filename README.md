@@ -13,18 +13,42 @@ following entitlements are supported:
 - [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/fips)
 - [Livepatch Service](https://www.ubuntu.com/livepatch)
 
+
 ## Obtaining the Client
 
-The client comes pre-installed on all Ubuntu systems in the debian packages
-`ubuntu-advantage-tools` package. Ubuntu Pro images on AWS and Azure Ubuntu Pro
-images will also contain `ubuntu-advantage-pro` which automates machine attach
-on custom AWS and Azure images.
+The client comes pre-installed on all Ubuntu systems in the debian
+`ubuntu-advantage-tools` package. "Ubuntu Pro" images on AWS, Azure and GCP
+will also contain `ubuntu-advantage-pro` which automates machine attach
+on boot for custom AWS, Azure and GCP images.
+
+### Support Matrix for the client
+Ubuntu Advantage services are only available on Ubuntu Long Term Support (LTS) releases.
+On interim Ubuntu releases, `ua status` will report most of the services as 'n/a' and disallow enabling those services.
+
+Below is a list of platforms and releases ubuntu-advantage-tools supports
+
+| Ubuntu Release | Build Architectures | Support Level |
+| -------- | -------- | -------- |
+| Trusty | amd64, arm64, armhf, i386, powerpc, ppc64el | Last release 19.6  |
+| Xenial | amd64, arm64, armhf, i386, powerpc, ppc64el, s390x | Active SRU of all features |
+| Bionic | amd64, arm64, armhf, i386, ppc64el, s390x | Active SRU of all features |
+| Focal | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
+| Groovy | amd64, arm64, armhf, ppc64el, riscv64, s390x | Last release 27.1 |
+| Hirsute | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
+| Impish | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
+
+Note: ppc64el will not have support for APT JSON hook messaging due to insufficient golang packages
+
+Ubuntu Pro images are available on the following cloud platforms on all Ubuntu LTS releases (Xenial, Bionic, Focal):
+1. AWS: [Ubuntu PRO](https://ubuntu.com/aws/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/aws/fips)
+2. Azure: [Ubuntu PRO](https://ubuntu.com/azure/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/azure/fips)
+3. GCP: [Ubuntu PRO](https://ubuntu.com/gcp/pro)
 
 Additionally, there are 3 PPAs with different release channels of the Ubuntu Advantage Client:
 
-1. Stable: This contains stable builds only.
+1. Stable: This contains stable builds only which have been verified for release into Ubuntu stable releases or Ubuntu PRO images.
     - add with `sudo add-apt-repository ppa:ua-client/stable`
-2. Staging: This contains builds that are being prepared for release to stable.
+2. Staging: This contains builds under validation for release to stable Ubuntu releases and images
     - add with `sudo add-apt-repository ppa:ua-client/staging`
 3. Daily: This PPA is updated every day with the latest changes.
     - add with `sudo add-apt-repository ppa:ua-client/daily`
@@ -71,7 +95,7 @@ a machine to an Ubuntu Advantage contract:
 * An Ubuntu SSO account holder must obtain a contract token from
 https://ubuntu.com/advantage.
 * Run `sudo ua attach <contractToken>` on the machine
-  - Ubuntu Pro images for AWS and Azure perform an auto-attach without tokens
+  - Ubuntu Pro images for AWS, Azure and GCP perform an auto-attach without tokens
 * UA Client reads config from /etc/ubuntu-advantage/uaclient.conf to obtain
   the contract_url (default: https://contracts.canonical.com)
 * UA Client POSTs to the Contract Server API @
@@ -393,6 +417,8 @@ use that for the build:
 ```shell
 debuild -S
 sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
+# emulating different architectures in sbuild-launchpad-chroot
+sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "--series=focal
 ```
 
 ### Setting up an lxc development container
