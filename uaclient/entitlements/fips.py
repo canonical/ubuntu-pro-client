@@ -42,7 +42,12 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         1. Upgrade the package to the FIPS version
         2. Install the correspinding hmac version of that package.
         """
-        conditional_packages = ["strongswan", "strongswan-hmac"]
+        conditional_packages = [
+            "strongswan",
+            "strongswan-hmac",
+            "openssh-client",
+            "openssh-server",
+        ]
 
         series = util.get_platform_info().get("series", "")
         # On Focal, we don't have the openssh hmac packages.
@@ -50,9 +55,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         # when enabling any FIPS service
         if series in ("xenial", "bionic"):
             conditional_packages += [
-                "openssh-client",
                 "openssh-client-hmac",
-                "openssh-server",
                 "openssh-server-hmac",
             ]
 
