@@ -278,6 +278,115 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | xenial  | FIPS Updates | fips-updates |https://esm.staging.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
            | bionic  | FIPS Updates | fips-updates |https://esm.staging.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
+    @series.focal
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
+        And I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
+        """
+        {
+           "availableResources": [
+               {
+                 "available": true,
+                 "name": "fips-updates"
+               }
+            ],
+            "machineTokenInfo": {
+                "contractInfo": {
+                   "resourceEntitlements": [
+                      {
+                        "type": "fips-updates",
+                        "entitled": true,
+                        "affordances": {
+                          "series": [
+                            "xenial",
+                            "bionic",
+                            "focal"
+                          ]
+                         },
+                        "directives": {
+                          "suites": [
+                            "xenial-updates",
+                            "bionic-updates",
+                            "focal-updates"
+                          ]
+                        }
+                     }
+                   ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
+        """
+        When I run `ua enable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing <fips-name> packages
+            <fips-name> enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                enabled
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            fips
+            """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+        When I run `ua disable <fips-service> --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            A reboot is required to complete disable operation
+            """
+        When I reboot the `<release>` machine
+        Then I verify that `openssh-server` installed version matches regexp `fips`
+        And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
+        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
+        Then I will see the following on stdout:
+        """
+        openssh-client was already not hold.
+        openssh-server was already not hold.
+        strongswan was already not hold.
+        """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes                disabled
+            """
+        When I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        Then stdout matches regexp:
+            """
+            Cannot enable FIPS because FIPS Updates was once enabled.
+            """
+        And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
+
+        Examples: ubuntu release
+           | release | fips-name    | fips-service |fips-apt-source                                                       |
+           | focal   | FIPS Updates | fips-updates |https://esm.staging.ubuntu.com/fips-updates/ubuntu focal-updates/main |
+
    @series.xenial
    @uses.config.machine_type.lxd.vm
    Scenario Outline: Attached FIPS upgrade across LTS releases
