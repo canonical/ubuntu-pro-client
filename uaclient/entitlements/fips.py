@@ -40,7 +40,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         we will perform two actions:
 
         1. Upgrade the package to the FIPS version
-        2. Install the correspinding hmac version of that package.
+        2. Install the corresponding hmac version of that package
+           when available.
         """
         conditional_packages = [
             "strongswan",
