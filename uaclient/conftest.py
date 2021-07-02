@@ -83,7 +83,9 @@ def logging_sandbox():
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
         def __init__(self, features_override=None) -> None:
-            super().__init__({"data_dir": tmpdir.strpath})
+            super().__init__(
+                {"data_dir": tmpdir.strpath, "config_path": "config_path"}
+            )
 
         @classmethod
         def for_attached_machine(

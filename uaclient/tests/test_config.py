@@ -1205,6 +1205,8 @@ class TestStatus:
                 "execution_status": reboot_required,
                 "execution_details": details,
                 "notices": [],
+                "config_path": None,
+                "config": {"data_dir": mock.ANY},
             }
         )
 
@@ -1417,6 +1419,7 @@ class TestParseConfig:
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
             "log_level": "INFO",
+            "config_path": "/etc/ubuntu-advantage/uaclient.conf",
         }
         assert expected_default_config == config
 
