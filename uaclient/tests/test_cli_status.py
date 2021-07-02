@@ -1,3 +1,4 @@
+import datetime
 import io
 import json
 import mock
@@ -5,6 +6,7 @@ import os
 import socket
 import sys
 import textwrap
+import yaml
 
 import pytest
 
@@ -172,7 +174,7 @@ of:
 Flags:
   -h, --help            show this help message and exit
   --wait                Block waiting on ua to complete
-  --format {tabular,json}
+  --format {tabular,json,yaml}
                         output status in the specified format (default:
                         tabular)
   --all                 Allow the visualization of beta services
@@ -293,6 +295,7 @@ class TestActionStatus:
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
+    @pytest.mark.parametrize("format_type", (("json"), ("yaml")))
     @pytest.mark.parametrize(
         "environ",
         (
@@ -306,7 +309,7 @@ class TestActionStatus:
         ),
     )
     @pytest.mark.parametrize("use_all", (True, False))
-    def test_unattached_json(
+    def test_unattached_formats(
         self,
         m_getuid,
         m_get_avail_resources,
@@ -314,13 +317,14 @@ class TestActionStatus:
         _m_remove_notice,
         use_all,
         environ,
+        format_type,
         capsys,
         FakeConfig,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
-        args = mock.MagicMock(format="json", all=use_all)
+        args = mock.MagicMock(format=format_type, all=use_all)
         with mock.patch.object(os, "environ", environ):
             assert 0 == action_status(args, cfg)
 
@@ -368,8 +372,13 @@ class TestActionStatus:
                 "external_account_ids": [],
             },
         }
-        assert expected == json.loads(capsys.readouterr()[0])
 
+        if format_type == "json":
+            assert expected == json.loads(capsys.readouterr()[0])
+        else:
+            assert expected == yaml.safe_load(capsys.readouterr()[0])
+
+    @pytest.mark.parametrize("format_type", (("json"), ("yaml")))
     @pytest.mark.parametrize(
         "environ",
         (
@@ -383,7 +392,7 @@ class TestActionStatus:
         ),
     )
     @pytest.mark.parametrize("use_all", (True, False))
-    def test_attached_json(
+    def test_attached_formats(
         self,
         m_getuid,
         m_get_avail_resources,
@@ -391,13 +400,14 @@ class TestActionStatus:
         _m_remove_notice,
         use_all,
         environ,
+        format_type,
         capsys,
         FakeConfig,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig.for_attached_machine()
 
-        args = mock.MagicMock(format="json", all=use_all)
+        args = mock.MagicMock(format=format_type, all=use_all)
 
         with mock.patch.object(os, "environ", environ):
             assert 0 == action_status(args, cfg)
@@ -431,6 +441,25 @@ class TestActionStatus:
             if service["name"] not in inapplicable_services
         ]
 
+        if format_type == "json":
+            contract_created_at = "2020-05-08T19:02:26+00:00"
+            account_created_at = "2019-06-14T06:45:50+00:00"
+            expires = "2040-05-08T19:02:26+00:00"
+            effective = "2000-05-08T19:02:26+00:00"
+        else:
+            contract_created_at = datetime.datetime(
+                2020, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+            )
+            account_created_at = datetime.datetime(
+                2019, 6, 14, 6, 45, 50, tzinfo=datetime.timezone.utc
+            )
+            expires = datetime.datetime(
+                2040, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+            )
+            effective = datetime.datetime(
+                2000, 5, 8, 19, 2, 26, tzinfo=datetime.timezone.utc
+            )
+
         tech_support_level = status.UserFacingStatus.INAPPLICABLE.value
         expected = {
             "_doc": (
@@ -443,26 +472,50 @@ class TestActionStatus:
             "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
             "attached": True,
             "machine_id": "test_machine_id",
-            "effective": "2000-05-08T19:02:26+00:00",
-            "expires": "2040-05-08T19:02:26+00:00",
+            "effective": effective,
+            "expires": expires,
             "notices": [],
             "services": filtered_services,
             "environment_vars": expected_environment,
             "contract": {
                 "id": "cid",
                 "name": "test_contract",
-                "created_at": "2020-05-08T19:02:26+00:00",
+                "created_at": contract_created_at,
                 "products": ["free"],
                 "tech_support_level": tech_support_level,
             },
             "account": {
                 "id": "acct-1",
                 "name": "test_account",
-                "created_at": "2019-06-14T06:45:50+00:00",
+                "created_at": account_created_at,
                 "external_account_ids": [{"IDs": ["id1"], "Origin": "AWS"}],
             },
         }
-        assert expected == json.loads(capsys.readouterr()[0])
+
+        if format_type == "json":
+            assert expected == json.loads(capsys.readouterr()[0])
+        else:
+            yaml_output = yaml.safe_load(capsys.readouterr()[0])
+
+            # On earlier versions of pyyaml, we don't add the timezone
+            # info when converting a date string into a datetime object.
+            # Since we only want to test if we are producing a valid
+            # yaml file in the status output, we can manually add
+            # the timezone info to make the test work as expected
+            for key, value in yaml_output.items():
+                if isinstance(value, datetime.datetime):
+                    yaml_output[key] = value.replace(
+                        tzinfo=datetime.timezone.utc
+                    )
+
+                elif isinstance(value, dict):
+                    for inner_key, inner_value in value.items():
+                        if isinstance(inner_value, datetime.datetime):
+                            yaml_output[key][inner_key] = inner_value.replace(
+                                tzinfo=datetime.timezone.utc
+                            )
+
+            assert expected == yaml_output
 
     def test_error_on_connectivity_errors(
         self,

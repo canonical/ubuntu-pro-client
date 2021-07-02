@@ -664,9 +664,7 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     return "\n".join(content)
 
 
-def format_json_status(status: "Dict[str, Any]") -> str:
-    from uaclient.util import DatetimeAwareJSONEncoder
-
+def _format_status_output(status: "Dict[str, Any]") -> "Dict[str, Any]":
     status["environment_vars"] = [
         {"name": name, "value": value}
         for name, value in sorted(os.environ.items())
@@ -684,5 +682,18 @@ def format_json_status(status: "Dict[str, Any]") -> str:
 
     # We don't need the origin info in the json output
     status.pop("origin", "")
+    return status
 
-    return json.dumps(status, cls=DatetimeAwareJSONEncoder)
+
+def format_json_status(status: "Dict[str, Any]") -> str:
+    from uaclient.util import DatetimeAwareJSONEncoder
+
+    return json.dumps(
+        _format_status_output(status), cls=DatetimeAwareJSONEncoder
+    )
+
+
+def format_yaml_status(status: "Dict[str, Any]") -> str:
+    import yaml
+
+    return yaml.dump(_format_status_output(status), default_flow_style=False)
