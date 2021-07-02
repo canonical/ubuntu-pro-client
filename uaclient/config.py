@@ -453,9 +453,7 @@ class UAConfig:
 
         return new_response
 
-    def _get_config_status(
-        self
-    ) -> "Dict[str, Union[str, List[Tuple[str,str]]]]":
+    def _get_config_status(self) -> "Dict[str, Any]":
         """Return a dict with execution_status, execution_details and notices.
 
             Values for execution_status will be one of UserFacingConfigStatus
@@ -488,6 +486,10 @@ class UAConfig:
             "execution_status": status_val,
             "execution_details": status_desc,
             "notices": notices,
+            "config_path": self.cfg.get("config_path"),
+            "config": {
+                k: v for k, v in self.cfg.items() if k != "config_path"
+            },
         }
 
     def _unattached_status(self) -> "Dict[str, Any]":
@@ -817,6 +819,7 @@ def parse_config(config_path=None):
     cfg.update(env_keys)
     cfg["log_level"] = cfg["log_level"].upper()
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
+    cfg["config_path"] = config_path
     for key in ("contract_url", "security_url"):
         if not util.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
