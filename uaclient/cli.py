@@ -49,7 +49,7 @@ DEFAULT_LOG_FORMAT = (
     "%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s"
 )
 
-STATUS_FORMATS = ["tabular", "json"]
+STATUS_FORMATS = ["tabular", "json", "yaml"]
 
 
 # Set a module-level callable here so we don't have to reinstantiate
@@ -889,6 +889,8 @@ def action_status(args, cfg):
         print("")
     if args and args.format == "json":
         print(ua_status.format_json_status(status))
+    elif args and args.format == "yaml":
+        print(ua_status.format_yaml_status(status))
     else:
         output = ua_status.format_tabular(status)
         # Replace our Unicode dash with an ASCII dash if we aren't going to be
