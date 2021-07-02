@@ -688,6 +688,7 @@ def _format_status_output(status: "Dict[str, Any]") -> "Dict[str, Any]":
 
     # We don't need the origin info in the json output
     status.pop("origin", "")
+
     return status
 
 

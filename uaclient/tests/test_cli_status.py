@@ -371,6 +371,8 @@ class TestActionStatus:
                 "created_at": "",
                 "external_account_ids": [],
             },
+            "config_path": "config_path",
+            "config": {"data_dir": mock.ANY},
         }
 
         if format_type == "json":
@@ -490,6 +492,8 @@ class TestActionStatus:
                 "created_at": account_created_at,
                 "external_account_ids": [{"IDs": ["id1"], "Origin": "AWS"}],
             },
+            "config_path": "config_path",
+            "config": {"data_dir": mock.ANY},
         }
 
         if format_type == "json":
