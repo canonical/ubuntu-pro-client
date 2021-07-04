@@ -5,23 +5,9 @@ import logging
 import re
 import yaml
 
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 from uaclient.util import is_config_value_true
-
-try:
-    from typing import (  # noqa: F401
-        Any,
-        Callable,
-        Dict,
-        List,
-        Optional,
-        Tuple,
-        Union,
-    )
-
-    StaticAffordance = Tuple[str, Callable[[], Any], bool]
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
 
 from uaclient import config
 from uaclient import contract
@@ -36,6 +22,8 @@ from uaclient.status import (
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
+
+StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
@@ -58,7 +46,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     _help_info = None  # type: str
 
     # List of services that are incompatible with this service
-    _incompatible_services = []  # type: "List[str]"
+    _incompatible_services = []  # type: List[str]
 
     @property
     @abc.abstractmethod
@@ -96,11 +84,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # If any static_affordance does not match expected_results fail with
     # <failure_message>. Overridden in livepatch and fips
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         return ()
 
     @property
-    def incompatible_services(self) -> "List[str]":
+    def incompatible_services(self) -> List[str]:
         """
         Return a list of packages that aren't compatible with the entitlement.
         When we are enabling the entitlement we can directly ask the user
@@ -112,14 +100,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
-    def messaging(
-        self,
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {}
 
     def __init__(
         self,
-        cfg: "Optional[config.UAConfig]" = None,
+        cfg: Optional[config.UAConfig] = None,
         assume_yes: bool = False,
         allow_beta: bool = False,
     ) -> None:
@@ -214,7 +200,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def can_enable(self) -> "Tuple[bool, Optional[CanEnableFailure]]":
+    def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
         Report whether or not enabling is possible for the entitlement.
 
@@ -358,7 +344,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
-    def applicability_status(self) -> "Tuple[ApplicabilityStatus, str]":
+    def applicability_status(self) -> Tuple[ApplicabilityStatus, str]:
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
@@ -474,7 +460,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def _check_application_status_on_cache(self) -> "status.ApplicationStatus":
+    def _check_application_status_on_cache(self) -> status.ApplicationStatus:
         """Check on the state of application on the status cache."""
         status_cache = self.cfg.read_cache("status-cache")
 
@@ -496,8 +482,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def process_contract_deltas(
         self,
-        orig_access: "Dict[str, Any]",
-        deltas: "Dict[str, Any]",
+        orig_access: Dict[str, Any],
+        deltas: Dict[str, Any],
         allow_enable: bool = False,
     ) -> bool:
         """Process any contract access deltas for this entitlement.
@@ -584,7 +570,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def user_facing_status(self) -> "Tuple[UserFacingStatus, str]":
+    def user_facing_status(self) -> Tuple[UserFacingStatus, str]:
         """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
@@ -609,7 +595,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return user_facing_status, explanation
 
     @abc.abstractmethod
-    def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
+    def application_status(self) -> Tuple[status.ApplicationStatus, str]:
         """
         The current status of application of this entitlement
 

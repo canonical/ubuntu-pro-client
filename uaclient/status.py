@@ -11,11 +11,7 @@ from uaclient.defaults import (
     DOCUMENTATION_URL,
 )
 
-try:
-    from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class TxtColor:
@@ -563,7 +559,7 @@ def colorize(string: str) -> str:
     return STATUS_COLOR.get(string, string) if sys.stdout.isatty() else string
 
 
-def colorize_commands(commands: "List[List[str]]") -> str:
+def colorize_commands(commands: List[List[str]]) -> str:
     content = ""
     for cmd in commands:
         if content:
@@ -592,7 +588,7 @@ def colorize_commands(commands: "List[List[str]]") -> str:
 
 
 def get_section_column_content(
-    column_data: "List[Tuple[str, str]]", header: "Optional[str]" = None
+    column_data: List[Tuple[str, str]], header: Optional[str] = None
 ) -> "List[str]":
     """Return a list of content lines to print to console for a section
 
@@ -612,7 +608,7 @@ def get_section_column_content(
     return content
 
 
-def format_tabular(status: "Dict[str, Any]") -> str:
+def format_tabular(status: Dict[str, Any]) -> str:
     """Format status dict for tabular output."""
     if not status["attached"]:
         content = [
@@ -670,7 +666,7 @@ def format_tabular(status: "Dict[str, Any]") -> str:
     return "\n".join(content)
 
 
-def _format_status_output(status: "Dict[str, Any]") -> "Dict[str, Any]":
+def _format_status_output(status: Dict[str, Any]) -> Dict[str, Any]:
     status["environment_vars"] = [
         {"name": name, "value": value}
         for name, value in sorted(os.environ.items())
@@ -692,7 +688,7 @@ def _format_status_output(status: "Dict[str, Any]") -> "Dict[str, Any]":
     return status
 
 
-def format_json_status(status: "Dict[str, Any]") -> str:
+def format_json_status(status: Dict[str, Any]) -> str:
     from uaclient.util import DatetimeAwareJSONEncoder
 
     return json.dumps(
@@ -700,7 +696,7 @@ def format_json_status(status: "Dict[str, Any]") -> str:
     )
 
 
-def format_yaml_status(status: "Dict[str, Any]") -> str:
+def format_yaml_status(status: Dict[str, Any]) -> str:
     import yaml
 
     return yaml.dump(_format_status_output(status), default_flow_style=False)

@@ -1,6 +1,8 @@
 import logging
 import re
 
+from typing import Any, Callable, Dict, Tuple, List, Optional
+
 from uaclient.entitlements import base
 from uaclient import apt, exceptions, snap, status
 from uaclient import util
@@ -10,13 +12,7 @@ LIVEPATCH_RETRIES = [0.5, 1.0]
 HTTP_PROXY_OPTION = "http-proxy"
 HTTPS_PROXY_OPTION = "https-proxy"
 
-try:
-    from typing import Any, Callable, Dict, Tuple, List, Optional  # noqa: F401
-
-    StaticAffordance = Tuple[str, Callable[[], Any], bool]
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 ERROR_MSG_MAP = {
     "Unknown Auth-Token": "Invalid Auth-Token provided to livepatch.",
@@ -45,9 +41,9 @@ def unconfigure_livepatch_proxy(
 
 
 def configure_livepatch_proxy(
-    http_proxy: "Optional[str]" = None,
-    https_proxy: "Optional[str]" = None,
-    retry_sleeps: "Optional[List[float]]" = None,
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    retry_sleeps: Optional[List[float]] = None,
 ) -> None:
     """
     Configure livepatch to use http and https proxies.
@@ -110,7 +106,7 @@ class LivepatchEntitlement(base.UAEntitlement):
     description = "Canonical Livepatch service"
 
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock util.is_container in tests
         from uaclient.entitlements.fips import FIPSEntitlement
         from uaclient.entitlements.fips import FIPSUpdatesEntitlement
@@ -286,7 +282,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         util.subp(["/snap/bin/canonical-livepatch", "disable"], capture=True)
         return True
 
-    def application_status(self) -> "Tuple[ApplicationStatus, str]":
+    def application_status(self) -> Tuple[ApplicationStatus, str]:
         status = (ApplicationStatus.ENABLED, "")
 
         if not util.which("/snap/bin/canonical-livepatch"):
@@ -308,8 +304,8 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def process_contract_deltas(
         self,
-        orig_access: "Dict[str, Any]",
-        deltas: "Dict[str, Any]",
+        orig_access: Dict[str, Any],
+        deltas: Dict[str, Any],
         allow_enable: bool = False,
     ) -> bool:
         """Process any contract access deltas for this entitlement.

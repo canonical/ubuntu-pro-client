@@ -5,20 +5,7 @@ import re
 
 from uaclient import contract
 
-try:
-    from typing import (  # noqa: F401
-        Any,
-        Callable,
-        Dict,
-        List,
-        Optional,
-        Sequence,
-        Tuple,
-        Union,
-    )
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 from uaclient import apt
@@ -44,7 +31,7 @@ class RepoEntitlement(base.UAEntitlement):
 
     # Optional repo pin priority in subclass
     @property
-    def repo_pin_priority(self) -> "Union[int, str, None]":
+    def repo_pin_priority(self) -> Union[int, str, None]:
         return None
 
     # disable_apt_auth_only (ESM) to only remove apt auth files on disable
@@ -53,7 +40,7 @@ class RepoEntitlement(base.UAEntitlement):
         return False  # Set True on ESM to only remove apt auth
 
     @property
-    def packages(self) -> "List[str]":
+    def packages(self) -> List[str]:
         """debs to install on enablement"""
         packages = []
 
@@ -121,7 +108,7 @@ class RepoEntitlement(base.UAEntitlement):
         """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config()
 
-    def application_status(self) -> "Tuple[ApplicationStatus, str]":
+    def application_status(self) -> Tuple[ApplicationStatus, str]:
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
         directives = entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
@@ -162,8 +149,8 @@ class RepoEntitlement(base.UAEntitlement):
 
     def process_contract_deltas(
         self,
-        orig_access: "Dict[str, Any]",
-        deltas: "Dict[str, Any]",
+        orig_access: Dict[str, Any],
+        deltas: Dict[str, Any],
         allow_enable: bool = False,
     ) -> bool:
         """Process any contract access deltas for this entitlement.
@@ -222,7 +209,7 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def install_packages(
-        self, package_list: "List[str]" = None, cleanup_on_failure: bool = True
+        self, package_list: List[str] = None, cleanup_on_failure: bool = True
     ) -> None:
         """Install contract recommended packages for the entitlement.
 

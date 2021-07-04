@@ -8,12 +8,7 @@ from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.config import UAConfig
 from uaclient.util import is_config_value_true
 
-try:
-    from typing import cast, Dict, List, Type, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    def cast(_, x):  # type: ignore
-        return x
+from typing import cast, Dict, List, Type
 
 
 ENTITLEMENT_CLASSES = [
@@ -32,7 +27,7 @@ ENTITLEMENT_CLASS_BY_NAME = dict(
 )  # type: Dict[str, Type[UAEntitlement]]
 
 
-def valid_services(allow_beta: bool = False) -> "List[str]":
+def valid_services(allow_beta: bool = False) -> List[str]:
     """Return a list of valid (non-beta) services.
 
     @param allow_beta: if we should allow beta services to be marked as valid

@@ -8,11 +8,7 @@ from uaclient import status
 from uaclient import util
 from uaclient.config import apply_config_settings_override
 
-try:
-    from typing import Dict, Optional, Type  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Dict, Optional, Type
 
 # Needed for Trusty-only
 CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
@@ -35,7 +31,7 @@ PRO_CLOUDS = ["aws", "azure", "gcp"]
 
 def get_instance_id(
     _iid_file: str = CLOUDINIT_INSTANCE_ID_FILE
-) -> "Optional[str]":
+) -> Optional[str]:
     """Query cloud instance-id from cmdline or CLOUDINIT_INSTANCE_ID_FILE"""
     if "trusty" != util.get_platform_info()["series"]:
         # Present in cloud-init on >= Xenial
@@ -59,7 +55,7 @@ def get_cloud_type_from_result_file(
 
 
 @apply_config_settings_override("cloud_type")
-def get_cloud_type() -> "Optional[str]":
+def get_cloud_type() -> Optional[str]:
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
         out, _err = util.subp(["cloud-id"])

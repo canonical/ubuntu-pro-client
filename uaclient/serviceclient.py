@@ -9,11 +9,7 @@ from uaclient import config
 from uaclient import util
 from uaclient import version
 
-try:
-    from typing import Optional, Type  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Optional, Type
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
@@ -22,7 +18,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def api_error_cls(self) -> "Type[Exception]":
+    def api_error_cls(self) -> Type[Exception]:
         """Set in subclasses to the type of API error raised"""
         pass
 
@@ -32,7 +28,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         """String in subclasses, the UAConfig attribute containing base url"""
         pass
 
-    def __init__(self, cfg: "Optional[config.UAConfig]" = None) -> None:
+    def __init__(self, cfg: Optional[config.UAConfig] = None) -> None:
         if not cfg:
             self.cfg = config.UAConfig()
         else:

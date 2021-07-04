@@ -2,11 +2,7 @@ from uaclient.entitlements import repo
 from uaclient import util
 from uaclient.config import update_ua_messages
 
-try:
-    from typing import Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Optional
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
@@ -34,7 +30,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     is_beta = True
 
     @property
-    def repo_pin_priority(self) -> "Optional[str]":
+    def repo_pin_priority(self) -> Optional[str]:
         """All LTS with the exception of Trusty should pin esm-apps."""
         series = util.get_platform_info()["series"]
         if series == "trusty":
@@ -65,7 +61,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
 
     @property
-    def repo_pin_priority(self) -> "Optional[str]":
+    def repo_pin_priority(self) -> Optional[str]:
         """Once a release goes into EOL it is entitled to ESM Infra."""
         if util.is_active_esm(util.get_platform_info()["series"]):
             return "never"

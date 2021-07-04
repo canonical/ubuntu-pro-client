@@ -8,13 +8,9 @@ from uaclient.entitlements import repo
 from uaclient.clouds.identity import get_cloud_type
 from uaclient import status, util
 
-try:
-    from typing import Any, Callable, Dict, List, Set, Tuple, Union  # noqa
+from typing import Any, Callable, Dict, List, Tuple, Union
 
-    StaticAffordance = Tuple[str, Callable[[], Any], bool]
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
@@ -121,7 +117,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         return True
 
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock util.is_container in tests
         cloud_titles = {"azure": "an Azure", "gce": "a GCP"}
         cloud_id = get_cloud_type() or ""
@@ -144,8 +140,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         )
 
     def _replace_metapackage_on_cloud_instance(
-        self, packages: "List[str]"
-    ) -> "List[str]":
+        self, packages: List[str]
+    ) -> List[str]:
         """
         Identify correct metapackage to be used if in a cloud instance.
 
@@ -182,7 +178,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         ]
 
     @property
-    def packages(self) -> "List[str]":
+    def packages(self) -> List[str]:
         packages = super().packages
         packages = self._replace_metapackage_on_cloud_instance(packages)
         installed_packages = apt.get_installed_packages()
@@ -198,7 +194,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return packages
 
-    def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
+    def application_status(self) -> Tuple[status.ApplicationStatus, str]:
         super_status, super_msg = super().application_status()
 
         if os.path.exists(self.FIPS_PROC_FILE):
@@ -290,7 +286,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     ]
 
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         static_affordances = super().static_affordances
 
         fips_update = FIPSUpdatesEntitlement(self.cfg)
@@ -324,9 +320,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         )
 
     @property
-    def messaging(
-        self
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {
             "pre_enable": [
                 (
@@ -385,9 +379,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     description = "NIST-certified core packages with priority security updates"
 
     @property
-    def messaging(
-        self
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {
             "pre_enable": [
                 (

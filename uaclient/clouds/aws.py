@@ -1,10 +1,6 @@
 from urllib.error import HTTPError
 
-try:
-    from typing import Any, Dict  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict
 
 from uaclient.clouds import AutoAttachCloudInstance
 from uaclient import util
@@ -29,7 +25,7 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
-    def identity_doc(self) -> "Dict[str, Any]":
+    def identity_doc(self) -> Dict[str, Any]:
         headers = self._get_imds_v2_token_headers()
         response, _headers = util.readurl(IMDS_URL, headers=headers)
         return {"pkcs7": response}
