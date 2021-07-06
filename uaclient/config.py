@@ -37,7 +37,7 @@ except ImportError:
 DEFAULT_STATUS = {
     "_doc": "Content provided in json response is currently considered"
     " Experimental and may change",
-    "_schema_version": "0.1",
+    "_schema_version": "1.0",
     "version": version.get_version(),
     "machine_id": None,
     "attached": False,
@@ -670,6 +670,7 @@ class UAConfig:
 
         Write the status-cache when called by root.
         """
+        from uaclient.schema.maintenance import get_compat_schema
 
         if os.getuid() != 0:
             response = cast("Dict[str, Any]", self.read_cache("status-cache"))
@@ -680,6 +681,7 @@ class UAConfig:
         else:
             response = self._attached_status()
         response.update(self._get_config_status())
+        response = get_compat_schema(self, response)
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
