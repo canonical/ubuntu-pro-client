@@ -804,8 +804,19 @@ def _install_uat_in_container(
             inst.push_file(deb_file, "/tmp/" + deb_name)
 
         cmds.append(
-            ["sudo", "apt-get", "install", "-y", "--allow-downgrades"]
-            + deb_files
+            " ".join(
+                [
+                    "sudo",
+                    "DEBIAN_FRONTEND=noninteractive",
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "--allow-downgrades",
+                    '-o Dpkg::Options::="--force-confdef"',
+                    '-o Dpkg::Options::="--force-confold"',
+                ]
+                + deb_files
+            )
         )
     else:
         ua_pkg = ["ubuntu-advantage-tools"]
@@ -813,7 +824,19 @@ def _install_uat_in_container(
             ua_pkg.append("ubuntu-advantage-pro")
 
         cmds.append(
-            ["sudo", "apt-get", "install", "-y", "--allow-downgrades"] + ua_pkg
+            " ".join(
+                [
+                    "sudo",
+                    "DEBIAN_FRONTEND=noninteractive",
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "--allow-downgrades",
+                    '-o Dpkg::Options::="--force-confdef"',
+                    '-o Dpkg::Options::="--force-confold"',
+                ]
+                + ua_pkg
+            )
         )
 
     if "pro" in config.machine_type:
