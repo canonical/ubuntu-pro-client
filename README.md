@@ -393,16 +393,16 @@ run-parts /etc/update-motd.d/
 
 ## Building
 
-Creating ubuntu-advantage-tools and ubuntu-advantage-pro is created from the
+Packages ubuntu-advantage-tools and ubuntu-advantage-pro are created from the
 debian/control file in this repository. You can build the
-package the way you would normally build a Debian package:
+packages the way you would normally build a Debian package:
 
 
 ```shell
 dpkg-buildpackage -us -uc
 ```
 
-**Note** It will build the package with dependencies for the Ubuntu release on
+**Note** It will build the packages with dependencies for the Ubuntu release on
 which you are building, so it's best to build in a container or kvm for the
 release you are targeting.
 
