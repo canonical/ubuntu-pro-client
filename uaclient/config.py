@@ -893,7 +893,9 @@ def parse_config(config_path=None):
                 "Invalid url in config. {}: {}".format(key, cfg[key])
             )
     # log about invalid keys before ignoring
-    for key in sorted(set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS)):
+    for key in sorted(
+        set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS + ("config_path",))
+    ):
         logging.warning(
             "Ignoring invalid uaclient.conf key: %s=%s", key, cfg.pop(key)
         )
