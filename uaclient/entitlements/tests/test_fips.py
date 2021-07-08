@@ -3,7 +3,6 @@
 import contextlib
 import copy
 import io
-import itertools
 import mock
 import os
 from functools import partial
@@ -42,10 +41,6 @@ def entitlement(fips_entitlement_factory):
 
 
 class TestFIPSEntitlementDefaults:
-    def test_default_repo_key_file(self, entitlement):
-        """GPG keyring file is the same for both FIPS and FIPS with Updates"""
-        assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
-
     @pytest.mark.parametrize("series", (("xenial"), ("bionic"), ("focal")))
     @mock.patch("uaclient.util.get_platform_info")
     def test_condiotional_packages(
@@ -71,6 +66,10 @@ class TestFIPSEntitlementDefaults:
                 "openssh-client-hmac",
                 "openssh-server-hmac",
             ] == conditional_packages
+
+    def test_default_repo_key_file(self, entitlement):
+        """GPG keyring file is the same for both FIPS and FIPS with Updates"""
+        assert entitlement.repo_key_file == "ubuntu-advantage-fips.gpg"
 
     def test_default_repo_pinning(self, entitlement):
         """FIPS and FIPS with Updates repositories are pinned."""
@@ -159,12 +158,25 @@ class TestFIPSEntitlementEnable:
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
+        expected_conditional_packages = [
+            "openssh-server",
+            "openssh-server-hmac",
+            "strongswan",
+            "strongswan-hmac",
+        ]
+
         with contextlib.ExitStack() as stack:
             m_add_apt = stack.enter_context(
                 mock.patch("uaclient.apt.add_auth_apt_repo")
             )
             m_add_pinning = stack.enter_context(
                 mock.patch("uaclient.apt.add_ppa_pinning")
+            )
+            m_installed_pkgs = stack.enter_context(
+                mock.patch(
+                    "uaclient.apt.get_installed_packages",
+                    return_value=["openssh-server", "strongswan"],
+                )
             )
             m_subp = stack.enter_context(
                 mock.patch("uaclient.util.subp", return_value=("", ""))
@@ -210,20 +222,42 @@ class TestFIPSEntitlementEnable:
                 1001,
             )
         ]
-        install_cmd = mock.call(
-            [
-                "apt-get",
-                "install",
-                "--assume-yes",
-                "--allow-downgrades",
-                '-o Dpkg::Options::="--force-confdef"',
-                '-o Dpkg::Options::="--force-confold"',
-            ]
-            + patched_packages,
-            capture=True,
-            retry_sleeps=apt.APT_RETRIES,
-            env={"DEBIAN_FRONTEND": "noninteractive"},
+
+        install_cmd = []
+        install_cmd.append(
+            mock.call(
+                [
+                    "apt-get",
+                    "install",
+                    "--assume-yes",
+                    "--allow-downgrades",
+                    '-o Dpkg::Options::="--force-confdef"',
+                    '-o Dpkg::Options::="--force-confold"',
+                ]
+                + patched_packages,
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+                env={"DEBIAN_FRONTEND": "noninteractive"},
+            )
         )
+
+        for pkg in expected_conditional_packages:
+            install_cmd.append(
+                mock.call(
+                    [
+                        "apt-get",
+                        "install",
+                        "--assume-yes",
+                        "--allow-downgrades",
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                        pkg,
+                    ],
+                    capture=True,
+                    retry_sleeps=apt.APT_RETRIES,
+                    env={"DEBIAN_FRONTEND": "noninteractive"},
+                )
+            )
 
         if isinstance(entitlement, FIPSEntitlement):
             subp_calls = [
@@ -243,13 +277,14 @@ class TestFIPSEntitlementEnable:
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
                     env={},
-                ),
-                install_cmd,
+                )
             ]
         )
+        subp_calls += install_cmd
 
         assert [mock.call()] == m_can_enable.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
+        assert 1 == m_installed_pkgs.call_count
         assert add_apt_calls == m_add_apt.call_args_list
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
@@ -843,32 +878,72 @@ class TestFIPSEntitlementApplicationStatus:
         assert expected_status == application_status
 
 
-def _fips_pkg_combinations():
-    """Construct all combinations of fips_packages and expected installs"""
-    fips_packages = {
-        "openssh-client": {"openssh-client-hmac"},
-        "openssh-server": {"openssh-server-hmac"},
-        "strongswan": {"strongswan-hmac"},
-    }
+class TestFipsEntitlementInstallPackages:
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_install_packages_fail_if_metapackage_not_installed(
+        self, m_run_apt, entitlement
+    ):
+        m_run_apt.side_effect = exceptions.UserFacingError("error")
+        with pytest.raises(exceptions.UserFacingError):
+            entitlement.install_packages()
 
-    items = [  # These are the items that we will combine together
-        (pkg_name, [pkg_name] + list(extra_pkgs))
-        for pkg_name, extra_pkgs in fips_packages.items()
-    ]
-    # This produces combinations in all possible combination lengths
-    combinations = itertools.chain.from_iterable(
-        itertools.combinations(items, n) for n in range(1, len(items))
-    )
-    ret = []
-    # This for loop flattens each combination together in to a single
-    # (installed_packages, expected_installs) item
-    for combination in combinations:
-        installed_packages, expected_installs = [], []
-        for pkg, installs in combination:
-            installed_packages.append(pkg)
-            expected_installs.extend(installs)
-        ret.append((installed_packages, expected_installs))
-    return ret
+    @mock.patch(M_PATH + "apt.get_installed_packages")
+    @mock.patch(M_PATH + "apt.run_apt_command")
+    def test_install_packages_dont_fail_if_conditional_pkgs_not_installed(
+        self, m_run_apt, m_installed_pkgs, fips_entitlement_factory
+    ):
+
+        conditional_pkgs = ["b", "c"]
+        m_installed_pkgs.return_value = conditional_pkgs
+        packages = ["a"]
+        entitlement = fips_entitlement_factory(additional_packages=packages)
+
+        m_run_apt.side_effect = [
+            True,
+            exceptions.UserFacingError("error"),
+            exceptions.UserFacingError("error"),
+        ]
+
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            with mock.patch.object(
+                type(entitlement), "conditional_packages", conditional_pkgs
+            ):
+                entitlement.install_packages()
+
+        install_cmds = []
+        all_pkgs = packages + conditional_pkgs
+        for pkg in all_pkgs:
+            install_cmds.append(
+                mock.call(
+                    [
+                        "apt-get",
+                        "install",
+                        "--assume-yes",
+                        "--allow-downgrades",
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                        pkg,
+                    ],
+                    "Could not enable {}.".format(entitlement.title),
+                    env={"DEBIAN_FRONTEND": "noninteractive"},
+                )
+            )
+
+        expected_msg = "\n".join(
+            [
+                "Installing {} packages".format(entitlement.title),
+                status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                    service=entitlement.title, pkg="b"
+                ),
+                status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                    service=entitlement.title, pkg="c"
+                ),
+            ]
+        )
+
+        assert install_cmds == m_run_apt.call_args_list
+        assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
 
 class TestFipsSetupAPTConfig:
@@ -940,29 +1015,16 @@ class TestFipsEntitlementPackages:
             set(entitlement.packages)
         )
 
-    @pytest.mark.parametrize(
-        "installed_packages,expected_installs", _fips_pkg_combinations()
-    )
-    @mock.patch(M_PATH + "apt.get_installed_packages")
     @mock.patch("uaclient.util.get_platform_info")
     def test_currently_installed_packages_are_included_in_packages(
-        self,
-        m_platform_info,
-        m_get_installed_packages,
-        entitlement,
-        installed_packages,
-        expected_installs,
+        self, m_platform_info, entitlement
     ):
-        """If FIPS packages are already installed, upgrade them"""
-        m_get_installed_packages.return_value = list(installed_packages)
-
         # Do not trigger metapackage override by
         # _replace_metapackage_on_cloud_instance
         # and xenial should not trigger that
         m_platform_info.return_value = {"series": "xenial"}
 
-        full_expected_installs = FIPS_ADDITIONAL_PACKAGES + expected_installs
-        assert sorted(full_expected_installs) == sorted(entitlement.packages)
+        assert sorted(FIPS_ADDITIONAL_PACKAGES) == sorted(entitlement.packages)
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
     @mock.patch("uaclient.util.get_platform_info")

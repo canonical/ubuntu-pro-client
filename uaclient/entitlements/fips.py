@@ -6,7 +6,7 @@ from itertools import groupby
 from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient.clouds.identity import get_cloud_type
-from uaclient import status, util
+from uaclient import exceptions, status, util
 
 try:
     from typing import Any, Callable, Dict, List, Set, Tuple, Union  # noqa
@@ -61,6 +61,55 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             ]
 
         return conditional_packages
+
+    def install_packages(
+        self,
+        package_list: "List[str]" = None,
+        cleanup_on_failure: bool = True,
+        verbose: bool = True,
+    ) -> None:
+        """Install contract recommended packages for the entitlement.
+
+        :param package_list: Optional package list to use instead of
+            self.packages.
+        :param cleanup_on_failure: Cleanup apt files if apt install fails.
+        :param verbose: If true, print messages to stdout
+        """
+        if verbose:
+            print("Installing {title} packages".format(title=self.title))
+
+        # We need to guarantee that the metapackage is installed.
+        # While the other packages should still be installed, if they
+        # fail, we should not block the enable operation.
+        mandatory_packages = self.packages
+        super().install_packages(
+            package_list=mandatory_packages, verbose=False
+        )
+
+        # Any conditional packages should still be installed, but if
+        # they fail to install we should not block the enable operation.
+        desired_packages = []  # type: List[str]
+        installed_packages = apt.get_installed_packages()
+        pkg_groups = groupby(
+            sorted(self.conditional_packages),
+            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
+        )
+
+        for pkg_name, pkg_list in pkg_groups:
+            if pkg_name in installed_packages:
+                desired_packages += pkg_list
+
+        for pkg in desired_packages:
+            try:
+                super().install_packages(
+                    package_list=[pkg], cleanup_on_failure=False, verbose=False
+                )
+            except exceptions.UserFacingError:
+                print(
+                    status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                        service=self.title, pkg=pkg
+                    )
+                )
 
     def check_for_reboot_msg(self, operation: str) -> None:
         """Check if user should be alerted that a reboot must be performed.
@@ -184,19 +233,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     @property
     def packages(self) -> "List[str]":
         packages = super().packages
-        packages = self._replace_metapackage_on_cloud_instance(packages)
-        installed_packages = apt.get_installed_packages()
-
-        pkg_groups = groupby(
-            self.conditional_packages,
-            key=lambda pkg_name: pkg_name.replace("-hmac", ""),
-        )
-
-        for pkg_name, pkg_list in pkg_groups:
-            if pkg_name in installed_packages:
-                packages += pkg_list
-
-        return packages
+        return self._replace_metapackage_on_cloud_instance(packages)
 
     def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
         super_status, super_msg = super().application_status()
