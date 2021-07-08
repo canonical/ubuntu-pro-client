@@ -301,6 +301,9 @@ MESSAGE_FIPS_REBOOT_REQUIRED = (
 MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED = (
     "Disabling FIPS requires system reboot to complete operation."
 )
+MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE = (
+    "{service} {pkg} package could not be installed"
+)
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
   To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
