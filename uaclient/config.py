@@ -121,9 +121,11 @@ class UAConfig:
     ) -> None:
         """"""
         if cfg:
+            self.cfg_path = None
             self.cfg = cfg
         else:
-            self.cfg = parse_config()
+            self.cfg_path = get_config_path()
+            self.cfg = parse_config(self.cfg_path)
 
         self.series = series
 
@@ -534,10 +536,8 @@ class UAConfig:
             "execution_status": status_val,
             "execution_details": status_desc,
             "notices": notices,
-            "config_path": self.cfg.get("config_path"),
-            "config": {
-                k: v for k, v in self.cfg.items() if k != "config_path"
-            },
+            "config_path": self.cfg_path,
+            "config": self.cfg,
         }
 
     def _unattached_status(self) -> "Dict[str, Any]":
@@ -828,8 +828,24 @@ class UAConfig:
         cfg_dict["ua_config"] = {
             key: getattr(self, key) for key in UA_CONFIGURABLE_KEYS
         }
+
         content += yaml.dump(cfg_dict, default_flow_style=False)
         util.write_file(config_path, content)
+
+
+def get_config_path() -> str:
+    """Get config path to be used when loading config dict."""
+    config_file = os.environ.get("UA_CONFIG_FILE")
+    if config_file:
+        return config_file
+
+    local_cfg = os.path.join(
+        os.getcwd(), os.path.basename(DEFAULT_CONFIG_FILE)
+    )
+    if os.path.exists(local_cfg):
+        return local_cfg
+
+    return DEFAULT_CONFIG_FILE
 
 
 def parse_config(config_path=None):
@@ -845,14 +861,11 @@ def parse_config(config_path=None):
 
     @return: Dict of configuration values.
     """
-    if not config_path:
-        config_path = DEFAULT_CONFIG_FILE
     cfg = copy.copy(CONFIG_DEFAULTS)
-    local_cfg = os.path.join(os.getcwd(), os.path.basename(config_path))
-    if os.path.exists(local_cfg):
-        config_path = local_cfg
-    if os.environ.get("UA_CONFIG_FILE"):
-        config_path = os.environ.get("UA_CONFIG_FILE")
+
+    if not config_path:
+        config_path = get_config_path()
+
     LOG.debug("Using UA client configuration file at %s", config_path)
     if os.path.exists(config_path):
         cfg.update(yaml.safe_load(util.load_file(config_path)))
@@ -886,7 +899,6 @@ def parse_config(config_path=None):
                 env_keys[field_name] = value
     cfg.update(env_keys)
     cfg["data_dir"] = os.path.expanduser(cfg["data_dir"])
-    cfg["config_path"] = config_path
     for key in ("contract_url", "security_url"):
         if not util.is_service_url(cfg[key]):
             raise exceptions.UserFacingError(
@@ -897,6 +909,7 @@ def parse_config(config_path=None):
         logging.warning(
             "Ignoring invalid uaclient.conf key: %s=%s", key, cfg.pop(key)
         )
+
     return cfg
 
 
