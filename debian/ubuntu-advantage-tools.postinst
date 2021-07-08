@@ -265,6 +265,19 @@ mark_reboot_cmds_as_needed() {
     add_notice "$msg_name"
 }
 
+patch_status_json_0_1_for_non_root() {
+    # UA client 27.2 broke status.json schema backward-compatibility for
+    # non-root users apply a patch to allow non-root user to run `ua status`
+    # without Tracebacks
+    if dpkg --compare-versions "$PREVIOUS_PKG_VER" gt-nl "27.2"; then
+        return
+    fi
+    if [ ! -e "/var/lib/ubuntu-advantage/status.json" ]; then
+        return
+    fi
+    /usr/lib/ubuntu-advantage/patch_status_json.py || true
+}
+
 notify_wrong_fips_metapackage_on_cloud() {
 
     # On xenial, we don't have FIPS optimized kernels on the clouds.
@@ -320,7 +333,7 @@ case "$1" in
               rm -f $SYSTEMD_HELPER_ENABLED_WANTS_LINK
           fi
       fi
-
+      patch_status_json_0_1_for_non_root
       # UA service PPAs support all ubuntu releases, no need to
       # specialize apt config filenames per ubuntu release.
       redact_ubuntu_release_from_ua_apt_filenames $APT_SRC_DIR
