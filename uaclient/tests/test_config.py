@@ -20,8 +20,9 @@ from uaclient.config import (
     VALID_UA_CONFIG_KEYS,
     parse_config,
     depth_first_merge_overlay_dict,
+    get_config_path,
 )
-from uaclient.defaults import CONFIG_DEFAULTS
+from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 from uaclient.entitlements import (
     ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
@@ -1419,7 +1420,6 @@ class TestParseConfig:
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
             "log_level": "INFO",
-            "config_path": "/etc/ubuntu-advantage/uaclient.conf",
         }
         assert expected_default_config == config
 
@@ -1756,3 +1756,25 @@ class TestDepthFirstMergeOverlayDict:
     ):
         depth_first_merge_overlay_dict(base_dict, overlay_dict)
         assert expected_dict == base_dict
+
+
+class TestGetConfigPath:
+    def test_get_config_path_from_env_var(self):
+        with mock.patch.dict(
+            "uaclient.config.os.environ", values={"UA_CONFIG_FILE": "test"}
+        ):
+            assert "test" == get_config_path()
+
+    @mock.patch("uaclient.config.os.path.join", return_value="test123")
+    @mock.patch("uaclient.config.os.path.exists", return_value=True)
+    def test_get_config_path_from_local_dir(self, _m_exists, _m_join):
+        with mock.patch.dict("uaclient.config.os.environ", values={}):
+            assert "test123" == get_config_path()
+            assert _m_join.call_count == 1
+            assert _m_exists.call_count == 1
+
+    @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    def test_get_default_config_path(self, _m_exists):
+        with mock.patch.dict("uaclient.config.os.environ", values={}):
+            assert DEFAULT_CONFIG_FILE == get_config_path()
+            assert _m_exists.call_count == 1
