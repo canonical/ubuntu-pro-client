@@ -29,6 +29,7 @@ from uaclient import status as ua_status
 from uaclient import util
 from uaclient import version
 from uaclient.clouds import identity
+from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 
 NAME = "ua"
 
@@ -1325,6 +1326,19 @@ def main(sys_argv=None):
     logging.debug(
         util.redact_sensitive_logs("Executed with sys.argv: %r" % sys_argv)
     )
+    ua_environment = [
+        "{}={}".format(k, v)
+        for k, v in sorted(os.environ.items())
+        if k.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
+        or k.startswith("UA_FEATURES")
+        or k == "UA_CONFIG_FILE"
+    ]
+    if ua_environment:
+        logging.debug(
+            util.redact_sensitive_logs(
+                "Executed with UA environment variables: %r" % ua_environment
+            )
+        )
     return args.action(args, cfg)
 
 
