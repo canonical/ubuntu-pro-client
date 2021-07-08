@@ -1,7 +1,8 @@
-ubuntu-advantage-tools (27.2.2~21.10) impish; urgency=medium
+ubuntu-advantage-tools (27.2.2~21.10.1) impish; urgency=medium
 
   * d/tools.postinst:
-    - Do not fail in postinst if cloud-init did not run. (LP: #1936833)
+    - Do not fail in postinst if cloud-init did not run.
+      This fixes the regression introduced in 27.2.1. (LP: #1936833)
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 27 Jul 2021 10:09:18 -0300
 
@@ -22,11 +23,9 @@ ubuntu-advantage-tools (27.2~21.10.1) impish; urgency=medium
 
   * d/control:
     - add comments to explain complex build-depends
-    - remove unnecessary distro-info dependency from build-depends
+    - add version requirement to distro-info (LP: #1932028)
   * d/tools.postinst:
     - run status.json schema patch script to avoid non-root status errors
-  * d/rules:
-    - add version requirement to distro-info (LP: #1932028)
   * New upstream release 27.2:
     - attach: print contract server reason for 403 (GH: #1630)
     - cli: add ua config set, unset and show subcommands
