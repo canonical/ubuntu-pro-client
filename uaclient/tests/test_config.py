@@ -1452,6 +1452,8 @@ class TestParseConfig:
         warn_logs = caplog_text()
         for warning in warnings:
             assert warning in warn_logs
+        if not warnings:
+            assert "Ignoring invalid uaclient.conf key" not in warn_logs
         assert expected == cfg
 
     @pytest.mark.parametrize(
