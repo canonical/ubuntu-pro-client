@@ -1,4 +1,5 @@
 import abc
+import copy
 import logging
 import os
 import re
@@ -63,7 +64,9 @@ class RepoEntitlement(base.UAEntitlement):
 
         if entitlement:
             directives = entitlement.get("directives", {})
-            additional_packages = directives.get("additionalPackages", [])
+            additional_packages = copy.copy(
+                directives.get("additionalPackages", [])
+            )
 
             packages = additional_packages
 
@@ -222,16 +225,22 @@ class RepoEntitlement(base.UAEntitlement):
         return True
 
     def install_packages(
-        self, package_list: "List[str]" = None, cleanup_on_failure: bool = True
+        self,
+        package_list: "List[str]" = None,
+        cleanup_on_failure: bool = True,
+        verbose: bool = True,
     ) -> None:
         """Install contract recommended packages for the entitlement.
 
         :param package_list: Optional package list to use instead of
             self.packages.
-        :param package_list: Optional package list to use instead of
-            self.packages.
+        :param cleanup_on_failure: Cleanup apt files if apt install fails.
+        :param verbose: If true, print messages to stdout
         """
-        print("Installing {title} packages".format(title=self.title))
+
+        if verbose:
+            print("Installing {title} packages".format(title=self.title))
+
         if self.apt_noninteractive:
             env = {"DEBIAN_FRONTEND": "noninteractive"}
             apt_options = [
