@@ -1,4 +1,10 @@
-ubuntu-advantage-tools (27.1) impish; urgency=medium
+ubuntu-advantage-tools (27.1~21.10.1.1) impish; urgency=medium
+
+  * Cherrypick upstream pr #1681 to unbreak many migrations. LP: #1930741
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com> Wed, 16 Jun 2021 17:14:08 +0100
+
+ubuntu-advantage-tools (27.1~21.10.1) impish; urgency=medium
 
   * d/control:
     - specify debianutils min version
@@ -82,7 +88,7 @@ ubuntu-advantage-tools (27.0) impish; urgency=medium
       singular/plural pkgs
     - apt-hook: avoid reporting and counting duplicate package
       names (GH: #1578)
-    - fix: dont say reboot required when unnecessary (LP: #1926183)
+    - fix: don't say reboot required when unnecessary (LP: #1926183)
     - test: uncomment additional xenial upgrade tests
 
  -- Lucas Moura <lucas.moura@canonical.com>  Tue, 27 Apr 2021 15:31:06 -0300
@@ -466,9 +472,9 @@ ubuntu-advantage-tools (25.0~20.10.1~beta) groovy; urgency=medium
 ubuntu-advantage-tools (24.4) groovy; urgency=medium
 
   * New bug-fix-only release 24.4:
-     - uaclient.version bump to 24.4
-     - fips: honor additionalPackage directive from contract for bionic
-       (GH #1173)
+    - uaclient.version bump to 24.4
+    - fips: honor additionalPackage directive from contract for bionic
+      (GH #1173)
 
  -- Chad Smith <chad.smith@canonical.com>  Tue, 01 Sep 2020 11:14:39 -0600
 
