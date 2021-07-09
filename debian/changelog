@@ -1,3 +1,59 @@
+ubuntu-advantage-tools (27.2~21.10.1) impish; urgency=medium
+
+  * d/changelog:
+    - fix lintian typos in 24.4 and 27.0 changelog entries
+  * d/control:
+    - add comments to explain complex build-depends
+    - add version requirement to distro-info (LP: #1932028)
+  * d/tools.postinst:
+    - run status.json schema patch script to avoid non-root status errors
+  * New upstream release 27.2:
+    - apt-hook: fix invalid 20apt-esm-hook.conf syntax (LP: #1930741)
+    - attach: print contract server reason for 403 (GH: #1630)
+    - cli: add ua config set, unset and show subcommands
+    - config:
+      + add default ua_config setting values
+      + only allow some fields to be set by envvar
+      + use defaults for contract and security url
+    - docs:
+      + add proxy config options to man page
+      + add instructions to generate MOTD messages
+      + add support matrix info
+      + remove broken api link
+    - enable: allow downgrading packages during enable (GH: #1659)
+    - fips:
+      + add focal test for fips-updates
+      + alert if wrong fips package installed on gov clouds
+      + install correct fips package on gov clouds
+      + only install conditional_packages if necessary and available
+    - logs: log env vars that affect config on cli runs
+    - proxy:
+      + add config options to set proxies
+      + print message when setting proxy
+      + support configuring apt proxies
+      + support configuring snap and livepatch proxies
+      + support setting proxy for web requests
+      + validate urls before setting as proxies
+    - refresh: support refreshing config and contract separately
+    - status
+      + add config info to json output
+      + add env vars to json output
+      + do not show unavailable services in json output
+      + support yaml format with same content as json format
+      + update account info in json output
+      + update contract info in json output
+      + update root level keys of json output
+    - refactor:
+      + remove side effects from can_enable (GH: #1654, #1571)
+      + use DatetimeAwareJSONDecoder to parse date strings
+    - tests:
+      + add additional enable test for incompatible services
+      + add flag to enable proposed pocket
+      + add test to check and print version being tested
+      + drop trusty specific tests
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Fri, 09 Jul 2021 13:07:23 -0400
+
 ubuntu-advantage-tools (27.1~21.10.1.1) impish; urgency=medium
 
   * Cherrypick upstream pr #1681 to unbreak many migrations. LP: #1930741
