@@ -58,7 +58,7 @@ ubuntu-advantage-tools (27.1~21.10.1.1) impish; urgency=medium
 
   * Cherrypick upstream pr #1681 to unbreak many migrations. LP: #1930741
 
- -- Dimitri John Ledkov <xnox@ubuntu.com> Wed, 16 Jun 2021 17:14:08 +0100
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Wed, 16 Jun 2021 17:14:08 +0100
 
 ubuntu-advantage-tools (27.1~21.10.1) impish; urgency=medium
 
