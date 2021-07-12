@@ -284,46 +284,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        And I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
-        """
-        {
-           "availableResources": [
-               {
-                 "available": true,
-                 "name": "fips"
-               }
-            ],
-            "machineTokenInfo": {
-                "contractInfo": {
-                   "resourceEntitlements": [
-                      {
-                        "type": "fips",
-                        "entitled": true,
-                        "affordances": {
-                          "series": [
-                            "xenial",
-                            "bionic",
-                            "focal"
-                          ]
-                         },
-                        "directives": {
-                          "suites": [
-                            "xenial",
-                            "bionic",
-                            "focal"
-                          ]
-                        }
-                     }
-                   ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
-        """
         When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
@@ -384,46 +344,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        And I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
-        """
-        {
-           "availableResources": [
-               {
-                 "available": true,
-                 "name": "fips-updates"
-               }
-            ],
-            "machineTokenInfo": {
-                "contractInfo": {
-                   "resourceEntitlements": [
-                      {
-                        "type": "fips-updates",
-                        "entitled": true,
-                        "affordances": {
-                          "series": [
-                            "xenial",
-                            "bionic",
-                            "focal"
-                          ]
-                         },
-                        "directives": {
-                          "suites": [
-                            "xenial-updates",
-                            "bionic-updates",
-                            "focal-updates"
-                          ]
-                        }
-                     }
-                   ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
-        """
         When I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
