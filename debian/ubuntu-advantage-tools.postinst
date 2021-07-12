@@ -267,7 +267,7 @@ mark_reboot_cmds_as_needed() {
 
 patch_status_json_0_1_for_non_root() {
     # UA client 27.2 broke status.json schema backward-compatibility for
-    # non-root users apply a patch to allow non-root user to run `ua status`
+    # non-root users. Apply a patch to allow non-root user to run `ua status`
     # without Tracebacks
     if dpkg --compare-versions "$PREVIOUS_PKG_VER" gt-nl "27.2"; then
         return
