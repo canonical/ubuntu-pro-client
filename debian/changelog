@@ -6,7 +6,6 @@ ubuntu-advantage-tools (27.2~21.10.1) impish; urgency=medium
   * d/tools.postinst:
     - run status.json schema patch script to avoid non-root status errors
   * New upstream release 27.2:
-    - apt-hook: fix invalid 20apt-esm-hook.conf syntax (LP: #1930741)
     - attach: print contract server reason for 403 (GH: #1630)
     - cli: add ua config set, unset and show subcommands
     - config:
