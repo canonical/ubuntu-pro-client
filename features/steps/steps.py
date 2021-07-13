@@ -1,10 +1,12 @@
 import datetime
+import json
 import logging
 import os
 import subprocess
 import re
 import shlex
 import time
+import yaml
 
 from behave import given, then, when
 from hamcrest import (
@@ -350,6 +352,27 @@ def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
 @then("stdout matches regexp")
 def then_stdout_matches_regexp(context):
     assert_that(context.process.stdout.strip(), matches_regexp(context.text))
+
+
+@then("stdout is formatted as `{output_format}` and has keys")
+def then_stdout_is_formatted_and_has_keys(context, output_format):
+    output = context.process.stdout.strip()
+    if output_format == "json":
+        data = json.loads(output)
+    elif output_format == "yaml":
+        data = yaml.safe_load(output)
+
+    keys = set(context.text.split())
+    output_keys = set(data.keys())
+
+    if keys != output_keys:
+        message = """
+        Missing keys in output: {}
+        Extra keys in output: {}
+        """.format(
+            keys - output_keys or "", output_keys - keys or ""
+        )
+        raise AssertionError(message)
 
 
 @then("stdout does not match regexp")
