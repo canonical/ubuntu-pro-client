@@ -1,7 +1,5 @@
 ubuntu-advantage-tools (27.2~21.10.1) impish; urgency=medium
 
-  * d/changelog:
-    - fix lintian typos in 27.0 changelog entry
   * d/control:
     - add comments to explain complex build-depends
     - add version requirement to distro-info (LP: #1932028)
