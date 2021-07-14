@@ -129,6 +129,18 @@ configuration is required to properly enable that service.
 Any interactions with the Contract server API are defined as UAContractClient
 class methods in [uaclient/contract.py](uaclient/contract.py).
 
+### Using a proxy
+The UA Client can be configured to use an http/https proxy as needed for network requests.
+In addition, the UA Client will automatically set up proxies for all programs required for
+enabling Ubuntu Advantage services. This includes APT, Snaps, and Livepatch.
+
+The proxy can be set to the config file under `ua config`. HTTP/HTTPS proxies are
+set using `http_proxy` and `https_proxy`, respectively. APT proxies are defined
+separately, using `apt_http_proxy` and `apt_https_proxy`. The proxy is identified
+by a string formatted as:
+
+`<protocol>://[<username>:<password>@]<fqdn>:<port>`
+
 ## Directory layout
 The following describes the intent of UA client related directories:
 
