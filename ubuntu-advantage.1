@@ -138,6 +138,16 @@ If set, ua will configure apt to use the specified https proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
 
 .P
+If needed, authentication to the proxy server can be performed by setting
+username and password in the URL itself, as in:
+.PP
+.nf
+.fam C
+  http_proxy: http://<username>:<password>@<fqdn>:<port>
+.fam T
+.fi
+
+.P
 Additionally, some configuration options can be overridden in the environment
 by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
 uppercase and lowercase environment variables are allowed. The configuration
