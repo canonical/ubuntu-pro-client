@@ -2,9 +2,11 @@ ubuntu-advantage-tools (27.2~21.10.1) impish; urgency=medium
 
   * d/control:
     - add comments to explain complex build-depends
-    - add version requirement to distro-info (LP: #1932028)
+    - remove unnecessary distro-info dependency from build-depends
   * d/tools.postinst:
     - run status.json schema patch script to avoid non-root status errors
+  * d/rules:
+    - add version requirement to distro-info (LP: #1932028)
   * New upstream release 27.2:
     - attach: print contract server reason for 403 (GH: #1630)
     - cli: add ua config set, unset and show subcommands
