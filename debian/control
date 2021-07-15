@@ -23,11 +23,6 @@ Build-Depends: bash-completion,
                libapt-pkg-dev,
                po-debconf,
                python3 (>= 3.4),
-# Bionic and Xenial each have older versions of distro-info that don't support the flag --supported-esm. Those
-# versions are 0.18 and 0.14build1, respectively. The first alternative here ensures we get the update on Bionic
-# (and all later releases come with a distro-info with a greater version than 0.18). The second alternative
-# ensures we get the update on Xenial.
-               distro-info (>= 0.18ubuntu0.18.04.1) | distro-info (= 0.14ubuntu0.2),
                python3-flake8,
                python3-mock,
                python3-pytest,
