@@ -48,6 +48,11 @@ Below is the procedure used to release ubuntu-advantage-client to an Ubuntu seri
  10. Create a merge proposal for 27.1 which targets `ubuntu/devel`
      * For an example, see the [27.0.2 merge proposal](https://code.launchpad.net/~chad.smith/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/+merge/402459)
  11. Add 2 review slots for `canonical-server` and `canonical-server-core-reviewers`
+ 12. Communication procedure: ping Ubuntu server upload reviewer to find out who will own review.
+ 13. Once review is complete and approved, confirm that Ubuntu Server approver will be tagging the PR with the appropriate 'upload/<version>' tag so git-ubuntu will import rich commit history.
+ 14. Check rmadison ubuntu-advantage-tools for updated version in devel release
+ 15. Confirm availability in <devel>-updates pocket via lxc launch ubuntu-daily:impish dev-i; lxc exec dev-i -- apt update; lxc exec dev-i -- apt-cache policy ubuntu-advantage-tools
+
 
 ## SRU Release Process
 Below is the procedure used to SRU ubuntu-advantage-client to a stable Ubuntu series. It makes the following assumptions:
@@ -92,10 +97,29 @@ Below is the procedure used to SRU ubuntu-advantage-client to a stable Ubuntu se
  ```
  6. Ping ~Server channel member with upload rights for a review of your MR
  7. Address MR review comments or file issues for future until MR accepted and uploaded to the [proper upload release queue](https://launchpad.net/ubuntu/hirsute/+queue?queue_state=1&queue_text=ubuntu-advantage-tools)
- 8. Ping [appropriate daily SRU vanguard for acceptance of ua-tools into -proposed](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing)FreeNode #ubuntu-release
- 9. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates)
-10. When SRU verification is complete, mark any SRU-related bugs with 'verification-done' tags as each bug, task, or release verified and completes successfully
-11. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html). It is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates
+ 8. Once upload review is complete and approved, confirm that Ubuntu Server approver will upload ua-tools via dput to the `-proposed` queue.
+ 9. Check the [Xenial -proposed release queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=1&queue_text=ubuntu-advantage-tools) for presence of ua-tools in unapproved state. Note: that #ubuntu-release IRC channel below has a bot that reports queued uploads of any package in a message like "Unapproved: ubuntu-advantage-tools .. version
+ 10. Once unapproved ua-tools package is listed in the pending queue for each target release, [ping appropriate daily SRU vanguard for review of ua-tools into -proposed](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing)Libera.chat #ubuntu-release channel
+ 11. As soon as the SRU vanguard approves the packages, a bot will announce that ubuntu-advantage-tools is accepted into the applicable -proposed pockets, or the [Xenial -proposed release rejection queue](https://launchpad.net/ubuntu/xenial/+queue?queue_state=4&queue_text=ubuntu-advantage-tools) will contain a reason for rejections. Double check the SRU process bug for any actionable review feedback.
+ 12. Once accepted into `-proposed` by an SRU vanguard [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), check `rmadison ubuntu-advantage-tools | grep -proposed` to see if the upload exists in -proposed yet.
+ 13. Confirm availability in <devel>-proposed pocket via
+```bash
+cat > setup_proposed.sh <<EOF
+#/bin/bash
+mirror=http://archive.ubuntu.com/ubuntu
+echo deb \$mirror \$(lsb_release -sc)-proposed main | tee /etc/apt/sources.list.d/proposed.list
+apt-get update -q;
+apt-get install -qy ubuntu-advantage-tools;
+apt-cache policy ubuntu-advantage-tools;
+EOF
+
+lxc launch ubuntu-daily:impish dev-i;
+lxc file push setup_proposed.sh
+lxc exec dev-i -- bash /setup_proposed.sh
+```
+ 14. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave-(vm|lxd|gcp|azure|upgrade) targets with UACLIENT_BEHAVE_ENABLE_PROPOSED=1.
+ 15. When SRU verification is complete and logs attached to all SRU-related bugs, mark any SRU-related bugs with 'verification-done' tags as each bug, task, or release verified successfully.
+ 16. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html). It is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates
 
 ## Ubuntu PRO Release Process
 
@@ -107,7 +131,7 @@ Below is the procedure used to release ubuntu-advantage-tools to Ubuntu PRO imag
  4. Select Destination series: The same series
  5. Copy options: "Copy existing binaries"
  6. Click Copy packages
- 7. Notify Pro Image creators about expected Premium PPA version (patviafore/rcj/powersj)
+ 7. Notify Pro Image creators about expected Premium PPA version (patviafore/powersj)
 
 
 ## Release to PPA
