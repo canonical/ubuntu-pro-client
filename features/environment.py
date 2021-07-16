@@ -5,6 +5,7 @@ import re
 import tempfile
 import textwrap
 import logging
+import subprocess
 import pycloudlib  # type: ignore
 
 try:
@@ -615,15 +616,14 @@ def _capture_container_as_image(
     return cloud_api.snapshot(instance=inst)
 
 
-def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
-    """Create a development instance, instal build dependencies and build debs
+def build_debs_from_sbuild(context: Context, series: str) -> "List[str]":
+    """Create a chroot and build the package using sbuild
 
 
     Will stop the development instance after deb build succeeds.
 
     :return: A list of paths to applicable deb files published.
     """
-    time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_paths = []
 
     if context.config.debs_path:
@@ -646,33 +646,35 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
         logging.info(
             "--- Could not find any debs to reuse. Building it locally"
         )
-        logging.info(
-            "--- Launching vm to build ubuntu-advantage*debs from local source"
-        )
-        build_container_name = (
-            "ubuntu-behave-image-pre-build-%s-" % series + time_suffix
-        )
+        chroot_name = "{}-amd64".format(series)
 
-        cloud_manager = context.config.cloud_manager
-        if "pro" in context.config.machine_type:
-            user_data = USERDATA_BLOCK_AUTO_ATTACH_IMG
-        else:
-            user_data = ""
-        inst = cloud_manager.launch(
-            instance_name=build_container_name,
-            series=series,
-            user_data=user_data,
-        )
+        try:
+            subprocess.check_output(["schroot", "-i", "-c", chroot_name])
+        except subprocess.CalledProcessError:
+            cmd = (
+                "sbuild-launchpad-chroot create"
+                '--architecture="amd64" --name={}-amd64"'.format(series),
+                '--series="{}"'.format(series),
+            )
+            msgs = (
+                "-- You need a {} chroot to proceed".format(series),
+                "-- Please run the following cmd as root:",
+                " ".join(cmd),
+                "-- If you don't have sbuild-launchpad-chroot please run:"
+                "apt-get install sbuild-launchpad-chroot",
+            )
 
-        build_container_name = cloud_manager.get_instance_id(inst)
+            logging.info("\n".join(msgs))
+            exit(-1)
 
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
-                build_container_name,
+                series=series,
                 output_deb_dir=os.path.join(tempfile.gettempdir(), series),
-                cloud_api=context.config.cloud_api,
                 cache_source=context.config.cache_source,
             )
+
+        logging.info("--- sbuild has finished building the packages")
 
     if "pro" in context.config.machine_type:
         return deb_paths
@@ -713,7 +715,7 @@ def create_uat_image(context: Context, series: str) -> None:
     time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_paths = []
     if context.config.build_pr:
-        deb_paths = build_debs_from_dev_instance(context, series)
+        deb_paths = build_debs_from_sbuild(context, series)
 
     logging.info(
         "--- Launching VM to create a base image with updated ubuntu-advantage"
