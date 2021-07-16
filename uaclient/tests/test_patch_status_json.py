@@ -103,6 +103,38 @@ ATTACHED_PATCHED_STATUS = {
     },
 }
 
+NO_CONFIG_UNPATCHED_STATUS = {
+    "_doc": "Content provided in json response is currently considered ...",
+    "attached": False,
+    "expires": "n/a",
+    "techSupportLevel": "n/a",
+    "services": [
+        {
+            "name": "cc-eal",
+            "available": "yes",
+            "description": "Common Criteria EAL2 Provisioning Packages",
+        }
+    ],
+    "origin": None,
+}
+
+NO_CONFIG_PATCHED_STATUS = {
+    "_schema_version": "0.1",
+    "origin": None,
+    "account": {"name": "", "id": ""},
+    "expires": "n/a",
+    "services": [
+        {
+            "available": "yes",
+            "name": "cc-eal",
+            "description": "Common Criteria EAL2 Provisioning Packages",
+        }
+    ],
+    "attached": False,
+    "contract": {"name": "", "id": "", "tech_support_level": "n/a"},
+    "_doc": "Content provided in json response is currently considered ...",
+}
+
 
 @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
 class TestPatchStatusJSONSchema0_1:
@@ -117,6 +149,11 @@ class TestPatchStatusJSONSchema0_1:
             (
                 ATTACHED_UNPATCHED_STATUS,
                 ATTACHED_PATCHED_STATUS,
+                ["Patching /var/lib/ubuntu-advantage/status.json schema"],
+            ),
+            (
+                NO_CONFIG_UNPATCHED_STATUS,
+                NO_CONFIG_PATCHED_STATUS,
                 ["Patching /var/lib/ubuntu-advantage/status.json schema"],
             ),
             (UNATTACHED_PATCHED_STATUS, UNATTACHED_PATCHED_STATUS, []),
