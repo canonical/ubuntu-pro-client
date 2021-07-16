@@ -4,12 +4,11 @@ import logging
 import multiprocessing
 import subprocess
 import tempfile
+import shutil
 import textwrap
 import time
 import yaml
 from typing import List
-
-import pycloudlib  # type: ignore
 
 
 LXC_PROPERTY_MAP = {
@@ -18,6 +17,7 @@ LXC_PROPERTY_MAP = {
 }
 SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
 SOURCE_PR_TGZ = os.path.join(tempfile.gettempdir(), "pr_source.tar.gz")
+SOURCE_PR_UNTAR_DIR = os.path.join(tempfile.gettempdir(), "behave-ua")
 UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 
 
@@ -85,72 +85,91 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
 
 
 def build_debs(
-    container_name: str,
-    output_deb_dir: str,
-    cloud_api: "pycloudlib.cloud.BaseCloud",
-    cache_source: bool,
+    series: str, output_deb_dir: str, cache_source: bool
 ) -> "List[str]":
     """
-    Push source PR code .tar.gz to the container.
-    Run tools/build-from-source.sh which will create the .deb
-    Copy built debs from the build container back to the source environment
-    Stop the container.
+    Build the package through sbuild and store the debs into
+    output_deb_dir
 
-    :param container_name: the name of the container to:
-         - push the PR source code;
-         - pull the built .deb package.
+    :param series: The target series to build the package for
     :param output_deb_dir: the target directory in which to copy deb artifacts
-    :param cloud_api: Optional pycloudlib BaseCloud api if available for the
-        machine_type
+    :param cache_source: If False, we will always rebuild the source environemt
+                         for sbuild
 
     :return: A list of file paths to debs created by the build.
-
     """
-    if os.environ.get("TRAVIS") != "true":
-        logging.info(
-            "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
-        )
-        if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
-            os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
-        if not os.path.exists(SOURCE_PR_TGZ) or not cache_source:
-            cwd = os.getcwd()
-            os.chdir("..")
-            subprocess.run(
-                [
-                    "tar",
-                    "-zcf",
-                    SOURCE_PR_TGZ,
-                    "--exclude-vcs",
-                    "--exclude-vcs-ignores",
-                    os.path.basename(cwd),
-                ]
-            )
-            os.chdir(cwd)
-    buildscript = "build-from-source.sh"
-    with open(buildscript, "w") as stream:
-        stream.write(BUILD_FROM_TGZ)
+    logging.info("--- Creating: {}".format(SOURCE_PR_TGZ))
+    temp_dir = tempfile.gettempdir()
+    if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
+        os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
 
-    instance = cloud_api.get_instance(instance_id=container_name)
-    for filepath in (buildscript, SOURCE_PR_TGZ):
-        logging.info("--- Push {} -> {}:/tmp".format(filepath, instance.name))
-        instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
-    result = instance.execute(["sudo", "bash", "/tmp/" + buildscript])
-    if result.failed:
-        logging.error("--- ERROR: Building PR failed")
-        raise Exception(
-            "stdout: {}\nstderr: {}".format(result.stdout, result.stderr)
+    if not os.path.exists(SOURCE_PR_TGZ) or not cache_source:
+        cwd = os.getcwd()
+        os.chdir("..")
+        subprocess.run(
+            [
+                "tar",
+                "-zcf",
+                SOURCE_PR_TGZ,
+                "--exclude-vcs",
+                "--exclude-vcs-ignores",
+                os.path.basename(cwd),
+            ]
         )
-    deb_artifacts = []
+        os.chdir(cwd)
+
+    logging.info("--- Creating: {}".format(SOURCE_PR_UNTAR_DIR))
+    if not os.path.exists(SOURCE_PR_UNTAR_DIR) or not cache_source:
+        # Delete cached folder for ua code
+        if os.path.exists(SOURCE_PR_UNTAR_DIR):
+            shutil.rmtree(SOURCE_PR_UNTAR_DIR)
+
+        os.makedirs(SOURCE_PR_UNTAR_DIR)
+        subprocess.run(
+            [
+                "tar",
+                "-xvf",
+                SOURCE_PR_TGZ,
+                "-C",
+                SOURCE_PR_UNTAR_DIR,
+                "--strip-components=1",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    curr_dir = os.getcwd()
+    os.chdir(temp_dir)
+    logging.info("--- Running sbuild")
+    subprocess.run(
+        [
+            "sbuild",
+            "--no-run-lintian",
+            "--resolve-alternatives",
+            "--no-clean-source",
+            "--arch",
+            "amd64",
+            "-d",
+            series,
+            SOURCE_PR_UNTAR_DIR,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    logging.info("--- Successfully run sbuild")
+    os.chdir(curr_dir)
+
     if not os.path.exists(output_deb_dir):
         os.makedirs(output_deb_dir)
-    for deb in UA_DEBS:
-        deb_artifacts.append(os.path.join(output_deb_dir, deb))
-        logging.info(
-            "--- Pull {}:/tmp/{} {}".format(instance.name, deb, output_deb_dir)
-        )
-        instance.pull_file("/tmp/" + deb, os.path.join(output_deb_dir, deb))
-    instance.delete(wait=False)
-    return deb_artifacts
+
+    for tmp_file in os.listdir(os.path.dirname(SOURCE_PR_TGZ)):
+        if tmp_file.endswith(".deb"):
+            shutil.copy(os.path.join(temp_dir, tmp_file), output_deb_dir)
+
+    return [
+        os.path.join(output_deb_dir, deb_file)
+        for deb_file in os.listdir(output_deb_dir)
+    ]
 
 
 # Support for python 3.6 or earlier
