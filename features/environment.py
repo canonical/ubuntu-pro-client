@@ -554,7 +554,9 @@ def after_step(context, step):
                 artifact_file = os.path.join(
                     artifacts_dir, os.path.basename(log_file)
                 )
-                print("-- pull instance:{} {}".format(log_file, artifact_file))
+                logging.info(
+                    "-- pull instance:{} {}".format(log_file, artifact_file)
+                )
                 try:
                     result = context.instances["uaclient"].execute(
                         ["cat", log_file], use_sudo=True
@@ -575,11 +577,13 @@ def after_step(context, step):
 
 def after_all(context):
     if context.config.ppa == "":
-        print(" No custom images to delete. UACLIENT_BEHAVE_PPA is unset.")
+        logging.info(
+            " No custom images to delete. UACLIENT_BEHAVE_PPA is unset."
+        )
     elif context.config.image_clean:
         for key, image in context.series_image_name.items():
             if key == context.series_reuse_image:
-                print(
+                logging.info(
                     " Not deleting this image: ",
                     context.series_image_name[key],
                 )
@@ -602,7 +606,7 @@ def _capture_container_as_image(
     :param cloud_api: Optional pycloud BaseCloud api for applicable
         machine_types.
     """
-    print(
+    logging.info(
         "--- Creating  base image snapshot from vm {}".format(container_name)
     )
     inst = cloud_api.get_instance(container_name)
@@ -621,7 +625,7 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     deb_paths = []
 
     if context.config.debs_path:
-        print(
+        logging.info(
             "--- Checking if debs can be reused in {}".format(
                 context.config.debs_path
             )
@@ -635,10 +639,12 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
             ]
 
     if len(deb_paths):
-        print("--- Reusing debs: {}".format(", ".join(deb_paths)))
+        logging.info("--- Reusing debs: {}".format(", ".join(deb_paths)))
     else:
-        print("--- Could not find any debs to reuse. Building it locally")
-        print(
+        logging.info(
+            "--- Could not find any debs to reuse. Building it locally"
+        )
+        logging.info(
             "--- Launching vm to build ubuntu-advantage*debs from local source"
         )
         build_container_name = (
@@ -687,7 +693,7 @@ def create_uat_image(context: Context, series: str) -> None:
     """
 
     if series in context.reuse_container:
-        print(
+        logging.info(
             "\n Reusing the existing container: ",
             context.reuse_container[series],
         )
@@ -695,7 +701,7 @@ def create_uat_image(context: Context, series: str) -> None:
     ppa = context.config.ppa
     if ppa == "":
         image_name = context.config.cloud_manager.locate_image_name(series)
-        print(
+        logging.info(
             "--- Unset UACLIENT_BEHAVE_PPA. Using ubuntu-advantage-tools "
             + "from image: {}".format(image_name)
         )
@@ -707,7 +713,7 @@ def create_uat_image(context: Context, series: str) -> None:
     if context.config.build_pr:
         deb_paths = build_debs_from_dev_instance(context, series)
 
-    print(
+    logging.info(
         "--- Launching VM to create a base image with updated ubuntu-advantage"
     )
 
@@ -857,10 +863,10 @@ def _install_uat_in_container(
     for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)
         if result.failed:
-            print(
+            logging.info(
                 "--- Failed {}: out {} err {}".format(
                     cmd, result.stdout, result.stderr
                 )
             )
         elif "version" in cmd:
-            print("--- " + result)
+            logging.info("--- " + result)
