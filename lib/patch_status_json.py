@@ -47,8 +47,10 @@ def patch_status_json_schema_0_1(status_file: str):
         "name": new_status.pop("subscription", ""),
         "id": new_status.pop("subscription-id", ""),
     }
-    new_status["execution_status"] = new_status.pop("configStatus")
-    new_status["execution_details"] = new_status.pop("configStatusDetails")
+    if "configStatus" in new_status:
+        new_status["execution_status"] = new_status.pop("configStatus")
+    if "configStatusDetails" in new_status:
+        new_status["execution_details"] = new_status.pop("configStatusDetails")
     try:
         status_content = json.dumps(
             new_status, cls=util.DatetimeAwareJSONEncoder
