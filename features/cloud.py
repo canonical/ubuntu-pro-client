@@ -108,7 +108,7 @@ class Cloud:
                 % (result.stdout, result.stderr)
             )
 
-        print("--- cloud-init succeeded")
+        logging.info("--- cloud-init succeeded")
 
     def launch(
         self,
@@ -139,7 +139,7 @@ class Cloud:
             image_name=image_name,
             user_data=user_data,
         )
-        print(
+        logging.info(
             "--- {} instance launched: {}. Waiting for ssh access".format(
                 self.name, inst.name
             )
@@ -150,7 +150,7 @@ class Cloud:
                 inst.wait()
                 break
             except Exception as e:
-                print("--- Retrying instance.wait on {}".format(str(e)))
+                logging.info("--- Retrying instance.wait on {}".format(str(e)))
 
         self._check_cloudinit_status(inst)
         return inst
@@ -327,7 +327,7 @@ class EC2(Cloud):
                 self.api.delete_key(self.key_name)
 
             private_key_path = "ec2-{}.pem".format(self.key_name)
-            print(
+            logging.info(
                 "--- Creating local keyfile {} for EC2".format(
                     private_key_path
                 )
@@ -366,13 +366,15 @@ class EC2(Cloud):
         if not image_name:
             image_name = self.locate_image_name(series)
 
-        print("--- Launching AWS image {}({})".format(image_name, series))
+        logging.info(
+            "--- Launching AWS image {}({})".format(image_name, series)
+        )
         vpc = self.api.get_or_create_vpc(name="uaclient-integration")
 
         try:
             inst = self.api.launch(image_name, user_data=user_data, vpc=vpc)
         except Exception as e:
-            print(str(e))
+            logging.error(str(e))
             raise
 
         return inst
@@ -476,7 +478,7 @@ class Azure(Cloud):
         if not private_key_path:
             private_key_path = "azure-priv-{}.pem".format(self.key_name)
             pub_key_path = "azure-pub-{}.txt".format(self.key_name)
-            print(
+            logging.info(
                 "--- Creating local keyfile {} for Azure".format(
                     private_key_path
                 )
@@ -523,7 +525,9 @@ class Azure(Cloud):
         if not image_name:
             image_name = self.locate_image_name(series)
 
-        print("--- Launching Azure image {}({})".format(image_name, series))
+        logging.info(
+            "--- Launching Azure image {}({})".format(image_name, series)
+        )
         inst = self.api.launch(image_id=image_name, user_data=user_data)
         return inst
 
@@ -626,7 +630,9 @@ class GCP(Cloud):
         if not image_name:
             image_name = self.locate_image_name(series)
 
-        print("--- Launching GCP image {}({})".format(image_name, series))
+        logging.info(
+            "--- Launching GCP image {}({})".format(image_name, series)
+        )
         inst = self.api.launch(image_id=image_name, user_data=user_data)
         return inst
 
@@ -667,7 +673,7 @@ class _LXD(Cloud):
 
         image_type = self.name.title().replace("-", " ")
 
-        print(
+        logging.info(
             "--- Launching {} image {}({})".format(
                 image_type, image_name, series
             )
