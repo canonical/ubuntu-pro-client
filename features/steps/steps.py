@@ -165,6 +165,15 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
     assert_that(context.process.returncode, equal_to(0))
 
 
+@when("I run `{command}` `{user_spec}` and stdin `{stdin}`")
+def when_i_run_command_with_stdin(
+    context, command, user_spec, stdin, instance_name="uaclient"
+):
+    when_i_run_command(
+        context=context, command=command, user_spec=user_spec, stdin=stdin
+    )
+
+
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(
     context,
