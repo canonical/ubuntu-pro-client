@@ -70,7 +70,7 @@ def given_a_machine(context, series):
 
     def cleanup_instance() -> None:
         if not context.config.destroy_instances:
-            print(
+            logging.info(
                 "--- Leaving instance running: {}".format(
                     context.instances["uaclient"].name
                 )
@@ -79,17 +79,16 @@ def given_a_machine(context, series):
             try:
                 context.instances["uaclient"].delete(wait=False)
             except RuntimeError as e:
-                print(
+                logging.error(
                     "Failed to delete instance: {}\n{}".format(
                         context.instances["uaclient"].name, str(e)
                     )
                 )
 
     context.add_cleanup(cleanup_instance)
-    logging.warning(
+    logging.info(
         "--- instance ip: {}".format(context.instances["uaclient"].ip)
     )
-    print("--- instance ip: {}".format(context.instances["uaclient"].ip))
 
 
 @when("I launch a `{series}` `{instance_name}` machine")
@@ -106,7 +105,7 @@ def launch_machine(context, series, instance_name):
         try:
             context.instances[instance_name].delete(wait=False)
         except RuntimeError as e:
-            print(
+            logging.error(
                 "Failed to delete instance: {}\n{}".format(
                     context.instances[instance_name].name, str(e)
                 )
@@ -156,7 +155,7 @@ def when_i_retry_run_command(context, command, user_spec, exit_codes):
                 "Exhausted retries waiting for exit codes: %s", exit_codes
             )
             break
-        print(
+        logging.info(
             "--- Retrying on exit {exit_code}: {command}".format(
                 exit_code=context.process.returncode, command=command
             )
@@ -208,9 +207,9 @@ def when_i_run_command(
     )
 
     if verify_return and result.return_code != 0:
-        print("Error executing command: {}".format(command))
-        print("stdout: {}".format(result.stdout))
-        print("stderr: {}".format(result.stderr))
+        logging.error("Error executing command: {}".format(command))
+        logging.error("stdout: {}".format(result.stdout))
+        logging.error("stderr: {}".format(result.stderr))
 
     if verify_return:
         assert_that(process.returncode, equal_to(0))
@@ -298,7 +297,7 @@ def when_i_attach_staging_token(
             except IndexError:  # no more timeouts
                 logging.warning("Exhausted retries waiting for exit code: 0")
                 break
-            print(
+            logging.info(
                 "--- Retrying on exit {exit_code}: {cmd}".format(
                     exit_code=context.process.returncode, cmd=cmd
                 )

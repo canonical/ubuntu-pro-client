@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import os
+import logging
 import multiprocessing
 import subprocess
 import tempfile
@@ -68,12 +69,12 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
             ["lxc", "image", "show", name], universal_newlines=True
         )
         image_config = yaml.safe_load(output)
-        print("--- `lxc image show` output: ", image_config)
+        logging.info("--- `lxc image show` output: ", image_config)
         value = image_config
         for key_name in property_keys:
             value = image_config.get(value, {})
         if not value:
-            print(
+            logging.info(
                 "--- Could not detect image property {name}."
                 " Add it via `lxc image edit`".format(
                     name=".".join(property_keys)
@@ -106,7 +107,7 @@ def build_debs(
 
     """
     if os.environ.get("TRAVIS") != "true":
-        print(
+        logging.info(
             "--- Assuming non-travis build. Creating: {}".format(SOURCE_PR_TGZ)
         )
         if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
@@ -131,11 +132,11 @@ def build_debs(
 
     instance = cloud_api.get_instance(instance_id=container_name)
     for filepath in (buildscript, SOURCE_PR_TGZ):
-        print("--- Push {} -> {}:/tmp".format(filepath, instance.name))
+        logging.info("--- Push {} -> {}:/tmp".format(filepath, instance.name))
         instance.push_file(filepath, "/tmp/" + os.path.basename(filepath))
     result = instance.execute(["sudo", "bash", "/tmp/" + buildscript])
     if result.failed:
-        print("--- ERROR: Building PR failed")
+        logging.error("--- ERROR: Building PR failed")
         raise Exception(
             "stdout: {}\nstderr: {}".format(result.stdout, result.stderr)
         )
@@ -144,7 +145,7 @@ def build_debs(
         os.makedirs(output_deb_dir)
     for deb in UA_DEBS:
         deb_artifacts.append(os.path.join(output_deb_dir, deb))
-        print(
+        logging.info(
             "--- Pull {}:/tmp/{} {}".format(instance.name, deb, output_deb_dir)
         )
         instance.pull_file("/tmp/" + deb, os.path.join(output_deb_dir, deb))
