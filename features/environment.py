@@ -45,7 +45,6 @@ runcmd:
 USERDATA_RUNCMD_ENABLE_PROPOSED = """
 runcmd:
   - printf \"deb http://archive.ubuntu.com/ubuntu/ {series}-proposed restricted main multiverse universe\" > /etc/apt/sources.list.d/uaclient-proposed.list
-  - apt-get update
 """  # noqa: E501
 
 USERDATA_APT_SOURCE_PPA = """\
@@ -823,6 +822,7 @@ def _install_uat_in_container(
         if "pro" in machine_type:
             ua_pkg.append("ubuntu-advantage-pro")
 
+        cmds.append(["sudo", "apt-get", "update"])
         cmds.append(
             " ".join(
                 [
