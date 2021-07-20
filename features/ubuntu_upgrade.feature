@@ -37,9 +37,9 @@ Feature: Upgrade between releases when uaclient is attached
             """
 
         Examples: ubuntu release
-        | release | next_release | devel_release   | stdin |
-        | focal   | groovy       |                 |       |
-        | hirsute | impish       | --devel-release |  y\n  |
+        | release | next_release | devel_release   |
+        | focal   | groovy       |                 |
+        | hirsute | impish       | --devel-release |
 
    @series.xenial
    @series.bionic
