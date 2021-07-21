@@ -1,6 +1,10 @@
 ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
+  [ Chad Smith ]
   * Open 28.0 for active development
+
+  [ Michael Hudson-Doyle ]
+  * Do not fail in postinst if cloud-init did not run. (LP: #1936833)
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
