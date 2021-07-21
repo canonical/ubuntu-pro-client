@@ -120,6 +120,7 @@ class UAClientBehaveConfig:
         "destroy_instances",
         "cache_source",
         "enable_proposed",
+        "ephemeral_instance",
     ]
     str_options = [
         "aws_access_key_id",
@@ -178,6 +179,7 @@ class UAClientBehaveConfig:
         destroy_instances: bool = True,
         cache_source: bool = True,
         enable_proposed: bool = False,
+        ephemeral_instance: bool = False,
         machine_type: str = "lxd.container",
         private_key_file: str = None,
         private_key_name: str = "uaclient-integration",
@@ -205,6 +207,7 @@ class UAClientBehaveConfig:
         self.build_pr = build_pr
         self.cache_source = cache_source
         self.enable_proposed = enable_proposed
+        self.ephemeral_instance = ephemeral_instance
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
