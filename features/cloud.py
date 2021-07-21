@@ -72,6 +72,7 @@ class Cloud:
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Create an instance for on the cloud provider.
 
@@ -85,6 +86,8 @@ class Cloud:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             A cloud provider instance
@@ -116,6 +119,7 @@ class Cloud:
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance.BaseInstance:
         """Create and wait for cloud provider instance to be ready.
 
@@ -129,6 +133,8 @@ class Cloud:
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             An cloud provider instance
@@ -138,6 +144,7 @@ class Cloud:
             instance_name=instance_name,
             image_name=image_name,
             user_data=user_data,
+            ephemeral=ephemeral,
         )
         logging.info(
             "--- {} instance launched: {}. Waiting for ssh access".format(
@@ -346,6 +353,7 @@ class EC2(Cloud):
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
 
@@ -359,6 +367,8 @@ class EC2(Cloud):
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             An AWS cloud provider instance
@@ -505,6 +515,7 @@ class Azure(Cloud):
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
 
@@ -518,6 +529,8 @@ class Azure(Cloud):
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             An AWS cloud provider instance
@@ -610,6 +623,7 @@ class GCP(Cloud):
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
 
@@ -623,6 +637,8 @@ class GCP(Cloud):
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             An AWS cloud provider instance
@@ -640,6 +656,20 @@ class GCP(Cloud):
 class _LXD(Cloud):
     name = "_lxd"
 
+    def __init__(
+        self,
+        machine_type: str,
+        region: "Optional[str]" = None,
+        tag: "Optional[str]" = None,
+        timestamp_suffix: bool = True,
+    ) -> None:
+        super().__init__(
+            machine_type=machine_type,
+            region=region,
+            tag=tag,
+            timestamp_suffix=timestamp_suffix,
+        )
+
     @property
     def pycloudlib_cls(self):
         """Return the pycloudlib cls to be used as an api."""
@@ -651,6 +681,7 @@ class _LXD(Cloud):
         instance_name: "Optional[str]" = None,
         image_name: "Optional[str]" = None,
         user_data: "Optional[str]" = None,
+        ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
 
@@ -664,6 +695,8 @@ class _LXD(Cloud):
             The name of the image to be used when creating the instance
         :param user_data:
             The user data to be passed when creating the instance
+        :param ephemeral":
+            If instance should be ephemeral
 
         :returns:
             An AWS cloud provider instance
@@ -680,7 +713,10 @@ class _LXD(Cloud):
         )
 
         inst = self.api.launch(
-            name=instance_name, image_id=image_name, user_data=user_data
+            name=instance_name,
+            image_id=image_name,
+            user_data=user_data,
+            ephemeral=ephemeral,
         )
         return inst
 
