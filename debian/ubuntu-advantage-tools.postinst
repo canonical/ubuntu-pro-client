@@ -291,7 +291,7 @@ notify_wrong_fips_metapackage_on_cloud() {
     fips_metapkg="ubuntu-fips"
 
     cloud_id=""
-    if command -v "cloud-id" > /dev/null ; then
+    if command -v "cloud-id" > /dev/null && [ -f /run/cloud-init/instance-data.json ] ; then
       cloud_id=$(cloud-id)
     fi
 
