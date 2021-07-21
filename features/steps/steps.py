@@ -61,6 +61,7 @@ def given_a_machine(context, series):
             series=series,
             instance_name=instance_name,
             image_name=context.series_image_name[series],
+            ephemeral=context.config.ephemeral_instance,
         )
     }
 
