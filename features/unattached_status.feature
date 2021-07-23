@@ -109,7 +109,7 @@ Feature: Unattached status
         Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | infra | livepatch |
            | bionic  | yes      | no     | yes | yes  | yes         | yes   | yes       |
-           | focal   | yes      | no     | yes | no   | no          | yes   | yes       |
+           | focal   | yes      | no     | yes | yes  | yes         | yes   | yes       |
            | xenial  | yes      | yes    | yes | yes  | yes         | yes   | yes       |
            | groovy  | no       | no     | no  | no   | no          | no    | no        |
            | hirsute | no       | no     | no  | no   | no          | no    | no        |
