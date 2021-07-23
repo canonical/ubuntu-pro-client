@@ -224,24 +224,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | bionic  | Canonical_Ubuntu_18.04_CIS-harden.sh        |
            | xenial  | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
 
-    @series.focal
-    @uses.config.machine_type.lxd.vm
-    Scenario: Attached enable of vm-based services in a focal lxd vm
-        Given a `focal` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            FIPS is not available for Ubuntu 20.04 LTS (Focal Fossa).
-            """
-        And I verify that running `ua enable fips-updates --assume-yes` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            FIPS Updates is not available for Ubuntu 20.04 LTS (Focal Fossa).
-            """
-
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.vm

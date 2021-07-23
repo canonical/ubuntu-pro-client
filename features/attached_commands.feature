@@ -158,7 +158,7 @@ Feature: Command behaviour when attached to an UA subscription
        Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update |
            | bionic  | yes      | no     | yes | yes  | yes         |
-           | focal   | yes      | no     | yes | no   | no          |
+           | focal   | yes      | no     | yes | yes  | yes         |
            | xenial  | yes      | yes    | yes | yes  | yes         |
 
     @series.all
