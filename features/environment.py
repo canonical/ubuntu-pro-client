@@ -5,7 +5,6 @@ import re
 import tempfile
 import textwrap
 import logging
-import subprocess
 import pycloudlib  # type: ignore
 
 try:
@@ -646,26 +645,6 @@ def build_debs_from_sbuild(context: Context, series: str) -> "List[str]":
         logging.info(
             "--- Could not find any debs to reuse. Building it locally"
         )
-        chroot_name = "{}-amd64".format(series)
-
-        try:
-            subprocess.check_output(["schroot", "-i", "-c", chroot_name])
-        except subprocess.CalledProcessError:
-            cmd = (
-                "sbuild-launchpad-chroot create"
-                '--architecture="amd64" --name={}-amd64"'.format(series),
-                '--series="{}"'.format(series),
-            )
-            msgs = (
-                "-- You need a {} chroot to proceed".format(series),
-                "-- Please run the following cmd as root:",
-                " ".join(cmd),
-                "-- If you don't have sbuild-launchpad-chroot please run:"
-                "apt-get install sbuild-launchpad-chroot",
-            )
-
-            logging.info("\n".join(msgs))
-            exit(-1)
 
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
