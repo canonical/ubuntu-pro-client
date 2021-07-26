@@ -288,6 +288,25 @@ you need to add `-D reuse_container=container_name`:
 tox -e behave -D reuse_container=container_name
 ```
 
+#### Optimizing total run time of integration tests with snapshots
+When `UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1` we create a snapshot of an instance
+with ubuntu-advantage-tools installed and restore from that snapshot for all tests.
+This adds an upfront cost that is amortized across several test scenarios.
+
+Based on some rough testing in July 2021, these are the situations
+when you should set UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1
+
+> At time of writing, starting a lxd.vm instance from a local snapshot takes
+> longer than starting a fresh lxd.vm instance and installing ua.
+
+| machine_type  | condition          |
+| ------------- | ------------------ |
+| lxd.container | num_scenarios > 7  |
+| lxd.vm        | never              |
+| gcp*          | num_scenarios > 5  |
+| azure*        | num_scenarios > 14 |
+| aws*          | num_scenarios > 11 |
+
 #### Integration testing on EC2
 The following tox environments allow for testing focal on EC2:
 
