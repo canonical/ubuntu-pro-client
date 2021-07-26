@@ -149,6 +149,7 @@ pipeline {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}xenial/"
                         UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-16.04"
+                        UACLIENT_BEHAVE_EPHEMERAL_INSTANCE = 1
                     }
                     steps {
                         sh '''
@@ -162,6 +163,7 @@ pipeline {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
                         UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-18.04"
+                        UACLIENT_BEHAVE_EPHEMERAL_INSTANCE = 1
                     }
                     steps {
                         sh '''
@@ -175,6 +177,7 @@ pipeline {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
                         UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-lxd-20.04"
+                        UACLIENT_BEHAVE_EPHEMERAL_INSTANCE = 1
                     }
                     steps {
                         sh '''
@@ -188,6 +191,7 @@ pipeline {
                     environment {
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}focal/"
                         UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-vm-20.04"
+                        UACLIENT_BEHAVE_EPHEMERAL_INSTANCE = 1
                     }
                     steps {
                         sh '''
