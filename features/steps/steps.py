@@ -17,13 +17,34 @@ from hamcrest import (
     contains_string,
 )
 
-from features.environment import create_uat_image
+from features.environment import (
+    create_instance_with_uat_installed,
+    capture_container_as_image,
+)
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
 
 
-CONTAINER_PREFIX = "ubuntu-behave-test-"
+CONTAINER_PREFIX = "ubuntu-behave-test"
+IMAGE_BUILD_PREFIX = "ubuntu-behave-image-build"
+IMAGE_PREFIX = "ubuntu-behave-image"
+
+
+def add_test_name_suffix(context, series, prefix):
+    pr_number = os.environ.get("UACLIENT_BEHAVE_JENKINS_CHANGE_ID")
+    pr_suffix = "-" + str(pr_number) if pr_number else ""
+    is_vm = bool(context.config.machine_type == "lxd.vm")
+    vm_suffix = "-vm" if is_vm else ""
+    time_suffix = datetime.datetime.now().strftime("-%s%f")
+
+    return "{prefix}{pr_suffix}{vm_suffix}-{series}{time_suffix}".format(
+        prefix=prefix,
+        pr_suffix=pr_suffix,
+        vm_suffix=vm_suffix,
+        series=series,
+        time_suffix=time_suffix,
+    )
 
 
 @given("a `{series}` machine with ubuntu-advantage-tools installed")
@@ -40,30 +61,40 @@ def given_a_machine(context, series):
             ] = context.config.cloud_api.get_instance(context.container_name)
         return
 
-    if series not in context.series_image_name:
-        with emit_spinner_on_travis():
-            create_uat_image(context, series)
+    instance_name = add_test_name_suffix(context, series, CONTAINER_PREFIX)
 
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    pr_number = os.environ.get("UACLIENT_BEHAVE_JENKINS_CHANGE_ID")
-    now = datetime.datetime.now()
+    if context.config.snapshot_strategy:
+        if series not in context.series_image_name:
+            with emit_spinner_on_travis():
+                build_container_name = add_test_name_suffix(
+                    context, series, IMAGE_BUILD_PREFIX
+                )
+                image_name = add_test_name_suffix(
+                    context, series, IMAGE_PREFIX
+                )
+                image_inst = create_instance_with_uat_installed(
+                    context, series, build_container_name
+                )
+                image_name = capture_container_as_image(
+                    build_container_name,
+                    image_name=image_name,
+                    cloud_api=context.config.cloud_api,
+                )
+                context.series_image_name[series] = image_name
+                image_inst.delete(wait=False)
 
-    vm_prefix = "vm-" if is_vm else ""
-    pr_prefix = str(pr_number) + "-" if pr_number else ""
-    date_prefix = now.strftime("-%s%f")
-
-    instance_name = (
-        CONTAINER_PREFIX + pr_prefix + vm_prefix + series + date_prefix
-    )
-
-    context.instances = {
-        "uaclient": context.config.cloud_manager.launch(
+        inst = context.config.cloud_manager.launch(
             series=series,
             instance_name=instance_name,
             image_name=context.series_image_name[series],
             ephemeral=context.config.ephemeral_instance,
         )
-    }
+    else:
+        inst = create_instance_with_uat_installed(
+            context, series, instance_name
+        )
+
+    context.instances = {"uaclient": inst}
 
     context.container_name = context.config.cloud_manager.get_instance_id(
         context.instances["uaclient"]
