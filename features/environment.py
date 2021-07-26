@@ -121,6 +121,7 @@ class UAClientBehaveConfig:
         "cache_source",
         "enable_proposed",
         "ephemeral_instance",
+        "snapshot_strategy",
     ]
     str_options = [
         "aws_access_key_id",
@@ -180,6 +181,7 @@ class UAClientBehaveConfig:
         cache_source: bool = True,
         enable_proposed: bool = False,
         ephemeral_instance: bool = False,
+        snapshot_strategy: bool = False,
         machine_type: str = "lxd.container",
         private_key_file: str = None,
         private_key_name: str = "uaclient-integration",
@@ -208,6 +210,7 @@ class UAClientBehaveConfig:
         self.cache_source = cache_source
         self.enable_proposed = enable_proposed
         self.ephemeral_instance = ephemeral_instance
+        self.snapshot_strategy = snapshot_strategy
         self.contract_token = contract_token
         self.contract_token_staging = contract_token_staging
         self.contract_token_staging_expired = contract_token_staging_expired
@@ -593,7 +596,7 @@ def after_all(context):
                 context.config.cloud_api.delete_image(image)
 
 
-def _capture_container_as_image(
+def capture_container_as_image(
     container_name: str,
     image_name: str,
     cloud_api: "pycloudlib.cloud.BaseCloud",
@@ -680,7 +683,9 @@ def build_debs_from_dev_instance(context: Context, series: str) -> "List[str]":
     return [deb_path for deb_path in deb_paths if "pro" not in deb_path]
 
 
-def create_uat_image(context: Context, series: str) -> None:
+def create_instance_with_uat_installed(
+    context: Context, series: str, name: str
+) -> None:
     """Create a given series lxd image with ubuntu-advantage-tools installed
 
     This will launch a container, install ubuntu-advantage-tools, and publish
@@ -710,19 +715,12 @@ def create_uat_image(context: Context, series: str) -> None:
         context.series_image_name[series] = image_name
         return
 
-    time_suffix = datetime.datetime.now().strftime("%s%f")
     deb_paths = []
     if context.config.build_pr:
         deb_paths = build_debs_from_dev_instance(context, series)
 
     logging.info(
         "--- Launching VM to create a base image with updated ubuntu-advantage"
-    )
-
-    is_vm = bool(context.config.machine_type == "lxd.vm")
-    build_container_name = "ubuntu-behave-image-build-%s-%s" % (
-        "-vm" if is_vm else "",
-        series + time_suffix,
     )
 
     user_data = ""
@@ -755,25 +753,19 @@ def create_uat_image(context: Context, series: str) -> None:
                 ppa_url=ppa, ppa_keyid=ppa_keyid
             )
     inst = context.config.cloud_manager.launch(
-        instance_name=build_container_name, series=series, user_data=user_data
+        instance_name=name, series=series, user_data=user_data
     )
-    build_container_name = context.config.cloud_manager.get_instance_id(inst)
+    instance_name = context.config.cloud_manager.get_instance_id(inst)
 
     _install_uat_in_container(
-        build_container_name,
+        instance_name,
         series=series,
         config=context.config,
         machine_type=context.config.machine_type,
         deb_paths=deb_paths,
     )
 
-    image_name = _capture_container_as_image(
-        build_container_name,
-        image_name="ubuntu-behave-image-%s-" % series + time_suffix,
-        cloud_api=context.config.cloud_api,
-    )
-    context.series_image_name[series] = image_name
-    inst.delete(wait=False)
+    return inst
 
 
 def _install_uat_in_container(
