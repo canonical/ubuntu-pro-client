@@ -9,12 +9,7 @@ from uaclient.entitlements.ros import ROSESMEntitlement
 from uaclient.config import UAConfig
 from uaclient.util import is_config_value_true
 
-try:
-    from typing import cast, Dict, List, Type, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    def cast(_, x):  # type: ignore
-        return x
+from typing import cast, Dict, List, Type  # noqa: F401
 
 
 ENTITLEMENT_CLASSES = [

@@ -6,21 +6,7 @@ import re
 
 from uaclient import contract
 
-try:
-    from typing import (  # noqa: F401
-        Any,
-        Callable,
-        Dict,
-        List,
-        Optional,
-        Sequence,
-        Tuple,
-        Union,
-    )
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
+from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
 from uaclient import apt
 from uaclient import exceptions

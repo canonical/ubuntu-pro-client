@@ -10,11 +10,7 @@ from uaclient import gpg
 from uaclient import status
 from uaclient import util
 
-try:
-    from typing import Dict, List, Optional  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Dict, List, Optional
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"

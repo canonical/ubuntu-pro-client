@@ -21,11 +21,7 @@ from uaclient import util
 from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
 
-try:
-    from typing import Any, Dict, List, Optional, Tuple  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict, List, Optional, Tuple
 
 
 CVE_OR_USN_REGEX = (

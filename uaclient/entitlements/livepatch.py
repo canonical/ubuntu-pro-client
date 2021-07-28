@@ -6,17 +6,13 @@ from uaclient import apt, exceptions, snap, status
 from uaclient import util
 from uaclient.status import ApplicationStatus
 
+from typing import Any, Callable, Dict, Tuple, List, Optional
+
 LIVEPATCH_RETRIES = [0.5, 1.0]
 HTTP_PROXY_OPTION = "http-proxy"
 HTTPS_PROXY_OPTION = "https-proxy"
 
-try:
-    from typing import Any, Callable, Dict, Tuple, List, Optional  # noqa: F401
-
-    StaticAffordance = Tuple[str, Callable[[], Any], bool]
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 ERROR_MSG_MAP = {
     "Unknown Auth-Token": "Invalid Auth-Token provided to livepatch.",

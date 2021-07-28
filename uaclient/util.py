@@ -17,27 +17,19 @@ from http.client import HTTPMessage  # noqa: F401
 from uaclient import exceptions
 from uaclient import status
 
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
-
-
-try:
-    from typing import (  # noqa: F401
-        Any,
-        Callable,
-        Dict,
-        List,
-        Mapping,
-        Optional,
-        Sequence,
-        Tuple,
-        Union,
-    )
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
-
 ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DROPPED_KEY = object()

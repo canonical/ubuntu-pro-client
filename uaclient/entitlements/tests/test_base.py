@@ -10,10 +10,7 @@ from uaclient import status
 from uaclient import util
 from uaclient.status import ContractStatus
 
-try:
-    from typing import Dict, Optional, Tuple  # noqa
-except ImportError:
-    pass
+from typing import Dict, Optional, Tuple
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
