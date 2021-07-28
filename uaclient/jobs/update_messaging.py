@@ -10,11 +10,7 @@ import enum
 import logging
 import os
 
-try:
-    from typing import Dict, List, Optional, Tuple  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import List, Tuple
 
 from uaclient import config
 from uaclient import entitlements

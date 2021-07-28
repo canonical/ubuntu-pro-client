@@ -10,7 +10,7 @@ from uaclient import config
 from uaclient import util
 from uaclient import version
 
-from typing import Any, Dict, Optional, Tuple, Type  # noqa
+from typing import Any, Dict, Optional, Tuple, Type
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):

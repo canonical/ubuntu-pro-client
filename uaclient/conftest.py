@@ -6,11 +6,7 @@ import pytest
 
 from uaclient.config import UAConfig
 
-try:
-    from typing import Any, Dict, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict
 
 
 @pytest.fixture

@@ -6,11 +6,7 @@ from uaclient import status
 from uaclient import serviceclient
 from uaclient import util
 
-try:
-    from typing import Any, Dict, List, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict, List, Optional
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (

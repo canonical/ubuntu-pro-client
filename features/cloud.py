@@ -5,11 +5,7 @@ import pycloudlib  # type: ignore
 import time
 import yaml
 
-try:
-    from typing import Tuple, List, Optional  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Tuple, List, Optional
 
 
 class Cloud:

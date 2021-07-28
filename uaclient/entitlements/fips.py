@@ -9,13 +9,9 @@ from uaclient.entitlements import repo
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient import exceptions, status, util
 
-try:
-    from typing import Any, Callable, Dict, List, Set, Tuple, Union  # noqa
+from typing import Any, Callable, Dict, List, Tuple, Union
 
-    StaticAffordance = Tuple[str, Callable[[], Any], bool]
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):

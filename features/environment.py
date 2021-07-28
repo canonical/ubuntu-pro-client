@@ -7,11 +7,7 @@ import textwrap
 import logging
 import pycloudlib  # type: ignore
 
-try:
-    from typing import Dict, Optional, Union, List, Tuple, Any  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Dict, Optional, Union, List, Tuple, Any  # noqa: F401
 
 from behave.model import Feature, Scenario
 

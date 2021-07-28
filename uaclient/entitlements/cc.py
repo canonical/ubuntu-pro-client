@@ -1,10 +1,6 @@
 from uaclient.entitlements import repo
 
-try:
-    from typing import Callable, Dict, List, Tuple, Union  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Callable, Dict, List, Tuple, Union
 
 CC_README = "/usr/share/doc/ubuntu-commoncriteria/README"
 

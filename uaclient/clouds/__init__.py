@@ -1,10 +1,6 @@
 import abc
 
-try:
-    from typing import Any, Dict  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict
 
 
 class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
