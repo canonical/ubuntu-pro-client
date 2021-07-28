@@ -1,12 +1,6 @@
 import mock
 import pytest
 
-try:
-    from typing import Any, Dict, Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
 from uaclient import exceptions
 from uaclient import status
 from uaclient import util

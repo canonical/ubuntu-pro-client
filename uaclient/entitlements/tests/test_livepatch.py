@@ -8,13 +8,6 @@ import mock
 from functools import partial
 from types import MappingProxyType
 
-try:
-    from typing import Any, Dict, List  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
-
 import pytest
 
 from uaclient import apt

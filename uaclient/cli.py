@@ -13,11 +13,7 @@ import sys
 import textwrap
 import time
 
-try:
-    from typing import List  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import List
 
 
 from uaclient import config

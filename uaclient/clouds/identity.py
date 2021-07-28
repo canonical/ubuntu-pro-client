@@ -8,11 +8,7 @@ from uaclient import status
 from uaclient import util
 from uaclient.config import apply_config_settings_override
 
-try:
-    from typing import Dict, Optional, Tuple, Type  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Dict, Optional, Tuple, Type  # noqa F401
 
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
