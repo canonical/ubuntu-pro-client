@@ -8,10 +8,9 @@ from uaclient import apt
 from uaclient.entitlements import repo
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient import exceptions, status, util
+from uaclient.types import StaticAffordance
 
-from typing import Any, Callable, Dict, List, Tuple, Union
-
-StaticAffordance = Tuple[str, Callable[[], Any], bool]
+from typing import Callable, Dict, List, Tuple, Union
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
