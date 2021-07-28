@@ -18,20 +18,7 @@ from uaclient.defaults import (
     BASE_SECURITY_URL,
 )
 
-try:
-    from typing import (  # noqa: F401
-        Any,
-        cast,
-        Dict,
-        List,
-        Optional,
-        Tuple,
-        Union,
-    )
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    def cast(_, x):  # type: ignore
-        return x
+from typing import Any, cast, Dict, Optional, Tuple
 
 
 DEFAULT_STATUS = {

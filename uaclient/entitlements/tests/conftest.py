@@ -2,11 +2,7 @@ import pytest
 
 from uaclient import config
 
-try:
-    from typing import Any, Dict, List, Optional  # noqa
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
+from typing import Any, Dict, List, Optional
 
 
 def machine_token(
