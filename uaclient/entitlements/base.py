@@ -24,8 +24,8 @@ from uaclient.status import (
     MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
+from uaclient.types import StaticAffordance
 
-StaticAffordance = Tuple[str, Callable[[], Any], bool]
 
 RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
