@@ -542,3 +542,48 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | release | fips-apt-source                                                        |
            | xenial  | https://esm.staging.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
            | bionic  | https://esm.staging.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
+
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: FIPS enablement message when cloud init didn't run properly
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I delete the file `/run/cloud-init/instance-data.json`
+        And I attach `contract_token_staging` with sudo
+        And I run `ua disable livepatch` with sudo
+        And I run `ua enable fips --assume-yes` with sudo
+        Then stderr matches regexp:
+        """
+        Could not determine cloud, defaulting to generic FIPS package.
+        """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+        """
+        fips +yes                enabled
+        """
+
+        Examples: ubuntu release
+        | release |
+        | xenial  |
+        | bionic  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: FIPS enablement message when cloud init didn't run properly
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I delete the file `/run/cloud-init/instance-data.json`
+        And I attach `contract_token_staging` with sudo
+        And I run `ua enable fips --assume-yes` with sudo
+        Then stderr matches regexp:
+        """
+        Could not determine cloud, defaulting to generic FIPS package.
+        """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+        """
+        fips +yes                enabled
+        """
+
+        Examples: ubuntu release
+        | release |
+        | focal   |

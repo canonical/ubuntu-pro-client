@@ -334,6 +334,13 @@ def when_i_create_file_with_content(context, file_path):
     when_i_run_command(context, cmd, "with sudo")
 
 
+@when("I delete the file `{file_path}`")
+def when_i_delete_file(context, file_path):
+    cmd = "rm -rf {}".format(file_path)
+    cmd = 'sh -c "{}"'.format(cmd)
+    when_i_run_command(context, cmd, "with sudo")
+
+
 @when("I reboot the `{series}` machine")
 def when_i_reboot_the_machine(context, series):
     context.instances["uaclient"].restart(wait=True)
