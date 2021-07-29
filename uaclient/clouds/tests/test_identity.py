@@ -4,11 +4,13 @@ import mock
 import pytest
 
 from uaclient.clouds.identity import (
+    NoCloudTypeReason,
     cloud_instance_factory,
     get_instance_id,
     get_cloud_type,
     get_cloud_type_from_result_file,
 )
+from uaclient.util import ProcessExecutionError
 from uaclient import exceptions
 from uaclient import status
 
@@ -73,8 +75,15 @@ class TestGetCloudType:
     @mock.patch(M_PATH + "util.subp", return_value=("somecloud\n", ""))
     def test_use_cloud_id_when_available(self, m_subp, m_which):
         """Use cloud-id utility to discover cloud type."""
-        assert "somecloud" == get_cloud_type()
+        assert ("somecloud", None) == get_cloud_type()
         assert [mock.call("cloud-id")] == m_which.call_args_list
+
+    @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
+    @mock.patch(
+        M_PATH + "util.subp", side_effect=ProcessExecutionError("cloud-id")
+    )
+    def test_error_when_cloud_id_fails(self, m_subp, m_which):
+        assert (None, NoCloudTypeReason.CLOUD_ID_ERROR) == get_cloud_type()
 
     @mock.patch(
         M_PATH + "get_cloud_type_from_result_file", return_value="cloud9"
@@ -84,7 +93,7 @@ class TestGetCloudType:
         self, m_subp, m_cloud_type_from_result_file
     ):
         """Use cloud-id utility to discover cloud type."""
-        assert "cloud9" == get_cloud_type()
+        assert ("cloud9", None) == get_cloud_type()
         assert [mock.call()] == m_cloud_type_from_result_file.call_args_list
 
     @mock.patch(M_PATH + "util.which", return_value=None)
@@ -95,7 +104,7 @@ class TestGetCloudType:
     def test_fallback_if_no_cloud_type_found(
         self, m_cloud_type_from_result_file, m_which
     ):
-        assert get_cloud_type() is None
+        assert (None, NoCloudTypeReason.NO_CLOUD_DETECTED) == get_cloud_type()
 
     @pytest.mark.parametrize(
         "settings_overrides",
@@ -126,14 +135,17 @@ class TestGetCloudType:
             expected_value = "test"
 
         m_load_file.return_value = settings_overrides
-        assert get_cloud_type() == expected_value
+        assert get_cloud_type() == (expected_value, None)
 
 
 @mock.patch(M_PATH + "get_cloud_type")
 class TestCloudInstanceFactory:
     def test_raise_error_when_unable_to_get_cloud_type(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
-        m_get_cloud_type.return_value = None
+        m_get_cloud_type.return_value = (
+            None,
+            NoCloudTypeReason.NO_CLOUD_DETECTED,
+        )
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
         assert 1 == m_get_cloud_type.call_count
@@ -143,7 +155,7 @@ class TestCloudInstanceFactory:
 
     def test_raise_error_when_not_aws_or_azure(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
-        m_get_cloud_type.return_value = "unsupported-cloud"
+        m_get_cloud_type.return_value = ("unsupported-cloud", None)
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             cloud_instance_factory()
         error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
@@ -156,7 +168,7 @@ class TestCloudInstanceFactory:
         self, m_get_cloud_type, cloud_type
     ):
         """Raise error when AWS or Azure instance is not viable auto-attach."""
-        m_get_cloud_type.return_value = cloud_type
+        m_get_cloud_type.return_value = (cloud_type, None)
 
         def fake_invalid_instance():
             instance = mock.Mock()
@@ -182,7 +194,7 @@ class TestCloudInstanceFactory:
         self, m_get_cloud_type, cloud_type
     ):
         """Return UAAutoAttachInstance when matching cloud_type is viable."""
-        m_get_cloud_type.return_value = cloud_type
+        m_get_cloud_type.return_value = (cloud_type, None)
 
         fake_instance = mock.Mock()
         fake_instance.is_viable = True

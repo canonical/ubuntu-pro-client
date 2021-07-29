@@ -935,6 +935,8 @@ def apply_config_settings_override(override_key: str):
             )
 
             if value_override != UNSET_SETTINGS_OVERRIDE_KEY:
+                if override_key == "cloud_type":
+                    return (value_override, None)
                 return value_override
 
             return f()
