@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 
@@ -5,7 +6,7 @@ from itertools import groupby
 
 from uaclient import apt
 from uaclient.entitlements import repo
-from uaclient.clouds.identity import get_cloud_type
+from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient import exceptions, status, util
 
 try:
@@ -411,6 +412,12 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         super().setup_apt_config()
 
     def _perform_enable(self) -> bool:
+        cloud_type, error = get_cloud_type()
+        if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
+            logging.warning(
+                "Could not determine cloud, "
+                "defaulting to generic FIPS package."
+            )
         if super()._perform_enable():
             self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
             return True
