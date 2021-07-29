@@ -22,7 +22,7 @@ from uaclient.status import (
 )
 from uaclient import util
 
-from lib.ua_update_messaging import (
+from uaclient.jobs.update_messaging import (
     ContractExpiryStatus,
     ExternalMessage,
     get_contract_expiry_status,
@@ -32,7 +32,7 @@ from lib.ua_update_messaging import (
     _write_esm_service_msg_templates,
 )
 
-M_PATH = "lib.ua_update_messaging."
+M_PATH = "uaclient.jobs.update_messaging."
 
 
 class TestGetContractExpiryStatus:
