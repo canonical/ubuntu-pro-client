@@ -3,6 +3,7 @@
 import contextlib
 import copy
 import io
+import logging
 import mock
 import os
 from functools import partial
@@ -154,8 +155,9 @@ class TestFIPSEntitlementCanEnable:
 
 class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch(M_PATH + "get_cloud_type", return_value=("", None))
     def test_enable_configures_apt_sources_and_auth_files(
-        self, m_setup_apt_proxy, entitlement
+        self, _m_get_cloud_type, m_setup_apt_proxy, entitlement
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         patched_packages = ["a", "b"]
@@ -704,6 +706,30 @@ class TestFIPSEntitlementEnable:
             assert not actual_value
         else:
             assert actual_value
+
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @mock.patch(
+        "uaclient.entitlements.fips.FIPSCommonEntitlement._perform_enable"
+    )
+    @mock.patch(M_PATH + "get_cloud_type")
+    def test_show_message_on_cloud_id_error(
+        self,
+        m_get_cloud_type,
+        m_perform_enable,
+        caplog_text,
+        entitlement_factory,
+    ):
+        m_get_cloud_type.return_value = (
+            None,
+            NoCloudTypeReason.CLOUD_ID_ERROR,
+        )
+        fips_entitlement = entitlement_factory(FIPSEntitlement)
+        fips_entitlement._perform_enable()
+        logs = caplog_text()
+        assert (
+            "Could not determine cloud, defaulting to generic FIPS package."
+            in logs
+        )
 
 
 class TestFIPSEntitlementRemovePackages:
