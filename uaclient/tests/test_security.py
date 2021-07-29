@@ -40,6 +40,7 @@ from uaclient.status import (
     ApplicabilityStatus,
     colorize_commands,
 )
+from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient import exceptions
 from uaclient.util import UrlError
 
@@ -959,7 +960,7 @@ class TestPromptForAffectedPackages:
                 {},
                 {"curl": {"curl": "1.0"}},
                 {"unread-because-no-affected-pkgs": {}},
-                None,
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
                     No affected packages are installed.
@@ -973,7 +974,7 @@ class TestPromptForAffectedPackages:
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"slsrc": {"sl": "2.1"}},
                 {"slsrc": {"sl": {"version": "2.1"}}},
-                None,
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
                     1 affected package is installed: slsrc
@@ -990,7 +991,7 @@ class TestPromptForAffectedPackages:
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"slsrc": {"sl": "2.1"}},
                 {"slsrc": {"sl": {"version": "2.2"}}},
-                None,
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
                     1 affected package is installed: slsrc
@@ -1008,7 +1009,7 @@ class TestPromptForAffectedPackages:
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
                 {"slsrc": {"sl": "2.0"}},
                 {"slsrc": {"sl": {"version": "2.1"}}},
-                None,
+                (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
                     1 affected package is installed: slsrc
@@ -1036,7 +1037,7 @@ class TestPromptForAffectedPackages:
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"slsrc": {"sl": "2.0"}},
                 {"slsrc": {"sl": {"version": "2.1"}}},
-                "azure",
+                ("azure", None),
                 textwrap.dedent(
                     """\
                     1 affected package is installed: slsrc
@@ -1057,7 +1058,7 @@ class TestPromptForAffectedPackages:
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
                 {"slsrc": {"sl": "2.0"}},
                 {"slsrc": {"sl": {"version": "2.1"}}},
-                "aws",
+                ("aws", None),
                 textwrap.dedent(
                     """\
                     1 affected package is installed: slsrc
@@ -1086,7 +1087,7 @@ class TestPromptForAffectedPackages:
                     "slsrc": {"sl": {"version": "2.1"}},
                     "curl": {"curl": {"version": "2.1"}},
                 },
-                "gcp",
+                ("gcp", None),
                 textwrap.dedent(
                     """\
                     2 affected packages are installed: curl, slsrc
@@ -1157,7 +1158,7 @@ class TestPromptForAffectedPackages:
                     "pkg14": {"pkg14": {"version": "2.1"}},
                     "pkg15": {"pkg15": {"version": "2.1"}},
                 },
-                "gcp",
+                ("gcp", None),
                 textwrap.dedent(
                     """\
                     15 affected packages are installed: {}
@@ -1224,7 +1225,7 @@ class TestPromptForAffectedPackages:
                 },
                 {},
                 {},
-                "gcp",
+                ("gcp", None),
                 textwrap.dedent(
                     """\
                     9 affected packages are installed: {}
@@ -1290,7 +1291,7 @@ class TestPromptForAffectedPackages:
                         "longpackagename5": {"version": "2.1"}
                     },
                 },
-                "gcp",
+                ("gcp", None),
                 """\
 5 affected packages are installed: longpackagename1, longpackagename2,
     longpackagename3, longpackagename4, longpackagename5
@@ -1441,7 +1442,7 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_for_service.return_value = True
         m_check_subscription_expired.return_value = False
 
@@ -1589,7 +1590,7 @@ A fix is available in Ubuntu standard updates.\n"""
         import uaclient.security as sec
 
         m_should_reboot.return_value = should_reboot
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
 
         def fake_attach(args, cfg):
             cfg.for_attached_machine()
@@ -1679,7 +1680,7 @@ A fix is available in Ubuntu standard updates.\n"""
     ):
         import uaclient.security as sec
 
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
         m_is_pocket_beta_service.return_value = False
 
@@ -1763,7 +1764,7 @@ A fix is available in Ubuntu standard updates.\n"""
     ):
         import uaclient.security as sec
 
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
         m_is_pocket_beta_service.return_value = False
 
@@ -1855,7 +1856,7 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_for_service.return_value = True
         m_cli_attach.return_value = 0
         m_is_pocket_beta_service.return_value = False
@@ -1919,7 +1920,7 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
         m_is_pocket_beta_service.return_value = False
 
         cfg = FakeConfig()
@@ -1983,7 +1984,7 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
 
         cfg = FakeConfig()
         prompt_for_affected_packages(
@@ -2045,7 +2046,7 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        m_get_cloud_type.return_value = "cloud"
+        m_get_cloud_type.return_value = ("cloud", None)
 
         cfg = FakeConfig()
         prompt_for_affected_packages(
