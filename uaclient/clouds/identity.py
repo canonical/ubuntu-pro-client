@@ -2,6 +2,8 @@ import json
 import logging
 import os
 
+from enum import Enum
+
 from uaclient import exceptions
 from uaclient import clouds
 from uaclient import status
@@ -9,7 +11,7 @@ from uaclient import util
 from uaclient.config import apply_config_settings_override
 
 try:
-    from typing import Dict, Optional, Type  # noqa: F401
+    from typing import Dict, Optional, Tuple, Type  # noqa: F401
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
@@ -33,8 +35,13 @@ CLOUD_TYPE_TO_TITLE = {
 PRO_CLOUDS = ["aws", "azure", "gcp"]
 
 
+class NoCloudTypeReason(Enum):
+    NO_CLOUD_DETECTED = 0
+    CLOUD_ID_ERROR = 1
+
+
 def get_instance_id(
-    _iid_file: str = CLOUDINIT_INSTANCE_ID_FILE
+    _iid_file: str = CLOUDINIT_INSTANCE_ID_FILE,
 ) -> "Optional[str]":
     """Query cloud instance-id from cmdline or CLOUDINIT_INSTANCE_ID_FILE"""
     if "trusty" != util.get_platform_info()["series"]:
@@ -50,7 +57,7 @@ def get_instance_id(
 
 
 def get_cloud_type_from_result_file(
-    result_file: str = CLOUDINIT_RESULT_FILE
+    result_file: str = CLOUDINIT_RESULT_FILE,
 ) -> str:
     result = json.loads(util.load_file(result_file))
     dsname = result["v1"]["datasource"].split()[0].lower()
@@ -59,16 +66,19 @@ def get_cloud_type_from_result_file(
 
 
 @apply_config_settings_override("cloud_type")
-def get_cloud_type() -> "Optional[str]":
+def get_cloud_type() -> "Tuple[Optional[str], Optional[NoCloudTypeReason]]":
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
-        out, _err = util.subp(["cloud-id"])
-        return out.strip()
+        try:
+            out, _err = util.subp(["cloud-id"])
+            return (out.strip(), None)
+        except util.ProcessExecutionError:
+            return (None, NoCloudTypeReason.CLOUD_ID_ERROR)
     try:
-        return get_cloud_type_from_result_file()
+        return (get_cloud_type_from_result_file(), None)
     except FileNotFoundError:
         pass
-    return None
+    return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
 
 
 def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
@@ -84,7 +94,7 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
         "gce": gcp.UAAutoAttachGCPInstance,
     }  # type: Dict[str, Type[clouds.AutoAttachCloudInstance]]
 
-    cloud_type = get_cloud_type()
+    cloud_type, _ = get_cloud_type()
     if not cloud_type:
         raise exceptions.UserFacingError(
             status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE

@@ -964,7 +964,7 @@ def prompt_for_affected_packages(
 
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
     """Alert the user when running UA on cloud with PRO support."""
-    cloud_type = get_cloud_type()
+    cloud_type, _ = get_cloud_type()
     if cloud_type in PRO_CLOUDS:
         print(
             status.MESSAGE_SECURITY_USE_PRO_TMPL.format(

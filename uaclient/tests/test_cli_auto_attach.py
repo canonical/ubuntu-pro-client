@@ -61,7 +61,7 @@ class TestGetContractTokenFromCloudIdentity:
         self, m_get_cloud_type, cloud_type, FakeConfig
     ):
         """Non-aws clouds will error."""
-        m_get_cloud_type.return_value = cloud_type
+        m_get_cloud_type.return_value = (cloud_type, None)
         with pytest.raises(NonAutoAttachImageError) as excinfo:
             _get_contract_token_from_cloud_identity(FakeConfig())
         assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(

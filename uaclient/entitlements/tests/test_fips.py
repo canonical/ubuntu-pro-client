@@ -13,6 +13,7 @@ from uaclient import apt
 from uaclient import defaults
 from uaclient import status, util
 from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
+from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient import exceptions
 
 
@@ -461,7 +462,9 @@ class TestFIPSEntitlementEnable:
 
         assert 1 == m_remove_apt_config.call_count
 
-    @mock.patch("uaclient.entitlements.fips.get_cloud_type", return_value="")
+    @mock.patch(
+        "uaclient.entitlements.fips.get_cloud_type", return_value=("", None)
+    )
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
@@ -579,7 +582,7 @@ class TestFIPSEntitlementEnable:
         entitlement,
     ):
         m_handle_message_op.return_value = True
-        m_cloud_type.return_value = "azure"
+        m_cloud_type.return_value = ("azure", None)
         m_platform_info.return_value = {"series": "xenial"}
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
 
@@ -608,7 +611,7 @@ class TestFIPSEntitlementEnable:
         entitlement,
     ):
         m_handle_message_op.return_value = True
-        m_get_cloud_type.return_value = "gce"
+        m_get_cloud_type.return_value = ("gce", None)
         m_platform_info.return_value = {"series": "test"}
 
         ent_name = entitlement.name
@@ -1080,7 +1083,11 @@ class TestFipsEntitlementPackages:
         fips_entitlement_factory,
     ):
         m_platform_info.return_value = {"series": series}
-        m_get_cloud_type.return_value = cloud_id
+        m_get_cloud_type.return_value = (
+            (cloud_id, None)
+            if cloud_id is not None
+            else (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
+        )
         m_installed_packages.return_value = []
         m_is_config_value.return_value = cfg_disable_fips_metapckage_override
         additional_packages = ["test1", "ubuntu-fips", "test2"]

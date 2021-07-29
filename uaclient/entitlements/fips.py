@@ -173,7 +173,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests
         cloud_titles = {"azure": "an Azure", "gce": "a GCP"}
-        cloud_id = get_cloud_type() or ""
+        cloud_id, _ = get_cloud_type()
+        if cloud_id is None:
+            cloud_id = ""
 
         series = util.get_platform_info().get("series", "")
         blocked_message = status.MESSAGE_FIPS_BLOCK_ON_CLOUD.format(
@@ -216,9 +218,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if series != "bionic":
             return packages
 
-        cloud_match = re.match(
-            r"^(?P<cloud>(azure|aws)).*", get_cloud_type() or ""
-        )
+        cloud_id, _ = get_cloud_type()
+        if cloud_id is None:
+            cloud_id = ""
+
+        cloud_match = re.match(r"^(?P<cloud>(azure|aws)).*", cloud_id)
         cloud_id = cloud_match.group("cloud") if cloud_match else ""
 
         if cloud_id not in ("azure", "aws"):
@@ -362,7 +366,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
     @property
     def messaging(
-        self
+        self,
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
             "pre_enable": [
@@ -423,7 +427,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     @property
     def messaging(
-        self
+        self,
     ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
         return {
             "pre_enable": [
