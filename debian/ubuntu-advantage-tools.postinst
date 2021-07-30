@@ -290,10 +290,7 @@ notify_wrong_fips_metapackage_on_cloud() {
 
     fips_metapkg="ubuntu-fips"
 
-    cloud_id=""
-    if command -v "cloud-id" > /dev/null && [ -f /run/cloud-init/instance-data.json ] ; then
-      cloud_id=$(cloud-id)
-    fi
+    cloud_id=$(cloud-id 2>/dev/null) || cloud_id=""
 
     # If the package is not installed, we don't want the postinst script to fail
     fips_installed=$(dpkg-query -W --showformat='${db:Status-Status}\n' $fips_metapkg 2>/dev/null || true)
