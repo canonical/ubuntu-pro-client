@@ -3,69 +3,74 @@ import logging
 import mock
 import pytest
 
-from uaclient.util import parse_rfc3339_date
-from lib.timer import run_job
+from lib.timer import run_job, run_jobs
+from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 
 class TestRunJob:
-    @pytest.mark.parametrize(
-        "last_run,run_interval_seconds,should_run",
-        (
-            ("2021-07-29T12:00:00Z", 14400, False),
-            ("2021-07-29T11:00:00Z", 14400, True),
-            ("2021-07-29T12:00:00Z", 3600, True),
-        ),
-    )
-    def test_run_job(self, last_run, run_interval_seconds, should_run):
-        last_run = parse_rfc3339_date(last_run)
-        next_run = last_run + datetime.timedelta(seconds=run_interval_seconds)
-        jobs_status = {
-            "test_job": {"last_run": last_run, "next_run": next_run}
-        }
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    def test_run_job_returns_true_on_successful_job_run(
+        self, FakeConfig, caplog_text
+    ):
+        """Return True on successful job run."""
+        cfg = FakeConfig
 
-        job_func = mock.Mock()
-        current_time = parse_rfc3339_date("2021-07-29T15:02:00Z")
-        next_run_updated = current_time + datetime.timedelta(
-            seconds=run_interval_seconds
+        def success_job(config):
+            assert config == cfg
+
+        assert True is run_job(
+            job_name="Day Job", job_func=success_job, cfg=cfg
         )
-
-        job_ret = run_job(
-            job_name="test_job",
-            job_func=job_func,
-            current_time=current_time,
-            run_interval_seconds=run_interval_seconds,
-            jobs_status=jobs_status,
-            cfg=mock.ANY,
-        )
-
-        if should_run:
-            assert job_func.call_count == 1
-            assert job_ret == {
-                "test_job": {
-                    "last_run": current_time,
-                    "next_run": next_run_updated,
-                }
-            }
-        else:
-            assert job_func.call_count == 0
-            assert job_ret == {}
+        assert "Running job: Day Job" in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
-    def test_run_job_when_job_fails_to_execute(self, caplog_text):
-        job_func = mock.Mock()
-        job_func.side_effect = Exception("error")
+    def test_run_job_returns_false_on_failed_job(
+        self, FakeConfig, caplog_text
+    ):
+        """Return False on failed job run and warns in log."""
+        cfg = FakeConfig
 
-        assert (
-            run_job(
-                job_name="test",
-                job_func=job_func,
-                current_time=mock.ANY,
-                run_interval_seconds=60,
-                jobs_status={},
-                cfg=mock.ANY,
-            )
-            == {}
+        def failed_job(config):
+            assert config == cfg
+            raise Exception("Something broke")
+
+        assert False is run_job(
+            job_name="Day Job", job_func=failed_job, cfg=cfg
         )
+        assert "Error executing job Day Job: Something broke" in caplog_text()
 
-        warn_logs = caplog_text()
-        assert "Error executing job: test" in warn_logs
+
+class TestRunJobs:
+    @pytest.mark.parametrize("next_run,call_count", ((None, 1),))
+    @mock.patch("lib.timer.run_job")
+    def test_run_jobs_persists_job_status_on_successful_run(
+        self, run_job, next_run, call_count, FakeConfig
+    ):
+        """Successful job run results in updated job-status.json."""
+        cfg = FakeConfig()
+        now = datetime.datetime.utcnow()
+        if next_run:
+            cfg.write_cache(
+                "jobs-status",
+                {
+                    "update_messaging": {
+                        "next_run": now - datetime.timedelta(seconds=1)
+                    }
+                },
+            )
+        run_jobs(cfg=cfg, current_time=now)
+        next_run = now + datetime.timedelta(seconds=43200)
+        jobs_status = {
+            "update_messaging": {
+                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                "next_run": next_run.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+            }
+        }
+        assert jobs_status == cfg.read_cache("jobs-status")
+        assert [
+            mock.call(
+                job_name="update_messaging",
+                job_func=update_apt_and_motd_messages,
+                cfg=cfg,
+            )
+        ] == run_job.call_args_list

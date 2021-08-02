@@ -2,113 +2,79 @@
 Timer script used to run all jobs that need to be frequently run on the system
 """
 
-import json
 import logging
 
-import datetime
+from datetime import datetime, timedelta
 
-from collections import OrderedDict
+import collections
 from typing import Any, Callable, Dict  # noqa: F401
 
 from uaclient.config import UAConfig
-from uaclient import util
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 
 LOG = logging.getLogger(__name__)
 
-# We are currently storing the time frequency for each job at this dict,
-# but we should move it later into uaclient.conf
-uaclient_jobs = OrderedDict(
+# Store the default run_interval_seconds for each job in this dict.
+# OrderedDict is used to ensure each job is run sequentially in the order
+# listed as some jobs may depend on completion of the previous job.
+UACLIENT_JOBS = collections.OrderedDict(
     {
         "update_messaging": {
             "job_func": update_apt_and_motd_messages,
-            "run_interval_seconds": 14400,
-        },
-        "update_status": {
-            "job_func": lambda cfg: None,
-            "run_interval_seconds": 14400,
-        },
+            "run_interval_seconds": 43200,  # 12 hours
+        }
     }
-)
+)  # type: Dict[str, Dict[str, Any]]
 
 
 def run_job(
-    job_name: str,
-    job_func: "Callable[[UAConfig], None]",
-    current_time: datetime.datetime,
-    run_interval_seconds: int,
-    jobs_status: "Dict[str, Any]",
-    cfg: UAConfig,
-) -> "Dict[str, Any]":
-    """Run a job based on time constraints.
+    job_name: str, job_func: "Callable[[UAConfig], None]", cfg: UAConfig
+) -> bool:
+    """Run a job in a failsafe manner, returning True on success.
 
-    If the current time is higher than the last time
-    the job has successfully executed plus the expected
-    time interval between job runs, we need to execute this
-    job again.
+    :param job_name: Name of the job to run
+    :param job_func: Job callable to call
+    :param cfg: UAConfig instance
 
-    :param job_name: Name of the job to run.
-    :param job_func: Job function to run
-    :param run_interval_seconds: Interval in seconds that the job needs to
-                                 wait before running again.
-    :param jobs_status: A dict containing information about the last
-                        successful run of all jobs that should run
-                        in the system.
-
-    :return: A dict containing the update last successful run of the job
-             and the time it should execute next
+    :return: A bool True when successfully run. False if ignored or in error.
     """
-    seconds_to_add = datetime.timedelta(seconds=run_interval_seconds)
-    if job_name in jobs_status:
-        next_run = jobs_status[job_name]["next_run"]
-
-        if current_time < next_run:
-            return {}
-
+    LOG.debug("Running job: %s", job_name)
     try:
-        LOG.debug("Running job: %s", job_name)
         job_func(cfg)
     except Exception as e:
-        LOG.warning("Error executing job: %s\n%s", job_name, str(e))
-        return {}
+        LOG.warning("Error executing job %s: %s", job_name, str(e))
+        return False
 
-    return {
-        job_name: {
-            "last_run": current_time,
-            "next_run": current_time + seconds_to_add,
-        }
-    }
+    return True
 
 
-def main():
-    cfg = UAConfig()
+def run_jobs(cfg: UAConfig, current_time: datetime):
+    """Run ordered UACLIENT_JOBS when next_run is before utcnow.
+
+    Persist jobs-status with calculated next_run values to aid in timer state
+    introspection for jobs which ave not yet run.
+    """
     jobs_status = cfg.read_cache("jobs-status") or {}
-    current_time = datetime.datetime.now().replace(microsecond=0)
-
-    for job_name, job_info in uaclient_jobs.items():
-        job_func = job_info["job_func"]
-        run_interval_seconds = job_info["run_interval_seconds"]
-
-        # If the job fails run of should not run when this script
-        # is executed, we will return an empty dict here, meaning
-        # that no update will be made to the jobs_status dict
-        jobs_status.update(
-            run_job(
-                job_name=job_name,
-                job_func=job_func,
-                current_time=current_time,
-                run_interval_seconds=run_interval_seconds,
-                jobs_status=jobs_status,
-                cfg=cfg,
+    for job_name, job_info in UACLIENT_JOBS.items():
+        if job_name in jobs_status:
+            next_run = datetime.strptime(
+                jobs_status[job_name]["next_run"], "%Y-%m-%dT%H:%M:%S.%f"
             )
-        )
-
-    cfg.write_cache(
-        key="jobs-status",
-        content=json.dumps(jobs_status, cls=util.DatetimeAwareJSONEncoder),
-    )
+            if next_run > current_time:
+                continue  # Skip job as expected next_run hasn't yet passed
+        job_func = job_info["job_func"]  # type: Callable[[UAConfig], None]
+        if run_job(job_name=job_name, job_func=job_func, cfg=cfg):
+            # Persist last_run and next_run UTC-based times on job success.
+            jobs_status[job_name] = {
+                "last_run": current_time,
+                "next_run": current_time
+                + timedelta(seconds=job_info["run_interval_seconds"]),
+            }
+    cfg.write_cache(key="jobs-status", content=jobs_status)
 
 
 if __name__ == "__main__":
-    main()
+    cfg = UAConfig()
+    current_time = datetime.utcnow()
+    run_jobs(cfg=cfg, current_time=current_time)
