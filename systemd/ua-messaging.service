@@ -5,4 +5,4 @@ Wants=ua-auto-attach.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/timer.py
