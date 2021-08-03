@@ -53,7 +53,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
               allow_beta: true
             """
         And I run `apt update` with sudo
-        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `apt install update-motd` with sudo, retrying exit [100]
         And I run `update-motd` with sudo
         Then if `<release>` in `focal` and stdout matches regexp:
@@ -97,7 +97,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         To see these additional updates run: apt list --upgradable
         """
         When I update contract to use `effectiveTo` as `days=-20`
-        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `update-motd` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """

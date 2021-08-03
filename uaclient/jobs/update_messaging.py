@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Update messaging text for use in MOTD and APT custom Ubuntu Advantage messages.
 
@@ -364,8 +362,3 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> None:
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     util.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"])
-
-
-if __name__ == "__main__":
-    cfg = config.UAConfig()
-    update_apt_and_motd_messages(cfg=cfg)
