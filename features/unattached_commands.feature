@@ -61,7 +61,7 @@ Feature: Command behaviour when unattached
             features:
               allow_beta: true
             """
-        And I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
@@ -89,7 +89,8 @@ Feature: Command behaviour when unattached
         deb [ allow-insecure=yes ] https://packages.irods.org/apt xenial main
         """
         Then I verify that running `apt-get update` `with sudo` exits `0`
-        When I run `python3 /usr/lib/ubuntu-advantage/ua_update_messaging.py` with sudo
+        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that running `/usr/lib/ubuntu-advantage/apt-esm-hook process-templates` `with sudo` exits `0`
 
         Examples: ubuntu release
