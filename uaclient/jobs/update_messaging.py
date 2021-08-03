@@ -16,7 +16,6 @@ except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
 
-from uaclient.cli import setup_logging
 from uaclient import config
 from uaclient import entitlements
 from uaclient import defaults
@@ -341,7 +340,6 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> None:
 
     :param cfg: UAConfig instance for this environment.
     """
-    setup_logging(logging.INFO, logging.DEBUG)
     logging.debug("Updating UA messages for APT and MOTD.")
     msg_dir = os.path.join(cfg.data_dir, "messages")
     if not os.path.exists(msg_dir):
