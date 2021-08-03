@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import collections
 from typing import Any, Callable, Dict  # noqa: F401
 
+from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
@@ -55,6 +56,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     Persist jobs-status with calculated next_run values to aid in timer state
     introspection for jobs which ave not yet run.
     """
+    LOG.debug("Trigger UA Timer jobs")
     jobs_status = cfg.read_cache("jobs-status") or {}
     for job_name, job_info in UACLIENT_JOBS.items():
         if job_name in jobs_status:
@@ -77,4 +79,5 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 if __name__ == "__main__":
     cfg = UAConfig()
     current_time = datetime.utcnow()
+    setup_logging(logging.INFO, logging.DEBUG)
     run_jobs(cfg=cfg, current_time=current_time)

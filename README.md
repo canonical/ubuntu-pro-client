@@ -413,9 +413,9 @@ ua version
 # Make apt aware of the ESM source files
 sudo apt update
 # Generates ubuntu-advantage-tools messages that should be delivered to MOTD
-# This script is trigged by a systemd timer once a day. To test it, we need to
-# enforce that it was already executed.
-sudo systemctl start ua-messaging.service
+# This script is triggered by a systemd timer twice a day. To test it, we need
+# to enforce that it was already executed.
+sudo systemctl start ua-timer.service
 # Force updating MOTD messages related to update-notifier
 /usr/lib/update-notifier/update-motd-updates-available --force
 # Update MOTD and display the message
