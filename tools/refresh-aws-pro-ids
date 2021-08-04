@@ -19,6 +19,8 @@ git push upstream your-branch
 Create a new pull request @ https://github.com/canonical/ubuntu-advantage-client/pulls
 """
 
+EOL_RELEASES = ("trusty", )  # Releases we no longer test
+
 
 def main():
     if not os.path.exists("ua-contracts"):
@@ -34,15 +36,24 @@ def main():
             r"^listing-aws-pro-(?P<release>\w+).yaml$", aws_listing
         )
         if not m:
-            print("Skipping unexpected listing file name: %s", aws_listing)
+            print("Skipping unexpected listing file name: ", aws_listing)
+            continue
+        elif m.group("release") in EOL_RELEASES:
+            print(
+                "Skipping release %s. No longer CI on EOL releases" %
+                    m.group("release")
+            )
             continue
         listing = yaml.safe_load(open(aws_listing, "r"))
-        import pdb; pdb.set_trace()
         for md in listing['metadata']:
             if md["key"] == "series":
                 release = md["value"]
                 break
-        [marketplace_id] = listing['externalMarketplaceIDs']["IDs"]
+        for externalID in listing['externalIDs']:
+            if externalID['origin'] == 'AWS':
+                # TODO(handle multiple IDs)
+                [marketplace_id] = externalID['IDs']
+                break
         marketplace_id = marketplace_id.replace(MARKETPLACE_PREFIX, "")
         out, _err = util.subp(
             ["aws", "ec2", "describe-images", "--owners", "aws-marketplace",
@@ -54,7 +65,7 @@ def main():
 
     os.chdir("../..")
     with open("features/aws-ids.yaml", "w") as stream:
-        stream.write(yaml.dump(aws_ids))
+        stream.write(yaml.dump(aws_ids, default_flow_style=False))
 
     print(FOOTER_MSG)
 
