@@ -494,75 +494,90 @@ class TestApplySeriesOverrides:
 
 
 class TestGetMachineId:
-    def test_get_machine_id_from_etc_machine_id(self, tmpdir):
+    def test_get_machine_id_from_config(self, FakeConfig):
+        cfg = FakeConfig.for_attached_machine(
+            machine_token={"machineId": "some-machine-id"}
+        )
+        value = util.get_machine_id(cfg)
+        assert "some-machine-id" == value
+
+    def test_get_machine_id_from_etc_machine_id(self, FakeConfig, tmpdir):
         """Presence of /etc/machine-id is returned if it exists."""
         etc_machine_id = tmpdir.join("etc-machine-id")
         assert "/etc/machine-id" == util.ETC_MACHINE_ID
         etc_machine_id.write("etc-machine-id")
+        cfg = FakeConfig()
         with mock.patch(
             "uaclient.util.ETC_MACHINE_ID", etc_machine_id.strpath
         ):
-            value = util.get_machine_id(
-                data_dir=tmpdir.join("non-existent").strpath
-            )
+            value = util.get_machine_id(cfg)
             # Test lru_cache caches /etc/machine-id from first read
             etc_machine_id.write("does-not-change")
-            cached_value = util.get_machine_id(
-                data_dir=tmpdir.join("non-existent").strpath
-            )
+            cached_value = util.get_machine_id(cfg)
             assert value == cached_value
         assert "etc-machine-id" == value
 
-    def test_get_machine_id_from_var_lib_dbus_machine_id(self, tmpdir):
+    def test_get_machine_id_from_var_lib_dbus_machine_id(
+        self, FakeConfig, tmpdir
+    ):
         """On trusty, machine id lives in of /var/lib/dbus/machine-id."""
         etc_machine_id = tmpdir.join("etc-machine-id")
         dbus_machine_id = tmpdir.join("dbus-machine-id")
         assert "/var/lib/dbus/machine-id" == util.DBUS_MACHINE_ID
         dbus_machine_id.write("dbus-machine-id")
+        cfg = FakeConfig()
         with mock.patch(
             "uaclient.util.DBUS_MACHINE_ID", dbus_machine_id.strpath
         ):
             with mock.patch(
                 "uaclient.util.ETC_MACHINE_ID", etc_machine_id.strpath
             ):
-                value = util.get_machine_id(
-                    data_dir=tmpdir.join("non-existent").strpath
-                )
+                value = util.get_machine_id(cfg)
         assert "dbus-machine-id" == value
 
-    def test_get_machine_id_uses_machine_id_from_data_dir(self, tmpdir):
+    def test_get_machine_id_uses_machine_id_from_data_dir(
+        self, FakeConfig, tmpdir
+    ):
         """When no machine-id is found, use machine-id from data_dir."""
 
         data_machine_id = tmpdir.join("machine-id")
         data_machine_id.write("data-machine-id")
+
+        cfg = FakeConfig()
 
         def fake_exists(path):
             return bool(path == data_machine_id.strpath)
 
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             m_exists.side_effect = fake_exists
-            value = util.get_machine_id(data_dir=tmpdir.strpath)
+            value = util.get_machine_id(cfg)
         assert "data-machine-id" == value
 
-    def test_get_machine_id_create_machine_id_in_data_dir(self, tmpdir):
+    def test_get_machine_id_create_machine_id_in_data_dir(
+        self, FakeConfig, tmpdir
+    ):
         """When no machine-id is found, create one in data_dir using uuid4."""
         data_machine_id = tmpdir.join("machine-id")
 
+        cfg = FakeConfig()
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             with mock.patch("uaclient.util.uuid.uuid4") as m_uuid4:
                 m_exists.return_value = False
                 m_uuid4.return_value = uuid.UUID(
                     "0123456789abcdef0123456789abcdef"
                 )
-                value = util.get_machine_id(data_dir=tmpdir.strpath)
+                value = util.get_machine_id(cfg)
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
         assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
 
     @pytest.mark.parametrize("empty_value", ["", "\n"])
     def test_fallback_used_if_all_other_files_are_empty(
-        self, tmpdir, empty_value
+        self, FakeConfig, tmpdir, empty_value
     ):
         data_machine_id = tmpdir.join("machine-id")
+        cfg = FakeConfig.for_attached_machine()
+        # Cache it in cfg, so the load_file mock does not mess everything up
+        cfg.machine_token
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             m_exists.return_value = True
             with mock.patch(
@@ -572,7 +587,7 @@ class TestGetMachineId:
                     m_uuid4.return_value = uuid.UUID(
                         "0123456789abcdef0123456789abcdef"
                     )
-                    value = util.get_machine_id(data_dir=tmpdir.strpath)
+                    value = util.get_machine_id(cfg)
         assert "01234567-89ab-cdef-0123-456789abcdef" == value
         assert "01234567-89ab-cdef-0123-456789abcdef" == data_machine_id.read()
 
