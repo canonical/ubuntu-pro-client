@@ -293,12 +293,18 @@ def get_dict_deltas(
 
 
 @lru_cache(maxsize=None)
-def get_machine_id(data_dir: str) -> str:
+def get_machine_id(cfg) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
-    # Generate, cache our own uuid if not present on the system
+    # Generate, cache our own uuid if not present in config or on the system
     # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
     # per Issue: #489
-    fallback_machine_id_file = os.path.join(data_dir, "machine-id")
+
+    if cfg.machine_token:
+        cfg_machine_id = cfg.machine_token.get("machineId")
+        if cfg_machine_id:
+            return cfg_machine_id
+
+    fallback_machine_id_file = os.path.join(cfg.data_dir, "machine-id")
 
     for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
         if os.path.exists(path):

@@ -86,6 +86,7 @@ class UAContractClient(serviceclient.UAServiceClient):
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
         self.cfg.write_cache("machine-token", machine_token)
+        util.get_machine_id.cache_clear()
         return machine_token
 
     def request_resources(self) -> "Dict[str, Any]":
@@ -136,7 +137,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         @return: Dict of the JSON response containing entitlement accessInfo.
         """
         if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
+            machine_id = util.get_machine_id(self.cfg)
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         url = API_V1_TMPL_RESOURCE_MACHINE_ACCESS.format(
@@ -219,13 +220,14 @@ class UAContractClient(serviceclient.UAServiceClient):
             response["expires"] = headers["expires"]
         if not detach:
             self.cfg.write_cache("machine-token", response)
+            util.get_machine_id.cache_clear()
             self.cfg.write_cache("machine-id", data.get("machineId", ""))
         return response
 
     def _get_platform_data(self, machine_id):
         """"Return a dict of platform-relateddata for contract requests"""
         if not machine_id:
-            machine_id = util.get_machine_id(self.cfg.data_dir)
+            machine_id = util.get_machine_id(self.cfg)
         platform = util.get_platform_info()
         arch = platform.pop("arch")
         return {"machineId": machine_id, "architecture": arch, "os": platform}
