@@ -255,3 +255,4 @@ Below is the procedure used to release ubuntu-advantage-tools to Ubuntu PRO imag
  5. Copy options: "Copy existing binaries"
  6. Click Copy packages
  7. Notify Pro Image creators about expected Premium PPA version (patviafore/powersj)
+ 8. Once new PRO AMIs are publicly available run `./tools/refresh-aws-pro-ids` to update AMIs we test during CI runs
