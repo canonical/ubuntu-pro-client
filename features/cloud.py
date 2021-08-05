@@ -712,11 +712,18 @@ class _LXD(Cloud):
             )
         )
 
+        if self.name == "lxd-virtual-machine" and series == "xenial":
+            # Livepatch won't apply patches on Xenial with secure boot enabled
+            config_dict = {"security.secureboot": False}
+        else:
+            config_dict = {}
+
         inst = self.api.launch(
             name=instance_name,
             image_id=image_name,
             user_data=user_data,
             ephemeral=ephemeral,
+            config_dict=config_dict,
         )
         return inst
 
