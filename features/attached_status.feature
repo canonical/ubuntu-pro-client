@@ -25,5 +25,4 @@ Feature: Attached status
            | bionic  |
            | focal   |
            | xenial  |
-           | groovy  |
            | hirsute |

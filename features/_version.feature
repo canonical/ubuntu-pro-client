@@ -22,7 +22,6 @@ Feature: UA is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | groovy  |
             | hirsute |
 
     @series.all
@@ -40,5 +39,4 @@ Feature: UA is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | groovy  |
             | hirsute |
