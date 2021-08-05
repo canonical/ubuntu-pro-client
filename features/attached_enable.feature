@@ -31,7 +31,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release | msg                                                            |
            | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
            | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
-           | groovy  | CC EAL2 is not available for Ubuntu 20.10 (Groovy Gorilla).    |
            | hirsute | CC EAL2 is not available for Ubuntu 21.04 (Hirsute Hippo).     |
 
     @series.lts
@@ -124,7 +123,6 @@ Feature: Enable command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | groovy  |
            | hirsute |
 
     @series.lts
