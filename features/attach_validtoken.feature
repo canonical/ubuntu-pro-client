@@ -236,7 +236,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service> --assume-yes` with sudo
@@ -307,14 +307,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                        |
-           | bionic  | FIPS         | fips         |https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
+           | release | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
     @series.bionic
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I run `ua disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
@@ -386,14 +386,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             """
 
         Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                        |
-           | bionic  | FIPS         | fips         |https://esm.staging.ubuntu.com/fips/ubuntu bionic/main |
+           | release | fips-name    | fips-service |fips-apt-source                                |
+           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
     @series.xenial
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
         Given a `xenial` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
         And stdout matches regexp:
         """
@@ -410,7 +410,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of fips services in an ubuntu gcp vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
         And stdout matches regexp:
         """
