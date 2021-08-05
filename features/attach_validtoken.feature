@@ -164,7 +164,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | fips_status |lp_status | lp_desc                       |
            | xenial  | disabled    |enabled   | Canonical Livepatch service   |
            | bionic  | disabled    |enabled   | Canonical Livepatch service   |
-           | focal   | n/a         |enabled   | Canonical Livepatch service   |
+           | focal   | disabled    |enabled   | Canonical Livepatch service   |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -197,7 +197,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | lp_status | fips_status |
            | xenial  | n/a       | n/a         |
            | bionic  | n/a       | disabled    |
-           | focal   | n/a       | n/a         |
+           | focal   | n/a       | disabled    |
 
     @series.all
     @uses.config.machine_type.gcp.generic
