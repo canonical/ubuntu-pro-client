@@ -2,9 +2,28 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.hirsute
+    Scenario Outline: Attached command in a non-lts ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua status --all` as non-root
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
+            cis           +yes      +n/a      +Center for Internet Security Audit Tools
+            esm-apps      +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes      +n/a      +NIST-certified core packages
+            fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
+            livepatch     +yes      +n/a      +Canonical Livepatch service
+            """
+
+        Examples: ubuntu release
+            | release |
+            | hirsute |
+
+    @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -168,7 +187,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
     @series.all
     @uses.config.machine_type.azure.generic
-    Scenario Outline: Attach command in a ubuntu lxd container
+    Scenario Outline: Attach command in an generic Azure Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -201,7 +220,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
     @series.all
     @uses.config.machine_type.gcp.generic
-    Scenario Outline: Attach command in a ubuntu lxd container
+    Scenario Outline: Attach command in an generic GCP Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -231,195 +250,3 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | n/a       | n/a         |
            | bionic  | n/a       | n/a         |
            | focal   | n/a       | n/a         |
-
-    @series.bionic
-    @uses.config.machine_type.azure.generic
-    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
-        And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Installing <fips-name> packages
-            <fips-name> enabled
-            A reboot is required to complete install
-            """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            <fips-service> +yes                enabled
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `apt-cache policy ubuntu-azure-fips` as non-root
-        Then stdout does not match regexp:
-        """
-        .*Installed: \(none\)
-        """
-        When I reboot the `<release>` machine
-        And  I run `uname -r` as non-root
-        Then stdout matches regexp:
-            """
-            azure-fips
-            """
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        1
-        """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
-        """
-        Updating package lists
-        """
-        When I run `apt-cache policy ubuntu-azure-fips` as non-root
-        Then stdout matches regexp:
-        """
-        .*Installed: \(none\)
-        """
-        When I reboot the `<release>` machine
-        Then I verify that `openssh-server` installed version matches regexp `fips`
-        And I verify that `openssh-client` installed version matches regexp `fips`
-        And I verify that `strongswan` installed version matches regexp `fips`
-        And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-        And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-        And I verify that `strongswan-hmac` installed version matches regexp `fips`
-        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-        Then I will see the following on stdout:
-        """
-        openssh-client was already not hold.
-        openssh-server was already not hold.
-        strongswan was already not hold.
-        """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            <fips-service> +yes                disabled
-            """
-
-        Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-
-    @series.bionic
-    @uses.config.machine_type.aws.generic
-    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
-        And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
-        And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
-            """
-            Updating package lists
-            Installing <fips-name> packages
-            <fips-name> enabled
-            A reboot is required to complete install
-            """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            <fips-service> +yes                enabled
-            """
-        And I verify that running `apt update` `with sudo` exits `0`
-        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
-        When I run `apt-cache policy ubuntu-aws-fips` as non-root
-        Then stdout does not match regexp:
-        """
-        .*Installed: \(none\)
-        """
-        When I reboot the `<release>` machine
-        And  I run `uname -r` as non-root
-        Then stdout matches regexp:
-            """
-            aws-fips
-            """
-        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
-        Then I will see the following on stdout:
-        """
-        1
-        """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
-        Then stdout matches regexp:
-        """
-        Updating package lists
-        """
-        When I run `apt-cache policy ubuntu-aws-fips` as non-root
-        Then stdout matches regexp:
-        """
-        .*Installed: \(none\)
-        """
-        When I reboot the `<release>` machine
-        Then I verify that `openssh-server` installed version matches regexp `fips`
-        And I verify that `openssh-client` installed version matches regexp `fips`
-        And I verify that `strongswan` installed version matches regexp `fips`
-        And I verify that `openssh-server-hmac` installed version matches regexp `fips`
-        And I verify that `openssh-client-hmac` installed version matches regexp `fips`
-        And I verify that `strongswan-hmac` installed version matches regexp `fips`
-        When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
-        Then I will see the following on stdout:
-        """
-        openssh-client was already not hold.
-        openssh-server was already not hold.
-        strongswan was already not hold.
-        """
-        When I run `ua status --all` with sudo
-        Then stdout matches regexp:
-            """
-            <fips-service> +yes                disabled
-            """
-
-        Examples: ubuntu release
-           | release | fips-name    | fips-service |fips-apt-source                                |
-           | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
-
-    @series.xenial
-    @uses.config.machine_type.azure.generic
-    Scenario Outline: Attached enable of vm-based services in an ubuntu lxd vm
-        Given a `xenial` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
-        And stdout matches regexp:
-        """
-        Ubuntu Xenial does not provide an Azure optimized FIPS kernel
-        """
-
-        Examples: fips
-           | fips_service  |
-           | fips          |
-           | fips-updates  |
-
-    @series.bionic
-    @series.xenial
-    @uses.config.machine_type.gcp.generic
-    Scenario Outline: Attached enable of fips services in an ubuntu gcp vm
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
-        And stdout matches regexp:
-        """
-        Ubuntu <release_title> does not provide a GCP optimized FIPS kernel
-        """
-
-        Examples: fips
-            | release | release_title | fips_service  |
-            | xenial  | Xenial        | fips          |
-            | xenial  | Xenial        | fips-updates  |
-            | bionic  | Bionic        | fips          |
-            | bionic  | Bionic        | fips-updates  |

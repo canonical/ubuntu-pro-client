@@ -95,27 +95,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
-    @series.hirsute
-    Scenario Outline: Attached detach in an ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua status --all` as non-root
-        Then stdout matches regexp:
-            """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
-            cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis           +yes      +n/a      +Center for Internet Security Audit Tools
-            esm-apps      +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes      +n/a      +NIST-certified core packages
-            fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates
-            livepatch     +yes      +n/a      +Canonical Livepatch service
-            """
-
-        Examples: ubuntu release
-            | release |
-            | hirsute |
-
     @series.lts
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -372,35 +351,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   | enabled      |
            | xenial  | enabled      |
            | hirsute | n/a          |
-
-    @series.lts
-    Scenario Outline: Purge package after attaching it to a machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `touch /etc/apt/preferences.d/ubuntu-esm-infra` with sudo
-        Then I verify that files exist matching `/var/log/ubuntu-advantage.log`
-        And I verify that running `test -d /var/lib/ubuntu-advantage` `with sudo` exits `0`
-        And I verify that files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
-        And I verify that files exist matching `/etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg`
-        And I verify that files exist matching `/etc/apt/sources.list.d/ubuntu-esm-infra.list`
-        And I verify that files exist matching `/etc/apt/preferences.d/ubuntu-esm-infra`
-        When I run `apt-get purge ubuntu-advantage-tools -y` with sudo, retrying exit [100]
-        Then stdout matches regexp:
-        """
-        Purging configuration files for ubuntu-advantage-tools
-        """
-        And I verify that no files exist matching `/var/log/ubuntu-advantage.log`
-        And I verify that no files exist matching `/var/lib/ubuntu-advantage`
-        And I verify that no files exist matching `/etc/apt/auth.conf.d/90ubuntu-advantage`
-        And I verify that no files exist matching `/etc/apt/sources.list.d/ubuntu-*`
-        And I verify that no files exist matching `/etc/apt/trusted.gpg.d/ubuntu-advantage-*`
-        And I verify that no files exist matching `/etc/apt/preferences.d/ubuntu-*`
-
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
 
     @series.lts
     Scenario Outline: Enable command with invalid repositories in user machine

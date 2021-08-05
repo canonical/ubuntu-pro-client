@@ -11,16 +11,16 @@ Feature: Command behaviour when unattached
         When I run `ua auto-attach` with sudo
         Then stderr matches regexp:
             """
-            Auto-attach image support is not available on <data>
+            Auto-attach image support is not available on lxd
             See: https://ubuntu.com/advantage
             """
 
         Examples: ubuntu release
-           | release | data       |
-           | bionic  | lxd        |
-           | focal   | lxd        |
-           | xenial  | lxd        |
-           | hirsute | lxd        |
+           | release |
+           | bionic  |
+           | focal   |
+           | xenial  |
+           | hirsute |
 
     @series.xenial
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
@@ -279,7 +279,6 @@ Feature: Command behaviour when unattached
            | release |
            | focal   |
 
-    @uses.config.contract_token
     @series.xenial
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed

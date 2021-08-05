@@ -4,7 +4,7 @@ Feature: Upgrade between releases when uaclient is unattached
     @series.focal
     @series.hirsute
     @upgrade
-    Scenario Outline: Unattached upgrade across LTS releases
+    Scenario Outline: Unattached upgrade across releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get dist-upgrade --assume-yes` with sudo
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following

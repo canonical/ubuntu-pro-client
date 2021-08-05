@@ -1,10 +1,8 @@
-Feature: Command behaviour when attached to an UA subscription
+Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.lts
     @uses.config.machine_type.aws.pro
-    Scenario Outline: Attached refresh in an Ubuntu PRO machine
+    Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -92,11 +90,9 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
            | focal   | disabled | n/a      | disabled | hello     | ant      |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.lts
     @uses.config.machine_type.azure.pro
-    Scenario Outline: Attached refresh in an Ubuntu PRO machine
+    Scenario Outline: Attached refresh in an Ubuntu pro Azure machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
@@ -184,11 +180,9 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
            | focal   | disabled | n/a      | disabled | hello     | ant      |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.lts
     @uses.config.machine_type.gcp.pro
-    Scenario Outline: Attached refresh in an Ubuntu PRO machine
+    Scenario Outline: Attached refresh in an Ubuntu pro GCP machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
