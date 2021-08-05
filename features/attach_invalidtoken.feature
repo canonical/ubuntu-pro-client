@@ -2,8 +2,8 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
          Advantage subscription using an invalid token
 
     @series.all
-    Scenario Outline: Attach command in a machine
-       Given a `<release>` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Attach command failure on invalid token
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua attach INVALID_TOKEN` `with sudo` exits `1`
         Then stderr matches regexp:
             """
