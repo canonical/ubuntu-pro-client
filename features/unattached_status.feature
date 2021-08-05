@@ -23,7 +23,6 @@ Feature: Unattached status
            | bionic  |
            | focal   |
            | xenial  |
-           | groovy  |
            | hirsute |
 
     @series.all
@@ -111,5 +110,4 @@ Feature: Unattached status
            | bionic  | yes      | no     | yes | yes  | yes         | yes   | yes       |
            | focal   | yes      | no     | yes | yes  | yes         | yes   | yes       |
            | xenial  | yes      | yes    | yes | yes  | yes         | yes   | yes       |
-           | groovy  | no       | no     | no  | no   | no          | no    | no        |
            | hirsute | no       | no     | no  | no   | no          | no    | no        |

@@ -20,7 +20,6 @@ Feature: Command behaviour when unattached
            | bionic  | lxd        |
            | focal   | lxd        |
            | xenial  | lxd        |
-           | groovy  | lxd        |
            | hirsute | lxd        |
 
     @series.xenial
@@ -120,8 +119,6 @@ Feature: Command behaviour when unattached
            | focal   | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
-           | groovy  | detach  |
-           | groovy  | refresh |
            | hirsute | detach  |
            | hirsute | refresh |
 
@@ -155,10 +152,6 @@ Feature: Command behaviour when unattached
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
-           | groovy  | enable   | livepatch |
-           | groovy  | disable  | livepatch |
-           | groovy  | enable   | unknown   |
-           | groovy  | disable  | unknown   |
            | hirsute | enable   | livepatch |
            | hirsute | disable  | livepatch |
            | hirsute | enable   | unknown   |
@@ -201,7 +194,6 @@ Feature: Command behaviour when unattached
            | bionic   | yes          |
            | focal    | yes          |
            | xenial   | yes          |
-           | groovy   | no           |
            | hirsute  | no           |
 
 
@@ -230,7 +222,6 @@ Feature: Command behaviour when unattached
            | xenial  |
            | bionic  |
            | focal   |
-           | groovy  |
            | hirsute |
 
 

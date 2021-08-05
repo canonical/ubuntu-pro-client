@@ -33,7 +33,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
-           | groovy  |
 
     @series.all
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
@@ -57,7 +56,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
-           | groovy  |
 
     @series.lts
     Scenario Outline: Attached disable of a service in a ubuntu machine
@@ -97,7 +95,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
-    @series.groovy
     @series.hirsute
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -117,7 +114,6 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
             | release |
-            | groovy  |
             | hirsute |
 
     @series.lts
@@ -182,7 +178,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
-           | groovy  |
 
     @series.all
     Scenario Outline: Attached show version in a ubuntu machine
@@ -203,7 +198,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
-           | groovy  |
 
     @series.all
     Scenario Outline: Unattached status in a ubuntu machine with feature overrides
@@ -253,7 +247,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
-           | groovy  |
 
     @series.lts
     Scenario Outline: Attached disable of different services in a ubuntu machine
@@ -379,7 +372,6 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   | enabled      |
            | xenial  | enabled      |
            | hirsute | n/a          |
-           | groovy  | n/a          |
 
     @series.lts
     Scenario Outline: Purge package after attaching it to a machine

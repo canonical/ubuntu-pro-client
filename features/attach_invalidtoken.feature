@@ -19,7 +19,6 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | xenial  |
            | bionic  |
            | focal   |
-           | groovy  |
            | hirsute |
 
     @uses.config.contract_token_staging_expired
@@ -38,5 +37,4 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | xenial  |
            | bionic  |
            | focal   |
-           | groovy  |
            | hirsute |
