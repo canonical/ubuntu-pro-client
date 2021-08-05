@@ -4,7 +4,7 @@ Feature: Upgrade between releases when uaclient is attached
     @series.focal
     @series.hirsute
     @upgrade
-    Scenario Outline: Attached upgrade across LTS releases
+    Scenario Outline: Attached upgrade across releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt-get dist-upgrade --assume-yes` with sudo
@@ -41,10 +41,10 @@ Feature: Upgrade between releases when uaclient is attached
         | focal   | groovy       |                 |
         | hirsute | impish       | --devel-release |
 
-   @series.xenial
-   @series.bionic
-   @upgrade
-   Scenario Outline: Attached upgrade across LTS releases
+    @series.xenial
+    @series.bionic
+    @upgrade
+    Scenario Outline: Attached upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt-get dist-upgrade --assume-yes` with sudo
@@ -83,9 +83,9 @@ Feature: Upgrade between releases when uaclient is attached
         | xenial  | bionic       |
         | bionic  | focal        |
 
-   @series.xenial
-   @uses.config.machine_type.lxd.vm
-   Scenario Outline: Attached FIPS upgrade across LTS releases
+    @series.xenial
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached FIPS upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `apt-get install lsof` with sudo, retrying exit [100]

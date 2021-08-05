@@ -2,7 +2,7 @@
 Feature: Enable command behaviour when attached to an UA subscription
 
     @series.xenial
-    Scenario: Attached enable CC EAL service in a xenial lxd container
+    Scenario: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
@@ -241,7 +241,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.vm
-    Scenario Outline: Attached enable of vm-based services in a bionic lxd vm
+    Scenario Outline: Attached disable of livepatch in a lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua status` with sudo
@@ -309,7 +309,7 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @series.bionic
     @uses.config.machine_type.lxd.vm
-    Scenario: Attached enable fips on a machine with livepatch active
+    Scenario: Attached enable livepatch on a machine with fips active
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
@@ -343,7 +343,7 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @series.bionic
     @uses.config.machine_type.lxd.vm
-    Scenario: Attached enable livepatch on a machine with fips active
+    Scenario: Attached enable fips on a machine with livepatch active
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
