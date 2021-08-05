@@ -1,8 +1,24 @@
 @uses.config.contract_token
 Feature: Enable command behaviour when attached to an UA subscription
 
+    @series.xenial
+    Scenario: Attached enable CC EAL service in a xenial lxd container
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
+        And I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo).
+            """
+        When I run `ua enable cc-eal --beta` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
+            """
+
     @series.all
-    Scenario Outline: Attached enable Common Criteria service in a ubuntu machine
+    Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
