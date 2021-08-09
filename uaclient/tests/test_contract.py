@@ -111,6 +111,40 @@ class TestUAContractClient:
             mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
+    @pytest.mark.parametrize("new_machine_id", ((None), ("new-mid")))
+    def test_report_machine_activity(
+        self, get_machine_id, request_url, new_machine_id, FakeConfig
+    ):
+        """POST machine activity report to the server."""
+        get_machine_id.return_value = "machineId"
+        request_url.return_value = (
+            {"machineTokenInfo": {"machineId": new_machine_id}},
+            None,
+        )
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        enabled_services = ["test1", "test2"]
+        with mock.patch(
+            "uaclient.config.UAConfig.write_cache"
+        ) as m_write_cache:
+            client.report_machine_activity(enabled_services=enabled_services)
+
+        expected_write_calls = 2 if new_machine_id else 1
+        assert expected_write_calls == m_write_cache.call_count
+
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer not-null",
+            },
+            "data": {"activityToken": None, "resources": enabled_services},
+        }
+        assert [
+            mock.call("/v1/contracts/cid/machine-activity/machineId", **params)
+        ] == request_url.call_args_list
+
 
 class TestProcessEntitlementDeltas:
     def test_error_on_missing_entitlement_type(self):

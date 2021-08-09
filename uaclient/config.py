@@ -391,6 +391,18 @@ class UAConfig:
 
         return self._machine_token
 
+    @property
+    def activity_token(self) -> "Optional[str]":
+        return self.machine_token.get("activityToken")
+
+    @property
+    def contract_id(self):
+        return (
+            self.machine_token.get("machineTokenInfo", {})
+            .get("contractInfo", {})
+            .get("id")
+        )
+
     def parse_machine_token_overlay(self, machine_token_overlay_path):
         if not os.path.exists(machine_token_overlay_path):
             raise exceptions.UserFacingError(
