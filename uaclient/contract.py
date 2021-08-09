@@ -221,7 +221,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not detach:
             self.cfg.write_cache("machine-token", response)
             util.get_machine_id.cache_clear()
-            self.cfg.write_cache("machine-id", data.get("machineId", ""))
+            self.cfg.write_cache(
+                "machine-id",
+                response.get("machineId", data.get("machineId", "")),
+            )
         return response
 
     def _get_platform_data(self, machine_id):
