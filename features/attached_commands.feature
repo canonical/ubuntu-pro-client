@@ -495,3 +495,67 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | hirsute |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Run timer script on an attached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                   "id": "testCID"
+                },
+                "machineId": "testMID"
+            }
+        }
+        """
+        And I create the file `/tmp/response-overlay.json` with the following:
+        """
+        {
+            "https://contracts.canonical.com/v1/contracts/testCID/machine-activity/testMID": [
+              {
+                "code": 200,
+                "response": {
+                  "activityToken": "test",
+                  "machineTokenInfo": {
+                      "contractInfo": {
+                          "resourceEntitlements": [
+                              {
+                                  "type": "cc-eal",
+                                  "entitled": false
+                              }
+                          ]
+                      },
+                      "machineId": "new-machine-id"
+                  }
+                }
+              }
+            ]
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+          serviceclient_url_responses: "/tmp/response-overlay.json"
+        """
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        And I run `cat /var/lib/ubuntu-advantage/private/machine-token.json` with sudo
+        Then stdout matches regexp:
+        """
+        \"activityToken\": \"test\"
+        """
+        When I run `cat /var/lib/ubuntu-advantage/private/machine-id` with sudo
+        Then stdout matches regexp:
+        """
+        new-machine-id
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
