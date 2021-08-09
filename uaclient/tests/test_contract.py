@@ -60,7 +60,7 @@ class TestUAContractClient:
         """
         get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
         get_machine_id.return_value = "machineId"
-        request_url.return_value = ("newtoken", {})
+        request_url.return_value = ({"machineToken": "newtoken"}, {})
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
@@ -68,7 +68,9 @@ class TestUAContractClient:
             kwargs["detach"] = detach
         client._request_machine_token_update(**kwargs)
         if not detach:  # Then we have written the updated cache
-            assert "newtoken" == cfg.read_cache("machine-token")
+            assert {"machineToken": "newtoken"} == cfg.read_cache(
+                "machine-token"
+            )
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
