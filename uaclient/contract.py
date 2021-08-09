@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from uaclient import clouds, exceptions, serviceclient, status, util
+from uaclient.config import depth_first_merge_overlay_dict
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
@@ -12,6 +13,7 @@ API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
     "/v1/resources/{resource}/context/machines/{machine}"
 )
 API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
+API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
 
 
@@ -152,6 +154,43 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_id=machine_id,
             detach=False,
         )
+
+    def report_machine_activity(self, enabled_services: "List[str]"):
+        """Report current activity token and enabled services.
+
+        This will report to the contracts backend all the current
+        enabled services in the system.
+        """
+        contract_id = self.cfg.contract_id
+        activity_token = self.cfg.activity_token
+        machine_token = self.cfg.machine_token.get("machineToken")
+        machine_id = util.get_machine_id(self.cfg)
+
+        request_data = {
+            "activityToken": activity_token,
+            "resources": enabled_services,
+        }
+        url = API_V1_MACHINE_ACTIVITY.format(
+            contract=contract_id, machine=machine_id
+        )
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
+
+        response, _ = self.request_url(url, headers=headers, data=request_data)
+
+        # We will update the machine token based on the response
+        # provided by the server. We expect the response to be
+        # a partial representation of the machine token json
+        if response:
+            machine_token = self.cfg.read_cache("machine-token")
+            depth_first_merge_overlay_dict(
+                base_dict=machine_token, overlay_dict=response
+            )
+            self.cfg.write_cache("machine-token", machine_token)
+
+            machine_id = response.get("machineTokenInfo", {}).get("machineId")
+            if machine_id:
+                self.cfg.write_cache("machine-id", machine_id)
 
     def detach_machine_from_contract(
         self, machine_token: str, contract_id: str, machine_id: str = None
