@@ -300,7 +300,9 @@ def get_machine_id(cfg) -> str:
     # per Issue: #489
 
     if cfg.machine_token:
-        cfg_machine_id = cfg.machine_token.get("machineId")
+        cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
+            "machineId"
+        )
         if cfg_machine_id:
             return cfg_machine_id
 
