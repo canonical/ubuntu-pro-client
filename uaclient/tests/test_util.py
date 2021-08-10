@@ -495,11 +495,9 @@ class TestApplySeriesOverrides:
 
 class TestGetMachineId:
     def test_get_machine_id_from_config(self, FakeConfig):
-        cfg = FakeConfig.for_attached_machine(
-            machine_token={"machineId": "some-machine-id"}
-        )
+        cfg = FakeConfig.for_attached_machine()
         value = util.get_machine_id(cfg)
-        assert "some-machine-id" == value
+        assert "test_machine_id" == value
 
     def test_get_machine_id_from_etc_machine_id(self, FakeConfig, tmpdir):
         """Presence of /etc/machine-id is returned if it exists."""
@@ -575,8 +573,11 @@ class TestGetMachineId:
         self, FakeConfig, tmpdir, empty_value
     ):
         data_machine_id = tmpdir.join("machine-id")
-        cfg = FakeConfig.for_attached_machine()
-        # Cache it in cfg, so the load_file mock does not mess everything up
+        cfg = FakeConfig().for_attached_machine(
+            machine_token={"some": "thing"}
+        )
+        # Need to initialize the property with a noop,
+        # so load_file is not called after mocked
         cfg.machine_token
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
             m_exists.return_value = True
