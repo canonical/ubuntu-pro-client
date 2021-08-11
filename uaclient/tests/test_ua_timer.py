@@ -2,117 +2,105 @@ import datetime
 import logging
 import mock
 import pytest
-
-from lib.timer import (
-    run_job,
-    run_jobs,
-    UPDATE_MESSAGING_INTERVAL,
-    UPDATE_STATUS_INTERVAL,
-    GCP_AUTO_ATTACH_INTERVAL,
-)
-from uaclient.jobs.update_messaging import update_apt_and_motd_messages
-from uaclient.jobs.update_state import update_status
-from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
+from lib.timer import TimedJob, run_jobs
 
 
-class TestRunJob:
+class TestTimedJob:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     def test_run_job_returns_true_on_successful_job_run(
         self, FakeConfig, caplog_text
     ):
         """Return True on successful job run."""
-        cfg = FakeConfig
+        cfg = FakeConfig()
 
         def success_job(config):
             assert config == cfg
 
-        assert True is run_job(
-            job_name="Day Job", job_func=success_job, cfg=cfg
-        )
-        assert "Running job: Day Job" in caplog_text()
+        job = TimedJob("day_job", success_job, 0)
+        assert True is job.run(cfg)
+        assert "Running job: day_job" in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     def test_run_job_returns_false_on_failed_job(
         self, FakeConfig, caplog_text
     ):
         """Return False on failed job run and warns in log."""
-        cfg = FakeConfig
+        cfg = FakeConfig()
 
         def failed_job(config):
             assert config == cfg
             raise Exception("Something broke")
 
-        assert False is run_job(
-            job_name="Day Job", job_func=failed_job, cfg=cfg
-        )
-        assert "Error executing job Day Job: Something broke" in caplog_text()
+        job = TimedJob("day_job", failed_job, 0)
+        assert False is job.run(cfg)
+        assert "Error executing job day_job: Something broke" in caplog_text()
+
+    @pytest.mark.parametrize("is_cfg_set", (False, True))
+    def test_get_default_run_interval(self, is_cfg_set, FakeConfig):
+        """Use the default run interval when config is absent or invalid."""
+        cfg = FakeConfig()
+        if is_cfg_set:
+            setattr(cfg, "day_job_timer", None)
+        job = TimedJob("day_job", lambda: None, 14400)
+
+        assert 14400 == job.run_interval_seconds(cfg)
+
+    def test_get_configured_run_interval(self, FakeConfig):
+        """Use the configured run interval when not overriden."""
+        cfg = FakeConfig()
+        setattr(cfg, "day_job_timer", 28800)
+        job = TimedJob("day_job", lambda: None, 14400)
+
+        assert 28800 == job.run_interval_seconds(cfg)
 
 
-class TestRunJobs:
-    @pytest.mark.parametrize("next_run,call_count", ((None, 1),))
-    @mock.patch("lib.timer.run_job")
+class TestTimer:
+    @pytest.mark.parametrize("has_next_run", (False, True))
     def test_run_jobs_persists_job_status_on_successful_run(
-        self, run_job, next_run, call_count, FakeConfig
+        self, has_next_run, FakeConfig
     ):
         """Successful job run results in updated job-status.json."""
         cfg = FakeConfig()
         now = datetime.datetime.utcnow()
-        if next_run:
+
+        if has_next_run:
             cfg.write_cache(
                 "jobs-status",
-                {
-                    "update_messaging": {
-                        "next_run": now - datetime.timedelta(seconds=1)
-                    },
-                    "update_status": {
-                        "next_run": now - datetime.timedelta(seconds=1)
-                    },
-                    "gcp_auto_attach": {
-                        "next_run": now - datetime.timedelta(seconds=1)
-                    },
-                },
+                {"day_job": {"next_run": now - datetime.timedelta(seconds=1)}},
             )
-        run_jobs(cfg=cfg, current_time=now)
-        update_messaging_next_run = now + datetime.timedelta(
-            seconds=UPDATE_MESSAGING_INTERVAL
-        )
-        update_status_next_run = now + datetime.timedelta(
-            seconds=UPDATE_STATUS_INTERVAL
-        )
-        gcp_auto_attach_next_run = now + datetime.timedelta(
-            seconds=GCP_AUTO_ATTACH_INTERVAL
-        )
+
+        next_run = now + datetime.timedelta(seconds=43200)
         jobs_status = {
-            "update_messaging": {
+            "day_job": {
                 "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "next_run": update_messaging_next_run.strftime(
-                    "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-            },
-            "update_status": {
-                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "next_run": update_status_next_run.strftime(
-                    "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-            },
-            "gcp_auto_attach": {
-                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "next_run": gcp_auto_attach_next_run.strftime(
-                    "%Y-%m-%dT%H:%M:%S.%f"
-                ),
-            },
+                "next_run": next_run.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+            }
         }
+
+        m_job_func = mock.Mock()
+        m_jobs = [TimedJob("day_job", m_job_func, 43200)]
+
+        with mock.patch("lib.timer.UACLIENT_JOBS", m_jobs):
+            run_jobs(cfg, now)
+
         assert jobs_status == cfg.read_cache("jobs-status")
-        assert [
-            mock.call(
-                job_name="update_messaging",
-                job_func=update_apt_and_motd_messages,
-                cfg=cfg,
-            ),
-            mock.call(
-                job_name="update_status", job_func=update_status, cfg=cfg
-            ),
-            mock.call(
-                job_name="gcp_auto_attach", job_func=gcp_auto_attach, cfg=cfg
-            ),
-        ] == run_job.call_args_list
+        assert [mock.call(cfg)] == m_job_func.call_args_list
+
+    def test_run_job_ignores_late_next_run(self, FakeConfig):
+        """Do not run if next_run points to future time."""
+        cfg = FakeConfig()
+        now = datetime.datetime.utcnow()
+
+        cfg.write_cache(
+            "jobs-status",
+            {"day_job": {"next_run": now + datetime.timedelta(seconds=14400)}},
+        )
+
+        m_job_func = mock.Mock()
+        m_jobs = [TimedJob("day_job", m_job_func, 43200)]
+
+        with mock.patch("lib.timer.UACLIENT_JOBS", m_jobs):
+            run_jobs(cfg, now)
+
+        assert "last_run" not in cfg.read_cache("jobs-status")["day_job"]
+        assert 0 == m_job_func.call_count
