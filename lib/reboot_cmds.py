@@ -103,7 +103,7 @@ def process_remaining_deltas(cfg):
 
 
 @assert_lock_file("ua-reboot-cmds")
-def process_reboot_operations(args, cfg):
+def process_reboot_operations(cfg):
 
     setup_logging(logging.INFO, logging.DEBUG)
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
@@ -142,7 +142,7 @@ def main(cfg):
     """
     while True:
         try:
-            process_reboot_operations(args=None, cfg=cfg)
+            process_reboot_operations(cfg=cfg)
             break
         except LockHeldError as e:
             logging.debug(

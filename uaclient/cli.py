@@ -104,7 +104,7 @@ def assert_lock_file(lock_holder=None):
 
     def wrapper(f):
         @wraps(f)
-        def new_f(args, cfg, **kwargs):
+        def new_f(*args, cfg, **kwargs):
             global _CLEAR_LOCK_FILE
             (lock_pid, cur_lock_holder) = cfg.check_lock_info()
             if lock_pid > 0:
@@ -117,7 +117,7 @@ def assert_lock_file(lock_holder=None):
             notice_msg = "Operation in progress: {}".format(lock_holder)
             cfg.add_notice("", notice_msg)
             _CLEAR_LOCK_FILE = cfg.delete_cache_key
-            retval = f(args, cfg, **kwargs)
+            retval = f(*args, cfg=cfg, **kwargs)
             cfg.delete_cache_key("lock")
             _CLEAR_LOCK_FILE = None  # Unset due to successful lock delete
             return retval
@@ -157,7 +157,7 @@ def assert_attached(unattached_msg_tmpl=None):
                 else:
                     exception = exceptions.UnattachedError()
                 raise exception
-            return f(args, cfg, **kwargs)
+            return f(args, cfg=cfg, **kwargs)
 
         return new_f
 
@@ -171,7 +171,7 @@ def assert_not_attached(f):
     def new_f(args, cfg):
         if cfg.is_attached:
             raise exceptions.AlreadyAttachedError(cfg)
-        return f(args, cfg)
+        return f(args, cfg=cfg)
 
     return new_f
 
@@ -340,7 +340,7 @@ def refresh_parser(parser):
     return parser
 
 
-def action_fix(args, cfg, **kwargs):
+def action_fix(args, *, cfg, **kwargs):
     if not re.match(security.CVE_OR_USN_REGEX, args.security_issue):
         msg = (
             'Error: issue "{}" is not recognized.\n'
@@ -562,7 +562,7 @@ def get_valid_entitlement_names(names: List[str]):
     return entitlements_found, entitlements_not_found
 
 
-def action_config(args, cfg, **kwargs):
+def action_config(args, *, cfg, **kwargs):
     """Perform the config action.
 
     :return: 0 on success, 1 otherwise
@@ -577,7 +577,7 @@ def action_config(args, cfg, **kwargs):
         )
 
 
-def action_config_show(args, cfg, **kwargs):
+def action_config_show(args, *, cfg, **kwargs):
     """Perform the 'config show' action optionally limit output to a single key
 
     :return: 0 on success
@@ -608,7 +608,7 @@ def action_config_show(args, cfg, **kwargs):
 
 
 @assert_root
-def action_config_set(args, cfg, **kwargs):
+def action_config_set(args, *, cfg, **kwargs):
     """Perform the 'config set' action.
 
     @return: 0 on success, 1 otherwise
@@ -684,7 +684,7 @@ def action_config_set(args, cfg, **kwargs):
 
 
 @assert_root
-def action_config_unset(args, cfg, **kwargs):
+def action_config_unset(args, *, cfg, **kwargs):
     """Perform the 'config unset' action.
 
     @return: 0 on success, 1 otherwise
@@ -725,7 +725,7 @@ def action_config_unset(args, cfg, **kwargs):
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua disable")
-def action_disable(args, cfg, **kwargs):
+def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
 
     @return: 0 on success, 1 otherwise
@@ -763,7 +763,7 @@ def action_disable(args, cfg, **kwargs):
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
-def action_enable(args, cfg, **kwargs):
+def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
@@ -831,7 +831,7 @@ def action_enable(args, cfg, **kwargs):
 @assert_root
 @assert_attached()
 @assert_lock_file("ua detach")
-def action_detach(args, cfg) -> int:
+def action_detach(args, *, cfg) -> int:
     """Perform the detach action for this machine.
 
     @return: 0 on success, 1 otherwise
@@ -964,7 +964,7 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
 
 @assert_root
 @assert_lock_file("ua auto-attach")
-def action_auto_attach(args, cfg):
+def action_auto_attach(args, *, cfg):
     disable_auto_attach = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.disable_auto_attach"
     )
@@ -980,7 +980,7 @@ def action_auto_attach(args, cfg):
 @assert_not_attached
 @assert_root
 @assert_lock_file("ua attach")
-def action_attach(args, cfg):
+def action_attach(args, *, cfg):
     if not args.token:
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
@@ -1116,7 +1116,7 @@ def get_parser():
     return parser
 
 
-def action_status(args, cfg):
+def action_status(args, *, cfg):
     if not cfg:
         cfg = config.UAConfig()
     show_beta = args.all if args else False
@@ -1146,8 +1146,8 @@ def get_version(_args=None, _cfg=None):
     return version.get_version(features=_cfg.features)
 
 
-def print_version(_args=None, _cfg=None):
-    print(get_version(_args, _cfg))
+def print_version(_args=None, cfg=None):
+    print(get_version(_args, cfg))
 
 
 def _action_refresh_config(args, cfg: config.UAConfig):
@@ -1177,7 +1177,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
 
 @assert_root
 @assert_lock_file("ua refresh")
-def action_refresh(args, cfg: config.UAConfig):
+def action_refresh(args, *, cfg: config.UAConfig):
     if args.target is None or args.target == "config":
         _action_refresh_config(args, cfg)
 
@@ -1187,7 +1187,7 @@ def action_refresh(args, cfg: config.UAConfig):
     return 0
 
 
-def action_help(args, cfg):
+def action_help(args, *, cfg):
     service = args.service
     show_all = args.all
 
@@ -1334,7 +1334,7 @@ def main(sys_argv=None):
                 "Executed with UA environment variables: %r" % ua_environment
             )
         )
-    return args.action(args, cfg)
+    return args.action(args, cfg=cfg)
 
 
 if __name__ == "__main__":

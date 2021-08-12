@@ -84,7 +84,7 @@ class TestActionConfigShow:
         cfg.apt_http_proxy = "http://apt_http_proxy"
         cfg.apt_https_proxy = "http://apt_https_proxy"
         args = mock.MagicMock(key=optional_key)
-        action_config_show(args, cfg)
+        action_config_show(args, cfg=cfg)
         out, err = capsys.readouterr()
         if optional_key:
             assert "{key} http://{key}\n".format(key=optional_key) == out

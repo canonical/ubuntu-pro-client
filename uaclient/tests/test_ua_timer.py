@@ -13,13 +13,13 @@ class TestTimedJob:
         self, FakeConfig, caplog_text
     ):
         """Return True on successful job run."""
-        cfg = FakeConfig()
+        config = FakeConfig()
 
-        def success_job(config):
-            assert config == cfg
+        def success_job(cfg):
+            assert cfg == config
 
         job = TimedJob("day_job", success_job, 14400)
-        assert True is job.run(cfg)
+        assert True is job.run(config)
         assert "Running job: day_job" in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
@@ -29,8 +29,7 @@ class TestTimedJob:
         """Return False on failed job run and warns in log."""
         cfg = FakeConfig()
 
-        def failed_job(config):
-            assert config == cfg
+        def failed_job(cfg):
             raise Exception("Something broke")
 
         job = TimedJob("day_job", failed_job, 14400)
@@ -67,7 +66,6 @@ class TestTimedJob:
             setattr(cfg, "day_job_timer", 0)
 
         m_disabled_job = mock.Mock()
-
         job = TimedJob("day_job", m_disabled_job, interval_value)
         assert False is job.run(cfg)
         assert 0 == m_disabled_job.call_count

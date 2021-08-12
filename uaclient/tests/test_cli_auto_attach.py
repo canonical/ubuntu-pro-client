@@ -43,7 +43,7 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
 
     cfg = FakeConfig()
     with pytest.raises(NonRootUserError):
-        action_auto_attach(mock.MagicMock(), cfg)
+        action_auto_attach(mock.MagicMock(), cfg=cfg)
 
 
 class TestGetContractTokenFromCloudIdentity:
@@ -298,7 +298,7 @@ class TestActionAutoAttach:
         account_name = "test_account"
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
         with pytest.raises(AlreadyAttachedError):
-            action_auto_attach(mock.MagicMock(), cfg)
+            action_auto_attach(mock.MagicMock(), cfg=cfg)
 
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
@@ -306,7 +306,7 @@ class TestActionAutoAttach:
         cfg = FakeConfig()
         cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(LockHeldError) as err:
-            action_auto_attach(mock.MagicMock(), cfg)
+            action_auto_attach(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
             "Unable to perform: ua auto-attach.\n"
@@ -331,7 +331,7 @@ class TestActionAutoAttach:
         get_contract_token_from_cloud_identity.side_effect = exc
 
         with pytest.raises(NonAutoAttachImageError):
-            action_auto_attach(mock.MagicMock(), FakeConfig())
+            action_auto_attach(mock.MagicMock(), cfg=FakeConfig())
         assert 0 == request_updated_contract.call_count
 
     @pytest.mark.parametrize(
@@ -370,7 +370,7 @@ class TestActionAutoAttach:
 
         request_updated_contract.side_effect = fake_request_updated_contract
 
-        ret = action_auto_attach(mock.MagicMock(), cfg)
+        ret = action_auto_attach(mock.MagicMock(), cfg=cfg)
         assert 0 == ret
         assert expected_calls == request_updated_contract.call_args_list
 
