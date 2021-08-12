@@ -26,7 +26,7 @@ class TestActionDetach:
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
-            action_detach(mock.MagicMock(), cfg)
+            action_detach(mock.MagicMock(), cfg=cfg)
 
     def test_unattached_error_message(self, m_getuid, _m_prompt, FakeConfig):
         """Check that root user gets unattached message."""
@@ -34,7 +34,7 @@ class TestActionDetach:
         m_getuid.return_value = 0
         cfg = FakeConfig()
         with pytest.raises(exceptions.UnattachedError) as err:
-            action_detach(mock.MagicMock(), cfg)
+            action_detach(mock.MagicMock(), cfg=cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
     @mock.patch("uaclient.cli.util.subp")
@@ -45,7 +45,7 @@ class TestActionDetach:
         with open(cfg.data_path("lock"), "w") as stream:
             stream.write("123:ua enable")
         with pytest.raises(exceptions.LockHeldError) as err:
-            action_detach(mock.MagicMock(), cfg)
+            action_detach(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
             "Unable to perform: ua detach.\n"
@@ -92,7 +92,7 @@ class TestActionDetach:
         ]
 
         args = mock.MagicMock(assume_yes=assume_yes)
-        return_code = action_detach(args, cfg)
+        return_code = action_detach(args, cfg=cfg)
 
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:

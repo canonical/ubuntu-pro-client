@@ -60,13 +60,13 @@ class TestActionFix:
         cfg = FakeConfig()
         args = mock.MagicMock(security_issue=issue)
         if is_valid:
-            assert 0 == action_fix(args, cfg)
+            assert 0 == action_fix(args, cfg=cfg)
             assert [
                 mock.call(cfg, issue)
             ] == m_fix_security_issue_id.call_args_list
         else:
             with pytest.raises(exceptions.UserFacingError) as excinfo:
-                action_fix(args, cfg)
+                action_fix(args, cfg=cfg)
 
             expected_msg = (
                 'Error: issue "{}" is not recognized.\n'
