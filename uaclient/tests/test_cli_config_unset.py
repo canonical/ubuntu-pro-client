@@ -66,7 +66,7 @@ class TestActionConfigUnSet:
         args = mock.MagicMock(key="https_proxy")
         cfg = FakeConfig()
         with pytest.raises(NonRootUserError):
-            action_config_unset(args, cfg)
+            action_config_unset(args, cfg=cfg)
 
     @pytest.mark.parametrize(
         "key,livepatch_enabled",
@@ -107,7 +107,7 @@ class TestActionConfigUnSet:
             )
         args = mock.MagicMock(key=key)
         cfg = FakeConfig()
-        action_config_unset(args, cfg)
+        action_config_unset(args, cfg=cfg)
         assert [
             mock.call(protocol_type=key.split("_")[0])
         ] == unconfigure_snap_proxy.call_args_list

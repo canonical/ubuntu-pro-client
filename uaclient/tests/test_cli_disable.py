@@ -79,7 +79,7 @@ class TestDisable:
         args_mock.service = service
         args_mock.assume_yes = assume_yes
 
-        ret = action_disable(args_mock, m_cfg)
+        ret = action_disable(args_mock, cfg=m_cfg)
 
         for m_entitlement_cls in entitlements_cls:
             assert [
@@ -130,7 +130,7 @@ class TestDisable:
             entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
         ):
             with pytest.raises(exceptions.UserFacingError) as err:
-                action_disable(args_mock, m_cfg)
+                action_disable(args_mock, cfg=m_cfg)
 
         assert (
             expected_error_tmpl.format(
