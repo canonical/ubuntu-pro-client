@@ -189,7 +189,7 @@ class TestCLIParser:
             ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
         ):
             with contextlib.redirect_stdout(fake_stdout):
-                action_help(m_args, None)
+                action_help(m_args, cfg=None)
 
         if out_format == "tabular":
             assert expected_return.strip() == fake_stdout.getvalue().strip()
@@ -275,7 +275,7 @@ class TestCLIParser:
             ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
         ):
             with contextlib.redirect_stdout(fake_stdout):
-                action_help(m_args, None)
+                action_help(m_args, cfg=None)
 
         assert expected_msg.strip() == fake_stdout.getvalue().strip()
         assert 1 == m_service_name.call_count
@@ -306,7 +306,7 @@ class TestCLIParser:
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
             with pytest.raises(UserFacingError) as excinfo:
-                action_help(m_args, None)
+                action_help(m_args, cfg=None)
 
         assert "No help available for 'test'" == str(excinfo.value)
         assert 1 == m_service_name.call_count
@@ -338,7 +338,7 @@ class TestAssertLockFile:
 
             return mock.sentinel.success
 
-        ret = test_function(arg, FakeConfig())
+        ret = test_function(arg, cfg=FakeConfig())
         assert mock.sentinel.success == ret
         lock_msg = "Operation in progress: some operation"
         assert [mock.call("", lock_msg)] == m_add_notice.call_args_list

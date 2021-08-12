@@ -73,7 +73,7 @@ class TestActionConfigSet:
         args = mock.MagicMock(key_value_pair="something=1")
         cfg = FakeConfig()
         with pytest.raises(NonRootUserError):
-            action_config_set(args, cfg)
+            action_config_set(args, cfg=cfg)
 
     @pytest.mark.parametrize(
         "key,value,livepatch_enabled",
@@ -117,7 +117,7 @@ class TestActionConfigSet:
             )
         args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
         cfg = FakeConfig()
-        action_config_set(args, cfg)
+        action_config_set(args, cfg=cfg)
         kwargs = {key: value}
         if key == "http_proxy":
             url = util.PROXY_VALIDATION_SNAP_HTTP_URL
@@ -156,7 +156,7 @@ class TestActionConfigSet:
         """Set calls setup_apt_proxy, persists config and exits 0."""
         args = mock.MagicMock(key_value_pair="{}={}".format(key, value))
         cfg = FakeConfig()
-        action_config_set(args, cfg)
+        action_config_set(args, cfg=cfg)
         kwargs = {"http_proxy": None, "https_proxy": None}
         proxy_type = key.replace("apt_", "")
         kwargs[proxy_type] = value
@@ -172,7 +172,7 @@ class TestActionConfigSet:
     def test_set_timer_interval(self, _getuid, _write_cfg, FakeConfig):
         args = mock.MagicMock(key_value_pair="update_messaging_timer=28800")
         cfg = FakeConfig()
-        action_config_set(args, cfg)
+        action_config_set(args, cfg=cfg)
         assert 28800 == cfg.update_messaging_timer
 
     @pytest.mark.parametrize("invalid_value", ("notanumber", -1))
@@ -184,5 +184,5 @@ class TestActionConfigSet:
         )
         cfg = FakeConfig()
         with pytest.raises(UserFacingError):
-            action_config_set(args, cfg)
+            action_config_set(args, cfg=cfg)
             assert cfg.update_messaging_timer is None

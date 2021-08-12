@@ -238,7 +238,7 @@ class TestActionStatus:
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("notices", notices)
-        assert 0 == action_status(mock.MagicMock(all=use_all), cfg)
+        assert 0 == action_status(mock.MagicMock(all=use_all), cfg=cfg)
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
         printable_stdout = capsys.readouterr()[0].replace(" " * 17, " " * 8)
@@ -270,7 +270,7 @@ class TestActionStatus:
         """Check that unattached status is emitted to console"""
         cfg = FakeConfig()
 
-        assert 0 == action_status(mock.MagicMock(all=False), cfg)
+        assert 0 == action_status(mock.MagicMock(all=False), cfg=cfg)
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
 
     @mock.patch("uaclient.version.get_version", return_value="test_version")
@@ -299,7 +299,7 @@ class TestActionStatus:
 
         m_sleep.side_effect = fake_sleep
 
-        assert 0 == action_status(mock.MagicMock(all=False), cfg)
+        assert 0 == action_status(mock.MagicMock(all=False), cfg=cfg)
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
@@ -334,7 +334,7 @@ class TestActionStatus:
 
         args = mock.MagicMock(format=format_type, all=use_all)
         with mock.patch.object(os, "environ", environ):
-            assert 0 == action_status(args, cfg)
+            assert 0 == action_status(args, cfg=cfg)
 
         expected_environment = []
         if environ:
@@ -420,7 +420,7 @@ class TestActionStatus:
         args = mock.MagicMock(format=format_type, all=use_all)
 
         with mock.patch.object(os, "environ", environ):
-            assert 0 == action_status(args, cfg)
+            assert 0 == action_status(args, cfg=cfg)
 
         expected_environment = []
         if environ:
@@ -546,7 +546,7 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         with pytest.raises(util.UrlError):
-            action_status(mock.MagicMock(all=False), cfg)
+            action_status(mock.MagicMock(all=False), cfg=cfg)
 
     @pytest.mark.parametrize(
         "encoding,expected_dash",
@@ -569,7 +569,7 @@ class TestActionStatus:
 
         with mock.patch("sys.stdout", fake_stdout):
             action_status(
-                mock.MagicMock(all=True), FakeConfig.for_attached_machine()
+                mock.MagicMock(all=True), cfg=FakeConfig.for_attached_machine()
             )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout

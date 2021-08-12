@@ -147,13 +147,12 @@ class TestProcessRebootOperations:
     ):
         m_check_lock_info.return_value = (0, 0)
         m_fix_pro_pkg_holds.side_effect = ProcessExecutionError("error")
-        args = mock.MagicMock()
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
         with mock.patch("os.path.exists", return_value=True):
             with mock.patch("uaclient.config.UAConfig.write_cache"):
-                process_reboot_operations(args, cfg)
+                process_reboot_operations(cfg=cfg)
 
         expected_calls = [
             mock.call("", "Operation in progress: ua-reboot-cmds"),

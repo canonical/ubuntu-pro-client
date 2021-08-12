@@ -90,7 +90,7 @@ class TestActionAttach:
         cfg = FakeConfig.for_attached_machine(account_name=account_name)
 
         with pytest.raises(AlreadyAttachedError):
-            action_attach(mock.MagicMock(), cfg)
+            action_attach(mock.MagicMock(), cfg=cfg)
 
     @mock.patch(M_PATH + "util.subp")
     def test_lock_file_exists(self, m_subp, _m_getuid, capsys, FakeConfig):
@@ -99,7 +99,7 @@ class TestActionAttach:
 
         cfg.write_cache("lock", "123:ua disable")
         with pytest.raises(LockHeldError) as exc_info:
-            action_attach(mock.MagicMock(), cfg)
+            action_attach(mock.MagicMock(), cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
         assert (
             "Unable to perform: ua attach.\n"
@@ -111,7 +111,7 @@ class TestActionAttach:
         args = mock.MagicMock()
         args.token = None
         with pytest.raises(UserFacingError) as e:
-            action_attach(args, FakeConfig())
+            action_attach(args, cfg=FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
 
     @pytest.mark.parametrize(
@@ -157,7 +157,7 @@ class TestActionAttach:
             raise error_class(error_str)
 
         request_updated_contract.side_effect = fake_request_updated_contract
-        ret = action_attach(args, cfg)
+        ret = action_attach(args, cfg=cfg)
         assert 1 == ret
         assert cfg.is_attached
         # Assert updated status cache is written to disk
