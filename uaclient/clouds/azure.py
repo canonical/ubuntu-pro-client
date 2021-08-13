@@ -14,7 +14,7 @@ from uaclient import util
 
 IMDS_BASE_URL = "http://169.254.169.254/metadata/"
 
-API_VERSION = "2019-06-04"  # Needed to get subscription ID in attested data
+API_VERSION = "2020-09-01"  # Needed to get subscription ID in attested data
 IMDS_URLS = {
     "pkcs7": IMDS_BASE_URL + "attested/document?api-version=" + API_VERSION,
     "compute": IMDS_BASE_URL + "instance/compute?api-version=" + API_VERSION,
