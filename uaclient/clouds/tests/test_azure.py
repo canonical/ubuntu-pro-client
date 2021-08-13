@@ -34,8 +34,8 @@ class TestUAAutoAttachAzureInstance:
             "compute": {"computekey": "computeval"},
             "pkcs7": "attestedWOOT!===",
         } == instance.identity_doc
-        url1 = IMDS_BASE_URL + "instance/compute?api-version=2019-06-04"
-        url2 = IMDS_BASE_URL + "attested/document?api-version=2019-06-04"
+        url1 = IMDS_BASE_URL + "instance/compute?api-version=2020-09-01"
+        url2 = IMDS_BASE_URL + "attested/document?api-version=2020-09-01"
         assert [
             mock.call(url1, headers={"Metadata": "true"}),
             mock.call(url2, headers={"Metadata": "true"}),
