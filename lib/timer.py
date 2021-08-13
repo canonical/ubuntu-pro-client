@@ -12,20 +12,33 @@ from typing import Any, Callable, Dict  # noqa: F401
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+from uaclient.jobs.update_state import update_status
 
 
 LOG = logging.getLogger(__name__)
+UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
+UPDATE_STATUS_INTERVAL = 43200  # 12 hours
 
 # Store the default run_interval_seconds for each job in this dict.
 # OrderedDict is used to ensure each job is run sequentially in the order
 # listed as some jobs may depend on completion of the previous job.
 UACLIENT_JOBS = collections.OrderedDict(
-    {
-        "update_messaging": {
-            "job_func": update_apt_and_motd_messages,
-            "run_interval_seconds": 43200,  # 12 hours
-        }
-    }
+    [
+        (
+            "update_messaging",
+            {
+                "job_func": update_apt_and_motd_messages,
+                "run_interval_seconds": UPDATE_MESSAGING_INTERVAL,
+            },
+        ),
+        (
+            "update_status",
+            {
+                "job_func": update_status,
+                "run_interval_seconds": UPDATE_STATUS_INTERVAL,
+            },
+        ),
+    ]
 )  # type: Dict[str, Dict[str, Any]]
 
 
