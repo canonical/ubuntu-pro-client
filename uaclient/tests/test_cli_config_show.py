@@ -92,10 +92,13 @@ class TestActionConfigShow:
         else:
             assert (
                 """\
-http_proxy       http://http_proxy
-https_proxy      http://https_proxy
-apt_http_proxy   http://apt_http_proxy
-apt_https_proxy  http://apt_https_proxy
+http_proxy              http://http_proxy
+https_proxy             http://https_proxy
+apt_http_proxy          http://apt_http_proxy
+apt_https_proxy         http://apt_https_proxy
+update_messaging_timer  None
+update_status_timer     None
+gcp_auto_attach_timer   None
 """
                 == out
             )

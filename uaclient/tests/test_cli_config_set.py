@@ -3,7 +3,7 @@ import mock
 import pytest
 
 from uaclient.cli import main, action_config_set
-from uaclient.exceptions import NonRootUserError
+from uaclient.exceptions import NonRootUserError, UserFacingError
 from uaclient import util
 from uaclient import status
 
@@ -15,7 +15,8 @@ Set and apply Ubuntu Advantage configuration settings
 positional arguments:
   key_value_pair  key=value pair to configure for Ubuntu Advantage services.
                   Key must be one of: http_proxy, https_proxy, apt_http_proxy,
-                  apt_https_proxy
+                  apt_https_proxy, update_messaging_timer,
+                  update_status_timer, gcp_auto_attach_timer
 
 Flags:
   -h, --help      show this help message and exit
@@ -34,17 +35,20 @@ class TestMainConfigSet:
             (
                 "k=v",
                 "<key> must be one of: http_proxy, https_proxy,"
-                " apt_http_proxy, apt_https_proxy",
+                " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
+                " update_status_timer, gcp_auto_attach_timer",
             ),
             (
                 "http_proxys=",
                 "<key> must be one of: http_proxy, https_proxy,"
-                " apt_http_proxy, apt_https_proxy",
+                " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
+                " update_status_timer, gcp_auto_attach_timer",
             ),
             (
                 "=value",
                 "<key> must be one of: http_proxy, https_proxy,"
-                " apt_http_proxy, apt_https_proxy",
+                " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
+                " update_status_timer, gcp_auto_attach_timer",
             ),
         ),
     )
@@ -166,3 +170,21 @@ class TestActionConfigSet:
         assert [
             mock.call(proxy_type.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
+
+    def test_set_timer_interval(self, _getuid, _write_cfg, FakeConfig):
+        args = mock.MagicMock(key_value_pair="update_messaging_timer=28800")
+        cfg = FakeConfig()
+        action_config_set(args, cfg)
+        assert 28800 == cfg.update_messaging_timer
+
+    @pytest.mark.parametrize("invalid_value", ("notanumber", -1))
+    def test_error_when_interval_is_not_valid(
+        self, _getuid, _write_cfg, FakeConfig, invalid_value
+    ):
+        args = mock.MagicMock(
+            key_value_pair="update_messaging_timer={}".format(invalid_value)
+        )
+        cfg = FakeConfig()
+        with pytest.raises(UserFacingError):
+            action_config_set(args, cfg)
+            assert cfg.update_messaging_timer is None

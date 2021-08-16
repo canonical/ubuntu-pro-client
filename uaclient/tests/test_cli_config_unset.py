@@ -13,7 +13,9 @@ Unset Ubuntu Advantage configuration setting
 
 positional arguments:
   key         configuration key to unset from Ubuntu Advantage services. One
-              of: http_proxy, https_proxy, apt_http_proxy, apt_https_proxy
+              of: http_proxy, https_proxy, apt_http_proxy, apt_https_proxy,
+              update_messaging_timer, update_status_timer,
+              gcp_auto_attach_timer
 
 Flags:
   -h, --help  show this help message and exit
@@ -31,12 +33,14 @@ class TestMainConfigUnSet:
             (
                 "junk",
                 "<key> must be one of: http_proxy, https_proxy,"
-                " apt_http_proxy, apt_https_proxy",
+                " apt_http_proxy, apt_https_proxy, update_messaging_timer, "
+                "update_status_timer, gcp_auto_attach_timer",
             ),
             (
                 "http_proxys",
                 "<key> must be one of: http_proxy, https_proxy,"
-                " apt_http_proxy, apt_https_proxy",
+                " apt_http_proxy, apt_https_proxy, update_messaging_timer, "
+                "update_status_timer, gcp_auto_attach_timer",
             ),
         ),
     )
