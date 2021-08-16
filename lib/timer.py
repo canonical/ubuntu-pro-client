@@ -34,12 +34,16 @@ class TimedJob:
 
     def run(self, cfg: UAConfig):
         """Run a job in a failsafe manner, returning True on success.
+        Checks if the job is not disabled before running it.
 
         :param cfg: UAConfig instance
 
         :return: A bool True when successfully run. False if ignored
             or in error.
         """
+        if not self._should_run(cfg):
+            return False
+
         LOG.debug("Running job: %s", self.name)
         try:
             self._job_func(cfg)
@@ -60,6 +64,10 @@ class TimedJob:
             LOG.error(error_msg)
             return self._default_interval_seconds
         return configured_interval
+
+    def _should_run(self, cfg):
+        """Verify if the job has a valid (non-zero) interval."""
+        return self.run_interval_seconds(cfg) != 0
 
 
 UACLIENT_JOBS = [
