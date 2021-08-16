@@ -8,9 +8,11 @@ from lib.timer import (
     run_jobs,
     UPDATE_MESSAGING_INTERVAL,
     UPDATE_STATUS_INTERVAL,
+    GCP_AUTO_ATTACH_INTERVAL,
 )
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 from uaclient.jobs.update_state import update_status
+from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
 
 
 class TestRunJob:
@@ -65,6 +67,9 @@ class TestRunJobs:
                     "update_status": {
                         "next_run": now - datetime.timedelta(seconds=1)
                     },
+                    "gcp_auto_attach": {
+                        "next_run": now - datetime.timedelta(seconds=1)
+                    },
                 },
             )
         run_jobs(cfg=cfg, current_time=now)
@@ -73,6 +78,9 @@ class TestRunJobs:
         )
         update_status_next_run = now + datetime.timedelta(
             seconds=UPDATE_STATUS_INTERVAL
+        )
+        gcp_auto_attach_next_run = now + datetime.timedelta(
+            seconds=GCP_AUTO_ATTACH_INTERVAL
         )
         jobs_status = {
             "update_messaging": {
@@ -87,6 +95,12 @@ class TestRunJobs:
                     "%Y-%m-%dT%H:%M:%S.%f"
                 ),
             },
+            "gcp_auto_attach": {
+                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                "next_run": gcp_auto_attach_next_run.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%f"
+                ),
+            },
         }
         assert jobs_status == cfg.read_cache("jobs-status")
         assert [
@@ -97,5 +111,8 @@ class TestRunJobs:
             ),
             mock.call(
                 job_name="update_status", job_func=update_status, cfg=cfg
+            ),
+            mock.call(
+                job_name="gcp_auto_attach", job_func=gcp_auto_attach, cfg=cfg
             ),
         ] == run_job.call_args_list
