@@ -78,6 +78,9 @@ UA_CONFIGURABLE_KEYS = (
     "https_proxy",
     "apt_http_proxy",
     "apt_https_proxy",
+    "update_messaging_timer",
+    "update_status_timer",
+    "gcp_auto_attach_timer",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -188,6 +191,39 @@ class UAConfig:
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
         self.cfg["ua_config"]["apt_https_proxy"] = value
+        self.write_cfg()
+
+    @property
+    def update_status_timer(self) -> "Optional[int]":
+        return self.cfg.get("ua_config", {}).get("update_status_timer")
+
+    @update_status_timer.setter
+    def update_status_timer(self, value: int):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["update_status_timer"] = value
+        self.write_cfg()
+
+    @property
+    def update_messaging_timer(self) -> "Optional[int]":
+        return self.cfg.get("ua_config", {}).get("update_messaging_timer")
+
+    @update_messaging_timer.setter
+    def update_messaging_timer(self, value: int):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["update_messaging_timer"] = value
+        self.write_cfg()
+
+    @property
+    def gcp_auto_attach_timer(self) -> "Optional[int]":
+        return self.cfg.get("ua_config", {}).get("gcp_auto_attach_timer")
+
+    @gcp_auto_attach_timer.setter
+    def gcp_auto_attach_timer(self, value: int):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["gcp_auto_attach_timer"] = value
         self.write_cfg()
 
     def check_lock_info(self) -> "Tuple[int, str]":
@@ -472,7 +508,7 @@ class UAConfig:
         util.write_file(filepath, content, mode=mode)
 
     def _remove_beta_resources(self, response) -> "Dict[str, Any]":
-        """ Remove beta services from response dict"""
+        """Remove beta services from response dict"""
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         new_response = copy.deepcopy(response)
@@ -507,11 +543,11 @@ class UAConfig:
     def _get_config_status(self) -> "Dict[str, Any]":
         """Return a dict with execution_status, execution_details and notices.
 
-            Values for execution_status will be one of UserFacingConfigStatus
-            enum:
-                inactive, active, reboot-required
-            execution_details will provide more details about that state.
-            notices is a list of tuples with label and description items.
+        Values for execution_status will be one of UserFacingConfigStatus
+        enum:
+            inactive, active, reboot-required
+        execution_details will provide more details about that state.
+        notices is a list of tuples with label and description items.
         """
         userStatus = status.UserFacingConfigStatus
         status_val = userStatus.INACTIVE.value
@@ -755,6 +791,19 @@ class UAConfig:
         return response_dict
 
     def process_config(self):
+        for prop in (
+            "update_messaging_timer",
+            "update_status_timer",
+            "gcp_auto_attach_timer",
+        ):
+            value = getattr(self, prop)
+            if not isinstance(value, int) or value < 0:
+                error_msg = (
+                    "Value for the {} interval must be a positive integer. "
+                    "Default value will be used."
+                ).format(prop)
+                raise exceptions.UserFacingError(error_msg)
+
         util.validate_proxy(
             "http", self.apt_http_proxy, util.PROXY_VALIDATION_APT_HTTP_URL
         )

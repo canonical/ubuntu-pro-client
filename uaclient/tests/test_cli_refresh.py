@@ -51,11 +51,17 @@ class TestActionRefresh:
         "target, expect_unattached_error",
         [(None, True), ("contract", True), ("config", False)],
     )
+    @mock.patch("uaclient.config.UAConfig.write_cfg")
     def test_not_attached_errors(
-        self, getuid, target, expect_unattached_error, FakeConfig
+        self, _m_write_cfg, getuid, target, expect_unattached_error, FakeConfig
     ):
         """Check that an unattached machine emits message and exits 1"""
         cfg = FakeConfig()
+
+        cfg.update_messaging_timer = 0
+        cfg.update_status_timer = 0
+        cfg.gcp_auto_attach_timer = 0
+
         if expect_unattached_error:
             with pytest.raises(exceptions.UnattachedError):
                 action_refresh(mock.MagicMock(target=target), cfg)
