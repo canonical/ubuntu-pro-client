@@ -260,6 +260,9 @@ UA_CFG_DICT = {
         "apt_https_proxy": None,
         "http_proxy": None,
         "https_proxy": None,
+        "update_messaging_timer": None,
+        "update_status_timer": None,
+        "gcp_auto_attach_timer": None,
     }
 }
 
@@ -1361,6 +1364,9 @@ class TestProcessConfig:
                     "apt_https_proxy": "apt_https",
                     "http_proxy": http_proxy,
                     "https_proxy": https_proxy,
+                    "update_messaging_timer": 21600,
+                    "update_status_timer": 43200,
+                    "gcp_auto_attach_timer": 1800,
                 }
             }
         )
@@ -1401,6 +1407,24 @@ class TestProcessConfig:
         out, err = capsys.readouterr()
         assert expected_out.strip() == out.strip()
         assert "" == err
+
+    def test_process_config_errors_for_wrong_timers(self):
+        cfg = UAConfig(
+            {
+                "ua_config": {
+                    "update_messaging_timer": "wrong",
+                    "update_status_timer": 43200,
+                    "gcp_auto_attach_timer": 1800,
+                }
+            }
+        )
+
+        with pytest.raises(
+            exceptions.UserFacingError,
+            match="Value for the update_messaging_timer interval must be "
+            "a positive integer. Default value will be used.",
+        ):
+            cfg.process_config()
 
 
 class TestParseConfig:
