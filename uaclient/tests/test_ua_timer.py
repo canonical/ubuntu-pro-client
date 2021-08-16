@@ -16,7 +16,7 @@ class TestTimedJob:
         def success_job(config):
             assert config == cfg
 
-        job = TimedJob("day_job", success_job, 0)
+        job = TimedJob("day_job", success_job, 14400)
         assert True is job.run(cfg)
         assert "Running job: day_job" in caplog_text()
 
@@ -31,7 +31,7 @@ class TestTimedJob:
             assert config == cfg
             raise Exception("Something broke")
 
-        job = TimedJob("day_job", failed_job, 0)
+        job = TimedJob("day_job", failed_job, 14400)
         assert False is job.run(cfg)
         assert "Error executing job day_job: Something broke" in caplog_text()
 
@@ -52,6 +52,23 @@ class TestTimedJob:
         job = TimedJob("day_job", lambda: None, 14400)
 
         assert 28800 == job.run_interval_seconds(cfg)
+
+    @pytest.mark.parametrize(
+        "disabled_by_default,interval_value", ((False, 14400), (True, 0))
+    )
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    def test_does_not_run_if_disabled(
+        self, FakeConfig, caplog_text, disabled_by_default, interval_value
+    ):
+        cfg = FakeConfig()
+        if not disabled_by_default:
+            setattr(cfg, "day_job_timer", 0)
+
+        m_disabled_job = mock.Mock()
+
+        job = TimedJob("day_job", m_disabled_job, interval_value)
+        assert False is job.run(cfg)
+        assert 0 == m_disabled_job.call_count
 
 
 class TestTimer:
