@@ -3,8 +3,14 @@ import logging
 import mock
 import pytest
 
-from lib.timer import run_job, run_jobs
+from lib.timer import (
+    run_job,
+    run_jobs,
+    UPDATE_MESSAGING_INTERVAL,
+    UPDATE_STATUS_INTERVAL,
+)
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+from uaclient.jobs.update_state import update_status
 
 
 class TestRunJob:
@@ -55,16 +61,32 @@ class TestRunJobs:
                 {
                     "update_messaging": {
                         "next_run": now - datetime.timedelta(seconds=1)
-                    }
+                    },
+                    "update_status": {
+                        "next_run": now - datetime.timedelta(seconds=1)
+                    },
                 },
             )
         run_jobs(cfg=cfg, current_time=now)
-        next_run = now + datetime.timedelta(seconds=43200)
+        update_messaging_next_run = now + datetime.timedelta(
+            seconds=UPDATE_MESSAGING_INTERVAL
+        )
+        update_status_next_run = now + datetime.timedelta(
+            seconds=UPDATE_STATUS_INTERVAL
+        )
         jobs_status = {
             "update_messaging": {
                 "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "next_run": next_run.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-            }
+                "next_run": update_messaging_next_run.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%f"
+                ),
+            },
+            "update_status": {
+                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                "next_run": update_status_next_run.strftime(
+                    "%Y-%m-%dT%H:%M:%S.%f"
+                ),
+            },
         }
         assert jobs_status == cfg.read_cache("jobs-status")
         assert [
@@ -72,5 +94,8 @@ class TestRunJobs:
                 job_name="update_messaging",
                 job_func=update_apt_and_motd_messages,
                 cfg=cfg,
-            )
+            ),
+            mock.call(
+                job_name="update_status", job_func=update_status, cfg=cfg
+            ),
         ] == run_job.call_args_list
