@@ -677,6 +677,20 @@ def action_config_set(args, cfg, **kwargs):
         }
         kwargs[set_key[4:]] = set_value
         setup_apt_proxy(**kwargs)
+    elif set_key in (
+        "update_messaging_timer",
+        "update_status_timer",
+        "gcp_auto_attach_timer",
+    ):
+        try:
+            set_value = int(set_value)
+            if set_value < 0:
+                raise ValueError("Invalid interval for {}".format(set_key))
+        except ValueError:
+            subparser.print_help()
+            raise exceptions.UserFacingError(
+                "\n<value> for interval must be a positive integer."
+            )
     setattr(cfg, set_key, set_value)
 
 
