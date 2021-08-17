@@ -375,3 +375,109 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | cloud-init-dev-ubuntu-daily-xenial |
            | bionic  | cloud-init-dev-ubuntu-daily-bionic |
            | focal   | cloud-init-dev-ubuntu-daily-focal  |
+
+    @series.all
+    Scenario Outline: Run timer script on an attached machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua config set update_messaging_timer=-2` `with sudo` exits `1`
+        And stderr matches regexp:
+        """
+        <value> for interval must be a positive integer.
+        """
+        When I run `ua config show` with sudo
+        Then stdout matches regexp:
+        """
+        update_messaging_timer  +21600
+        update_status_timer     +43200
+        gcp_auto_attach_timer   +1800
+        """
+        When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout matches regexp:
+        """"
+        "update_messaging":
+        """
+        And stdout matches regexp:
+        """"
+        "update_status":
+        """
+        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I run `ua config set update_messaging_timer=0` with sudo
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout does not match regexp:
+        """"
+        "update_messaging":
+        """
+        And stdout matches regexp:
+        """"
+        "update_status":
+        """
+        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: https://contracts.canonical.com
+        data_dir: /var/lib/ubuntu-advantage
+        log_file: /var/log/ubuntu-advantage.log
+        log_level: debug
+        security_url: https://ubuntu.com/security
+        ua_config:
+          apt_http_proxy: null
+          apt_https_proxy: null
+          http_proxy: null
+          https_proxy: null
+          update_messaging_timer: 14400
+          update_status_timer: 0
+          gcp_auto_attach_timer: 10000
+        """
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout matches regexp:
+        """"
+        "update_messaging":
+        """
+        And stdout does not match regexp:
+        """"
+        "update_status":
+        """
+        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: https://contracts.canonical.com
+        data_dir: /var/lib/ubuntu-advantage
+        log_file: /var/log/ubuntu-advantage.log
+        log_level: debug
+        security_url: https://ubuntu.com/security
+        ua_config:
+          apt_http_proxy: null
+          apt_https_proxy: null
+          http_proxy: null
+          https_proxy: null
+          update_messaging_timer: -10
+          update_status_timer: notanumber
+          gcp_auto_attach_timer: null
+        """
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        Then stderr matches regexp:
+        """
+        Invalid value for update_messaging interval found in config.
+        """
+        And stderr matches regexp:
+        """
+        Invalid value for update_status interval found in config.
+        """
+        And stderr matches regexp:
+        """
+        Invalid value for gcp_auto_attach interval found in config.
+        """
+        And I verify that the timer interval for `update_messaging` is `21600`
+        And I verify that the timer interval for `update_status` is `43200`
+        And I verify that the timer interval for `gcp_auto_attach` is `1800`
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
+           | hirsute |
