@@ -321,6 +321,38 @@ class TestUaEntitlement:
         )
         assert reason.message is None
 
+    def test_can_enable_when_required_service_found(
+        self, concrete_entitlement_factory
+    ):
+        import uaclient.entitlements as ent
+
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(status.ApplicationStatus.DISABLED, ""),
+        )
+        base_ent._required_services = ["test"]
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.DISABLED,
+            "",
+        ]
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            ret, reason = base_ent.can_enable()
+
+        assert ret is False
+        assert (
+            reason.reason
+            == status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+        )
+        assert reason.message is None
+
     @pytest.mark.parametrize(
         "block_disable_on_enable,assume_yes",
         [(False, False), (False, True), (True, False), (True, True)],
@@ -383,13 +415,62 @@ class TestUaEntitlement:
         assert m_is_config_value_true.call_count == 1
         assert m_entitlement_obj.disable.call_count == expected_disable_call
 
+    @pytest.mark.parametrize("assume_yes", ((False), (True)))
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_enable_when_required_service_found(
+        self, m_prompt, assume_yes, concrete_entitlement_factory
+    ):
+        import uaclient.entitlements as ent
+
+        m_prompt.return_value = assume_yes
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            enable=True,
+            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(status.ApplicationStatus.DISABLED, ""),
+        )
+        base_ent._required_services = ["test"]
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.DISABLED,
+            "",
+        ]
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            ret, reason = base_ent.enable()
+
+        expected_prompt_call = 1
+
+        expected_ret = False
+        expected_reason = (
+            status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+        )
+        if assume_yes:
+            expected_ret = True
+            expected_reason = None
+        expected_enable_call = 1 if expected_ret else 0
+
+        assert ret == expected_ret
+        if expected_reason is None:
+            assert reason is None
+        else:
+            assert reason.reason == expected_reason
+        assert m_prompt.call_count == expected_prompt_call
+        assert m_entitlement_obj.enable.call_count == expected_enable_call
+
     @pytest.mark.parametrize(
-        "can_enable_fail,handle_incompat_calls",
+        "can_enable_fail,handle_incompat_calls,handle_req_calls",
         [
             (
                 status.CanEnableFailure(
                     status.CanEnableFailureReason.NOT_ENTITLED, message="msg"
                 ),
+                0,
                 0,
             ),
             (
@@ -398,9 +479,11 @@ class TestUaEntitlement:
                     message="msg",
                 ),
                 0,
+                0,
             ),
             (
                 status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
+                0,
                 0,
             ),
             (
@@ -408,14 +491,27 @@ class TestUaEntitlement:
                     status.CanEnableFailureReason.INAPPLICABLE, "msg"
                 ),
                 0,
+                0,
             ),
             (
                 status.CanEnableFailure(
                     status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
                 ),
                 1,
+                0,
+            ),
+            (
+                status.CanEnableFailure(
+                    status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+                ),
+                0,
+                1,
             ),
         ],
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.handle_required_services",
+        return_value=False,
     )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.handle_incompatible_services",  # noqa: E501
@@ -426,8 +522,10 @@ class TestUaEntitlement:
         self,
         m_can_enable,
         m_handle_incompat,
+        m_handle_required,
         can_enable_fail,
         handle_incompat_calls,
+        handle_req_calls,
         concrete_entitlement_factory,
     ):
         """When can_enable returns False enable returns False."""
@@ -439,6 +537,7 @@ class TestUaEntitlement:
 
         assert 1 == m_can_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count
+        assert handle_req_calls == m_handle_required.call_count
         assert 0 == entitlement._perform_enable.call_count
 
     @pytest.mark.parametrize(
