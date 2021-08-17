@@ -34,6 +34,7 @@ from uaclient.status import (
     CanEnableFailure,
     CanEnableFailureReason,
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
+    MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
 
@@ -59,6 +60,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # List of services that are incompatible with this service
     _incompatible_services = []  # type: "List[str]"
+
+    # List of services that must be active before enabling this service
+    _required_services = []  # type: "List[str]"
 
     @property
     @abc.abstractmethod
@@ -108,6 +112,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         Overridden in livepatch and fips
         """
         return self._incompatible_services
+
+    @property
+    def required_services(self) -> "List[str]":
+        """
+        Return a list of packages that must be active before enabling this
+        service. When we are enabling the entitlement we can directly ask
+        the user if those entitlements can be enabled before proceding.
+        Overridden in ROS
+        """
+        return self._required_services
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
@@ -167,10 +181,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 # this shouldn't happen, but if it does we shouldn't continue
                 return False, None
             elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
-                # this is the only reason that won't necessarily stop us from
-                # enabling
+                # Try to disable those services before proceeding with enable
                 handle_incompat_ret = self.handle_incompatible_services()
                 if not handle_incompat_ret:
+                    return False, fail
+            elif (
+                fail.reason
+                == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+            ):
+                # Try to enable those services before proceeding with enable
+                if not self.handle_required_services():
                     return False, fail
             else:
                 # every other reason means we can't continue
@@ -273,7 +293,35 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     ),
                 )
 
+        if self.required_services:
+            if not self.check_required_services_active():
+                return (
+                    False,
+                    CanEnableFailure(
+                        CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+                    ),
+                )
+
         return (True, None)
+
+    def check_required_services_active(self):
+        """
+        Check if all required services are active
+
+        :return:
+            True if all required services are active
+            False is at least one of the required services is disabled
+        """
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        for required_service in self.required_services:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(required_service)
+            if ent_cls:
+                ent_status, _ = ent_cls(self.cfg).application_status()
+                if ent_status != status.ApplicationStatus.ENABLED:
+                    return False
+
+        return True
 
     def detect_incompatible_services(self) -> bool:
         """
@@ -353,6 +401,55 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     logging.info(disable_msg)
 
                     ret = ent.disable()
+                    if not ret:
+                        return ret
+
+        return True
+
+    def handle_required_services(self) -> bool:
+        """
+        Prompt user when required services are found during enable.
+
+        When enabling a service, we may find that there are required services
+        that must be enabled first. In that situation, we can ask the user
+        if the required service should be enabled before proceeding.
+        """
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        for required_service in self.required_services:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(required_service)
+
+            if ent_cls:
+                ent = ent_cls(self.cfg)
+
+                is_service_disabled = (
+                    ent.application_status()[0]
+                    == status.ApplicationStatus.DISABLED
+                )
+
+                if is_service_disabled:
+                    user_msg = status.MESSAGE_REQUIRED_SERVICE.format(
+                        service_being_enabled=self.title,
+                        required_service=ent.title,
+                    )
+
+                    e_msg = MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE.format(
+                        service_being_enabled=self.title,
+                        required_service=ent.title,
+                    )
+
+                    if not util.prompt_for_confirmation(
+                        msg=user_msg, assume_yes=self.assume_yes
+                    ):
+                        print(e_msg)
+                        return False
+
+                    enable_msg = "Enabling required service: {}".format(
+                        ent.title
+                    )
+                    logging.info(enable_msg)
+
+                    ret = ent.enable()
                     if not ret:
                         return ret
 
