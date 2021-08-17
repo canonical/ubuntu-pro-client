@@ -118,6 +118,7 @@ class CanEnableFailureReason(enum.Enum):
     INAPPLICABLE = object()
     IS_BETA = object()
     INCOMPATIBLE_SERVICE = object()
+    INACTIVE_REQUIRED_SERVICES = object()
 
 
 class CanEnableFailure:
@@ -437,8 +438,17 @@ MESSAGE_INCOMPATIBLE_SERVICE = """\
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
 
+MESSAGE_REQUIRED_SERVICE = """\
+{service_being_enabled} cannot be enabled with {required_service} disabled.
+Enable {required_service} and proceed to enable {service_being_enabled}? \
+(y/N) """
+
 MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {incompatible_service} is enabled.
+"""
+
+MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE = """\
+Cannot enable {service_being_enabled} when {required_service} is disabled.
 """
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = (
