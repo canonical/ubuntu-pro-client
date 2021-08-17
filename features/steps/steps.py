@@ -557,6 +557,23 @@ def verify_package_is_installed_from_apt_source(context, package, apt_source):
     )
 
 
+@then("I verify that the timer interval for `{job}` is `{interval}`")
+def verify_timer_interval_for_job(context, job, interval):
+    when_i_run_command(
+        context, "cat /var/lib/ubuntu-advantage/jobs-status.json", "with sudo"
+    )
+    jobs_status = json.loads(context.process.stdout.strip())
+    last_run = datetime.datetime.strptime(
+        jobs_status[job]["last_run"], "%Y-%m-%dT%H:%M:%S.%f"
+    )
+    next_run = datetime.datetime.strptime(
+        jobs_status[job]["next_run"], "%Y-%m-%dT%H:%M:%S.%f"
+    )
+    run_diff = next_run - last_run
+
+    assert_that(run_diff.seconds, equal_to(int(interval)))
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
