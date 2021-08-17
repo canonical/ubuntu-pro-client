@@ -1,6 +1,4 @@
-import json
 import logging
-import os
 
 from enum import Enum
 
@@ -15,10 +13,6 @@ try:
 except ImportError:
     # typing isn't available on trusty, so ignore its absence
     pass
-
-# Needed for Trusty-only
-CLOUDINIT_RESULT_FILE = "/var/lib/cloud/data/result.json"
-CLOUDINIT_INSTANCE_ID_FILE = "/var/lib/cloud/data/instance-id"
 
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
@@ -40,29 +34,16 @@ class NoCloudTypeReason(Enum):
     CLOUD_ID_ERROR = 1
 
 
-def get_instance_id(
-    _iid_file: str = CLOUDINIT_INSTANCE_ID_FILE,
-) -> "Optional[str]":
-    """Query cloud instance-id from cmdline or CLOUDINIT_INSTANCE_ID_FILE"""
-    if "trusty" != util.get_platform_info()["series"]:
+def get_instance_id() -> "Optional[str]":
+    """Query cloud instance-id from cmdline."""
+    try:
         # Present in cloud-init on >= Xenial
         out, _err = util.subp(["cloud-init", "query", "instance_id"])
         return out.strip()
-    if os.path.exists(_iid_file):
-        return util.load_file(_iid_file)
-    logging.warning(
-        "Unable to determine current instance-id from %s", _iid_file
-    )
+    except util.ProcessExecutionError:
+        pass
+    logging.warning("Unable to determine current instance-id")
     return None
-
-
-def get_cloud_type_from_result_file(
-    result_file: str = CLOUDINIT_RESULT_FILE,
-) -> str:
-    result = json.loads(util.load_file(result_file))
-    dsname = result["v1"]["datasource"].split()[0].lower()
-    dsname = dsname.replace("datasource", "")
-    return DATASOURCE_TO_CLOUD_ID.get(dsname, dsname)
 
 
 @apply_config_settings_override("cloud_type")
@@ -74,10 +55,7 @@ def get_cloud_type() -> "Tuple[Optional[str], Optional[NoCloudTypeReason]]":
             return (out.strip(), None)
         except util.ProcessExecutionError:
             return (None, NoCloudTypeReason.CLOUD_ID_ERROR)
-    try:
-        return (get_cloud_type_from_result_file(), None)
-    except FileNotFoundError:
-        pass
+    # If no cloud-id command, assume not on cloud
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
 
 
