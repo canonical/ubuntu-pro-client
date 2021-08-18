@@ -44,6 +44,7 @@ fips          no        {dash}         NIST-certified core packages
 fips-updates  no        {dash}         NIST-certified core packages with\
  priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
+esm-ros       no        {dash}         ROS ESM Service
 {notices}
 Enable services with: ua enable <service>
 
@@ -72,7 +73,7 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
-BETA_SVC_NAMES = ["cc-eal", "esm-apps"]
+BETA_SVC_NAMES = ["cc-eal", "esm-apps", "esm-ros"]
 
 SERVICES_JSON_ALL = [
     {
@@ -136,6 +137,15 @@ SERVICES_JSON_ALL = [
         "description_override": None,
         "entitled": "no",
         "name": "livepatch",
+        "status": "—",
+        "status_details": "",
+        "available": "yes",
+    },
+    {
+        "description": "ROS ESM Service",
+        "description_override": None,
+        "entitled": "no",
+        "name": "esm-ros",
         "status": "—",
         "status_details": "",
         "available": "yes",
