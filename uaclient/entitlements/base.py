@@ -35,6 +35,7 @@ from uaclient.status import (
     CanEnableFailureReason,
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
     MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE,
+    MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
 )
 from uaclient.defaults import DEFAULT_HELP_FILE
 
@@ -63,6 +64,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # List of services that must be active before enabling this service
     _required_services = []  # type: "List[str]"
+
+    # List of services that depend on this service
+    _dependent_services = []  # type: List[str]
 
     @property
     @abc.abstractmethod
@@ -119,9 +123,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
         the user if those entitlements can be enabled before proceding.
-        Overridden in ROS
+        Overridden in esm-ros
         """
         return self._required_services
+
+    @property
+    def dependent_services(self) -> "List[str]":
+        """
+        Return a list of packages that depend on this service.
+        We will use that list during disable operations, where
+        a disable operation will also disable all of the services
+        required by the original service
+        Overriden in esm-apps and esm-infra
+        """
+        return self._dependent_services
 
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
@@ -541,6 +556,83 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ApplicabilityStatus.APPLICABLE, ""
 
     @abc.abstractmethod
+    def _perform_disable(self, silent: bool = False) -> bool:
+        """
+        Disable specific entitlement. This should be implemented by subclasses.
+        This method does the actual disable, and does not check can_disable
+        or handle pre_disable or post_disable messaging.
+
+        @return: True on success, False otherwise.
+
+        @param silent: Boolean set True to silence print/log of messages
+
+        @return: True on success, False otherwise.
+        """
+        pass
+
+    def _disable_dependent_services(self):
+        """
+        Disable dependent services
+
+        When performing a disable operation, we might have
+        other services that depend on the original services.
+        If that is true, we will alert the user about this
+        and prompt for confirmation to disable these services
+        as well.
+        """
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        for dependent_service in self.dependent_services:
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(dependent_service)
+
+            if ent_cls:
+                ent = ent_cls(self.cfg)
+
+                is_service_enabled = (
+                    ent.application_status()[0]
+                    == status.ApplicationStatus.ENABLED
+                )
+
+                if is_service_enabled:
+                    user_msg = status.MESSAGE_DEPENDENT_SERVICE.format(
+                        dependent_service=ent.title,
+                        service_being_disabled=self.title,
+                    )
+
+                    e_msg = MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE.format(
+                        service_being_disabled=self.title,
+                        dependent_service=ent.title,
+                    )
+
+                    if not util.prompt_for_confirmation(
+                        msg=user_msg, assume_yes=self.assume_yes
+                    ):
+                        print(e_msg)
+                        return False
+
+                    disable_msg = "Disabling dependent service: {}".format(
+                        ent.title
+                    )
+                    logging.info(disable_msg)
+
+                    ret = ent.disable()
+                    if not ret:
+                        return ret
+
+        return True
+
+    def _check_for_reboot_msg(self, operation: str) -> None:
+        """Check if user should be alerted that a reboot must be performed.
+
+        @param operation: The operation being executed.
+        """
+        if util.should_reboot():
+            print(
+                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation=operation
+                )
+            )
+
     def disable(self, silent: bool = False) -> bool:
         """Disable specific entitlement
 
@@ -548,7 +640,23 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         @return: True on success, False otherwise.
         """
-        pass
+        msg_ops = self.messaging.get("pre_disable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False
+        if not self.can_disable(silent):
+            return False
+        if not self._disable_dependent_services():
+            return False
+
+        if not self._perform_disable():
+            return False
+
+        msg_ops = self.messaging.get("post_disable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False
+        self._check_for_reboot_msg(operation="disable operation")
+
+        return True
 
     def contract_status(self) -> ContractStatus:
         """Return whether the user is entitled to the entitlement or not"""

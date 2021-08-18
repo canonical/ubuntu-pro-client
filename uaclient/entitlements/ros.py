@@ -8,3 +8,4 @@ class ROSESMEntitlement(repo.RepoEntitlement):
     description = "ROS ESM Service"
     repo_key_file = "ubuntu-advantage-esm-ros.gpg"
     is_beta = True
+    _required_services = ["esm-infra", "esm-apps"]

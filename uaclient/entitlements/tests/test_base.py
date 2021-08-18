@@ -37,14 +37,14 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._applicability_status = applicability_status
         self._application_status = application_status
 
-    def disable(self):
+    def _perform_disable(self, **kwargs):
         self._application_status = (
             status.ApplicationStatus.DISABLED,
             "disable() called",
         )
         return self._disable
 
-    def _perform_enable(self):
+    def _perform_enable(self, **kwargs):
         return self._enable
 
     def applicability_status(self):
@@ -63,7 +63,8 @@ def concrete_entitlement_factory(tmpdir):
         application_status: "Tuple[status.ApplicationStatus, str]" = None,
         feature_overrides: "Optional[Dict[str, str]]" = None,
         allow_beta: bool = False,
-        enable: bool = False
+        enable: bool = False,
+        disable: bool = False
     ) -> ConcreteTestEntitlement:
         cfg = config.UAConfig(cfg={"data_dir": tmpdir.strpath})
         machineToken = {
@@ -90,6 +91,7 @@ def concrete_entitlement_factory(tmpdir):
             application_status=application_status,
             allow_beta=allow_beta,
             enable=enable,
+            disable=disable,
         )
 
     return factory
@@ -102,8 +104,8 @@ class TestUaEntitlement:
             base.UAEntitlement()
         expected_msg = (
             "Can't instantiate abstract class UAEntitlement with abstract"
-            " methods _perform_enable, application_status, description,"
-            " disable, name, title"
+            " methods _perform_disable, _perform_enable, application_status,"
+            " description, name, title"
         )
         assert expected_msg == str(excinfo.value)
 
@@ -676,6 +678,42 @@ class TestUaEntitlement:
             assert 1 == m_enable.call_count
 
         assert entitlement.allow_beta
+
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_disable_when_dependent_service_found(
+        self, m_prompt, concrete_entitlement_factory
+    ):
+        import uaclient.entitlements as ent
+
+        m_prompt.return_value = True
+        base_ent = concrete_entitlement_factory(
+            entitled=True,
+            disable=True,
+            application_status=(status.ApplicationStatus.ENABLED, ""),
+        )
+        base_ent._dependent_services = ["test"]
+
+        m_entitlement_cls = mock.MagicMock()
+        m_entitlement_obj = m_entitlement_cls.return_value
+        m_entitlement_obj.application_status.return_value = [
+            status.ApplicationStatus.ENABLED,
+            "",
+        ]
+        m_entitlement_obj.disable.return_value = True
+        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+
+        with mock.patch.object(
+            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        ):
+            ret = base_ent.disable()
+
+        expected_prompt_call = 1
+        expected_ret = True
+        expected_disable_call = 1
+
+        assert ret == expected_ret
+        assert m_prompt.call_count == expected_prompt_call
+        assert m_entitlement_obj.disable.call_count == expected_disable_call
 
 
 class TestUaEntitlementUserFacingStatus:
