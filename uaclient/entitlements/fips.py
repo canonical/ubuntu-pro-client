@@ -112,7 +112,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     )
                 )
 
-    def check_for_reboot_msg(self, operation: str) -> None:
+    def _check_for_reboot_msg(self, operation: str) -> None:
         """Check if user should be alerted that a reboot must be performed.
 
         @param operation: The operation being executed.

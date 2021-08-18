@@ -11,6 +11,7 @@ except ImportError:
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
+    _dependent_services = ["esm-ros"]
 
     def _perform_enable(self) -> bool:
         enable_performed = super()._perform_enable()
