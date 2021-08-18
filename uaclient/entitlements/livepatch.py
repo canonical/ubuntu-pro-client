@@ -274,13 +274,11 @@ class LivepatchEntitlement(base.UAEntitlement):
             print("Canonical livepatch enabled.")
         return True
 
-    def disable(self, silent=False):
+    def _perform_disable(self, silent=False):
         """Disable specific entitlement
 
         @return: True on success, False otherwise.
         """
-        if not self.can_disable(silent):
-            return False
         if not util.which("/snap/bin/canonical-livepatch"):
             return True
         util.subp(["/snap/bin/canonical-livepatch", "disable"], capture=True)

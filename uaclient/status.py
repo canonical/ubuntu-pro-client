@@ -443,12 +443,21 @@ MESSAGE_REQUIRED_SERVICE = """\
 Enable {required_service} and proceed to enable {service_being_enabled}? \
 (y/N) """
 
+MESSAGE_DEPENDENT_SERVICE = """\
+{dependent_service} depends on {service_being_disabled}.
+Disable {dependent_service} and proceed to disable {service_being_disabled}? \
+(y/N) """
+
 MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {incompatible_service} is enabled.
 """
 
 MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {required_service} is disabled.
+"""
+
+MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE = """\
+Cannot disable {service_being_disabled} when {dependent_service} is enabled.
 """
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = (
