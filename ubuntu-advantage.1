@@ -89,6 +89,39 @@ The possible values are \fIyes\fR or \fIno\fR.
 Show version of the Ubuntu Advantage package.
 
 
+.SH TIMER JOBS
+UA client sets up a systemd timer to run jobs that need to be executed
+recurrently. The timer itself ticks every 5 minutes on average, and decides
+which jobs need to be executed based on their intervals.
+
+Jobs are executed by the timer script if the script has not yet run
+successfully, or their interval since last successful run is already exceeded.
+There is a random delay applied to the timer, to desynchronize job execution
+time on machines spinned at the same time, avoiding multiple synchronized
+calls to the same service.
+
+Current jobs being checked and executed are:
+.TP
+.B
+\fBupdate_messaging\fP
+Makes sure that the MOTD and APT messages match the available/enabled services
+on the system, showing information about available packages or security
+updates.
+.TP
+.B
+\fBupdate_status\fP
+Makes sure the `ua status` command will have the latest information even when
+executed by a non-root user, updating the
+\fB/var/lib/ubuntu-advantage/status.json\fP file.
+.TP
+.B
+\fBgcp_auto_attach\fP
+Only operable on Google Cloud Platform (GCP) generic Ubuntu VMs without an
+active Ubuntu Advantage license. It polls GCP metadata every 5 minutes to
+discover if a license has been attached to the VM through Google Cloud and will
+perform `ua auto-attach` in that case.
+
+
 .SH CONFIGURATION
 By default, Ubuntu Advantage client configuration options are read from
 \fB/etc/ubuntu-advantage/uaclient.conf\fB.
@@ -136,6 +169,11 @@ config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
 \fBapt_https_proxy\fP
 If set, ua will configure apt to use the specified https proxy by writing a apt
 config file to /etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy
+.TP
+.B
+\fB<job_name>_timer\fP
+Sets the timer running interval for a specific job. Those intervals are checked
+every time the systemd timer runs.
 
 .P
 If needed, authentication to the proxy server can be performed by setting

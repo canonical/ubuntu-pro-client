@@ -141,6 +141,49 @@ by a string formatted as:
 
 `<protocol>://[<username>:<password>@]<fqdn>:<port>`
 
+### Timer jobs
+UA client sets up a systemd timer to run jobs that need to be executed recurrently.
+The timer itself ticks every 5 minutes on average, and decides which jobs need
+to be executed based on their _intervals_.
+
+Jobs are executed by the timer script if:
+- The script has not yet run successfully, or
+- Their interval since last successful run is already exceeded.
+
+There is a random delay applied to the timer, to desynchronize job execution time
+on machines spinned at the same time, avoiding multiple synchronized calls to the
+same service.
+
+Current jobs being checked and executed are:
+
+| Job | Description | Interval |
+| --- | ----------- | -------- |
+| update_messaging | Update MOTD and APT messages | 6 hours |
+| update_status | Update UA status | 12 hours |
+| gcp_auto_attach | Try to auto-attach on a GCP instance | 30 minutes |
+
+- The `update_messaging` job makes sure that the MOTD and APT messages match the
+available/enabled services on the system, showing information about available
+packages or security updates. See [MOTD messages](#motd-messages).
+- The `update_status` job makes sure the `ua status` command will have the latest
+information even when executed by a non-root user, updating the
+`/var/lib/ubuntu-advantage/status.json` file.
+- The `gcp_auto_attach` job is only operable on Google Cloud Platform (GCP) generic
+Ubuntu VMs without an active Ubuntu Advantage license. It polls GCP metadata every 5
+minutes to discover if a license has been attached to the VM through Google Cloud and
+will perform `ua auto-attach` in that case.
+
+The timer intervals can be changed using the `ua config set` command.
+```bash
+# Make the update_status job run hourly
+$ sudo ua config set update_status_timer=3600
+```
+Setting an interval to zero disables the job.
+```bash
+# Disable the update_status job
+$ sudo ua config set update_status_timer=0
+```
+
 ## Directory layout
 The following describes the intent of UA client related directories:
 
@@ -413,11 +456,12 @@ ua version
 # Make apt aware of the ESM source files
 sudo apt update
 # Generates ubuntu-advantage-tools messages that should be delivered to MOTD
-# This script is triggered by a systemd timer twice a day. To test it, we need
+# This script is triggered by the systemd timer 4 times a day. To test it, we need
 # to enforce that it was already executed.
 sudo systemctl start ua-timer.service
 # Force updating MOTD messages related to update-notifier
-/usr/lib/update-notifier/update-motd-updates-available --force
+sudo rm /var/lib/ubuntu-advantage/jobs-status.json
+sudo python3 /usr/lib/ubuntu-advantage/timer.py
 # Update MOTD and display the message
 run-parts /etc/update-motd.d/
 ```
