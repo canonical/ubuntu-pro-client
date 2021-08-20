@@ -51,6 +51,7 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>    +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-ros       <ros>      +ROS Extended Security Maintenance \(ESM\)
             fips          <fips>     +NIST-certified core packages
             fips-updates  <fips>     +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
@@ -79,6 +80,7 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-ros       <ros>       +ROS Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
@@ -99,6 +101,7 @@ Feature: Unattached status
             cis           <cis>      +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            esm-ros       <ros>       +ROS Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
@@ -108,8 +111,8 @@ Feature: Unattached status
             """ 
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update | infra | livepatch |
-           | bionic  | yes      | no     | yes | yes  | yes         | yes   | yes       |
-           | focal   | yes      | no     | yes | yes  | yes         | yes   | yes       |
-           | xenial  | yes      | yes    | yes | yes  | yes         | yes   | yes       |
-           | hirsute | no       | no     | no  | no   | no          | no    | no        |
+           | release | esm-apps | cc-eal | cis | fips | fips-update | infra | ros | livepatch |
+           | bionic  | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
+           | focal   | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
+           | xenial  | yes      | yes    | yes | yes  | yes         | yes   | yes | yes       |
+           | hirsute | no       | no     | no  | no   | no          | no    | no  | no        |
