@@ -16,6 +16,7 @@ Feature: UA Install and Uninstall related tests
 
     @series.lts
     @uses.config.contract_token
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Purge package after attaching it to a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

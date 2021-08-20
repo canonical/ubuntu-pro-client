@@ -2,6 +2,7 @@
 Feature: Proxy configuration
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
@@ -229,6 +230,7 @@ Feature: Proxy configuration
            | bionic  |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when authenticated proxy is configured
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I launch a `focal` `proxy` machine
