@@ -114,7 +114,7 @@ class TestActionDetach:
         disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
         if expect_disable:
             assert [
-                mock.call(silent=True)
+                mock.call(silent=False)
             ] == disabled_cls.return_value.disable.call_args_list
             assert 0 == return_code
         else:

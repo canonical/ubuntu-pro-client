@@ -482,6 +482,20 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
     assert str(context.process.returncode) in expected_codes
 
 
+@when(
+    "I verify that running `{cmd_name}` `{spec}` and stdin `{stdin}` exits `{exit_codes}`"  # noqa
+)
+def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
+    context, cmd_name, spec, stdin, exit_codes
+):
+    when_i_run_command(
+        context, cmd_name, spec, stdin=stdin, verify_return=False
+    )
+
+    expected_codes = exit_codes.split(",")
+    assert str(context.process.returncode) in expected_codes
+
+
 @when("I verify that running `{cmd_name}` `{spec}` exits `{exit_codes}`")
 def when_i_verify_that_running_cmd_with_spec_exits_with_codes(
     context, cmd_name, spec, exit_codes
