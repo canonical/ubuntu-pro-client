@@ -2,6 +2,7 @@
 Feature: Command behaviour when attached to an UA subscription
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached refresh in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -35,6 +36,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -58,6 +60,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -96,6 +99,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -137,6 +141,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | yes      | yes    | yes | yes  | yes         |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached auto-attach in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -159,6 +164,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached show version in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -179,6 +185,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine with feature overrides
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/tmp/machine-token-overlay.json` with the following:
@@ -228,6 +235,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -261,6 +269,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Help command on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -353,6 +362,7 @@ Feature: Command behaviour when attached to an UA subscription
            | hirsute | n/a          |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Enable command with invalid repositories in user machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

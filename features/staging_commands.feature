@@ -2,6 +2,7 @@
 Feature: Enable command behaviour when attached to an UA staging subscription
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable esm-apps on a machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo

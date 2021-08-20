@@ -2,6 +2,7 @@
 Feature: Attached status
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

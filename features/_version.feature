@@ -26,6 +26,7 @@ Feature: UA is expected version
 
     @series.all
     @uses.config.check_version
+    @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Check ua version
         Given a `<release>` machine with ubuntu-advantage-tools installed
