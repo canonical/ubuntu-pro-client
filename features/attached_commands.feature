@@ -73,7 +73,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, esm-ros, fips, fips-updates, livepatch.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -124,6 +124,7 @@ Feature: Command behaviour when attached to an UA subscription
            cis           +<cis>      +Center for Internet Security Audit Tools
            esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
            esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
+           esm-ros       +<ros>      +ROS Extended Security Maintenance \(ESM\)
            fips          +<fips>     +NIST-certified core packages
            fips-updates  +<fips>     +NIST-certified core packages with priority security updates
            livepatch     +yes        +Canonical Livepatch service
@@ -135,10 +136,10 @@ Feature: Command behaviour when attached to an UA subscription
        And I verify that running `apt update` `with sudo` exits `0`
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update |
-           | bionic  | yes      | no     | yes | yes  | yes         |
-           | focal   | yes      | no     | yes | yes  | yes         |
-           | xenial  | yes      | yes    | yes | yes  | yes         |
+           | release | esm-apps | cc-eal | cis | fips | fips-update | ros |
+           | bionic  | yes      | no     | yes | yes  | yes         | no  |
+           | focal   | yes      | no     | yes | yes  | yes         | no  |
+           | xenial  | yes      | yes    | yes | yes  | yes         | yes |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -254,7 +255,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, esm-ros, fips, fips-updates, livepatch.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -346,6 +347,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
+         - esm-ros: ROS Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/robotics/ros-esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages

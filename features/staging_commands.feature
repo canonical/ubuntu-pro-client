@@ -90,3 +90,79 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | bionic  | bundler  |
            | focal   | ant      |
            | xenial  | jq       |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable esm-ros on a machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I run `ua status --all` as non-root
+        Then stdout matches regexp
+        """
+        esm-ros       yes                enabled            ROS Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        """
+        When I verify that running `ua disable esm-apps` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp
+        """
+        ROS ESM depends on UA Apps: ESM.
+        Disable ROS ESM and proceed to disable UA Apps: ESM\? \(y\/N\) Cannot disable UA Apps: ESM when ROS ESM is enabled.
+        """
+        When I run `ua disable esm-apps` `with sudo` and stdin `y`
+        Then stdout matches regexp
+        """
+        ROS ESM depends on UA Apps: ESM.
+        Disable ROS ESM and proceed to disable UA Apps: ESM\? \(y\/N\) Disabling dependent service: ROS ESM
+        Updating package lists
+        """
+        When I run `ua status --all` as non-root
+        Then stdout matches regexp
+        """
+        esm-ros       yes                disabled           ROS Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-apps      yes                disabled           UA Apps: Extended Security Maintenance \(ESM\)
+        """
+        When I verify that running `ua enable esm-ros --beta` `with sudo` and stdin `N` exits `1`
+        Then stdout matches regexp
+        """
+        ROS ESM cannot be enabled with UA Apps: ESM disabled.
+        Enable UA Apps: ESM and proceed to enable ROS ESM\? \(y\/N\) Cannot enable ROS ESM when UA Apps: ESM is disabled.
+        """
+        When I run `ua enable esm-ros --beta` `with sudo` and stdin `y`
+        Then stdout matches regexp
+        """
+        One moment, checking your subscription first
+        ROS ESM cannot be enabled with UA Apps: ESM disabled.
+        Enable UA Apps: ESM and proceed to enable ROS ESM\? \(y\/N\) Enabling required service: UA Apps: ESM
+        UA Apps: ESM enabled
+        Updating package lists
+        ROS ESM enabled
+        """
+        When I run `ua status --all` as non-root
+        Then stdout matches regexp
+        """
+        esm-ros       yes                enabled            ROS Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        """
+        When I run `apt install python3-catkin-pkg -y` with sudo
+        Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-source>`
+
+        Examples: ubuntu release
+           | release | ros-source                                                    |
+           | xenial  | https://esm.staging.ubuntu.com/ros/ubuntu xenial-updates/main |
