@@ -77,13 +77,13 @@ class RepoEntitlement(base.UAEntitlement):
     def repo_key_file(self) -> str:
         pass
 
-    def _perform_enable(self) -> bool:
+    def _perform_enable(self, silent: bool = False) -> bool:
         """Enable specific entitlement.
 
         @return: True on success, False otherwise.
         @raises: UserFacingError on failure to install suggested packages
         """
-        self.setup_apt_config()
+        self.setup_apt_config(silent=silent)
         if self.packages:
             msg_ops = self.messaging.get("pre_install", [])
             if not util.handle_message_operations(msg_ops):
@@ -96,12 +96,12 @@ class RepoEntitlement(base.UAEntitlement):
     def _perform_disable(self, silent=False):
         if hasattr(self, "remove_packages"):
             self.remove_packages()
-        self._cleanup()
+        self._cleanup(silent=silent)
         return True
 
-    def _cleanup(self) -> None:
+    def _cleanup(self, silent: bool = False) -> None:
         """Clean up the entitlement without checks or messaging"""
-        self.remove_apt_config()
+        self.remove_apt_config(silent=silent)
 
     def application_status(self) -> "Tuple[ApplicationStatus, str]":
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
@@ -245,7 +245,7 @@ class RepoEntitlement(base.UAEntitlement):
                 self._cleanup()
             raise
 
-    def setup_apt_config(self) -> None:
+    def setup_apt_config(self, silent: bool = False) -> None:
         """Setup apt config based on the resourceToken and directives.
         Also sets up apt proxy if necessary.
 
@@ -330,11 +330,12 @@ class RepoEntitlement(base.UAEntitlement):
             prerequisite_pkgs.append("ca-certificates")
 
         if prerequisite_pkgs:
-            print(
-                "Installing prerequisites: {}".format(
-                    ", ".join(prerequisite_pkgs)
+            if not silent:
+                print(
+                    "Installing prerequisites: {}".format(
+                        ", ".join(prerequisite_pkgs)
+                    )
                 )
-            )
             try:
                 apt.run_apt_command(
                     ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
@@ -350,7 +351,8 @@ class RepoEntitlement(base.UAEntitlement):
         # probably wants access to the repo that was just enabled.
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
-        print(status.MESSAGE_APT_UPDATING_LISTS)
+        if not silent:
+            print(status.MESSAGE_APT_UPDATING_LISTS)
         try:
             apt.run_apt_command(
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
@@ -359,7 +361,9 @@ class RepoEntitlement(base.UAEntitlement):
             self.remove_apt_config(run_apt_update=False)
             raise
 
-    def remove_apt_config(self, run_apt_update=True):
+    def remove_apt_config(
+        self, run_apt_update: bool = True, silent: bool = False
+    ):
         """Remove any repository apt configuration files.
 
         :param run_apt_update: If after removing the apt update
@@ -397,7 +401,8 @@ class RepoEntitlement(base.UAEntitlement):
                 os.unlink(repo_pref_file)
 
         if run_apt_update:
-            print(status.MESSAGE_APT_UPDATING_LISTS)
+            if not silent:
+                print(status.MESSAGE_APT_UPDATING_LISTS)
             apt.run_apt_command(
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
             )

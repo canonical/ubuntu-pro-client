@@ -60,13 +60,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     _help_info = None  # type: str
 
     # List of services that are incompatible with this service
-    _incompatible_services = []  # type: "List[str]"
+    _incompatible_services = ()  # type: "Tuple[str, ...]"
 
     # List of services that must be active before enabling this service
-    _required_services = []  # type: "List[str]"
+    _required_services = ()  # type: "Tuple[str, ...]"
 
     # List of services that depend on this service
-    _dependent_services = []  # type: List[str]
+    _dependent_services = ()  # type: Tuple[str, ...]
 
     @property
     @abc.abstractmethod
@@ -108,7 +108,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ()
 
     @property
-    def incompatible_services(self) -> "List[str]":
+    def incompatible_services(self) -> "Tuple[str, ...]":
         """
         Return a list of packages that aren't compatible with the entitlement.
         When we are enabling the entitlement we can directly ask the user
@@ -118,7 +118,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._incompatible_services
 
     @property
-    def required_services(self) -> "List[str]":
+    def required_services(self) -> "Tuple[str, ...]":
         """
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
@@ -128,7 +128,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._required_services
 
     @property
-    def dependent_services(self) -> "List[str]":
+    def dependent_services(self) -> "Tuple[str, ...]":
         """
         Return a list of packages that depend on this service.
         We will use that list during disable operations, where
@@ -177,7 +177,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     # using Union instead of Optional here to signal that it may expand to
     # support additional reason types in the future.
-    def enable(self) -> Tuple[bool, Union[None, CanEnableFailure]]:
+    def enable(
+        self, silent: bool = False
+    ) -> Tuple[bool, Union[None, CanEnableFailure]]:
         """Enable specific entitlement.
 
         @return: tuple of (success, optional reason)
@@ -205,13 +207,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
             ):
                 # Try to enable those services before proceeding with enable
-                if not self.handle_required_services():
+                if not self._enable_required_services():
                     return False, fail
             else:
                 # every other reason means we can't continue
                 return False, fail
 
-        ret = self._perform_enable()
+        ret = self._perform_enable(silent=silent)
         if not ret:
             return False, None
 
@@ -222,7 +224,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True, None
 
     @abc.abstractmethod
-    def _perform_enable(self) -> bool:
+    def _perform_enable(self, silent: bool = False) -> bool:
         """
         Enable specific entitlement. This should be implemented by subclasses.
         This method does the actual enablement, and does not check can_enable
@@ -421,7 +423,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
-    def handle_required_services(self) -> bool:
+    def _enable_required_services(self) -> bool:
         """
         Prompt user when required services are found during enable.
 
@@ -432,41 +434,35 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         for required_service in self.required_services:
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(required_service)
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME[required_service]
+            ent = ent_cls(self.cfg, allow_beta=True)
 
-            if ent_cls:
-                ent = ent_cls(self.cfg)
+            is_service_disabled = (
+                ent.application_status()[0]
+                == status.ApplicationStatus.DISABLED
+            )
 
-                is_service_disabled = (
-                    ent.application_status()[0]
-                    == status.ApplicationStatus.DISABLED
+            if is_service_disabled:
+                user_msg = status.MESSAGE_REQUIRED_SERVICE.format(
+                    service_being_enabled=self.title,
+                    required_service=ent.title,
                 )
 
-                if is_service_disabled:
-                    user_msg = status.MESSAGE_REQUIRED_SERVICE.format(
-                        service_being_enabled=self.title,
-                        required_service=ent.title,
-                    )
+                e_msg = MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE.format(
+                    service_being_enabled=self.title,
+                    required_service=ent.title,
+                )
 
-                    e_msg = MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE.format(
-                        service_being_enabled=self.title,
-                        required_service=ent.title,
-                    )
+                if not util.prompt_for_confirmation(
+                    msg=user_msg, assume_yes=self.assume_yes
+                ):
+                    print(e_msg)
+                    return False
 
-                    if not util.prompt_for_confirmation(
-                        msg=user_msg, assume_yes=self.assume_yes
-                    ):
-                        print(e_msg)
-                        return False
-
-                    enable_msg = "Enabling required service: {}".format(
-                        ent.title
-                    )
-                    logging.info(enable_msg)
-
-                    ret = ent.enable()
-                    if not ret:
-                        return ret
+                print("Enabling required service: {}".format(ent.title))
+                ret, _ = ent.enable(silent=True)
+                if not ret:
+                    return ret
 
         return True
 
@@ -562,8 +558,6 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         This method does the actual disable, and does not check can_disable
         or handle pre_disable or post_disable messaging.
 
-        @return: True on success, False otherwise.
-
         @param silent: Boolean set True to silence print/log of messages
 
         @return: True on success, False otherwise.
@@ -583,41 +577,34 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         for dependent_service in self.dependent_services:
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(dependent_service)
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME[dependent_service]
+            ent = ent_cls(self.cfg)
 
-            if ent_cls:
-                ent = ent_cls(self.cfg)
+            is_service_enabled = (
+                ent.application_status()[0] == status.ApplicationStatus.ENABLED
+            )
 
-                is_service_enabled = (
-                    ent.application_status()[0]
-                    == status.ApplicationStatus.ENABLED
+            if is_service_enabled:
+                user_msg = status.MESSAGE_DEPENDENT_SERVICE.format(
+                    dependent_service=ent.title,
+                    service_being_disabled=self.title,
                 )
 
-                if is_service_enabled:
-                    user_msg = status.MESSAGE_DEPENDENT_SERVICE.format(
-                        dependent_service=ent.title,
-                        service_being_disabled=self.title,
-                    )
+                e_msg = MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE.format(
+                    service_being_disabled=self.title,
+                    dependent_service=ent.title,
+                )
 
-                    e_msg = MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE.format(
-                        service_being_disabled=self.title,
-                        dependent_service=ent.title,
-                    )
+                if not util.prompt_for_confirmation(
+                    msg=user_msg, assume_yes=self.assume_yes
+                ):
+                    print(e_msg)
+                    return False
 
-                    if not util.prompt_for_confirmation(
-                        msg=user_msg, assume_yes=self.assume_yes
-                    ):
-                        print(e_msg)
-                        return False
-
-                    disable_msg = "Disabling dependent service: {}".format(
-                        ent.title
-                    )
-                    logging.info(disable_msg)
-
-                    ret = ent.disable()
-                    if not ret:
-                        return ret
+                print("Disabling dependent service: {}".format(ent.title))
+                ret = ent.disable(silent=True)
+                if not ret:
+                    return ret
 
         return True
 
@@ -648,7 +635,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not self._disable_dependent_services():
             return False
 
-        if not self._perform_disable():
+        if not self._perform_disable(silent=silent):
             return False
 
         msg_ops = self.messaging.get("post_disable", [])

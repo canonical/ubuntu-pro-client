@@ -144,7 +144,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             ),
         )
 
-    def _perform_enable(self) -> bool:
+    def _perform_enable(self, silent: bool = False) -> bool:
         """Enable specific entitlement.
 
         @return: True on success, False otherwise.
