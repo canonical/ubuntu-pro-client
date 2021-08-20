@@ -3,6 +3,7 @@ Feature: Upgrade between releases when uaclient is attached
 
     @series.focal
     @series.hirsute
+    @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -43,6 +44,7 @@ Feature: Upgrade between releases when uaclient is attached
 
     @series.xenial
     @series.bionic
+    @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed

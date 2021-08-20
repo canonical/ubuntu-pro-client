@@ -1,6 +1,7 @@
 Feature: Unattached status
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua status --format json` as non-root
@@ -26,6 +27,7 @@ Feature: Unattached status
            | hirsute |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua status` as non-root
