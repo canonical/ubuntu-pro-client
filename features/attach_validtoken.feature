@@ -73,6 +73,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
               allow_beta: true
             """
         And I run `apt update` with sudo
+        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `apt install update-motd` with sudo, retrying exit [100]
         And I run `update-motd` with sudo
