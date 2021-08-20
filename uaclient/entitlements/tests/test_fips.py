@@ -805,7 +805,7 @@ class TestFIPSEntitlementDisable:
                     entitlement, "remove_packages"
                 ) as m_remove_packages:
                     assert entitlement.disable(True)
-        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
         assert [
             ["", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED]
@@ -999,7 +999,7 @@ class TestFipsSetupAPTConfig:
     ):
         """Unmark only fips-specific package holds if present."""
         run_apt_command.return_value = held_packages
-        entitlement.setup_apt_config()
+        entitlement.setup_apt_config(silent=False)
         if isinstance(entitlement, FIPSUpdatesEntitlement):
             expected_calls = []
         else:
@@ -1014,7 +1014,7 @@ class TestFipsSetupAPTConfig:
                     mock.call(cmd, " ".join(cmd) + " failed.")
                 )
         assert expected_calls == run_apt_command.call_args_list
-        assert [mock.call()] == setup_apt_config.call_args_list
+        assert [mock.call(silent=False)] == setup_apt_config.call_args_list
 
 
 class TestFipsEntitlementPackages:

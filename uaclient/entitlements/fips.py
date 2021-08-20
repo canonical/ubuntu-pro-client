@@ -30,7 +30,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
-    _incompatible_services = ["livepatch"]
+    _incompatible_services = ("livepatch",)  # type: Tuple[str, ...]
 
     @property
     def conditional_packages(self):
@@ -296,8 +296,8 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 env=env,
             )
 
-    def _perform_enable(self) -> bool:
-        if super()._perform_enable():
+    def _perform_enable(self, silent: bool = False) -> bool:
+        if super()._perform_enable(silent=silent):
             self.cfg.remove_notice(
                 "", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
@@ -390,7 +390,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def setup_apt_config(self) -> None:
+    def setup_apt_config(self, silent: bool = False) -> None:
         """Setup apt config based on the resourceToken and directives.
 
         FIPS-specifically handle apt-mark unhold
@@ -409,16 +409,16 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             holds = apt.run_apt_command(
                 unhold_cmd, " ".join(unhold_cmd) + " failed."
             )
-        super().setup_apt_config()
+        super().setup_apt_config(silent=silent)
 
-    def _perform_enable(self) -> bool:
+    def _perform_enable(self, silent: bool = False) -> bool:
         cloud_type, error = get_cloud_type()
         if cloud_type is None and error == NoCloudTypeReason.CLOUD_ID_ERROR:
             logging.warning(
                 "Could not determine cloud, "
                 "defaulting to generic FIPS package."
             )
-        if super()._perform_enable():
+        if super()._perform_enable(silent=silent):
             self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
             return True
 
@@ -457,8 +457,8 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             ],
         }
 
-    def _perform_enable(self) -> bool:
-        if super()._perform_enable():
+    def _perform_enable(self, silent: bool = False) -> bool:
+        if super()._perform_enable(silent=silent):
             services_once_enabled = (
                 self.cfg.read_cache("services-once-enabled") or {}
             )
