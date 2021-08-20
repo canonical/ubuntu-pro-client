@@ -1,6 +1,7 @@
 Feature: Command behaviour when unattached
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua auto-attach` `as non-root` exits `1`
@@ -23,6 +24,7 @@ Feature: Command behaviour when unattached
            | hirsute |
 
     @series.xenial
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Disabled unattached APT policy apt-hook for infra and apps
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt update` with sudo
@@ -97,6 +99,7 @@ Feature: Command behaviour when unattached
            | xenial  | https://esm.ubuntu.com/infra/ubuntu | https://esm.ubuntu.com/apps/ubuntu |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached commands that requires enabled user in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua <command>` `as non-root` exits `1`
@@ -123,6 +126,7 @@ Feature: Command behaviour when unattached
            | hirsute | refresh |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached command known and unknown services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua <command> <service>` `as non-root` exits `1`
@@ -158,6 +162,7 @@ Feature: Command behaviour when unattached
            | hirsute | disable  | unknown   |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua help esm-infra` as non-root
@@ -198,6 +203,7 @@ Feature: Command behaviour when unattached
 
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Useful SSL failure message when there aren't any ca-certs
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt remove ca-certificates -y` with sudo
@@ -226,6 +232,7 @@ Feature: Command behaviour when unattached
 
 
     @series.focal
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`
@@ -280,6 +287,7 @@ Feature: Command behaviour when unattached
            | focal   |
 
     @series.xenial
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt install -y libawl-php` with sudo
@@ -336,6 +344,7 @@ Feature: Command behaviour when unattached
            | xenial  |
 
     @series.bionic
+    @uses.config.machine_type.lxd.container
     Scenario: Fix command on an unattached machine
         Given a `bionic` machine with ubuntu-advantage-tools installed
         When I verify that running `ua fix CVE-1800-123456` `as non-root` exits `1`

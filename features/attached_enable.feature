@@ -2,6 +2,7 @@
 Feature: Enable command behaviour when attached to an UA subscription
 
     @series.xenial
+    @uses.config.machine_type.lxd.container
     Scenario: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `xenial` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -18,6 +19,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -50,6 +52,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | hirsute | CC EAL2 is not available for Ubuntu 21.04 (Hirsute Hippo).     |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -142,6 +145,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | hirsute |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -165,6 +169,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | xenial  |
 
     @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

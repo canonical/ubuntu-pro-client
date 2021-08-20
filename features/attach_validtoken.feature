@@ -3,6 +3,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
     @series.hirsute
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached command in a non-lts ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
