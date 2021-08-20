@@ -431,7 +431,7 @@ class TestUaEntitlement:
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        base_ent._required_services = ["test"]
+        base_ent._required_services = ("test",)
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -439,6 +439,7 @@ class TestUaEntitlement:
             status.ApplicationStatus.DISABLED,
             "",
         ]
+        m_entitlement_obj.enable.return_value = (True, "")
         type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
 
         with mock.patch.object(
@@ -466,7 +467,7 @@ class TestUaEntitlement:
         assert m_entitlement_obj.enable.call_count == expected_enable_call
 
     @pytest.mark.parametrize(
-        "can_enable_fail,handle_incompat_calls,handle_req_calls",
+        "can_enable_fail,handle_incompat_calls,enable_req_calls",
         [
             (
                 status.CanEnableFailure(
@@ -512,7 +513,7 @@ class TestUaEntitlement:
         ],
     )
     @mock.patch(
-        "uaclient.entitlements.base.UAEntitlement.handle_required_services",
+        "uaclient.entitlements.base.UAEntitlement._enable_required_services",
         return_value=False,
     )
     @mock.patch(
@@ -524,10 +525,10 @@ class TestUaEntitlement:
         self,
         m_can_enable,
         m_handle_incompat,
-        m_handle_required,
+        m_enable_required,
         can_enable_fail,
         handle_incompat_calls,
-        handle_req_calls,
+        enable_req_calls,
         concrete_entitlement_factory,
     ):
         """When can_enable returns False enable returns False."""
@@ -539,7 +540,7 @@ class TestUaEntitlement:
 
         assert 1 == m_can_enable.call_count
         assert handle_incompat_calls == m_handle_incompat.call_count
-        assert handle_req_calls == m_handle_required.call_count
+        assert enable_req_calls == m_enable_required.call_count
         assert 0 == entitlement._perform_enable.call_count
 
     @pytest.mark.parametrize(
@@ -691,7 +692,7 @@ class TestUaEntitlement:
             disable=True,
             application_status=(status.ApplicationStatus.ENABLED, ""),
         )
-        base_ent._dependent_services = ["test"]
+        base_ent._dependent_services = ("test",)
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value

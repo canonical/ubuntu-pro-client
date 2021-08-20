@@ -1,20 +1,16 @@
+from typing import Optional, Tuple  # noqa: F401
+
 from uaclient.entitlements import repo
 from uaclient import util
 from uaclient.config import update_ua_messages
 
-try:
-    from typing import Optional  # noqa: F401
-except ImportError:
-    # typing isn't available on trusty, so ignore its absence
-    pass
-
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
-    _dependent_services = ["esm-ros"]
+    _dependent_services = ("esm-ros",)  # type: Tuple[str, ...]
 
-    def _perform_enable(self) -> bool:
-        enable_performed = super()._perform_enable()
+    def _perform_enable(self, silent: bool = False) -> bool:
+        enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
             update_ua_messages(self.cfg)
         return enable_performed
