@@ -440,7 +440,7 @@ class TestESMEntitlementDisable:
                 entitlement, "remove_apt_config"
             ) as m_remove_apt_config:
                 assert entitlement.disable(True)
-        assert [mock.call()] == m_remove_apt_config.call_args_list
+        assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
         assert [
             mock.call(entitlement.cfg)
         ] == update_ua_messages.call_args_list
