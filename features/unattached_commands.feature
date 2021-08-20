@@ -62,6 +62,7 @@ Feature: Command behaviour when unattached
             features:
               allow_beta: true
             """
+        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
