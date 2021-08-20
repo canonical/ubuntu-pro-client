@@ -873,7 +873,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
-        ent.disable(silent=True)
+        ent.disable(silent=False)
     contract_client = contract.UAContractClient(cfg)
     machine_token = cfg.machine_token["machineToken"]
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
