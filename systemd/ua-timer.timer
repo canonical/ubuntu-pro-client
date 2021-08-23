@@ -2,9 +2,9 @@
 Description=Ubuntu Advantage Timer for running repeated jobs
 
 [Timer]
-OnCalendar=hourly
-RandomizedDelaySec=1h
-FixdRandomDelay=true
+OnCalendar=*:0/5
+RandomizedDelaySec=5min
+FixedRandomDelay=true
 Persistent=true
 OnStartupSec=1min
 
