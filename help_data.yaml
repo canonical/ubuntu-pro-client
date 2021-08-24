@@ -38,6 +38,16 @@ esm-infra:
      You can find our more about the esm service at
      https://ubuntu.com/security/esm
 
+esm-ros:
+  help: |
+    esm-ros provides access to a private PPA which includes available high
+    and critical CVE fixes for Ubuntu Robotic Operating System (ROS) packages
+    between the end of the standard Ubuntu LTS security maintenance and its
+    end of life. For full access to ROS ESM and security fixes, both
+    esm-infra and esm-apps services will also be enabled.
+    You can find out more about the esm service at
+    https://ubuntu.com/robotics/ros-esm
+
 fips:
     help: |
       FIPS 140-2 is a set of publicly announced cryptographic standards
