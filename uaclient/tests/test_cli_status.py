@@ -44,7 +44,7 @@ fips          no        {dash}         NIST-certified core packages
 fips-updates  no        {dash}         NIST-certified core packages with\
  priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
-esm-ros       no        {dash}         ROS ESM Service
+esm-ros       no        {dash}         ROS Extended Security Maintenance (ESM)
 {notices}
 Enable services with: ua enable <service>
 
@@ -142,7 +142,7 @@ SERVICES_JSON_ALL = [
         "available": "yes",
     },
     {
-        "description": "ROS ESM Service",
+        "description": "ROS Extended Security Maintenance (ESM)",
         "description_override": None,
         "entitled": "no",
         "name": "esm-ros",
