@@ -1070,3 +1070,27 @@ class TestValidateProxy:
             )
             in caplog_text()
         )
+
+
+class TestHandleUnicodeCharacters:
+    @pytest.mark.parametrize(
+        "encoding", ((None), ("utf-8"), ("UTF-8"), ("test"))
+    )
+    @pytest.mark.parametrize(
+        "message,modified_message",
+        (
+            (status.OKGREEN_CHECK + " test", "test"),
+            (status.FAIL_X + " fail", "fail"),
+            ("\u2014 blah", "- blah"),
+        ),
+    )
+    def test_handle_unicode_characters(
+        self, message, modified_message, encoding
+    ):
+        expected_message = message
+        if encoding is None or encoding.upper() != "UTF-8":
+            expected_message = modified_message
+
+        with mock.patch("sys.stdout") as m_stdout:
+            type(m_stdout).encoding = mock.PropertyMock(return_value=encoding)
+            assert expected_message == util.handle_unicode_characters(message)
