@@ -293,7 +293,6 @@ Feature: Command behaviour when unattached
            | release |
            | focal   |
 
-    @wip
     @series.xenial
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine

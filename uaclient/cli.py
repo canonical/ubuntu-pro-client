@@ -670,6 +670,7 @@ def action_config_set(args, *, cfg, **kwargs):
         "update_messaging_timer",
         "update_status_timer",
         "gcp_auto_attach_timer",
+        "metering_timer",
     ):
         try:
             set_value = int(set_value)
