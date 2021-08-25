@@ -1135,15 +1135,7 @@ def action_status(args, cfg):
         print(ua_status.format_yaml_status(status))
     else:
         output = ua_status.format_tabular(status)
-        # Replace our Unicode dash with an ASCII dash if we aren't going to be
-        # writing to a utf-8 output; see
-        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859
-        if (
-            sys.stdout.encoding is None
-            or "UTF-8" not in sys.stdout.encoding.upper()
-        ):
-            output = output.replace("\u2014", "-")
-        print(output)
+        print(util.handle_unicode_characters(output))
     return 0
 
 
