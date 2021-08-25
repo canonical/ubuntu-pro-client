@@ -941,13 +941,19 @@ class TestPromptForAffectedPackages:
         FakeConfig,
     ):
         with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
-            prompt_for_affected_packages(
-                cfg=FakeConfig(),
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=FakeConfig(),
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         assert (
             "Error: USN-### metadata defines no fixed version for sl.\n"
             "1 package is still affected: slsrc\n"
@@ -1344,16 +1350,18 @@ A fix is available in Ubuntu standard updates.\n"""
         get_cloud_type.return_value = cloud_type
         m_user_facing_status.return_value = (UserFacingStatus.INACTIVE, "")
         cfg = FakeConfig()
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
         out, err = capsys.readouterr()
-        print(out)
-        print(expected)
         assert expected in out
 
     @pytest.mark.parametrize(
@@ -1458,13 +1466,17 @@ A fix is available in Ubuntu standard updates.\n"""
         m_action_attach.side_effect = fake_attach
 
         cfg = FakeConfig()
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1518,13 +1530,17 @@ A fix is available in Ubuntu standard updates.\n"""
         m_upgrade_packages.return_value = False
 
         cfg = FakeConfig()
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1620,13 +1636,19 @@ A fix is available in Ubuntu standard updates.\n"""
         with mock.patch.object(
             sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1708,13 +1730,19 @@ A fix is available in Ubuntu standard updates.\n"""
         with mock.patch.object(
             sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1792,13 +1820,19 @@ A fix is available in Ubuntu standard updates.\n"""
         with mock.patch.object(
             sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
         ):
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1874,13 +1908,18 @@ A fix is available in Ubuntu standard updates.\n"""
                 }
             }
         )
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1936,13 +1975,19 @@ A fix is available in Ubuntu standard updates.\n"""
                 }
             }
         )
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
+
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1992,13 +2037,17 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type.return_value = ("cloud", None)
 
         cfg = FakeConfig()
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -2054,13 +2103,17 @@ A fix is available in Ubuntu standard updates.\n"""
         m_get_cloud_type.return_value = ("cloud", None)
 
         cfg = FakeConfig()
-        prompt_for_affected_packages(
-            cfg=cfg,
-            issue_id="USN-###",
-            affected_pkg_status=affected_pkg_status,
-            installed_packages=installed_packages,
-            usn_released_pkgs=usn_released_pkgs,
-        )
+        with mock.patch("uaclient.util.sys") as m_sys:
+            m_stdout = mock.MagicMock()
+            type(m_sys).stdout = m_stdout
+            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
+            prompt_for_affected_packages(
+                cfg=cfg,
+                issue_id="USN-###",
+                affected_pkg_status=affected_pkg_status,
+                installed_packages=installed_packages,
+                usn_released_pkgs=usn_released_pkgs,
+            )
         out, err = capsys.readouterr()
         assert expected in out
 

@@ -5,6 +5,7 @@ import os
 import re
 import socket
 import subprocess
+import sys
 import time
 import uuid
 from contextlib import contextmanager
@@ -841,3 +842,26 @@ def validate_proxy(
         raise exceptions.UserFacingError(
             status.MESSAGE_NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy)
         )
+
+
+def handle_unicode_characters(message: str) -> str:
+    """
+    Verify if the system can output unicode characters and if not,
+    remove those characters from the message string.
+    """
+    if (
+        sys.stdout.encoding is None
+        or "UTF-8" not in sys.stdout.encoding.upper()
+    ):
+        # Replace our Unicode dash with an ASCII dash if we aren't going to be
+        # writing to a utf-8 output; see
+        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/859
+        message = message.replace("\u2014", "-")
+
+        # Remove our unicode success/failure marks if we aren't going to be
+        # writing to a utf-8 output; see
+        # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/1463
+        message = message.replace(status.OKGREEN_CHECK + " ", "")
+        message = message.replace(status.FAIL_X + " ", "")
+
+    return message

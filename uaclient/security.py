@@ -926,7 +926,7 @@ def prompt_for_affected_packages(
         # In case (2), then all_already_installed is also True
         if all_already_installed:
             # we didn't install any packages, so we're good
-            print(fix_message)
+            print(util.handle_unicode_characters(fix_message))
         elif util.should_reboot():
             # we successfully installed some packages, but
             # system reboot-required. This might be because
@@ -937,17 +937,23 @@ def prompt_for_affected_packages(
             print(reboot_msg)
             cfg.add_notice("", reboot_msg)
             print(
-                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id
+                util.handle_unicode_characters(
+                    status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                        issue=issue_id
+                    )
                 )
             )
         else:
             # we successfully installed some packages, and the system
             # reboot-required flag is not set, so we're good
-            print(fix_message)
+            print(util.handle_unicode_characters(fix_message))
     else:
         print(
-            status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+            util.handle_unicode_characters(
+                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+                    issue=issue_id
+                )
+            )
         )
 
 
