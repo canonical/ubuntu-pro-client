@@ -422,11 +422,10 @@ def then_stdout_is_formatted_and_has_keys(context, output_format):
         raise AssertionError(message)
 
 
-@then("stdout does not match regexp")
-def then_stdout_does_not_match_regexp(context):
-    assert_that(
-        context.process.stdout.strip(), not_(matches_regexp(context.text))
-    )
+@then("{stream} does not match regexp")
+def then_stream_does_not_match_regexp(context, stream):
+    content = getattr(context.process, stream).strip()
+    assert_that(content, not_(matches_regexp(context.text)))
 
 
 @then("stderr matches regexp")
