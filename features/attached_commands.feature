@@ -405,6 +405,7 @@ Feature: Command behaviour when attached to an UA subscription
         update_messaging_timer  +21600
         update_status_timer     +43200
         gcp_auto_attach_timer   +1800
+        metering_timer          +0
         """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
@@ -444,6 +445,7 @@ Feature: Command behaviour when attached to an UA subscription
           update_messaging_timer: 14400
           update_status_timer: 0
           gcp_auto_attach_timer: 10000
+          metering_timer: 0
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
@@ -471,6 +473,7 @@ Feature: Command behaviour when attached to an UA subscription
           update_messaging_timer: -10
           update_status_timer: notanumber
           gcp_auto_attach_timer: null
+          metering_timer: 0
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then stderr matches regexp:
@@ -543,16 +546,10 @@ Feature: Command behaviour when attached to an UA subscription
           machine_token_overlay: "/tmp/machine-token-overlay.json"
           serviceclient_url_responses: "/tmp/response-overlay.json"
         """
+        And I run `ua config set metering_timer=14400` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        And I run `cat /var/lib/ubuntu-advantage/private/machine-token.json` with sudo
-        Then stdout matches regexp:
-        """
-        \"activityToken\": \"test\"
-        """
-        And stdout matches regexp:
-        """
-        \"activityID\": \"ac-id\"
-        """
+        Then I verify that running `grep -q activityToken /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        And I verify that running `grep -q activityID /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
         When I run `cat /var/lib/ubuntu-advantage/private/machine-id` with sudo
         Then stdout matches regexp:
         """
@@ -560,10 +557,6 @@ Feature: Command behaviour when attached to an UA subscription
         """
         When I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
         Then stdout matches regexp:
-        """
-        \"update\_messaging\"
-        """
-        And stdout matches regexp:
         """
         \"metering\"
         """

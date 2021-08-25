@@ -53,6 +53,7 @@ class TestActionRefresh:
         cfg.update_messaging_timer = 0
         cfg.update_status_timer = 0
         cfg.gcp_auto_attach_timer = 0
+        cfg.metering_timer = 0
 
         if expect_unattached_error:
             with pytest.raises(exceptions.UnattachedError):

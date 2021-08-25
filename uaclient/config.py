@@ -67,6 +67,7 @@ UA_CONFIGURABLE_KEYS = (
     "update_messaging_timer",
     "update_status_timer",
     "gcp_auto_attach_timer",
+    "metering_timer",
 )
 
 # Basic schema validation top-level keys for parse_config handling
@@ -208,6 +209,17 @@ class UAConfig:
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
         self.cfg["ua_config"]["gcp_auto_attach_timer"] = value
+        self.write_cfg()
+
+    @property
+    def metering_timer(self) -> "Optional[int]":
+        return self.cfg.get("ua_config", {}).get("metering_timer")
+
+    @metering_timer.setter
+    def metering_timer(self, value: int):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["metering_timer"] = value
         self.write_cfg()
 
     def check_lock_info(self) -> Tuple[int, str]:
@@ -795,6 +807,7 @@ class UAConfig:
             "update_messaging_timer",
             "update_status_timer",
             "gcp_auto_attach_timer",
+            "metering_timer",
         ):
             value = getattr(self, prop)
             if value is None:
