@@ -4,6 +4,12 @@ Feature: Command behaviour when unattached
     @uses.config.machine_type.lxd.container
     Scenario Outline: Unattached auto-attach does nothing in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        # Validate systemd unit/timer syntax
+        When I run `systemd-analyze verify /lib/systemd/system/ua-timer.timer` with sudo
+        Then stderr does not match regexp:
+            """
+            .*\/lib\/systemd/system\/ua.*
+            """
         When I verify that running `ua auto-attach` `as non-root` exits `1`
         Then stderr matches regexp:
             """
