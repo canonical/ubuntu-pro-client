@@ -396,6 +396,10 @@ class UAConfig:
         return self.machine_token.get("activityToken")
 
     @property
+    def activity_id(self) -> "Optional[str]":
+        return self.machine_token.get("activityID")
+
+    @property
     def contract_id(self):
         return (
             self.machine_token.get("machineTokenInfo", {})

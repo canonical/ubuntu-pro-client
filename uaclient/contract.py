@@ -166,8 +166,13 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token = self.cfg.machine_token.get("machineToken")
         machine_id = util.get_machine_id(self.cfg)
 
+        # If the activityID is null we should provide the endpoint
+        # with the instance machine id as the activityID
+        activity_id = self.cfg.activity_id or machine_id
+
         request_data = {
             "activityToken": activity_token,
+            "activityID": activity_id,
             "resources": enabled_services,
         }
         url = API_V1_MACHINE_ACTIVITY.format(
