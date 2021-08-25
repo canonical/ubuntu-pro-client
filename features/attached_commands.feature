@@ -520,6 +520,7 @@ Feature: Command behaviour when attached to an UA subscription
                 "code": 200,
                 "response": {
                   "activityToken": "test",
+                  "activityID": "ac-id",
                   "machineTokenInfo": {
                       "contractInfo": {
                           "resourceEntitlements": [
@@ -548,10 +549,23 @@ Feature: Command behaviour when attached to an UA subscription
         """
         \"activityToken\": \"test\"
         """
+        And stdout matches regexp:
+        """
+        \"activityID\": \"ac-id\"
+        """
         When I run `cat /var/lib/ubuntu-advantage/private/machine-id` with sudo
         Then stdout matches regexp:
         """
         new-machine-id
+        """
+        When I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout matches regexp:
+        """
+        \"update\_messaging\"
+        """
+        And stdout matches regexp:
+        """
+        \"metering\"
         """
 
         Examples: ubuntu release

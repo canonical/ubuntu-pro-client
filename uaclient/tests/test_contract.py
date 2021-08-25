@@ -111,12 +111,19 @@ class TestUAContractClient:
             mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
 
+    @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @pytest.mark.parametrize("new_machine_id", ((None), ("new-mid")))
     def test_report_machine_activity(
-        self, get_machine_id, request_url, new_machine_id, FakeConfig
+        self,
+        get_machine_id,
+        request_url,
+        new_machine_id,
+        activity_id,
+        FakeConfig,
     ):
         """POST machine activity report to the server."""
-        get_machine_id.return_value = "machineId"
+        machine_id = "machineId"
+        get_machine_id.return_value = machine_id
         request_url.return_value = (
             {"machineTokenInfo": {"machineId": new_machine_id}},
             None,
@@ -124,14 +131,18 @@ class TestUAContractClient:
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         enabled_services = ["test1", "test2"]
-        with mock.patch(
-            "uaclient.config.UAConfig.write_cache"
-        ) as m_write_cache:
-            client.report_machine_activity(enabled_services=enabled_services)
+        with mock.patch.object(type(cfg), "activity_id", activity_id):
+            with mock.patch(
+                "uaclient.config.UAConfig.write_cache"
+            ) as m_write_cache:
+                client.report_machine_activity(
+                    enabled_services=enabled_services
+                )
 
         expected_write_calls = 2 if new_machine_id else 1
         assert expected_write_calls == m_write_cache.call_count
 
+        expected_activity_id = activity_id if activity_id else machine_id
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -139,7 +150,11 @@ class TestUAContractClient:
                 "content-type": "application/json",
                 "Authorization": "Bearer not-null",
             },
-            "data": {"activityToken": None, "resources": enabled_services},
+            "data": {
+                "activityToken": None,
+                "activityID": expected_activity_id,
+                "resources": enabled_services,
+            },
         }
         assert [
             mock.call("/v1/contracts/cid/machine-activity/machineId", **params)
