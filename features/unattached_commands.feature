@@ -293,11 +293,13 @@ Feature: Command behaviour when unattached
            | release |
            | focal   |
 
+    @wip
     @series.xenial
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt install -y libawl-php` with sudo
+        And I reboot the `<release>` machine
         And I run `ua fix USN-4539-1` as non-root
         Then stdout matches regexp:
             """
