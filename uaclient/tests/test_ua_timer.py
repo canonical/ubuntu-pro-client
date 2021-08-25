@@ -101,7 +101,7 @@ class TestTimer:
             run_jobs(cfg, now)
 
         assert jobs_status == cfg.read_cache("jobs-status")
-        assert [mock.call(cfg)] == m_job_func.call_args_list
+        assert [mock.call(cfg=cfg)] == m_job_func.call_args_list
 
     def test_run_job_ignores_late_next_run(self, FakeConfig):
         """Do not run if next_run points to future time."""
