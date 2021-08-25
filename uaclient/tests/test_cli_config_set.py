@@ -14,7 +14,7 @@ positional arguments:
   key_value_pair  key=value pair to configure for Ubuntu Advantage services.
                   Key must be one of: http_proxy, https_proxy, apt_http_proxy,
                   apt_https_proxy, update_messaging_timer,
-                  update_status_timer, gcp_auto_attach_timer
+                  update_status_timer, gcp_auto_attach_timer, metering_timer
 
 Flags:
   -h, --help      show this help message and exit
@@ -34,19 +34,19 @@ class TestMainConfigSet:
                 "k=v",
                 "<key> must be one of: http_proxy, https_proxy,"
                 " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
-                " update_status_timer, gcp_auto_attach_timer",
+                " update_status_timer, gcp_auto_attach_timer, metering_timer",
             ),
             (
                 "http_proxys=",
                 "<key> must be one of: http_proxy, https_proxy,"
                 " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
-                " update_status_timer, gcp_auto_attach_timer",
+                " update_status_timer, gcp_auto_attach_timer, metering_timer",
             ),
             (
                 "=value",
                 "<key> must be one of: http_proxy, https_proxy,"
                 " apt_http_proxy, apt_https_proxy, update_messaging_timer,"
-                " update_status_timer, gcp_auto_attach_timer",
+                " update_status_timer, gcp_auto_attach_timer, metering_timer",
             ),
         ),
     )

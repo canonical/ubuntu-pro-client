@@ -262,6 +262,7 @@ UA_CFG_DICT = {
         "update_messaging_timer": None,
         "update_status_timer": None,
         "gcp_auto_attach_timer": None,
+        "metering_timer": None,
     }
 }
 
@@ -1365,7 +1366,8 @@ class TestProcessConfig:
                     "https_proxy": https_proxy,
                     "update_messaging_timer": 21600,
                     "update_status_timer": 43200,
-                    "gcp_auto_attach_timer": None,
+                    "gcp_auto_attach_timer": 1800,
+                    "metering_timer": 0,
                 }
             }
         )

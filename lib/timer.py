@@ -24,7 +24,7 @@ class TimedJob:
     def __init__(
         self,
         name: str,
-        job_func: Callable[[UAConfig], None],
+        job_func: Callable[..., None],
         default_interval_seconds: int,
     ):
         self.name = name
@@ -45,7 +45,7 @@ class TimedJob:
 
         LOG.debug("Running job: %s", self.name)
         try:
-            self._job_func(cfg)
+            self._job_func(cfg=cfg)
         except Exception as e:
             LOG.warning("Error executing job %s: %s", self.name, str(e))
             return False
