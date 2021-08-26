@@ -324,7 +324,7 @@ Feature: Command behaviour when unattached
             .*✔.* CVE-2020-28196 is resolved.
             """
         When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
-        And I verify that running `ua fix CVE-2017-9233` `with sudo` exits `1`
+        And I run `ua fix CVE-2017-9233` with sudo
         Then stdout matches regexp:
             """
             CVE-2017-9233: Expat vulnerability
@@ -332,11 +332,10 @@ Feature: Command behaviour when unattached
             3 affected packages are installed: expat, matanza, swish-e
             \(1/3, 2/3\) matanza, swish-e:
             Sorry, no fix is available.
-            """
-        And stderr matches regexp:
-            """
-            Error: CVE-2017-9233 metadata defines no fixed version for expat.
-            3 packages are still affected: expat, matanza, swish-e
+            \(3/3\) expat:
+            A fix is available in Ubuntu standard updates.
+            .*\{ apt update && apt install --only-upgrade -y expat \}.*
+            2 packages are still affected: matanza, swish-e
             .*✘.* CVE-2017-9233 is not resolved.
             """
 
