@@ -31,6 +31,10 @@ gcp-pub-*
 gcp-priv-*
 lxd-*-uaclient-ci-*
 build-from-source.sh
+test-results*
+
+# credentials - don't commit credentials
+tools/ua-test-credentials.yaml
 
 # apt-hook build artifacts
 apt-hook/hook
