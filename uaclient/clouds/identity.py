@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Dict, Optional, Tuple, Type  # noqa F401
+from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import clouds, exceptions, status, util
 from uaclient.config import apply_config_settings_override
@@ -24,7 +24,7 @@ class NoCloudTypeReason(Enum):
     CLOUD_ID_ERROR = 1
 
 
-def get_instance_id() -> "Optional[str]":
+def get_instance_id() -> Optional[str]:
     """Query cloud instance-id from cmdline."""
     try:
         # Present in cloud-init on >= Xenial
@@ -37,7 +37,7 @@ def get_instance_id() -> "Optional[str]":
 
 
 @apply_config_settings_override("cloud_type")
-def get_cloud_type() -> "Tuple[Optional[str], Optional[NoCloudTypeReason]]":
+def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
     if util.which("cloud-id"):
         # Present in cloud-init on >= Xenial
         try:

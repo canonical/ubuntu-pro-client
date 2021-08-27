@@ -106,9 +106,7 @@ class UAConfig:
     _machine_token = None  # caching to avoid repetitive file reading
     _contract_expiry_datetime = None
 
-    def __init__(
-        self, cfg: "Dict[str, Any]" = None, series: str = None
-    ) -> None:
+    def __init__(self, cfg: Dict[str, Any] = None, series: str = None) -> None:
         """"""
         if cfg:
             self.cfg_path = None
@@ -136,7 +134,7 @@ class UAConfig:
         return self.cfg.get("security_url", BASE_SECURITY_URL)
 
     @property
-    def http_proxy(self) -> "Optional[str]":
+    def http_proxy(self) -> Optional[str]:
         return self.cfg.get("ua_config", {}).get("http_proxy")
 
     @http_proxy.setter
@@ -147,7 +145,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def https_proxy(self) -> "Optional[str]":
+    def https_proxy(self) -> Optional[str]:
         return self.cfg.get("ua_config", {}).get("https_proxy")
 
     @https_proxy.setter
@@ -158,7 +156,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def apt_http_proxy(self) -> "Optional[str]":
+    def apt_http_proxy(self) -> Optional[str]:
         return self.cfg.get("ua_config", {}).get("apt_http_proxy")
 
     @apt_http_proxy.setter
@@ -169,7 +167,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def apt_https_proxy(self) -> "Optional[str]":
+    def apt_https_proxy(self) -> Optional[str]:
         return self.cfg.get("ua_config", {}).get("apt_https_proxy")
 
     @apt_https_proxy.setter
@@ -180,7 +178,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def update_status_timer(self) -> "Optional[int]":
+    def update_status_timer(self) -> Optional[int]:
         return self.cfg.get("ua_config", {}).get("update_status_timer")
 
     @update_status_timer.setter
@@ -191,7 +189,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def update_messaging_timer(self) -> "Optional[int]":
+    def update_messaging_timer(self) -> Optional[int]:
         return self.cfg.get("ua_config", {}).get("update_messaging_timer")
 
     @update_messaging_timer.setter
@@ -202,7 +200,7 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def gcp_auto_attach_timer(self) -> "Optional[int]":
+    def gcp_auto_attach_timer(self) -> Optional[int]:
         return self.cfg.get("ua_config", {}).get("gcp_auto_attach_timer")
 
     @gcp_auto_attach_timer.setter
@@ -212,7 +210,7 @@ class UAConfig:
         self.cfg["ua_config"]["gcp_auto_attach_timer"] = value
         self.write_cfg()
 
-    def check_lock_info(self) -> "Tuple[int, str]":
+    def check_lock_info(self) -> Tuple[int, str]:
         """Return lock info if config lock file is present the lock is active.
 
         If process claiming the lock is no longer present, remove the lock file
@@ -328,7 +326,7 @@ class UAConfig:
         return self._entitlements
 
     @property
-    def contract_expiry_datetime(self) -> "datetime":
+    def contract_expiry_datetime(self) -> datetime:
         """Return a datetime of the attached contract expiration."""
         if not self._contract_expiry_datetime:
             self._contract_expiry_datetime = self.machine_token[
@@ -414,7 +412,7 @@ class UAConfig:
                 )
             )
 
-    def data_path(self, key: "Optional[str]" = None) -> str:
+    def data_path(self, key: Optional[str] = None) -> str:
         """Return the file path in the data directory represented by the key"""
         data_dir = self.cfg["data_dir"]
         if not key:
@@ -456,7 +454,7 @@ class UAConfig:
         for path_key in self.data_paths.keys():
             self.delete_cache_key(path_key)
 
-    def read_cache(self, key: str, silent: bool = False) -> "Optional[Any]":
+    def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
         cache_path = self.data_path(key)
         try:
             content = util.load_file(cache_path)
@@ -469,7 +467,7 @@ class UAConfig:
         except ValueError:
             return content
 
-    def write_cache(self, key: str, content: "Any") -> None:
+    def write_cache(self, key: str, content: Any) -> None:
         filepath = self.data_path(key)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
@@ -493,7 +491,7 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def _remove_beta_resources(self, response) -> "Dict[str, Any]":
+    def _remove_beta_resources(self, response) -> Dict[str, Any]:
         """Remove beta services from response dict"""
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
@@ -526,7 +524,7 @@ class UAConfig:
 
         return new_response
 
-    def _get_config_status(self) -> "Dict[str, Any]":
+    def _get_config_status(self) -> Dict[str, Any]:
         """Return a dict with execution_status, execution_details and notices.
 
         Values for execution_status will be one of UserFacingConfigStatus
@@ -563,7 +561,7 @@ class UAConfig:
             "config": self.cfg,
         }
 
-    def _unattached_status(self) -> "Dict[str, Any]":
+    def _unattached_status(self) -> Dict[str, Any]:
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
@@ -598,7 +596,7 @@ class UAConfig:
 
     def _attached_service_status(
         self, ent, inapplicable_resources
-    ) -> "Dict[str, Optional[str]]":
+    ) -> Dict[str, Optional[str]]:
         details = ""
         description_override = None
         contract_status = ent.contract_status()
@@ -623,7 +621,7 @@ class UAConfig:
             else "no",
         }
 
-    def _attached_status(self) -> "Dict[str, Any]":
+    def _attached_status(self) -> Dict[str, Any]:
         """Return configuration of attached status as a dictionary."""
         from uaclient.contract import get_available_resources
         from uaclient.entitlements import ENTITLEMENT_CLASSES
@@ -684,7 +682,7 @@ class UAConfig:
                 response["contract"]["tech_support_level"] = supportLevel
         return response
 
-    def status(self, show_beta=False) -> "Dict[str, Any]":
+    def status(self, show_beta=False) -> Dict[str, Any]:
         """Return status as a dict, using a cache for non-root users
 
         When unattached, get available resources from the contract service

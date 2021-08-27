@@ -24,7 +24,7 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
     @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
-    def identity_doc(self) -> "Dict[str, Any]":
+    def identity_doc(self) -> Dict[str, Any]:
         responses = {}
         for key, url in sorted(IMDS_URLS.items()):
             url_response, _headers = util.readurl(

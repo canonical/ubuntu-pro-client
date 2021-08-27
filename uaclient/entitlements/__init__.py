@@ -27,7 +27,7 @@ ENTITLEMENT_CLASS_BY_NAME = dict(
 )  # type: Dict[str, Type[UAEntitlement]]
 
 
-def valid_services(allow_beta: bool = False) -> "List[str]":
+def valid_services(allow_beta: bool = False) -> List[str]:
     """Return a list of valid (non-beta) services.
 
     @param allow_beta: if we should allow beta services to be marked as valid

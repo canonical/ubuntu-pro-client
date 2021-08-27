@@ -53,9 +53,9 @@ def concrete_entitlement_factory(tmpdir):
     def factory(
         *,
         entitled: bool,
-        applicability_status: "Tuple[status.ApplicabilityStatus, str]" = None,
-        application_status: "Tuple[status.ApplicationStatus, str]" = None,
-        feature_overrides: "Optional[Dict[str, str]]" = None,
+        applicability_status: Tuple[status.ApplicabilityStatus, str] = None,
+        application_status: Tuple[status.ApplicationStatus, str] = None,
+        feature_overrides: Optional[Dict[str, str]] = None,
         allow_beta: bool = False,
         enable: bool = False,
         disable: bool = False

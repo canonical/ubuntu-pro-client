@@ -56,8 +56,8 @@ class UAArgumentParser(argparse.ArgumentParser):
         epilog=None,
         formatter_class=argparse.HelpFormatter,
         base_desc: str = None,
-        non_beta_services_desc: "List[str]" = None,
-        beta_services_desc: "List[str]" = None,
+        non_beta_services_desc: List[str] = None,
+        beta_services_desc: List[str] = None,
     ):
         super().__init__(
             prog=prog,
@@ -545,7 +545,7 @@ def _perform_disable(entitlement_name, cfg, *, assume_yes):
     return ret
 
 
-def get_valid_entitlement_names(names: "List[str]"):
+def get_valid_entitlement_names(names: List[str]):
     """Return a list of valid entitlement names.
 
     :param names: List of entitlements to validate

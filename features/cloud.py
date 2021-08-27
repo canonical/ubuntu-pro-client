@@ -24,13 +24,13 @@ class Cloud:
 
     name = ""
     pro_ids_path = ""
-    env_vars: "Tuple[str, ...]" = ()
+    env_vars: Tuple[str, ...] = ()
 
     def __init__(
         self,
         machine_type: str,
-        region: "Optional[str]" = None,
-        tag: "Optional[str]" = None,
+        region: Optional[str] = None,
+        tag: Optional[str] = None,
         timestamp_suffix: bool = True,
     ) -> None:
         if tag:
@@ -65,9 +65,9 @@ class Cloud:
     def _create_instance(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Create an instance for on the cloud provider.
@@ -112,9 +112,9 @@ class Cloud:
     def launch(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance.BaseInstance:
         """Create and wait for cloud provider instance to be ready.
@@ -171,7 +171,7 @@ class Cloud:
         """
         return instance.id
 
-    def format_missing_env_vars(self, missing_env_vars: "List") -> "List[str]":
+    def format_missing_env_vars(self, missing_env_vars: List) -> List[str]:
         """Format missing env vars to be displayed in log.
 
         :returns:
@@ -179,7 +179,7 @@ class Cloud:
         """
         return [" - {}\n".format(env_var) for env_var in missing_env_vars]
 
-    def missing_env_vars(self) -> "List[str]":
+    def missing_env_vars(self) -> List[str]:
         """Return a list of env variables necessary for this cloud provider.
 
         :returns:
@@ -219,8 +219,8 @@ class Cloud:
 
     def manage_ssh_key(
         self,
-        private_key_path: "Optional[str]" = None,
-        key_name: "Optional[str]" = None,
+        private_key_path: Optional[str] = None,
+        key_name: Optional[str] = None,
     ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
@@ -268,19 +268,16 @@ class EC2(Cloud):
     """
 
     name = "aws"
-    env_vars: "Tuple[str, ...]" = (
-        "aws_access_key_id",
-        "aws_secret_access_key",
-    )
+    env_vars: Tuple[str, ...] = ("aws_access_key_id", "aws_secret_access_key")
     pro_ids_path = "features/aws-ids.yaml"
 
     def __init__(
         self,
-        aws_access_key_id: "Optional[str]",
-        aws_secret_access_key: "Optional[str]",
+        aws_access_key_id: Optional[str],
+        aws_secret_access_key: Optional[str],
         machine_type: str,
-        region: "Optional[str]" = "us-east-2",
-        tag: "Optional[str]" = None,
+        region: Optional[str] = "us-east-2",
+        tag: Optional[str] = None,
         timestamp_suffix: bool = True,
     ) -> None:
         self.aws_access_key_id = aws_access_key_id
@@ -311,8 +308,8 @@ class EC2(Cloud):
 
     def manage_ssh_key(
         self,
-        private_key_path: "Optional[str]" = None,
-        key_name: "Optional[str]" = None,
+        private_key_path: Optional[str] = None,
+        key_name: Optional[str] = None,
     ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
@@ -346,9 +343,9 @@ class EC2(Cloud):
     def _create_instance(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
@@ -409,7 +406,7 @@ class Azure(Cloud):
     """
 
     name = "Azure"
-    env_vars: "Tuple[str, ...]" = (
+    env_vars: Tuple[str, ...] = (
         "az_client_id",
         "az_client_secret",
         "az_tenant_id",
@@ -420,13 +417,13 @@ class Azure(Cloud):
     def __init__(
         self,
         machine_type: str,
-        region: "Optional[str]" = "centralus",
-        tag: "Optional[str]" = None,
+        region: Optional[str] = "centralus",
+        tag: Optional[str] = None,
         timestamp_suffix: bool = True,
-        az_client_id: "Optional[str]" = None,
-        az_client_secret: "Optional[str]" = None,
-        az_tenant_id: "Optional[str]" = None,
-        az_subscription_id: "Optional[str]" = None,
+        az_client_id: Optional[str] = None,
+        az_client_secret: Optional[str] = None,
+        az_tenant_id: Optional[str] = None,
+        az_subscription_id: Optional[str] = None,
     ) -> None:
         self.az_client_id = az_client_id
         self.az_client_secret = az_client_secret
@@ -472,8 +469,8 @@ class Azure(Cloud):
 
     def manage_ssh_key(
         self,
-        private_key_path: "Optional[str]" = None,
-        key_name: "Optional[str]" = None,
+        private_key_path: Optional[str] = None,
+        key_name: Optional[str] = None,
     ) -> None:
         """Create and manage ssh key pairs to be used in the cloud provider.
 
@@ -508,9 +505,9 @@ class Azure(Cloud):
     def _create_instance(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
@@ -562,17 +559,17 @@ class GCP(Cloud):
         of the provided tag.
     """
 
-    env_vars: "Tuple[str, ...]" = ("gcp_credentials_path", "gcp_project")
+    env_vars: Tuple[str, ...] = ("gcp_credentials_path", "gcp_project")
 
     def __init__(
         self,
         machine_type: str,
-        region: "Optional[str]" = "us-west2",
-        tag: "Optional[str]" = None,
+        region: Optional[str] = "us-west2",
+        tag: Optional[str] = None,
         timestamp_suffix: bool = True,
-        zone: "Optional[str]" = "a",
-        gcp_credentials_path: "Optional[str]" = None,
-        gcp_project: "Optional[str]" = None,
+        zone: Optional[str] = "a",
+        gcp_credentials_path: Optional[str] = None,
+        gcp_project: Optional[str] = None,
     ) -> None:
         self.gcp_credentials_path = gcp_credentials_path
         self.gcp_project = gcp_project
@@ -616,9 +613,9 @@ class GCP(Cloud):
     def _create_instance(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.
@@ -655,8 +652,8 @@ class _LXD(Cloud):
     def __init__(
         self,
         machine_type: str,
-        region: "Optional[str]" = None,
-        tag: "Optional[str]" = None,
+        region: Optional[str] = None,
+        tag: Optional[str] = None,
         timestamp_suffix: bool = True,
     ) -> None:
         super().__init__(
@@ -674,9 +671,9 @@ class _LXD(Cloud):
     def _create_instance(
         self,
         series: str,
-        instance_name: "Optional[str]" = None,
-        image_name: "Optional[str]" = None,
-        user_data: "Optional[str]" = None,
+        instance_name: Optional[str] = None,
+        image_name: Optional[str] = None,
+        user_data: Optional[str] = None,
         ephemeral: bool = False,
     ) -> pycloudlib.instance:
         """Launch an instance on the cloud provider.

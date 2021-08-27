@@ -31,7 +31,7 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
     is_beta = True
 
     @property
-    def repo_pin_priority(self) -> "Optional[str]":
+    def repo_pin_priority(self) -> Optional[str]:
         """All LTS with the exception of Trusty should pin esm-apps."""
         series = util.get_platform_info()["series"]
         if series == "trusty":
@@ -62,7 +62,7 @@ class ESMInfraEntitlement(ESMBaseEntitlement):
     repo_key_file = "ubuntu-advantage-esm-infra-trusty.gpg"
 
     @property
-    def repo_pin_priority(self) -> "Optional[str]":
+    def repo_pin_priority(self) -> Optional[str]:
         """Once a release goes into EOL it is entitled to ESM Infra."""
         if util.is_active_esm(util.get_platform_info()["series"]):
             return "never"
