@@ -53,7 +53,7 @@ fips:
       FIPS 140-2 is a set of publicly announced cryptographic standards
       developed by the National Institute of Standards and Technology
       applicable for FedRAMP, HIPAA, PCI and ISO compliance use cases.
-      Note that ‘fips’ does not provide security patching. For fips certified
+      Note that "fips" does not provide security patching. For fips certified
       modules with security patches please refer to fips-updates. The modules
       are certified on Intel x86_64 and IBM Z hardware platforms for Ubuntu
       18.04 and Intel x86_64, IBM Power8 and IBM Z hardware platforms for
