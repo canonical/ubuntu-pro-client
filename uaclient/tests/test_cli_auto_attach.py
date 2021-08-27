@@ -1,26 +1,25 @@
-import mock
 import textwrap
 
+import mock
 import pytest
 
+from uaclient import status, util
 from uaclient.cli import (
+    _get_contract_token_from_cloud_identity,
     action_auto_attach,
     auto_attach_parser,
     get_parser,
-    _get_contract_token_from_cloud_identity,
     main,
 )
 from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
-    NonRootUserError,
     NonAutoAttachImageError,
+    NonRootUserError,
     UserFacingError,
 )
-from uaclient import status
 from uaclient.tests.test_cli_attach import BASIC_MACHINE_TOKEN
-from uaclient import util
 
 M_PATH = "uaclient.cli."
 M_ID_PATH = "uaclient.clouds.identity."

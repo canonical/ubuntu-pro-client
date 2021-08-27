@@ -1,8 +1,8 @@
 import logging
-import mock
 from io import BytesIO
 from urllib.error import HTTPError
 
+import mock
 import pytest
 
 from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance

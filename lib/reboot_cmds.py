@@ -20,10 +20,9 @@ import sys
 import time
 
 from uaclient import config, contract, entitlements, status
-from uaclient.exceptions import UserFacingError, LockHeldError
-
-from uaclient.util import subp, ProcessExecutionError, UrlError
-from uaclient.cli import setup_logging, assert_lock_file
+from uaclient.cli import assert_lock_file, setup_logging
+from uaclient.exceptions import LockHeldError, UserFacingError
+from uaclient.util import ProcessExecutionError, UrlError, subp
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.

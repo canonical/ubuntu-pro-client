@@ -9,12 +9,9 @@ present updated text about Ubuntu Advantage service and token state.
 import enum
 import logging
 import os
-
 from typing import List, Tuple
 
-from uaclient import config
-from uaclient import entitlements
-from uaclient import defaults
+from uaclient import config, defaults, entitlements, util
 from uaclient.status import (
     MESSAGE_ANNOUNCE_ESM_TMPL,
     MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
@@ -22,12 +19,11 @@ from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
     MESSAGE_CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_SOON_TMPL,
-    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
     MESSAGE_DISABLED_APT_PKGS_TMPL,
+    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
     MESSAGE_UBUNTU_NO_WARRANTY,
     ApplicationStatus,
 )
-from uaclient import util
 
 
 @enum.unique

@@ -2,29 +2,27 @@ import datetime
 import json
 import logging
 import os
-import subprocess
 import re
 import shlex
+import subprocess
 import time
-import yaml
 
+import yaml
 from behave import given, then, when
 from hamcrest import (
     assert_that,
+    contains_string,
     equal_to,
     matches_regexp,
     not_,
-    contains_string,
 )
 
 from features.environment import (
-    create_instance_with_uat_installed,
     capture_container_as_image,
+    create_instance_with_uat_installed,
 )
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
-
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
-
 
 CONTAINER_PREFIX = "ubuntu-behave-test"
 IMAGE_BUILD_PREFIX = "ubuntu-behave-image-build"

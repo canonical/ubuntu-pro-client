@@ -1,31 +1,26 @@
-import os
 import abc
-from datetime import datetime
 import logging
+import os
 import re
-import yaml
-
-from uaclient.util import is_config_value_true
-
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from uaclient import config
-from uaclient import contract
-from uaclient import status
-from uaclient import util
+import yaml
+
+from uaclient import config, contract, status, util
+from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
-    ApplicabilityStatus,
-    ContractStatus,
-    UserFacingStatus,
-    CanEnableFailure,
-    CanEnableFailureReason,
+    MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
     MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE,
-    MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
+    ApplicabilityStatus,
+    CanEnableFailure,
+    CanEnableFailureReason,
+    ContractStatus,
+    UserFacingStatus,
 )
-from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.types import StaticAffordance
-
+from uaclient.util import is_config_value_true
 
 RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"

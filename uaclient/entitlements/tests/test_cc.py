@@ -2,15 +2,13 @@
 
 import copy
 import itertools
-import mock
 import os.path
 from types import MappingProxyType
 
+import mock
 import pytest
 
-from uaclient import apt
-from uaclient import config
-from uaclient import status
+from uaclient import apt, config, status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 

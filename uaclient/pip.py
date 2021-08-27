@@ -1,7 +1,5 @@
 import os
-
 from configparser import ConfigParser
-
 
 PIP_CONFIG_FILE = "/etc/pip.conf"
 

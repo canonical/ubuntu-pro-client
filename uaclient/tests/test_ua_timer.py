@@ -1,7 +1,9 @@
 import datetime
 import logging
+
 import mock
 import pytest
+
 from lib.timer import TimedJob, run_jobs
 
 

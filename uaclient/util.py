@@ -1,4 +1,3 @@
-from errno import ENOENT
 import datetime
 import json
 import logging
@@ -7,16 +6,11 @@ import re
 import socket
 import subprocess
 import time
-from urllib import error, request
-from urllib.parse import urlparse
 import uuid
 from contextlib import contextmanager
+from errno import ENOENT
 from functools import lru_cache, wraps
 from http.client import HTTPMessage  # noqa: F401
-
-from uaclient import exceptions
-from uaclient import status
-
 from typing import (
     Any,
     Callable,
@@ -28,6 +22,10 @@ from typing import (
     Tuple,
     Union,
 )
+from urllib import error, request
+from urllib.parse import urlparse
+
+from uaclient import exceptions, status
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 ETC_MACHINE_ID = "/etc/machine-id"

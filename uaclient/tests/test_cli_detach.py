@@ -1,11 +1,10 @@
-import mock
 from textwrap import dedent
 
+import mock
 import pytest
 
+from uaclient import exceptions, status
 from uaclient.cli import action_detach, detach_parser, get_parser
-from uaclient import exceptions
-from uaclient import status
 from uaclient.testing.fakes import FakeContractClient
 
 

@@ -1,16 +1,16 @@
 import logging
+
 import mock
 import pytest
 
+from lib.reboot_cmds import (
+    fix_pro_pkg_holds,
+    main,
+    process_reboot_operations,
+    run_command,
+)
 from uaclient.status import MESSAGE_REBOOT_SCRIPT_FAILED
 from uaclient.util import ProcessExecutionError
-
-from lib.reboot_cmds import (
-    main,
-    fix_pro_pkg_holds,
-    run_command,
-    process_reboot_operations,
-)
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 

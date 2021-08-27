@@ -5,8 +5,8 @@ These are in their own file so they can be imported by setup.py before we have
 any of our dependencies installed.
 """
 import os.path
-from uaclient import util
 
+from uaclient import util
 
 __VERSION__ = "27.2"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"

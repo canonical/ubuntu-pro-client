@@ -1,6 +1,5 @@
-from typing import List, Optional
-
 import logging
+from typing import List, Optional
 
 from uaclient import apt, status, util
 

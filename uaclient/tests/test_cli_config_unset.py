@@ -1,10 +1,9 @@
 import mock
-
 import pytest
 
-from uaclient.cli import main, action_config_unset
-from uaclient.exceptions import NonRootUserError
 from uaclient import status
+from uaclient.cli import action_config_unset, main
+from uaclient.exceptions import NonRootUserError
 
 HELP_OUTPUT = """\
 usage: ua unset <key> [flags]

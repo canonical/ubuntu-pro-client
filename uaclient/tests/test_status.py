@@ -1,13 +1,14 @@
+import string
+
 import mock
 import pytest
-import string
 
 from uaclient import config
 from uaclient.status import (
-    format_tabular,
     TxtColor,
-    colorize_commands,
     UserFacingStatus,
+    colorize_commands,
+    format_tabular,
 )
 
 

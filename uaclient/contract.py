@@ -1,12 +1,7 @@
 import logging
-
-from uaclient import clouds
-from uaclient import exceptions
-from uaclient import status
-from uaclient import serviceclient
-from uaclient import util
-
 from typing import Any, Dict, List, Optional
+
+from uaclient import clouds, exceptions, serviceclient, status, util
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (

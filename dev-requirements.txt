@@ -1,4 +1,5 @@
-# The black version is also in .pre-commit-config.yaml; make sure to update
-# both together
+# The black and isort versions are also in .pre-commit-config.yaml; make sure
+# to update both together
 black==19.3b0
+isort==5.8.0
 pre-commit

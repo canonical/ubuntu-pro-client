@@ -1,6 +1,6 @@
-from uaclient.entitlements import repo
-
 from typing import Callable, Dict, List, Tuple, Union
+
+from uaclient.entitlements import repo
 
 CC_README = "/usr/share/doc/ubuntu-commoncriteria/README"
 

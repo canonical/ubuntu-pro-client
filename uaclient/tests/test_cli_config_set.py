@@ -1,11 +1,9 @@
 import mock
-
 import pytest
 
-from uaclient.cli import main, action_config_set
+from uaclient import status, util
+from uaclient.cli import action_config_set, main
 from uaclient.exceptions import NonRootUserError, UserFacingError
-from uaclient import util
-from uaclient import status
 
 HELP_OUTPUT = """\
 usage: ua set <key>=<value> [flags]

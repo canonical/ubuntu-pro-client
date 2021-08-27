@@ -1,10 +1,10 @@
 """Tests related to uaclient.pip module."""
 
+from configparser import ConfigParser
+from textwrap import dedent
+
 import mock
 import pytest
-
-from textwrap import dedent
-from configparser import ConfigParser
 
 from uaclient.pip import update_pip_conf
 
