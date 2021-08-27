@@ -15,9 +15,7 @@ class CISEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     @property
-    def messaging(
-        self,
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {
             "post_enable": [
                 "Visit {} to learn how to use CIS".format(CIS_DOCS_URL)

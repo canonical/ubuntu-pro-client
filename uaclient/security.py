@@ -59,8 +59,8 @@ class UASecurityClient(serviceclient.UAServiceClient):
     api_error_cls = SecurityAPIError
 
     def _get_query_params(
-        self, query_params: "Dict[str, Any]"
-    ) -> "Dict[str, Any]":
+        self, query_params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Update query params with data from feature config.
         """
@@ -89,15 +89,15 @@ class UASecurityClient(serviceclient.UAServiceClient):
 
     def get_cves(
         self,
-        query: "Optional[str]" = None,
-        priority: "Optional[str]" = None,
-        package: "Optional[str]" = None,
-        limit: "Optional[int]" = None,
-        offset: "Optional[int]" = None,
-        component: "Optional[str]" = None,
-        version: "Optional[str]" = None,
-        status: "Optional[List[str]]" = None,
-    ) -> "List[CVE]":
+        query: Optional[str] = None,
+        priority: Optional[str] = None,
+        package: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        component: Optional[str] = None,
+        version: Optional[str] = None,
+        status: Optional[List[str]] = None,
+    ) -> List["CVE"]:
         """Query to match multiple-CVEs.
 
         @return: List of CVE instances based on the the JSON response.
@@ -129,12 +129,12 @@ class UASecurityClient(serviceclient.UAServiceClient):
 
     def get_notices(
         self,
-        details: "Optional[str]" = None,
-        release: "Optional[str]" = None,
-        limit: "Optional[int]" = None,
-        offset: "Optional[int]" = None,
-        order: "Optional[str]" = None,
-    ) -> "List[USN]":
+        details: Optional[str] = None,
+        release: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+        order: Optional[str] = None,
+    ) -> List["USN"]:
         """Query to match multiple-USNs.
 
         @return: Sorted list of USN instances based on the the JSON response.
@@ -173,7 +173,7 @@ class UASecurityClient(serviceclient.UAServiceClient):
 class CVEPackageStatus:
     """Class representing specific CVE PackageStatus on an Ubuntu series"""
 
-    def __init__(self, cve_response: "Dict[str, Any]"):
+    def __init__(self, cve_response: Dict[str, Any]):
         self.response = cve_response
 
     @property
@@ -242,7 +242,7 @@ class CVEPackageStatus:
 class CVE:
     """Class representing CVE response from the SecurityClient"""
 
-    def __init__(self, client: UASecurityClient, response: "Dict[str, Any]"):
+    def __init__(self, client: UASecurityClient, response: Dict[str, Any]):
         self.response = response
         self.client = client
 
@@ -269,11 +269,11 @@ class CVE:
         return "\n".join(lines)
 
     @property
-    def notices_ids(self) -> "List[str]":
+    def notices_ids(self) -> List[str]:
         return self.response.get("notices_ids", [])
 
     @property
-    def notices(self) -> "List[USN]":
+    def notices(self) -> List["USN"]:
         """Return a list of USN instances from API response 'notices'.
 
         Cache the value to avoid extra work on multiple calls.
@@ -294,7 +294,7 @@ class CVE:
         return self.response.get("description")
 
     @property
-    def packages_status(self) -> "Dict[str, CVEPackageStatus]":
+    def packages_status(self) -> Dict[str, CVEPackageStatus]:
         """Dict of package status dicts for the current Ubuntu series.
 
         Top-level keys are source packages names and each value is a
@@ -316,7 +316,7 @@ class CVE:
 class USN:
     """Class representing USN response from the SecurityClient"""
 
-    def __init__(self, client: UASecurityClient, response: "Dict[str, Any]"):
+    def __init__(self, client: UASecurityClient, response: Dict[str, Any]):
         self.response = response
         self.client = client
 
@@ -330,12 +330,12 @@ class USN:
         return self.response.get("id", "UNKNOWN_USN_ID").upper()
 
     @property
-    def cves_ids(self) -> "List[str]":
+    def cves_ids(self) -> List[str]:
         """List of CVE IDs related to this USN."""
         return self.response.get("cves_ids", [])
 
     @property
-    def cves(self) -> "List[CVE]":
+    def cves(self) -> List[CVE]:
         """List of CVE instances based on API response 'cves' key.
 
         Cache the values to avoid extra work for multiple call-sites.
@@ -366,7 +366,7 @@ class USN:
         return "\n".join(lines)
 
     @property
-    def release_packages(self) -> "Dict[str, Dict[str, Dict[str, str]]]":
+    def release_packages(self) -> Dict[str, Dict[str, Dict[str, str]]]:
         """Binary package information available for this release.
 
 
@@ -428,7 +428,7 @@ class USN:
         return self._release_packages
 
 
-def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
+def query_installed_source_pkg_versions() -> Dict[str, Dict[str, str]]:
     """Return a dict of all source packages installed on the system.
 
     The dict keys will be source package name: "krb5". The value will be a dict
@@ -462,8 +462,8 @@ def query_installed_source_pkg_versions() -> "Dict[str, Dict[str, str]]":
 
 
 def merge_usn_released_binary_package_versions(
-    usns: "List[USN]", beta_pockets: "Dict[str, bool]"
-) -> "Dict[str,  Dict[str, Dict[str, str]]]":
+    usns: List[USN], beta_pockets: Dict[str, bool]
+) -> Dict[str, Dict[str, Dict[str, str]]]:
     """Walk related USNs, merging the released binary package versions.
 
     For each USN, iterate over release_packages to collect released binary
@@ -587,8 +587,8 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> None:
 
 
 def get_usn_affected_packages_status(
-    usn: USN, installed_packages: "Dict[str, Dict[str, str]]"
-) -> "Dict[str, CVEPackageStatus]":
+    usn: USN, installed_packages: Dict[str, Dict[str, str]]
+) -> Dict[str, CVEPackageStatus]:
     """Walk CVEs related to a USN and return a dict of all affected packages.
 
     :return: Dict keyed on source package name, with active CVEPackageStatus
@@ -609,8 +609,8 @@ def get_usn_affected_packages_status(
 
 
 def get_cve_affected_source_packages_status(
-    cve: CVE, installed_packages: "Dict[str, Dict[str, str]]"
-) -> "Dict[str, CVEPackageStatus]":
+    cve: CVE, installed_packages: Dict[str, Dict[str, str]]
+) -> Dict[str, CVEPackageStatus]:
     """Get a dict of any CVEPackageStatuses affecting this Ubuntu release.
 
     :return: Dict of active CVEPackageStatus keyed by source package names.
@@ -625,7 +625,7 @@ def get_cve_affected_source_packages_status(
 
 
 def print_affected_packages_header(
-    issue_id: str, affected_pkg_status: "Dict[str, CVEPackageStatus]"
+    issue_id: str, affected_pkg_status: Dict[str, CVEPackageStatus]
 ):
     """Print header strings describing affected packages related to a CVE/USN.
 
@@ -660,7 +660,7 @@ def print_affected_packages_header(
 
 def override_usn_release_package_status(
     pkg_status: CVEPackageStatus,
-    usn_src_released_pkgs: "Dict[str, Dict[str, str]]",
+    usn_src_released_pkgs: Dict[str, Dict[str, str]],
 ) -> CVEPackageStatus:
     """Parse release status based on both pkg_status and USN.release_packages.
 
@@ -708,7 +708,7 @@ def group_by_usn_package_status(affected_pkg_status, usn_released_pkgs):
 
 
 def _format_packages_message(
-    pkg_status_list: "List[Tuple[str, CVEPackageStatus]]",
+    pkg_status_list: List[Tuple[str, CVEPackageStatus]],
     pkg_index: int,
     num_pkgs: int,
 ) -> str:
@@ -762,11 +762,11 @@ def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
 
 def _handle_released_package_fixes(
     cfg: UAConfig,
-    src_pocket_pkgs: "Dict[str, List[Tuple[str, CVEPackageStatus]]]",
-    binary_pocket_pkgs: "Dict[str, List[str]]",
+    src_pocket_pkgs: Dict[str, List[Tuple[str, CVEPackageStatus]]],
+    binary_pocket_pkgs: Dict[str, List[str]],
     pkg_index: int,
     num_pkgs: int,
-) -> "Tuple[bool, List[str], bool]":
+) -> Tuple[bool, List[str], bool]:
     """Handle the packages that could be fixed and have a released status.
 
     :returns: Tuple of
@@ -816,7 +816,7 @@ def _handle_released_package_fixes(
     return upgrade_status, unfixed_pkgs, all_already_installed
 
 
-def _format_unfixed_packages_msg(unfixed_pkgs: "List[str]") -> str:
+def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
     """Format the list of unfixed packages into an message.
 
     :returns: A string containing the message output for the unfixed
@@ -838,9 +838,9 @@ def _format_unfixed_packages_msg(unfixed_pkgs: "List[str]") -> str:
 def prompt_for_affected_packages(
     cfg: UAConfig,
     issue_id: str,
-    affected_pkg_status: "Dict[str, CVEPackageStatus]",
-    installed_packages: "Dict[str, Dict[str, str]]",
-    usn_released_pkgs: "Dict[str, Dict[str, Dict[str, str]]]",
+    affected_pkg_status: Dict[str, CVEPackageStatus],
+    installed_packages: Dict[str, Dict[str, str]],
+    usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
 ) -> None:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -1108,7 +1108,7 @@ def _check_subscription_is_expired(cfg: UAConfig) -> bool:
 
 
 def upgrade_packages_and_attach(
-    cfg: UAConfig, upgrade_packages: "List[str]", pocket: str
+    cfg: UAConfig, upgrade_packages: List[str], pocket: str
 ) -> bool:
     """Upgrade available packages to fix a CVE.
 

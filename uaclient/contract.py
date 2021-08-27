@@ -80,7 +80,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         util.get_machine_id.cache_clear()
         return machine_token
 
-    def request_resources(self) -> "Dict[str, Any]":
+    def request_resources(self) -> Dict[str, Any]:
         """Requests list of entitlements available to this machine type."""
         platform = util.get_platform_info()
         query_params = {
@@ -115,8 +115,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         self,
         machine_token: str,
         resource: str,
-        machine_id: "Optional[str]" = None,
-    ) -> "Dict[str, Any]":
+        machine_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Requests machine access context for a given resource
 
         @param machine_token: The authentication token needed to talk to
@@ -144,7 +144,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def request_machine_token_update(
         self, machine_token: str, contract_id: str, machine_id: str = None
-    ) -> "Dict":
+    ) -> Dict:
         """Update existing machine-token for an attached machine."""
         return self._request_machine_token_update(
             machine_token=machine_token,
@@ -155,7 +155,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
     def detach_machine_from_contract(
         self, machine_token: str, contract_id: str, machine_id: str = None
-    ) -> "Dict":
+    ) -> Dict:
         """Report the attached machine should be detached from the contract."""
         curr_machine_id = self._get_platform_data(machine_id=None).get(
             "machineId", ""
@@ -181,7 +181,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         contract_id: str,
         machine_id: str = None,
         detach: bool = False,
-    ) -> "Dict":
+    ) -> Dict:
         """Request machine token refresh from contract server.
 
         @param machine_token: The machine token needed to talk to
@@ -228,8 +228,8 @@ class UAContractClient(serviceclient.UAServiceClient):
 
 
 def process_entitlements_delta(
-    past_entitlements: "Dict[str, Any]",
-    new_entitlements: "Dict[str, Any]",
+    past_entitlements: Dict[str, Any],
+    new_entitlements: Dict[str, Any],
     allow_enable: bool,
     series_overrides: bool = True,
 ) -> None:
@@ -279,11 +279,11 @@ def process_entitlements_delta(
 
 
 def process_entitlement_delta(
-    orig_access: "Dict[str, Any]",
-    new_access: "Dict[str, Any]",
+    orig_access: Dict[str, Any],
+    new_access: Dict[str, Any],
     allow_enable: bool = False,
     series_overrides: bool = True,
-) -> "Dict":
+) -> Dict:
     """Process a entitlement access dictionary deltas if they exist.
 
     :param orig_access: Dict with original entitlement access details before
@@ -359,7 +359,7 @@ def _create_attach_forbidden_message(e: ContractAPIError) -> str:
 
 
 def request_updated_contract(
-    cfg, contract_token: "Optional[str]" = None, allow_enable=False
+    cfg, contract_token: Optional[str] = None, allow_enable=False
 ):
     """Request contract refresh from ua-contracts service.
 
@@ -413,7 +413,7 @@ def request_updated_contract(
     )
 
 
-def get_available_resources(cfg) -> "List[Dict]":
+def get_available_resources(cfg) -> List[Dict]:
     """Query available resources from the contrct server for this machine."""
     client = UAContractClient(cfg)
     resources = client.request_resources()

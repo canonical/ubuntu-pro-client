@@ -10,7 +10,7 @@ import uuid
 from contextlib import contextmanager
 from errno import ENOENT
 from functools import lru_cache, wraps
-from http.client import HTTPMessage  # noqa: F401
+from http.client import HTTPMessage
 from typing import (
     Any,
     Callable,
@@ -57,9 +57,9 @@ class UrlError(IOError):
     def __init__(
         self,
         cause: error.URLError,
-        code: "Optional[int]" = None,
-        headers: "Optional[Dict[str, str]]" = None,
-        url: "Optional[str]" = None,
+        code: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
+        url: Optional[str] = None,
     ):
         if getattr(cause, "reason", None):
             cause_error = str(cause.reason)
@@ -77,7 +77,7 @@ class ProcessExecutionError(IOError):
     def __init__(
         self,
         cmd: str,
-        exit_code: "Optional[int]" = None,
+        exit_code: Optional[int] = None,
         stdout: str = "",
         stderr: str = "",
     ) -> None:
@@ -138,7 +138,7 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
 
 
 def apply_series_overrides(
-    orig_access: "Dict[str, Any]", series: str = None
+    orig_access: Dict[str, Any], series: str = None
 ) -> None:
     """Apply series-specific overrides to an entitlement dict.
 
@@ -255,8 +255,8 @@ def retry(exception, retry_sleeps):
 
 
 def get_dict_deltas(
-    orig_dict: "Dict[str, Any]", new_dict: "Dict[str, Any]", path: str = ""
-) -> "Dict[str, Any]":
+    orig_dict: Dict[str, Any], new_dict: Dict[str, Any], path: str = ""
+) -> Dict[str, Any]:
     """Return a dictionary of delta between orig_dict and new_dict."""
     deltas = {}  # type: Dict[str, Any]
     for key, value in orig_dict.items():
@@ -308,7 +308,7 @@ def get_machine_id(cfg) -> str:
     return machine_id
 
 
-def get_platform_info() -> "Dict[str, str]":
+def get_platform_info() -> Dict[str, str]:
     """
     Returns a dict of platform information.
 
@@ -421,7 +421,7 @@ def load_file(filename: str, decode: bool = True) -> str:
 
 
 @lru_cache(maxsize=None)
-def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
+def parse_os_release(release_file: Optional[str] = None) -> Dict[str, str]:
     if not release_file:
         release_file = "/etc/os-release"
     data = {}
@@ -432,7 +432,7 @@ def parse_os_release(release_file: "Optional[str]" = None) -> "Dict[str, str]":
     return data
 
 
-def prompt_choices(msg: str = "", valid_choices: "List[str]" = []) -> str:
+def prompt_choices(msg: str = "", valid_choices: List[str] = []) -> str:
     """Interactive prompt message, returning a valid choice from msg.
 
     Expects a structured msg which designates choices with square brackets []
@@ -477,7 +477,7 @@ def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
 
 
 def configure_web_proxy(
-    http_proxy: "Optional[str]", https_proxy: "Optional[str]"
+    http_proxy: Optional[str], https_proxy: Optional[str]
 ) -> None:
     """
     Configure urllib to use http and https proxies.
@@ -503,11 +503,11 @@ def configure_web_proxy(
 
 def readurl(
     url: str,
-    data: "Optional[bytes]" = None,
-    headers: "Dict[str, str]" = {},
-    method: "Optional[str]" = None,
-    timeout: "Optional[int]" = None,
-) -> "Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]":
+    data: Optional[bytes] = None,
+    headers: Dict[str, str] = {},
+    method: Optional[str] = None,
+    timeout: Optional[int] = None,
+) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
     if data and not method:
         method = "POST"
     req = request.Request(url, data=data, headers=headers, method=method)
@@ -542,12 +542,12 @@ def readurl(
 
 
 def _subp(
-    args: "Sequence[str]",
-    rcs: "Optional[List[int]]" = None,
+    args: Sequence[str],
+    rcs: Optional[List[int]] = None,
     capture: bool = False,
-    timeout: "Optional[float]" = None,
-    env: "Optional[Dict[str, str]]" = None,
-) -> "Tuple[str, str]":
+    timeout: Optional[float] = None,
+    env: Optional[Dict[str, str]] = None,
+) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
     @param args: A list of arguments to feed to subprocess.Popen
@@ -603,13 +603,13 @@ def _subp(
 
 
 def subp(
-    args: "Sequence[str]",
-    rcs: "Optional[List[int]]" = None,
+    args: Sequence[str],
+    rcs: Optional[List[int]] = None,
     capture: bool = False,
-    timeout: "Optional[float]" = None,
-    retry_sleeps: "Optional[List[float]]" = None,
-    env: "Optional[Dict[str, str]]" = None,
-) -> "Tuple[str, str]":
+    timeout: Optional[float] = None,
+    retry_sleeps: Optional[List[float]] = None,
+    env: Optional[Dict[str, str]] = None,
+) -> Tuple[str, str]:
     """Run a command and return a tuple of decoded stdout, stderr.
 
      @param subp: A list of arguments to feed to subprocess.Popen
@@ -646,7 +646,7 @@ def subp(
     return out, err
 
 
-def which(program: str) -> "Optional[str]":
+def which(program: str) -> Optional[str]:
     """Find whether the provided program is executable in our PATH"""
     if os.path.sep in program:
         # if program had a '/' in it, then do not search PATH
@@ -685,7 +685,7 @@ def remove_file(file_path: str) -> None:
         os.unlink(file_path)
 
 
-def is_config_value_true(config: "Dict[str, Any]", path_to_value: str):
+def is_config_value_true(config: Dict[str, Any], path_to_value: str):
     """Check if value parameter can be translated into a boolean 'True' value.
 
     @param config: A config dict representing
@@ -737,7 +737,7 @@ REDACT_SENSITIVE_LOGS = [
 
 
 def redact_sensitive_logs(
-    log, redact_regexs: "List[str]" = REDACT_SENSITIVE_LOGS
+    log, redact_regexs: List[str] = REDACT_SENSITIVE_LOGS
 ) -> str:
     """Redact known sensitive information from log content."""
     redacted_log = log
@@ -760,7 +760,7 @@ def is_installed(package_name: str) -> bool:
 
 
 def handle_message_operations(
-    msg_ops: "List[Union[str, Tuple[Callable, Dict]]]",
+    msg_ops: List[Union[str, Tuple[Callable, Dict]]],
 ) -> bool:
     """Emit messages to the console for user interaction
 

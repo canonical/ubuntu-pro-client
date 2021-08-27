@@ -15,9 +15,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     is_beta = True
 
     @property
-    def messaging(
-        self
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {
             "pre_install": [
                 "(This will download more than 500MB of packages, so may take"

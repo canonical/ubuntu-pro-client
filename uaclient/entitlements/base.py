@@ -43,10 +43,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     _help_info = None  # type: str
 
     # List of services that are incompatible with this service
-    _incompatible_services = ()  # type: "Tuple[str, ...]"
+    _incompatible_services = ()  # type: Tuple[str, ...]
 
     # List of services that must be active before enabling this service
-    _required_services = ()  # type: "Tuple[str, ...]"
+    _required_services = ()  # type: Tuple[str, ...]
 
     # List of services that depend on this service
     _dependent_services = ()  # type: Tuple[str, ...]
@@ -87,11 +87,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # If any static_affordance does not match expected_results fail with
     # <failure_message>. Overridden in livepatch and fips
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         return ()
 
     @property
-    def incompatible_services(self) -> "Tuple[str, ...]":
+    def incompatible_services(self) -> Tuple[str, ...]:
         """
         Return a list of packages that aren't compatible with the entitlement.
         When we are enabling the entitlement we can directly ask the user
@@ -101,7 +101,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._incompatible_services
 
     @property
-    def required_services(self) -> "Tuple[str, ...]":
+    def required_services(self) -> Tuple[str, ...]:
         """
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
@@ -111,7 +111,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return self._required_services
 
     @property
-    def dependent_services(self) -> "Tuple[str, ...]":
+    def dependent_services(self) -> Tuple[str, ...]:
         """
         Return a list of packages that depend on this service.
         We will use that list during disable operations, where
@@ -124,14 +124,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
-    def messaging(
-        self,
-    ) -> "Dict[str, List[Union[str, Tuple[Callable, Dict]]]]":
+    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
         return {}
 
     def __init__(
         self,
-        cfg: "Optional[config.UAConfig]" = None,
+        cfg: Optional[config.UAConfig] = None,
         assume_yes: bool = False,
         allow_beta: bool = False,
     ) -> None:
@@ -234,7 +232,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def can_enable(self) -> "Tuple[bool, Optional[CanEnableFailure]]":
+    def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
         Report whether or not enabling is possible for the entitlement.
 
@@ -449,7 +447,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
-    def applicability_status(self) -> "Tuple[ApplicabilityStatus, str]":
+    def applicability_status(self) -> Tuple[ApplicabilityStatus, str]:
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
@@ -649,7 +647,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def _check_application_status_on_cache(self) -> "status.ApplicationStatus":
+    def _check_application_status_on_cache(self) -> status.ApplicationStatus:
         """Check on the state of application on the status cache."""
         status_cache = self.cfg.read_cache("status-cache")
 
@@ -671,8 +669,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def process_contract_deltas(
         self,
-        orig_access: "Dict[str, Any]",
-        deltas: "Dict[str, Any]",
+        orig_access: Dict[str, Any],
+        deltas: Dict[str, Any],
         allow_enable: bool = False,
     ) -> bool:
         """Process any contract access deltas for this entitlement.
@@ -759,7 +757,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def user_facing_status(self) -> "Tuple[UserFacingStatus, str]":
+    def user_facing_status(self) -> Tuple[UserFacingStatus, str]:
         """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
@@ -784,7 +782,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return user_facing_status, explanation
 
     @abc.abstractmethod
-    def application_status(self) -> "Tuple[status.ApplicationStatus, str]":
+    def application_status(self) -> Tuple[status.ApplicationStatus, str]:
         """
         The current status of application of this entitlement
 
