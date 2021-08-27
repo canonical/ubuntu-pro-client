@@ -84,7 +84,7 @@ def FakeConfig(tmpdir):
         def for_attached_machine(
             cls,
             account_name: str = "test_account",
-            machine_token: "Dict[str, Any]" = None,
+            machine_token: Dict[str, Any] = None,
         ):
             if not machine_token:
                 machine_token = {

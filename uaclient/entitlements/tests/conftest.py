@@ -8,13 +8,13 @@ from uaclient import config
 def machine_token(
     entitlement_type: str,
     *,
-    affordances: "Dict[str, Any]" = None,
-    directives: "Dict[str, Any]" = None,
+    affordances: Dict[str, Any] = None,
+    directives: Dict[str, Any] = None,
     entitled: bool = True,
-    obligations: "Dict[str, Any]" = None,
-    suites: "List[str]" = None,
-    additional_packages: "List[str]" = None
-) -> "Dict[str, Any]":
+    obligations: Dict[str, Any] = None,
+    suites: List[str] = None,
+    additional_packages: List[str] = None
+) -> Dict[str, Any]:
     return {
         "resourceTokens": [
             {
@@ -44,13 +44,13 @@ def machine_token(
 def machine_access(
     entitlement_type: str,
     *,
-    affordances: "Dict[str, Any]" = None,
-    directives: "Dict[str, Any]" = None,
+    affordances: Dict[str, Any] = None,
+    directives: Dict[str, Any] = None,
     entitled: bool = True,
-    obligations: "Dict[str, Any]" = None,
-    suites: "List[str]" = None,
-    additional_packages: "List[str]" = None
-) -> "Dict[str, Any]":
+    obligations: Dict[str, Any] = None,
+    suites: List[str] = None,
+    additional_packages: List[str] = None
+) -> Dict[str, Any]:
     if affordances is None:
         affordances = {"series": []}  # Will match all series
     if suites is None:
@@ -89,17 +89,17 @@ def entitlement_factory(tmpdir):
     def factory_func(
         cls,
         *,
-        affordances: "Dict[str, Any]" = None,
-        directives: "Dict[str, Any]" = None,
-        obligations: "Dict[str, Any]" = None,
+        affordances: Dict[str, Any] = None,
+        directives: Dict[str, Any] = None,
+        obligations: Dict[str, Any] = None,
         entitled: bool = True,
         allow_beta: bool = False,
-        assume_yes: "Optional[bool]" = None,
-        suites: "List[str]" = None,
-        additional_packages: "List[str]" = None,
-        services_once_enabled: "Dict[str, bool]" = None,
-        cfg: "Optional[config.UAConfig]" = None,
-        cfg_extension: "Optional[Dict[str, Any]]" = None
+        assume_yes: Optional[bool] = None,
+        suites: List[str] = None,
+        additional_packages: List[str] = None,
+        services_once_enabled: Dict[str, bool] = None,
+        cfg: Optional[config.UAConfig] = None,
+        cfg_extension: Optional[Dict[str, Any]] = None
     ):
         if not cfg:
             cfg_arg = {"data_dir": tmpdir.strpath}
