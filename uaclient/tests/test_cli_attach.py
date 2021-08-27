@@ -1,8 +1,9 @@
 import copy
-import mock
 
+import mock
 import pytest
 
+from uaclient import status
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -15,7 +16,6 @@ from uaclient.exceptions import (
     NonRootUserError,
     UserFacingError,
 )
-from uaclient import status
 from uaclient.util import UrlError
 
 M_PATH = "uaclient.cli."

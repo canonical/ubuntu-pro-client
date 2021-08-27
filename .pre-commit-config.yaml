@@ -3,3 +3,7 @@ repos:
     rev: 19.3b0  # Also stored in dev-requirements.txt; update both together!
     hooks:
     - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: 5.8.0  # Also stored in dev-requirements.txt; update both together!
+    hooks:
+    - id: isort

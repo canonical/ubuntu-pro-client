@@ -1,8 +1,8 @@
 import logging
-import mock
 from io import BytesIO
 from urllib.error import HTTPError
 
+import mock
 import pytest
 
 from uaclient.clouds.gcp import TOKEN_URL, UAAutoAttachGCPInstance

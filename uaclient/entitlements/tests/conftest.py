@@ -1,8 +1,8 @@
+from typing import Any, Dict, List, Optional
+
 import pytest
 
 from uaclient import config
-
-from typing import Any, Dict, List, Optional
 
 
 def machine_token(

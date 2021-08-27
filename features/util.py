@@ -1,15 +1,15 @@
-from contextlib import contextmanager
-import os
 import logging
 import multiprocessing
+import os
+import shutil
 import subprocess
 import tempfile
-import shutil
 import textwrap
 import time
-import yaml
+from contextlib import contextmanager
 from typing import List
 
+import yaml
 
 LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},

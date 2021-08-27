@@ -3,16 +3,10 @@ import copy
 import logging
 import os
 import re
-
-from uaclient import contract
-
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt
-from uaclient import exceptions
+from uaclient import apt, contract, exceptions, status, util
 from uaclient.entitlements import base
-from uaclient import status
-from uaclient import util
 from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = "-32768"

@@ -1,16 +1,13 @@
 import logging
 import os
 import re
-
 from itertools import groupby
-
-from uaclient import apt
-from uaclient.entitlements import repo
-from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
-from uaclient import exceptions, status, util
-from uaclient.types import StaticAffordance
-
 from typing import Callable, Dict, List, Tuple, Union
+
+from uaclient import apt, exceptions, status, util
+from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
+from uaclient.entitlements import repo
+from uaclient.types import StaticAffordance
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):

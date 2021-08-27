@@ -1,9 +1,9 @@
-import mock
+import json
+from io import BytesIO
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from io import BytesIO
-import json
 
+import mock
 import pytest
 
 from uaclient import util

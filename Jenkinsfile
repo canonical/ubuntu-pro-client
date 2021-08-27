@@ -53,7 +53,7 @@ pipeline {
             steps {
                 sh '''
                 set +x
-                tox -e black
+                tox -e black -e isort
                 '''
             }
         }

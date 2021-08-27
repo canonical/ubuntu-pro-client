@@ -1,8 +1,8 @@
 from typing import Optional, Tuple  # noqa: F401
 
-from uaclient.entitlements import repo
 from uaclient import util
 from uaclient.config import update_ua_messages
+from uaclient.entitlements import repo
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):

@@ -3,26 +3,19 @@ import itertools
 import os
 import socket
 import textwrap
-
 from collections import defaultdict
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import apt
-from uaclient.config import UAConfig
+from uaclient import apt, exceptions, serviceclient, status, util
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
     get_cloud_type,
 )
-from uaclient import exceptions
-from uaclient import status
-from uaclient import serviceclient
-from uaclient import util
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+from uaclient.config import UAConfig
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
-
-from typing import Any, Dict, List, Optional, Tuple
-
+from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -975,6 +968,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     :return: True if attach performed without errors.
     """
     import argparse
+
     from uaclient import cli
 
     print(status.colorize_commands([["ua", "attach", token]]))
@@ -1017,6 +1011,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     :return: True if enable performed.
     """
     import argparse
+
     from uaclient import cli
 
     print(status.MESSAGE_SECURITY_SERVICE_DISABLED.format(service=service))
@@ -1078,6 +1073,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     :return: True if attach performed.
     """
     import argparse
+
     from uaclient import cli
 
     _inform_ubuntu_pro_existence_if_applicable()

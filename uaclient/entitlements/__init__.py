@@ -1,16 +1,14 @@
-from uaclient.entitlements.base import UAEntitlement  # noqa: F401
-from uaclient.entitlements.cis import CISEntitlement
-from uaclient.entitlements.cc import CommonCriteriaEntitlement
-from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient.entitlements import fips
-from uaclient.entitlements.livepatch import LivepatchEntitlement
-from uaclient.entitlements.ros import ROSESMEntitlement
+from typing import Dict, List, Type, cast  # noqa: F401
 
 from uaclient.config import UAConfig
+from uaclient.entitlements import fips
+from uaclient.entitlements.base import UAEntitlement  # noqa: F401
+from uaclient.entitlements.cc import CommonCriteriaEntitlement
+from uaclient.entitlements.cis import CISEntitlement
+from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
+from uaclient.entitlements.livepatch import LivepatchEntitlement
+from uaclient.entitlements.ros import ROSESMEntitlement
 from uaclient.util import is_config_value_true
-
-from typing import cast, Dict, List, Type  # noqa: F401
-
 
 ENTITLEMENT_CLASSES = [
     CommonCriteriaEntitlement,

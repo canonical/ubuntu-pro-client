@@ -2,15 +2,16 @@ import contextlib
 import io
 import json
 import logging
-import mock
 import os
 import socket
 import stat
 import sys
 import textwrap
 
+import mock
 import pytest
 
+from uaclient import status, util
 from uaclient.cli import (
     action_help,
     assert_attached,
@@ -18,21 +19,17 @@ from uaclient.cli import (
     assert_not_attached,
     assert_root,
     get_parser,
-    main,
     get_valid_entitlement_names,
+    main,
     setup_logging,
 )
-
 from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
     NonRootUserError,
-    UserFacingError,
     UnattachedError,
+    UserFacingError,
 )
-from uaclient import status
-from uaclient import util
-
 
 BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10

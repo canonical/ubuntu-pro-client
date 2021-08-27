@@ -1,14 +1,12 @@
 import contextlib
 import io
-import mock
 import textwrap
 
+import mock
 import pytest
 
+from uaclient import entitlements, exceptions, status
 from uaclient.cli import action_enable, main
-from uaclient import entitlements
-from uaclient import exceptions
-from uaclient import status
 
 HELP_OUTPUT = textwrap.dedent(
     """\

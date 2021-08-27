@@ -1,7 +1,6 @@
 """Tests related to uaclient.snap module."""
 
 import mock
-
 import pytest
 
 from uaclient import status

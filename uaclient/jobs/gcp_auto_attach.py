@@ -3,11 +3,9 @@ Try to auto-attach in a GCP instance. This should only work
 if the instance has a new UA license attached to it
 """
 
-from uaclient import config
-from uaclient import exceptions
-
-from uaclient.clouds.identity import get_cloud_type
+from uaclient import config, exceptions
 from uaclient.cli import action_auto_attach
+from uaclient.clouds.identity import get_cloud_type
 
 
 def gcp_auto_attach(cfg: config.UAConfig) -> None:

@@ -5,13 +5,13 @@ import logging
 import posix
 import socket
 import subprocess
-import uuid
 import urllib
+import uuid
 
 import mock
 import pytest
 
-from uaclient import cli, util, exceptions, status
+from uaclient import cli, exceptions, status, util
 
 PRIVACY_POLICY_URL = (
     "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"

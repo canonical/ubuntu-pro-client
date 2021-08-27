@@ -1,7 +1,7 @@
-import logging
-import pytest
-
 import json
+import logging
+
+import pytest
 
 from lib.patch_status_json import patch_status_json_schema_0_1
 

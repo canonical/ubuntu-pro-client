@@ -3,17 +3,14 @@ Timer used to run all jobs that need to be frequently run on the system
 """
 
 import logging
-
 from datetime import datetime, timedelta
-
 from typing import Callable
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
+from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 from uaclient.jobs.update_state import update_status
-from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
-
 
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
