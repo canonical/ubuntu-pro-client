@@ -53,7 +53,15 @@ class TimedJob:
     def run_interval_seconds(self, cfg: UAConfig):
         """Return the run_interval for the job based on config or defaults."""
         configured_interval = getattr(cfg, "{}_timer".format(self.name), None)
-        if not isinstance(configured_interval, int) or configured_interval < 0:
+        if configured_interval is None:
+            debug_msg = (
+                "No config set for {}, default value will be used."
+            ).format(self.name)
+            LOG.debug(debug_msg)
+            return self._default_interval_seconds
+        elif (
+            not isinstance(configured_interval, int) or configured_interval < 0
+        ):
             error_msg = (
                 "Invalid value for {} interval found in config. "
                 "Default value will be used."
