@@ -1,13 +1,10 @@
 """Tests related to uaclient.entitlement.base module."""
 
 import mock
-
 import pytest
 
-from uaclient import apt
-from uaclient import status
-from uaclient.entitlements.cis import CISEntitlement, CIS_DOCS_URL
-
+from uaclient import apt, status
+from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
 
 M_REPOPATH = "uaclient.entitlements.repo."
 

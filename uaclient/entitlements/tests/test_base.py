@@ -1,16 +1,13 @@
 """Tests related to uaclient.entitlement.base module."""
 import logging
-import mock
+from typing import Dict, Optional, Tuple
 
+import mock
 import pytest
 
-from uaclient import config
+from uaclient import config, status, util
 from uaclient.entitlements import base
-from uaclient import status
-from uaclient import util
 from uaclient.status import ContractStatus
-
-from typing import Dict, Optional, Tuple
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):

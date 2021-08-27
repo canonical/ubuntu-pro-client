@@ -1,9 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions
-from uaclient import status
-from uaclient import util
+from uaclient import exceptions, status, util
 from uaclient.cli import action_refresh, main
 
 HELP_OUTPUT = """\

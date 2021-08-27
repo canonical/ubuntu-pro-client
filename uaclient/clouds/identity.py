@@ -1,15 +1,9 @@
 import logging
-
 from enum import Enum
-
-from uaclient import exceptions
-from uaclient import clouds
-from uaclient import status
-from uaclient import util
-from uaclient.config import apply_config_settings_override
-
 from typing import Dict, Optional, Tuple, Type  # noqa F401
 
+from uaclient import clouds, exceptions, status, util
+from uaclient.config import apply_config_settings_override
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
 DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
@@ -56,9 +50,7 @@ def get_cloud_type() -> "Tuple[Optional[str], Optional[NoCloudTypeReason]]":
 
 
 def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
-    from uaclient.clouds import aws
-    from uaclient.clouds import azure
-    from uaclient.clouds import gcp
+    from uaclient.clouds import aws, azure, gcp
 
     cloud_instance_map = {
         "aws": aws.UAAutoAttachAWSInstance,

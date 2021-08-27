@@ -1,5 +1,4 @@
 import mock
-
 import pytest
 
 from uaclient.cli import action_config_show, main

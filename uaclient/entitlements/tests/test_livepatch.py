@@ -4,24 +4,22 @@ import contextlib
 import copy
 import io
 import logging
-import mock
 from functools import partial
 from types import MappingProxyType
 
+import mock
 import pytest
 
-from uaclient import apt
-from uaclient import exceptions
+from uaclient import apt, exceptions, status
 from uaclient.entitlements.livepatch import (
     LivepatchEntitlement,
-    process_config_directives,
     configure_livepatch_proxy,
     get_config_option_value,
+    process_config_directives,
     unconfigure_livepatch_proxy,
 )
-from uaclient.snap import SNAP_CMD
 from uaclient.entitlements.tests.conftest import machine_token
-from uaclient import status
+from uaclient.snap import SNAP_CMD
 from uaclient.status import ApplicationStatus, ContractStatus
 from uaclient.util import ProcessExecutionError
 

@@ -1,12 +1,11 @@
 import io
 import logging
-import mock
+from typing import Any, Dict
 
+import mock
 import pytest
 
 from uaclient.config import UAConfig
-
-from typing import Any, Dict
 
 
 @pytest.fixture

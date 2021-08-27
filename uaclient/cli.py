@@ -3,7 +3,6 @@
 """Client to manage Ubuntu Advantage services on a machine."""
 
 import argparse
-from functools import wraps
 import json
 import logging
 import os
@@ -12,18 +11,12 @@ import re
 import sys
 import textwrap
 import time
-
+from functools import wraps
 from typing import List
 
-
-from uaclient import config
-from uaclient import contract
-from uaclient import entitlements
-from uaclient import exceptions
-from uaclient import security
+from uaclient import config, contract, entitlements, exceptions, security
 from uaclient import status as ua_status
-from uaclient import util
-from uaclient import version
+from uaclient import util, version
 from uaclient.clouds import identity
 from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 

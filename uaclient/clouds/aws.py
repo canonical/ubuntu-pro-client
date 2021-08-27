@@ -1,10 +1,8 @@
+from typing import Any, Dict
 from urllib.error import HTTPError
 
-from typing import Any, Dict
-
-from uaclient.clouds import AutoAttachCloudInstance
 from uaclient import util
-
+from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_V2_TOKEN_URL = "http://169.254.169.254/latest/api/token"
 IMDS_URL = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"

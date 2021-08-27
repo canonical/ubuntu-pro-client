@@ -1,16 +1,12 @@
 import copy
+from types import MappingProxyType
 
 import mock
 import pytest
-from types import MappingProxyType
 
-from uaclient import apt
+from uaclient import apt, exceptions, status, util
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
-from uaclient import exceptions
-from uaclient import status
-from uaclient import util
-
 
 M_PATH = "uaclient.entitlements.repo."
 M_CONTRACT_PATH = "uaclient.entitlements.repo.contract.UAContractClient."

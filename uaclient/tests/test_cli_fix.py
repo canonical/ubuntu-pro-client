@@ -1,10 +1,9 @@
-import mock
 import textwrap
 
+import mock
 import pytest
 
 from uaclient import exceptions
-
 from uaclient.cli import action_fix, main
 
 M_PATH = "uaclient.cli."

@@ -1,11 +1,11 @@
 import json
-import os
 import logging
-import pycloudlib  # type: ignore
+import os
 import time
-import yaml
+from typing import List, Optional, Tuple
 
-from typing import Tuple, List, Optional
+import pycloudlib  # type: ignore
+import yaml
 
 
 class Cloud:

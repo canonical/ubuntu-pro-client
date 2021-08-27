@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 from uaclient import exceptions, gpg, util

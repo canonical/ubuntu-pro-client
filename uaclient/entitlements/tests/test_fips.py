@@ -4,19 +4,15 @@ import contextlib
 import copy
 import io
 import logging
-import mock
 import os
 from functools import partial
 
+import mock
 import pytest
 
-from uaclient import apt
-from uaclient import defaults
-from uaclient import status, util
-from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
+from uaclient import apt, defaults, exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient import exceptions
-
+from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."

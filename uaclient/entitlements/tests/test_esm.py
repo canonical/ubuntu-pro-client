@@ -1,13 +1,11 @@
 import contextlib
-import mock
 import os.path
 
+import mock
 import pytest
 
-from uaclient import apt
+from uaclient import apt, exceptions, util
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
-from uaclient import exceptions
-from uaclient import util
 
 M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
 M_REPOPATH = "uaclient.entitlements.repo."

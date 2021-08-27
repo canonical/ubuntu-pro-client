@@ -5,35 +5,34 @@ import json
 import logging
 import os
 import stat
-import yaml
 
 import mock
 import pytest
+import yaml
 
 from uaclient import entitlements, exceptions, status, util, version
 from uaclient.config import (
-    DataPath,
     DEFAULT_STATUS,
     PRIVATE_SUBDIR,
-    UAConfig,
     UA_CONFIGURABLE_KEYS,
     VALID_UA_CONFIG_KEYS,
-    parse_config,
+    DataPath,
+    UAConfig,
     depth_first_merge_overlay_dict,
     get_config_path,
+    parse_config,
 )
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 from uaclient.entitlements import (
-    ENTITLEMENT_CLASSES,
     ENTITLEMENT_CLASS_BY_NAME,
+    ENTITLEMENT_CLASSES,
 )
 from uaclient.status import (
-    ContractStatus,
-    UserFacingStatus,
-    UserFacingConfigStatus,
     MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
+    ContractStatus,
+    UserFacingConfigStatus,
+    UserFacingStatus,
 )
-
 
 KNOWN_DATA_PATHS = (
     ("machine-access-cis", "machine-access-cis.json"),
