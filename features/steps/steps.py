@@ -386,19 +386,14 @@ def then_i_will_see_on_stdout(context):
 def then_conditional_stdout_matches_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stdout_matches_regexp(context)
+        then_stream_matches_regexp(context, "stdout")
 
 
 @then("if `{value1}` in `{value2}` and stdout does not match regexp")
 def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
     """Only apply regex assertion if value1 in value2."""
     if value1 in value2.split(" or "):
-        then_stdout_does_not_match_regexp(context)
-
-
-@then("stdout matches regexp")
-def then_stdout_matches_regexp(context):
-    assert_that(context.process.stdout.strip(), matches_regexp(context.text))
+        then_stream_does_not_match_regexp(context, "stdout")
 
 
 @then("stdout is formatted as `{output_format}` and has keys")
@@ -428,9 +423,10 @@ def then_stream_does_not_match_regexp(context, stream):
     assert_that(content, not_(matches_regexp(context.text)))
 
 
-@then("stderr matches regexp")
-def then_stderr_matches_regexp(context):
-    assert_that(context.process.stderr.strip(), matches_regexp(context.text))
+@then("{stream} matches regexp")
+def then_stream_matches_regexp(context, stream):
+    content = getattr(context.process, stream).strip()
+    assert_that(content, matches_regexp(context.text))
 
 
 @then("I will see the following on stderr")

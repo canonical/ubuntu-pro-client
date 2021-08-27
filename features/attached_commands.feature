@@ -390,6 +390,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   | cloud-init-dev-ubuntu-daily-focal  |
 
     @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Run timer script on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -480,7 +481,7 @@ Feature: Command behaviour when attached to an UA subscription
         """
         Invalid value for update_status interval found in config.
         """
-        And stderr matches regexp:
+        And stderr does not match regexp:
         """
         Invalid value for gcp_auto_attach interval found in config.
         """

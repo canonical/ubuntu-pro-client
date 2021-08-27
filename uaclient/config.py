@@ -797,7 +797,11 @@ class UAConfig:
             "gcp_auto_attach_timer",
         ):
             value = getattr(self, prop)
-            if not isinstance(value, int) or value < 0:
+            if value is None:
+                logging.debug(
+                    "No config set for {}, default value will be used."
+                )
+            elif not isinstance(value, int) or value < 0:
                 error_msg = (
                     "Value for the {} interval must be a positive integer. "
                     "Default value will be used."
