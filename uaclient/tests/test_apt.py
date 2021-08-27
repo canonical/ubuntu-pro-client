@@ -1,40 +1,39 @@
 """Tests related to uaclient.apt module."""
 
 import glob
-import mock
 import os
 import stat
 import subprocess
 from textwrap import dedent
 
+import mock
 import pytest
 
+from uaclient import apt, exceptions, status, util
 from uaclient.apt import (
+    APT_AUTH_COMMENT,
     APT_CONFIG_PROXY_HTTP,
     APT_CONFIG_PROXY_HTTPS,
-    APT_RETRIES,
     APT_KEYS_DIR,
-    APT_AUTH_COMMENT,
-    KEYRINGS_DIR,
     APT_PROXY_CONF_FILE,
+    APT_RETRIES,
+    KEYRINGS_DIR,
     add_apt_auth_conf_entry,
     add_auth_apt_repo,
     add_ppa_pinning,
+    assert_valid_apt_credentials,
     clean_apt_files,
     find_apt_list_files,
     get_installed_packages,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
-    assert_valid_apt_credentials,
     run_apt_command,
     setup_apt_proxy,
 )
-from uaclient import apt, exceptions, util, status
-from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
-from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.base import UAEntitlement
-
+from uaclient.entitlements.repo import RepoEntitlement
+from uaclient.entitlements.tests.test_repo import RepoTestEntitlement
 
 POST_INSTALL_APT_CACHE_NO_UPDATES = """
 -32768 https://esm.ubuntu.com/ubuntu/ {0}-updates/main amd64 Packages

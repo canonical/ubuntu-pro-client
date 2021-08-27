@@ -1,18 +1,21 @@
 import copy
-import mock
-import pytest
 import textwrap
 
+import mock
+import pytest
+
+from uaclient import exceptions
+from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.security import (
-    API_V1_CVES,
     API_V1_CVE_TMPL,
-    API_V1_NOTICES,
+    API_V1_CVES,
     API_V1_NOTICE_TMPL,
+    API_V1_NOTICES,
     CVE,
-    CVEPackageStatus,
-    UASecurityClient,
     USN,
+    CVEPackageStatus,
     SecurityAPIError,
+    UASecurityClient,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
     merge_usn_released_binary_package_versions,
@@ -23,25 +26,27 @@ from uaclient.security import (
     version_cmp_le,
 )
 from uaclient.status import (
-    MESSAGE_SECURITY_USE_PRO_TMPL,
-    OKGREEN_CHECK,
     FAIL_X,
+    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
     MESSAGE_SECURITY_APT_NON_ROOT,
+    MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
+    MESSAGE_SECURITY_SERVICE_DISABLED,
     MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED,
     MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED,
-    MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
-    MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
-    MESSAGE_SECURITY_SERVICE_DISABLED,
     MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
-    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
+)
+from uaclient.status import (
+    MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
+)
+from uaclient.status import (
+    MESSAGE_SECURITY_USE_PRO_TMPL,
+    OKGREEN_CHECK,
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
-    UserFacingStatus,
     ApplicabilityStatus,
+    UserFacingStatus,
     colorize_commands,
 )
-from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient import exceptions
 from uaclient.util import UrlError
 
 M_PATH = "uaclient.contract."

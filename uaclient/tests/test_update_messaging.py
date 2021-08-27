@@ -1,13 +1,23 @@
 import datetime
-import mock
 import os
 
+import mock
 import pytest
 
+from uaclient import util
 from uaclient.defaults import (
     BASE_ESM_URL,
     BASE_UA_URL,
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
+)
+from uaclient.jobs.update_messaging import (
+    ContractExpiryStatus,
+    ExternalMessage,
+    _write_esm_service_msg_templates,
+    get_contract_expiry_status,
+    update_apt_and_motd_messages,
+    write_apt_and_motd_templates,
+    write_esm_announcement_message,
 )
 from uaclient.status import (
     MESSAGE_ANNOUNCE_ESM_TMPL,
@@ -15,21 +25,10 @@ from uaclient.status import (
     MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL,
     MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
     MESSAGE_CONTRACT_EXPIRED_SOON_TMPL,
-    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
     MESSAGE_DISABLED_APT_PKGS_TMPL,
+    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
     MESSAGE_UBUNTU_NO_WARRANTY,
     ApplicationStatus,
-)
-from uaclient import util
-
-from uaclient.jobs.update_messaging import (
-    ContractExpiryStatus,
-    ExternalMessage,
-    get_contract_expiry_status,
-    update_apt_and_motd_messages,
-    write_apt_and_motd_templates,
-    write_esm_announcement_message,
-    _write_esm_service_msg_templates,
 )
 
 M_PATH = "uaclient.jobs.update_messaging."

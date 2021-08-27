@@ -1,6 +1,6 @@
-from uaclient.entitlements import repo
-
 from typing import Callable, Dict, List, Tuple, Union
+
+from uaclient.entitlements import repo
 
 CIS_DOCS_URL = "https://security-certs.docs.ubuntu.com/en/cis"
 

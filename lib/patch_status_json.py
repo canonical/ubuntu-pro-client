@@ -18,8 +18,8 @@ import copy
 import json
 import logging
 
-from uaclient.cli import setup_logging
 from uaclient import util
+from uaclient.cli import setup_logging
 
 
 def patch_status_json_schema_0_1(status_file: str):

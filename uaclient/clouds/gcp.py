@@ -1,12 +1,9 @@
 import os
-
+from typing import Any, Dict
 from urllib.error import HTTPError
 
-from typing import Any, Dict
-
-from uaclient.clouds import AutoAttachCloudInstance
 from uaclient import util
-
+from uaclient.clouds import AutoAttachCloudInstance
 
 TOKEN_URL = (
     "http://metadata/computeMetadata/v1/instance/service-accounts/"

@@ -1,8 +1,7 @@
-import mock
-
-import pytest
-
 import os.path
+
+import mock
+import pytest
 
 from uaclient import util
 from uaclient.version import get_version

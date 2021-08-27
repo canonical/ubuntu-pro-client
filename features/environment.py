@@ -1,21 +1,18 @@
 import datetime
-import os
 import itertools
+import logging
+import os
 import re
 import tempfile
 import textwrap
-import logging
+from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
+
 import pycloudlib  # type: ignore
-
-from typing import Dict, Optional, Union, List, Tuple, Any  # noqa: F401
-
 from behave.model import Feature, Scenario
-
 from behave.runner import Context
 
 import features.cloud as cloud
-
-from features.util import emit_spinner_on_travis, lxc_get_property, build_debs
+from features.util import build_debs, emit_spinner_on_travis, lxc_get_property
 
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "xenial"]
 

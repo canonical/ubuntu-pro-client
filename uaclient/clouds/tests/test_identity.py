@@ -1,16 +1,14 @@
 import mock
-
 import pytest
 
+from uaclient import exceptions, status
 from uaclient.clouds.identity import (
     NoCloudTypeReason,
     cloud_instance_factory,
-    get_instance_id,
     get_cloud_type,
+    get_instance_id,
 )
 from uaclient.util import ProcessExecutionError
-from uaclient import exceptions
-from uaclient import status
 
 M_PATH = "uaclient.clouds.identity."
 

@@ -20,9 +20,9 @@ This script will detect differences like that and update the Xenial system
 to reflect them.
 """
 
-import time
 import logging
 import sys
+import time
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig

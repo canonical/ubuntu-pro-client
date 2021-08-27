@@ -1,13 +1,11 @@
 import logging
 import re
+from typing import Any, Dict, List, Optional, Tuple
 
+from uaclient import apt, exceptions, snap, status, util
 from uaclient.entitlements import base
-from uaclient import apt, exceptions, snap, status
-from uaclient import util
 from uaclient.status import ApplicationStatus
 from uaclient.types import StaticAffordance
-
-from typing import Any, Dict, Tuple, List, Optional
 
 LIVEPATCH_RETRIES = [0.5, 1.0]
 HTTP_PROXY_OPTION = "http-proxy"
@@ -107,8 +105,10 @@ class LivepatchEntitlement(base.UAEntitlement):
     @property
     def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
         # Use a lambda so we can mock util.is_container in tests
-        from uaclient.entitlements.fips import FIPSEntitlement
-        from uaclient.entitlements.fips import FIPSUpdatesEntitlement
+        from uaclient.entitlements.fips import (
+            FIPSEntitlement,
+            FIPSUpdatesEntitlement,
+        )
 
         fips_ent = FIPSEntitlement(self.cfg)
         fips_update_ent = FIPSUpdatesEntitlement(self.cfg)

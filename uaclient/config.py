@@ -1,25 +1,24 @@
 import copy
-from datetime import datetime
-from functools import wraps
 import json
 import logging
 import os
 import re
 import sys
+from collections import OrderedDict, namedtuple
+from datetime import datetime
+from functools import wraps
+from typing import Any, Dict, Optional, Tuple, cast
+
 import yaml
-from collections import namedtuple, OrderedDict
 
 from uaclient import apt, exceptions, snap, status, util, version
 from uaclient.defaults import (
+    BASE_CONTRACT_URL,
+    BASE_SECURITY_URL,
     CONFIG_DEFAULTS,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
-    BASE_CONTRACT_URL,
-    BASE_SECURITY_URL,
 )
-
-from typing import Any, cast, Dict, Optional, Tuple
-
 
 DEFAULT_STATUS = {
     "_doc": "Content provided in json response is currently considered"

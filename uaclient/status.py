@@ -1,17 +1,16 @@
 import enum
 import json
+import os
 import sys
 import textwrap
-import os
+from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient.defaults import (
     BASE_UA_URL,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
-    PRINT_WRAP_WIDTH,
     DOCUMENTATION_URL,
+    PRINT_WRAP_WIDTH,
 )
-
-from typing import Any, Dict, List, Optional, Tuple
 
 
 class TxtColor:

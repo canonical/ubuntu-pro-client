@@ -1,16 +1,12 @@
 import abc
 import json
 import os
-
+from posixpath import join as urljoin
+from typing import Any, Dict, Optional, Tuple, Type
 from urllib import error
 from urllib.parse import urlencode
-from posixpath import join as urljoin
 
-from uaclient import config
-from uaclient import util
-from uaclient import version
-
-from typing import Any, Dict, Optional, Tuple, Type
+from uaclient import config, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):

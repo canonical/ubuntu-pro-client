@@ -1,10 +1,12 @@
 import copy
 import json
 import logging
-import mock
-import pytest
 import socket
 
+import mock
+import pytest
+
+from uaclient import exceptions, util
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
     API_V1_RESOURCES,
@@ -16,22 +18,18 @@ from uaclient.contract import (
     process_entitlement_delta,
     request_updated_contract,
 )
-from uaclient import exceptions
-from uaclient import util
 from uaclient.status import (
     MESSAGE_ATTACH_EXPIRED_TOKEN,
     MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
     MESSAGE_ATTACH_FORBIDDEN,
     MESSAGE_ATTACH_FORBIDDEN_EXPIRED,
-    MESSAGE_ATTACH_FORBIDDEN_NOT_YET,
     MESSAGE_ATTACH_FORBIDDEN_NEVER,
+    MESSAGE_ATTACH_FORBIDDEN_NOT_YET,
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
 )
-from uaclient.version import get_version
-
 from uaclient.testing.fakes import FakeContractClient
-
+from uaclient.version import get_version
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."

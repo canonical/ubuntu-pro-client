@@ -4,13 +4,9 @@ import os
 import re
 import subprocess
 import tempfile
-
-from uaclient import exceptions
-from uaclient import gpg
-from uaclient import status
-from uaclient import util
-
 from typing import Dict, List, Optional
+
+from uaclient import exceptions, gpg, status, util
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"

@@ -2,6 +2,7 @@
 # This file is part of ubuntu-advantage-client.  See LICENSE file for license.
 
 import glob
+
 import setuptools
 
 from uaclient import defaults, util, version

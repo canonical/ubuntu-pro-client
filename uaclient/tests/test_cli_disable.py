@@ -1,12 +1,10 @@
-import mock
-import pytest
 import textwrap
 
-from uaclient.cli import action_disable, main
-from uaclient import entitlements
-from uaclient import exceptions
-from uaclient import status
+import mock
+import pytest
 
+from uaclient import entitlements, exceptions, status
+from uaclient.cli import action_disable, main
 
 ALL_SERVICE_MSG = "\n".join(
     textwrap.wrap(

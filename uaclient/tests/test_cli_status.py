@@ -1,19 +1,17 @@
 import datetime
 import io
 import json
-import mock
 import os
 import socket
 import sys
 import textwrap
+
+import mock
+import pytest
 import yaml
 
-import pytest
-
-from uaclient import util, version
-
+from uaclient import status, util, version
 from uaclient.cli import action_status, main
-from uaclient import status
 
 M_PATH = "uaclient.cli."
 
