@@ -2,7 +2,9 @@ import datetime
 import itertools
 import logging
 import os
+import random
 import re
+import string
 import tempfile
 import textwrap
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
@@ -268,6 +270,14 @@ class UAClientBehaveConfig:
             job_suffix = job_suffix.split("PR-")[-1]
         timed_job_tag += str(job_suffix)
         timed_job_tag = timed_job_tag.replace(".", "-")
+
+        # Add 8-digit random suffix to the tag, so it does not conflict when
+        # spinning many jobs at the same time
+        random_suffix = "".join(
+            random.choices(string.ascii_lowercase + string.digits, k=8)
+        )
+        timed_job_tag += "-" + random_suffix
+
         if "aws" in self.machine_type:
             self.cloud_manager = cloud.EC2(
                 aws_access_key_id,
