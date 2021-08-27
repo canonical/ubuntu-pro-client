@@ -18,7 +18,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def api_error_cls(self) -> "Type[Exception]":
+    def api_error_cls(self) -> Type[Exception]:
         """Set in subclasses to the type of API error raised"""
         pass
 
@@ -28,7 +28,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         """String in subclasses, the UAConfig attribute containing base url"""
         pass
 
-    def __init__(self, cfg: "Optional[config.UAConfig]" = None) -> None:
+    def __init__(self, cfg: Optional[config.UAConfig] = None) -> None:
         if not cfg:
             self.cfg = config.UAConfig()
         else:
@@ -119,7 +119,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
 
     def _get_fake_responses(
         self, url: str
-    ) -> "Tuple[Optional[Dict[str, Any]], Optional[Dict[str,str]]]":
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, str]]]:
         """Return response and headers if faked for this URL in uaclient.conf.
 
         :return: A tuple of response and header dicts if the URL has an overlay

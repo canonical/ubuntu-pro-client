@@ -190,7 +190,7 @@ class UAClientBehaveConfig:
         ppa_keyid: str = DAILY_PPA_KEYID,
         userdata_file: str = None,
         check_version: str = None,
-        cmdline_tags: "List" = []
+        cmdline_tags: List = []
     ) -> None:
         # First, store the values we've detected
         self.aws_access_key_id = aws_access_key_id
@@ -404,7 +404,7 @@ def before_all(context: Context) -> None:
         )
 
 
-def _should_skip_tags(context: Context, tags: "List") -> str:
+def _should_skip_tags(context: Context, tags: List) -> str:
     """Return a reason if a feature or scenario should be skipped"""
     machine_type = getattr(context.config, "machine_type", "")
     machine_types = []
@@ -592,9 +592,7 @@ def after_all(context):
 
 
 def capture_container_as_image(
-    container_name: str,
-    image_name: str,
-    cloud_api: "pycloudlib.cloud.BaseCloud",
+    container_name: str, image_name: str, cloud_api: pycloudlib.cloud.BaseCloud
 ) -> str:
     """Capture a container as an image.
 
@@ -613,7 +611,7 @@ def capture_container_as_image(
     return cloud_api.snapshot(instance=inst)
 
 
-def build_debs_from_sbuild(context: Context, series: str) -> "List[str]":
+def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
     """Create a chroot and build the package using sbuild
 
 
@@ -749,7 +747,7 @@ def _install_uat_in_container(
     series: str,
     config: UAClientBehaveConfig,
     machine_type: str,
-    deb_paths: "Optional[List[str]]" = None,
+    deb_paths: Optional[List[str]] = None,
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
@@ -760,7 +758,7 @@ def _install_uat_in_container(
     :param config: UAClientBehaveConfig
     :param deb_paths: Optional paths to local deb files we need to install
     """
-    cmds: "List[Any]" = [["systemctl", "is-system-running", "--wait"]]
+    cmds: List[Any] = [["systemctl", "is-system-running", "--wait"]]
 
     if deb_paths is None:
         deb_paths = []

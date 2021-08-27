@@ -54,7 +54,7 @@ class ExternalMessage(enum.Enum):
 
 def get_contract_expiry_status(
     cfg: config.UAConfig
-) -> "Tuple[ContractExpiryStatus, int]":
+) -> Tuple[ContractExpiryStatus, int]:
     """Return a tuple [ContractExpiryStatus, num_days]"""
     if not cfg.is_attached:
         return ContractExpiryStatus.NONE, 0
@@ -84,7 +84,7 @@ def _write_template_or_remove(msg: str, tmpl_file: str):
             util.remove_file(tmpl_file.replace(".tmpl", ""))
 
 
-def _remove_msg_templates(msg_dir: "str", msg_template_names: "List[str]"):
+def _remove_msg_templates(msg_dir: str, msg_template_names: List[str]):
     # Purge all template out output messages for this service
     for name in msg_template_names:
         _write_template_or_remove("", os.path.join(msg_dir, name))

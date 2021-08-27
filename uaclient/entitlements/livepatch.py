@@ -18,7 +18,7 @@ ERROR_MSG_MAP = {
 
 
 def unconfigure_livepatch_proxy(
-    protocol_type: str, retry_sleeps: "Optional[List[float]]" = None
+    protocol_type: str, retry_sleeps: Optional[List[float]] = None
 ) -> None:
     """
     Unset livepatch configuration settings for http and https proxies.
@@ -38,9 +38,9 @@ def unconfigure_livepatch_proxy(
 
 
 def configure_livepatch_proxy(
-    http_proxy: "Optional[str]" = None,
-    https_proxy: "Optional[str]" = None,
-    retry_sleeps: "Optional[List[float]]" = None,
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    retry_sleeps: Optional[List[float]] = None,
 ) -> None:
     """
     Configure livepatch to use http and https proxies.
@@ -103,7 +103,7 @@ class LivepatchEntitlement(base.UAEntitlement):
     description = "Canonical Livepatch service"
 
     @property
-    def static_affordances(self) -> "Tuple[StaticAffordance, ...]":
+    def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock util.is_container in tests
         from uaclient.entitlements.fips import (
             FIPSEntitlement,
@@ -279,7 +279,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         util.subp(["/snap/bin/canonical-livepatch", "disable"], capture=True)
         return True
 
-    def application_status(self) -> "Tuple[ApplicationStatus, str]":
+    def application_status(self) -> Tuple[ApplicationStatus, str]:
         status = (ApplicationStatus.ENABLED, "")
 
         if not util.which("/snap/bin/canonical-livepatch"):
@@ -301,8 +301,8 @@ class LivepatchEntitlement(base.UAEntitlement):
 
     def process_contract_deltas(
         self,
-        orig_access: "Dict[str, Any]",
-        deltas: "Dict[str, Any]",
+        orig_access: Dict[str, Any],
+        deltas: Dict[str, Any],
         allow_enable: bool = False,
     ) -> bool:
         """Process any contract access deltas for this entitlement.

@@ -5,7 +5,7 @@ from typing import Any, Dict
 class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
-    def identity_doc(self) -> "Dict[str, Any]":
+    def identity_doc(self) -> Dict[str, Any]:
         """Return the identity document representing this cloud instance"""
         pass
 

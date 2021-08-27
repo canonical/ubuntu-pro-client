@@ -125,7 +125,7 @@ def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
 
 
 def run_apt_command(
-    cmd: "List[str]", error_msg: str, env: "Optional[Dict[str, str]]" = {}
+    cmd: List[str], error_msg: str, env: Optional[Dict[str, str]] = {}
 ) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
 
@@ -160,7 +160,7 @@ def add_auth_apt_repo(
     repo_filename: str,
     repo_url: str,
     credentials: str,
-    suites: "List[str]",
+    suites: List[str],
     keyring_file: str,
 ) -> None:
     """Add an authenticated apt repo and credentials to the system.
@@ -383,7 +383,7 @@ def clean_apt_files(*, _entitlements=None):
             os.unlink(pref_file)
 
 
-def get_installed_packages() -> "List[str]":
+def get_installed_packages() -> List[str]:
     out, _ = util.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
     return out.splitlines()
 

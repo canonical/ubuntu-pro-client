@@ -86,7 +86,7 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
 
 def build_debs(
     series: str, output_deb_dir: str, cache_source: bool
-) -> "List[str]":
+) -> List[str]:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
