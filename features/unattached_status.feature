@@ -47,14 +47,15 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>   +Common Criteria EAL2 Provisioning Packages
-            cis           <cis>      +Center for Internet Security Audit Tools
-            esm-apps      <esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     <infra>    +UA Infra: Extended Security Maintenance \(ESM\)
-            esm-ros       <ros>      +ROS Extended Security Maintenance \(ESM\)
-            fips          <fips>     +NIST-certified core packages
-            fips-updates  <fips>     +NIST-certified core packages with priority security updates
+            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            cis           <cis>       +Center for Internet Security Audit Tools
+            esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          <fips>      +NIST-certified core packages
+            fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
+            ros           <ros>       +Security Updates for the Robot Operating System
+            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -76,14 +77,15 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>   +Common Criteria EAL2 Provisioning Packages
-            cis           <cis>      +Center for Internet Security Audit Tools
+            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            cis           <cis>       +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            esm-ros       <ros>       +ROS Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
+            ros           <ros>       +Security Updates for the Robot Operating System
+            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -98,13 +100,14 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            cis           <cis>      +Center for Internet Security Audit Tools
+            cis           <cis>       +Center for Internet Security Audit Tools
             esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            esm-ros       <ros>       +ROS Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
+            ros           <ros>       +Security Updates for the Robot Operating System
+            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -112,7 +115,7 @@ Feature: Unattached status
 
         Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | infra | ros | livepatch |
-           | bionic  | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
+           | bionic  | yes      | no     | yes | yes  | yes         | yes   | yes  | yes       |
            | focal   | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
            | xenial  | yes      | yes    | yes | yes  | yes         | yes   | yes | yes       |
            | hirsute | no       | no     | no  | no   | no          | no    | no  | no        |

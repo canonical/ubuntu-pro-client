@@ -26,6 +26,7 @@ EAL_KEY_ID="9F912DADD99EE1CC6BFFFF243A186E733F491C46"
 ESM_KEY_ID="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
 FIPS_KEY_ID="E23341B2A1467EDBF07057D6C1997C40EDE22758"
 CIS_KEY_ID="81CF06E53F2C513A"
+ROS_KEY_ID="853874C8B0F10896"
 
 generate_keyrings() {
     KEYRING_DIR="$1"
@@ -44,6 +45,8 @@ generate_keyrings() {
                 service_name="fips";;  # Same FIPS key for any series
             $CIS_KEY_ID)
                 service_name="cis";;
+            $ROS_KEY_ID)
+                service_name="ros";;
             *)
                 echo "Unhandled key id provided: " $key
                 exit 1;
@@ -64,6 +67,6 @@ generate_keyrings() {
 }
 
 
-generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID
+generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID $ROS_KEY_ID
 
 rm -rf $tmp_dir
