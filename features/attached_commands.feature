@@ -393,19 +393,12 @@ Feature: Command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Run timer script on an attached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I run `systemctl stop ua-timer.timer` with sudo
+        And I attach `contract_token` with sudo
         Then I verify that running `ua config set update_messaging_timer=-2` `with sudo` exits `1`
         And stderr matches regexp:
         """
         <value> for interval must be a positive integer.
-        """
-        When I run `ua config show` with sudo
-        Then stdout matches regexp:
-        """
-        update_messaging_timer  +21600
-        update_status_timer     +43200
-        gcp_auto_attach_timer   +1800
-        metering_timer          +0
         """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
@@ -417,6 +410,14 @@ Feature: Command behaviour when attached to an UA subscription
         """"
         "update_status":
         """
+        When I run `ua config show` with sudo
+        Then stdout matches regexp:
+        """
+        update_messaging_timer  +21600
+        update_status_timer     +43200
+        gcp_auto_attach_timer   +0
+        """
+        And I verify that running `grep "Disabling gcp_auto_attach job" /var/log/ubuntu-advantage.log` `with sudo` exits `0`
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `ua config set update_messaging_timer=0` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -490,7 +491,7 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And I verify that the timer interval for `update_messaging` is `21600`
         And I verify that the timer interval for `update_status` is `43200`
-        And I verify that the timer interval for `gcp_auto_attach` is `1800`
+        And I verify that the timer interval for `gcp_auto_attach` is `0`
 
         Examples: ubuntu release
            | release |
