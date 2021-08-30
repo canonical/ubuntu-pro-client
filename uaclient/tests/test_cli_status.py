@@ -42,7 +42,10 @@ fips          no        {dash}         NIST-certified core packages
 fips-updates  no        {dash}         NIST-certified core packages with\
  priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
-esm-ros       no        {dash}         ROS Extended Security Maintenance (ESM)
+ros           no        {dash}         Security Updates for the Robot\
+ Operating System
+ros-updates   no        {dash}         All Updates for the Robot Operating\
+ System
 {notices}
 Enable services with: ua enable <service>
 
@@ -71,7 +74,7 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
-BETA_SVC_NAMES = ["cc-eal", "esm-apps", "esm-ros"]
+BETA_SVC_NAMES = ["cc-eal", "esm-apps", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {
@@ -140,10 +143,19 @@ SERVICES_JSON_ALL = [
         "available": "yes",
     },
     {
-        "description": "ROS Extended Security Maintenance (ESM)",
+        "description": "Security Updates for the Robot Operating System",
         "description_override": None,
         "entitled": "no",
-        "name": "esm-ros",
+        "name": "ros",
+        "status": "—",
+        "status_details": "",
+        "available": "yes",
+    },
+    {
+        "description": "All Updates for the Robot Operating System",
+        "description_override": None,
+        "entitled": "no",
+        "name": "ros-updates",
         "status": "—",
         "status_details": "",
         "available": "yes",

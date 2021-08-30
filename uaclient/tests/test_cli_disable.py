@@ -11,6 +11,7 @@ ALL_SERVICE_MSG = "\n".join(
         "Try " + ", ".join(entitlements.valid_services(allow_beta=True)) + ".",
         width=80,
         break_long_words=False,
+        break_on_hyphens=False,
     )
 )
 

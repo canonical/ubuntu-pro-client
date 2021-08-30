@@ -38,16 +38,6 @@ esm-infra:
      You can find our more about the esm service at
      https://ubuntu.com/security/esm
 
-esm-ros:
-  help: |
-    esm-ros provides access to a private PPA which includes available high
-    and critical CVE fixes for Ubuntu Robotic Operating System (ROS) packages
-    between the end of the standard Ubuntu LTS security maintenance and its
-    end of life. For full access to ROS ESM and security fixes, both
-    esm-infra and esm-apps services will also be enabled.
-    You can find out more about the esm service at
-    https://ubuntu.com/robotics/ros-esm
-
 fips:
     help: |
       FIPS 140-2 is a set of publicly announced cryptographic standards
@@ -76,3 +66,21 @@ livepatch:
       livepatches cannot be enabled on fips-enabled systems. You can find out
       more about Ubuntu Kernel Livepatch service at
       https://ubuntu.com/security/livepatch
+
+ros:
+  help: |
+    ros provides access to a private PPA which includes security-related
+    updates for available high and critical CVE fixes for Robot Operating
+    System (ROS) packages. For access to ROS ESM and security updates, both
+    esm-infra and esm-apps services will also be enabled. To get additional
+    non-security updates, enable ros-updates. You can find out more about the
+    ROS ESM service at https://ubuntu.com/robotics/ros-esm
+
+ros-updates:
+  help: |
+    ros-updates provides access to a private PPA which includes
+    non-security-related updates for Robot Operating System (ROS) packages.
+    For full access to ROS ESM, security and non-security updates,
+    the esm-infra, esm-apps, and ros services will also be enabled. You can
+    find out more about the ROS ESM service at
+    https://ubuntu.com/robotics/ros-esm

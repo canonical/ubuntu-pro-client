@@ -73,7 +73,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, esm-ros, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -124,10 +125,11 @@ Feature: Command behaviour when attached to an UA subscription
            cis           +<cis>      +Center for Internet Security Audit Tools
            esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
            esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
-           esm-ros       +<ros>      +ROS Extended Security Maintenance \(ESM\)
            fips          +<fips>     +NIST-certified core packages
            fips-updates  +<fips>     +NIST-certified core packages with priority security updates
            livepatch     +yes        +Canonical Livepatch service
+           ros           +<ros>      +ROS ESM Security Updates
+           ros-updates   +<ros>      +ROS ESM All Updates
            """
        And stdout matches regexp:
           """
@@ -137,7 +139,7 @@ Feature: Command behaviour when attached to an UA subscription
 
        Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | ros |
-           | bionic  | yes      | no     | yes | yes  | yes         | no  |
+           | bionic  | yes      | no     | yes | yes  | yes         | yes  |
            | focal   | yes      | no     | yes | yes  | yes         | no  |
            | xenial  | yes      | yes    | yes | yes  | yes         | yes |
 
@@ -255,7 +257,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, esm-ros, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -347,14 +350,16 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
-         - esm-ros: ROS Extended Security Maintenance \(ESM\)
-           \(https://ubuntu.com/robotics/ros-esm\)
          - fips-updates: NIST-certified core packages with priority security updates
            \(https://ubuntu.com/security/certifications#fips\)
          - fips: NIST-certified core packages
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
         """
 
         Examples: ubuntu release
@@ -373,7 +378,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `add-apt-repository ppa:cloud-init-dev/daily -y` with sudo, retrying exit [1]
         And I run `apt update` with sudo
         And I run `sed -i 's/ubuntu/ubun/' /etc/apt/sources.list.d/<ppa_file>.list` with sudo
-        And I run `ua enable esm-infra` with sudo
+        And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         Then stdout matches regexp:
         """
         One moment, checking your subscription first

@@ -121,6 +121,7 @@ class TestActionEnable:
                 ),
                 width=80,
                 break_long_words=False,
+                break_on_hyphens=False,
             )
         )
         assert (
@@ -307,7 +308,12 @@ class TestActionEnable:
                 mock_ent_list.append(m_ent2_cls)
                 mock_obj_list.append(m_ent3_obj)
             service_msg = "\n".join(
-                textwrap.wrap(ent_str, width=80, break_long_words=False)
+                textwrap.wrap(
+                    ent_str,
+                    width=80,
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
             )
 
             with pytest.raises(exceptions.UserFacingError) as err:
@@ -407,7 +413,12 @@ class TestActionEnable:
         else:
             ent_str = "Try " + ", ".join(service_names) + "."
         service_msg = "\n".join(
-            textwrap.wrap(ent_str, width=80, break_long_words=False)
+            textwrap.wrap(
+                ent_str,
+                width=80,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
         )
         assert (
             expected_error_tmpl.format(
