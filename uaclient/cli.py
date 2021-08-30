@@ -752,7 +752,12 @@ def action_disable(args, *, cfg, **kwargs):
             + "."
         )
         service_msg = "\n".join(
-            textwrap.wrap(valid_names, width=80, break_long_words=False)
+            textwrap.wrap(
+                valid_names,
+                width=80,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
         )
         raise exceptions.UserFacingError(
             tmpl.format(
@@ -813,12 +818,16 @@ def action_enable(args, *, cfg, **kwargs):
             ret &= ent_ret
         except exceptions.UserFacingError as e:
             print(e)
+            ret = False
 
     if entitlements_not_found:
         valid_names = ", ".join(valid_services_names)
         service_msg = "\n".join(
             textwrap.wrap(
-                "Try " + valid_names + ".", width=80, break_long_words=False
+                "Try " + valid_names + ".",
+                width=80,
+                break_long_words=False,
+                break_on_hyphens=False,
             )
         )
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL

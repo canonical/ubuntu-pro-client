@@ -106,7 +106,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         Return a list of packages that must be active before enabling this
         service. When we are enabling the entitlement we can directly ask
         the user if those entitlements can be enabled before proceding.
-        Overridden in esm-ros
+        Overridden in ros and ros-updates.
         """
         return self._required_services
 
