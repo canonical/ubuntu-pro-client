@@ -117,9 +117,13 @@ def assert_lock_file(lock_holder=None):
             notice_msg = "Operation in progress: {}".format(lock_holder)
             cfg.add_notice("", notice_msg)
             _CLEAR_LOCK_FILE = cfg.delete_cache_key
-            retval = f(*args, cfg=cfg, **kwargs)
-            cfg.delete_cache_key("lock")
-            _CLEAR_LOCK_FILE = None  # Unset due to successful lock delete
+
+            try:
+                retval = f(*args, cfg=cfg, **kwargs)
+            finally:
+                cfg.delete_cache_key("lock")
+                _CLEAR_LOCK_FILE = None  # Unset due to successful lock delete
+
             return retval
 
         return new_f
