@@ -11,7 +11,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo).
             """
-        When I run `ua enable cc-eal --beta` with sudo
+        When I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
