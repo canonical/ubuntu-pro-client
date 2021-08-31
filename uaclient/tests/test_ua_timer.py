@@ -9,18 +9,26 @@ from lib.timer import TimedJob, run_jobs
 
 class TestTimedJob:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @pytest.mark.parametrize("return_value", (True, False))
     def test_run_job_returns_true_on_successful_job_run(
-        self, FakeConfig, caplog_text
+        self, FakeConfig, return_value, caplog_text
     ):
         """Return True on successful job run."""
         cfg = FakeConfig()
 
         def success_job(config):
             assert config == cfg
+            return return_value
 
         job = TimedJob("day_job", success_job, 14400)
         assert True is job.run(cfg)
-        assert "Running job: day_job" in caplog_text()
+
+        if return_value:
+            # Job executed
+            assert "Sucessfully executed job: day_job" in caplog_text()
+        else:
+            # Job noops
+            assert "Sucessfully executed job: day_job" not in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     def test_run_job_returns_false_on_failed_job(
@@ -37,15 +45,29 @@ class TestTimedJob:
         assert False is job.run(cfg)
         assert "Error executing job day_job: Something broke" in caplog_text()
 
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @pytest.mark.parametrize("is_cfg_set", (False, True))
-    def test_get_default_run_interval(self, is_cfg_set, FakeConfig):
+    def test_get_default_run_interval(
+        self, FakeConfig, is_cfg_set, caplog_text
+    ):
         """Use the default run interval when config is absent or invalid."""
         cfg = FakeConfig()
         if is_cfg_set:
-            setattr(cfg, "day_job_timer", None)
+            setattr(cfg, "day_job_timer", -3)
         job = TimedJob("day_job", lambda: None, 14400)
 
         assert 14400 == job.run_interval_seconds(cfg)
+
+        if is_cfg_set:
+            assert (
+                "Invalid value for day_job interval found in config."
+                in caplog_text()
+            )
+        else:
+            assert (
+                "No config set for day_job, default value will be used."
+                in caplog_text()
+            )
 
     def test_get_configured_run_interval(self, FakeConfig):
         """Use the configured run interval when not overriden."""

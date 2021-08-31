@@ -413,9 +413,10 @@ def is_service_url(url: str) -> bool:
     return True
 
 
-def load_file(filename: str, decode: bool = True) -> str:
+def load_file(filename: str, decode: bool = True, silent: bool = False) -> str:
     """Read filename and decode content."""
-    logging.debug("Reading file: %s", filename)
+    if not silent:
+        logging.debug("Reading file: %s", filename)
     with open(filename, "rb") as stream:
         content = stream.read()
     return content.decode("utf-8")
@@ -664,7 +665,9 @@ def which(program: str) -> Optional[str]:
     return None
 
 
-def write_file(filename: str, content: str, mode: int = 0o644) -> None:
+def write_file(
+    filename: str, content: str, mode: int = 0o644, silent: bool = False
+) -> None:
     """Write content to the provided filename encoding it if necessary.
 
     @param filename: The full path of the file to write.
@@ -672,7 +675,8 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     @param mode: The filesystem mode to set on the file.
     @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
-    logging.debug("Writing file: %s", filename)
+    if not silent:
+        logging.debug("Writing file: %s", filename)
     with open(filename, "wb") as fh:
         fh.write(content.encode("utf-8"))
         fh.flush()

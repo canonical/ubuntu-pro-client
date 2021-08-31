@@ -320,7 +320,7 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
         util.remove_file(esm_news_file)
 
 
-def update_apt_and_motd_messages(cfg: config.UAConfig) -> None:
+def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     """Emit templates and human-readable status messages in msg_dir.
 
     These structured messages will be sourced by both /etc/update.motd.d
@@ -345,10 +345,11 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> None:
             util.remove_file(msg_path)
             if msg_path.endswith(".tmpl"):
                 util.remove_file(msg_path.replace(".tmpl", ""))
-        return
+        return True
 
     # Announce ESM availabilty on active ESM LTS releases
     write_esm_announcement_message(cfg, series)
     write_apt_and_motd_templates(cfg, series)
     # Now that we've setup/cleanedup templates render them with apt-hook
     util.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"])
+    return True

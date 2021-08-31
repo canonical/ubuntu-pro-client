@@ -836,10 +836,10 @@ class TestFIPSEntitlementApplicationStatus:
     ):
         orig_load_file = util.load_file
 
-        def fake_load_file(path):
+        def fake_load_file(path, **kwargs):
             if path == "/proc/sys/crypto/fips_enabled":
                 return proc_content
-            return orig_load_file(path)
+            return orig_load_file(path, **kwargs)
 
         orig_exists = os.path.exists
 

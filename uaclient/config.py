@@ -457,7 +457,7 @@ class UAConfig:
     def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
         cache_path = self.data_path(key)
         try:
-            content = util.load_file(cache_path)
+            content = util.load_file(cache_path, silent=silent)
         except Exception:
             if not os.path.exists(cache_path) and not silent:
                 logging.debug("File does not exist: %s", cache_path)
@@ -467,7 +467,9 @@ class UAConfig:
         except ValueError:
             return content
 
-    def write_cache(self, key: str, content: Any) -> None:
+    def write_cache(
+        self, key: str, content: Any, silent: bool = False
+    ) -> None:
         filepath = self.data_path(key)
         data_dir = os.path.dirname(filepath)
         if not os.path.exists(data_dir):
@@ -489,7 +491,7 @@ class UAConfig:
         if key in self.data_paths:
             if not self.data_paths[key].private:
                 mode = 0o644
-        util.write_file(filepath, content, mode=mode)
+        util.write_file(filepath, content, mode=mode, silent=silent)
 
     def _remove_beta_resources(self, response) -> Dict[str, Any]:
         """Remove beta services from response dict"""
