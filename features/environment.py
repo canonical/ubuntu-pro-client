@@ -602,12 +602,12 @@ def after_all(context):
 
 
 def capture_container_as_image(
-    container_name: str, image_name: str, cloud_api: pycloudlib.cloud.BaseCloud
+    container_id: str, image_name: str, cloud_api: pycloudlib.cloud.BaseCloud
 ) -> str:
     """Capture a container as an image.
 
-    :param container_name:
-        The name of the container to be captured.  Note that this container
+    :param container_id:
+        The id of the container to be captured.  Note that this container
         will be stopped.
     :param image_name:
         The name under which the image should be published.
@@ -615,9 +615,9 @@ def capture_container_as_image(
         machine_types.
     """
     logging.info(
-        "--- Creating  base image snapshot from vm {}".format(container_name)
+        "--- Creating  base image snapshot from vm {}".format(container_id)
     )
-    inst = cloud_api.get_instance(container_name)
+    inst = cloud_api.get_instance(container_id)
     return cloud_api.snapshot(instance=inst)
 
 
@@ -742,10 +742,10 @@ def create_instance_with_uat_installed(
         user_data=user_data,
         ephemeral=context.config.ephemeral_instance,
     )
-    instance_name = context.config.cloud_manager.get_instance_id(inst)
+    instance_id = context.config.cloud_manager.get_instance_id(inst)
 
     _install_uat_in_container(
-        instance_name,
+        instance_id,
         series=series,
         config=context.config,
         machine_type=context.config.machine_type,
@@ -756,7 +756,7 @@ def create_instance_with_uat_installed(
 
 
 def _install_uat_in_container(
-    container_name: str,
+    container_id: str,
     series: str,
     config: UAClientBehaveConfig,
     machine_type: str,
@@ -764,8 +764,8 @@ def _install_uat_in_container(
 ) -> None:
     """Install ubuntu-advantage-tools into the specified container
 
-    :param container_name:
-        The name of the container into which ubuntu-advantage-tools should be
+    :param container_id:
+        The id of the container into which ubuntu-advantage-tools should be
         installed.
     :param series: The name of the series that is being used
     :param config: UAClientBehaveConfig
@@ -780,7 +780,7 @@ def _install_uat_in_container(
         cmds.append(["sudo", "apt-get", "update", "-qqy"])
 
         deb_files = []
-        inst = config.cloud_api.get_instance(container_name)
+        inst = config.cloud_api.get_instance(container_id)
 
         for deb_file in deb_paths:
             if "pro" in deb_file and "pro" not in config.machine_type:
@@ -841,7 +841,7 @@ def _install_uat_in_container(
         cmds.append("sudo ua detach --assume-yes")
 
     cmds.append(["ua", "version"])
-    instance = config.cloud_api.get_instance(container_name)
+    instance = config.cloud_api.get_instance(container_id)
     for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)
         if result.failed:
