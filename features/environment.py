@@ -737,10 +737,7 @@ def create_instance_with_uat_installed(
                 ppa_url=ppa, ppa_keyid=ppa_keyid
             )
     inst = context.config.cloud_manager.launch(
-        instance_name=name,
-        series=series,
-        user_data=user_data,
-        ephemeral=context.config.ephemeral_instance,
+        instance_name=name, series=series, user_data=user_data
     )
     instance_name = context.config.cloud_manager.get_instance_id(inst)
 
