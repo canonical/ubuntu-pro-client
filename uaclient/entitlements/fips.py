@@ -136,9 +136,20 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         This also can be overridden in config with
         features.allow_default_fips_metapackage_on_gcp.
 
-
         :return: False when this cloud, series or config override allows FIPS.
         """
+
+        # There is no cloud optimized FIPS kernel for the supported
+        # clouds. Because of that, we are blocking enabling FIPS
+        # on them by default.
+        if series == "focal" and cloud_id in ("azure", "aws"):
+            cfg_path = "features.allow_default_fips_metapackage_on_focal_cloud"
+            if util.is_config_value_true(
+                config=self.cfg.cfg, path_to_value=cfg_path
+            ):
+                return True
+            return "ubuntu-{}-fips".format(cloud_id) in super().packages
+
         if cloud_id not in ("azure", "gce"):
             return True
 
@@ -165,7 +176,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock util.is_container in tests
-        cloud_titles = {"azure": "an Azure", "gce": "a GCP"}
+        cloud_titles = {"aws": "an AWS", "azure": "an Azure", "gce": "a GCP"}
         cloud_id, _ = get_cloud_type()
         if cloud_id is None:
             cloud_id = ""
