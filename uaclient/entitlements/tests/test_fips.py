@@ -633,11 +633,9 @@ class TestFIPSEntitlementEnable:
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
     @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
-    @pytest.mark.parametrize(
-        "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
-    )
+    @pytest.mark.parametrize("series", (("xenial"), ("bionic")))
     @mock.patch("uaclient.util.is_config_value_true")
-    def test_prevent_fips_on_xenial_cloud_instances(
+    def test_prevent_fips_on_xenial_or_focal_cloud_instances(
         self,
         m_is_config_value_true,
         series,
@@ -673,9 +671,7 @@ class TestFIPSEntitlementEnable:
     @pytest.mark.parametrize(
         "additional_pkgs", (["ubuntu-fips"], ["ubuntu-gcp-fips", "test"])
     )
-    @pytest.mark.parametrize(
-        "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
-    )
+    @pytest.mark.parametrize("series", (("xenial"), ("bionic"), ("focal")))
     @mock.patch("uaclient.util.is_config_value_true")
     def test_prevent_default_fips_on_gcp_cloud(
         self,
@@ -702,6 +698,39 @@ class TestFIPSEntitlementEnable:
             assert not actual_value
         else:
             assert actual_value
+
+    @pytest.mark.parametrize(
+        "additional_pkgs",
+        (("ubuntu-fips"), ("ubuntu-aws-fips"), ("ubuntu-azure-fips")),
+    )
+    @pytest.mark.parametrize(
+        "cfg_fips_metapkg_on_focal_cloud", ((True), (False))
+    )
+    @pytest.mark.parametrize("cloud_id", (("azure"), ("aws")))
+    @mock.patch("uaclient.util.is_config_value_true")
+    def test_prevent_enabling_fips_on_cloud(
+        self,
+        m_is_config_value,
+        cloud_id,
+        cfg_fips_metapkg_on_focal_cloud,
+        additional_pkgs,
+        fips_entitlement_factory,
+    ):
+        series = "focal"
+        m_is_config_value.return_value = cfg_fips_metapkg_on_focal_cloud
+        entitlement = fips_entitlement_factory(
+            additional_packages=additional_pkgs
+        )
+        actual_value = entitlement._allow_fips_on_cloud_instance(
+            series=series, cloud_id=cloud_id
+        )
+
+        if cfg_fips_metapkg_on_focal_cloud:
+            assert actual_value
+        elif cloud_id in additional_pkgs:
+            assert actual_value
+        else:
+            assert not actual_value
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @mock.patch(

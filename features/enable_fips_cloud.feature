@@ -37,6 +37,39 @@ Feature: FIPS enablement in cloud based machines
            | fips          |
            | fips-updates  |
 
+    @series.focal
+    @uses.config.machine_type.azure.generic
+    Scenario Outline: Refuse to enable FIPS on a Focal Azure vm
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
+        And stdout matches regexp:
+        """
+        Ubuntu Focal does not provide an Azure optimized FIPS kernel
+        """
+
+        Examples: fips
+           | fips_service  |
+           | fips          |
+           | fips-updates  |
+
+    @series.focal
+    @uses.config.machine_type.aws.generic
+    Scenario Outline: Refuse to enable FIPS on a Focal AWS vm
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable <fips_service> --assume-yes` `with sudo` exits `1`
+        And stdout matches regexp:
+        """
+        Ubuntu Focal does not provide an AWS optimized FIPS kernel
+        """
+
+        Examples: fips
+           | fips_service  |
+           | fips          |
+           | fips-updates  |
+
+
     @series.bionic
     @uses.config.machine_type.azure.generic
     Scenario Outline: Enable FIPS in an ubuntu Bionic Azure vm
@@ -122,6 +155,11 @@ Feature: FIPS enablement in cloud based machines
         When I attach `contract_token` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
+        And I append the following on uaclient config:
+            """
+            features:
+              allow_default_fips_metapackage_on_focal_cloud: true
+            """
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
@@ -352,6 +390,11 @@ Feature: FIPS enablement in cloud based machines
         And I run `ua disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
+        And I append the following on uaclient config:
+            """
+            features:
+              allow_default_fips_metapackage_on_focal_cloud: true
+            """
         And I run `ua enable <fips-service> --assume-yes` with sudo
         Then stdout matches regexp:
             """
