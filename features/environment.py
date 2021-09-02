@@ -653,11 +653,13 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
         )
 
         with emit_spinner_on_travis("Building debs from local source... "):
+            output_deb_dir = os.path.join(tempfile.gettempdir(), series)
             deb_paths = build_debs(
                 series=series,
-                output_deb_dir=os.path.join(tempfile.gettempdir(), series),
+                output_deb_dir=output_deb_dir,
                 cache_source=context.config.cache_source,
             )
+            context.config.debs_path = output_deb_dir
 
         logging.info("--- sbuild has finished building the packages")
 

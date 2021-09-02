@@ -164,7 +164,10 @@ def build_debs(
 
     for tmp_file in os.listdir(os.path.dirname(SOURCE_PR_TGZ)):
         if tmp_file.endswith(".deb"):
-            shutil.copy(os.path.join(temp_dir, tmp_file), output_deb_dir)
+            dest = os.path.join(
+                output_deb_dir, "{}-{}".format(series, tmp_file)
+            )
+            shutil.copy(os.path.join(temp_dir, tmp_file), dest)
 
     return [
         os.path.join(output_deb_dir, deb_file)
