@@ -1223,17 +1223,19 @@ def action_help(args, *, cfg):
     return 0
 
 
-def setup_logging(console_level, log_level, log_file=None):
+def setup_logging(console_level, log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
         log_file = config.CONFIG_DEFAULTS["log_file"]
     console_formatter = util.LogFormatter()
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
-    root = logging.getLogger()
-    root.setLevel(log_level)
+    if logger is None:
+        # Then we configure the root logger
+        logger = logging.getLogger()
+    logger.setLevel(log_level)
     # Setup console logging
     stderr_found = False
-    for handler in root.handlers:
+    for handler in logger.handlers:
         if hasattr(handler, "stream") and hasattr(handler.stream, "name"):
             if handler.stream.name == "<stderr>":
                 handler.setLevel(console_level)
@@ -1246,7 +1248,7 @@ def setup_logging(console_level, log_level, log_file=None):
         console.setFormatter(console_formatter)
         console.setLevel(console_level)
         console.set_name("console")  # Used to disable console logging
-        root.addHandler(console)
+        logger.addHandler(console)
     if os.getuid() == 0:
         # Setup readable-by-root-only debug file logging if running as root
         log_file_path = pathlib.Path(log_file)
@@ -1256,7 +1258,7 @@ def setup_logging(console_level, log_level, log_file=None):
         filehandler = logging.FileHandler(log_file)
         filehandler.setLevel(log_level)
         filehandler.setFormatter(log_formatter)
-        root.addHandler(filehandler)
+        logger.addHandler(filehandler)
 
 
 def main_error_handler(func):
