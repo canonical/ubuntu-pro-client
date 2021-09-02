@@ -105,7 +105,6 @@ def process_remaining_deltas(cfg):
 @assert_lock_file("ua-reboot-cmds")
 def process_reboot_operations(cfg):
 
-    setup_logging(logging.INFO, logging.DEBUG)
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
 
     if not cfg.is_attached:
@@ -159,4 +158,5 @@ def main(cfg):
 
 if __name__ == "__main__":
     cfg = config.UAConfig()
+    setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.log_file)
     main(cfg=cfg)
