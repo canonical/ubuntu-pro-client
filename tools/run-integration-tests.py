@@ -88,7 +88,7 @@ def build_commands(
 
                 # Wip
                 if wip:
-                    command.extend(["--tags='wip'", "--stop"])
+                    command.extend(["--", "--tags=wip", "--stop"])
 
                 commands.append((command, env))
 
