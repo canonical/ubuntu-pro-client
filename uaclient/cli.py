@@ -1226,39 +1226,37 @@ def action_help(args, *, cfg):
 def setup_logging(console_level, log_level, log_file=None, logger=None):
     """Setup console logging and debug logging to log_file"""
     if log_file is None:
-        log_file = config.CONFIG_DEFAULTS["log_file"]
+        cfg = config.UAConfig()
+        log_file = cfg.log_file
     console_formatter = util.LogFormatter()
     log_formatter = logging.Formatter(DEFAULT_LOG_FORMAT)
     if logger is None:
         # Then we configure the root logger
         logger = logging.getLogger()
     logger.setLevel(log_level)
+
+    # Clear all handlers, so they are replaced for this logger
+    logger.handlers = []
+
     # Setup console logging
-    stderr_found = False
-    for handler in logger.handlers:
-        if hasattr(handler, "stream") and hasattr(handler.stream, "name"):
-            if handler.stream.name == "<stderr>":
-                handler.setLevel(console_level)
-                handler.setFormatter(console_formatter)
-                handler.set_name("console")  # Used to disable console logging
-                stderr_found = True
-                break
-    if not stderr_found:
-        console = logging.StreamHandler(sys.stderr)
-        console.setFormatter(console_formatter)
-        console.setLevel(console_level)
-        console.set_name("console")  # Used to disable console logging
-        logger.addHandler(console)
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(console_formatter)
+    console_handler.setLevel(console_level)
+    console_handler.set_name("ua-console")  # Used to disable console logging
+    logger.addHandler(console_handler)
+
+    # Setup file logging
     if os.getuid() == 0:
         # Setup readable-by-root-only debug file logging if running as root
         log_file_path = pathlib.Path(log_file)
         log_file_path.touch()
         log_file_path.chmod(0o600)
 
-        filehandler = logging.FileHandler(log_file)
-        filehandler.setLevel(log_level)
-        filehandler.setFormatter(log_formatter)
-        logger.addHandler(filehandler)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(log_formatter)
+        file_handler.set_name("ua-file")
+        logger.addHandler(file_handler)
 
 
 def main_error_handler(func):
