@@ -202,7 +202,7 @@ def disable_log_to_console():
     potential_handlers = [
         handler
         for handler in logging.getLogger().handlers
-        if handler.name == "console"
+        if handler.name == "ua-console"
     ]
     if not potential_handlers:
         # We didn't find a handler, so execute the body as normal then end

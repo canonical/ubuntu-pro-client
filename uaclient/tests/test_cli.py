@@ -727,6 +727,88 @@ class TestSetupLogging:
 
         assert "after setup" in log_file.read()
 
+    @mock.patch("uaclient.cli.os.getuid", return_value=0)
+    @mock.patch("uaclient.cli.config.UAConfig")
+    def test_file_log_configured_if_already_present(
+        self, m_config, _m_getuid, logging_sandbox, tmpdir, FakeConfig
+    ):
+        some_file = log_file = tmpdir.join("default.log")
+        logging.getLogger().addHandler(logging.FileHandler(some_file.strpath))
+
+        log_file = tmpdir.join("file.log")
+        cfg = FakeConfig({"log_file": log_file.strpath})
+        m_config.return_value = cfg
+
+        logging.error("before setup")
+        setup_logging(logging.INFO, logging.INFO)
+        logging.error("after setup")
+
+        content = log_file.read()
+        assert "[ERROR]: before setup" not in content
+        assert "[ERROR]: after setup" in content
+
+    @mock.patch("uaclient.cli.config.UAConfig")
+    @mock.patch("uaclient.cli.os.getuid", return_value=0)
+    def test_custom_logger_configuration(
+        self, m_getuid, m_config, logging_sandbox, tmpdir, FakeConfig
+    ):
+        log_file = tmpdir.join("file.log")
+        cfg = FakeConfig({"log_file": log_file.strpath})
+        m_config.return_value = cfg
+
+        custom_logger = logging.getLogger("for-my-special-module")
+        root_logger = logging.getLogger()
+        n_root_handlers = len(root_logger.handlers)
+
+        setup_logging(logging.INFO, logging.INFO, logger=custom_logger)
+
+        assert len(custom_logger.handlers) == 2
+        assert len(root_logger.handlers) == n_root_handlers
+
+    @mock.patch("uaclient.cli.config.UAConfig")
+    @mock.patch("uaclient.cli.os.getuid", return_value=0)
+    def test_no_duplicate_ua_handlers(
+        self, m_getuid, m_config, logging_sandbox, tmpdir, FakeConfig
+    ):
+        log_file = tmpdir.join("file.log")
+        cfg = FakeConfig({"log_file": log_file.strpath})
+        m_config.return_value = cfg
+        root_logger = logging.getLogger()
+
+        setup_logging(logging.INFO, logging.DEBUG)
+        stream_handlers = [
+            h
+            for h in root_logger.handlers
+            if h.level == logging.INFO and isinstance(h, logging.StreamHandler)
+        ]
+        file_handlers = [
+            h
+            for h in root_logger.handlers
+            if h.level == logging.DEBUG
+            and isinstance(h, logging.FileHandler)
+            and h.stream.name == log_file
+        ]
+        assert len(root_logger.handlers) == 2
+        assert len(stream_handlers) == 1
+        assert len(file_handlers) == 1
+
+        setup_logging(logging.INFO, logging.DEBUG)
+        stream_handlers = [
+            h
+            for h in root_logger.handlers
+            if h.level == logging.INFO and isinstance(h, logging.StreamHandler)
+        ]
+        file_handlers = [
+            h
+            for h in root_logger.handlers
+            if h.level == logging.DEBUG
+            and isinstance(h, logging.FileHandler)
+            and h.stream.name == log_file
+        ]
+        assert len(root_logger.handlers) == 2
+        assert len(stream_handlers) == 1
+        assert len(file_handlers) == 1
+
     @pytest.mark.parametrize("pre_existing", (True, False))
     @mock.patch("uaclient.cli.os.getuid", return_value=0)
     @mock.patch("uaclient.cli.config")
