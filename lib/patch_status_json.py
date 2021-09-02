@@ -24,7 +24,6 @@ from uaclient.cli import setup_logging
 
 def patch_status_json_schema_0_1(status_file: str):
     """Patch incompatible status.json file schema to align with version 0.1."""
-    setup_logging(logging.INFO, logging.DEBUG)
     content = util.load_file(status_file)
     try:
         status = json.loads(content, cls=util.DatetimeAwareJSONDecoder)
@@ -65,6 +64,7 @@ def patch_status_json_schema_0_1(status_file: str):
 
 
 if __name__ == "__main__":
+    setup_logging(logging.INFO, logging.DEBUG)
     patch_status_json_schema_0_1(
         status_file="/var/lib/ubuntu-advantage/status.json"
     )
