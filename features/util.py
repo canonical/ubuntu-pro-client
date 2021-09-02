@@ -114,7 +114,8 @@ def build_debs(
                 "--exclude-vcs",
                 "--exclude-vcs-ignores",
                 os.path.basename(cwd),
-            ]
+            ],
+            check=True,
         )
         os.chdir(cwd)
 
@@ -136,6 +137,7 @@ def build_debs(
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            check=True,
         )
 
     curr_dir = os.getcwd()
@@ -155,6 +157,7 @@ def build_debs(
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        check=True,
     )
     logging.info("--- Successfully run sbuild")
     os.chdir(curr_dir)
