@@ -1,0 +1,9 @@
+[Unit]
+Description=The simplest daemon
+
+[Service]
+Type=simple 
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/daemon.py
+
+[Install]
+WantedBy=multi-user.target

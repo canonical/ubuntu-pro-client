@@ -56,13 +56,10 @@ override_dh_systemd_enable:
 	dh_systemd_enable -pubuntu-advantage-tools ua-reboot-cmds.service
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.service
-	dh_systemd_enable -pubuntu-advantage-tools ua-license-check.timer
-	dh_systemd_enable -pubuntu-advantage-tools ua-license-check.service
-	dh_systemd_enable -pubuntu-advantage-tools ua-license-check.path
+	dh_systemd_enable -pubuntu-advantage-tools ua-daemon.service
 
 override_dh_systemd_start:
 	dh_systemd_start -pubuntu-advantage-tools ua-timer.timer
-	dh_systemd_start -pubuntu-advantage-tools ua-license-check.path
 
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/ubuntu-advantage-tools
