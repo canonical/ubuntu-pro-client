@@ -1,7 +1,6 @@
 [Unit]
 Description=Ubuntu Advantage Timer for running repeated jobs
 After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
-Wants=ua-auto-attach.service
 
 [Service]
 Type=oneshot
