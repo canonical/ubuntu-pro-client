@@ -93,6 +93,11 @@ Feature: Proxy configuration
         """
         "invalidurl" is not a valid url. Not setting as proxy.
         """
+        When I verify that running `ua config set http_proxy=http://host:port` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        "http://host:port" is not a valid url. Not setting as proxy
+        """
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
