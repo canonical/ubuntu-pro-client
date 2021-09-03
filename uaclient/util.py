@@ -408,8 +408,15 @@ def is_service_url(url: str) -> bool:
         parsed_url = urlparse(url)
     except ValueError:
         return False
+
     if parsed_url.scheme not in ("https", "http"):
         return False
+
+    try:
+        parsed_url.port
+    except ValueError:
+        return False
+
     return True
 
 
