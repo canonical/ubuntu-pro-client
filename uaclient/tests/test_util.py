@@ -596,7 +596,13 @@ class TestGetMachineId:
 class TestIsServiceUrl:
     @pytest.mark.parametrize(
         "url,is_valid",
-        (("http://asdf", True), ("http://asdf/", True), ("asdf", False)),
+        (
+            ("http://asdf", True),
+            ("http://asdf/", True),
+            ("asdf", False),
+            ("http://host:port", False),
+            ("http://asdf:1234", True),
+        ),
     )
     def test_is_valid_url(self, url, is_valid):
         ret = util.is_service_url(url)
