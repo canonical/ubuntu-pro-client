@@ -21,9 +21,6 @@ Feature: Proxy configuration
         ua_config:
           http_proxy: http://<ci-proxy-ip>:3128
           https_proxy: http://<ci-proxy-ip>:3128
-          update_messaging_timer: 21600
-          update_status_timer: 43200
-          gcp_auto_attach_timer: 1800
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
@@ -42,9 +39,6 @@ Feature: Proxy configuration
         ua_config:
           apt_http_proxy: http://<ci-proxy-ip>:3128
           apt_https_proxy: http://<ci-proxy-ip>:3128
-          update_messaging_timer: 21600
-          update_status_timer: 43200
-          gcp_auto_attach_timer: 1800
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         Then I verify that no files exist matching `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`
@@ -84,9 +78,6 @@ Feature: Proxy configuration
         ua_config:
             apt_http_proxy: "invalidurl"
             apt_https_proxy: "invalidurls"
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I verify that running `ua refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -97,9 +88,6 @@ Feature: Proxy configuration
         """
         ua_config:
             apt_https_proxy: "https://localhost:12345"
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I verify that running `ua refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -184,9 +172,6 @@ Feature: Proxy configuration
         ua_config:
             http_proxy: ""
             https_proxy: ""
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I run `ua refresh config` with sudo
         Then I will see the following on stdout:
@@ -201,9 +186,6 @@ Feature: Proxy configuration
         ua_config:
             http_proxy: "invalidurl"
             https_proxy: "invalidurls"
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I verify that running `ua refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -214,9 +196,6 @@ Feature: Proxy configuration
         """
         ua_config:
             https_proxy: "https://localhost:12345"
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I verify that running `ua refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
@@ -250,9 +229,6 @@ Feature: Proxy configuration
         ua_config:
           http_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
           https_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
-          update_messaging_timer: 21600
-          update_status_timer: 43200
-          gcp_auto_attach_timer: 1800
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I attach `contract_token` with sudo
@@ -271,9 +247,6 @@ Feature: Proxy configuration
         ua_config:
           apt_http_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
           apt_https_proxy: http://someuser:somepassword@<ci-proxy-ip>:3128
-          update_messaging_timer: 21600
-          update_status_timer: 43200
-          gcp_auto_attach_timer: 1800
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
         And I run `ua refresh config` with sudo
@@ -287,9 +260,6 @@ Feature: Proxy configuration
         """
         ua_config:
             apt_https_proxy: http://wronguser:wrongpassword@<ci-proxy-ip>:3128
-            update_messaging_timer: 21600
-            update_status_timer: 43200
-            gcp_auto_attach_timer: 1800
         """
         And I verify that running `ua refresh config` `with sudo` exits `1`
         Then stderr matches regexp:
