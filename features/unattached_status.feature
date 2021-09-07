@@ -44,6 +44,9 @@ Feature: Unattached status
             See https://ubuntu.com/advantage
             """
         When I run `ua status --all` as non-root
+        # TODO-ROS add the following after livepatch
+        # ros           <ros>       +Security Updates for the Robot Operating System
+        # ros-updates   <ros>       +All Updates for the Robot Operating System
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -54,8 +57,6 @@ Feature: Unattached status
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -74,6 +75,9 @@ Feature: Unattached status
             See https://ubuntu.com/advantage
             """
         When I run `ua status --all` with sudo
+        # TODO-ROS add the following after livepatch
+        # ros           <ros>       +Security Updates for the Robot Operating System
+        # ros-updates   <ros>       +All Updates for the Robot Operating System
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -84,8 +88,6 @@ Feature: Unattached status
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -96,6 +98,9 @@ Feature: Unattached status
               allow_beta: true
             """
         And I run `ua status` as non-root
+        # TODO-ROS add the following after livepatch
+        # ros           <ros>       +Security Updates for the Robot Operating System
+        # ros-updates   <ros>       +All Updates for the Robot Operating System
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
@@ -106,8 +111,6 @@ Feature: Unattached status
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage

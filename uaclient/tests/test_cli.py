@@ -35,6 +35,11 @@ BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10
 
 
+# TODO-ROS add these lines to ALL_SERVICES_WRAPPED_HELP below livepatch
+#  - ros-updates: All Updates for the Robot Operating System
+#    (https://ubuntu.com/robotics/ros-esm)
+#  - ros: Security Updates for the Robot Operating System
+#    (https://ubuntu.com/robotics/ros-esm)
 ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
@@ -52,10 +57,6 @@ Client to manage Ubuntu Advantage services on a machine.
    (https://ubuntu.com/security/certifications#fips)
  - livepatch: Canonical Livepatch service
    (https://ubuntu.com/security/livepatch)
- - ros-updates: All Updates for the Robot Operating System
-   (https://ubuntu.com/robotics/ros-esm)
- - ros: Security Updates for the Robot Operating System
-   (https://ubuntu.com/robotics/ros-esm)
 """
 )
 
