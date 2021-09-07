@@ -251,7 +251,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         update_messaging_timer  +21600
         update_status_timer     +43200
-        gcp_auto_attach_timer   +1800
+        gcp_auto_attach_timer   +300
         metering_timer          +0
         """
 
