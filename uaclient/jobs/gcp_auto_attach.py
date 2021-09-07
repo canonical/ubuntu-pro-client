@@ -6,7 +6,9 @@ import logging
 
 from uaclient import config, exceptions
 from uaclient.cli import action_auto_attach
+from uaclient.clouds.gcp import GCP_LICENSES, UAAutoAttachGCPInstance
 from uaclient.clouds.identity import get_cloud_type
+from uaclient.util import get_platform_info
 
 LOG = logging.getLogger(__name__)
 
@@ -27,15 +29,27 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
     if cfg.is_attached:
         return
 
-    try:
-        # This function already uses the assert lock decorator,
-        # which means that we don't need to make create another
-        # lock only for the job
-        action_auto_attach(args=None, cfg=cfg)
-    except exceptions.NonAutoAttachImageError:
-        # If we get a NonAutoAttachImageError we know
-        # that the machine is not ready yet to perform an
-        # auto-attach operation (i.e. the license may not
-        # have been appended yet). If that happens, we will not
-        # error out.
+    series = get_platform_info()["series"]
+    if series not in GCP_LICENSES:
         return
+
+    # Only try to auto_attach if the license is found in the metadata.
+    # If there is a problem finding the metadata, do not error out.
+    try:
+        licenses = UAAutoAttachGCPInstance().get_licenses_from_identity()
+    except Exception:
+        return
+
+    if GCP_LICENSES[series] in licenses:
+        try:
+            # This function already uses the assert lock decorator,
+            # which means that we don't need to make create another
+            # lock only for the job
+            action_auto_attach(args=None, cfg=cfg)
+        except exceptions.NonAutoAttachImageError:
+            # If we get a NonAutoAttachImageError we know
+            # that the machine is not ready yet to perform an
+            # auto-attach operation (i.e. the license may not
+            # have been appended yet). If that happens, we will not
+            # error out.
+            return
