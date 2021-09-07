@@ -29,6 +29,11 @@ This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage
 """
 
+# TODO-ROS add the following lines to ATTACHED_STATUS below livepatch
+# ros           no        {dash}         Security Updates for the Robot\
+#  Operating System
+# ros-updates   no        {dash}         All Updates for the Robot Operating\
+#  System
 ATTACHED_STATUS = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
 cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
@@ -42,10 +47,6 @@ fips          no        {dash}         NIST-certified core packages
 fips-updates  no        {dash}         NIST-certified core packages with\
  priority security updates
 livepatch     no        {dash}         Canonical Livepatch service
-ros           no        {dash}         Security Updates for the Robot\
- Operating System
-ros-updates   no        {dash}         All Updates for the Robot Operating\
- System
 {notices}
 Enable services with: ua enable <service>
 
@@ -74,7 +75,8 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
-BETA_SVC_NAMES = ["cc-eal", "esm-apps", "ros", "ros-updates"]
+# TODO-ROS add "ros" and "ros-updates" to BETA_SVC_NAMES
+BETA_SVC_NAMES = ["cc-eal", "esm-apps"]
 
 SERVICES_JSON_ALL = [
     {
@@ -142,24 +144,25 @@ SERVICES_JSON_ALL = [
         "status_details": "",
         "available": "yes",
     },
-    {
-        "description": "Security Updates for the Robot Operating System",
-        "description_override": None,
-        "entitled": "no",
-        "name": "ros",
-        "status": "—",
-        "status_details": "",
-        "available": "yes",
-    },
-    {
-        "description": "All Updates for the Robot Operating System",
-        "description_override": None,
-        "entitled": "no",
-        "name": "ros-updates",
-        "status": "—",
-        "status_details": "",
-        "available": "yes",
-    },
+    # TODO-ROS uncomment these
+    # {
+    #     "description": "Security Updates for the Robot Operating System",
+    #     "description_override": None,
+    #     "entitled": "no",
+    #     "name": "ros",
+    #     "status": "—",
+    #     "status_details": "",
+    #     "available": "yes",
+    # },
+    # {
+    #     "description": "All Updates for the Robot Operating System",
+    #     "description_override": None,
+    #     "entitled": "no",
+    #     "name": "ros-updates",
+    #     "status": "—",
+    #     "status_details": "",
+    #     "available": "yes",
+    # },
 ]
 
 HELP_OUTPUT = textwrap.dedent(
