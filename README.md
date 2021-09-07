@@ -160,7 +160,7 @@ Current jobs being checked and executed are:
 | --- | ----------- | -------- |
 | update_messaging | Update MOTD and APT messages | 6 hours |
 | update_status | Update UA status | 12 hours |
-| gcp_auto_attach | Try to auto-attach on a GCP instance | 30 minutes |
+| gcp_auto_attach | Try to auto-attach on a GCP instance | 5 minutes |
 
 - The `update_messaging` job makes sure that the MOTD and APT messages match the
 available/enabled services on the system, showing information about available
