@@ -1366,7 +1366,7 @@ class TestProcessConfig:
                     "https_proxy": https_proxy,
                     "update_messaging_timer": 21600,
                     "update_status_timer": 43200,
-                    "gcp_auto_attach_timer": 1800,
+                    "gcp_auto_attach_timer": 300,
                     "metering_timer": 0,
                 }
             }
@@ -1415,7 +1415,7 @@ class TestProcessConfig:
                 "ua_config": {
                     "update_messaging_timer": "wrong",
                     "update_status_timer": 43200,
-                    "gcp_auto_attach_timer": 1800,
+                    "gcp_auto_attach_timer": 300,
                 }
             }
         )
