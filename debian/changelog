@@ -4,6 +4,69 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
+
+  * d/tools.postinst:
+    - consider cloud to be "none" on any cloud-id error
+    - purge old ua-messaging.timer/service files
+  * systemd:
+    - remove ua-messaging.timer/service
+    - add new ua-timer.timer that runs every 2 hours
+    - add new ua-license_check.timer that runs every 5 minutes only if
+      activated by ua-license-check.path
+  * New upstream release 27.3
+    - ros:
+      + add beta support to enable ros and ros-updates
+      + add support for "required services" so that esm-infra and esm-apps
+        get auto-enabled when enabling ros or ros-updates
+      + add support for "dependent services" so that user gets prompted to
+        disable ros/ros-updates if they disable esm-infra/esm-apps
+    - fips:
+      + allow fips on GCP bionic now that optimized kernel is ready
+      + disallow enabling fips on focal on clouds until cloud-optimized focal
+        fips-certified kernel is ready (LP: #1939449, LP: #1939932)
+      + print warning about generic fips kernel if cloud-id fails
+    - cloud:
+      + rely only on cloud-id to determine cloud type (LP: #1940131)
+      + catch errors when determining cloud type (LP: #1938207) (GH: #1541)
+    - azure:
+      + bump IMDS API version to support Azure published images
+    - cli:
+      + collect-logs command that creates a tar file with debug-relevant logs
+        and status info (GH: #463)
+      + clean locks on exceptions more thoroughly to avoid false "Operation in
+        progress" status messages
+      + retain past service state after detach
+      + shows better error message when a port value in a proxy is invalid
+    - non-unicode locale support:
+      + remove unicode-only characters from help file
+      + don't print unicode-only characters in ua fix if non-utf8 locale
+        (GH: #1463)
+    - ua-timer.timer:
+      + introduce a single systemd timer to handle ua recurring jobs
+      + timer runs every 2 hours to support most frequent timer job
+      + recurring job intervals are configurable in uaclient.conf
+      + individual jobs are disabled if their interval is set to 0
+      - status job:
+        + update ua status every 12 hours
+      - messaging job:
+        + update APT/MOTD ESM messaging every 6 hours
+      - metering job:
+        + disabled until infrastructure is ready
+        + for attached machines only, periodically update contract server with
+          status information for proper contract metering
+    - ua-license-check.timer:
+      + only runs on LTS GCP instances that are not attached
+      + runs every 5 minutes to check if gcp instance has license required to
+        auto-attach
+    - logs:
+      + fixes duplicate logging (GH: #553)
+    - tests and support:
+      + remove groovy integration tests
+      + various improvements to integration tests
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Tue, 21 Sep 2021 09:02:06 -0400
+
 ubuntu-advantage-tools (27.2.2~21.10.1) impish; urgency=medium
 
   * d/tools.postinst:
