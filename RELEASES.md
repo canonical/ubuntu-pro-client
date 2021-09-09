@@ -77,6 +77,24 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
         
     c. Create a PR on github into the release branch. Ask in the UA channel on mattermost for review.
 
+    d. When reviewing the release PR, please use the following guidelines when reviewing the new changelog entry:
+
+       * Is the version correctly updated ? We must ensure that the new version on the changelog is
+         correct and it also targets the latest Ubuntu release at the moment.
+       * Is the entry useful for the user ? The changelog entries should be user focused, meaning
+         that we should only add entries that we think users will care about (i.e. we don't need
+         entries when fixing a test, as this doesn't provide meaningful information to the user)
+       * Is this entry redundant ? Sometimes we may have changes that affect separate modules of the
+         code. We should have an entry only for the module that was most affected by it
+       * Is the changelog entry unique ? We need to verify that the changelog entry is not already
+         reflected in an earlier version of the changelog. If it is, we need not only to remove but double
+         check the process we are using to cherry-pick the commits
+       * Is this entry actually reflected on the code ? Sometimes, we can have changelog entries
+         that are not reflected in the code anymore. This can happen during development when we are
+         still unsure about the behavior of a feature or when we fix a bug that removes the code
+         that was added. We must verify each changelog entry that is added to be sure of their
+         presence in the product.
+
 2. After the release PR is merged, tag the head of the release branch with the version number, e.g. `27.1`. Push this tag to Github.
 
 3. Build the package for all Ubuntu releases and upload to `ppa:ua-client/staging`
