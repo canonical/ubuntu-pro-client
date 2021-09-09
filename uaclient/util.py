@@ -801,22 +801,22 @@ def parse_rfc3339_date(dt_str: str) -> datetime.datetime:
 
     :return: datetime.datetime object of time represented by dt_str
     """
+    # remove sub-seconds
+    dt_str_without_subseconds = re.sub(
+        r"(\d{2}:\d{2}:\d{2})\.\d+", r"\g<1>", dt_str
+    )
     # if there is no timezone info, assume UTC
-    dt_str_with_z = re.sub(r"(\d{2}:\d{2}:\d{2})$", r"\g<1>Z", dt_str)
+    dt_str_with_z = re.sub(
+        r"(\d{2}:\d{2}:\d{2})$", r"\g<1>Z", dt_str_without_subseconds
+    )
     # replace Z with offset for UTC
     dt_str_without_z = dt_str_with_z.replace("Z", "+00:00")
     # change offset format to not include colon `:`
     dt_str_with_pythonish_tz = re.sub(
         r"(-|\+)(\d{2}):(\d{2})$", r"\g<1>\g<2>\g<3>", dt_str_without_z
     )
-    # remove sub-seconds
-    dt_str_without_microseconds = re.sub(
-        r"(\d{2}:\d{2}:\d{2})\.\d+(-|\+)",
-        r"\g<1>\g<2>",
-        dt_str_with_pythonish_tz,
-    )
     return datetime.datetime.strptime(
-        dt_str_without_microseconds, "%Y-%m-%dT%H:%M:%S%z"
+        dt_str_with_pythonish_tz, "%Y-%m-%dT%H:%M:%S%z"
     )
 
 

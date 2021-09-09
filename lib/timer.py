@@ -3,7 +3,7 @@ Timer used to run all jobs that need to be frequently run on the system
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from uaclient.cli import setup_logging
@@ -96,10 +96,7 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     jobs_status = cfg.read_cache("jobs-status") or {}
     for job in UACLIENT_JOBS:
         if job.name in jobs_status:
-            print(type(jobs_status[job.name]["next_run"]))
-            next_run = datetime.strptime(
-                jobs_status[job.name]["next_run"], "%Y-%m-%dT%H:%M:%S.%f"
-            )
+            next_run = jobs_status[job.name]["next_run"]
             if next_run > current_time:
                 continue  # Skip job as expected next_run hasn't yet passed
         if job.run(cfg):
@@ -114,6 +111,6 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 
 if __name__ == "__main__":
     cfg = UAConfig()
-    current_time = datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     setup_logging(logging.INFO, logging.DEBUG)
     run_jobs(cfg=cfg, current_time=current_time)
