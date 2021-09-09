@@ -700,34 +700,24 @@ class TestFIPSEntitlementEnable:
             assert actual_value
 
     @pytest.mark.parametrize(
-        "additional_pkgs",
-        (("ubuntu-fips"), ("ubuntu-aws-fips"), ("ubuntu-azure-fips")),
-    )
-    @pytest.mark.parametrize(
         "cfg_fips_metapkg_on_focal_cloud", ((True), (False))
     )
     @pytest.mark.parametrize("cloud_id", (("azure"), ("aws")))
     @mock.patch("uaclient.util.is_config_value_true")
-    def test_prevent_enabling_fips_on_cloud(
+    def test_prevent_enabling_fips_on_focal_cloud(
         self,
         m_is_config_value,
         cloud_id,
         cfg_fips_metapkg_on_focal_cloud,
-        additional_pkgs,
-        fips_entitlement_factory,
+        entitlement,
     ):
         series = "focal"
         m_is_config_value.return_value = cfg_fips_metapkg_on_focal_cloud
-        entitlement = fips_entitlement_factory(
-            additional_packages=additional_pkgs
-        )
         actual_value = entitlement._allow_fips_on_cloud_instance(
             series=series, cloud_id=cloud_id
         )
 
         if cfg_fips_metapkg_on_focal_cloud:
-            assert actual_value
-        elif cloud_id in additional_pkgs:
             assert actual_value
         else:
             assert not actual_value
