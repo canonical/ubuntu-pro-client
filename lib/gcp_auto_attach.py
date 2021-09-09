@@ -5,8 +5,9 @@ if the instance has a new UA license attached to it
 import logging
 
 from uaclient import config, exceptions
-from uaclient.cli import action_auto_attach
+from uaclient.cli import action_auto_attach, setup_logging
 from uaclient.clouds.identity import get_cloud_type
+from uaclient.config import UAConfig
 
 LOG = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
         # If we are not running on GCP cloud, we shouldn't run this
         # job anymore
         LOG.info("Disabling gcp_auto_attach job. Not running on GCP instance")
-        cfg.gcp_auto_attach_timer = 0
+        cfg.delete_cache_key("marker-gcp-lts")
         return
 
     # If the instance is already attached we will not do anything.
@@ -39,3 +40,9 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
         # have been appended yet). If that happens, we will not
         # error out.
         return
+
+
+if __name__ == "__main__":
+    cfg = UAConfig()
+    setup_logging(logging.INFO, logging.DEBUG)
+    gcp_auto_attach(cfg=cfg)

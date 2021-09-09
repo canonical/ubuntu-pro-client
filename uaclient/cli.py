@@ -922,6 +922,7 @@ def _attach_with_token(
         print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     config.update_ua_messages(cfg)
+    config.write_cache("marker-attached", "")
     action_status(args=None, cfg=cfg)
     return 0
 

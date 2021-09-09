@@ -46,6 +46,7 @@ SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enab
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
 REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
+GCP_LTS_MARKER_FILE="/var/lib/ubuntu-advantage/marker-gcp-lts"
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
@@ -302,6 +303,15 @@ notify_wrong_fips_metapackage_on_cloud() {
     fi
 }
 
+detect_gcp_lts() {
+    cloud_id=$(cloud-id 2>/dev/null) || cloud_id=""
+    if echo "$cloud_id" | grep -q "gce"; then
+      if check_is_lts "${UBUNTU_CODENAME}"; then
+        touch $GCP_LTS_MARKER_FILE
+      fi
+    fi
+}
+
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -375,6 +385,8 @@ case "$1" in
         fi
       fi
       mark_reboot_for_fips_pro
+
+      detect_gcp_lts
       ;;
 esac
 
