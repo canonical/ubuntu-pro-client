@@ -148,7 +148,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 config=self.cfg.cfg, path_to_value=cfg_path
             ):
                 return True
-            return "ubuntu-{}-fips".format(cloud_id) in super().packages
+            return False
 
         if cloud_id not in ("azure", "gce"):
             return True
