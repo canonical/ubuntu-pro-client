@@ -102,8 +102,7 @@ class UAConfig:
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
-        "marker-gcp-lts": DataPath("marker-gcp-lts", False, True),
-        "marker-attached": DataPath("marker-attached", False, False),
+        "marker-license-check": DataPath("marker-license-check", False, True),
         "services-once-enabled": DataPath(
             "services-once-enabled", False, True
         ),
@@ -461,6 +460,10 @@ class UAConfig:
             return os.path.join(data_dir, data_path.filename)
         return os.path.join(data_dir, PRIVATE_SUBDIR, key)
 
+    def cache_key_exists(self, key: str) -> bool:
+        cache_path = self.data_path(key)
+        return os.path.exists(cache_path)
+
     def _perform_delete(self, cache_path: str) -> None:
         """Delete the given cache_path if it exists.
 
@@ -491,7 +494,7 @@ class UAConfig:
         :param delete_permanent: even delete the "permanent" files
         """
         for path_key in self.data_paths.keys():
-            if delete_permanent or not self.data_path(path_key).permanent:
+            if delete_permanent or not self.data_paths[path_key].permanent:
                 self.delete_cache_key(path_key)
 
     def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:

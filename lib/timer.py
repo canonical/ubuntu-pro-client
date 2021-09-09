@@ -8,7 +8,6 @@ from typing import Callable
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
-from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
 from uaclient.jobs.metering import metering_enabled_resources
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 from uaclient.jobs.update_state import update_status

@@ -5,4 +5,4 @@ Wants=ua-auto-attach.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/gcp_auto_attach.py
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/license_check.py

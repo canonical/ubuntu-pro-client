@@ -1,7 +1,5 @@
 [Unit]
 Description=Ubuntu Advantage Timer to check for GCP Ubuntu Pro licenses
-ConditionPathExists=!/var/lib/ubuntu-advantage/marker-attached
-ConditionPathExists=/var/lib/ubuntu-advantage/marker-gcp-lts
 
 [Timer]
 OnCalendar=*:0/5

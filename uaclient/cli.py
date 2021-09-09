@@ -14,7 +14,7 @@ import time
 from functools import wraps
 from typing import List
 
-from uaclient import config, contract, entitlements, exceptions, security
+from uaclient import config, contract, entitlements, exceptions, jobs, security
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import identity
@@ -882,6 +882,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
     contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
+    jobs.enable_license_check_if_applicable(cfg)
     config.update_ua_messages(cfg)
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
@@ -922,7 +923,7 @@ def _attach_with_token(
         print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     config.update_ua_messages(cfg)
-    config.write_cache("marker-attached", "")
+    jobs.disable_license_check_if_applicable(cfg)
     action_status(args=None, cfg=cfg)
     return 0
 

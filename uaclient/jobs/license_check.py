@@ -4,28 +4,30 @@ if the instance has a new UA license attached to it
 """
 import logging
 
-from uaclient import config, exceptions
+from uaclient import config, exceptions, jobs, util
 from uaclient.cli import action_auto_attach, setup_logging
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.config import UAConfig
 
-LOG = logging.getLogger(__name__)
 
-
-def gcp_auto_attach(cfg: config.UAConfig) -> None:
+def gcp_auto_attach(cfg: config.UAConfig, logger: logging.Logger) -> None:
     # We will not do anything in a non-GCP cloud
     cloud_id, _ = get_cloud_type()
     if not cloud_id or cloud_id != "gce":
         # If we are not running on GCP cloud, we shouldn't run this
         # job anymore
-        LOG.info("Disabling gcp_auto_attach job. Not running on GCP instance")
-        cfg.delete_cache_key("marker-gcp-lts")
+        logger.info(
+            "Disabling gcp_auto_attach job. Not running on GCP instance"
+        )
+        jobs.disable_license_check_if_applicable(cfg)
         return
 
     # If the instance is already attached we will not do anything.
     # This implies that the user may have a new license attached to the
     # instance, but we will not perfom the change through this job.
     if cfg.is_attached:
+        logger.info("Disabling gcp_auto_attach job. Already attached")
+        jobs.disable_license_check_if_applicable(cfg)
         return
 
     try:
@@ -40,9 +42,3 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
         # have been appended yet). If that happens, we will not
         # error out.
         return
-
-
-if __name__ == "__main__":
-    cfg = UAConfig()
-    setup_logging(logging.INFO, logging.DEBUG)
-    gcp_auto_attach(cfg=cfg)
