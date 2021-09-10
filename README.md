@@ -512,12 +512,15 @@ multipass connect dev-f
 ## Code Formatting
 
 The `ubuntu-advantage-client` code base is formatted using
-[black](https://github.com/psf/black).  When making changes, you should
-ensure that your code is blackened, or it will be rejected by CI.
+[black](https://github.com/psf/black), and imports are sorted with
+[isort](https://github.com/PyCQA/isort).  When making changes, you
+should ensure that your code is blackened and isorted, or it will
+be rejected by CI.
 Formatting the whole codebase is as simple as running:
 
 ```shell
 black uaclient/
+isort uaclient/
 ```
 
 To make it easier to avoid committing incorrectly formatted code, this
