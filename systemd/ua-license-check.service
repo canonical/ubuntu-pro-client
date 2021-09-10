@@ -2,7 +2,10 @@
 Description=Ubuntu Advantage check for GCP Ubuntu Pro licenses
 After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
 Wants=ua-auto-attach.service
+ConditionPathExists=/var/lib/ubuntu-advantage/marker-license-check
 
 [Service]
-Type=oneshot
+Type=exec
 ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/license_check.py
+Restart=always
+RestartSec=5min

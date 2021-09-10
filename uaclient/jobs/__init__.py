@@ -9,6 +9,4 @@ def enable_license_check_if_applicable(cfg: config.UAConfig):
 
 
 def disable_license_check_if_applicable(cfg: config.UAConfig):
-    if cfg.cache_key_exists("marker-license-check"):
-        cfg.delete_cache_key("marker-license-check")
-        util.subp(["systemctl", "stop", "ua-license-check.timer"])
+    cfg.delete_cache_key("marker-license-check")

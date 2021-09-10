@@ -3,7 +3,7 @@ Description=Ubuntu Advantage Trigger to check for GCP Ubuntu Pro licenses
 
 [Path]
 PathExists=/var/lib/ubuntu-advantage/marker-license-check
-Unit=ua-license-check.timer
+Unit=ua-license-check.service
 
 [Install]
 WantedBy=multi-user.target
