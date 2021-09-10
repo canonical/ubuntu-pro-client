@@ -24,14 +24,14 @@ class TimedJob:
     def __init__(
         self,
         name: str,
-        job_func: Callable[..., None],
+        job_func: Callable[..., bool],
         default_interval_seconds: int,
     ):
         self.name = name
         self._job_func = job_func
         self._default_interval_seconds = default_interval_seconds
 
-    def run(self, cfg: UAConfig):
+    def run(self, cfg: UAConfig) -> bool:
         """Run a job in a failsafe manner, returning True on success.
         Checks if the job is not disabled before running it.
 
@@ -43,36 +43,30 @@ class TimedJob:
         if not self._should_run(cfg):
             return False
 
-        LOG.debug("Running job: %s", self.name)
         try:
-            self._job_func(cfg=cfg)
+            if self._job_func(cfg=cfg):
+                LOG.debug("Executed job: %s", self.name)
         except Exception as e:
             LOG.warning("Error executing job %s: %s", self.name, str(e))
             return False
 
         return True
 
-    def run_interval_seconds(self, cfg: UAConfig):
+    def run_interval_seconds(self, cfg: UAConfig) -> int:
         """Return the run_interval for the job based on config or defaults."""
         configured_interval = getattr(cfg, "{}_timer".format(self.name), None)
         if configured_interval is None:
-            debug_msg = (
-                "No config set for {}, default value will be used."
-            ).format(self.name)
-            LOG.debug(debug_msg)
             return self._default_interval_seconds
-        elif (
-            not isinstance(configured_interval, int) or configured_interval < 0
-        ):
-            error_msg = (
+        if not isinstance(configured_interval, int) or configured_interval < 0:
+            warning_msg = (
                 "Invalid value for {} interval found in config. "
                 "Default value will be used."
             ).format(self.name)
-            LOG.error(error_msg)
+            LOG.warning(warning_msg)
             return self._default_interval_seconds
         return configured_interval
 
-    def _should_run(self, cfg):
+    def _should_run(self, cfg) -> bool:
         """Verify if the job has a valid (non-zero) interval."""
         return self.run_interval_seconds(cfg) != 0
 
@@ -95,7 +89,6 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
     Persist jobs-status with calculated next_run values to aid in timer
     state introspection for jobs which have not yet run.
     """
-    LOG.debug("Trigger UA Timer jobs")
     jobs_status = cfg.read_cache("jobs-status") or {}
     for job in UACLIENT_JOBS:
         if job.name in jobs_status:
