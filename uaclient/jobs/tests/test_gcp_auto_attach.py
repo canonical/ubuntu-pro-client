@@ -22,7 +22,7 @@ class TestGCPAutoAttachJob:
     ):
         m_cloud_type.return_value = ("gce", None)
         cfg = FakeConfig.for_attached_machine()
-        assert gcp_auto_attach(cfg) is None
+        assert gcp_auto_attach(cfg) is False
         assert m_auto_attach.call_count == 0
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -49,8 +49,9 @@ class TestGCPAutoAttachJob:
         cfg = FakeConfig()
 
         with mock.patch.object(type(cfg), "write_cfg") as m_write:
+            m_auto_attach.return_value = 0
             cfg.gcp_auto_attach_timer = 1000
-            assert gcp_auto_attach(cfg) is None
+            return_value = gcp_auto_attach(cfg)
 
         if cloud_type != "gce":
             assert m_auto_attach.call_count == 0
@@ -59,10 +60,13 @@ class TestGCPAutoAttachJob:
             assert (
                 "Disabling gcp_auto_attach job. Not running on GCP instance"
             ) in caplog_text()
+            assert return_value is False
+
         else:
             assert cfg.gcp_auto_attach_timer == 1000
             assert m_write.call_count == 1
             assert m_auto_attach.call_count == 1
+            assert return_value is True
 
     @mock.patch("uaclient.jobs.gcp_auto_attach.get_cloud_type")
     @mock.patch.object(UAAutoAttachGCPInstance, "get_licenses_from_identity")
@@ -82,7 +86,7 @@ class TestGCPAutoAttachJob:
         m_auto_attach.side_effect = NonAutoAttachImageError("error")
         cfg = FakeConfig()
 
-        assert gcp_auto_attach(cfg) is None
+        assert gcp_auto_attach(cfg) is False
         assert m_auto_attach.call_count == 1
 
     @mock.patch("uaclient.jobs.gcp_auto_attach.get_cloud_type")
@@ -102,7 +106,7 @@ class TestGCPAutoAttachJob:
         m_platform_info.return_value = {"series": "ubuntu-lts"}
         cfg = FakeConfig()
 
-        assert gcp_auto_attach(cfg) is None
+        assert gcp_auto_attach(cfg) is False
         assert m_auto_attach.call_count == 0
         assert m_get_licenses.call_count == 1
 
@@ -123,7 +127,7 @@ class TestGCPAutoAttachJob:
         m_platform_info.return_value = {"series": "ubuntu-lts"}
         cfg = FakeConfig()
 
-        assert gcp_auto_attach(cfg) is None
+        assert gcp_auto_attach(cfg) is False
         assert m_auto_attach.call_count == 0
         assert m_get_licenses.call_count == 1
 
@@ -143,6 +147,6 @@ class TestGCPAutoAttachJob:
         m_platform_info.return_value = {"series": "ubuntu-non-lts"}
         cfg = FakeConfig()
 
-        assert gcp_auto_attach(cfg) is None
+        assert gcp_auto_attach(cfg) is False
         assert m_auto_attach.call_count == 0
         assert m_get_licenses.call_count == 0
