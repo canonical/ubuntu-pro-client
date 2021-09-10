@@ -13,7 +13,7 @@ from uaclient.util import get_platform_info
 LOG = logging.getLogger(__name__)
 
 
-def gcp_auto_attach(cfg: config.UAConfig) -> None:
+def gcp_auto_attach(cfg: config.UAConfig) -> bool:
     # We will not do anything in a non-GCP cloud
     cloud_id, _ = get_cloud_type()
     if not cloud_id or cloud_id != "gce":
@@ -21,24 +21,24 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
         # job anymore
         LOG.info("Disabling gcp_auto_attach job. Not running on GCP instance")
         cfg.gcp_auto_attach_timer = 0
-        return
+        return False
 
     # If the instance is already attached we will not do anything.
     # This implies that the user may have a new license attached to the
     # instance, but we will not perfom the change through this job.
     if cfg.is_attached:
-        return
+        return False
 
     series = get_platform_info()["series"]
     if series not in GCP_LICENSES:
-        return
+        return False
 
     # Only try to auto_attach if the license is found in the metadata.
     # If there is a problem finding the metadata, do not error out.
     try:
         licenses = UAAutoAttachGCPInstance().get_licenses_from_identity()
     except Exception:
-        return
+        return False
 
     if GCP_LICENSES[series] in licenses:
         try:
@@ -46,10 +46,13 @@ def gcp_auto_attach(cfg: config.UAConfig) -> None:
             # which means that we don't need to make create another
             # lock only for the job
             action_auto_attach(args=None, cfg=cfg)
+            return True
         except exceptions.NonAutoAttachImageError:
             # If we get a NonAutoAttachImageError we know
             # that the machine is not ready yet to perform an
             # auto-attach operation (i.e. the license may not
             # have been appended yet). If that happens, we will not
             # error out.
-            return
+            pass
+
+    return False
