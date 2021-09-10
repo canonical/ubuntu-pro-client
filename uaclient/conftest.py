@@ -77,8 +77,9 @@ def logging_sandbox():
 @pytest.fixture
 def FakeConfig(tmpdir):
     class _FakeConfig(UAConfig):
-        def __init__(self, features_override=None) -> None:
-            super().__init__({"data_dir": tmpdir.strpath})
+        def __init__(self, cfg_overrides={}, features_override=None) -> None:
+            cfg_overrides.update({"data_dir": tmpdir.strpath})
+            super().__init__(cfg_overrides)
 
         @classmethod
         def for_attached_machine(
