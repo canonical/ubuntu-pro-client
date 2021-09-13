@@ -434,7 +434,8 @@ Feature: Command behaviour when attached to an UA subscription
         update_status_timer     +43200
         gcp_auto_attach_timer   +0
         """
-        And I verify that running `grep "Disabling gcp_auto_attach job" /var/log/ubuntu-advantage.log` `with sudo` exits `0`
+        And I verify that running `grep "Disabling gcp_auto_attach job" /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
+        And I verify that running `grep "Disabling gcp_auto_attach job" /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
         And I run `ua config set update_messaging_timer=0` with sudo
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
@@ -494,18 +495,9 @@ Feature: Command behaviour when attached to an UA subscription
           metering_timer: 0
         """
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        Then stderr matches regexp:
-        """
-        Invalid value for update_messaging interval found in config.
-        """
-        And stderr matches regexp:
-        """
-        Invalid value for update_status interval found in config.
-        """
-        And stderr does not match regexp:
-        """
-        Invalid value for gcp_auto_attach interval found in config.
-        """
+        Then I verify that running `grep "Invalid value for update_messaging interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
+        And I verify that running `grep "Invalid value for update_status interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `0`
+        And I verify that running `grep "Invalid value for gcp_auto_attach interval found in config." /var/log/ubuntu-advantage-timer.log` `with sudo` exits `1`
         And I verify that the timer interval for `update_messaging` is `21600`
         And I verify that the timer interval for `update_status` is `43200`
         And I verify that the timer interval for `gcp_auto_attach` is `0`

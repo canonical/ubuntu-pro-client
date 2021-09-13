@@ -147,6 +147,10 @@ The logging level used when writing to \fBlog_file\fP
 .B
 \fBlog_file\fP
 The log file for the Ubuntu Advantage client
+.TP
+.B
+\fBtimer_log_file\fP
+The log file for the Ubuntu Advantage timer and timer jobs
 
 .P
 \fBThe following options must be nested under the "ua_config" key:\fP
@@ -189,7 +193,8 @@ username and password in the URL itself, as in:
 Additionally, some configuration options can be overridden in the environment
 by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
 uppercase and lowercase environment variables are allowed. The configuration
-options that support this are: data_dir, log_file, log_level, and security_url.
+options that support this are: data_dir, log_file, timer_log_file, log_level,
+and security_url.
 
 For example, the following overrides the log_level found in uaclient.conf:
 .PP

@@ -231,6 +231,7 @@ data_dir: /var/lib/ubuntu-advantage
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
+timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
 CFG_FEATURES_CONTENT = """\
@@ -251,6 +252,7 @@ security_url: https://ubuntu.com/security
 settings_overrides:
   c: 1
   d: 2
+timer_log_file: /var/log/ubuntu-advantage-timer.log
 """
 
 UA_CFG_DICT = {
@@ -1444,6 +1446,7 @@ class TestParseConfig:
             "security_url": "https://ubuntu.com/security",
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
+            "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
             "log_level": "INFO",
         }
         assert expected_default_config == config

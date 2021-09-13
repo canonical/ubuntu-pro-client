@@ -29,11 +29,13 @@ CONFIG_DEFAULTS = {
     "data_dir": DEFAULT_DATA_DIR,
     "log_level": "INFO",
     "log_file": "/var/log/ubuntu-advantage.log",
+    "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
 }
 
 CONFIG_FIELD_ENVVAR_ALLOWLIST = [
     "ua_data_dir",
     "ua_log_file",
+    "ua_timer_log_file",
     "ua_log_level",
     "ua_security_url",
 ]
