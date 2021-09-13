@@ -47,7 +47,7 @@ class TimedJob:
             if self._job_func(cfg=cfg):
                 LOG.debug("Executed job: %s", self.name)
         except Exception as e:
-            LOG.warning("Error executing job %s: %s", self.name, str(e))
+            LOG.error("Error executing job %s: %s", self.name, str(e))
             return False
 
         return True
@@ -110,5 +110,17 @@ def run_jobs(cfg: UAConfig, current_time: datetime):
 if __name__ == "__main__":
     cfg = UAConfig()
     current_time = datetime.utcnow()
-    setup_logging(logging.INFO, logging.DEBUG)
+
+    # The ua-timer logger should log everything to its file
+    setup_logging(
+        logging.CRITICAL,
+        logging.DEBUG,
+        log_file=cfg.timer_log_file,
+        logger=LOG,
+    )
+    # Make sure the ua-timer logger does not generate double logging
+    LOG.propagate = False
+    # The root logger should log any error to the timer log file
+    setup_logging(logging.CRITICAL, logging.ERROR, log_file=cfg.timer_log_file)
+
     run_jobs(cfg=cfg, current_time=current_time)
