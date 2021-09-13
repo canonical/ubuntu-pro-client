@@ -25,10 +25,10 @@ class TestTimedJob:
 
         if return_value:
             # Job executed
-            assert "Sucessfully executed job: day_job" in caplog_text()
+            assert "Executed job: day_job" in caplog_text()
         else:
             # Job noops
-            assert "Sucessfully executed job: day_job" not in caplog_text()
+            assert "Executed job: day_job" not in caplog_text()
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     def test_run_job_returns_false_on_failed_job(

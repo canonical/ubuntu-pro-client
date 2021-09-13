@@ -5,7 +5,7 @@ if the instance has a new UA license attached to it
 import logging
 
 from uaclient import config, exceptions
-from uaclient.cli import action_auto_attach
+from uaclient.cli import action_auto_attach, setup_logging
 from uaclient.clouds.gcp import GCP_LICENSES, UAAutoAttachGCPInstance
 from uaclient.clouds.identity import get_cloud_type
 from uaclient.util import get_platform_info
@@ -14,6 +14,12 @@ LOG = logging.getLogger(__name__)
 
 
 def gcp_auto_attach(cfg: config.UAConfig) -> bool:
+    setup_logging(
+        logging.CRITICAL,
+        logging.DEBUG,
+        log_file=cfg.timer_log_file,
+        logger=LOG,
+    )
     # We will not do anything in a non-GCP cloud
     cloud_id, _ = get_cloud_type()
     if not cloud_id or cloud_id != "gce":
