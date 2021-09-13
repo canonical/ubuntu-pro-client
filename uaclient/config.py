@@ -79,6 +79,7 @@ VALID_UA_CONFIG_KEYS = (
     "log_level",
     "security_url",
     "settings_overrides",
+    "timer_log_file",
     "ua_config",
 )
 
@@ -305,6 +306,12 @@ class UAConfig:
     @property
     def log_file(self):
         return self.cfg.get("log_file", CONFIG_DEFAULTS["log_file"])
+
+    @property
+    def timer_log_file(self):
+        return self.cfg.get(
+            "timer_log_file", CONFIG_DEFAULTS["timer_log_file"]
+        )
 
     @property
     def entitlements(self):
@@ -887,7 +894,13 @@ class UAConfig:
         if "log_level" not in cfg_dict:
             cfg_dict["log_level"] = CONFIG_DEFAULTS["log_level"]
         # Ensure defaults are present in uaclient.conf if absent
-        for attr in ("contract_url", "security_url", "data_dir", "log_file"):
+        for attr in (
+            "contract_url",
+            "security_url",
+            "data_dir",
+            "log_file",
+            "timer_log_file",
+        ):
             cfg_dict[attr] = getattr(self, attr)
 
         # Each UA_CONFIGURABLE_KEY needs to have a property on UAConfig
