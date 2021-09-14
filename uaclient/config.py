@@ -299,11 +299,11 @@ class UAConfig:
             util.remove_file(self.data_path("notices"))
 
     @property
-    def log_file(self):
+    def log_file(self) -> str:
         return self.cfg.get("log_file", CONFIG_DEFAULTS["log_file"])
 
     @property
-    def timer_log_file(self):
+    def timer_log_file(self) -> str:
         return self.cfg.get(
             "timer_log_file", CONFIG_DEFAULTS["timer_log_file"]
         )

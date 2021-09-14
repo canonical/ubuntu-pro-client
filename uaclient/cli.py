@@ -8,7 +8,10 @@ import logging
 import os
 import pathlib
 import re
+import shutil
 import sys
+import tarfile
+import tempfile
 import textwrap
 import time
 from functools import wraps
@@ -41,6 +44,18 @@ DEFAULT_LOG_FORMAT = (
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
+UA_COLLECT_LOGS_FILE = "ua_logs.tar.gz"
+
+UA_SERVICES = (
+    "ua-timer.service",
+    "ua-timer.timer",
+    "ua-auto-attach.path",
+    "ua-auto-attach.service",
+    "ua-reboot-cmds.service",
+    "ua-license-check.path",
+    "ua-license-check.service",
+    "ua-license-check.timer",
+)
 
 # Set a module-level callable here so we don't have to reinstantiate
 # UAConfig in order to determine dynamic data_path exception handling of
@@ -189,6 +204,24 @@ def auto_attach_parser(parser):
     )
     parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
     parser._optionals.title = "Flags"
+    return parser
+
+
+def collect_logs_parser(parser):
+    """Build or extend an arg parser for 'collect-logs' subcommand."""
+    parser.prog = "collect-logs"
+    parser.description = (
+        "Collect UA logs and relevant system information into a tarball."
+    )
+    parser.usage = USAGE_TMPL.format(name=NAME, command=parser.prog)
+    parser.add_argument(
+        "-o",
+        "--output",
+        help=(
+            "tarball where the logs will be stored. (Defaults to "
+            "./ua_logs.tar.gz)"
+        ),
+    )
     return parser
 
 
@@ -1010,6 +1043,81 @@ def action_attach(args, *, cfg):
     )
 
 
+def _write_command_output_to_file(
+    cmd, filename: str, return_codes: List[int] = None
+) -> None:
+    """Helper which runs a command and writes output or error to filename."""
+    try:
+        out, _ = util.subp(cmd.split(), rcs=return_codes)
+    except util.ProcessExecutionError as e:
+        util.write_file("{}-error".format(filename), str(e))
+    else:
+        util.write_file(filename, out)
+
+
+# We have to assert root here, because the logs are not non-root user readable
+@assert_root
+def action_collect_logs(args, *, cfg: config.UAConfig):
+    output_file = args.output or UA_COLLECT_LOGS_FILE
+
+    with tempfile.TemporaryDirectory() as output_dir:
+
+        _write_command_output_to_file(
+            "cloud-id", "{}/cloud-id.txt".format(output_dir)
+        )
+        _write_command_output_to_file(
+            "ua status --format json", "{}/ua-status.json".format(output_dir)
+        )
+        _write_command_output_to_file(
+            "canonical-livepatch status",
+            "{}/livepatch-status.txt".format(output_dir),
+        )
+        _write_command_output_to_file(
+            "systemctl list-timers --all",
+            "{}/systemd-timers.txt".format(output_dir),
+        )
+        _write_command_output_to_file(
+            (
+                "journalctl --boot=0 -o short-precise "
+                "{} "
+                "-u cloud-init-local.service "
+                "-u cloud-init-config.service -u cloud-config.service"
+            ).format(
+                " ".join(
+                    ["-u {}".format(s) for s in UA_SERVICES if ".service" in s]
+                )
+            ),
+            "{}/journalctl.txt".format(output_dir),
+        )
+
+        for service in UA_SERVICES:
+            _write_command_output_to_file(
+                "systemctl status {}".format(service),
+                "{}/{}.txt".format(output_dir, service),
+                return_codes=[0, 3],
+            )
+
+        ua_logs = (
+            cfg.cfg_path or "/etc/ubuntu-advantage/uaclient.conf",
+            cfg.log_file,
+            cfg.timer_log_file,
+            cfg.license_check_log_file,
+            cfg.data_path("jobs-status"),
+            *(
+                entitlement.repo_list_file_tmpl.format(name=entitlement.name)
+                for entitlement in entitlements.ENTITLEMENT_CLASSES
+                if issubclass(entitlement, entitlements.repo.RepoEntitlement)
+            ),
+        )
+
+        for log in ua_logs:
+            if os.path.isfile(log):
+                shutil.copy(log, output_dir)
+
+        with tarfile.open(output_file, "w:gz") as results:
+            results.add(output_dir, arcname="logs/")
+
+
 def get_parser():
     service_line_tmpl = " - {name}: {description}{url}"
     base_desc = __doc__
@@ -1075,6 +1183,12 @@ def get_parser():
     )
     auto_attach_parser(parser_auto_attach)
     parser_auto_attach.set_defaults(action=action_auto_attach)
+
+    parser_collect_logs = subparsers.add_parser(
+        "collect-logs", help="collect UA logs and debug information"
+    )
+    collect_logs_parser(parser_collect_logs)
+    parser_collect_logs.set_defaults(action=action_collect_logs)
 
     parser_config = subparsers.add_parser(
         "config", help="manage Ubuntu Advantage configuration on this machine"

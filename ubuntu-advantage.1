@@ -32,6 +32,14 @@ enablement of recommended entitlements which usually happens immediately
 after a successful attach.
 
 .TP
+.B collect-logs [-o <file>| --output <file>]
+Create a tarball with all relevant UA logs and debug data.
+
+The \fI--output\fR parameter defines the path to the tarball. If not
+provided, the file is saved as \fBua_logs.tar.gz\fP in the current
+directory.
+
+.TP
 .B detach
 Remove the Ubuntu Advantage support contract from this machine. This
 also disables all enabled services that can be.
