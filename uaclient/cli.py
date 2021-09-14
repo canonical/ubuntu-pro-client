@@ -385,8 +385,7 @@ def action_fix(args, *, cfg, **kwargs):
         ).format(args.security_issue)
         raise exceptions.UserFacingError(msg)
 
-    security.fix_security_issue_id(cfg, args.security_issue)
-    return 0
+    return security.fix_security_issue_id(cfg, args.security_issue)
 
 
 def detach_parser(parser):

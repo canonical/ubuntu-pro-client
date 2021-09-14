@@ -12,6 +12,9 @@ from uaclient.security import (
     API_V1_NOTICE_TMPL,
     API_V1_NOTICES,
     CVE,
+    SYSTEM_NON_VULNERABLE,
+    SYSTEM_STILL_VULNERABLE,
+    SYSTEM_VULNERABLE_UNTIL_REBOOT,
     USN,
     CVEPackageStatus,
     SecurityAPIError,
@@ -965,7 +968,7 @@ class TestPromptForAffectedPackages:
 
     @pytest.mark.parametrize(
         "affected_pkg_status,installed_packages,"
-        "usn_released_pkgs,cloud_type,expected",
+        "usn_released_pkgs,cloud_type,expected,expected_ret",
         (
             (  # No affected_packages listed
                 {},
@@ -980,6 +983,7 @@ class TestPromptForAffectedPackages:
                         check=OKGREEN_CHECK  # noqa: E126
                     )  # noqa: E126
                 ),
+                SYSTEM_NON_VULNERABLE,
             ),
             (  # version is >= released affected package
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -997,6 +1001,7 @@ class TestPromptForAffectedPackages:
                         check=OKGREEN_CHECK  # noqa: E126
                     )  # noqa: E126
                 ),
+                SYSTEM_NON_VULNERABLE,
             ),
             (  # usn_released_pkgs version is used instead of CVE (2.1)
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -1015,6 +1020,7 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
+                SYSTEM_NON_VULNERABLE,
             ),
             (  # version is < released affected package standard updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -1043,6 +1049,7 @@ class TestPromptForAffectedPackages:
                         ),
                     ]
                 ),
+                SYSTEM_NON_VULNERABLE,
             ),
             (  # version is < released affected package esm-infra updates
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
@@ -1064,6 +1071,7 @@ class TestPromptForAffectedPackages:
                         MSG_SUBSCRIPTION,
                     ]
                 ),
+                SYSTEM_STILL_VULNERABLE,
             ),
             (  # version < released package in esm-infra updates and aws cloud
                 {"slsrc": CVEPackageStatus(CVE_PKG_STATUS_RELEASED_ESM_INFRA)},
@@ -1085,6 +1093,7 @@ class TestPromptForAffectedPackages:
                         MSG_SUBSCRIPTION,
                     ]
                 ),
+                SYSTEM_STILL_VULNERABLE,
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1126,6 +1135,7 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n"
                 + "1 package is still affected: slsrc",
+                SYSTEM_STILL_VULNERABLE,
             ),
             (  # version is < released affected both esm-apps and standard
                 {
@@ -1221,6 +1231,7 @@ class TestPromptForAffectedPackages:
                         "    pkg4, pkg5, pkg6, pkg7, pkg8, pkg9"
                     )
                 ),
+                SYSTEM_STILL_VULNERABLE,
             ),
             (  # No released version
                 {
@@ -1259,6 +1270,7 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+                SYSTEM_STILL_VULNERABLE,
             ),
             (  # text wrapping required in several places
                 {
@@ -1321,6 +1333,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 )
                 + "\n"
                 + "{check} USN-### is resolved.\n".format(check=OKGREEN_CHECK),
+                SYSTEM_NON_VULNERABLE,
             ),
         ),
     )
@@ -1343,6 +1356,7 @@ A fix is available in Ubuntu standard updates.\n"""
         usn_released_pkgs,
         cloud_type,
         expected,
+        expected_ret,
         FakeConfig,
         capsys,
     ):
@@ -1354,13 +1368,14 @@ A fix is available in Ubuntu standard updates.\n"""
             m_stdout = mock.MagicMock()
             type(m_sys).stdout = m_stdout
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
+            actual_ret = prompt_for_affected_packages(
                 cfg=cfg,
                 issue_id="USN-###",
                 affected_pkg_status=affected_pkg_status,
                 installed_packages=installed_packages,
                 usn_released_pkgs=usn_released_pkgs,
             )
+            assert expected_ret == actual_ret
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1992,7 +2007,7 @@ A fix is available in Ubuntu standard updates.\n"""
         assert expected in out
 
     @pytest.mark.parametrize(
-        "affected_pkg_status,installed_packages,usn_released_pkgs,expected",
+        "affected_pkg_status,installed_pkgs,usn_released_pkgs,exp_msg,exp_ret",
         (
             (
                 {"pkg1": CVEPackageStatus(CVE_PKG_STATUS_RELEASED)},
@@ -2012,6 +2027,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 + "A reboot is required to complete fix operation."
                 + "\n"
                 + "{check} USN-### is not resolved.\n".format(check=FAIL_X),
+                SYSTEM_VULNERABLE_UNTIL_REBOOT,
             ),
         ),
     )
@@ -2028,9 +2044,10 @@ A fix is available in Ubuntu standard updates.\n"""
         _m_should_reboot,
         m_add_notice,
         affected_pkg_status,
-        installed_packages,
+        installed_pkgs,
         usn_released_pkgs,
-        expected,
+        exp_msg,
+        exp_ret,
         FakeConfig,
         capsys,
     ):
@@ -2041,15 +2058,16 @@ A fix is available in Ubuntu standard updates.\n"""
             m_stdout = mock.MagicMock()
             type(m_sys).stdout = m_stdout
             type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
+            actual_ret = prompt_for_affected_packages(
                 cfg=cfg,
                 issue_id="USN-###",
                 affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
+                installed_packages=installed_pkgs,
                 usn_released_pkgs=usn_released_pkgs,
             )
+            assert exp_ret == actual_ret
         out, err = capsys.readouterr()
-        assert expected in out
+        assert exp_msg in out
 
         assert [
             mock.call(
