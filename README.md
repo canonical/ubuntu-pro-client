@@ -206,6 +206,20 @@ The following describes the intent of UA client related directories:
 | /var/log/ubuntu-advantage.log | `root` read-only log of ubuntu-advantage operations |
 
 
+## Collecting logs
+The `ua collect-logs` command creates a tarball with all relevant data for debugging possible problems with UA. It puts together:
+- The UA Client configuration file (the default is `/etc/ubuntu-advantage/uaclient.conf`)
+- The UA Client log files (the default is `/var/log/ubuntu-advantage*`)
+- The files in `/etc/apt/sources.list.d/*` related to UA
+- Output of `systemctl status` for the UA Client related services
+- Status of the timer jobs, `canonical-livepatch`, and the systemd timers
+- Output of `cloud-id`, `dmesg` and `journalctl`
+
+Files with sensitive data are not included in the tarball. As of now, the command must be run as root.
+
+Running the command creates a `ua_logs.tar.gz` file in the current directory.
+The output file path/name can be changed using the `-o` option.
+
 ## Testing
 
 All unit and lint tests are run using `tox`. We also use `tox-pip-version` to specify an older pip version as a workaround: we have some required dependencies that can't meet the strict compatibility checks of current pip versions.
