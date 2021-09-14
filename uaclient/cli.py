@@ -682,8 +682,13 @@ def action_config_set(args, *, cfg, **kwargs):
                 raise ValueError("Invalid interval for {}".format(set_key))
         except ValueError:
             subparser.print_help()
+            # More readable in the CLI, without breaking the line in the logs
+            print("")
             raise exceptions.UserFacingError(
-                "\n<value> for interval must be a positive integer."
+                (
+                    "Cannot set {} to {}: "
+                    "<value> for interval must be a positive integer."
+                ).format(set_key, set_value)
             )
     setattr(cfg, set_key, set_value)
 
