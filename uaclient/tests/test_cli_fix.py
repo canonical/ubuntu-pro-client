@@ -59,6 +59,7 @@ class TestActionFix:
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig()
         args = mock.MagicMock(security_issue=issue)
+        m_fix_security_issue_id.return_value = 0
         if is_valid:
             assert 0 == action_fix(args, cfg=cfg)
             assert [
