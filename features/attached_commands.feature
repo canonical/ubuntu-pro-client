@@ -415,7 +415,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then I verify that running `ua config set update_messaging_timer=-2` `with sudo` exits `1`
         And stderr matches regexp:
         """
-        <value> for interval must be a positive integer.
+        Cannot set update_messaging_timer to -2: <value> for interval must be a positive integer.
         """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
