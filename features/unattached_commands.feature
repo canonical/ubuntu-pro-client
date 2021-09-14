@@ -237,7 +237,6 @@ Feature: Command behaviour when unattached
            | focal   |
            | hirsute |
 
-
     @series.focal
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
@@ -299,7 +298,7 @@ Feature: Command behaviour when unattached
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt install -y libawl-php` with sudo
         And I reboot the `<release>` machine
-        And I run `ua fix USN-4539-1` as non-root
+        And I verify that running `ua fix USN-4539-1` `as non-root` exits `1`
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -331,7 +330,7 @@ Feature: Command behaviour when unattached
             .*✔.* CVE-2020-28196 is resolved.
             """
         When I run `DEBIAN_FRONTEND=noninteractive apt-get install -y expat=2.1.0-7 swish-e matanza ghostscript` with sudo
-        And I run `ua fix CVE-2017-9233` with sudo
+        And I verify that running `ua fix CVE-2017-9233` `with sudo` exits `1`
         Then stdout matches regexp:
             """
             CVE-2017-9233: Expat vulnerability
@@ -377,7 +376,7 @@ Feature: Command behaviour when unattached
             Usage: "ua fix CVE-yyyy-nnnn" or "ua fix USN-nnnn"
             """
         When I run `apt install -y libawl-php` with sudo
-        And I run `ua fix USN-4539-1` as non-root
+        And I verify that running `ua fix USN-4539-1` `as non-root` exits `1`
         Then stdout matches regexp:
             """
             USN-4539-1: AWL vulnerability
@@ -401,7 +400,7 @@ Feature: Command behaviour when unattached
             .*✔.* CVE-2020-28196 is resolved.
             """
         When I run `apt-get install xterm=330-1ubuntu2 -y` with sudo
-        And I run `ua fix CVE-2021-27135` as non-root
+        And I verify that running `ua fix CVE-2021-27135` `as non-root` exits `1`
         Then stdout matches regexp:
         """
         CVE-2021-27135: xterm vulnerability
