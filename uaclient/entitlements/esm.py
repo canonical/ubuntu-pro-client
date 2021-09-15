@@ -7,8 +7,7 @@ from uaclient.entitlements import repo
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
     help_doc_url = "https://ubuntu.com/security/esm"
-    # TODO-ROS uncomment this line
-    # _dependent_services = ("ros", "ros-updates")  # type: Tuple[str, ...]
+    _dependent_services = ("ros", "ros-updates")  # type: Tuple[str, ...]
 
     def _perform_enable(self, silent: bool = False) -> bool:
         enable_performed = super()._perform_enable(silent=silent)
