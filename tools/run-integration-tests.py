@@ -8,18 +8,6 @@ from sys import stdout
 import click
 import yaml
 
-PLATFORMS = (
-    "azuregeneric",
-    "azurepro",
-    "awsgeneric",
-    "awspro",
-    "gcpgeneric",
-    "gcppro",
-    "vm",
-    "lxd",
-    "upgrade",
-)
-
 SERIES_TO_VERSION = {
     "xenial": "16.04",
     "bionic": "18.04",
@@ -33,13 +21,21 @@ TOKEN_TO_ENVVAR = {
     "expired": "UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED",
 }
 
+PLATFORM_SERIES_TESTS = {
+    "azuregeneric": ["xenial", "bionic", "focal"],
+    "azurepro": ["xenial", "bionic", "focal"],
+    "awsgeneric": ["xenial", "bionic", "focal"],
+    "awspro": ["xenial", "bionic", "focal"],
+    "gcpgeneric": ["xenial", "bionic", "focal", "hirsute"],
+    "gcppro": ["xenial", "bionic", "focal"],
+    "vm": ["xenial", "bionic", "focal"],
+    "lxd": ["xenial", "bionic", "focal", "hirsute"],
+    "upgrade": ["xenial", "bionic", "focal", "hirsute"],
+}
+
 
 def is_compatible(platform, series):
-    if platform in ("lxd", "upgrade"):
-        return True
-    elif series not in ("hirsute",):
-        return True
-    return False
+    return series in PLATFORM_SERIES_TESTS[platform]
 
 
 def build_commands(
@@ -99,8 +95,8 @@ def build_commands(
 @click.option(
     "-p",
     "--platform",
-    type=click.Choice(PLATFORMS),
-    default=PLATFORMS,
+    type=click.Choice(PLATFORM_SERIES_TESTS.keys()),
+    default=PLATFORM_SERIES_TESTS.keys(),
     multiple=True,
     help="Platform to run the tests on (requires credentials file for the clouds)",
 )

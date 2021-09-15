@@ -66,7 +66,6 @@ UA_CONFIGURABLE_KEYS = (
     "apt_https_proxy",
     "update_messaging_timer",
     "update_status_timer",
-    "gcp_auto_attach_timer",
     "metering_timer",
 )
 
@@ -80,6 +79,7 @@ VALID_UA_CONFIG_KEYS = (
     "security_url",
     "settings_overrides",
     "timer_log_file",
+    "license_check_log_file",
     "ua_config",
 )
 
@@ -103,6 +103,7 @@ class UAConfig:
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
+        "marker-license-check": DataPath("marker-license-check", False, True),
         "services-once-enabled": DataPath(
             "services-once-enabled", False, True
         ),
@@ -207,17 +208,6 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def gcp_auto_attach_timer(self) -> Optional[int]:
-        return self.cfg.get("ua_config", {}).get("gcp_auto_attach_timer")
-
-    @gcp_auto_attach_timer.setter
-    def gcp_auto_attach_timer(self, value: int):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["gcp_auto_attach_timer"] = value
-        self.write_cfg()
-
-    @property
     def metering_timer(self) -> "Optional[int]":
         return self.cfg.get("ua_config", {}).get("metering_timer")
 
@@ -316,6 +306,12 @@ class UAConfig:
     def timer_log_file(self):
         return self.cfg.get(
             "timer_log_file", CONFIG_DEFAULTS["timer_log_file"]
+        )
+
+    @property
+    def license_check_log_file(self):
+        return self.cfg.get(
+            "license_check_log_file", CONFIG_DEFAULTS["license_check_log_file"]
         )
 
     @property
@@ -465,6 +461,10 @@ class UAConfig:
                 )
             return os.path.join(data_dir, data_path.filename)
         return os.path.join(data_dir, PRIVATE_SUBDIR, key)
+
+    def cache_key_exists(self, key: str) -> bool:
+        cache_path = self.data_path(key)
+        return os.path.exists(cache_path)
 
     def _perform_delete(self, cache_path: str) -> None:
         """Delete the given cache_path if it exists.
@@ -823,7 +823,6 @@ class UAConfig:
         for prop in (
             "update_messaging_timer",
             "update_status_timer",
-            "gcp_auto_attach_timer",
             "metering_timer",
         ):
             value = getattr(self, prop)
@@ -910,6 +909,7 @@ class UAConfig:
             "data_dir",
             "log_file",
             "timer_log_file",
+            "license_check_log_file",
         ):
             cfg_dict[attr] = getattr(self, attr)
 
