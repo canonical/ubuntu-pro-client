@@ -23,6 +23,7 @@ from features.environment import (
 )
 from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
+from uaclient.util import DatetimeAwareJSONDecoder
 
 CONTAINER_PREFIX = "ubuntu-behave-test"
 IMAGE_BUILD_PREFIX = "ubuntu-behave-image-build"
@@ -578,13 +579,11 @@ def verify_timer_interval_for_job(context, job, interval):
     when_i_run_command(
         context, "cat /var/lib/ubuntu-advantage/jobs-status.json", "with sudo"
     )
-    jobs_status = json.loads(context.process.stdout.strip())
-    last_run = datetime.datetime.strptime(
-        jobs_status[job]["last_run"], "%Y-%m-%dT%H:%M:%S.%f"
+    jobs_status = json.loads(
+        context.process.stdout.strip(), cls=DatetimeAwareJSONDecoder
     )
-    next_run = datetime.datetime.strptime(
-        jobs_status[job]["next_run"], "%Y-%m-%dT%H:%M:%S.%f"
-    )
+    last_run = jobs_status[job]["last_run"]
+    next_run = jobs_status[job]["next_run"]
     run_diff = next_run - last_run
 
     assert_that(run_diff.seconds, equal_to(int(interval)))

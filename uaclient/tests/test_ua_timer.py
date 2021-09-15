@@ -94,7 +94,9 @@ class TestTimer:
     ):
         """Successful job run results in updated job-status.json."""
         cfg = FakeConfig()
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        # we lose microseconds when deserializing
+        now = now - datetime.timedelta(microseconds=now.microsecond)
 
         if has_next_run:
             cfg.write_cache(
@@ -103,12 +105,7 @@ class TestTimer:
             )
 
         next_run = now + datetime.timedelta(seconds=43200)
-        jobs_status = {
-            "day_job": {
-                "last_run": now.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "next_run": next_run.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-            }
-        }
+        jobs_status = {"day_job": {"last_run": now, "next_run": next_run}}
 
         m_job_func = mock.Mock()
         m_jobs = [TimedJob("day_job", m_job_func, 43200)]
@@ -122,7 +119,9 @@ class TestTimer:
     def test_run_job_ignores_late_next_run(self, FakeConfig):
         """Do not run if next_run points to future time."""
         cfg = FakeConfig()
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        # we lose microseconds when deserializing
+        now = now - datetime.timedelta(microseconds=now.microsecond)
 
         cfg.write_cache(
             "jobs-status",
