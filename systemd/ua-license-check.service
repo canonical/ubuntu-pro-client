@@ -1,0 +1,7 @@
+[Unit]
+Description=Ubuntu Advantage check for Ubuntu Pro licenses
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/license_check.py

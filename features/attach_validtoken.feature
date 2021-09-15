@@ -248,14 +248,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
-        When I run `ua config show` with sudo
-        Then stdout matches regexp:
-        """
-        update_messaging_timer  +21600
-        update_status_timer     +43200
-        gcp_auto_attach_timer   +300
-        metering_timer          +0
-        """
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status |

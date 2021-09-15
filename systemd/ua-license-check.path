@@ -1,0 +1,9 @@
+[Unit]
+Description=Ubuntu Advantage Trigger to periodically check for Ubuntu Pro licenses
+
+[Path]
+PathExists=/var/lib/ubuntu-advantage/marker-license-check
+Unit=ua-license-check.timer
+
+[Install]
+WantedBy=multi-user.target
