@@ -84,24 +84,29 @@ VALID_UA_CONFIG_KEYS = (
 )
 
 
-# A data path is a filename, and an attribute ("private") indicating whether it
-# should only be readable by root
-DataPath = namedtuple("DataPath", ("filename", "private"))
+# A data path is a filename, an attribute ("private") indicating whether it
+# should only be readable by root, and an attribute ("permanent") indicating
+# whether it should stick around even when detached.
+DataPath = namedtuple("DataPath", ("filename", "private", "permanent"))
 
 
 class UAConfig:
 
     data_paths = {
-        "instance-id": DataPath("instance-id", True),
-        "machine-access-cis": DataPath("machine-access-cis.json", True),
-        "machine-id": DataPath("machine-id", True),
-        "machine-token": DataPath("machine-token.json", True),
-        "lock": DataPath("lock", True),
-        "status-cache": DataPath("status.json", False),
-        "notices": DataPath("notices.json", False),
-        "marker-reboot-cmds": DataPath("marker-reboot-cmds-required", False),
-        "services-once-enabled": DataPath("services-once-enabled", False),
-        "jobs-status": DataPath("jobs-status.json", False),
+        "instance-id": DataPath("instance-id", True, False),
+        "machine-access-cis": DataPath("machine-access-cis.json", True, False),
+        "machine-id": DataPath("machine-id", True, False),
+        "machine-token": DataPath("machine-token.json", True, False),
+        "lock": DataPath("lock", True, False),
+        "status-cache": DataPath("status.json", False, False),
+        "notices": DataPath("notices.json", False, False),
+        "marker-reboot-cmds": DataPath(
+            "marker-reboot-cmds-required", False, False
+        ),
+        "services-once-enabled": DataPath(
+            "services-once-enabled", False, True
+        ),
+        "jobs-status": DataPath("jobs-status.json", False, True),
     }  # type: Dict[str, DataPath]
 
     _entitlements = None  # caching to avoid repetitive file reads
@@ -484,10 +489,15 @@ class UAConfig:
         cache_path = self.data_path(key)
         self._perform_delete(cache_path)
 
-    def delete_cache(self):
-        """Remove configuration cached response files class attributes."""
+    def delete_cache(self, delete_permanent: bool = False):
+        """
+        Remove configuration cached response files class attributes.
+
+        :param delete_permanent: even delete the "permanent" files
+        """
         for path_key in self.data_paths.keys():
-            self.delete_cache_key(path_key)
+            if delete_permanent or not self.data_paths[path_key].permanent:
+                self.delete_cache_key(path_key)
 
     def read_cache(self, key: str, silent: bool = False) -> Optional[Any]:
         cache_path = self.data_path(key)
