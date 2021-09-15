@@ -217,7 +217,7 @@ class TestDataPath:
 
     def test_data_path_returns_public_path_for_public_datapath(self):
         cfg = UAConfig({"data_dir": "/my/d"})
-        cfg.data_paths["test_path"] = DataPath("test_path", False)
+        cfg.data_paths["test_path"] = DataPath("test_path", False, False)
         assert "/my/d/test_path" == cfg.data_path("test_path")
 
 
@@ -435,7 +435,10 @@ class TestWriteCache:
 
     @pytest.mark.parametrize(
         "datapath,mode",
-        ((DataPath("path", False), 0o644), (DataPath("path", True), 0o600)),
+        (
+            (DataPath("path", False, False), 0o644),
+            (DataPath("path", True, False), 0o600),
+        ),
     )
     def test_permissions(self, tmpdir, datapath, mode):
         cfg = UAConfig({"data_dir": tmpdir.strpath})
@@ -612,7 +615,9 @@ class TestDeleteCache:
         cfg.delete_cache()
         assert {} == cfg.entitlements
 
-    def test_delete_cache_removes_any_cached_data_path_files(self, tmpdir):
+    def test_delete_cache_removes_all_data_path_files_with_delete_permanent(
+        self, tmpdir
+    ):
         """Any cached files defined in cfg.data_paths will be removed."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
         # Create half of the cached files, but not all
@@ -631,7 +636,7 @@ class TestDeleteCache:
             )
         )
         assert len(odd_keys) == len(present_files)
-        cfg.delete_cache()
+        cfg.delete_cache(delete_permanent=True)
         dirty_files = list(
             itertools.chain(
                 *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
@@ -640,6 +645,36 @@ class TestDeleteCache:
         assert 0 == len(dirty_files), "{} files not deleted".format(
             ", ".join(dirty_files)
         )
+
+    def test_delete_cache_ignores_permanent_data_path_files(self, tmpdir):
+        """Any cached files defined in cfg.data_paths will be removed."""
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        for key in cfg.data_paths.keys():
+            if key == "notices":
+                # notices key expects specific list or lists format
+                value = [[key, key]]
+            else:
+                value = key
+            cfg.write_cache(key, value)
+
+        num_permanent_files = len(
+            [v for v in cfg.data_paths.values() if v.permanent]
+        )
+        present_files = list(
+            itertools.chain(
+                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
+            )
+        )
+        assert len(cfg.data_paths.keys()) == len(present_files)
+        cfg.delete_cache()
+        dirty_files = list(
+            itertools.chain(
+                *[walk_entry[2] for walk_entry in os.walk(tmpdir.strpath)]
+            )
+        )
+        assert num_permanent_files == len(
+            dirty_files
+        ), "{} files not deleted".format(", ".join(dirty_files))
 
     def test_delete_cache_ignores_files_not_defined_in_data_paths(
         self, tmpdir
