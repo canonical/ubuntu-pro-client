@@ -8,7 +8,6 @@ from typing import Callable
 
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
-from uaclient.jobs.gcp_auto_attach import gcp_auto_attach
 from uaclient.jobs.metering import metering_enabled_resources
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 from uaclient.jobs.update_state import update_status
@@ -16,7 +15,6 @@ from uaclient.jobs.update_state import update_status
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 UPDATE_STATUS_INTERVAL = 43200  # 12 hours
-GCP_AUTO_ATTACH_INTERVAL = 300  # 5 minutes
 METERING_INTERVAL = 0  # 4 hours in the future, disabled as of now
 
 
@@ -78,7 +76,6 @@ UACLIENT_JOBS = [
         UPDATE_MESSAGING_INTERVAL,
     ),
     TimedJob("update_status", update_status, UPDATE_STATUS_INTERVAL),
-    TimedJob("gcp_auto_attach", gcp_auto_attach, GCP_AUTO_ATTACH_INTERVAL),
     TimedJob("metering", metering_enabled_resources, METERING_INTERVAL),
 ]
 
