@@ -931,6 +931,12 @@ class TestParseRFC3339Date:
                 ),
             ),
             (
+                "2001-02-03T04:05:06.123456",
+                datetime.datetime(
+                    2001, 2, 3, 4, 5, 6, tzinfo=datetime.timezone.utc
+                ),
+            ),
+            (
                 "2001-02-03T04:05:06Z",
                 datetime.datetime(
                     2001, 2, 3, 4, 5, 6, tzinfo=datetime.timezone.utc
