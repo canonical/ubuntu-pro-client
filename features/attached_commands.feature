@@ -70,16 +70,11 @@ Feature: Command behaviour when attached to an UA subscription
             This command must be run as root \(try using sudo\).
             """
         And I verify that running `ua disable foobar` `with sudo` exits `1`
-        # TODO-ROS replace the string below with:
-        # """
-        # Cannot disable unknown service 'foobar'.
-        # Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-        # ros-updates.
-        # """
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -123,9 +118,6 @@ Feature: Command behaviour when attached to an UA subscription
             This machine is now detached.
             """
        When I run `ua status --all` as non-root
-       # TODO-ROS add the following below livepatch
-       #  ros           +<ros>      +ROS ESM Security Updates
-       #  ros-updates   +<ros>      +ROS ESM All Updates
        Then stdout matches regexp:
            """
            SERVICE       AVAILABLE  DESCRIPTION
@@ -136,6 +128,8 @@ Feature: Command behaviour when attached to an UA subscription
            fips          +<fips>     +NIST-certified core packages
            fips-updates  +<fips>     +NIST-certified core packages with priority security updates
            livepatch     +yes        +Canonical Livepatch service
+           ros           +<ros>      +ROS ESM Security Updates
+           ros-updates   +<ros>      +ROS ESM All Updates
            """
        And stdout matches regexp:
           """
@@ -260,16 +254,11 @@ Feature: Command behaviour when attached to an UA subscription
             Livepatch is not currently enabled
             See: sudo ua status
             """
-        # TODO-ROS replace the string with the following
-        # """
-        # Cannot disable unknown service 'foobar'.
-        # Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-        # ros-updates.
-        # """
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -350,11 +339,6 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/livepatch\)
         """
         When I run `ua help --all` as non-root
-        # TODO-ROS add the following after livepatch
-        #  - ros-updates: All Updates for the Robot Operating System
-        #    \(https://ubuntu.com/robotics/ros-esm\)
-        #  - ros: Security Updates for the Robot Operating System
-        #    \(https://ubuntu.com/robotics/ros-esm\)
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
@@ -372,6 +356,10 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
         """
 
         Examples: ubuntu release
