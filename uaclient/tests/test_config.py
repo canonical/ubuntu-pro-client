@@ -228,6 +228,7 @@ CFG_BASE_CONTENT = """\
 
 contract_url: https://contracts.canonical.com
 data_dir: /var/lib/ubuntu-advantage
+license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
@@ -246,6 +247,7 @@ features:
     hide: true
   new: 2
   show_beta: true
+license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
@@ -263,7 +265,6 @@ UA_CFG_DICT = {
         "https_proxy": None,
         "update_messaging_timer": None,
         "update_status_timer": None,
-        "gcp_auto_attach_timer": None,
         "metering_timer": None,
     }
 }
@@ -1403,7 +1404,6 @@ class TestProcessConfig:
                     "https_proxy": https_proxy,
                     "update_messaging_timer": 21600,
                     "update_status_timer": 43200,
-                    "gcp_auto_attach_timer": 300,
                     "metering_timer": 0,
                 }
             }
@@ -1452,7 +1452,6 @@ class TestProcessConfig:
                 "ua_config": {
                     "update_messaging_timer": "wrong",
                     "update_status_timer": 43200,
-                    "gcp_auto_attach_timer": 300,
                 }
             }
         )
@@ -1482,6 +1481,7 @@ class TestParseConfig:
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
             "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
+            "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",  # noqa: E501
             "log_level": "INFO",
         }
         assert expected_default_config == config

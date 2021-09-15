@@ -1,0 +1,7 @@
+[Unit]
+Description=Ubuntu Advantage Timer to check for Ubuntu Pro licenses
+
+[Timer]
+OnCalendar=*:0/5
+RandomizedDelaySec=5min
+OnStartupSec=2min

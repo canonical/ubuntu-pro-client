@@ -97,7 +97,6 @@ apt_http_proxy          http://apt_http_proxy
 apt_https_proxy         http://apt_https_proxy
 update_messaging_timer  None
 update_status_timer     None
-gcp_auto_attach_timer   None
 metering_timer          None
 """
                 == out
