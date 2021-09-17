@@ -37,11 +37,11 @@ Remove the Ubuntu Advantage support contract from this machine. This
 also disables all enabled services that can be.
 
 .TP
-.BR "disable" " [cc-eal|cis|esm|fips|fips-updates|livepatch]"
+.BR "disable" " [cc-eal|cis|esm|fips|fips-updates|livepatch|ros|ros-updates]"
 Disable this machine's access to an Ubuntu Advantage service.
 
 .TP
-.BR "enable" " [cc-eal|cis|esm|fips|fips-updates|livepatch]"
+.BR "enable" " [cc-eal|cis|esm|fips|fips-updates|livepatch|ros|ros-updates]"
 Activate and configure this machine's access to an Ubuntu Advantage
 service.
 
@@ -255,6 +255,22 @@ Automatically apply critical kernel patches without rebooting. Reduces
 downtime, keeping your Ubuntu LTS systems secure and compliant.
 
 See https://ubuntu.com/livepatch for more information.
+
+.TP
+.B "ROS ESM Security Updates (ros)"
+Robot Operating System Extended Security Maintenance Security Updates 
+provides security fixes for ROS packages to ensure the ongoing integrity
+of ROS based applications.
+
+See https://ubuntu.com/robotics/ros-esm for more information.
+
+.TP
+.B "ROS ESM All Updates (ros-updates)"
+Robot Operating System Extended Security Maintenance All Updates 
+provides additional bug fixes in addition to security fixes for
+ROS packages to ensure the ongoing integrity of ROS based applications.
+
+See https://ubuntu.com/robotics/ros-esm for more information.
 
 .SH REPORTING BUGS
 Please report bugs either by running `ubuntu-bug ubuntu-advantage-tools` or
