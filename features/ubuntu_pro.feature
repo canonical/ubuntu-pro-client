@@ -35,8 +35,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
-            ros           +yes  +disabled +Security Updates for the Robot Operating System
-            ros-updates   +yes  +disabled +All Updates for the Robot Operating System
+            ros           +no  +(-|—) +Security Updates for the Robot Operating System
+            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -127,8 +127,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
-            ros           +yes  +disabled +Security Updates for the Robot Operating System
-            ros-updates   +yes  +disabled +All Updates for the Robot Operating System
+            ros           +no  +(-|—) +Security Updates for the Robot Operating System
+            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
@@ -219,8 +219,8 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +n/a +NIST-certified core packages
             fips-updates  +yes +n/a +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
-            ros           +yes  +disabled +Security Updates for the Robot Operating System
-            ros-updates   +yes  +disabled +All Updates for the Robot Operating System
+            ros           +no  +(-|—) +Security Updates for the Robot Operating System
+            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
