@@ -91,8 +91,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
            | focal   | ant      |
            | xenial  | jq       |
 
-    # TODO add a test to ensure ros is auto-enabled when ros-updates is enabled
-    @wip
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable ros on a machine
@@ -190,6 +188,54 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         """
         When I run `apt install python3-catkin-pkg -y` with sudo
         Then I verify that `python3-catkin-pkg` is installed from apt source `<ros-updates-source>`
+        When I run `ua disable ros` `with sudo` and stdin `y`
+        Then stdout matches regexp
+        """
+        ROS ESM All Updates depends on ROS ESM Security Updates.
+        Disable ROS ESM All Updates and proceed to disable ROS ESM Security Updates\? \(y\/N\) Disabling dependent service: ROS ESM All Updates
+        Updating package lists
+        """
+        When I run `ua enable ros-updates --beta` `with sudo` and stdin `y`
+        Then stdout matches regexp
+        """
+        One moment, checking your subscription first
+        ROS ESM All Updates cannot be enabled with ROS ESM Security Updates disabled.
+        Enable ROS ESM Security Updates and proceed to enable ROS ESM All Updates\? \(y\/N\) Enabling required service: ROS ESM Security Updates
+        ROS ESM Security Updates enabled
+        Updating package lists
+        ROS ESM All Updates enabled
+        """
+        When I run `ua status --all` as non-root
+        Then stdout matches regexp
+        """
+        ros-updates   yes                enabled            All Updates for the Robot Operating System
+        """
+        And stdout matches regexp
+        """
+        ros           yes                enabled            Security Updates for the Robot Operating System
+        """
+        When I run `ua disable ros-updates --assume-yes` with sudo
+        When I run `ua disable ros --assume-yes` with sudo
+        When I run `ua disable esm-apps --assume-yes` with sudo
+        When I run `ua disable esm-infra --assume-yes` with sudo
+        When I run `ua enable ros-updates --assume-yes --beta` with sudo
+        When I run `ua status --all` as non-root
+        Then stdout matches regexp
+        """
+        ros-updates   yes                enabled            All Updates for the Robot Operating System
+        """
+        And stdout matches regexp
+        """
+        ros           yes                enabled            Security Updates for the Robot Operating System
+        """
+        And stdout matches regexp
+        """
+        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        """
+        And stdout matches regexp
+        """
+        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        """
 
         Examples: ubuntu release
            | release | ros-security-source                                            | ros-updates-source                                                    |
