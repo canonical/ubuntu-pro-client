@@ -14,6 +14,7 @@ class ROSEntitlement(ROSCommonEntitlement):
     title = "ROS ESM Security Updates"
     description = "Security Updates for the Robot Operating System"
     _required_services = ("esm-infra", "esm-apps")  # type: Tuple[str, ...]
+    _dependent_services = ("ros-updates",)  # type: Tuple[str, ...]
 
 
 class ROSUpdatesEntitlement(ROSCommonEntitlement):
