@@ -58,6 +58,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         cis          +yes      +disabled        +Center for Internet Security Audit Tools
+        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +n/a      +NIST-certified core packages
         fips-updates +yes      +n/a      +NIST-certified core packages with priority security updates
@@ -67,6 +68,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
+        When I run `ua disable esm-apps --assume-yes` with sudo
         When I append the following on uaclient config:
             """
             features:
