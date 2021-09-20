@@ -203,11 +203,18 @@ class TestCommonCriteriaEntitlementEnable:
                     env={},
                 ),
                 mock.call(
-                    ["apt-get", "install", "--assume-yes"]
+                    [
+                        "apt-get",
+                        "install",
+                        "--assume-yes",
+                        "--allow-downgrades",
+                        '-o Dpkg::Options::="--force-confdef"',
+                        '-o Dpkg::Options::="--force-confold"',
+                    ]
                     + entitlement.packages,
                     capture=True,
                     retry_sleeps=apt.APT_RETRIES,
-                    env={},
+                    env={"DEBIAN_FRONTEND": "noninteractive"},
                 ),
             ]
         )
