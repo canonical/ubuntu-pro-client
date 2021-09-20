@@ -38,7 +38,7 @@ generate_keyrings() {
     for key in $KEYS; do
         case $key in
             $EAL_KEY_ID)
-                service_name="cc-eal-xenial";;
+                service_name="cc-eal";;
             $ESM_KEY_ID)
                 service_name="esm-infra-trusty";;
             $FIPS_KEY_ID)

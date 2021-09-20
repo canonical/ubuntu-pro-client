@@ -11,8 +11,9 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     name = "cc-eal"
     title = "CC EAL2"
     description = "Common Criteria EAL2 Provisioning Packages"
-    repo_key_file = "ubuntu-cc-keyring.gpg"
+    repo_key_file = "ubuntu-advantage-cc-eal.gpg"
     is_beta = True
+    apt_noninteractive = True
 
     @property
     def messaging(self) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
