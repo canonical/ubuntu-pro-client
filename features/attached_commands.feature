@@ -112,25 +112,27 @@ Feature: Command behaviour when attached to an UA subscription
         When I run `ua detach --assume-yes` with sudo
         Then I will see the following on stdout:
             """
-            Detach will disable the following service:
+            Detach will disable the following services:
+                esm-apps
                 esm-infra
+            Updating package lists
             Updating package lists
             This machine is now detached.
             """
        When I run `ua status --all` as non-root
        Then stdout matches regexp:
-           """
-           SERVICE       AVAILABLE  DESCRIPTION
-           cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-           cis           +<cis>      +Center for Internet Security Audit Tools
-           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
-           esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
-           fips          +<fips>     +NIST-certified core packages
-           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
-           livepatch     +yes        +Canonical Livepatch service
-           ros           +<ros>      +ROS ESM Security Updates
-           ros-updates   +<ros>      +ROS ESM All Updates
-           """
+          """
+          SERVICE       AVAILABLE  DESCRIPTION
+          cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
+          cis           +<cis>      +Center for Internet Security Audit Tools
+          esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
+          esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
+          fips          +<fips>     +NIST-certified core packages
+          fips-updates  +<fips>     +NIST-certified core packages with priority security updates
+          livepatch     +yes        +Canonical Livepatch service
+          ros           +<ros>      +Security Updates for the Robot Operating System
+          ros-updates   +<ros>      +All Updates for the Robot Operating System
+          """
        And stdout matches regexp:
           """
           This machine is not attached to a UA subscription.

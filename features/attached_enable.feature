@@ -148,6 +148,26 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable not entitled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "esm-apps",
+                            "entitled": false
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
         When I attach `contract_token` with sudo
         Then I verify that running `ua enable esm-apps` `as non-root` exits `1`
         And I will see the following on stderr:
