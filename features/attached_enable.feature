@@ -11,12 +11,38 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo).
             """
+        When I run `ua enable cc-eal --beta` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            (This will download more than 500MB of packages, so may take some time.)
+            Installing CC EAL2 packages
+            CC EAL2 enabled
+            Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
+            """
+
+    @series.bionic
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
+        And I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo).
+            """
         When I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
+            CC EAL2 is not available for Ubuntu <version> LTS (<full_name>).
             """
+        Examples: ubuntu release
+            | release | version | full_name     |
+            | bionic  | 18.04   | Bionic Beaver |
+            | focal   | 20.04   | Focal Fossa   |
 
     @series.all
     @uses.config.machine_type.lxd.container
