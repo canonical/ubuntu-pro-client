@@ -151,7 +151,7 @@ ubuntu-advantage-tools (27.0.1) impish; urgency=medium
   * Add .gitignore and cleanup ignored directory .pytest_cache
   * apt-hook: mitigate failures with true
 
- -- Chad Smith <chad.smith@canonical.com>  Fri, 07 May 2021 11:55:07 -0600
+ -- Chad Smith <chad.smith@canonical.com>  Wed, 28 Apr 2021 13:55:28 -0600
 
 ubuntu-advantage-tools (27.0) impish; urgency=medium
 
