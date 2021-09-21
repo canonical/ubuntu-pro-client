@@ -23,7 +23,8 @@ fi
 TARGET_DIR="$1"
 
 EAL_KEY_ID="9F912DADD99EE1CC6BFFFF243A186E733F491C46"
-ESM_KEY_ID="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
+ESM_INFRA_KEY_ID="56F7650A24C9E9ECF87C4D8D4067E40313CB4B13"
+ESM_APPS_KEY_ID="E8A443CE358113D187BEE0E6AB01A101DB53907B"
 FIPS_KEY_ID="E23341B2A1467EDBF07057D6C1997C40EDE22758"
 CIS_KEY_ID="81CF06E53F2C513A"
 ROS_KEY_ID="853874C8B0F10896"
@@ -39,8 +40,10 @@ generate_keyrings() {
         case $key in
             $EAL_KEY_ID)
                 service_name="cc-eal";;
-            $ESM_KEY_ID)
+            $ESM_INFRA_KEY_ID)
                 service_name="esm-infra-trusty";;
+            $ESM_APPS_KEY_ID)
+                service_name="esm-apps";;
             $FIPS_KEY_ID)
                 service_name="fips";;  # Same FIPS key for any series
             $CIS_KEY_ID)
@@ -67,6 +70,6 @@ generate_keyrings() {
 }
 
 
-generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID $ROS_KEY_ID
+generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_INFRA_KEY_ID $ESM_APPS_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID $ROS_KEY_ID
 
 rm -rf $tmp_dir
