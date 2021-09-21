@@ -159,6 +159,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 path_to_value="features.allow_default_fips_metapackage_on_gcp",
             ):
                 return True
+
+            # GCE only has FIPS support for bionic machines
+            if series == "bionic":
+                return True
+
             return bool("ubuntu-gcp-fips" in super().packages)
 
         # Azure FIPS cloud support
@@ -226,12 +231,13 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         if cloud_id is None:
             cloud_id = ""
 
-        cloud_match = re.match(r"^(?P<cloud>(azure|aws)).*", cloud_id)
+        cloud_match = re.match(r"^(?P<cloud>(azure|aws|gce)).*", cloud_id)
         cloud_id = cloud_match.group("cloud") if cloud_match else ""
 
-        if cloud_id not in ("azure", "aws"):
+        if cloud_id not in ("azure", "aws", "gce"):
             return packages
 
+        cloud_id = "gcp" if cloud_id == "gce" else cloud_id
         cloud_metapkg = "ubuntu-{}-fips".format(cloud_id)
         # Replace only the ubuntu-fips meta package if exists
         return [
