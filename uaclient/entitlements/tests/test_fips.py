@@ -656,8 +656,10 @@ class TestFIPSEntitlementEnable:
 
         if cloud_id == "aws" or cloud_id is None:
             assert actual_value
-        elif cloud_id == "gce":
+        elif cloud_id == "gce" and series != "bionic":
             assert not actual_value
+        elif cloud_id == "gce":
+            assert actual_value
         elif all([allow_xenial_fips_on_cloud, series == "xenial"]):
             assert actual_value
         elif series == "xenial":
@@ -693,6 +695,7 @@ class TestFIPSEntitlementEnable:
             [
                 not cfg_allow_default_fips_metapkg_on_gcp,
                 "ubuntu-gcp-fips" not in additional_pkgs,
+                series != "bionic",
             ]
         ):
             assert not actual_value
@@ -1142,11 +1145,19 @@ class TestFipsEntitlementPackages:
             [
                 series == "bionic",
                 cloud_id
-                in ("azure", "aws", "aws-china", "aws-gov", "azure-china"),
+                in (
+                    "azure",
+                    "aws",
+                    "aws-china",
+                    "aws-gov",
+                    "azure-china",
+                    "gce",
+                ),
                 not cfg_disable_fips_metapckage_override,
             ]
         ):
             cloud_id = cloud_id.split("-")[0]
+            cloud_id = "gcp" if cloud_id == "gce" else cloud_id
             assert packages == [
                 "test1",
                 "ubuntu-{}-fips".format(cloud_id),
