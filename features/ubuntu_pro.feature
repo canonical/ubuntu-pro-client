@@ -90,7 +90,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       |
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | disabled | n/a      | disabled | hello     | ant      |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -114,7 +114,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
+            livepatch     +yes +<livepatch>  +Canonical Livepatch service
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -126,7 +126,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
+            livepatch     +yes +<livepatch>  +Canonical Livepatch service
             ros           +no  +(-|—) +Security Updates for the Robot Operating System
             ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
@@ -179,10 +179,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | disabled | n/a      | disabled | hello     | ant      |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   |
+           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | n/a       |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -206,7 +206,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
+            livepatch     +yes +<livepatch>  +Canonical Livepatch service
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -216,9 +216,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          +yes +n/a +NIST-certified core packages
-            fips-updates  +yes +n/a +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            livepatch     +yes +<livepatch>  +Canonical Livepatch service
             ros           +no  +(-|—) +Security Updates for the Robot Operating System
             ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
@@ -271,7 +271,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       |
-           | bionic  | n/a      | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       |
+           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   |
