@@ -160,7 +160,27 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "esm-apps",
+                            "entitled": false
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         UA Infra: ESM enabled
@@ -193,7 +213,27 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     @uses.config.machine_type.azure.generic
     Scenario Outline: Attach command in an generic Azure Ubuntu VM
        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "esm-apps",
+                            "entitled": false
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         UA Infra: ESM enabled
@@ -273,4 +313,4 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | lp_status | fips_status |
            | xenial  | n/a       | n/a         |
            | bionic  | n/a       | disabled    |
-           | focal   | n/a       | n/a         |
+           | focal   | enabled   | n/a         |
