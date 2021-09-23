@@ -13,7 +13,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis           +yes      +n/a      +Center for Internet Security Audit Tools
-            esm-apps      +no       +—        +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-apps      +yes      +n/a      +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a      +NIST-certified core packages
             fips-updates  +yes      +n/a      +NIST-certified core packages with priority security updates

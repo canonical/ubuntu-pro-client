@@ -273,6 +273,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         cis          +yes      +disabled +Center for Internet Security Audit Tools
+        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
@@ -289,6 +290,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         cis          +yes      +disabled +Center for Internet Security Audit Tools
+        esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +disabled +NIST-certified core packages
         fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
