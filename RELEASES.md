@@ -167,27 +167,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 3. Set up the MP for past Ubuntu releases based on the ubuntu/devel PR
 
     a. Create a PR for each target series based off your local `release-${UA_VERSION}-impish` branch:
-    ```bash
-    UA_VERSION=<UA-VERSION>
-    SRU_BUG=<SRU-BUG>
-    LP_USER=<LAUNCHPAD-USERNAME>
-
-    for release in xenial bionic focal groovy hirsute
-    do
-      rm ubuntu-advantage-*
-      git checkout upload-${UA_VERSION}-impish -B upload-${UA_VERSION}-$release
-      case "${release}" in
-          xenial) version=${UA_VERSION}~16.04.1;;
-          bionic) version=${UA_VERSION}~18.04.1;;
-          focal) version=${UA_VERSION}~20.04.1;;
-          groovy) version=${UA_VERSION}~20.10.1;;
-          hirsute) version=${UA_VERSION}~21.04.1;;
-      esac
-      dch -v ${version} -D ${release} -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release"
-      git commit -m "changelog backport to ${release}" debian/changelog
-      git push $LP_USER upload-${UA_VERSION}-$release
-    done
-    ```
+      * If you've followed the instructions precisely so far, you can just run `bash tools/create-lp-release-branches.sh`.
 
     b. Create merge proposals for each SRU target release @ `https://code.launchpad.net/~<YOUR_LP_USER></YOUR_LAUNCHPAD_USER>/ubuntu/+source/ubuntu-advantage-tools/+git/ubuntu-advantage-tools/`. Make sure each MP targets your `upload-${UA_VERSION}-impish` branch (the branch you are MP-ing into ubuntu/devel).
 
