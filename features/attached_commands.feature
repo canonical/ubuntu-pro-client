@@ -314,6 +314,8 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
          - cis: Center for Internet Security Audit Tools
            \(https://ubuntu.com/security/certifications#cis\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
@@ -325,10 +327,12 @@ Feature: Command behaviour when attached to an UA subscription
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
         """
-        When I run `ua help` as non-root
+        When I run `ua help` with sudo
         Then stdout matches regexp:
         """
         Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
          - cis: Center for Internet Security Audit Tools
            \(https://ubuntu.com/security/certifications#cis\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
