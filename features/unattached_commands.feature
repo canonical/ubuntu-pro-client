@@ -302,6 +302,7 @@ Feature: Command behaviour when unattached
            | focal   |
 
     @series.xenial
+    @uses.config.contract_token
     @uses.config.machine_type.lxd.container
     Scenario Outline: Fix command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -352,6 +353,32 @@ Feature: Command behaviour when unattached
             .*\{ apt update && apt install --only-upgrade -y expat \}.*
             2 packages are still affected: matanza, swish-e
             .*✘.* CVE-2017-9233 is not resolved.
+            """
+        When I fix `USN-5079-2` by attaching to a subscription with `contract_token`
+        Then stdout matches regexp:
+            """
+            USN-5079-2: curl vulnerabilities
+            Found CVEs:
+            https://ubuntu.com/security/CVE-2021-22946
+            https://ubuntu.com/security/CVE-2021-22947
+            1 affected package is installed: curl
+            \(1/1\) curl:
+            A fix is available in UA Infra.
+            The update is not installed because this system is not attached to a
+            subscription.
+
+            Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
+            > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
+            > .*\{ ua attach .*\}.*
+            Updating package lists
+            UA Apps: ESM enabled
+            Updating package lists
+            UA Infra: ESM enabled
+            """
+        And stdout matches regexp:
+            """
+            .*\{ apt update && apt install --only-upgrade -y libcurl3-gnutls curl \}.*
+            .*✔.* USN-5079-2 is resolved.
             """
 
         Examples: ubuntu release details
