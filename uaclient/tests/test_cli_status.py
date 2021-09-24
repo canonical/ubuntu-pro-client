@@ -58,6 +58,8 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
+cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
+ Packages
 cis           no        {dash}         Center for Internet Security Audit Tools
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
  (ESM)
@@ -74,7 +76,7 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """
 
-BETA_SVC_NAMES = ["cc-eal", "esm-apps", "ros", "ros-updates"]
+BETA_SVC_NAMES = ["esm-apps", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {

@@ -35,6 +35,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             cis           <cis>       +Center for Internet Security Audit Tools
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
@@ -65,6 +66,7 @@ Feature: Unattached status
         Then stdout matches regexp:
             """
             SERVICE       AVAILABLE  DESCRIPTION
+            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             cis           <cis>       +Center for Internet Security Audit Tools
             esm-infra     <infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
