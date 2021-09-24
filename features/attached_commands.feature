@@ -519,8 +519,11 @@ Feature: Command behaviour when attached to an UA subscription
               {
                 "code": 200,
                 "response": {
-                  "activityToken": "test",
-                  "activityID": "ac-id",
+                  "activityInfo": {
+                    "activityToken": "test",
+                    "activityID": "ac-id",
+                    "activityPingInterval": 3600
+                  },
                   "machineTokenInfo": {
                       "contractInfo": {
                           "resourceEntitlements": [
@@ -547,6 +550,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         Then I verify that running `grep -q activityToken /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
         And I verify that running `grep -q activityID /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        And I verify that running `grep -q activityPingInterval /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
         When I run `cat /var/lib/ubuntu-advantage/private/machine-id` with sudo
         Then stdout matches regexp:
         """

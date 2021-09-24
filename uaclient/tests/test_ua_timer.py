@@ -4,7 +4,7 @@ import logging
 import mock
 import pytest
 
-from lib.timer import TimedJob, run_jobs
+from lib.timer import MeteringTimedJob, TimedJob, run_jobs
 
 
 class TestTimedJob:
@@ -136,3 +136,29 @@ class TestTimer:
 
         assert "last_run" not in cfg.read_cache("jobs-status")["day_job"]
         assert 0 == m_job_func.call_count
+
+
+class TestMeteringTimedJob:
+    @pytest.mark.parametrize(
+        "activity_ping_interval_value,config_value,expected_value",
+        ((None, 100, 100), (20, 80, 80), (1000, 80, 1000)),
+    )
+    @mock.patch("lib.timer.TimedJob.run_interval_seconds")
+    def test_metering_run_interval_seconds(
+        self,
+        m_run_interval_seconds,
+        activity_ping_interval_value,
+        config_value,
+        expected_value,
+    ):
+        m_run_interval_seconds.return_value = config_value
+        m_cfg = mock.MagicMock()
+        type(m_cfg).activity_ping_interval = mock.PropertyMock(
+            return_value=activity_ping_interval_value
+        )
+
+        metering_job = MeteringTimedJob(
+            job_func=mock.MagicMock(),
+            default_interval_seconds=mock.MagicMock(),
+        )
+        assert expected_value == metering_job.run_interval_seconds(m_cfg)

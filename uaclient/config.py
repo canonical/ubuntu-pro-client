@@ -413,11 +413,17 @@ class UAConfig:
 
     @property
     def activity_token(self) -> "Optional[str]":
-        return self.machine_token.get("activityToken")
+        return self.machine_token.get("activityInfo", {}).get("activityToken")
 
     @property
     def activity_id(self) -> "Optional[str]":
-        return self.machine_token.get("activityID")
+        return self.machine_token.get("activityInfo", {}).get("activityID")
+
+    @property
+    def activity_ping_interval(self) -> "Optional[int]":
+        return self.machine_token.get("activityInfo", {}).get(
+            "activityPingInterval"
+        )
 
     @property
     def contract_id(self):
