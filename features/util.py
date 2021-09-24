@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import multiprocessing
 import os
@@ -16,8 +17,11 @@ LXC_PROPERTY_MAP = {
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
 SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
-SOURCE_PR_TGZ = os.path.join(tempfile.gettempdir(), "pr_source.tar.gz")
-SOURCE_PR_UNTAR_DIR = os.path.join(tempfile.gettempdir(), "behave-ua")
+UA_TMP_DIR = os.path.join(tempfile.gettempdir(), "uaclient-behave")
+SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
+SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")
+SBUILD_DIR = os.path.join(UA_TMP_DIR, "sbuild")
+UA_DEB_BUILD_CACHE = os.path.join(UA_TMP_DIR, "deb-cache")
 UA_DEBS = frozenset({"ubuntu-advantage-tools.deb", "ubuntu-advantage-pro.deb"})
 
 
@@ -84,9 +88,42 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
         return value
 
 
-def build_debs(
-    series: str, output_deb_dir: str, cache_source: bool
-) -> List[str]:
+def repo_state_hash(include_features: bool = False):
+    """
+    Generate a string that represents the current local state of
+    the git repository.
+
+    This takes the latest commit hash, which represents the committed
+    state, and the `git diff`, which includes all local changes, and
+    concatenates them. Then it generates the md5 hash of the result.
+
+    By doing so, the result is a unique-enough string that shouldn't
+    collide with any other local state in our lifetimes. We can then
+    include this string in the name of a build and reuse that build if
+    the repo state doesn't change.
+
+    :param include_features: Defaults to False. When False, we exclude
+        the `features/` folder from the git diff. By doing so, we don't
+        include any changes to integration tests when generating our local
+        state hash.  This is useful when iterating on an integration test
+        because you won't have to re-sbuild if you don't change the actual
+        source code of the package.
+
+    :return: A unique string representing the current local state of the
+        git repository
+    """
+    git_rev_cmd = ["git", "rev-parse", "HEAD"]
+    git_diff_cmd = ["git", "diff"]
+    if not include_features:
+        files_and_folders = [f for f in os.listdir(".") if "features" not in f]
+        git_diff_cmd += ["--", *files_and_folders]
+    rev_out = subprocess.check_output(git_rev_cmd)
+    diff_out = subprocess.check_output(git_diff_cmd)
+    output_to_hash = rev_out + diff_out
+    return hashlib.md5(output_to_hash).hexdigest()
+
+
+def build_debs(series: str, cache_source: bool = False) -> List[str]:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
@@ -98,8 +135,26 @@ def build_debs(
 
     :return: A list of file paths to debs created by the build.
     """
+    deb_prefix = "{}-{}-".format(series, repo_state_hash())
+    tools_deb_name = "{}ubuntu-advantage-tools.deb".format(deb_prefix)
+    pro_deb_name = "{}ubuntu-advantage-pro.deb".format(deb_prefix)
+    tools_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, tools_deb_name)
+    pro_deb_cache_path = os.path.join(UA_DEB_BUILD_CACHE, pro_deb_name)
+
+    if not os.path.exists(UA_DEB_BUILD_CACHE):
+        os.makedirs(UA_DEB_BUILD_CACHE)
+
+    if os.path.exists(tools_deb_cache_path) and os.path.exists(
+        pro_deb_cache_path
+    ):
+        logging.info(
+            "--- Using debs in cache: {} and {}".format(
+                tools_deb_cache_path, pro_deb_cache_path
+            )
+        )
+        return [tools_deb_cache_path, pro_deb_cache_path]
+
     logging.info("--- Creating: {}".format(SOURCE_PR_TGZ))
-    temp_dir = tempfile.gettempdir()
     if not os.path.exists(os.path.dirname(SOURCE_PR_TGZ)):
         os.makedirs(os.path.dirname(SOURCE_PR_TGZ))
 
@@ -140,8 +195,12 @@ def build_debs(
             check=True,
         )
 
+    if os.path.exists(SBUILD_DIR):
+        shutil.rmtree(SBUILD_DIR)
+    os.makedirs(SBUILD_DIR)
+
     curr_dir = os.getcwd()
-    os.chdir(temp_dir)
+    os.chdir(SBUILD_DIR)
     logging.info("--- Running sbuild")
     subprocess.run(
         [
@@ -159,23 +218,20 @@ def build_debs(
         stderr=subprocess.DEVNULL,
         check=True,
     )
-    logging.info("--- Successfully run sbuild")
+    logging.info("--- Successfully ran sbuild")
     os.chdir(curr_dir)
 
-    if not os.path.exists(output_deb_dir):
-        os.makedirs(output_deb_dir)
+    for f in os.listdir(SBUILD_DIR):
+        if f.endswith(".deb"):
+            if "pro" in f:
+                dest = pro_deb_cache_path
+            elif "tools" in f:
+                dest = tools_deb_cache_path
+            else:
+                continue
+            shutil.copy(os.path.join(SBUILD_DIR, f), dest)
 
-    for tmp_file in os.listdir(os.path.dirname(SOURCE_PR_TGZ)):
-        if tmp_file.endswith(".deb"):
-            dest = os.path.join(
-                output_deb_dir, "{}-{}".format(series, tmp_file)
-            )
-            shutil.copy(os.path.join(temp_dir, tmp_file), dest)
-
-    return [
-        os.path.join(output_deb_dir, deb_file)
-        for deb_file in os.listdir(output_deb_dir)
-    ]
+    return [tools_deb_cache_path, pro_deb_cache_path]
 
 
 # Support for python 3.6 or earlier
