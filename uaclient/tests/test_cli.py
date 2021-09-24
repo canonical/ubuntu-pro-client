@@ -62,6 +62,8 @@ Client to manage Ubuntu Advantage services on a machine.
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
+ - cc-eal: Common Criteria EAL2 Provisioning Packages
+   (https://ubuntu.com/cc-eal)
  - cis: Center for Internet Security Audit Tools
    (https://ubuntu.com/security/certifications#cis)
  - esm-infra: UA Infra: Extended Security Maintenance (ESM)
