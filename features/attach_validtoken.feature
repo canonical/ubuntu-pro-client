@@ -59,6 +59,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         cis          +yes      +disabled        +Center for Internet Security Audit Tools
         esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
@@ -153,10 +154,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         """
         Examples: ubuntu release packages
-           | release | downrev_pkg                 |
-           | xenial  | libkrad0=1.13.2+dfsg-5      |
-           | bionic  | libkrad0=1.16-2build1       |
-           | focal   | hello=2.10-2ubuntu2         |
+           | release | downrev_pkg                 | cc_status |
+           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  |
+           | bionic  | libkrad0=1.16-2build1       | n/a       |
+           | focal   | hello=2.10-2ubuntu2         | n/a       |
 
     @series.all
     @uses.config.machine_type.aws.generic
@@ -194,6 +195,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status>      +NIST-certified core packages
@@ -206,10 +208,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | fips_status |lp_status | lp_desc                       |
-           | xenial  | disabled    |enabled   | Canonical Livepatch service   |
-           | bionic  | disabled    |enabled   | Canonical Livepatch service   |
-           | focal   | n/a         |enabled   | Canonical Livepatch service   |
+           | release | fips_status |lp_status | lp_desc                       | cc_status |
+           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  |
+           | bionic  | disabled    |enabled   | Canonical Livepatch service   | n/a       |
+           | focal   | n/a         |enabled   | Canonical Livepatch service   | n/a       |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -247,6 +249,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
@@ -259,10 +262,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status |
-           | xenial  | n/a       | n/a         |
-           | bionic  | n/a       | disabled    |
-           | focal   | enabled   | n/a         |
+           | release | lp_status | fips_status | cc_status |
+           | xenial  | n/a       | n/a         | disabled  |
+           | bionic  | n/a       | disabled    | n/a       |
+           | focal   | enabled   | n/a         | n/a       |
 
     @series.all
     @uses.config.machine_type.gcp.generic
@@ -300,6 +303,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And stdout matches regexp:
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         cis          +yes      +disabled +Center for Internet Security Audit Tools
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
@@ -312,7 +316,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status |
-           | xenial  | n/a       | n/a         |
-           | bionic  | n/a       | disabled    |
-           | focal   | enabled   | n/a         |
+           | release | lp_status | fips_status | cc_status |
+           | xenial  | n/a       | n/a         | disabled  |
+           | bionic  | n/a       | disabled    | n/a       |
+           | focal   | enabled   | n/a         | n/a       |

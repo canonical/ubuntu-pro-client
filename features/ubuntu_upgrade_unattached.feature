@@ -71,7 +71,6 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        SERVICE       AVAILABLE  DESCRIPTION
         cis           yes      +Center for Internet Security Audit Tools
         esm-infra     yes      +UA Infra: Extended Security Maintenance \(ESM\)
         """

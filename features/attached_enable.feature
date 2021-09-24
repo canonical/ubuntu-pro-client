@@ -11,7 +11,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo).
             """
-        When I run `ua enable cc-eal --beta` with sudo
+        When I run `ua enable cc-eal` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -21,28 +21,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             CC EAL2 enabled
             Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
             """
-
-    @series.bionic
-    @series.focal
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
-        And I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
-        When I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
-        Then I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            CC EAL2 is not available for Ubuntu <version> LTS (<full_name>).
-            """
-        Examples: ubuntu release
-            | release | version | full_name     |
-            | bionic  | 18.04   | Bionic Beaver |
-            | focal   | 20.04   | Focal Fossa   |
 
     @series.bionic
     @series.focal
@@ -57,29 +35,18 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo).
             """
-        And I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
-        And I will see the following on stdout
+        When I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
+        Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            <msg>
+            CC EAL2 is not available for Ubuntu <version> (<full_name>).
             """
-        And I verify that running `ua enable cc-eal` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            """
-        And stderr matches regexp:
-            """
-            Cannot enable unknown service 'cc-eal'.
-            Try cis, esm-infra, fips, fips-updates, livepatch.
-            """
-
         Examples: ubuntu release
-           | release | msg                                                            |
-           | bionic  | CC EAL2 is not available for Ubuntu 18.04 LTS (Bionic Beaver). |
-           | focal   | CC EAL2 is not available for Ubuntu 20.04 LTS (Focal Fossa).   |
-           | hirsute | CC EAL2 is not available for Ubuntu 21.04 (Hirsute Hippo).     |
-           | impish  | CC EAL2 is not available for Ubuntu 21.10 (Impish Indri).      |
+            | release | version    | full_name     |
+            | bionic  | 18.04 LTS  | Bionic Beaver |
+            | focal   | 20.04 LTS  | Focal Fossa   |
+            | hirsute | 21.04      | Hirsute Hippo |
+            | impish  | 21.10      | Impish Indri  |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -99,17 +66,17 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
             """
-        And I verify that running `ua enable cc-eal foobar` `with sudo` exits `1`
+        And I verify that running `ua enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             One moment, checking your subscription first
             """
         And stderr matches regexp:
             """
-            Cannot enable unknown service 'foobar, cc-eal'.
-            Try cis, esm-infra, fips, fips-updates, livepatch.
+            Cannot enable unknown service 'foobar, ros'.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:

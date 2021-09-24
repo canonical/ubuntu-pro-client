@@ -699,7 +699,7 @@ class TestDeleteCache:
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 class TestStatus:
     esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
-    cc_eal_desc = ENTITLEMENT_CLASS_BY_NAME["cc-eal"].description
+    ros_desc = ENTITLEMENT_CLASS_BY_NAME["ros"].description
 
     def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:
@@ -725,14 +725,14 @@ class TestStatus:
                 True,
                 [
                     {
-                        "available": "no",
-                        "name": "cc-eal",
-                        "description": cc_eal_desc,
-                    },
-                    {
                         "available": "yes",
                         "name": "esm-infra",
                         "description": esm_desc,
+                    },
+                    {
+                        "available": "no",
+                        "name": "ros",
+                        "description": ros_desc,
                     },
                 ],
             ),
@@ -764,7 +764,7 @@ class TestStatus:
         cfg = FakeConfig()
         m_get_available_resources.return_value = [
             {"name": "esm-infra", "available": True},
-            {"name": "cc-eal", "available": False},
+            {"name": "ros", "available": False},
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected["services"] = expected_services

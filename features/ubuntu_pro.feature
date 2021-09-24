@@ -17,6 +17,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
@@ -109,6 +110,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis           +yes +<cis-s> +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
@@ -201,6 +203,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             cis           +yes +<cis-s> +Center for Internet Security Audit Tools
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
