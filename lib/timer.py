@@ -69,6 +69,29 @@ class TimedJob:
         return self.run_interval_seconds(cfg) != 0
 
 
+class MeteringTimedJob(TimedJob):
+    def __init__(
+        self, job_func: Callable[..., bool], default_interval_seconds: int
+    ):
+        super().__init__(
+            name="metering",
+            job_func=job_func,
+            default_interval_seconds=default_interval_seconds,
+        )
+
+    def run_interval_seconds(self, cfg: UAConfig) -> int:
+        """
+        Define the run interval for the metering job.
+
+        The contract server can control the time we should make the request
+        again. Since the user can also configure the timer interval for this
+        job, we will select the greater value between those two choices.
+        """
+        return max(
+            cfg.activity_ping_interval or 0, super().run_interval_seconds(cfg)
+        )
+
+
 UACLIENT_JOBS = [
     TimedJob(
         "update_messaging",
@@ -76,7 +99,7 @@ UACLIENT_JOBS = [
         UPDATE_MESSAGING_INTERVAL,
     ),
     TimedJob("update_status", update_status, UPDATE_STATUS_INTERVAL),
-    TimedJob("metering", metering_enabled_resources, METERING_INTERVAL),
+    MeteringTimedJob(metering_enabled_resources, METERING_INTERVAL),
 ]
 
 
