@@ -5,6 +5,7 @@ import pytest
 
 from uaclient import exceptions
 from uaclient.cli import action_fix, main
+from uaclient.security import FixStatus
 
 M_PATH = "uaclient.cli."
 
@@ -59,7 +60,7 @@ class TestActionFix:
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig()
         args = mock.MagicMock(security_issue=issue)
-        m_fix_security_issue_id.return_value = 0
+        m_fix_security_issue_id.return_value = FixStatus.SYSTEM_NON_VULNERABLE
         if is_valid:
             assert 0 == action_fix(args, cfg=cfg)
             assert [
