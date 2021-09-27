@@ -1,4 +1,5 @@
 import copy
+import enum
 import itertools
 import os
 import socket
@@ -30,9 +31,16 @@ UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
 UA_INFRA_POCKET = "UA Infra"
 UA_APPS_POCKET = "UA Apps"
 
-SYSTEM_NON_VULNERABLE = 0
-SYSTEM_STILL_VULNERABLE = 1
-SYSTEM_VULNERABLE_UNTIL_REBOOT = 2
+
+@enum.unique
+class FixStatus(enum.Enum):
+    """
+    An enum to represent the system status after fix operation
+    """
+
+    SYSTEM_NON_VULNERABLE = 0
+    SYSTEM_STILL_VULNERABLE = 1
+    SYSTEM_VULNERABLE_UNTIL_REBOOT = 2
 
 
 class SecurityAPIError(util.UrlError):
@@ -512,7 +520,7 @@ def merge_usn_released_binary_package_versions(
     return usn_pkg_versions
 
 
-def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> int:
+def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
     issue_id = issue_id.upper()
     client = UASecurityClient(cfg=cfg)
     installed_packages = query_installed_source_pkg_versions()
@@ -845,18 +853,19 @@ def prompt_for_affected_packages(
     affected_pkg_status: Dict[str, CVEPackageStatus],
     installed_packages: Dict[str, Dict[str, str]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
-) -> int:
+) -> FixStatus:
     """Process security CVE dict returning a CVEStatus object.
 
     Since CVEs point to a USN if active, get_notice may be called to fill in
     CVE title details.
 
-    :returns: An int value indicating if the system is vulnerable or not
+    :returns: An FixStatus enum value corresponding to the system state
+              after processing the affected packages
     """
     count = len(affected_pkg_status)
     print_affected_packages_header(issue_id, affected_pkg_status)
     if count == 0:
-        return SYSTEM_NON_VULNERABLE
+        return FixStatus.SYSTEM_NON_VULNERABLE
     fix_message = status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
     src_pocket_pkgs = defaultdict(list)
     binary_pocket_pkgs = defaultdict(list)
@@ -934,9 +943,9 @@ def prompt_for_affected_packages(
             # we didn't install any packages, so we're good
             print(util.handle_unicode_characters(fix_message))
             return (
-                SYSTEM_STILL_VULNERABLE
+                FixStatus.SYSTEM_STILL_VULNERABLE
                 if unfixed_pkgs
-                else SYSTEM_NON_VULNERABLE
+                else FixStatus.SYSTEM_NON_VULNERABLE
             )
         elif util.should_reboot():
             # we successfully installed some packages, but
@@ -954,15 +963,15 @@ def prompt_for_affected_packages(
                     )
                 )
             )
-            return SYSTEM_VULNERABLE_UNTIL_REBOOT
+            return FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
         else:
             # we successfully installed some packages, and the system
             # reboot-required flag is not set, so we're good
             print(util.handle_unicode_characters(fix_message))
             return (
-                SYSTEM_STILL_VULNERABLE
+                FixStatus.SYSTEM_STILL_VULNERABLE
                 if unfixed_pkgs
-                else SYSTEM_NON_VULNERABLE
+                else FixStatus.SYSTEM_NON_VULNERABLE
             )
     else:
         print(
@@ -972,7 +981,7 @@ def prompt_for_affected_packages(
                 )
             )
         )
-        return SYSTEM_STILL_VULNERABLE
+        return FixStatus.SYSTEM_STILL_VULNERABLE
 
 
 def _inform_ubuntu_pro_existence_if_applicable() -> None:
@@ -1166,7 +1175,7 @@ def upgrade_packages_and_attach(
             [
                 ["apt", "update", "&&"]
                 + ["apt", "install", "--only-upgrade", "-y"]
-                + upgrade_packages
+                + sorted(upgrade_packages)
             ]
         )
     )
