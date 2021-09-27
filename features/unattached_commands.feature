@@ -368,8 +368,21 @@ Feature: Command behaviour when unattached
             """
         And stdout matches regexp:
             """
-            .*\{ apt update && apt install --only-upgrade -y libcurl3-gnutls curl \}.*
+            .*\{ apt update && apt install --only-upgrade -y curl libcurl3-gnutls \}.*
             .*✔.* USN-5079-2 is resolved.
+            """
+        When I verify that running `ua fix USN-5051-2` `with sudo` exits `2`
+        Then stdout matches regexp:
+            """
+            USN-5051-2: OpenSSL vulnerability
+            Found CVEs:
+            https://ubuntu.com/security/CVE-2021-3712
+            1 affected package is installed: openssl
+            \(1/1\) openssl:
+            A fix is available in UA Infra.
+            .*\{ apt update && apt install --only-upgrade -y libssl1.0.0 openssl \}.*
+            A reboot is required to complete fix operation.
+            .*✘.* USN-5051-2 is not resolved.
             """
 
         Examples: ubuntu release details
