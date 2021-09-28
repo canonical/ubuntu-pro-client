@@ -905,6 +905,24 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
         if ent.can_disable(silent=True):
             to_disable.append(ent)
+
+    """
+    We will nake sure that services without dependencies are disabled first
+    PS: This will only work because we have only three services with reverse
+    dependencies:
+    * ros: ros-updates
+    * esm-infra: ros, ros-updates
+    * esm-apps: ros, ros-updates
+
+    Therefore, this logic will guarantee that we will always disable ros and
+    ros-updates before diabling the esm services. If that dependency chain
+    change, this logic won't hold anymore and must be properly fixed.
+
+    More details can be seen here:
+    https://github.com/canonical/ubuntu-advantage-client/issues/1831
+    """
+    to_disable.sort(key=lambda ent: len(ent.dependent_services))
+
     if to_disable:
         suffix = "s" if len(to_disable) > 1 else ""
         print("Detach will disable the following service{}:".format(suffix))
