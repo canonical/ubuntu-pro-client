@@ -187,15 +187,18 @@ class UAContractClient(serviceclient.UAServiceClient):
         # provided by the server. We expect the response to be
         # a partial representation of the machine token json
         if response:
+            # the activity information received as a response here
+            # will not provide the information inside an activityInfo
+            # structure. However, this structure will be reflected when
+            # we reach the contract for attach and refresh requests.
+            # Because of that, we will manually create this structure here.
+            activity_info = {"activityInfo": response}
+
             machine_token = self.cfg.read_cache("machine-token")
             depth_first_merge_overlay_dict(
-                base_dict=machine_token, overlay_dict=response
+                base_dict=machine_token, overlay_dict=activity_info
             )
             self.cfg.write_cache("machine-token", machine_token)
-
-            machine_id = response.get("machineTokenInfo", {}).get("machineId")
-            if machine_id:
-                self.cfg.write_cache("machine-id", machine_id)
 
     def detach_machine_from_contract(
         self, machine_token: str, contract_id: str, machine_id: str = None
