@@ -9,7 +9,9 @@ from uaclient.testing.fakes import FakeContractClient
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
-    m_instance = mock.Mock(can_disable=mock.Mock(return_value=can_disable))
+    m_instance = mock.Mock(
+        can_disable=mock.Mock(return_value=can_disable), dependent_services=()
+    )
     if name:
         m_instance.name = name
     return mock.Mock(return_value=m_instance)

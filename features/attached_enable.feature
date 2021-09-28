@@ -644,6 +644,15 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
         """
+        When I run `ua detach` `with sudo` and stdin `y`
+        Then stdout matches regexp:
+        """
+        Updating package lists
+        Updating package lists
+        Updating package lists
+        Updating package lists
+        This machine is now detached.
+        """
 
         Examples: ubuntu release
            | release | ros-security-source                                    | ros-updates-source                                            |
