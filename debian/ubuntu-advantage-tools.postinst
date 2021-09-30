@@ -309,7 +309,7 @@ notify_wrong_fips_metapackage_on_cloud() {
 
 enable_periodic_license_check() {
     cloud_id=$(cloud-id 2>/dev/null) || cloud_id=""
-    if echo "$cloud_id" | grep -q "gce"; then
+    if echo "$cloud_id" | grep -q "^gce"; then
         if check_is_lts "${UBUNTU_CODENAME}"; then
             if [ ! -f $MACHINE_TOKEN_FILE ]; then
                 touch $LICENSE_CHECK_MARKER_FILE
