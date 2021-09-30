@@ -1106,3 +1106,53 @@ class TestHandleUnicodeCharacters:
         with mock.patch("sys.stdout") as m_stdout:
             type(m_stdout).encoding = mock.PropertyMock(return_value=encoding)
             assert expected_message == util.handle_unicode_characters(message)
+
+
+class TestShouldReboot:
+    @pytest.mark.parametrize("path_exists", ((True), (False)))
+    @mock.patch("os.path.exists")
+    def test_should_reboot_when_no_installed_pkgs_provided(
+        self, m_path, path_exists
+    ):
+        m_path.return_value = path_exists
+        assert path_exists == util.should_reboot()
+        assert 1 == m_path.call_count
+
+    @mock.patch("os.path.exists")
+    @mock.patch("uaclient.util.load_file")
+    def test_should_reboot_when_no_reboot_required_pkgs_exist(
+        self, m_load_file, m_path
+    ):
+        installed_pkgs = set(["test"])
+        m_path.return_value = True
+        m_load_file.side_effect = FileNotFoundError()
+
+        assert util.should_reboot(installed_pkgs)
+        assert 1 == m_path.call_count
+        assert 1 == m_load_file.call_count
+
+    @pytest.mark.parametrize(
+        "installed_pkgs,reboot_required_pkgs,expected_ret",
+        (
+            (set(["a", "b", "c"]), "", False),
+            (set(["a", "b", "c"]), "a", True),
+            (set(["a", "b", "c"]), "a\ne", True),
+            (set(["a", "b", "c"]), "d\ne", False),
+            (None, "a\ne", True),
+        ),
+    )
+    @mock.patch("os.path.exists")
+    @mock.patch("uaclient.util.load_file")
+    def test_should_reboot_when_reboot_required_pkgs_exist(
+        self,
+        m_load_file,
+        m_path,
+        installed_pkgs,
+        reboot_required_pkgs,
+        expected_ret,
+    ):
+        m_path.return_value = True
+        m_load_file.return_value = reboot_required_pkgs
+        assert expected_ret == util.should_reboot(
+            installed_pkgs=installed_pkgs
+        )

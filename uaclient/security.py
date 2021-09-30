@@ -6,7 +6,7 @@ import socket
 import textwrap
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
 from uaclient import apt, exceptions, serviceclient, status, util
 from uaclient.clouds.identity import (
@@ -30,6 +30,17 @@ API_V1_NOTICE_TMPL = "notices/{notice}.json"
 UBUNTU_STANDARD_UPDATES_POCKET = "Ubuntu standard updates"
 UA_INFRA_POCKET = "UA Infra"
 UA_APPS_POCKET = "UA Apps"
+
+
+ReleasedPackagesInstallResult = NamedTuple(
+    "ReleasedPackagesInstallResult",
+    [
+        ("fix_status", bool),
+        ("unfixed_pkgs", Set[str]),
+        ("installed_pkgs", Set[str]),
+        ("all_already_installed", bool),
+    ],
+)
 
 
 @enum.unique
@@ -778,7 +789,7 @@ def _handle_released_package_fixes(
     binary_pocket_pkgs: Dict[str, List[str]],
     pkg_index: int,
     num_pkgs: int,
-) -> Tuple[bool, List[str], bool]:
+) -> ReleasedPackagesInstallResult:
     """Handle the packages that could be fixed and have a released status.
 
     :returns: Tuple of
@@ -788,7 +799,8 @@ def _handle_released_package_fixes(
     """
     all_already_installed = True
     upgrade_status = True
-    unfixed_pkgs = []
+    unfixed_pkgs = set()
+    installed_pkgs = set()
     if src_pocket_pkgs:
         for pocket in [
             UBUNTU_STANDARD_UPDATES_POCKET,
@@ -823,9 +835,16 @@ def _handle_released_package_fixes(
                 )
 
             if not upgrade_status:
-                unfixed_pkgs += [src_pkg for src_pkg, _ in pkg_src_group]
+                unfixed_pkgs.update([src_pkg for src_pkg, _ in pkg_src_group])
+            else:
+                installed_pkgs.update(binary_pkgs)
 
-    return upgrade_status, unfixed_pkgs, all_already_installed
+    return ReleasedPackagesInstallResult(
+        fix_status=upgrade_status,
+        unfixed_pkgs=unfixed_pkgs,
+        installed_pkgs=installed_pkgs,
+        all_already_installed=all_already_installed,
+    )
 
 
 def _format_unfixed_packages_msg(unfixed_pkgs: List[str]) -> str:
@@ -917,11 +936,7 @@ def prompt_for_affected_packages(
                             binary_pkg
                         )
 
-    (
-        fix_status,
-        unfixed_pkgs_released,
-        all_already_installed,
-    ) = _handle_released_package_fixes(
+    released_pkgs_install_result = _handle_released_package_fixes(
         cfg=cfg,
         src_pocket_pkgs=src_pocket_pkgs,
         binary_pocket_pkgs=binary_pocket_pkgs,
@@ -929,17 +944,17 @@ def prompt_for_affected_packages(
         num_pkgs=count,
     )
 
-    unfixed_pkgs += unfixed_pkgs_released
+    unfixed_pkgs += released_pkgs_install_result.unfixed_pkgs
 
     if unfixed_pkgs:
         print(_format_unfixed_packages_msg(unfixed_pkgs))
 
-    if fix_status:
+    if released_pkgs_install_result.fix_status:
         # fix_status is True if either:
         #  (1) we successfully installed all the packages we needed to
         #  (2) we didn't need to install any packages
         # In case (2), then all_already_installed is also True
-        if all_already_installed:
+        if released_pkgs_install_result.all_already_installed:
             # we didn't install any packages, so we're good
             print(util.handle_unicode_characters(fix_message))
             return (
@@ -947,7 +962,9 @@ def prompt_for_affected_packages(
                 if unfixed_pkgs
                 else FixStatus.SYSTEM_NON_VULNERABLE
             )
-        elif util.should_reboot():
+        elif util.should_reboot(
+            installed_pkgs=released_pkgs_install_result.installed_pkgs
+        ):
             # we successfully installed some packages, but
             # system reboot-required. This might be because
             # or our installations.
