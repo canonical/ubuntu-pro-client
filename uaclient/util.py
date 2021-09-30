@@ -20,6 +20,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Union,
 )
@@ -29,6 +30,7 @@ from urllib.parse import urlparse
 from uaclient import exceptions, status
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
+REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
 ETC_MACHINE_ID = "/etc/machine-id"
 DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DROPPED_KEY = object()
@@ -754,9 +756,36 @@ def redact_sensitive_logs(
     return redacted_log
 
 
-def should_reboot() -> bool:
-    """Check if the system needs to be rebooted."""
-    return os.path.exists(REBOOT_FILE_CHECK_PATH)
+def should_reboot(installed_pkgs: Optional[Set[str]] = None) -> bool:
+    """Check if the system needs to be rebooted.
+
+       :param installed_pkgs: If provided, verify if the any packages in
+           the list are present on /var/run/reboot-required.pkgs. If that
+           param is provided, we will only return true if we have the
+           reboot-required marker file and any package in reboot-required.pkgs
+           file.
+    """
+
+    # If the reboot marker file doesn't exist, we don't even
+    # need to look at the installed_pkgs param
+    if not os.path.exists(REBOOT_FILE_CHECK_PATH):
+        return False
+
+    # If there is no installed_pkgs to check, we will rely only
+    # on the existence of the reboot marker file
+    if installed_pkgs is None:
+        return True
+
+    try:
+        reboot_required_pkgs = set(
+            load_file(REBOOT_PKGS_FILE_PATH).split("\n")
+        )
+    except FileNotFoundError:
+        # If the file doesn't exist, we will default to the
+        # reboot  marker file
+        return True
+    else:
+        return len(installed_pkgs.intersection(reboot_required_pkgs)) != 0
 
 
 def is_installed(package_name: str) -> bool:

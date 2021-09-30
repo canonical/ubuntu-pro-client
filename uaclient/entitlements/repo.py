@@ -52,6 +52,10 @@ class RepoEntitlement(base.UAEntitlement):
 
         return packages
 
+    def _check_for_reboot(self) -> bool:
+        """Check if system needs to be rebooted."""
+        return util.should_reboot(installed_pkgs=set(self.packages))
+
     @property
     @abc.abstractmethod
     def repo_key_file(self) -> str:
