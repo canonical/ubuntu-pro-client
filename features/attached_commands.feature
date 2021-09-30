@@ -267,6 +267,18 @@ Feature: Command behaviour when attached to an UA subscription
             """
             esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
             """
+        When I run `touch /var/run/reboot-required` with sudo
+        And I run `touch /var/run/reboot-required.pkgs` with sudo
+        And I run `ua enable esm-infra` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            UA Infra: ESM enabled
+            """
+        And stdout does not match regexp:
+            """
+            A reboot is required to complete install.
+            """
 
         Examples: ubuntu release
            | release |
