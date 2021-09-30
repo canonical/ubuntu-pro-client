@@ -5,7 +5,7 @@ ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
     - purge old ua-messaging.timer/service files
   * systemd:
     - remove ua-messaging.timer/service
-    - add new ua-timer.timer that runs every 2 hours
+    - add new ua-timer.timer that runs every 6 hours
     - add new ua-license_check.timer that runs every 5 minutes only if
       activated by ua-license-check.path
   * New upstream release 27.3 (LP: #1942929)
