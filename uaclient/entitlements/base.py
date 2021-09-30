@@ -589,12 +589,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
+    def _check_for_reboot(self) -> bool:
+        """Check if system needs to be rebooted."""
+        return util.should_reboot()
+
     def _check_for_reboot_msg(self, operation: str) -> None:
         """Check if user should be alerted that a reboot must be performed.
 
         @param operation: The operation being executed.
         """
-        if util.should_reboot():
+        if self._check_for_reboot():
             print(
                 status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation
