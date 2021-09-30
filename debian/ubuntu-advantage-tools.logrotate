@@ -1,4 +1,7 @@
-/var/log/ubuntu-advantage.log {
+# use the root group by default, since this is the owning group
+# of /var/log/ubuntu-advantage*.log files.
+su root root
+/var/log/ubuntu-advantage*.log {
     rotate 6
     monthly
     compress
