@@ -32,6 +32,7 @@ ESM_APPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-apps.list"
 FIPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-fips.list"
 
 OLD_CLIENT_FIPS_PPA="private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu"
+UA_TIMER_NAME="ua-timer.timer"
 OLD_MESSAGING_TIMER="ua-messaging.timer"
 OLD_MESSAGING_TIMER_MASKED_LOCATION="/etc/systemd/system/timers.target.wants/$OLD_MESSAGING_TIMER"
 
@@ -318,6 +319,40 @@ enable_periodic_license_check() {
     fi
 }
 
+disable_new_timer_if_old_timer_already_disabled() {
+    # If the user has disabled the ua-messaging
+    # then we will assume that the user would want the
+    # ua-timer to be disabled as well. In that case, we will
+    # disable the ua-timer here.
+    PREVIOUS_PKG_VER=$1
+
+    # We should only perform this check on UA version that have the
+    # ua-messaging.timer: 27.0 until 27.2. This will also guarantee
+    # that on 27.3 and forward, we will not run this logic.
+    if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge-nl "27.0~"; then
+        if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "27.3~"; then
+            if [ -x "/usr/bin/deb-systemd-helper" ]; then
+                if ! deb-systemd-helper --quiet was-enabled $OLD_MESSAGING_TIMER; then
+                    # We have the following entry on our rules file:
+                    #    dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
+                    # This rule will append some code at the end of the postinst script
+                    # that checks if the ua-timer.timer was already enabled on the system.
+                    # This means that if we manually disable the service here, that logic will
+                    # still enable it in the end of the postinst script.
+                    # Because of this logic we are now manually enabling ua-timer.timer here
+                    # and then we manually disable it. This will guarantee that the was-enabled
+                    # logic introduced by the rules file will not be triggered and we will not
+                    # re-enable the ua-timer.timer service after calling this function.
+                    echo "$OLD_MESSAGING_TIMER was disabled. Disabling $UA_TIMER_NAME." >&2
+                    deb-systemd-helper enable $UA_TIMER_NAME > /dev/null 2>&1 || true
+                    systemctl stop $UA_TIMER_NAME > /dev/null 2>&1 || true
+                    systemctl disable $UA_TIMER_NAME > /dev/null 2>&1 || true
+                fi
+            fi
+        fi
+    fi
+}
+
 remove_old_systemd_timers() {
     # These are the commands that are run when the package is purged.
     # Since we actually want to remove this service from now on
@@ -404,6 +439,7 @@ case "$1" in
       fi
       mark_reboot_for_fips_pro
       enable_periodic_license_check
+      disable_new_timer_if_old_timer_already_disabled $PREVIOUS_PKG_VER
       remove_old_systemd_timers
       ;;
 esac
