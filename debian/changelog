@@ -3,6 +3,8 @@ ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
   * d/tools.postinst:
     - consider cloud to be "none" on any cloud-id error
     - purge old ua-messaging.timer/service files
+    - keep ua-timer.timer disabled if ua-messaging.timer was disabled by
+      the user
   * systemd:
     - remove ua-messaging.timer/service
     - add new ua-timer.timer that runs every 2 hours
