@@ -36,6 +36,9 @@ ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
       + remove unicode-only characters from help file
       + don't print unicode-only characters in ua fix if non-utf8 locale
         (GH: #1463)
+    - logrotate:
+      + add logrotate functionality for ubuntu-advantage-timer.log.
+      + Fix root:root logrotate permissions.
     - ua-timer.timer:
       + introduce a single systemd timer to handle ua recurring jobs
       + timer runs every 2 hours to support most frequent timer job
