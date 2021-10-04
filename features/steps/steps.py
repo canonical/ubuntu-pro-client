@@ -685,6 +685,65 @@ def verify_systemd_timer_ran_or_scheduled(
         raise AssertionError("{}\n{}".format(ran_error, going_to_run_error))
 
 
+@when("I save the `{key}` value from the contract")
+def i_save_the_key_value_from_contract(context, key):
+    when_i_run_command(
+        context,
+        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "with sudo",
+    )
+    output = context.process.stdout.strip()
+
+    if output:
+        if not hasattr(context, "saved_values"):
+            setattr(context, "saved_values", {})
+
+        context.saved_values[key] = output
+
+
+def _get_saved_attr(context, key):
+    saved_value = getattr(context, "saved_values", {}).get(key)
+
+    if saved_value is None:
+        raise AssertionError(
+            "Value for key {} was not previously saved\n".format(key)
+        )
+
+    return saved_value
+
+
+@then("I verify that `{key}` value has been updated on the contract")
+def i_verify_that_key_value_has_been_updated(context, key):
+    saved_value = _get_saved_attr(context, key)
+    when_i_run_command(
+        context,
+        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "with sudo",
+    )
+    assert_that(context.process.stdout.strip(), not_(equal_to(saved_value)))
+
+
+@then("I verify that `{key}` value has not been updated on the contract")
+def i_verify_that_key_value_has_not_been_updated(context, key):
+    saved_value = _get_saved_attr(context, key)
+    when_i_run_command(
+        context,
+        "jq -r '.{}' {}".format(key, DEFAULT_MACHINE_TOKEN_PATH),
+        "with sudo",
+    )
+    assert_that(context.process.stdout.strip(), equal_to(saved_value))
+
+
+@when("I restore the saved `{key}` value on contract")
+def i_restore_the_saved_key_value_on_contract(context, key):
+    saved_value = _get_saved_attr(context, key)
+    when_i_update_contract_field_to_new_value(
+        context=context,
+        contract_field=key.split(".")[-1],
+        new_value=saved_value,
+    )
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
