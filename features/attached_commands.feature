@@ -541,3 +541,74 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | bionic  |
            | focal   |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Run timer script to valid machine activity endpoint
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `apt install jq -y` with sudo
+        And I save the `activityInfo.activityToken` value from the contract
+        And I save the `activityInfo.activityID` value from the contract
+        And I run `ua config set metering_timer=14400` with sudo
+        # normal metering call when activityId is set by attach response above, expect new
+        # token and same id
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        Then I verify that `activityInfo.activityToken` value has been updated on the contract
+        And I verify that `activityInfo.activityID` value has not been updated on the contract
+        When I restore the saved `activityInfo.activityToken` value on contract
+        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        # simulate "cloned" metering call where previously used activityToken is sent again,
+        # expect new token and new id
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        Then I verify that `activityInfo.activityToken` value has been updated on the contract
+        And I verify that `activityInfo.activityID` value has been updated on the contract
+        # We are keeping this test to guarantee that the activityPingInterval is also updated
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                   "id": "testCID"
+                },
+                "machineId": "testMID"
+            }
+        }
+        """
+        And I create the file `/tmp/response-overlay.json` with the following:
+        """
+        {
+            "https://contracts.canonical.com/v1/contracts/testCID/machine-activity/testMID": [
+            {
+              "code": 200,
+              "response": {
+                "activityToken": "test-activity-token",
+                "activityID": "test-activity-id",
+                "activityPingInterval": 123456789
+              }
+            }]
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+          serviceclient_url_responses: "/tmp/response-overlay.json"
+        """
+        When I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
+        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        Then I verify that running `grep -q activityInfo /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        And I verify that running `grep -q "\"activityToken\": \"test-activity-token\"" /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        And I verify that running `grep -q "\"activityID\": \"test-activity-id\"" /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        And I verify that running `grep -q "\"activityPingInterval\": 123456789" /var/lib/ubuntu-advantage/private/machine-token.json` `with sudo` exits `0`
+        When I run `cat /var/lib/ubuntu-advantage/jobs-status.json` with sudo
+        Then stdout matches regexp:
+        """
+        \"metering\"
+        """
+
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |
