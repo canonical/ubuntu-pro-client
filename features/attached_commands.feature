@@ -31,13 +31,16 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
         Then stdout matches regexp:
         """
+        /var/log/ubuntu-advantage-license-check.log
         /var/log/ubuntu-advantage.log
         /var/log/ubuntu-advantage-timer.log
         """
         When I run `logrotate --force /etc/logrotate.d/ubuntu-advantage-tools` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
+        # We don't rotate empty log files. That's why the license-check logs are not rotated
         Then stdout matches regexp:
         """
+        /var/log/ubuntu-advantage-license-check.log
         /var/log/ubuntu-advantage.log.1
         /var/log/ubuntu-advantage-timer.log.1
         """
@@ -557,6 +560,7 @@ Feature: Command behaviour when attached to an UA subscription
         ua-status.json
         ua-timer.service.txt
         ua-timer.timer.txt
+        ubuntu-advantage-license-check.log
         ubuntu-advantage.log
         ubuntu-advantage-timer.log
         ubuntu-esm-apps.list
