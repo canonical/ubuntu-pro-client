@@ -5,6 +5,9 @@ ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
     - purge old ua-messaging.timer/service files
     - keep ua-timer.timer disabled if ua-messaging.timer was disabled by
       the user
+  * d/tools.postrm:
+    - remove ubuntu-advantage-timer and ubuntu-advantage-license-check logs
+      during purge
   * systemd:
     - remove ua-messaging.timer/service
     - add new ua-timer.timer that runs every 6 hours
