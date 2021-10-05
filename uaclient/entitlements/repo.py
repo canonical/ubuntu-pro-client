@@ -116,10 +116,22 @@ class RepoEntitlement(base.UAEntitlement):
         :return: False if apt url is already found on the source file.
                  True otherwise.
         """
+        apt_file = self.repo_list_file_tmpl.format(name=self.name)
+        # If the apt file is commented out, we will assume that we need
+        # to regenerate the apt file, regardless of the apt url delta
+        if all(
+            line.startswith("#")
+            for line in util.load_file(apt_file).strip().split("\n")
+        ):
+            return False
+
+        # If the file is not commented out and we don't have delta,
+        # we will not do anything
         if not apt_url:
             return True
 
-        apt_file = self.repo_list_file_tmpl.format(name=self.name)
+        # If the delta is already in the file, we won't reconfigure it
+        # again
         return bool(apt_url in util.load_file(apt_file))
 
     def process_contract_deltas(
