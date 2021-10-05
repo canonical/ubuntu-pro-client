@@ -980,6 +980,33 @@ class TestSetupAptConfig:
         ] == m_run_apt_command.call_args_list
 
 
+class TestCheckAptURLIsApplied:
+    @pytest.mark.parametrize("apt_url", (("test"), (None)))
+    @mock.patch("uaclient.util.load_file")
+    def test_check_apt_url_for_commented_apt_source_file(
+        self, m_load_file, apt_url, entitlement
+    ):
+        m_load_file.return_value = "#test1\n#test2\n"
+        assert not entitlement._check_apt_url_is_applied(apt_url)
+
+    @mock.patch("uaclient.util.load_file")
+    def test_check_apt_url_when_delta_apt_url_is_none(
+        self, m_load_file, entitlement
+    ):
+        m_load_file.return_value = "test1\n#test2\n"
+        assert entitlement._check_apt_url_is_applied(apt_url=None)
+
+    @pytest.mark.parametrize(
+        "apt_url,expected", (("test", True), ("blah", False))
+    )
+    @mock.patch("uaclient.util.load_file")
+    def test_check_apt_url_inspects_apt_source_file(
+        self, m_load_file, apt_url, expected, entitlement
+    ):
+        m_load_file.return_value = "test\n#test2\n"
+        assert expected == entitlement._check_apt_url_is_applied(apt_url)
+
+
 class TestApplicationStatus:
     # TODO: Write tests for all functionality
 
