@@ -14,6 +14,8 @@ remove_cache_dir(){
 
 remove_logs(){
     rm -f /var/log/ubuntu-advantage.log*
+    rm -f /var/log/ubuntu-advantage-timer.log*
+    rm -f /var/log/ubuntu-advantage-license-check.log*
 }
 
 remove_gpg_files(){
