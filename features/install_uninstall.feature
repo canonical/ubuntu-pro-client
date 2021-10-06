@@ -44,3 +44,51 @@ Feature: UA Install and Uninstall related tests
            | bionic  |
            | focal   |
            | xenial  |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Do not fail during postinst with nonstandard python setup
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # Works when in a python virtualenv
+        When I run `apt install python3-venv -y` with sudo
+        When I run `python3 -m venv env` with sudo
+        Then I verify that running `bash -c ". env/bin/activate && python3 -c 'import uaclient'"` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        No module named 'uaclient'
+        """
+        Then I verify that running `bash -c ". env/bin/activate && dpkg-reconfigure ubuntu-advantage-tools"` `with sudo` exits `0`
+
+        # Works with python built/installed from source
+        When I run `wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz` with sudo
+        When I run `tar -xvf Python-3.10.0.tgz` with sudo
+        When I run `apt install build-essential zlib1g-dev -y` with sudo
+        When I run `sh -c "cd Python-3.10.0 && ./configure"` with sudo
+        When I run `make -C Python-3.10.0` with sudo
+        When I run `make -C Python-3.10.0 install` with sudo
+        When I run `python3 --version` with sudo
+        Then I will see the following on stdout
+        """
+        Python 3.10.0
+        """
+        Then I verify that running `python3 -c "import uaclient"` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        No module named 'uaclient'
+        """
+        Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
+
+        # Works even when user overwrites /usr/bin/python3 with their version
+        When I run `ln -sf /usr/local/bin/python3.10 /usr/bin/python3` with sudo
+        Then I verify that running `/usr/bin/python3 -c "import uaclient"` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        No module named 'uaclient'
+        """
+        Then I verify that running `dpkg-reconfigure ubuntu-advantage-tools` `with sudo` exits `0`
+
+        Examples: ubuntu release
+           | release | deadsnakes-pkg | deadsnakes-version |
+           | xenial  | python3.9      | 3.9.4              |
+           | bionic  | python3.9      | 3.9.7              |
+           | focal   | python3.9      | 3.9.7              |

@@ -16,6 +16,8 @@ fi
 # https://lintian.debian.org/tags/postinst-does-not-load-confmodule.html
 . /usr/share/debconf/confmodule
 
+PYTHON="/usr/bin/env PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/python3"
+
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
 
@@ -55,7 +57,7 @@ MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
-    UA_SERVICES=$(python3 -c "
+    UA_SERVICES=$($PYTHON -c "
 from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
 ")
@@ -115,7 +117,7 @@ check_is_active_esm() {
 # Check whether a given service is beta
 check_service_is_beta() {
     service_name=$1
-    _IS_BETA_SVC=$(python3 -c "
+    _IS_BETA_SVC=$($PYTHON -c "
 from uaclient.config import UAConfig
 from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 ent_cls = ENTITLEMENT_CLASS_BY_NAME.get('${service_name}')
@@ -137,7 +139,7 @@ fi
 # Check cached service status from status.json and return 0 if enabled else 1
 check_service_is_enabled() {
     service_name=$1
-    _RET=$(python3 -c "
+    _RET=$($PYTHON -c "
 import os
 import json
 from uaclient.config import UAConfig
@@ -254,7 +256,7 @@ mark_reboot_for_fips_pro() {
 
 add_notice() {
     msg_name=$1
-    python3 -c "
+    $PYTHON -c "
 from uaclient.config import UAConfig
 from uaclient.status import ${msg_name}
 cfg = UAConfig()
