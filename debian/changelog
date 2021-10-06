@@ -35,7 +35,8 @@ ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
       + print warning about generic fips kernel if cloud-id fails
     - cloud:
       + rely only on cloud-id to determine cloud type (LP: #1940131)
-      + catch errors when determining cloud type (LP: #1938207, LP: #1944676) (GH: #1541)
+      + catch errors when determining cloud type
+        (LP: #1938207, LP: #1944676) (GH: #1541)
     - azure:
       + bump IMDS API version to support Azure published images
     - cli:
