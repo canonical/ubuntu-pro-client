@@ -334,21 +334,23 @@ disable_new_timer_if_old_timer_already_disabled() {
     if dpkg --compare-versions "$PREVIOUS_PKG_VER" ge-nl "27.0~"; then
         if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "27.3~"; then
             if [ -x "/usr/bin/deb-systemd-helper" ]; then
-                if ! deb-systemd-helper --quiet was-enabled $OLD_MESSAGING_TIMER; then
-                    # We have the following entry on our rules file:
-                    #    dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
-                    # This rule will append some code at the end of the postinst script
-                    # that checks if the ua-timer.timer was already enabled on the system.
-                    # This means that if we manually disable the service here, that logic will
-                    # still enable it in the end of the postinst script.
-                    # Because of this logic we are now manually enabling ua-timer.timer here
-                    # and then we manually disable it. This will guarantee that the was-enabled
-                    # logic introduced by the rules file will not be triggered and we will not
-                    # re-enable the ua-timer.timer service after calling this function.
-                    echo "$OLD_MESSAGING_TIMER was disabled. Disabling $UA_TIMER_NAME." >&2
-                    deb-systemd-helper enable $UA_TIMER_NAME > /dev/null 2>&1 || true
-                    systemctl stop $UA_TIMER_NAME > /dev/null 2>&1 || true
-                    systemctl disable $UA_TIMER_NAME > /dev/null 2>&1 || true
+                if [ -d /run/systemd/system ]; then
+                    if ! deb-systemd-helper --quiet was-enabled $OLD_MESSAGING_TIMER; then
+                        # We have the following entry on our rules file:
+                        #    dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
+                        # This rule will append some code at the end of the postinst script
+                        # that checks if the ua-timer.timer was already enabled on the system.
+                        # This means that if we manually disable the service here, that logic will
+                        # still enable it in the end of the postinst script.
+                        # Because of this logic we are now manually enabling ua-timer.timer here
+                        # and then we manually disable it. This will guarantee that the was-enabled
+                        # logic introduced by the rules file will not be triggered and we will not
+                        # re-enable the ua-timer.timer service after calling this function.
+                        echo "$OLD_MESSAGING_TIMER was disabled. Disabling $UA_TIMER_NAME." >&2
+                        deb-systemd-helper enable $UA_TIMER_NAME > /dev/null 2>&1 || true
+                        systemctl stop $UA_TIMER_NAME > /dev/null 2>&1 || true
+                        systemctl disable $UA_TIMER_NAME > /dev/null 2>&1 || true
+                    fi
                 fi
             fi
         fi
