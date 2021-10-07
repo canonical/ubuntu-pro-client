@@ -2,7 +2,6 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from uaclient import clouds, exceptions, serviceclient, status, util
-from uaclient.config import depth_first_merge_overlay_dict
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
@@ -183,21 +182,20 @@ class UAContractClient(serviceclient.UAServiceClient):
 
         response, _ = self.request_url(url, headers=headers, data=request_data)
 
-        # We will update the machine token based on the response
+        # We will update the `machine-token.json` based on the response
         # provided by the server. We expect the response to be
-        # a partial representation of the machine token json
+        # a full `activityInfo` object which belongs at the root of
+        # `machine-token.json`
         if response:
-            # the activity information received as a response here
+
+            machine_token = self.cfg.read_cache("machine-token")
+            # The activity information received as a response here
             # will not provide the information inside an activityInfo
             # structure. However, this structure will be reflected when
             # we reach the contract for attach and refresh requests.
-            # Because of that, we will manually create this structure here.
-            activity_info = {"activityInfo": response}
-
-            machine_token = self.cfg.read_cache("machine-token")
-            depth_first_merge_overlay_dict(
-                base_dict=machine_token, overlay_dict=activity_info
-            )
+            # Because of that, we will store the response directly on
+            # the activityInfo key
+            machine_token["activityInfo"] = response
             self.cfg.write_cache("machine-token", machine_token)
 
     def detach_machine_from_contract(
