@@ -623,3 +623,68 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | bionic  |
            | focal   |
+
+    @series.xenial
+    @uses.config.machine_type.lxd.container
+    Scenario: Run security-status on an Ubuntu machine
+        Given a `xenial` machine with ubuntu-advantage-tools installed
+        When I run `ua security-status --format json` as non-root
+        Then stdout is formatted as `json` and has keys:
+        """
+        summary packages
+        """
+        And stdout matches regexp:
+        """
+        "attached": false
+        """
+        And stdout matches regexp:
+        """
+        "enabled_services": \[\]
+        """
+        And stdout matches regexp:
+        """
+        "entitled_services": \[\]
+        """
+        And stdout matches regexp:
+        """
+        "package": "apport"
+        """
+        And stdout matches regexp:
+        """
+        "status": "pending_attach"
+        """
+        When I attach `contract_token` with sudo
+        And I run `ua security-status --format json` with sudo
+        Then stdout matches regexp:
+        """
+        "attached": true
+        """
+        And stdout matches regexp:
+        """
+        "enabled_services": \["esm-infra", "esm-apps"\]
+        """
+        And stdout matches regexp:
+        """
+        "entitled_services": \["esm-infra", "esm-apps"\]
+        """
+        And stdout matches regexp:
+        """
+        "status": "upgrade_available"
+        """
+        When I run `ua security-status --format yaml` as non-root
+        Then stdout is formatted as `yaml` and has keys:
+        """
+        summary packages
+        """
+        When I verify that running `ua security-status --format unsupported` `as non-root` exits `2`
+        Then I will see the following on stderr:
+        """
+        usage: security-status [-h] --format {json,yaml}
+        argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml')
+        """
+        When I verify that running `ua security-status` `as non-root` exits `2`
+        Then I will see the following on stderr:
+        """
+        usage: security-status [-h] --format {json,yaml}
+        the following arguments are required: --format
+        """
