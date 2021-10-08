@@ -15,7 +15,7 @@ from uaclient.jobs.update_state import update_status
 LOG = logging.getLogger(__name__)
 UPDATE_MESSAGING_INTERVAL = 21600  # 6 hours
 UPDATE_STATUS_INTERVAL = 43200  # 12 hours
-METERING_INTERVAL = 0  # 4 hours in the future, disabled as of now
+METERING_INTERVAL = 14400  # 4 hours
 
 
 class TimedJob:
