@@ -575,7 +575,6 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `apt install jq -y` with sudo
         And I save the `activityInfo.activityToken` value from the contract
         And I save the `activityInfo.activityID` value from the contract
-        And I run `ua config set metering_timer=14400` with sudo
         # normal metering call when activityId is set by attach response above, expect new
         # token and same id
         And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
