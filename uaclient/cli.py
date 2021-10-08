@@ -17,7 +17,17 @@ import time
 from functools import wraps
 from typing import List
 
-from uaclient import config, contract, entitlements, exceptions, jobs, security
+import yaml
+
+from uaclient import (
+    config,
+    contract,
+    entitlements,
+    exceptions,
+    jobs,
+    security,
+    security_status,
+)
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import identity
@@ -350,6 +360,22 @@ def fix_parser(parser):
     return parser
 
 
+def security_status_parser(parser):
+    """Build or extend an arg parser for security-status subcommand."""
+    parser.prog = "security-status"
+    parser.description = (
+        "Show security updates for packages in the system, including all"
+        " available ESM related content."
+    )
+    parser.add_argument(
+        "--format",
+        help=("Format for the output (json or yaml)"),
+        choices=("json", "yaml"),
+        required=True,
+    )
+    return parser
+
+
 def refresh_parser(parser):
     """Build or extend an arg parser for refresh subcommand."""
     parser.prog = "refresh"
@@ -375,6 +401,19 @@ def refresh_parser(parser):
         ),
     )
     return parser
+
+
+def action_security_status(args, *, cfg, **kwargs):
+    # For now, --format is mandatory so no need to check for it here.
+    if args.format == "json":
+        print(json.dumps(security_status.security_status(cfg)))
+    else:
+        print(
+            yaml.safe_dump(
+                security_status.security_status(cfg), default_flow_style=False
+            )
+        )
+    return 0
 
 
 def action_fix(args, *, cfg, **kwargs):
@@ -1241,6 +1280,13 @@ def get_parser():
     )
     parser_fix.set_defaults(action=action_fix)
     fix_parser(parser_fix)
+
+    parser_security_status = subparsers.add_parser(
+        "security-status",
+        help="list available security updates for the system",
+    )
+    security_status_parser(parser_security_status)
+    parser_security_status.set_defaults(action=action_security_status)
 
     parser_help = subparsers.add_parser(
         "help",
