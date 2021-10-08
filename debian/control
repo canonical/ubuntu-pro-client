@@ -39,6 +39,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
+         python3-apt,
          python3-pkg-resources,
          ${extra:Depends}
 Description: management tools for Ubuntu Advantage
