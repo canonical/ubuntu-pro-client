@@ -156,7 +156,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-lxd-16.04
+                        tox --parallel--safe-build -e behave-lxd-16.04 -- --tags="~slow"
                         '''
                     }
                 }
@@ -171,7 +171,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-lxd-18.04
+                        tox --parallel--safe-build -e behave-lxd-18.04 -- --tags="~slow"
                         '''
                     }
                 }
@@ -186,7 +186,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-lxd-20.04
+                        tox --parallel--safe-build -e behave-lxd-20.04 -- --tags="~slow"
                         '''
                     }
                 }
@@ -200,7 +200,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-vm-20.04
+                        tox --parallel--safe-build -e behave-vm-20.04 -- --tags="~slow"
                         '''
                     }
                 }
@@ -213,7 +213,7 @@ pipeline {
                         sh '''
                         set +x
                         . $TMPDIR/bin/activate
-                        tox --parallel--safe-build -e behave-awspro-18.04
+                        tox --parallel--safe-build -e behave-awspro-18.04 -- --tags="~slow"
                         '''
                     }
                 }

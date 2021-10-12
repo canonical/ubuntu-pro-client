@@ -45,6 +45,7 @@ Feature: UA Install and Uninstall related tests
            | focal   |
            | xenial  |
 
+    @slow
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Do not fail during postinst with nonstandard python setup

@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: Upgrade between releases when uaclient is attached
 
+    @slow
     @series.focal
     @series.hirsute
     @uses.config.machine_type.lxd.container
@@ -42,6 +43,7 @@ Feature: Upgrade between releases when uaclient is attached
         | focal   | hirsute      |                 |
         | hirsute | impish       | --devel-release |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.container
@@ -85,8 +87,10 @@ Feature: Upgrade between releases when uaclient is attached
         | xenial  | bionic       |
         | bionic  | focal        |
 
+    @slow
     @series.xenial
     @uses.config.machine_type.lxd.vm
+    @upgrade
     Scenario Outline: Attached FIPS upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo

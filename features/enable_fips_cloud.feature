@@ -68,6 +68,7 @@ Feature: FIPS enablement in cloud based machines
            | fips-updates  |
 
 
+    @slow
     @series.bionic
     @uses.config.machine_type.azure.generic
     Scenario Outline: Enable FIPS in an ubuntu Bionic Azure vm
@@ -146,6 +147,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                                |
            | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
+    @slow
     @series.focal
     @uses.config.machine_type.azure.generic
     Scenario Outline: Enable FIPS in an ubuntu Focal Azure vm
@@ -222,6 +224,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                                |
            | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main  |
 
+    @slow
     @series.xenial
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached FIPS in an ubuntu Xenial AWS vm
@@ -301,6 +304,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                                |
            | xenial  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
 
+    @slow
     @series.bionic
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu Bionic AWS vm
@@ -380,6 +384,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                                |
            | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
+    @slow
     @series.focal
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu Focal AWS vm
@@ -457,6 +462,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                               |
            | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main |
 
+    @slow
     @series.bionic
     @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu Bionic GCP vm
@@ -535,6 +541,7 @@ Feature: FIPS enablement in cloud based machines
            | release | fips-name    | fips-service |fips-apt-source                                |
            | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
+    @slow
     @series.bionic
     @uses.config.machine_type.gcp.generic
     Scenario Outline: Attached enable of FIPS in an ubuntu GCP AWS vm

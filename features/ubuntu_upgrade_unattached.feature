@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: Upgrade between releases when uaclient is unattached
 
+    @slow
     @series.focal
     @series.hirsute
     @uses.config.machine_type.lxd.container
@@ -41,6 +42,7 @@ Feature: Upgrade between releases when uaclient is unattached
         | focal    | hirsute      |                 |
         | hirsute  | impish       | --devel-release |
 
+   @slow
    @series.xenial
    @series.bionic
    @uses.config.machine_type.lxd.container
