@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: Proxy configuration
 
+    @slow
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when proxy is configured
@@ -123,6 +124,7 @@ Feature: Proxy configuration
            | bionic  |
            | focal   |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
@@ -213,6 +215,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
 
+    @slow
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command when authenticated proxy is configured
@@ -278,6 +281,7 @@ Feature: Proxy configuration
            | bionic  |
            | focal   |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
