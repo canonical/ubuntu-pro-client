@@ -1,6 +1,7 @@
 @uses.config.contract_token
 Feature: FIPS enablement in lxd VMs
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
@@ -95,6 +96,7 @@ Feature: FIPS enablement in lxd VMs
            | xenial  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu xenial/main |
            | bionic  | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu bionic/main |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
@@ -171,6 +173,7 @@ Feature: FIPS enablement in lxd VMs
            | xenial  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
            | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
+    @slow
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
@@ -231,6 +234,7 @@ Feature: FIPS enablement in lxd VMs
            | release | fips-name    | fips-service |fips-apt-source                               |
            | focal   | FIPS         | fips         |https://esm.ubuntu.com/fips/ubuntu focal/main |
 
+    @slow
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of FIPS-updates in an ubuntu lxd vm
@@ -300,6 +304,7 @@ Feature: FIPS enablement in lxd VMs
            | release | fips-name    | fips-service |fips-apt-source                                               |
            | focal   | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu focal-updates/main |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
@@ -364,6 +369,7 @@ Feature: FIPS enablement in lxd VMs
            | xenial  | https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
            | bionic  | https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
+    @slow
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.vm
@@ -388,6 +394,7 @@ Feature: FIPS enablement in lxd VMs
         | xenial  |
         | bionic  |
 
+    @slow
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario Outline: FIPS enablement message when cloud init didn't run properly
