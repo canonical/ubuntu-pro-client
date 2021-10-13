@@ -8,7 +8,7 @@ import tempfile
 import textwrap
 import time
 from contextlib import contextmanager
-from typing import List
+from typing import Iterable, List
 
 import yaml
 
@@ -88,38 +88,68 @@ def lxc_get_property(name: str, property_name: str, image: bool = False):
         return value
 
 
-def repo_state_hash(include_features: bool = False):
+def repo_state_hash(
+    exclude_dirs: Iterable[str] = (
+        ".github",
+        "demo",
+        "features",
+        "sru",
+        "tools",
+    )
+):
     """
     Generate a string that represents the current local state of
     the git repository.
 
-    This takes the latest commit hash, which represents the committed
-    state, and the `git diff`, which includes all local changes, and
-    concatenates them. Then it generates the md5 hash of the result.
+    This takes (1) the latest commit hash, which represents the committed
+    state, (2) the `git diff`, which includes all local changes, and (3)
+    the contents of new files not yet committed, and concatenates them.
+    Then it generates the md5 hash of the concatenated result.
 
     By doing so, the result is a unique-enough string that shouldn't
     collide with any other local state in our lifetimes. We can then
     include this string in the name of a build and reuse that build if
     the repo state doesn't change.
 
-    :param include_features: Defaults to False. When False, we exclude
-        the `features/` folder from the git diff. By doing so, we don't
-        include any changes to integration tests when generating our local
-        state hash.  This is useful when iterating on an integration test
-        because you won't have to re-sbuild if you don't change the actual
-        source code of the package.
+    :param exclude_dirs: When non-empty, we exclude all folders in the list
+        from the git diff and from the new_file_content. With the default
+        value, we don't include any changes to integration tests or other
+        unrelated scripts and files in the git repo when generating our local
+        state hash. This is useful when iterating on an integration test or
+        manual test script because you won't have to re-sbuild if you don't
+        change the actual source code of the package.
 
     :return: A unique string representing the current local state of the
         git repository
     """
     git_rev_cmd = ["git", "rev-parse", "HEAD"]
-    git_diff_cmd = ["git", "diff"]
-    if not include_features:
-        files_and_folders = [f for f in os.listdir(".") if "features" not in f]
-        git_diff_cmd += ["--", *files_and_folders]
     rev_out = subprocess.check_output(git_rev_cmd)
+
+    git_diff_cmd = ["git", "diff"]
+    exclude_set = set(exclude_dirs)
+    if len(exclude_set) > 0:
+        files_and_folders_set = set(os.listdir("."))
+        filtered_files_and_folders = files_and_folders_set - exclude_set
+        git_diff_cmd += ["--", *filtered_files_and_folders]
     diff_out = subprocess.check_output(git_diff_cmd)
-    output_to_hash = rev_out + diff_out
+
+    git_status_cmd = ["git", "status", "--porcelain"]
+    status_out = subprocess.check_output(git_status_cmd).decode("utf-8")
+    status_lines = status_out.split("\n")
+    new_files = [name[3:] for name in status_lines if name.startswith("?? ")]
+    new_file_content = ""
+    for fname in new_files:
+        exclude = False
+        for exclude_dir in exclude_dirs:
+            if fname.startswith(exclude_dir):
+                exclude = True
+                break
+        if exclude:
+            continue
+        with open(fname) as f:
+            new_file_content += f.read()
+
+    output_to_hash = rev_out + diff_out + new_file_content.encode("utf-8")
     return hashlib.md5(output_to_hash).hexdigest()
 
 

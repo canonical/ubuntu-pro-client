@@ -1,7 +1,8 @@
+import json
 import logging
 import sys
 
-from features.util import build_debs
+from features.util import build_debs, repo_state_hash
 
 if __name__ == "__main__":
     logging.basicConfig()
@@ -10,4 +11,8 @@ if __name__ == "__main__":
         print("required arg: series")
         sys.exit(1)
     series = sys.argv[1]
-    print(build_debs(series))
+    print(
+        json.dumps(
+            {"state_hash": repo_state_hash(), "debs": build_debs(series)}
+        )
+    )
