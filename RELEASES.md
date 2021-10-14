@@ -8,23 +8,29 @@ See the table under "Support Matrix for the client" in the [readme](./README.md)
 
 Below are the versioning schemes used for publishing debs:
 
-| Build target | Version Format |
-| -------- | -------- |
-| Devel series upstream release | `XX.YY` |
-| Devel series bugfix release | `XX.YY.Z~ubuntu1`|
-| Stable series release | `XX.YY~ubuntu1~18.04.1`|
-| [Daily Build Recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | `XX.YY+<revtime>-g<commitish>~ubuntu1~18.04.1` |
-| Ubuntu PRO series release | binary copies of Daily PPA |
-| -------- | -------- |
+| Build target                                                                      | Version Format                             |
+| --------------------------------------------------------------------------------- | ------------------------------------------ |
+| [Daily PPA](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily) | `XX.YY-<revno>~g<commitish>~ubuntu22.04.1` |
+| Staging PPA                                                                       | `XX.YY~22.04.1~rc1`                        |
+| Stable PPA                                                                        | `XX.YY~22.04.1~stableppa1`                 |
+| Archive release                                                                   | `XX.YY~22.04.1`                            |
+| Archive bugfix release                                                            | `XX.YY.Z~22.04.1`                          |
 
-## Supported upgrade use-cases based on version formats
+## Supported upgrade paths on same upstream version
 
-| Upgrade path | Version diffs |
-| -------- | -------- |
-| LTS to LTS | `20.3~ubuntu1~14.04.1 -> 20.3~ubuntu1~16.04.1` |
-| LTS to Daily PPA | `20.3~ubuntu1~14.04.1 -> 20.3+202004011202~ubuntu1~14.04.1` |
-| Ubuntu PRO to latest <series>-updates | `20.3+202004011202~ubuntu1~14.04.1` -> `20.4~ubuntu1~14.04.1` |
-| Ubuntu PRO to Daily PPA | `20.3+202004011202~ubuntu1~14.04.1` -> `20.4+202004021202~ubuntu1~14.04.1` |
+Regardless of source, the latest available "upstream version" (e.g. 27.4) will always be installed, because the upstream version comes first followed by a tilde in all version formats.
+
+This table demonstrates upgrade paths between sources for one particular upstream version.
+
+| Upgrade path                    | Version diff example                                                    |
+| ------------------------------- | ----------------------------------------------------------------------- |
+| Staging to Next Staging rev     | `31.4~22.04.1~rc1` ➜ `31.4~22.04.1~rc2`                                 |
+| Staging to Stable               | `31.4~22.04.1~rc2` ➜ `31.4~22.04.1~stableppa1`                          |
+| Stable to Next Stable rev       | `31.4~22.04.1~stableppa1` ➜ `31.4~22.04.1~stableppa2`                   |
+| Stable to Archive               | `31.4~22.04.1~stableppa2` ➜ `31.4~22.04.1`                              |
+| LTS Archive to Next LTS Archive | `31.4~22.04.1` ➜ `31.4~24.04.1`                                         |
+| Archive to Daily                | `31.4~24.04.1` ➜ `31.4-1500~g75fa134~ubuntu24.04.1`                     |
+| Daily to Next Daily             | `31.4-1500~g75fa134~ubuntu24.04.1` ➜ `31.4-1501~g3836375~ubuntu24.04.1` |
 
 ## Process
 
@@ -107,7 +113,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     b. Edit the changelog:
       * List yourself as the author of this release.
-      * Edit the version number to look like: `27.2~20.04.1-rc1` (`<version>~<ubuntu-release-number>.<revno>-rc<release-candidate-number>`)
+      * Edit the version number to look like: `27.2~20.04.1~rc1` (`<version>~<ubuntu-release-number>.<revno>~rc<release-candidate-number>`)
       * Edit the ubuntu release name. Start with the ubuntu/devel release (e.g. `impish`).
       * `git commit -m "throwaway"` Do **not** push this commit!
 
@@ -119,8 +125,8 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 
     e. Repeat 3.b through 3.d for all supported Ubuntu Releases
       * PS: remember to also change the version number on the changelog. For example, suppose
-        the new version is `1.1~20.04.1-rc1`. If you want to test Bionic now, change it to
-        `1.1~18.04.1-rc1`.
+        the new version is `1.1~20.04.1~rc1`. If you want to test Bionic now, change it to
+        `1.1~18.04.1~rc1`.
 
     f. For each release, dput to the staging PPA:
       * `dput ppa:ua-client/staging ../out/<package_name>_source.changes`
@@ -239,7 +245,7 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
 ### III. Final release to team infrastructure
 
 1. Ensure the version tag is correct on github. The `version` git tag should point to the commit that was released as that version to ubuntu -updates. If changes were made in response to feedback during the release process, the tag may have to be moved.
-2. Perform the steps from `I.3` above but don't include a `-rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
+2. Perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
 3. Bring in any changes that were made to the release branch into `main` via PR (e.g. Changelog edits).
 
 ## Ubuntu PRO Release Process
