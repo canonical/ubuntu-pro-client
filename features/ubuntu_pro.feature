@@ -182,7 +182,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   |
            | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | n/a       |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
