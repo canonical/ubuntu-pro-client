@@ -263,7 +263,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | lp_status | fips_status | cc_status |
            | xenial  | n/a       | n/a         | disabled  |
            | bionic  | n/a       | disabled    | n/a       |
-           | focal   | n/a       | n/a         | n/a       |
+           | focal   | enabled   | n/a         | n/a       |
 
     @series.all
     @uses.config.machine_type.gcp.generic
