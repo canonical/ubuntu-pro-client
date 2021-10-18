@@ -518,7 +518,6 @@ Feature: Command behaviour when unattached
         ua-timer.service.txt
         ua-timer.timer.txt
         uaclient.conf
-        ubuntu-advantage-license-check.log
         ubuntu-advantage-timer.log
         ubuntu-advantage.log
         """
