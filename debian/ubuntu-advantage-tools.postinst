@@ -364,15 +364,6 @@ remove_old_systemd_timers() {
     fi
 }
 
-configure_log_file() {
-    log_path=$1
-    if [ ! -f $log_path ]; then
-        touch $log_path
-    fi
-    chmod 0600 $log_path
-    chown root:root $log_path
-}
-
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
@@ -430,10 +421,15 @@ case "$1" in
         fi
       fi
 
-      configure_log_file /var/log/ubuntu-advantage.log
-      configure_log_file /var/log/ubuntu-advantage-timer.log
-      configure_log_file /var/log/ubuntu-advantage-license-check.log
-
+      # We modify permissions for ubuntu-advantage.log because
+      # in a past version of UA, this log file was world readable.
+      # This isn't necessary for the timer/license-check log files,
+      # because they have always been only root-readable.
+      if [ ! -f /var/log/ubuntu-advantage.log ]; then
+          touch /var/log/ubuntu-advantage.log
+      fi
+      chmod 0600 /var/log/ubuntu-advantage.log
+      chown root:root /var/log/ubuntu-advantage.log
       private_dir="/var/lib/ubuntu-advantage/private"
       if [ -d "$private_dir" ]; then
           chmod 0700 "$private_dir"
