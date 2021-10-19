@@ -268,8 +268,13 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not machine_id:
             machine_id = util.get_machine_id(self.cfg)
         platform = util.get_platform_info()
-        arch = platform.pop("arch")
-        return {"machineId": machine_id, "architecture": arch, "os": platform}
+        platform_os = platform.copy()
+        arch = platform_os.pop("arch")
+        return {
+            "machineId": machine_id,
+            "architecture": arch,
+            "os": platform_os,
+        }
 
 
 def process_entitlements_delta(

@@ -311,6 +311,7 @@ def get_machine_id(cfg) -> str:
     return machine_id
 
 
+@lru_cache(maxsize=None)
 def get_platform_info() -> Dict[str, str]:
     """
     Returns a dict of platform information.
