@@ -391,7 +391,9 @@ class TestGetPlatformInfo:
         """get_platform_info errors when it cannot parse os-release."""
         m_parse.return_value = {"VERSION": "junk"}
         with pytest.raises(RuntimeError) as excinfo:
-            util.get_platform_info()
+            # Use __wrapped__ to avoid hitting the
+            # lru_cached value across tests
+            util.get_platform_info.__wrapped__()
         expected_msg = (
             "Could not parse /etc/os-release VERSION: junk (modified to junk)"
         )
@@ -437,7 +439,9 @@ class TestGetPlatformInfo:
                         ("", "", "kernel-ver", "", "aarch64")
                     )
                     m_subp.return_value = ("arm64\n", "")
-                    assert expected == util.get_platform_info()
+                    # Use __wrapped__ to avoid hitting the
+                    # lru_cached value across tests
+                    assert expected == util.get_platform_info.__wrapped__()
 
 
 class TestApplySeriesOverrides:
