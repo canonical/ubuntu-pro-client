@@ -38,6 +38,7 @@ DROPPED_KEY = object()
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
 
+UA_NO_PROXY_URLS = ("169.254.169.254", "metadata")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
 PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
@@ -506,6 +507,20 @@ def configure_web_proxy(
     if https_proxy:
         proxy_dict["https"] = https_proxy
 
+    # Default no_proxy if absense of NO_PROXY, no_proxy environment vars.
+    no_proxy = ",".join(sorted(UA_NO_PROXY_URLS))
+    for env_var in ("no_proxy", "NO_PROXY"):
+        proxy_value = os.environ.get(env_var)
+        if proxy_value:
+            # Honor no proxy values and extend UA-specific where absent
+            no_proxy = ",".join(
+                sorted(
+                    set(proxy_value.split(",")).union(set(UA_NO_PROXY_URLS))
+                )
+            )
+    logging.debug("Setting no_proxy: %s", no_proxy)
+    os.environ["no_proxy"] = no_proxy
+    os.environ["NO_PROXY"] = no_proxy
     if proxy_dict:
         proxy_handler = request.ProxyHandler(proxy_dict)
         opener = request.build_opener(proxy_handler)

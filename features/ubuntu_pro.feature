@@ -2,6 +2,165 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
 
     @series.lts
     @uses.config.machine_type.aws.pro
+    Scenario Outline: Proxy auto-attach in an Ubuntu pro AWS machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I launch a `focal` `proxy` machine
+        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        ua_config:
+          http_proxy: http://<ci-proxy-ip>:3128
+          https_proxy: http://<ci-proxy-ip>:3128
+        """
+        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        When I run `ua auto-attach` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT contracts.canonical.com.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT 169.254.169.254.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT metadata.*
+        """
+        Examples: ubuntu release
+           | release | fips-s   | cc-eal-s | cis-s    |
+           | xenial  | disabled | disabled | disabled |
+           | bionic  | disabled | n/a      | disabled |
+	   | focal   | n/a      | n/a      | disabled |
+
+    @series.lts
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: Proxy auto-attach in an Ubuntu pro Azure machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I launch a `focal` `proxy` machine with ingress ports `3128`
+        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        ua_config:
+          http_proxy: http://<ci-proxy-ip>:3128
+          https_proxy: http://<ci-proxy-ip>:3128
+        """
+        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        When I run `ua auto-attach` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
+            """
+        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT contracts.canonical.com.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT 169.254.169.254.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT metadata.*
+        """
+        Examples: ubuntu release
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s |
+           | xenial  | disabled | disabled | disabled | enabled     |
+           | bionic  | disabled | n/a      | disabled | n/a         |
+           | focal   | n/a      | n/a      | disabled | enabled     |
+
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    Scenario Outline: Proxy auto-attach in an Ubuntu Pro GCP machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I launch a `focal` `proxy` machine
+        And I run `apt install squid -y` `with sudo` on the `proxy` machine
+        And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
+            """
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            """
+        And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        ua_config:
+          http_proxy: http://<ci-proxy-ip>:3389
+          https_proxy: http://<ci-proxy-ip>:3389
+        """
+        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        When I run `ua auto-attach` with sudo
+        Then stdout matches regexp:
+            """
+            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
+            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +<fips-s> +NIST-certified core packages
+            fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
+            livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT contracts.canonical.com.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT 169.254.169.254.*
+        """
+        And stdout does not match regexp:
+        """
+        .*CONNECT metadata.*
+        """
+        Examples: ubuntu release
+           | release | fips-s   | cc-eal-s | cis-s    |
+           | xenial  | disabled | disabled | disabled |
+           | bionic  | disabled | n/a      | disabled |
+           | focal   | n/a      | n/a      | disabled |
+
+    @series.lts
+    @uses.config.machine_type.aws.pro
     Scenario Outline: Attached refresh in an Ubuntu pro AWS machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
