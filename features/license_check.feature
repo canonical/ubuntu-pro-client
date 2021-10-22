@@ -91,6 +91,7 @@ Feature: License check timer only runs in environments where necessary
             | bionic  |
             | focal   |
             | hirsute |
+            | impish  |
 
     @series.lts
     @uses.config.machine_type.aws.pro

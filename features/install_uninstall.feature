@@ -13,6 +13,7 @@ Feature: UA Install and Uninstall related tests
            | bionic  |
            | focal   |
            | hirsute |
+           | impish  |
 
     @series.lts
     @uses.config.contract_token

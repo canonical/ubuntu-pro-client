@@ -27,3 +27,4 @@ Feature: Attached status
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
