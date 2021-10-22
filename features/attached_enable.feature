@@ -26,6 +26,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @series.bionic
     @series.focal
     @series.hirsute
+    @series.impish
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -46,6 +47,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             | bionic  | 18.04 LTS  | Bionic Beaver |
             | focal   | 20.04 LTS  | Focal Fossa   |
             | hirsute | 21.04      | Hirsute Hippo |
+            | impish  | 21.10      | Impish Indri  |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -139,6 +141,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.lts
     @uses.config.machine_type.lxd.container

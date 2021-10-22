@@ -23,6 +23,7 @@ Feature: UA is expected version
             | bionic  |
             | focal   |
             | hirsute |
+            | impish |
 
     @series.all
     @uses.config.check_version
@@ -41,3 +42,4 @@ Feature: UA is expected version
             | bionic  |
             | focal   |
             | hirsute |
+            | impish |

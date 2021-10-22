@@ -25,6 +25,7 @@ Feature: Unattached status
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -121,3 +122,4 @@ Feature: Unattached status
            | bionic  | yes      | no     | yes | yes  | yes         | yes   | yes  | yes       |
            | focal   | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
            | hirsute | no       | no     | no  | no   | no          | no    | no  | no        |
+           | impish  | no       | no     | no  | no   | no          | no    | no  | no        |
