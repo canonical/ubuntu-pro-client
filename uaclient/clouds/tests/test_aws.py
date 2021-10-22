@@ -1,4 +1,5 @@
 import logging
+import re
 from io import BytesIO
 from urllib.error import HTTPError
 
@@ -9,8 +10,13 @@ from uaclient.clouds.aws import (
     AWS_TOKEN_PUT_HEADER,
     AWS_TOKEN_REQ_HEADER,
     AWS_TOKEN_TTL_SECONDS,
+    IMDS_IPV4_ADDRESS,
+    IMDS_IPV6_ADDRESS,
+    IMDS_URL,
+    IMDS_V2_TOKEN_URL,
     UAAutoAttachAWSInstance,
 )
+from uaclient.exceptions import UserFacingError
 
 M_PATH = "uaclient.clouds.aws."
 
@@ -27,10 +33,12 @@ class TestUAAutoAttachAWSInstance:
             "http://me", 404, "No IMDSv2 support", None, BytesIO()
         )
         instance = UAAutoAttachAWSInstance()
-        assert None is instance._get_imds_v2_token_headers()
+        assert None is instance._get_imds_v2_token_headers(
+            ip_address=IMDS_IPV4_ADDRESS
+        )
         assert "IMDSv1" == instance._api_token
         # No retries on 404. It is a permanent indication of no IMDSv2 support.
-        instance._get_imds_v2_token_headers()
+        instance._get_imds_v2_token_headers(ip_address=IMDS_IPV4_ADDRESS)
         assert 1 == readurl.call_count
 
     @mock.patch(M_PATH + "util.readurl")
@@ -41,14 +49,15 @@ class TestUAAutoAttachAWSInstance:
         readurl.return_value = "somebase64token==", {"header": "stuff"}
         assert {
             AWS_TOKEN_PUT_HEADER: "somebase64token=="
-        } == instance._get_imds_v2_token_headers()
-        instance._get_imds_v2_token_headers()
+        } == instance._get_imds_v2_token_headers(ip_address=IMDS_IPV4_ADDRESS)
+        instance._get_imds_v2_token_headers(ip_address=IMDS_IPV4_ADDRESS)
         assert "somebase64token==" == instance._api_token
         assert [
             mock.call(
                 url,
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
             )
         ] == readurl.call_args_list
 
@@ -61,7 +70,7 @@ class TestUAAutoAttachAWSInstance:
     ):
         """Retry backoff before failing _get_imds_v2_token_headers."""
 
-        def fake_someurlerrors(url, method=None, headers=None):
+        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
             if readurl.call_count <= fail_count:
                 raise HTTPError(
                     "http://me",
@@ -76,12 +85,16 @@ class TestUAAutoAttachAWSInstance:
         instance = UAAutoAttachAWSInstance()
         if exception:
             with pytest.raises(HTTPError) as excinfo:
-                instance._get_imds_v2_token_headers()
+                instance._get_imds_v2_token_headers(
+                    ip_address=IMDS_IPV4_ADDRESS
+                )
             assert 704 == excinfo.value.code
         else:
             assert {
                 AWS_TOKEN_PUT_HEADER: "base64token=="
-            } == instance._get_imds_v2_token_headers()
+            } == instance._get_imds_v2_token_headers(
+                ip_address=IMDS_IPV4_ADDRESS
+            )
 
         expected_sleep_calls = [mock.call(1), mock.call(2), mock.call(5)]
         assert expected_sleep_calls == sleep.call_args_list
@@ -107,12 +120,15 @@ class TestUAAutoAttachAWSInstance:
                 token_url,
                 method="PUT",
                 headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
             ),
-            mock.call(url, headers={AWS_TOKEN_PUT_HEADER: "pkcs7WOOT!=="}),
+            mock.call(
+                url, headers={AWS_TOKEN_PUT_HEADER: "pkcs7WOOT!=="}, timeout=1
+            ),
         ] == readurl.call_args_list
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
-    @pytest.mark.parametrize("fail_count,exception", ((3, False), (4, True)))
+    @pytest.mark.parametrize("fail_count,exception", ((3, False),))
     @mock.patch(M_PATH + "util.time.sleep")
     @mock.patch(M_PATH + "util.readurl")
     def test_retry_backoff_on_failed_identity_doc(
@@ -120,7 +136,7 @@ class TestUAAutoAttachAWSInstance:
     ):
         """Retry backoff is attempted before failing to get AWS.identity_doc"""
 
-        def fake_someurlerrors(url, method=None, headers=None):
+        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
             # due to _get_imds_v2_token_headers
             if "latest/api/token" in url:
                 return "base64token==", {"header": "stuff"}
@@ -195,3 +211,92 @@ class TestUAAutoAttachAWSInstance:
         load_file.side_effect = fake_load_file
         instance = UAAutoAttachAWSInstance()
         assert viable is instance.is_viable
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch(M_PATH + "util.readurl")
+    def test_identity_doc_default_to_ipv6_if_ipv4_fail(
+        self, readurl, caplog_text
+    ):
+        instance = UAAutoAttachAWSInstance()
+        ipv4_address = IMDS_IPV4_ADDRESS
+        ipv6_address = IMDS_IPV6_ADDRESS
+
+        def fake_someurlerrors(url, method=None, headers=None, timeout=1):
+            if ipv4_address in url:
+                raise Exception("IPv4 exception")
+
+            if url == IMDS_V2_TOKEN_URL.format(ipv6_address):
+                return "base64token==", {"header": "stuff"}
+
+            if url == IMDS_URL.format(ipv6_address):
+                return "pkcs7WOOT!==", {"header": "stuff"}
+
+        readurl.side_effect = fake_someurlerrors
+        assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
+        expected = [
+            mock.call(
+                IMDS_V2_TOKEN_URL.format(ipv4_address),
+                method="PUT",
+                headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
+            ),
+            mock.call(
+                IMDS_V2_TOKEN_URL.format(ipv6_address),
+                method="PUT",
+                headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
+            ),
+            mock.call(
+                IMDS_URL.format(ipv6_address),
+                headers={AWS_TOKEN_PUT_HEADER: "base64token=="},
+                timeout=1,
+            ),
+        ]
+
+        assert expected == readurl.call_args_list
+
+        expected_log = "Could not reach AWS IMDS at http://169.254.169.254:"
+        assert expected_log in caplog_text()
+
+    @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
+    @mock.patch(M_PATH + "util.readurl")
+    def test_identity_doc_logs_error_if_both_ipv4_and_ipv6_fails(
+        self, readurl, caplog_text
+    ):
+
+        instance = UAAutoAttachAWSInstance()
+        ipv4_address = IMDS_IPV4_ADDRESS
+        ipv6_address = IMDS_IPV6_ADDRESS
+
+        readurl.side_effect = Exception("Exception")
+
+        expected_error = (
+            "No valid AWS IMDS endpoint discovered at "
+            "addresses: {}, {}".format(IMDS_IPV4_ADDRESS, IMDS_IPV6_ADDRESS)
+        )
+        with pytest.raises(UserFacingError, match=re.escape(expected_error)):
+            instance.identity_doc
+
+        expected = [
+            mock.call(
+                IMDS_V2_TOKEN_URL.format(ipv4_address),
+                method="PUT",
+                headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
+            ),
+            mock.call(
+                IMDS_V2_TOKEN_URL.format(ipv6_address),
+                method="PUT",
+                headers={AWS_TOKEN_REQ_HEADER: AWS_TOKEN_TTL_SECONDS},
+                timeout=1,
+            ),
+        ]
+        assert expected == readurl.call_args_list
+
+        expected_logs = [
+            "Could not reach AWS IMDS at http://169.254.169.254:",
+            "Could not reach AWS IMDS at http://[fd00:ec2::254]:",
+        ]
+
+        for expected_log in expected_logs:
+            assert expected_log in caplog_text()
