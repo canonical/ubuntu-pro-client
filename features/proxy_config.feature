@@ -156,8 +156,7 @@ Feature: Proxy configuration
         """
         .*CONNECT contracts.canonical.com.*
         """
-        When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
-        Then stdout matches regexp:
+        And stdout matches regexp:
         """
         .*CONNECT api.snapcraft.io:443.*
         """
