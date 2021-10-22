@@ -18,7 +18,10 @@ Feature: Enable command behaviour when attached to an UA subscription
             GPG key '/usr/share/keyrings/ubuntu-cc-keyring.gpg' not found.
             """
 
-    @series.all
+    @series.bionic
+    @series.focal
+    @series.hirsute
+    @series.impish
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
         Given a `<release>` machine with ubuntu-advantage-tools installed
