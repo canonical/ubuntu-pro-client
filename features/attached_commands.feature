@@ -51,6 +51,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -75,6 +76,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -184,6 +186,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -205,6 +208,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -255,6 +259,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
            | hirsute |
+           | impish  |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -403,6 +408,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   | enabled      |
            | xenial  | enabled      |
            | hirsute | n/a          |
+           | impish  | n/a          |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -524,6 +530,7 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | hirsute |
+           | impish  |
 
     @series.lts
     @uses.config.machine_type.lxd.container
