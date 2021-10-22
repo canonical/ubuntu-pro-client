@@ -3,6 +3,7 @@ Feature: Upgrade between releases when uaclient is unattached
 
     @series.focal
     @series.hirsute
+    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Unattached upgrade across releases
@@ -39,7 +40,8 @@ Feature: Upgrade between releases when uaclient is unattached
         Examples: ubuntu release
         | release  | next_release | devel_release   |
         | focal    | hirsute      |                 |
-        | hirsute  | impish       | --devel-release |
+        | hirsute  | impish       |                 |
+        | impish   | jammy        | --devel-release |
 
    @series.xenial
    @series.bionic
