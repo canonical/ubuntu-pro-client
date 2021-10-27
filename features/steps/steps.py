@@ -110,15 +110,15 @@ def given_a_machine(context, series):
                     context.instances["uaclient"].name
                 )
             )
-        else:
-            try:
-                context.instances["uaclient"].delete(wait=False)
-            except RuntimeError as e:
-                logging.error(
-                    "Failed to delete instance: {}\n{}".format(
-                        context.instances["uaclient"].name, str(e)
-                    )
+            return
+        try:
+            context.instances["uaclient"].delete(wait=False)
+        except RuntimeError as e:
+            logging.error(
+                "Failed to delete instance: {}\n{}".format(
+                    context.instances["uaclient"].name, str(e)
                 )
+            )
 
     context.add_cleanup(cleanup_instance)
     logging.info(
@@ -137,6 +137,13 @@ def launch_machine(context, series, instance_name):
     )
 
     def cleanup_instance() -> None:
+        if not context.config.destroy_instances:
+            logging.info(
+                "--- Leaving instance running: {}".format(
+                    context.instances[instance_name].name
+                )
+            )
+            return
         try:
             context.instances[instance_name].delete(wait=False)
         except RuntimeError as e:
