@@ -869,11 +869,7 @@ class TestLivepatchEntitlementEnable:
         assert m_livepatch_proxy.call_count == 1
 
     @pytest.mark.parametrize(
-        "cls_name, cls_title",
-        (
-            ("FIPSEntitlement", "FIPS"),
-            ("FIPSUpdatesEntitlement", "FIPS Updates"),
-        ),
+        "cls_name, cls_title", (("FIPSEntitlement", "FIPS"),)
     )
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
