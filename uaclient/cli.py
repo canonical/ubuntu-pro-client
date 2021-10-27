@@ -373,6 +373,15 @@ def security_status_parser(parser):
         choices=("json", "yaml"),
         required=True,
     )
+    parser.add_argument(
+        "--beta",
+        help=(
+            "Acknowledge that this output is not final and may change in the"
+            " next version"
+        ),
+        action="store_true",
+        required=True,
+    )
     return parser
 
 

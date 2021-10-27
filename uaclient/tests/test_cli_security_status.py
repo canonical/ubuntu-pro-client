@@ -14,7 +14,7 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: security-status [-h] --format {json,yaml}
+usage: security-status [-h] --format {json,yaml} --beta
 
 Show security updates for packages in the system, including all available ESM
 related content.
@@ -22,6 +22,8 @@ related content.
 optional arguments:
   -h, --help            show this help message and exit
   --format {json,yaml}  Format for the output (json or yaml)
+  --beta                Acknowledge that this output is not final and may
+                        change in the next version
 """
 )
 
@@ -90,6 +92,26 @@ class TestActionSecurityStatus:
         else:
             assert "the following arguments are required: --format" in err
 
+    # Remove this once we are no-longer beta
+    @pytest.mark.parametrize(
+        "beta_flag, expected_err",
+        ((False, "the following arguments are required: --beta"), (True, "")),
+    )
+    def test_require_beta_flag(self, beta_flag, expected_err, capsys):
+        cmdline_args = ["/usr/bin/ua", "security-status", "--format", "json"]
+        if beta_flag:
+            cmdline_args.extend(["--beta"])
+
+        try:
+            with mock.patch("sys.argv", cmdline_args):
+                main()
+        except SystemExit:
+            assert not beta_flag
+
+        _, err = capsys.readouterr()
+
+        assert expected_err in err
+
 
 class TestParser:
     def test_security_status_parser_updates_parser_config(self):
@@ -99,7 +121,7 @@ class TestParser:
 
         full_parser = get_parser()
         with mock.patch(
-            "sys.argv", ["ua", "security-status", "--format", "json"]
+            "sys.argv", ["ua", "security-status", "--format", "json", "--beta"]
         ):
             args = full_parser.parse_args()
         assert "security-status" == args.command
