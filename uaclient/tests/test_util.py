@@ -999,35 +999,46 @@ class TestParseRFC3339Date:
 
 class TestConfigureWebProxy:
     @pytest.mark.parametrize(
-        "http_proxy,https_proxy,m_environ,expected_no_proxy",
+        "http_proxy,https_proxy,m_environ,expected_environ",
         (
-            (None, None, {}, "169.254.169.254,metadata"),
+            (
+                None,
+                None,
+                {},
+                {
+                    "NO_PROXY": "169.254.169.254,metadata",
+                    "no_proxy": "169.254.169.254,metadata",
+                },
+            ),
             (
                 "http://proxy",
                 "https://proxy",
-                {"no_proxy", "a,10.0.0.1"},
-                "a,10.0.0.1,169.254.169.254,metadata",
+                {"no_proxy": "a,10.0.0.1"},
+                {
+                    "NO_PROXY": "10.0.0.1,169.254.169.254,a,metadata",
+                    "no_proxy": "10.0.0.1,169.254.169.254,a,metadata",
+                },
             ),
             (
                 "http://proxy",
                 "https://proxy",
                 {"NO_PROXY": "a,169.254.169.254"},
-                "169.254.169.254,a,metadata",
+                {
+                    "NO_PROXY": "169.254.169.254,a,metadata",
+                    "no_proxy": "169.254.169.254,a,metadata",
+                },
             ),
         ),
     )
     @mock.patch("urllib.request.OpenerDirector.open")
     def test_no_proxy_set_in_environ(
-        self, m_open, http_proxy, https_proxy, m_environ, expected_no_proxy
+        self, m_open, http_proxy, https_proxy, m_environ, expected_environ
     ):
-        with mock.patch.object(util.os, "environ", values=m_environ) as env:
+        with mock.patch.dict(util.os.environ, m_environ, clear=True):
             util.configure_web_proxy(
                 http_proxy=http_proxy, https_proxy=https_proxy
             )
-            assert [
-                mock.call("no_proxy", "169.254.169.254,metadata"),
-                mock.call("NO_PROXY", "169.254.169.254,metadata"),
-            ] == env.__setitem__.call_args_list
+            assert expected_environ == util.os.environ
 
 
 class TestValidateProxy:

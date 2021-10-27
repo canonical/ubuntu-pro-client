@@ -43,15 +43,11 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         .*CONNECT 169.254.169.254.*
         """
-        And stdout does not match regexp:
-        """
-        .*CONNECT metadata.*
-        """
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    |
            | xenial  | disabled | disabled | disabled |
            | bionic  | disabled | n/a      | disabled |
-	   | focal   | n/a      | n/a      | disabled |
+           | focal   | n/a      | n/a      | disabled |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -96,13 +92,9 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         .*CONNECT 169.254.169.254.*
         """
-        And stdout does not match regexp:
-        """
-        .*CONNECT metadata.*
-        """
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s |
-           | xenial  | disabled | disabled | disabled | enabled     |
+           | xenial  | n/a      | disabled | disabled | enabled     |
            | bionic  | disabled | n/a      | disabled | n/a         |
            | focal   | n/a      | n/a      | disabled | enabled     |
 
@@ -114,7 +106,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `apt install squid -y` `with sudo` on the `proxy` machine
         And I add this text on `/etc/squid/squid.conf` on `proxy` above `http_access deny all`:
             """
-            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_access allow all
+            dns_v4_first on\nacl all src 0.0.0.0\/0\nhttp_port 3389\nhttp_access allow all
             """
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
@@ -138,7 +130,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
-            livepatch     +yes +enabled  +Canonical Livepatch service
+            livepatch     +yes +<livepatch-s> +Canonical Livepatch service
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -147,17 +139,13 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         """
         And stdout does not match regexp:
         """
-        .*CONNECT 169.254.169.254.*
-        """
-        And stdout does not match regexp:
-        """
         .*CONNECT metadata.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    |
-           | xenial  | disabled | disabled | disabled |
-           | bionic  | disabled | n/a      | disabled |
-           | focal   | n/a      | n/a      | disabled |
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s |
+           | xenial  | n/a      | disabled | disabled | n/a         |
+           | bionic  | disabled | n/a      | disabled | n/a         |
+           | focal   | n/a      | n/a      | disabled | enabled     |
 
     @series.lts
     @uses.config.machine_type.aws.pro
