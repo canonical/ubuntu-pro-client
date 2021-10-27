@@ -468,7 +468,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.util.prompt_for_confirmation", return_value=False)
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch("uaclient.util.is_container", return_value=False)
-    def test_enable_fails_when_livepatch_service_is_enabled(
+    def test_fips_enable_fails_when_livepatch_service_is_enabled(
         self,
         m_is_container,
         m_handle_message_op,
@@ -476,8 +476,9 @@ class TestFIPSEntitlementEnable:
         m_is_config_value_true,
         m_platform_info,
         m_get_cloud_type,
-        entitlement,
+        entitlement_factory,
     ):
+        fips_ent = entitlement_factory(FIPSEntitlement)
         m_handle_message_op.return_value = True
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
         m_platform_info.return_value = {"series": "test"}
@@ -486,7 +487,7 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_livepatch:
             with mock.patch.object(
-                entitlement,
+                fips_ent,
                 "applicability_status",
                 return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
             ):
@@ -496,12 +497,11 @@ class TestFIPSEntitlementEnable:
                 )
                 fake_stdout = io.StringIO()
                 with contextlib.redirect_stdout(fake_stdout):
-                    entitlement.enable()
+                    fips_ent.enable()
 
-        expected_msg = "Cannot enable {} when Livepatch is enabled".format(
-            entitlement.title
-        )
-        assert expected_msg.strip() in fake_stdout.getvalue().strip()
+        expected_msg = "Cannot enable FIPS when Livepatch is enabled"
+        print(fake_stdout.getvalue())
+        assert expected_msg in fake_stdout.getvalue().strip()
 
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
