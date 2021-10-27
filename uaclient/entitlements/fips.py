@@ -22,7 +22,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
-    _incompatible_services = ("livepatch",)  # type: Tuple[str, ...]
 
     @property
     def conditional_packages(self):
@@ -321,6 +320,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     title = "FIPS"
     description = "NIST-certified core packages"
     origin = "UbuntuFIPS"
+    _incompatible_services = ("livepatch",)  # type: Tuple[str, ...]
 
     fips_pro_package_holds = [
         "fips-initramfs",
