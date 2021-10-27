@@ -105,20 +105,12 @@ class LivepatchEntitlement(base.UAEntitlement):
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
         # Use a lambda so we can mock util.is_container in tests
-        from uaclient.entitlements.fips import (
-            FIPSEntitlement,
-            FIPSUpdatesEntitlement,
-        )
+        from uaclient.entitlements.fips import FIPSEntitlement
 
         fips_ent = FIPSEntitlement(self.cfg)
-        fips_update_ent = FIPSUpdatesEntitlement(self.cfg)
-        enabled_status = ApplicationStatus.ENABLED
 
         is_fips_enabled = bool(
-            fips_ent.application_status()[0] == enabled_status
-        )
-        is_fips_updates_enabled = bool(
-            fips_update_ent.application_status()[0] == enabled_status
+            fips_ent.application_status()[0] == ApplicationStatus.ENABLED
         )
 
         return (
@@ -130,11 +122,6 @@ class LivepatchEntitlement(base.UAEntitlement):
             (
                 "Cannot enable Livepatch when FIPS is enabled.",
                 lambda: is_fips_enabled,
-                False,
-            ),
-            (
-                "Cannot enable Livepatch when FIPS Updates is enabled.",
-                lambda: is_fips_updates_enabled,
                 False,
             ),
         )

@@ -168,6 +168,62 @@ Feature: FIPS enablement in lxd VMs
             """
         And I verify that files exist matching `/var/lib/ubuntu-advantage/services-once-enabled`
 
+        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I reboot the `<release>` machine
+        # TODO after contract server is updated to allow livepatch on fips, remove this overlay
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "livepatch",
+                            "affordances": {
+                                "kernelFlavors": [
+                                    "fips"
+                                ]
+                            },
+                            "series": {
+                                "bionic": {
+                                    "affordances": {
+                                        "kernelFlavors": [
+                                            "fips"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes +enabled
+            """
+        Then stdout matches regexp:
+            """
+            livepatch +yes +disabled
+            """
+        When I run `ua enable livepatch --assume-yes` with sudo
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            <fips-service> +yes +enabled
+            """
+        Then stdout matches regexp:
+            """
+            livepatch +yes +enabled
+            """
+
         Examples: ubuntu release
            | release | fips-name    | fips-service |fips-apt-source                                                |
            | xenial  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu xenial-updates/main |
