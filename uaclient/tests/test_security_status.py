@@ -141,6 +141,7 @@ class TestSecurityStatus:
         cfg = FakeConfig()
 
         expected_output = {
+            "_schema_version": "0",
             "packages": [
                 {
                     "package": "update_available",
