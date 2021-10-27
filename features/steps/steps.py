@@ -126,14 +126,29 @@ def given_a_machine(context, series):
     )
 
 
+@when(
+    "I launch a `{series}` `{instance_name}` machine with ingress ports `{ports}`"  # noqa
+)
+def launch_machine_with_ingress_ports(context, series, instance_name, ports):
+    launch_machine(
+        context=context,
+        series=series,
+        instance_name=instance_name,
+        ports=ports,
+    )
+
+
 @when("I launch a `{series}` `{instance_name}` machine")
-def launch_machine(context, series, instance_name):
+def launch_machine(context, series, instance_name, ports=None):
     now = datetime.datetime.now()
     date_prefix = now.strftime("-%s%f")
     name = CONTAINER_PREFIX + series + date_prefix + "-" + instance_name
 
+    kwargs = {"series": series, "instance_name": name}
+    if ports:
+        kwargs["inbound_ports"] = ports.split(",")
     context.instances[instance_name] = context.config.cloud_manager.launch(
-        series=series, instance_name=name
+        **kwargs
     )
 
     def cleanup_instance() -> None:
@@ -224,7 +239,7 @@ def when_i_run_command(
     stdin=None,
     instance_name="uaclient",
 ):
-    if "<ci-proxy-ip>" in command:
+    if "<ci-proxy-ip>" in command and "proxy" in context.instances:
         command = command.replace(
             "<ci-proxy-ip>", context.instances["proxy"].ip
         )
@@ -368,7 +383,7 @@ def when_i_append_to_uaclient_config(context):
 @when("I create the file `{file_path}` with the following")
 def when_i_create_file_with_content(context, file_path):
     text = context.text.replace('"', '\\"')
-    if "<ci-proxy-ip>" in text:
+    if "<ci-proxy-ip>" in text and "proxy" in context.instances:
         text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
     cmd = "printf '{}\n' > {}".format(text, file_path)
     cmd = 'sh -c "{}"'.format(cmd)
