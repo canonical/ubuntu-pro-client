@@ -693,13 +693,25 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
 
     @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
-    Scenario: Run security-status on an Ubuntu machine
-        Given a `xenial` machine with ubuntu-advantage-tools installed
-        When I run `ua security-status --format json` as non-root
+    Scenario Outline: Run security-status on an Ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I append the following on uaclient config:
+            """
+            features:
+              allow_beta: true
+            """
+        And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
+        And I run `apt-get update` with sudo
+        When I run `ua security-status --format json --beta` as non-root
         Then stdout is formatted as `json` and has keys:
         """
-        summary packages
+        _schema_version summary packages
+        """
+        And stdout matches regexp:
+        """
+        "_schema_version": "0"
         """
         And stdout matches regexp:
         """
@@ -715,15 +727,23 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        "package": "apport"
+        "package": "<package>"
+        """
+        And stdout matches regexp:
+        """
+        "service_name": "<service>"
         """
         And stdout matches regexp:
         """
         "status": "pending_attach"
         """
         When I attach `contract_token` with sudo
-        And I run `ua security-status --format json` with sudo
+        And I run `ua security-status --format json --beta` with sudo
         Then stdout matches regexp:
+        """
+        "_schema_version": "0"
+        """
+        And stdout matches regexp:
         """
         "attached": true
         """
@@ -739,20 +759,34 @@ Feature: Command behaviour when attached to an UA subscription
         """
         "status": "upgrade_available"
         """
-        When I run `ua security-status --format yaml` as non-root
+        When I run `ua security-status --format yaml --beta` as non-root
         Then stdout is formatted as `yaml` and has keys:
         """
-        summary packages
+        _schema_version summary packages
         """
-        When I verify that running `ua security-status --format unsupported` `as non-root` exits `2`
+        And stdout matches regexp:
+        """
+        _schema_version: '0'
+        """
+        When I verify that running `ua security-status --format json` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
-        usage: security-status [-h] --format {json,yaml}
+        usage: security-status [-h] --format {json,yaml} --beta
+        the following arguments are required: --beta
+        """
+        When I verify that running `ua security-status --format unsupported --beta` `as non-root` exits `2`
+        Then I will see the following on stderr:
+        """
+        usage: security-status [-h] --format {json,yaml} --beta
         argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml')
         """
         When I verify that running `ua security-status` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
-        usage: security-status [-h] --format {json,yaml}
-        the following arguments are required: --format
+        usage: security-status [-h] --format {json,yaml} --beta
+        the following arguments are required: --format, --beta
         """
+        Examples: ubuntu release
+           | release | package   | service   |
+           | xenial  | apport    | esm-infra |
+           | bionic  | libkrb5-3 | esm-apps  |

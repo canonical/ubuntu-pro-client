@@ -164,4 +164,4 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         "standard-security"
     ]
 
-    return {"summary": summary, "packages": packages}
+    return {"_schema_version": "0", "summary": summary, "packages": packages}
