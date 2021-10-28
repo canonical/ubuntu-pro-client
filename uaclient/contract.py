@@ -78,7 +78,13 @@ class UAContractClient(serviceclient.UAServiceClient):
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
         self.cfg.write_cache("machine-token", machine_token)
+
         util.get_machine_id.cache_clear()
+        machine_id = machine_token.get("machineTokenInfo", {}).get(
+            "machineId", data.get("machineId")
+        )
+        self.cfg.write_cache("machine-id", machine_id)
+
         return machine_token
 
     def request_resources(self) -> Dict[str, Any]:
@@ -257,7 +263,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         if not detach:
             self.cfg.write_cache("machine-token", response)
             util.get_machine_id.cache_clear()
-            machine_id = response.get("machinetTokenInfo", {}).get(
+            machine_id = response.get("machineTokenInfo", {}).get(
                 "machineId", data.get("machineId")
             )
             self.cfg.write_cache("machine-id", machine_id)
