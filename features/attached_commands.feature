@@ -52,6 +52,22 @@ Feature: Command behaviour when attached to an UA subscription
 
     @series.all
     @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached and detach correctly reach contract endpoint
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua detach --assume-yes` with sudo
+        Then I verify that running `grep "Found new machine-id. Do not call detach on contract backend" /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | xenial  |
+           | hirsute |
+           | impish  |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
