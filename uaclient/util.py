@@ -299,7 +299,7 @@ def get_machine_id(cfg) -> str:
         if cfg_machine_id:
             return cfg_machine_id
 
-    fallback_machine_id_file = os.path.join(cfg.data_dir, "machine-id")
+    fallback_machine_id_file = cfg.data_path("machine-id")
 
     for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
         if os.path.exists(path):

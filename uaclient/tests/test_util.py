@@ -541,8 +541,7 @@ class TestGetMachineId:
         self, FakeConfig, tmpdir
     ):
         """When no machine-id is found, use machine-id from data_dir."""
-
-        data_machine_id = tmpdir.join("machine-id")
+        data_machine_id = tmpdir.mkdir("private").join("machine-id")
         data_machine_id.write("data-machine-id")
 
         cfg = FakeConfig()
@@ -559,7 +558,7 @@ class TestGetMachineId:
         self, FakeConfig, tmpdir
     ):
         """When no machine-id is found, create one in data_dir using uuid4."""
-        data_machine_id = tmpdir.join("machine-id")
+        data_machine_id = tmpdir.mkdir("private").join("machine-id")
 
         cfg = FakeConfig()
         with mock.patch("uaclient.util.os.path.exists") as m_exists:
@@ -576,7 +575,7 @@ class TestGetMachineId:
     def test_fallback_used_if_all_other_files_are_empty(
         self, FakeConfig, tmpdir, empty_value
     ):
-        data_machine_id = tmpdir.join("machine-id")
+        data_machine_id = tmpdir.mkdir("private").join("machine-id")
         cfg = FakeConfig().for_attached_machine(
             machine_token={"some": "thing"}
         )
