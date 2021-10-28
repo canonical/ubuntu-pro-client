@@ -68,6 +68,37 @@ Feature: Command behaviour when attached to an UA subscription
 
     @series.all
     @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached and detach don't reach contract endpoint if machine-id changes
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I update contract to use `machineId` as `new-machine-id`
+        And I run `ua detach --assume-yes` with sudo
+        Then I will see the following on stdout:
+            """
+            Detach will disable the following services:
+                esm-apps
+                esm-infra
+            Updating package lists
+            Updating package lists
+            This machine is now detached.
+            """
+        And I verify that running `grep "Found new machine-id. Do not call detach on contract backend" /var/log/ubuntu-advantage.log` `with sudo` exits `0`
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+          """
+          This machine is not attached to a UA subscription.
+          """
+
+        Examples: ubuntu release
+           | release |
+           | bionic  |
+           | focal   |
+           | xenial  |
+           | hirsute |
+           | impish  |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
