@@ -39,6 +39,9 @@ M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
 @mock.patch("uaclient.contract.util.get_machine_id")
 class TestUAContractClient:
     @pytest.mark.parametrize(
+        "machine_id_response", (("contract-machine-id"), None)
+    )
+    @pytest.mark.parametrize(
         "detach,expected_http_method",
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
@@ -50,6 +53,7 @@ class TestUAContractClient:
         request_url,
         detach,
         expected_http_method,
+        machine_id_response,
         FakeConfig,
     ):
         """POST or DELETE to ua-contracts and write machine-token cache.
@@ -58,17 +62,28 @@ class TestUAContractClient:
         """
         get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
         get_machine_id.return_value = "machineId"
-        request_url.return_value = ({"machineToken": "newtoken"}, {})
+
+        machine_token = {"machineTokenInfo": {}}
+        if machine_id_response:
+            machine_token["machineTokenInfo"][
+                "machineId"
+            ] = machine_id_response
+
+        request_url.return_value = (machine_token, {})
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
         if detach is not None:
             kwargs["detach"] = detach
         client._request_machine_token_update(**kwargs)
+
         if not detach:  # Then we have written the updated cache
-            assert {"machineToken": "newtoken"} == cfg.read_cache(
-                "machine-token"
-            )
+            assert machine_token == cfg.read_cache("machine-token")
+            expected_machine_id = "machineId"
+            if machine_id_response:
+                expected_machine_id = "contract-machine-id"
+
+            assert expected_machine_id == cfg.read_cache("machine-id")
         params = {
             "headers": {
                 "user-agent": "UA-Client/{}".format(get_version()),
@@ -157,6 +172,64 @@ class TestUAContractClient:
         assert [
             mock.call("/v1/contracts/cid/machine-activity/machineId", **params)
         ] == request_url.call_args_list
+
+    @pytest.mark.parametrize("machine_id_param", (("attach-machine-id"), None))
+    @pytest.mark.parametrize(
+        "machine_id_response", (("contract-machine-id"), None)
+    )
+    @mock.patch.object(UAContractClient, "_get_platform_data")
+    def test__request_contract_machine_attach(
+        self,
+        m_platform_data,
+        get_machine_id,
+        request_url,
+        machine_id_response,
+        machine_id_param,
+        FakeConfig,
+    ):
+        def fake_platform_data(machine_id):
+            machine_id = "machine-id" if not machine_id else machine_id
+            return {"machineId": machine_id}
+
+        m_platform_data.side_effect = fake_platform_data
+
+        machine_token = {"machineTokenInfo": {}}
+        if machine_id_response:
+            machine_token["machineTokenInfo"][
+                "machineId"
+            ] = machine_id_response
+
+        request_url.return_value = (machine_token, {})
+        contract_token = "mToken"
+
+        params = {
+            "data": fake_platform_data(machine_id_param),
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer mToken",
+            },
+        }
+
+        cfg = FakeConfig()
+        client = UAContractClient(cfg)
+        client.request_contract_machine_attach(
+            contract_token=contract_token, machine_id=machine_id_param
+        )
+
+        assert [
+            mock.call("/v1/context/machines/token", **params)
+        ] == request_url.call_args_list
+
+        expected_machine_id = "contract-machine-id"
+        if not machine_id_response:
+            if machine_id_param:
+                expected_machine_id = machine_id_param
+            else:
+                expected_machine_id = "machine-id"
+
+        assert expected_machine_id == cfg.read_cache("machine-id")
 
 
 class TestProcessEntitlementDeltas:
