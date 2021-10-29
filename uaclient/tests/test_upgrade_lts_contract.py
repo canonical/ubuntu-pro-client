@@ -35,7 +35,7 @@ class TestUpgradeLTSContract:
     )
     @mock.patch("lib.upgrade_lts_contract.parse_os_release")
     @mock.patch("lib.upgrade_lts_contract.subp")
-    def test_upgrade_abort_when_upgrading_to_trusty(
+    def test_upgrade_cancel_when_upgrading_to_trusty(
         self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
     ):
         m_parse_os.return_value = {"VERSION_ID": "14.04"}

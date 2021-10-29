@@ -1,7 +1,5 @@
 # Ubuntu Advantage Client
 
-[![Build Status](https://travis-ci.com/canonical/ubuntu-advantage-client.svg?branch=master)](https://travis-ci.com/github/canonical/ubuntu-advantage-client)
-
 The Ubuntu Advantage client provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. The
 following entitlements are supported:

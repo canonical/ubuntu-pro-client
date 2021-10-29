@@ -559,7 +559,7 @@ class TestCleanAptFiles:
         repo_tmpl = tmpdir.join("source-{name}").strpath
         pref_tmpl = tmpdir.join("pref-{name}").strpath
 
-        class DummyRepo(request.param):
+        class TestRepo(request.param):
             name = entitlement_name
             repo_list_file_tmpl = repo_tmpl
             repo_pref_file_tmpl = pref_tmpl
@@ -575,7 +575,7 @@ class TestCleanAptFiles:
             with open(pref_name, "w") as f:
                 f.write("")
 
-        return DummyRepo
+        return TestRepo
 
     @mock.patch("uaclient.apt.os.unlink")
     def test_no_removals_for_no_repo_entitlements(self, m_os_unlink):

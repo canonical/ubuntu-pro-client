@@ -315,7 +315,7 @@ class TestCVE:
             cve_response["notices"] = usns_response
         cve = CVE(client, cve_response)
         assert expected == cve.notices
-        # white box test caching in effect
+        # clear box test caching in effect
         cve.response = "junk"
         assert expected == cve.notices
 
@@ -545,7 +545,7 @@ https://ubuntu.com/security/CVE-2020-1472""",
             usn_response["cves"] = cves_response
         usn = USN(client, usn_response)
         assert expected == usn.cves
-        # white box test caching in effect
+        # clear box test caching in effect
         usn.response = "junk"
         assert expected == usn.cves
 
