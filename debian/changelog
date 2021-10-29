@@ -1,3 +1,32 @@
+ubuntu-advantage-tools (27.4~22.04.1) jammy; urgency=medium
+
+  * d/tools.postinst:
+    - hardcode python binary and PYTHONPATH (LP: #1930121)
+    - undo unnecessary log file creation
+  * New upstream release 27.4 (LP: #1949634)
+    - cc-eal: remove beta flag
+    - cli:
+      + attach will save machine-id during operation
+      + detach won't ask unnecessary questions
+      + new security-status subcommand lists potentially available
+        security and ESM updates (beta)
+    - fix:
+      + exit 0 when fix is successfully applied and completed
+      + exit 1 when fix cannot be applied
+      + exit 2 when fix requires a reboot to complete
+      + check reboot-required.pkgs for better reboot suggestions
+    - livepatch: allow livepatch and fips-updates at the same time
+    - metering:
+      + update how activity info is parsed
+      + update contract response structure
+      + enable job by default
+    - proxy: no_proxy defaults for link-local IMDS routes
+    - util:
+      + cache get_platform_info calls
+      + fix machine-id fallback path on get_machine_id
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Fri, 29 Oct 2021 15:35:57 -0300
+
 ubuntu-advantage-tools (27.3~21.10.1) impish; urgency=medium
 
   * d/tools.postinst:
