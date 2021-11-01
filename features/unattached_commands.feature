@@ -488,7 +488,7 @@ Feature: Command behaviour when unattached
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Run collect-logs on an attached machine
+    Scenario Outline: Run collect-logs on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I verify that running `ua collect-logs` `as non-root` exits `1`
@@ -500,7 +500,7 @@ Feature: Command behaviour when unattached
         Then I verify that files exist matching `ua_logs.tar.gz`
         When I run `tar zxf ua_logs.tar.gz` as non-root
         Then I verify that files exist matching `logs/`
-        When I run `ls -1 logs/` as non-root
+        When I run `sh -c "ls -1 logs/ | sort -d"` as non-root
         Then stdout matches regexp:
         """
         cloud-id.txt
@@ -510,16 +510,18 @@ Feature: Command behaviour when unattached
         systemd-timers.txt
         ua-auto-attach.path.txt-error
         ua-auto-attach.service.txt-error
+        uaclient.conf
         ua-license-check.path.txt
         ua-license-check.service.txt
         ua-license-check.timer.txt
         ua-reboot-cmds.service.txt
+        ua.service.txt
         ua-status.json
         ua-timer.service.txt
         ua-timer.timer.txt
-        uaclient.conf
-        ubuntu-advantage-timer.log
+        ubuntu-advantage-daemon.log
         ubuntu-advantage.log
+        ubuntu-advantage-timer.log
         """
         Examples: ubuntu release
           | release |

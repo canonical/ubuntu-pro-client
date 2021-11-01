@@ -65,6 +65,7 @@ UA_SERVICES = (
     "ua-license-check.path",
     "ua-license-check.service",
     "ua-license-check.timer",
+    "ua.service",
 )
 
 # Set a module-level callable here so we don't have to reinstantiate
@@ -1171,6 +1172,7 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             cfg.log_file,
             cfg.timer_log_file,
             cfg.license_check_log_file,
+            cfg.daemon_log_file,
             cfg.data_path("jobs-status"),
             *(
                 entitlement.repo_list_file_tmpl.format(name=entitlement.name)

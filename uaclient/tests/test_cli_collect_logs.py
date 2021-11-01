@@ -88,6 +88,8 @@ class TestActionAutoAttach:
                     "-u",
                     "ua-license-check.service",
                     "-u",
+                    "ua.service",
+                    "-u",
                     "cloud-init-local.service",
                     "-u",
                     "cloud-init-config.service",
@@ -116,9 +118,10 @@ class TestActionAutoAttach:
             mock.call(
                 ["systemctl", "status", "ua-license-check.timer"], rcs=[0, 3]
             ),
+            mock.call(["systemctl", "status", "ua.service"], rcs=[0, 3]),
         ]
 
-        assert m_copy.call_count == 13
+        assert m_copy.call_count == 14
 
 
 class TestParser:
