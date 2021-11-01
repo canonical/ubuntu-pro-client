@@ -136,6 +136,15 @@ output.
 .B version
 Show version of the Ubuntu Advantage package.
 
+.SH PRO UPGRADE DAEMON
+UA client sets up a daemon on supported platforms (currently GCP only) to
+detect if an Ubuntu Pro license is purchased for the machine. If a Pro license
+is detected, then the machine is automatically attached.
+If you are uninterested in UA services, you can safely stop and disable the
+daemon using systemctl:
+
+sudo systemctl stop ubuntu-advantage.service
+sudo systemctl disable ubuntu-advantage.service
 
 .SH TIMER JOBS
 UA client sets up a systemd timer to run jobs that need to be executed
@@ -203,6 +212,10 @@ The log file for the Ubuntu Advantage timer and timer jobs
 .B
 \fBlicense_check_log_file\fP
 The log file for the Ubuntu Advantage license check job (only used on GCP)
+.TP
+.B
+\fBdaemon_log_file\fP
+The log file for the Ubuntu Advantage daemon
 
 .P
 \fBThe following options must be nested under the "ua_config" key:\fP
@@ -246,7 +259,7 @@ Additionally, some configuration options can be overridden in the environment
 by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
 uppercase and lowercase environment variables are allowed. The configuration
 options that support this are: data_dir, log_file, timer_log_file,
-license_check_log_file, log_level, and security_url.
+license_check_log_file, daemon_log_file, log_level, and security_url.
 
 For example, the following overrides the log_level found in uaclient.conf:
 .PP

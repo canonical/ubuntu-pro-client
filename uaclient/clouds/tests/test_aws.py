@@ -302,3 +302,14 @@ class TestUAAutoAttachAWSInstance:
 
         for expected_log in expected_logs:
             assert expected_log in caplog_text()
+
+    def test_unsupported_should_poll_for_pro_license(self):
+        """Unsupported"""
+        instance = UAAutoAttachAWSInstance()
+        assert not instance.should_poll_for_pro_license()
+
+    def test_unsupported_is_pro_license_present(self):
+        """Unsupported"""
+        instance = UAAutoAttachAWSInstance()
+        with pytest.raises(exceptions.InPlaceUpgradeNotSupportedError):
+            instance.is_pro_license_present(wait_for_change=False)

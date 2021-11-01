@@ -6,6 +6,7 @@ import mock
 import pytest
 
 from uaclient.clouds.azure import IMDS_BASE_URL, UAAutoAttachAzureInstance
+from uaclient.exceptions import InPlaceUpgradeNotSupportedError
 
 M_PATH = "uaclient.clouds.azure."
 
@@ -122,3 +123,14 @@ class TestUAAutoAttachAzureInstance:
         load_file.side_effect = fake_load_file
         instance = UAAutoAttachAzureInstance()
         assert viable is instance.is_viable
+
+    def test_unsupported_should_poll_for_pro_license(self):
+        """Unsupported"""
+        instance = UAAutoAttachAzureInstance()
+        assert not instance.should_poll_for_pro_license()
+
+    def test_unsupported_is_pro_license_present(self):
+        """Unsupported"""
+        instance = UAAutoAttachAzureInstance()
+        with pytest.raises(InPlaceUpgradeNotSupportedError):
+            instance.is_pro_license_present(wait_for_change=False)

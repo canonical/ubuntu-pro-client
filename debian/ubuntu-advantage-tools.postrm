@@ -16,6 +16,7 @@ remove_logs(){
     rm -f /var/log/ubuntu-advantage.log*
     rm -f /var/log/ubuntu-advantage-timer.log*
     rm -f /var/log/ubuntu-advantage-license-check.log*
+    rm -f /var/log/ubuntu-advantage-daemon.log*
 }
 
 remove_gpg_files(){

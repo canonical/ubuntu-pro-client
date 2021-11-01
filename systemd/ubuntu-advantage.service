@@ -1,0 +1,26 @@
+# This service only runs on GCP to enable auto-attaching to Ubuntu Advantage
+# services when an Ubuntu Pro license is added to a GCP machine.
+# If you are uninterested in the (free for personal use) Ubuntu Advantage
+# services, including security updates after standard EOL and kernel patching
+# without rebooting, then you can safely stop and disable this service:
+# sudo systemctl stop ubuntu-advantage.service
+# sudo systemctl disable ubuntu-advantage.service
+
+[Unit]
+Description=Ubuntu Advantage GCP Auto Attach Daemon
+Documentation=man:ubuntu-advantage https://ubuntu.com/advantage
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service cloud-config.service
+
+# Only run if not already attached
+ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json
+# Only run on GCP
+ConditionPathExists=/run/cloud-init/cloud-id-gce
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/daemon.py
+WorkingDirectory=/var/lib/ubuntu-advantage/
+
+[Install]
+WantedBy=multi-user.target
