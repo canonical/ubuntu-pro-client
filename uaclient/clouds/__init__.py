@@ -20,3 +20,18 @@ class AutoAttachCloudInstance(metaclass=abc.ABCMeta):
     def is_viable(self) -> bool:
         """Return True if the machine is a viable AutoAttachCloudInstance."""
         pass
+
+    @abc.abstractmethod
+    def should_poll_for_pro_license(self) -> bool:
+        """
+        Cloud-specific checks for whether the daemon should continously poll
+        for Ubuntu Pro licenses.
+        """
+        pass
+
+    @abc.abstractmethod
+    def is_pro_license_present(self, *, wait_for_change: bool) -> bool:
+        """
+        Check for an Ubuntu Pro license
+        """
+        pass

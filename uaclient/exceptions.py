@@ -191,6 +191,7 @@ class LockHeldError(UserFacingError):
     """
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
+        self.lock_holder = lock_holder
         msg = messages.LOCK_HELD_ERROR.format(
             lock_request=lock_request, lock_holder=lock_holder, pid=pid
         )
@@ -359,3 +360,19 @@ class SecurityAPIError(UrlError):
         if details:
             return prefix + ": [" + self.url + "] " + ", ".join(details)
         return prefix + ": [" + self.url + "]"
+
+
+class InPlaceUpgradeNotSupportedError(Exception):
+    pass
+
+
+class IsProLicensePresentError(Exception):
+    pass
+
+
+class CancelProLicensePolling(IsProLicensePresentError):
+    pass
+
+
+class DelayProLicensePolling(IsProLicensePresentError):
+    pass

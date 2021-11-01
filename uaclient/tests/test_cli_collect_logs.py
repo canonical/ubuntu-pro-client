@@ -94,6 +94,8 @@ class TestActionCollectLogs:
                     "-u",
                     "ua-license-check.service",
                     "-u",
+                    "ubuntu-advantage.service",
+                    "-u",
                     "cloud-init-local.service",
                     "-u",
                     "cloud-init-config.service",
@@ -121,6 +123,9 @@ class TestActionCollectLogs:
             ),
             mock.call(
                 ["systemctl", "status", "ua-license-check.timer"], rcs=[0, 3]
+            ),
+            mock.call(
+                ["systemctl", "status", "ubuntu-advantage.service"], rcs=[0, 3]
             ),
         ]
 

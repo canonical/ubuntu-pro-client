@@ -1,0 +1,296 @@
+Feature: Pro Upgrade Daemon only runs in environments where necessary
+
+    @series.lts
+    @uses.config.contract_token
+    @uses.config.machine_type.gcp.generic
+    Scenario Outline: daemon should run when appropriate on gcp generic lts
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # verify its enabled, but stops itself when not configured to poll
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        When I wait `1` seconds
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout matches regexp:
+        """
+        Configured to not poll for pro license, shutting down
+        """
+        Then stdout matches regexp:
+        """
+        daemon ending
+        """
+        When I run `systemctl is-enabled ubuntu-advantage.service` with sudo
+        Then stdout matches regexp:
+        """
+        enabled
+        """
+        Then I verify that running `systemctl is-failed ubuntu-advantage.service` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        inactive
+        """
+        # verify it stays on when configured to do so
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        ua_config:
+            poll_for_pro_license: true
+        """
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout does not match regexp:
+        """
+        daemon ending
+        """
+        When I run `systemctl is-enabled ubuntu-advantage.service` with sudo
+        Then stdout matches regexp:
+        """
+        enabled
+        """
+        Then I verify that running `systemctl is-failed ubuntu-advantage.service` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        active
+        """
+        # verify attach stops it immediately and doesn't restart after reboot
+        When I attach `contract_token` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        """
+        When I reboot the `<release>` machine
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
+        """
+        # verify detach starts it and it starts again after reboot
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `ua detach --assume-yes` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout does not match regexp:
+        """
+        daemon ending
+        """
+        When I reboot the `<release>` machine
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
+        Then stdout matches regexp:
+        """
+        Active: active \(running\)
+        """
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout does not match regexp:
+        """
+        daemon ending
+        """
+        # Verify manual stop & disable persists across reconfigure
+        When I run `systemctl stop ubuntu-advantage.service` with sudo
+        When I run `systemctl disable ubuntu-advantage.service` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        """
+        When I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        """
+        # Verify manual stop & disable persists across reboot
+        When I reboot the `<release>` machine
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        """
+        Examples: version
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |
+            | jammy   |
+
+    @series.impish
+    @uses.config.contract_token
+    @uses.config.machine_type.gcp.generic
+    Scenario Outline: daemon does not start on gcp generic non lts
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        When I wait `1` seconds
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout matches regexp:
+        """
+        daemon starting
+        """
+        Then stdout matches regexp:
+        """
+        Not on LTS, shutting down
+        """
+        Then stdout matches regexp:
+        """
+        daemon ending
+        """
+        Examples: version
+            | release |
+            | impish  |
+
+    @series.all
+    @uses.config.contract_token
+    @uses.config.machine_type.lxd.container
+    @uses.config.machine_type.lxd.vm
+    @uses.config.machine_type.aws.generic
+    @uses.config.machine_type.azure.generic
+    Scenario Outline: daemon does not start when not on gcpgeneric
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        When I attach `contract_token` with sudo
+        When I run `ua detach --assume-yes` with sudo
+        When I reboot the `<release>` machine
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        Examples: version
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |
+            | impish  |
+            | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.aws.pro
+    @uses.config.machine_type.azure.pro
+    Scenario Outline: daemon does not start when not on gcpgeneric
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        When I run `ua auto-attach` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        When I reboot the `<release>` machine
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=/run/cloud-init/cloud-id-gce was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        Examples: version
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |
+
+    @series.lts
+    @uses.config.machine_type.gcp.pro
+    Scenario Outline: daemon does not start when not on gcpgeneric
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        When I run `ua auto-attach` with sudo
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        When I reboot the `<release>` machine
+        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
+        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
+        When I run `systemctl restart ubuntu-advantage.service` with sudo
+        # TODO-END: remove this chunk once cloud-init supports this feature
+        Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        Active: inactive \(dead\)
+        \s*Condition: start condition failed.*
+        .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
+        """
+        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        Examples: version
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |

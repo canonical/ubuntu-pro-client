@@ -90,6 +90,7 @@ VALID_UA_CONFIG_KEYS = (
     "settings_overrides",
     "timer_log_file",
     "license_check_log_file",
+    "daemon_log_file",
     "ua_config",
 )
 
@@ -228,6 +229,35 @@ class UAConfig:
         self.cfg["ua_config"]["metering_timer"] = value
         self.write_cfg()
 
+    @property
+    def poll_for_pro_license(self) -> bool:
+        # TODO: when polling is supported
+        #     1. change default here to True
+        #     2. add this field to UA_CONFIGURABLE_KEYS
+        return self.cfg.get("ua_config", {}).get("poll_for_pro_license", False)
+
+    @poll_for_pro_license.setter
+    def poll_for_pro_license(self, value: bool):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["poll_for_pro_license"] = value
+        self.write_cfg()
+
+    @property
+    def polling_error_retry_delay(self) -> int:
+        # TODO: when polling is supported
+        #     1. add this field to UA_CONFIGURABLE_KEYS
+        return self.cfg.get("ua_config", {}).get(
+            "polling_error_retry_delay", 600
+        )
+
+    @polling_error_retry_delay.setter
+    def polling_error_retry_delay(self, value: int):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["polling_error_retry_delay"] = value
+        self.write_cfg()
+
     def check_lock_info(self) -> Tuple[int, str]:
         """Return lock info if config lock file is present the lock is active.
 
@@ -322,6 +352,12 @@ class UAConfig:
     def license_check_log_file(self):
         return self.cfg.get(
             "license_check_log_file", CONFIG_DEFAULTS["license_check_log_file"]
+        )
+
+    @property
+    def daemon_log_file(self):
+        return self.cfg.get(
+            "daemon_log_file", CONFIG_DEFAULTS["daemon_log_file"]
         )
 
     @property
@@ -724,6 +760,12 @@ class UAConfig:
         from uaclient.contract import get_available_resources
         from uaclient.entitlements import entitlement_factory
 
+        self.remove_notice(
+            "",
+            status.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(operation=".*"),
+        )
+        self.remove_notice("", status.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+
         response = copy.deepcopy(DEFAULT_STATUS)
         machineTokenInfo = self.machine_token["machineTokenInfo"]
         contractInfo = machineTokenInfo["contractInfo"]
@@ -1109,6 +1151,7 @@ class UAConfig:
             "log_file",
             "timer_log_file",
             "license_check_log_file",
+            "daemon_log_file",
         ):
             cfg_dict[attr] = getattr(self, attr)
 
