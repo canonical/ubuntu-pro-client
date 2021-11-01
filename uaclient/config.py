@@ -80,6 +80,7 @@ VALID_UA_CONFIG_KEYS = (
     "settings_overrides",
     "timer_log_file",
     "license_check_log_file",
+    "daemon_log_file",
     "ua_config",
 )
 
@@ -311,6 +312,12 @@ class UAConfig:
     def license_check_log_file(self):
         return self.cfg.get(
             "license_check_log_file", CONFIG_DEFAULTS["license_check_log_file"]
+        )
+
+    @property
+    def daemon_log_file(self):
+        return self.cfg.get(
+            "daemon_log_file", CONFIG_DEFAULTS["daemon_log_file"]
         )
 
     @property
@@ -925,6 +932,7 @@ class UAConfig:
             "log_file",
             "timer_log_file",
             "license_check_log_file",
+            "daemon_log_file",
         ):
             cfg_dict[attr] = getattr(self, attr)
 
