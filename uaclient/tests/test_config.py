@@ -234,6 +234,7 @@ CFG_BASE_CONTENT = """\
 # picked up by Ubuntu-Advantage client.
 
 contract_url: https://contracts.canonical.com
+daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
@@ -248,6 +249,7 @@ CFG_FEATURES_CONTENT = """\
 # picked up by Ubuntu-Advantage client.
 
 contract_url: https://contracts.canonical.com
+daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 features:
   extra_security_params:
@@ -1202,10 +1204,17 @@ class TestStatus:
         expected_calls = [
             mock.call(
                 "",
+                status.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
+                    operation=".*"
+                ),
+            ),
+            mock.call("", status.NOTICE_DAEMON_AUTO_ATTACH_FAILED),
+            mock.call(
+                "",
                 messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation="fix operation"
                 ),
-            )
+            ),
         ]
 
         assert expected_calls == m_remove_notice.call_args_list
@@ -1555,6 +1564,7 @@ class TestParseConfig:
             "log_file": "/var/log/ubuntu-advantage.log",
             "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
             "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",  # noqa: E501
+            "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",  # noqa: E501
             "log_level": "INFO",
         }
         assert expected_default_config == config

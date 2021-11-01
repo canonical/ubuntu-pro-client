@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict
 from urllib.error import HTTPError
 
-from uaclient import util
+from uaclient import exceptions, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 IMDS_BASE_URL = "http://169.254.169.254/metadata/"
@@ -48,3 +48,10 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
             if AZURE_CHASSIS_ASSET_TAG == chassis_asset_tag.strip():
                 return True
         return os.path.exists(AZURE_OVF_ENV_FILE)
+
+    def should_poll_for_pro_license(self) -> bool:
+        """Unsupported"""
+        return False
+
+    def is_pro_license_present(self, *, wait_for_change: bool) -> bool:
+        raise exceptions.InPlaceUpgradeNotSupportedError()
