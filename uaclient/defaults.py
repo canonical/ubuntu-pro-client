@@ -31,6 +31,7 @@ CONFIG_DEFAULTS = {
     "log_file": "/var/log/ubuntu-advantage.log",
     "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
     "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",
+    "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",
 }
 
 CONFIG_FIELD_ENVVAR_ALLOWLIST = [

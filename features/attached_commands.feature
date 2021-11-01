@@ -31,6 +31,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
         Then stdout matches regexp:
         """
+        /var/log/ubuntu-advantage-daemon.log
         /var/log/ubuntu-advantage.log
         /var/log/ubuntu-advantage-timer.log
         """
@@ -38,6 +39,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root
         Then stdout matches regexp:
         """
+        /var/log/ubuntu-advantage-daemon.log.1
         /var/log/ubuntu-advantage.log.1
         /var/log/ubuntu-advantage-timer.log.1
         """
@@ -603,9 +605,11 @@ Feature: Command behaviour when attached to an UA subscription
         ua-license-check.service.txt
         ua-license-check.timer.txt
         ua-reboot-cmds.service.txt
+        ua.service.txt
         ua-status.json
         ua-timer.service.txt
         ua-timer.timer.txt
+        ubuntu-advantage-daemon.log
         ubuntu-advantage.log
         ubuntu-advantage-timer.log
         ubuntu-esm-apps.list
