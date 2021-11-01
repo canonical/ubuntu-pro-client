@@ -108,3 +108,10 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         if "ec2" == dmi_uuid[0:3] == dmi_serial[0:3]:
             return True
         return False
+
+    def should_poll_for_pro_license(self) -> bool:
+        """Unsupported"""
+        return False
+
+    def is_pro_license_present(self, *, wait_for_change: bool) -> bool:
+        raise exceptions.InPlaceUpgradeNotSupportedError()

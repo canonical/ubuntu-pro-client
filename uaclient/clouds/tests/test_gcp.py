@@ -5,7 +5,13 @@ from urllib.error import HTTPError
 import mock
 import pytest
 
-from uaclient.clouds.gcp import TOKEN_URL, UAAutoAttachGCPInstance
+from uaclient.clouds.gcp import (
+    LAST_ETAG,
+    LICENSES_URL,
+    TOKEN_URL,
+    WAIT_FOR_CHANGE,
+    UAAutoAttachGCPInstance,
+)
 
 M_PATH = "uaclient.clouds.gcp."
 
@@ -102,3 +108,177 @@ class TestUAAutoAttachGCPInstance:
 
         instance = UAAutoAttachGCPInstance()
         assert viable is instance.is_viable
+
+    @pytest.mark.parametrize(
+        "existing_etag, wait_for_change, metadata_response, platform_info,"
+        " expected_etag, expected_result, expected_readurl",
+        (
+            (
+                None,
+                False,
+                ([], {}),
+                {"series": "xenial"},
+                None,
+                False,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "8045211386737108299"}], {}),
+                {"series": "xenial"},
+                None,
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "8045211386737108299"}], {}),
+                {"series": "bionic"},
+                None,
+                False,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "6022427724719891830"}], {}),
+                {"series": "bionic"},
+                None,
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "599959289349842382"}], {}),
+                {"series": "focal"},
+                None,
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                {"series": "xenial"},
+                "test-etag",
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                False,
+                ([{"id": "wrong"}], {"ETag": "test-etag"}),
+                {"series": "xenial"},
+                "test-etag",
+                False,
+                [
+                    mock.call(
+                        LICENSES_URL, headers={"Metadata-Flavor": "Google"}
+                    )
+                ],
+            ),
+            (
+                None,
+                True,
+                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                {"series": "xenial"},
+                "test-etag",
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL + WAIT_FOR_CHANGE,
+                        headers={"Metadata-Flavor": "Google"},
+                    )
+                ],
+            ),
+            (
+                "existing-etag",
+                True,
+                ([{"id": "8045211386737108299"}], {"ETag": "test-etag"}),
+                {"series": "xenial"},
+                "test-etag",
+                True,
+                [
+                    mock.call(
+                        LICENSES_URL
+                        + WAIT_FOR_CHANGE
+                        + LAST_ETAG.format(etag="existing-etag"),
+                        headers={"Metadata-Flavor": "Google"},
+                    )
+                ],
+            ),
+        ),
+    )
+    @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "util.readurl")
+    def test_is_license_present(
+        self,
+        m_readurl,
+        m_get_platform_info,
+        existing_etag,
+        wait_for_change,
+        metadata_response,
+        platform_info,
+        expected_etag,
+        expected_result,
+        expected_readurl,
+    ):
+        instance = UAAutoAttachGCPInstance()
+        instance.etag = existing_etag
+        m_readurl.return_value = metadata_response
+        m_get_platform_info.return_value = platform_info
+
+        result = instance.is_pro_license_present(
+            wait_for_change=wait_for_change
+        )
+
+        assert expected_result == result
+        assert expected_etag == instance.etag
+
+        assert expected_readurl == m_readurl.call_args_list
+
+    @pytest.mark.parametrize(
+        "platform_info, expected_result",
+        (
+            ({"series": "xenial"}, True),
+            ({"series": "bionic"}, True),
+            ({"series": "focal"}, True),
+            ({"series": "impish"}, False),
+            ({"series": "jammy"}, True),
+        ),
+    )
+    @mock.patch(M_PATH + "util.get_platform_info")
+    def test_should_poll_for_license(
+        self, m_get_platform_info, platform_info, expected_result
+    ):
+        m_get_platform_info.return_value = platform_info
+        instance = UAAutoAttachGCPInstance()
+        result = instance.should_poll_for_pro_license()
+        assert expected_result == result

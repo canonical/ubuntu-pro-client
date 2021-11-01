@@ -824,6 +824,7 @@ Feature: Command behaviour when attached to an UA subscription
         ua-timer.service.txt
         ua-timer.timer.txt
         ubuntu-advantage.log
+        ubuntu-advantage.service.txt
         ubuntu-advantage-timer.log
         ubuntu-esm-apps.list
         ubuntu-esm-infra.list

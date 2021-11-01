@@ -1,17 +1,26 @@
 import base64
 import json
+import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional  # noqa: F401
 from urllib.error import HTTPError
 
-from uaclient import util
+from uaclient import exceptions, util
 from uaclient.clouds import AutoAttachCloudInstance
+
+LOG = logging.getLogger("ua.clouds.gcp")
 
 TOKEN_URL = (
     "http://metadata/computeMetadata/v1/instance/service-accounts/"
     "default/identity?audience=contracts.canonical.com&"
     "format=full&licenses=TRUE"
 )
+LICENSES_URL = (
+    "http://metadata.google.internal/computeMetadata/v1/instance/licenses/"
+    "?recursive=true"
+)
+WAIT_FOR_CHANGE = "&wait_for_change=true"
+LAST_ETAG = "&last_etag={etag}"
 
 DMI_PRODUCT_NAME = "/sys/class/dmi/id/product_name"
 GCP_PRODUCT_NAME = "Google Compute Engine"
@@ -25,6 +34,10 @@ GCP_LICENSES = {
 
 
 class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
+    def __init__(self):
+        # store ETAG
+        # https://cloud.google.com/compute/docs/metadata/querying-metadata#etags  # noqa
+        self.etag = None  # type: Optional[str]
 
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
@@ -66,3 +79,34 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
             .get("compute_engine", {})
             .get("license_id", [])
         )
+
+    def should_poll_for_pro_license(self) -> bool:
+        series = util.get_platform_info()["series"]
+        if series not in GCP_LICENSES:
+            LOG.info("This series isn't supported for GCP auto-attach.")
+            return False
+        return True
+
+    def is_pro_license_present(self, *, wait_for_change: bool) -> bool:
+        url = LICENSES_URL
+
+        if wait_for_change:
+            url += WAIT_FOR_CHANGE
+            if self.etag:
+                url += LAST_ETAG.format(etag=self.etag)
+
+        try:
+            licenses, headers = util.readurl(
+                url, headers={"Metadata-Flavor": "Google"}
+            )
+        except HTTPError as e:
+            LOG.error(e)
+            if e.code == 400:
+                raise exceptions.CancelProLicensePolling()
+            else:
+                raise exceptions.DelayProLicensePolling()
+        license_ids = [license["id"] for license in licenses]
+        self.etag = headers.get("ETag", None)
+
+        series = util.get_platform_info()["series"]
+        return GCP_LICENSES.get(series) in license_ids

@@ -168,7 +168,6 @@ STATUS_COLOR = {
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC,
 }
 
-PROMPT_YES_NO = """Are you sure? (y/N) """
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
   To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
@@ -182,6 +181,18 @@ To fix it, run the following commands:
     3. sudo ua enable fips --assume-yes
     4. sudo reboot
 """
+NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD = """\
+Detected an Ubuntu Pro license but failed to auto attach because
+"{operation}" was in progress.
+Please run `ua auto-attach` to upgrade to Pro.
+"""
+NOTICE_DAEMON_AUTO_ATTACH_FAILED = """\
+Detected an Ubuntu Pro license but failed to auto attach.
+Please run `ua auto-attach` to upgrade to Pro.
+If that fails then please contact support.
+"""
+
+PROMPT_YES_NO = """Are you sure? (y/N) """
 PROMPT_FIPS_PRE_ENABLE = (
     """\
 This will install the FIPS packages. The Livepatch service will be unavailable.
