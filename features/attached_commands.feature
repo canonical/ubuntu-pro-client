@@ -73,13 +73,8 @@ Feature: Command behaviour when attached to an UA subscription
         When I attach `contract_token` with sudo
         And I update contract to use `machineId` as `new-machine-id`
         And I run `ua detach --assume-yes` with sudo
-        Then I will see the following on stdout:
+        Then stdout matches regexp:
             """
-            Detach will disable the following services:
-                esm-apps
-                esm-infra
-            Updating package lists
-            Updating package lists
             This machine is now detached.
             """
         And I verify that running `grep "Found new machine-id. Do not call detach on contract backend" /var/log/ubuntu-advantage.log` `with sudo` exits `0`
