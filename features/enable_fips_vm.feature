@@ -230,6 +230,100 @@ Feature: FIPS enablement in lxd VMs
            | bionic  | FIPS Updates | fips-updates |https://esm.ubuntu.com/fips-updates/ubuntu bionic-updates/main |
 
     @slow
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.lxd.vm
+    Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # TODO after contract server is updated to allow livepatch on fips, remove this overlay
+        When I create the file `/root/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "livepatch",
+                            "affordances": {
+                                "kernelFlavors": [
+                                    "generic",
+                                    "fips"
+                                ]
+                            },
+                            "series": {
+                                "bionic": {
+                                    "affordances": {
+                                        "kernelFlavors": [
+                                            "generic",
+                                            "fips"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/root/machine-token-overlay.json"
+        """
+        When I attach `contract_token` with sudo
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            fips-updates +yes                disabled
+            """
+        Then stdout matches regexp:
+            """
+            livepatch +yes                enabled
+            """
+        When I run `ua enable fips-updates --assume-yes` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            Installing FIPS Updates packages
+            FIPS Updates enabled
+            A reboot is required to complete install
+            """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            fips-updates +yes                enabled
+            """
+        Then stdout matches regexp:
+            """
+            livepatch +yes                enabled
+            """
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            fips
+            """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+        When I run `ua status --all` with sudo
+        Then stdout matches regexp:
+            """
+            fips-updates +yes                enabled
+            """
+        Then stdout matches regexp:
+            """
+            livepatch +yes                enabled
+            """
+        Examples: ubuntu release
+           | release |
+           | xenial  |
+           | bionic  |
+
+    @slow
     @series.focal
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
