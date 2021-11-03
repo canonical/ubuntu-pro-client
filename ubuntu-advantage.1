@@ -54,6 +54,18 @@ Activate and configure this machine's access to an Ubuntu Advantage
 service.
 
 .TP
+.BR fix <security_issue>
+Fix a CVE or USN on the system by upgrading the appropriate package(s).
+
+<security_issue> can be any of the following formats: CVE-yyyy-nnnn,
+CVE-yyyy-nnnnnnn, or USN-nnnn-dd.
+
+The exit code can be 0, 1, or 2.
+    0: the fix was successfully applied
+    1: the fix cannot be applied
+    2: the fix was applied but requires a reboot before it takes effect
+
+.TP
 .B refresh
 Refresh contract and service details from Canonical.
 
