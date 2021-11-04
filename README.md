@@ -103,7 +103,7 @@ https://ubuntu.com/advantage.
   token, service credentials, affordances, directives and obligations to allow
   enabling and disabling Ubuntu Advantage services
 * UA client writes the machine token API response to the root-readonly
-  /var/lib/ubuntu-advantage/machine-token.json
+  /var/lib/ubuntu-advantage/private/machine-token.json
 * UA client auto-enables any services defined with
   `obligations:{enableByDefault: true}`
 
