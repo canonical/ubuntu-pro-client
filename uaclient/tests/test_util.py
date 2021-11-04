@@ -1023,8 +1023,8 @@ class TestConfigureWebProxy:
                 None,
                 {},
                 {
-                    "NO_PROXY": "169.254.169.254,metadata",
-                    "no_proxy": "169.254.169.254,metadata",
+                    "NO_PROXY": "169.254.169.254,[fd00:ec2::254],metadata",
+                    "no_proxy": "169.254.169.254,[fd00:ec2::254],metadata",
                 },
             ),
             (
@@ -1032,8 +1032,8 @@ class TestConfigureWebProxy:
                 "https://proxy",
                 {"no_proxy": "a,10.0.0.1"},
                 {
-                    "NO_PROXY": "10.0.0.1,169.254.169.254,a,metadata",
-                    "no_proxy": "10.0.0.1,169.254.169.254,a,metadata",
+                    "NO_PROXY": "10.0.0.1,169.254.169.254,[fd00:ec2::254],a,metadata",  # noqa
+                    "no_proxy": "10.0.0.1,169.254.169.254,[fd00:ec2::254],a,metadata",  # noqa
                 },
             ),
             (
@@ -1041,8 +1041,8 @@ class TestConfigureWebProxy:
                 "https://proxy",
                 {"NO_PROXY": "a,169.254.169.254"},
                 {
-                    "NO_PROXY": "169.254.169.254,a,metadata",
-                    "no_proxy": "169.254.169.254,a,metadata",
+                    "NO_PROXY": "169.254.169.254,[fd00:ec2::254],a,metadata",
+                    "no_proxy": "169.254.169.254,[fd00:ec2::254],a,metadata",
                 },
             ),
         ),
