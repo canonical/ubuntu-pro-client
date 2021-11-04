@@ -58,7 +58,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
     except util.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
-            if re.search(r"401\s+unauthorized|httperror401", stderr):
+            if re.search(r"401\s+[uU]nauthorized|httperror401", stderr):
                 raise exceptions.UserFacingError(
                     "Invalid APT credentials provided for {}".format(repo_url)
                 )
