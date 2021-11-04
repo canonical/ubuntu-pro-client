@@ -8,11 +8,11 @@ sshopts=( -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLeve
 
 REGION=us-west-2
 INSTANCE_TYPE=t3.micro
-KEY_NAME=KEY_NAME
+KEY_NAME=test-ipv6
 PRO_IMAGE_ID=ami-07e00b8a1a054fdbf  # bionic PRO image for us-west-2
 
 # You need to have a subnet that supports IPv6. The easiest path here is to launch an ec2
-# unstance through pycloudlib, which will already create a VPC with a subnet that supports
+# instance through pycloudlib, which will already create a VPC with a subnet that supports
 # IPv6. You can also use the security group created by pycloudlib
 SUBNET_ID=<SUBNET-ID>
 SECURITY_GROUP_ID=<SG-ID>
