@@ -8,7 +8,9 @@ from uaclient import util
 from uaclient.cli import setup_logging
 from uaclient.clouds.identity import get_cloud_type
 
-read_url = "this is a hack"
+
+async def run_in_thread(fn, *args):
+    return asyncio.get_event_loop().run_in_executor(None, fn, *args)
 
 
 async def gcp_auto_attach():
@@ -17,7 +19,8 @@ async def gcp_auto_attach():
         now = datetime.datetime.now()
         logging.info("Requesting metadata at {}".format(now))
         try:
-            result = await readurl(
+            result = await run_in_thread(
+                util.readurl,
                 "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&wait_for_change=true",
                 headers={"Metadata-Flavor": "Google"},
             )
@@ -27,20 +30,12 @@ async def gcp_auto_attach():
 
 
 async def main():
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    cloud, _none_reason = get_cloud_type()
+    coroutines = []
+    if cloud == "gce":
+        coroutines.append(gcp_auto_attach())
 
-        async def async_readurl(*args):
-            loop = asyncio.get_event_loop()
-            loop.run_in_executor(executor, util.readurl, *args)
-
-        read_url = async_readurl
-
-        cloud, _none_reason = get_cloud_type()
-        coroutines = []
-        if cloud == "gce":
-            coroutines.append(gcp_auto_attach())
-
-        await asyncio.gather(*coroutines)
+    await asyncio.gather(*coroutines)
 
 
 if __name__ == "__main__":
