@@ -38,7 +38,7 @@ DROPPED_KEY = object()
 # N.B. this relies on the version normalisation we perform in get_platform_info
 REGEX_OS_RELEASE_VERSION = r"(?P<release>\d+\.\d+) (LTS )?\((?P<series>\w+).*"
 
-UA_NO_PROXY_URLS = ("169.254.169.254", "metadata")
+UA_NO_PROXY_URLS = ("169.254.169.254", "metadata", "[fd00:ec2::254]")
 PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
 PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
