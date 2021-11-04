@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import datetime
+import functools
 import logging
 import sys
 
@@ -19,10 +20,12 @@ async def gcp_auto_attach():
         now = datetime.datetime.now()
         logging.info("Requesting metadata at {}".format(now))
         try:
-            result = await run_in_thread(
-                util.readurl,
-                "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&wait_for_change=true",
-                headers={"Metadata-Flavor": "Google"},
+            result = await asyncio.get_event_loop().run_in_executor(
+                functools.partial(
+                    util.readurl,
+                    "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&wait_for_change=true",
+                    headers={"Metadata-Flavor": "Google"},
+                )
             )
             logging.info(result)
         except Exception as e:
