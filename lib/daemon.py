@@ -10,8 +10,10 @@ from uaclient.cli import setup_logging
 from uaclient.clouds.identity import get_cloud_type
 
 
-async def run_in_thread(fn, *args):
-    return asyncio.get_event_loop().run_in_executor(None, fn, *args)
+async def print_periodically():
+    while True:
+        await asyncio.sleep(5)
+        print("just slept for 5 seconds")
 
 
 async def gcp_auto_attach():
@@ -21,11 +23,12 @@ async def gcp_auto_attach():
         logging.info("Requesting metadata at {}".format(now))
         try:
             result = await asyncio.get_event_loop().run_in_executor(
+                None,
                 functools.partial(
                     util.readurl,
                     "http://metadata.google.internal/computeMetadata/v1/instance/attributes/?recursive=true&wait_for_change=true",
                     headers={"Metadata-Flavor": "Google"},
-                )
+                ),
             )
             logging.info(result)
         except Exception as e:
@@ -33,10 +36,14 @@ async def gcp_auto_attach():
 
 
 async def main():
-    cloud, _none_reason = get_cloud_type()
     coroutines = []
+
+    cloud, _none_reason = get_cloud_type()
     if cloud == "gce":
         coroutines.append(gcp_auto_attach())
+
+    coroutines.append(print_periodically())
+    coroutines.append(print_periodically())
 
     await asyncio.gather(*coroutines)
 
