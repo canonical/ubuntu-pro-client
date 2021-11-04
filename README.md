@@ -150,7 +150,7 @@ Jobs are executed by the timer script if:
 - Their interval since last successful run is already exceeded.
 
 There is a random delay applied to the timer, to desynchronize job execution time
-on machines spinned at the same time, avoiding multiple synchronized calls to the
+on machines spun at the same time, avoiding multiple synchronized calls to the
 same service.
 
 Current jobs being checked and executed are:
@@ -574,5 +574,5 @@ sudo shutdown -h now
 * Use your cloud platform to clone or snapshot this VM as a golden image
 
 
-## Releasing ubuntu-adantage-tools
+## Releasing ubuntu-advantage-tools
 see [RELEASES.md](RELEASES.md)
