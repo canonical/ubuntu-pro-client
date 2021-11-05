@@ -165,7 +165,6 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating package lists
             Installing <fips-name> packages
-            <fips-name> strongswan-hmac package could not be installed
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -178,6 +177,8 @@ Feature: FIPS enablement in cloud based machines
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -207,6 +208,8 @@ Feature: FIPS enablement in cloud based machines
         When I reboot the `<release>` machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
         When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
         Then I will see the following on stdout:
         """
@@ -403,7 +406,6 @@ Feature: FIPS enablement in cloud based machines
             """
             Updating package lists
             Installing <fips-name> packages
-            <fips-name> strongswan-hmac package could not be installed
             <fips-name> enabled
             A reboot is required to complete install
             """
@@ -416,6 +418,8 @@ Feature: FIPS enablement in cloud based machines
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
         And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
         When I run `apt-cache policy ubuntu-fips` as non-root
         Then stdout does not match regexp:
         """
@@ -445,6 +449,8 @@ Feature: FIPS enablement in cloud based machines
         When I reboot the `<release>` machine
         Then I verify that `openssh-server` installed version matches regexp `fips`
         And I verify that `openssh-client` installed version matches regexp `fips`
+        And I verify that `strongswan` installed version matches regexp `fips`
+        And I verify that `strongswan-hmac` installed version matches regexp `fips`
         When I run `apt-mark unhold openssh-client openssh-server strongswan` with sudo
         Then I will see the following on stdout:
         """
