@@ -2,10 +2,8 @@
 
 set -e
 
-PYTHON="/usr/bin/env PYTHONPATH=/usr/lib/python3/dist-packages /usr/bin/python3"
-
 remove_apt_files() {
-    $PYTHON -c '
+    /usr/bin/python3 -c '
 from uaclient.apt import clean_apt_files
 
 clean_apt_files()
