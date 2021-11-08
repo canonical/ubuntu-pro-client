@@ -7,8 +7,10 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 ubuntu-advantage-tools (27.4~22.04.1) jammy; urgency=medium
 
   * d/tools.postinst:
-    - hardcode python binary and PYTHONPATH (LP: #1930121)
+    - hardcode python binary to run python scripts (LP: #1930121)
     - undo unnecessary log file creation
+  * d/tools.prerm:
+    - hardcode python binary to run python scripts (LP: #1930121)
   * New upstream release 27.4 (LP: #1949634)
     - cc-eal: remove beta flag
     - cli:
