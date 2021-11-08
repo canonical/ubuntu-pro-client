@@ -916,6 +916,16 @@ class TestRedactSensitiveLogs:
                 "'machineToken': 'SEKRET', 'machineTokenInfo': 'blah'",
                 "'machineToken': '<REDACTED>', 'machineTokenInfo': 'blah'",
             ),
+            (
+                "Failed running command '/usr/lib/apt/apt-helper download-file"
+                "https://bearer:S3-Kr3T@esm.ubuntu.com/infra/ubuntu/pool/ "
+                "[exit(100)]. Message: Download of file failed"
+                " pkgAcquire::Run (13: Permission denied)",
+                "Failed running command '/usr/lib/apt/apt-helper download-file"
+                "https://bearer:<REDACTED>@esm.ubuntu.com/infra/ubuntu/pool/ "
+                "[exit(100)]. Message: Download of file failed"
+                " pkgAcquire::Run (13: Permission denied)",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):

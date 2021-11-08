@@ -667,7 +667,7 @@ def subp(
             if not retry_sleeps:
                 raise
             retry_msg = " Retrying %d more times." % len(retry_sleeps)
-            logging.debug(str(e) + retry_msg)
+            logging.debug(redact_sensitive_logs(str(e) + retry_msg))
             time.sleep(retry_sleeps.pop(0))
     return out, err
 
@@ -759,6 +759,7 @@ REDACT_SENSITIVE_LOGS = [
     r"(\'token\': \')[^\']+",
     r"(\'X-aws-ec2-metadata-token\': \')[^\']+",
     r"(.*\[PUT\] response.*api/token,.*data: ).*",
+    r"(https://bearer:)[\w-]*",
 ]
 
 
