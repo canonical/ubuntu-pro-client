@@ -1,5 +1,7 @@
 ubuntu-advantage-tools (27.4~22.04.1) jammy; urgency=medium
 
+  * d/rules:
+    - Remove conftest file from the package
   * d/tools.postinst:
     - hardcode python binary to run python scripts (LP: #1930121)
     - undo unnecessary log file creation
