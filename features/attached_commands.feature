@@ -733,7 +733,7 @@ Feature: Command behaviour when attached to an UA subscription
         "status": "pending_attach"
         """
         When I attach `contract_token` with sudo
-        And I run `ua security-status --format json --beta` with sudo
+        And I run `ua security-status --format json --beta` as non-root
         Then stdout matches regexp:
         """
         "_schema_version": "0"
@@ -744,11 +744,11 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        "enabled_services": \["esm-infra", "esm-apps"\]
+        "enabled_services": \["esm-apps", "esm-infra"\]
         """
         And stdout matches regexp:
         """
-        "entitled_services": \["esm-infra", "esm-apps"\]
+        "entitled_services": \["esm-apps", "esm-infra"\]
         """
         And stdout matches regexp:
         """
