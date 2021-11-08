@@ -2,7 +2,6 @@ import mock
 import pytest
 
 from uaclient.security_status import (
-    ServiceStatus,
     UpdateStatus,
     get_ua_info,
     get_update_status,
@@ -83,19 +82,25 @@ class TestSecurityStatus:
         assert get_update_status(service_name, ua_info) == expected_result
 
     @pytest.mark.parametrize("is_attached", (True, False))
-    @mock.patch(M_PATH + "get_service_status")
-    def test_get_ua_info(self, m_service_status, is_attached, FakeConfig):
+    @mock.patch(M_PATH + "UAConfig.status")
+    def test_get_ua_info(self, m_status, is_attached, FakeConfig):
         if is_attached:
             cfg = FakeConfig().for_attached_machine()
         else:
             cfg = FakeConfig()
 
-        def service_status_side_effect(_cfg, service):
-            if service == "esm-infra":
-                return ServiceStatus(True, True)
-            return ServiceStatus(True, False)
-
-        m_service_status.side_effect = service_status_side_effect
+        m_status.return_value = {
+            "attached": is_attached,
+            "services": [
+                {"name": "esm-infra", "entitled": "yes", "status": "enabled"},
+                {"name": "esm-apps", "entitled": "yes", "status": "disabled"},
+                {
+                    "name": "non-esm-service",
+                    "entitled": "yes",
+                    "status": "enabled",
+                },
+            ],
+        }
 
         result = get_ua_info(cfg)
 
@@ -115,9 +120,10 @@ class TestSecurityStatus:
     @mock.patch(
         M_PATH + "get_platform_info", return_value={"series": "example"}
     )
+    @mock.patch(M_PATH + "UAConfig.status", return_value={"attached": False})
     @mock.patch(M_PATH + "Cache")
     def test_finds_updates_for_installed_packages(
-        self, m_cache, _m_platform_info, FakeConfig
+        self, m_cache, _m_status, _m_platform_info, FakeConfig
     ):
         m_cache.return_value = [
             mock_package(name="not_installed"),
