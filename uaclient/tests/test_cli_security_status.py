@@ -28,8 +28,9 @@ optional arguments:
 )
 
 
+@mock.patch(M_PATH + "security_status.security_status")
 class TestActionSecurityStatus:
-    def test_security_status_help(self, capsys):
+    def test_security_status_help(self, _m_security_status, capsys):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "security-status", "--help"]
@@ -40,7 +41,6 @@ class TestActionSecurityStatus:
         assert HELP_OUTPUT == out
 
     @pytest.mark.parametrize("output_format", ("json", "yaml"))
-    @mock.patch(M_PATH + "security_status.security_status")
     @mock.patch(M_PATH + "yaml.safe_dump")
     @mock.patch(M_PATH + "json.dumps")
     def test_action_security_status(
@@ -71,7 +71,9 @@ class TestActionSecurityStatus:
 
     # Remove this once we have human-readable text
     @pytest.mark.parametrize("with_wrong_format", (False, True))
-    def test_require_format_flag(self, with_wrong_format, FakeConfig, capsys):
+    def test_require_format_flag(
+        self, _m_security_status, with_wrong_format, FakeConfig, capsys
+    ):
         cmdline_args = ["/usr/bin/ua", "security-status"]
         if with_wrong_format:
             cmdline_args.extend(["--format", "unsupported"])
@@ -97,7 +99,10 @@ class TestActionSecurityStatus:
         "beta_flag, expected_err",
         ((False, "the following arguments are required: --beta"), (True, "")),
     )
-    def test_require_beta_flag(self, beta_flag, expected_err, capsys):
+    def test_require_beta_flag(
+        self, m_security_status, beta_flag, expected_err, capsys
+    ):
+        m_security_status.return_value = {}
         cmdline_args = ["/usr/bin/ua", "security-status", "--format", "json"]
         if beta_flag:
             cmdline_args.extend(["--beta"])

@@ -1,4 +1,3 @@
-from collections import namedtuple
 from enum import Enum
 from typing import Any, Dict, List
 
@@ -6,8 +5,6 @@ from apt import Cache  # type: ignore
 from apt import package as apt_package
 
 from uaclient.config import UAConfig
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
-from uaclient.status import ApplicationStatus, ContractStatus
 from uaclient.util import get_platform_info
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
@@ -27,9 +24,6 @@ class UpdateStatus(Enum):
     UNATTACHED = "pending_attach"
     NOT_ENABLED = "pending_enable"
     UNAVAILABLE = "upgrade_unavailable"
-
-
-ServiceStatus = namedtuple("ServiceStatus", ["is_entitled", "is_enabled"])
 
 
 def get_service_name(origins: List[apt_package.Origin]) -> str:
@@ -65,18 +59,6 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
     return UpdateStatus.UNAVAILABLE.value
 
 
-def get_service_status(cfg: UAConfig, service_name: str) -> ServiceStatus:
-    """Returns the UA status for a specific service.
-
-    Checks if the service is entitled and enabled.
-    """
-    entitlement = ENTITLEMENT_CLASS_BY_NAME[service_name](cfg)
-    return ServiceStatus(
-        entitlement.contract_status() == ContractStatus.ENTITLED,
-        entitlement.application_status()[0] == ApplicationStatus.ENABLED,
-    )
-
-
 def filter_security_updates(
     packages: List[apt_package.Package]
 ) -> List[apt_package.Package]:
@@ -109,14 +91,15 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
         "entitled_services": [],
     }  # type: Dict[str, Any]
 
-    if cfg.is_attached:
+    status = cfg.status(show_beta=True)
+    if status["attached"]:
         ua_info["attached"] = True
-        for service in ESM_SERVICES:
-            status = get_service_status(cfg, service)
-            if status.is_entitled:
-                ua_info["entitled_services"].append(service)
-            if status.is_enabled:
-                ua_info["enabled_services"].append(service)
+        for service in status["services"]:
+            if service["name"] in ESM_SERVICES:
+                if service["entitled"] == "yes":
+                    ua_info["entitled_services"].append(service["name"])
+                if service["status"] == "enabled":
+                    ua_info["enabled_services"].append(service["name"])
 
     return ua_info
 
