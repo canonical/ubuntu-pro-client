@@ -527,7 +527,7 @@ class TestMain:
         "exception,expected_exit_code",
         [
             (UserFacingError("You need to know about this."), 1),
-            (AlreadyAttachedError(mock.MagicMock()), 0),
+            (AlreadyAttachedError(mock.MagicMock()), 2),
             (
                 LockHeldError(
                     pid="123",

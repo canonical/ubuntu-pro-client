@@ -31,6 +31,11 @@ The optional \fI--no-auto-enable\fR flag will disable the automatic
 enablement of recommended entitlements which usually happens immediately
 after a successful attach.
 
+The exit code can be:
+    0: on successful attach
+    1: in case of any error while trying to attach
+    2: if the machine is already attached
+
 .TP
 .B collect-logs [-o <file>| --output <file>]
 Create a tarball with all relevant UA logs and debug data.

@@ -71,6 +71,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         Enabling default service esm-infra
         """
+        When I verify that running `ua attach contract_token` `with sudo` exits `2`
+        Then stderr matches regexp:
+        """
+        This machine is already attached to '.+'
+        To use a different subscription first run: sudo ua detach.
+        """
         When I run `ua disable esm-apps --assume-yes` with sudo
         When I append the following on uaclient config:
             """
