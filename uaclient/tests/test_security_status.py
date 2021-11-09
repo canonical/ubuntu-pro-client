@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import mock
 import pytest
 
@@ -11,8 +13,9 @@ from uaclient.security_status import (
 M_PATH = "uaclient.security_status."
 
 
+# Each candidate is a tuple of (version, archive, origin)
 def mock_package(
-    name, installed=None, candidate=None, archive=None, origin=None
+    name, installed=None, candidates: List[Tuple[str, str, str]] = []
 ):
     mock_package = mock.MagicMock()
     mock_package.name = name
@@ -29,17 +32,18 @@ def mock_package(
         mock_package.installed = mock_installed
         mock_package.versions.append(mock_installed)
 
-    if candidate:
+    for candidate in candidates:
         mock_candidate = mock.MagicMock()
         mock_candidate.__gt__ = (
             lambda self, other: self.version > other.version
         )
 
-        mock_candidate.version = candidate
+        mock_candidate.package = mock_package
+        mock_candidate.version = candidate[0]
 
         mock_origin = mock.MagicMock()
-        mock_origin.archive = archive
-        mock_origin.origin = origin
+        mock_origin.archive = candidate[1]
+        mock_origin.origin = candidate[2]
         mock_candidate.origins = [mock_origin]
 
         mock_package.versions.append(mock_candidate)
@@ -131,16 +135,25 @@ class TestSecurityStatus:
             mock_package(
                 name="latest_is_installed",
                 installed="2.0",
-                candidate="1.0",
-                archive="example-infra-security",
-                origin="UbuntuESM",
+                candidates=[("1.0", "example-infra-security", "UbuntuESM")],
             ),
             mock_package(
                 name="update_available",
                 installed="1.0",
-                candidate="2.0",
-                archive="example-infra-security",
-                origin="UbuntuESM",
+                candidates=[("2.0", "example-infra-security", "UbuntuESM")],
+            ),
+            mock_package(
+                name="not_a_security_update",
+                installed="1.0",
+                candidates=[("2.0", "example-notsecurity", "NotUbuntuESM")],
+            ),
+            mock_package(
+                name="more_than_one_update_available",
+                installed="1.0",
+                candidates=[
+                    ("2.0", "example-security", "Ubuntu"),
+                    ("3.0", "example-infra-security", "UbuntuESM"),
+                ],
             ),
         ]
 
@@ -154,7 +167,19 @@ class TestSecurityStatus:
                     "version": "2.0",
                     "service_name": "esm-infra",
                     "status": "pending_attach",
-                }
+                },
+                {
+                    "package": "more_than_one_update_available",
+                    "version": "2.0",
+                    "service_name": "standard-security",
+                    "status": "upgrade_available",
+                },
+                {
+                    "package": "more_than_one_update_available",
+                    "version": "3.0",
+                    "service_name": "esm-infra",
+                    "status": "pending_attach",
+                },
             ],
             "summary": {
                 "ua": {
@@ -162,10 +187,10 @@ class TestSecurityStatus:
                     "enabled_services": [],
                     "entitled_services": [],
                 },
-                "num_installed_packages": 3,
-                "num_esm_infra_updates": 1,
+                "num_installed_packages": 5,
+                "num_esm_infra_updates": 2,
                 "num_esm_apps_updates": 0,
-                "num_standard_security_updates": 0,
+                "num_standard_security_updates": 1,
             },
         }
 
