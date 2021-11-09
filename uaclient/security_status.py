@@ -73,13 +73,11 @@ def filter_security_updates(
     ]
 
     return [
-        package
+        version
         for package in packages
-        if max(package.versions) > package.installed
-        and any(
-            origin.archive in security_repos
-            for origin in max(package.versions).origins
-        )
+        for version in package.versions
+        if version > package.installed
+        and any(origin.archive in security_repos for origin in version.origins)
     ]
 
 
@@ -122,20 +120,18 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     installed_packages = [package for package in cache if package.is_installed]
     summary["num_installed_packages"] = len(installed_packages)
 
-    security_upgradable_packages = filter_security_updates(installed_packages)
+    security_upgradable_versions = filter_security_updates(installed_packages)
 
     package_count = {"esm-infra": 0, "esm-apps": 0, "standard-security": 0}
 
-    for package in security_upgradable_packages:
-        candidate = max(package.versions)
-        version = candidate.version
+    for candidate in security_upgradable_versions:
         service_name = get_service_name(candidate.origins)
         status = get_update_status(service_name, ua_info)
         package_count[service_name] += 1
         packages.append(
             {
-                "package": package.name,
-                "version": version,
+                "package": candidate.package.name,
+                "version": candidate.version,
                 "service_name": service_name,
                 "status": status,
             }
