@@ -596,6 +596,7 @@ def _subp(
         env.update(os.environ)
     if rcs is None:
         rcs = [0]
+    redacted_cmd = redact_sensitive_logs(" ".join(args))
     try:
         proc = subprocess.Popen(
             bytes_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
@@ -604,16 +605,16 @@ def _subp(
     except OSError:
         try:
             raise ProcessExecutionError(
-                cmd=" ".join(args),
+                cmd=redacted_cmd,
                 exit_code=proc.returncode,
                 stdout=out.decode("utf-8"),
                 stderr=err.decode("utf-8"),
             )
         except UnboundLocalError:
-            raise ProcessExecutionError(cmd=" ".join(args))
+            raise ProcessExecutionError(cmd=redacted_cmd)
     if proc.returncode not in rcs:
         raise ProcessExecutionError(
-            cmd=" ".join(args),
+            cmd=redacted_cmd,
             exit_code=proc.returncode,
             stdout=out.decode("utf-8"),
             stderr=err.decode("utf-8"),
@@ -621,7 +622,7 @@ def _subp(
     if capture:
         logging.debug(
             "Ran cmd: %s, rc: %s stderr: %s",
-            " ".join(args),
+            redacted_cmd,
             proc.returncode,
             err,
         )
@@ -760,6 +761,7 @@ REDACT_SENSITIVE_LOGS = [
     r"(\'X-aws-ec2-metadata-token\': \')[^\']+",
     r"(.*\[PUT\] response.*api/token,.*data: ).*",
     r"(https://bearer:)[^\@]+",
+    r"(/snap/bin/canonical-livepatch\s+enable\s+)[^\s]+",
 ]
 
 

@@ -926,6 +926,10 @@ class TestRedactSensitiveLogs:
                 "[exit(100)]. Message: Download of file failed"
                 " pkgAcquire::Run (13: Permission denied)",
             ),
+            (
+                "/snap/bin/canonical-livepatch enable S3-Kr3T, foobar",
+                "/snap/bin/canonical-livepatch enable <REDACTED> foobar",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):
