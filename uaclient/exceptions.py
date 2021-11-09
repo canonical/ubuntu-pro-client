@@ -38,7 +38,7 @@ class NonAutoAttachImageError(UserFacingError):
 class AlreadyAttachedError(UserFacingError):
     """An exception to be raised when a command needs an unattached system."""
 
-    exit_code = 0
+    exit_code = 2
 
     def __init__(self, cfg):
         super().__init__(

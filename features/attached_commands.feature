@@ -213,7 +213,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             This command must be run as root \(try using sudo\).
             """
-        When I run `ua auto-attach` with sudo
+        When I verify that running `ua auto-attach` `with sudo` exits `2`
         Then stderr matches regexp:
             """
             This machine is already attached
