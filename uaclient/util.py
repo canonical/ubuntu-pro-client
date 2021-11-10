@@ -276,9 +276,14 @@ def get_dict_deltas(
             else:
                 deltas[key] = DROPPED_KEY
         elif value != new_value:
-            logging.debug(
-                "Contract value for '%s' changed to '%s'", key_path, new_value
+            log = (
+                "Contract value for '"
+                + key_path
+                + "' changed to '"
+                + str(new_value)
+                + "'"
             )
+            logging.debug(redact_sensitive_logs(log))
             deltas[key] = new_value
     for key, value in new_dict.items():
         if key not in orig_dict:
@@ -762,6 +767,7 @@ REDACT_SENSITIVE_LOGS = [
     r"(.*\[PUT\] response.*api/token,.*data: ).*",
     r"(https://bearer:)[^\@]+",
     r"(/snap/bin/canonical-livepatch\s+enable\s+)[^\s]+",
+    r"(Contract\s+value\s+for\s+'resourceToken'\s+changed\s+to\s+).*",
 ]
 
 
