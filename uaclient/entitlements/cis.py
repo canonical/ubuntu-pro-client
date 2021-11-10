@@ -2,7 +2,7 @@ from typing import Callable, Dict, List, Tuple, Union
 
 from uaclient.entitlements import repo
 
-CIS_DOCS_URL = "https://security-certs.docs.ubuntu.com/en/cis"
+CIS_DOCS_URL = "https://ubuntu.com/security/certifications/docs/cis"
 
 
 class CISEntitlement(repo.RepoEntitlement):
