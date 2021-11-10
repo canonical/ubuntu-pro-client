@@ -14,6 +14,7 @@ from uaclient.cli import (
 from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
+    AlreadyAttachedOnPROError,
     LockHeldError,
     NonAutoAttachImageError,
     NonRootUserError,
@@ -200,7 +201,7 @@ class TestGetContractTokenFromCloudIdentity:
                 )
             assert [mock.call(cfg, assume_yes=True)] == m_detach.call_args_list
         else:
-            with pytest.raises(AlreadyAttachedError):
+            with pytest.raises(AlreadyAttachedOnPROError):
                 _get_contract_token_from_cloud_identity(cfg)
         # current instance-id is persisted for next auto-attach call
         assert iid_response == cfg.read_cache("instance-id")
@@ -256,7 +257,7 @@ class TestGetContractTokenFromCloudIdentity:
         iid_old,
         FakeConfig,
     ):
-        """When instance-id changes since last attach, call detach."""
+        """Treat numeric and string values for instance ID as the same."""
 
         get_instance_id.return_value = iid_curr
         cloud_instance_factory.side_effect = self.fake_instance_factory
@@ -271,7 +272,7 @@ class TestGetContractTokenFromCloudIdentity:
         # persist old instance-id value
         cfg.write_cache("instance-id", iid_old)
 
-        with pytest.raises(AlreadyAttachedError):
+        with pytest.raises(AlreadyAttachedOnPROError):
             _get_contract_token_from_cloud_identity(cfg)
         assert str(iid_curr) == str(cfg.read_cache("instance-id"))
 

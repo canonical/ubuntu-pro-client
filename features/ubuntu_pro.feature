@@ -186,6 +186,21 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             ros           +no  +(-|—) +Security Updates for the Robot Operating System
             ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
+        When I run `systemctl start ua-auto-attach.service` with sudo
+        And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.*
+        """
+        And stdout matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
@@ -279,6 +294,21 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             ros           +no  +(-|—) +Security Updates for the Robot Operating System
             ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
+        When I run `systemctl start ua-auto-attach.service` with sudo
+        And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.*
+        """
+        And stdout matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
@@ -372,6 +402,21 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             ros           +no  +(-|—) +Security Updates for the Robot Operating System
             ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
+        When I run `systemctl start ua-auto-attach.service` with sudo
+        And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
+        Then stdout matches regexp:
+        """
+        .*status=0\/SUCCESS.*
+        """
+        And stdout matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
+        When I run `ua auto-attach` with sudo
+        Then stderr matches regexp:
+        """
+        Skipping attach: Instance '[0-9a-z\-]+' is already attached.
+        """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
         """
