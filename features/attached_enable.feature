@@ -199,7 +199,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Updating package lists
             Installing CIS Audit packages
             CIS Audit enabled
-            Visit https://security-certs.docs.ubuntu.com/en/cis to learn how to use CIS
+            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
             """
         When I run `apt-cache policy usg-cisbenchmark` as non-root
         Then stdout does not match regexp:
