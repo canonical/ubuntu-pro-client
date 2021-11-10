@@ -930,6 +930,10 @@ class TestRedactSensitiveLogs:
                 "/snap/bin/canonical-livepatch enable S3-Kr3T, foobar",
                 "/snap/bin/canonical-livepatch enable <REDACTED> foobar",
             ),
+            (
+                "Contract value for 'resourceToken' changed to S3kR3T",
+                "Contract value for 'resourceToken' changed to <REDACTED>",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):
