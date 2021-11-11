@@ -6,5 +6,6 @@ from uaclient.config import UAConfig
 
 
 def update_status(cfg: UAConfig) -> bool:
-    cfg.status()
+    if cfg.is_attached:
+        cfg.status()
     return True
