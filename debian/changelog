@@ -1,3 +1,9 @@
+ubuntu-advantage-tools (27.4.1~22.04.) jammy; urgency=medium
+
+  * jobs: do not run the status job for unattached users
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 11 Nov 021 17:53:08 -0300
+
 ubuntu-advantage-tools (27.4~22.04.1) jammy; urgency=medium
 
   * d/rules:
