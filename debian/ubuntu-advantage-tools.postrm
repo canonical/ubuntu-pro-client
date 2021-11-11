@@ -19,9 +19,7 @@ remove_logs(){
 }
 
 remove_gpg_files(){
-    rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-infra-trusty.gpg
-    rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-esm-apps.gpg
-    rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-fips.gpg
+    rm -f /etc/apt/trusted.gpg.d/ubuntu-advantage-*.gpg
 }
 
 case "$1" in
