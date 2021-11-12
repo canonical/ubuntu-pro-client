@@ -4,7 +4,7 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
-ubuntu-advantage-tools (27.4.1~22.04.) jammy; urgency=medium
+ubuntu-advantage-tools (27.4.1~22.04.1) jammy; urgency=medium
 
   * jobs: do not run the status job for unattached users
 
