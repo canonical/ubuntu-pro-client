@@ -145,7 +145,12 @@ class TestFIPSEntitlementCanEnable:
                 "application_status",
                 return_value=(status.ApplicationStatus.DISABLED, ""),
             ):
-                assert (True, None) == entitlement.can_enable()
+                with mock.patch.object(
+                    entitlement,
+                    "detect_incompatible_services",
+                    return_value=False,
+                ):
+                    assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
 
 
