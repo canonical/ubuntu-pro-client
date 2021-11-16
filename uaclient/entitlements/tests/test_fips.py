@@ -936,8 +936,9 @@ class TestFipsEntitlementInstallPackages:
         self, m_run_apt, entitlement
     ):
         m_run_apt.side_effect = exceptions.UserFacingError("error")
-        with pytest.raises(exceptions.UserFacingError):
-            entitlement.install_packages()
+        with mock.patch.object(entitlement, "_cleanup"):
+            with pytest.raises(exceptions.UserFacingError):
+                entitlement.install_packages()
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
     @mock.patch(M_PATH + "apt.run_apt_command")
