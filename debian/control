@@ -5,7 +5,7 @@ Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: bash-completion,
                debhelper (>=9),
                dh-python,
-               dh-systemd,
+               debhelper (>= 9.20160709~) | dh-systemd,
                gettext,
                git,
                libapt-pkg-dev,
