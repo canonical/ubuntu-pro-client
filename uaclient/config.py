@@ -630,18 +630,18 @@ class UAConfig:
         response["version"] = version.get_version(features=self.features)
 
         resources = get_available_resources(self)
-        for resource in sorted(resources, key=lambda x: x["name"]):
-            if resource["available"]:
+        for resource in sorted(resources, key=lambda x: x.get("name", "")):
+            if resource.get("available"):
                 available = status.UserFacingAvailability.AVAILABLE.value
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource["name"])
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource.get("name", ""))
 
             if not ent_cls:
                 LOG.debug(
                     "Ignoring availability of unknown service %s"
                     " from contract server",
-                    resource["name"],
+                    resource.get("name", "without a 'name' key"),
                 )
                 continue
 
@@ -684,7 +684,7 @@ class UAConfig:
     def _attached_status(self) -> Dict[str, Any]:
         """Return configuration of attached status as a dictionary."""
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import ENTITLEMENT_CLASSES
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
 
         response = copy.deepcopy(DEFAULT_STATUS)
         machineTokenInfo = self.machine_token["machineTokenInfo"]
@@ -725,15 +725,17 @@ class UAConfig:
 
         inapplicable_resources = {
             resource["name"]: resource.get("description")
-            for resource in sorted(resources, key=lambda x: x["name"])
-            if not resource["available"]
+            for resource in sorted(resources, key=lambda x: x.get("name", ""))
+            if not resource.get("available")
         }
 
-        for ent_cls in ENTITLEMENT_CLASSES:
-            ent = ent_cls(self)
-            response["services"].append(
-                self._attached_service_status(ent, inapplicable_resources)
-            )
+        for resource in sorted(resources, key=lambda x: x.get("name", "")):
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource.get("name", ""))
+            if ent_cls:
+                ent = ent_cls(self)
+                response["services"].append(
+                    self._attached_service_status(ent, inapplicable_resources)
+                )
 
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:
