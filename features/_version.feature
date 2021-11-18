@@ -12,10 +12,18 @@ Feature: UA is expected version
     @uses.config.machine_type.gcp.pro
     Scenario Outline: Check ua version
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua version` with sudo
-        Then I will see the following on stdout
+        When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
+        Then stdout matches regexp:
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
+        """
+        When I run `ua version` with sudo
+        Then stdout matches regexp:
+        # We are adding that regex here to match possible config overrides
+        # we add. For example, on PRO machines we add a config override to
+        # disable auto-attach on boot
+        """
+        {UACLIENT_BEHAVE_CHECK_VERSION}.*
         """
         Examples: version
             | release |
@@ -31,10 +39,18 @@ Feature: UA is expected version
     @upgrade
     Scenario Outline: Check ua version
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `ua version` with sudo
+        When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
         Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
+        """
+        When I run `ua version` with sudo
+        Then stdout matches regexp:
+        # We are adding that regex here to match possible config overrides
+        # we add. For example, on PRO machines we add a config override to
+        # disable auto-attach on boot
+        """
+        {UACLIENT_BEHAVE_CHECK_VERSION}.*
         """
         Examples: version
             | release |
