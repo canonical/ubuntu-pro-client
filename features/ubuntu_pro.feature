@@ -183,8 +183,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
-            ros           +no  +(-|—) +Security Updates for the Robot Operating System
-            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -291,8 +289,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            ros           +no  +(-|—) +Security Updates for the Robot Operating System
-            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -399,8 +395,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
-            ros           +no  +(-|—) +Security Updates for the Robot Operating System
-            ros-updates   +no  +(-|—) +All Updates for the Robot Operating System
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
