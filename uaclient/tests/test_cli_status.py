@@ -19,10 +19,19 @@ M_PATH = "uaclient.cli."
 RESPONSE_AVAILABLE_SERVICES = [
     {"name": "livepatch", "available": True},
     {"name": "fips", "available": False},
+    {"name": "esm-infra", "available": False},
+    {"name": "esm-apps", "available": False},
+    {"name": "fips-updates", "available": False},
+    {"name": "ros", "available": False},
+    {"name": "ros-updates", "available": False},
 ]
+
 UNATTACHED_STATUS = """\
 SERVICE       AVAILABLE  DESCRIPTION
+esm-infra     no         UA Infra: Extended Security Maintenance (ESM)
 fips          no         NIST-certified core packages
+fips-updates  no         NIST-certified core packages with priority\
+ security updates
 livepatch     yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
@@ -31,9 +40,6 @@ See https://ubuntu.com/advantage
 
 ATTACHED_STATUS = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
-cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
- Packages
-cis           no        {dash}         Center for Internet Security Audit Tools
 esm-apps      no        {dash}         UA Apps: Extended Security Maintenance\
  (ESM)
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
@@ -58,9 +64,6 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
 SERVICE       ENTITLED  STATUS    DESCRIPTION
-cc-eal        no        {dash}         Common Criteria EAL2 Provisioning\
- Packages
-cis           no        {dash}         Center for Internet Security Audit Tools
 esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
  (ESM)
 fips          no        {dash}         NIST-certified core packages
@@ -79,24 +82,6 @@ Technical support level: n/a
 BETA_SVC_NAMES = ["esm-apps", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
-    {
-        "description": "Common Criteria EAL2 Provisioning Packages",
-        "description_override": None,
-        "entitled": "no",
-        "name": "cc-eal",
-        "status": "—",
-        "status_details": "",
-        "available": "yes",
-    },
-    {
-        "description": "Center for Internet Security Audit Tools",
-        "description_override": None,
-        "entitled": "no",
-        "name": "cis",
-        "status": "—",
-        "status_details": "",
-        "available": "yes",
-    },
     {
         "description": "UA Apps: Extended Security Maintenance (ESM)",
         "description_override": None,
