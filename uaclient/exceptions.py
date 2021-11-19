@@ -1,3 +1,5 @@
+from typing import Optional
+
 from uaclient import status
 
 
@@ -115,3 +117,20 @@ class SecurityAPIMetadataError(UserFacingError):
             + "\n"
             + status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
         )
+
+
+class CloudFactoryError(Exception):
+    def __init__(self, cloud_type: Optional[str]) -> None:
+        self.cloud_type = cloud_type
+
+
+class CloudFactoryNoCloudError(CloudFactoryError):
+    pass
+
+
+class CloudFactoryUnsupportedCloudError(CloudFactoryError):
+    pass
+
+
+class CloudFactoryNonViableCloudError(CloudFactoryError):
+    pass
