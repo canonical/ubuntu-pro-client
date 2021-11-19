@@ -15,11 +15,13 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
+from typing import Optional  # noqa: F401
 from typing import List
 
 import yaml
 
 from uaclient import (
+    actions,
     config,
     contract,
     entitlements,
@@ -31,6 +33,7 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import util, version
+from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.defaults import (
     CLOUD_BUILD_INFO,
@@ -963,27 +966,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     return 0
 
 
-def _attach_with_token(
-    cfg: config.UAConfig, token: str, allow_enable: bool
-) -> int:
-    """Common functionality to take a token and attach via contract backend"""
-    try:
-        contract.request_updated_contract(
-            cfg, token, allow_enable=allow_enable
-        )
-    except util.UrlError as exc:
-        with util.disable_log_to_console():
-            logging.exception(exc)
-        print(ua_status.MESSAGE_ATTACH_FAILURE)
-        cfg.status()  # Persist updated status in the event of partial attach
-        config.update_ua_messages(cfg)
-        return 1
-    except exceptions.UserFacingError as exc:
-        logging.warning(exc.msg)
-        cfg.status()  # Persist updated status in the event of partial attach
-        config.update_ua_messages(cfg)
-        return 1
-
+def _post_cli_attach(cfg: config.UAConfig) -> None:
     contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
         "name"
     ]
@@ -997,30 +980,22 @@ def _attach_with_token(
     else:
         print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
-    config.update_ua_messages(cfg)
-    jobs.disable_license_check_if_applicable(cfg)
     action_status(args=None, cfg=cfg)
-    return 0
 
 
-def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
-    """Detect cloud_type and request a contract token from identity info.
+@assert_root
+@assert_lock_file("ua auto-attach")
+def action_auto_attach(args, *, cfg):
+    disable_auto_attach = util.is_config_value_true(
+        config=cfg.cfg, path_to_value="features.disable_auto_attach"
+    )
+    if disable_auto_attach:
+        msg = "Skipping auto-attach. Config disable_auto_attach is set."
+        logging.debug(msg)
+        print(msg)
+        return 0
 
-    :param cfg: a ``config.UAConfig`` instance
-
-    :raise AlreadyAttachedError: When attached on a non-Pro Image
-    :raise AlreadyAttachedOnPROError: When attached on a Pro Image with the
-        same current instance ID
-    :raise NonAutoAttachImageError: When not on an auto-attach image type.
-    :raise UrlError: On unexpected connectivity issues to contract
-        server or inability to access identity doc from metadata service.
-    :raise ContractAPIError: On unexpected errors when talking to the contract
-        server.
-    :raise NonAutoAttachImageError: If this cloud type does not have
-        auto-attach support.
-
-    :return: contract token obtained from identity doc
-    """
+    instance = None  # type: Optional[AutoAttachCloudInstance]
     try:
         instance = identity.cloud_instance_factory()
     except exceptions.CloudFactoryError as e:
@@ -1045,6 +1020,13 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
         )
+
+    if not instance:
+        # we shouldn't get here, but this is a reasonable default just in case
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+        )
+
     current_iid = identity.get_instance_id()
     if cfg.is_attached:
         prev_iid = cfg.read_cache("instance-id")
@@ -1055,36 +1037,17 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
             raise exceptions.UserFacingError(
                 ua_status.MESSAGE_DETACH_AUTOMATION_FAILURE
             )
-    contract_client = contract.UAContractClient(cfg)
+
     try:
-        tokenResponse = contract_client.request_auto_attach_contract_token(
-            instance=instance
-        )
-    except contract.ContractAPIError as e:
-        if e.code and 400 <= e.code < 500:
-            raise exceptions.NonAutoAttachImageError(
-                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
-            )
-        raise e
-    if current_iid:
-        cfg.write_cache("instance-id", current_iid)
-
-    return tokenResponse["contractToken"]
-
-
-@assert_root
-@assert_lock_file("ua auto-attach")
-def action_auto_attach(args, *, cfg):
-    disable_auto_attach = util.is_config_value_true(
-        config=cfg.cfg, path_to_value="features.disable_auto_attach"
-    )
-    if disable_auto_attach:
-        msg = "Skipping auto-attach. Config disable_auto_attach is set."
-        logging.debug(msg)
-        print(msg)
+        actions.auto_attach(cfg, instance)
+    except util.UrlError:
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
+        return 1
+    except exceptions.UserFacingError:
+        return 1
+    else:
+        _post_cli_attach(cfg)
         return 0
-    token = _get_contract_token_from_cloud_identity(cfg)
-    return _attach_with_token(cfg, token=token, allow_enable=True)
 
 
 @assert_not_attached
@@ -1095,9 +1058,18 @@ def action_attach(args, *, cfg):
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
         )
-    return _attach_with_token(
-        cfg, token=args.token, allow_enable=args.auto_enable
-    )
+    try:
+        actions.attach_with_token(
+            cfg, token=args.token, allow_enable=args.auto_enable
+        )
+    except util.UrlError:
+        print(ua_status.MESSAGE_ATTACH_FAILURE)
+        return 1
+    except exceptions.UserFacingError:
+        return 1
+    else:
+        _post_cli_attach(cfg)
+        return 0
 
 
 def _write_command_output_to_file(
