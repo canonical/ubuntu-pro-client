@@ -25,6 +25,7 @@ from uaclient import (
     entitlements,
     exceptions,
     jobs,
+    lock,
     security,
     security_status,
 )
@@ -72,11 +73,6 @@ UA_SERVICES = (
     "ua.service",
 )
 
-# Set a module-level callable here so we don't have to reinstantiate
-# UAConfig in order to determine dynamic data_path exception handling of
-# main_error_handler
-_CLEAR_LOCK_FILE = None
-
 
 class UAArgumentParser(argparse.ArgumentParser):
     def __init__(
@@ -119,41 +115,13 @@ class UAArgumentParser(argparse.ArgumentParser):
 
 
 def assert_lock_file(lock_holder=None):
-    """Decorator asserting exclusive access to lock file
-
-    Create a lock file if absent. The lock file will contain a pid of the
-        running process, and a customer-visible description of the lock holder.
-
-    :param lock_holder: String with the service name or command which is
-        holding the lock.
-
-        This lock_holder string will be customer visible in status.json.
-
-    :raises: LockHeldError if lock is held.
-    """
+    """Decorator asserting exclusive access to lock file"""
 
     def wrapper(f):
         @wraps(f)
         def new_f(*args, cfg, **kwargs):
-            global _CLEAR_LOCK_FILE
-            (lock_pid, cur_lock_holder) = cfg.check_lock_info()
-            if lock_pid > 0:
-                raise exceptions.LockHeldError(
-                    lock_request=lock_holder,
-                    lock_holder=cur_lock_holder,
-                    pid=lock_pid,
-                )
-            cfg.write_cache("lock", "{}:{}".format(os.getpid(), lock_holder))
-            notice_msg = "Operation in progress: {}".format(lock_holder)
-            cfg.add_notice("", notice_msg)
-            _CLEAR_LOCK_FILE = cfg.delete_cache_key
-
-            try:
+            with lock.SingleAttemptLock(cfg=cfg, lock_holder=lock_holder):
                 retval = f(*args, cfg=cfg, **kwargs)
-            finally:
-                cfg.delete_cache_key("lock")
-                _CLEAR_LOCK_FILE = None  # Unset due to successful lock delete
-
             return retval
 
         return new_f
@@ -1489,8 +1457,7 @@ def main_error_handler(func):
             with util.disable_log_to_console():
                 logging.error("KeyboardInterrupt")
             print("Interrupt received; exiting.", file=sys.stderr)
-            if _CLEAR_LOCK_FILE:
-                _CLEAR_LOCK_FILE("lock")
+            lock.clear_lock_file_if_present()
             sys.exit(1)
         except util.UrlError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
@@ -1511,23 +1478,20 @@ def main_error_handler(func):
                         msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
                     logging.exception(msg_tmpl.format(**msg_args))
                 print(ua_status.MESSAGE_CONNECTIVITY_ERROR, file=sys.stderr)
-            if _CLEAR_LOCK_FILE:
-                _CLEAR_LOCK_FILE("lock")
+            lock.clear_lock_file_if_present()
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.error(exc.msg)
             print("{}".format(exc.msg), file=sys.stderr)
-            if _CLEAR_LOCK_FILE:
-                if not isinstance(exc, exceptions.LockHeldError):
-                    # Only clear the lock if it is ours.
-                    _CLEAR_LOCK_FILE("lock")
+            if not isinstance(exc, exceptions.LockHeldError):
+                # Only clear the lock if it is ours.
+                lock.clear_lock_file_if_present()
             sys.exit(exc.exit_code)
         except Exception:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
-            if _CLEAR_LOCK_FILE:
-                _CLEAR_LOCK_FILE("lock")
+            lock.clear_lock_file_if_present()
             print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
             sys.exit(1)
 
