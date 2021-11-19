@@ -24,12 +24,15 @@ class TestMain:
                 "uaclient.config.UAConfig.check_lock_info"
             ) as m_check_lock:
                 m_check_lock.return_value = (123, "ua auto-attach")
-                with mock.patch("lib.reboot_cmds.time.sleep") as m_sleep:
+                with mock.patch("time.sleep") as m_sleep:
                     main(cfg=cfg)
         assert [
             mock.call(1),
             mock.call(1),
-            mock.call(5),
+            mock.call(1),
+            mock.call(1),
+            mock.call(1),
+            mock.call(1),
         ] == m_sleep.call_args_list
         assert 1 == excinfo.value.code
         assert (
@@ -154,10 +157,7 @@ class TestProcessRebootOperations:
             with mock.patch("uaclient.config.UAConfig.write_cache"):
                 process_reboot_operations(cfg=cfg)
 
-        expected_calls = [
-            mock.call("", "Operation in progress: ua-reboot-cmds"),
-            mock.call("", MESSAGE_REBOOT_SCRIPT_FAILED),
-        ]
+        expected_calls = [mock.call("", MESSAGE_REBOOT_SCRIPT_FAILED)]
 
         assert expected_calls == m_add_notice.call_args_list
 
