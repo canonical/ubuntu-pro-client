@@ -2,7 +2,7 @@ import logging
 from enum import Enum
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
-from uaclient import clouds, exceptions, status, util
+from uaclient import clouds, exceptions, util
 from uaclient.config import apply_config_settings_override
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
@@ -50,6 +50,15 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
 
 
 def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
+    """
+    :raises CloudFactoryError: if no cloud instance object can be constructed
+    :raises CloudFactoryNoCloudError: if no cloud instance object can be
+        constructed because we are not on a cloud
+    :raises CloudFactoryUnsupportedCloudError: if no cloud instance object can
+        be constructed because we don't have a class for the cloud we're on
+    :raises CloudFactoryNonViableCloudError: if no cloud instance object can be
+        constructed because we explicitly do not support the cloud we're on
+    """
     from uaclient.clouds import aws, azure, gcp
 
     cloud_instance_map = {
@@ -62,19 +71,11 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
 
     cloud_type, _ = get_cloud_type()
     if not cloud_type:
-        raise exceptions.UserFacingError(
-            status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
-        )
+        raise exceptions.CloudFactoryNoCloudError(cloud_type)
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
-        raise exceptions.NonAutoAttachImageError(
-            status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-                cloud_type=cloud_type
-            )
-        )
+        raise exceptions.CloudFactoryUnsupportedCloudError(cloud_type)
     instance = cls()
     if not instance.is_viable:
-        raise exceptions.UserFacingError(
-            status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
-        )
+        raise exceptions.CloudFactoryNonViableCloudError(cloud_type)
     return instance

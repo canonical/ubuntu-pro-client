@@ -1055,12 +1055,28 @@ def _get_contract_token_from_cloud_identity(cfg: config.UAConfig) -> str:
     """
     try:
         instance = identity.cloud_instance_factory()
-    except exceptions.UserFacingError as e:
+    except exceptions.CloudFactoryError as e:
         if cfg.is_attached:
             # We are attached on non-Pro Image, just report already attached
             raise exceptions.AlreadyAttachedError(cfg)
-        # Unattached on non-Pro return UserFacing error msg details
-        raise e
+        if isinstance(e, exceptions.CloudFactoryNoCloudError):
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+            )
+        if isinstance(e, exceptions.CloudFactoryNonViableCloudError):
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
+            )
+        if isinstance(e, exceptions.CloudFactoryUnsupportedCloudError):
+            raise exceptions.NonAutoAttachImageError(
+                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                    cloud_type=e.cloud_type
+                )
+            )
+        # we shouldn't get here, but this is a reasonable default just in case
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+        )
     current_iid = identity.get_instance_id()
     if cfg.is_attached:
         prev_iid = cfg.read_cache("instance-id")
