@@ -1,12 +1,16 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status
 from uaclient.clouds.identity import (
     NoCloudTypeReason,
     cloud_instance_factory,
     get_cloud_type,
     get_instance_id,
+)
+from uaclient.exceptions import (
+    CloudFactoryNoCloudError,
+    CloudFactoryNonViableCloudError,
+    CloudFactoryUnsupportedCloudError,
 )
 from uaclient.util import ProcessExecutionError
 
@@ -89,22 +93,15 @@ class TestCloudInstanceFactory:
             None,
             NoCloudTypeReason.NO_CLOUD_DETECTED,
         )
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(CloudFactoryNoCloudError):
             cloud_instance_factory()
         assert 1 == m_get_cloud_type.call_count
-        assert status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE == str(
-            excinfo.value
-        )
 
-    def test_raise_error_when_not_aws_or_azure(self, m_get_cloud_type):
+    def test_raise_error_when_not_supported(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
         m_get_cloud_type.return_value = ("unsupported-cloud", None)
-        with pytest.raises(exceptions.UserFacingError) as excinfo:
+        with pytest.raises(CloudFactoryUnsupportedCloudError):
             cloud_instance_factory()
-        error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-            cloud_type="unsupported-cloud"
-        )
-        assert error_msg == str(excinfo.value)
 
     @pytest.mark.parametrize("cloud_type", ("aws", "azure"))
     def test_raise_error_when_not_viable_for_ubuntu_pro(
@@ -125,10 +122,8 @@ class TestCloudInstanceFactory:
 
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_invalid_instance
-            with pytest.raises(exceptions.UserFacingError) as excinfo:
+            with pytest.raises(CloudFactoryNonViableCloudError):
                 cloud_instance_factory()
-        error_msg = status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
-        assert error_msg == str(excinfo.value)
 
     @pytest.mark.parametrize(
         "cloud_type", ("aws", "aws-gov", "aws-china", "azure")

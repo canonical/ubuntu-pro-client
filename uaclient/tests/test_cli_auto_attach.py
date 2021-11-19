@@ -15,6 +15,10 @@ from uaclient.contract import ContractAPIError
 from uaclient.exceptions import (
     AlreadyAttachedError,
     AlreadyAttachedOnPROError,
+    CloudFactoryError,
+    CloudFactoryNoCloudError,
+    CloudFactoryNonViableCloudError,
+    CloudFactoryUnsupportedCloudError,
     LockHeldError,
     NonAutoAttachImageError,
     NonRootUserError,
@@ -54,19 +58,66 @@ class TestGetContractTokenFromCloudIdentity:
         return m_instance
 
     @pytest.mark.parametrize(
-        "cloud_type", ("awslookalike", "unsupported-cloud", "azure2", "!aws")
+        "cloud_factory_error, is_attached, expected_error_cls,"
+        " expected_error_msg",
+        [
+            (
+                CloudFactoryNoCloudError("test"),
+                False,
+                UserFacingError,
+                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+            (
+                CloudFactoryNonViableCloudError("test"),
+                False,
+                UserFacingError,
+                status.MESSAGE_UNSUPPORTED_AUTO_ATTACH,
+            ),
+            (
+                CloudFactoryUnsupportedCloudError("test"),
+                False,
+                NonAutoAttachImageError,
+                status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                    cloud_type="test"
+                ),
+            ),
+            (
+                CloudFactoryNoCloudError("test"),
+                False,
+                UserFacingError,
+                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+            (
+                CloudFactoryError("test"),
+                False,
+                UserFacingError,
+                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+            ),
+            (CloudFactoryError("test"), True, AlreadyAttachedError, None),
+        ],
     )
-    @mock.patch(M_ID_PATH + "get_cloud_type")
-    def test_non_aws_cloud_type_raises_error(
-        self, m_get_cloud_type, cloud_type, FakeConfig
+    @mock.patch(M_ID_PATH + "cloud_instance_factory")
+    def test_handle_cloud_factory_errors(
+        self,
+        m_cloud_instance_factory,
+        cloud_factory_error,
+        is_attached,
+        expected_error_cls,
+        expected_error_msg,
+        FakeConfig,
     ):
         """Non-aws clouds will error."""
-        m_get_cloud_type.return_value = (cloud_type, None)
-        with pytest.raises(NonAutoAttachImageError) as excinfo:
-            _get_contract_token_from_cloud_identity(FakeConfig())
-        assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
-            cloud_type=cloud_type
-        ) == str(excinfo.value)
+        m_cloud_instance_factory.side_effect = cloud_factory_error
+        if is_attached:
+            cfg = FakeConfig.for_attached_machine()
+        else:
+            cfg = FakeConfig()
+
+        with pytest.raises(expected_error_cls) as excinfo:
+            _get_contract_token_from_cloud_identity(cfg)
+
+        if expected_error_msg:
+            assert expected_error_msg == str(excinfo.value)
 
     @pytest.mark.parametrize(
         "http_msg,http_code,http_response",
@@ -288,18 +339,6 @@ class TestActionAutoAttach:
                 main()
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
-
-    @mock.patch(M_ID_PATH + "cloud_instance_factory")
-    def test_already_attached_on_non_ubuntu_pro(
-        self, m_cloud_instance_factory, _m_getuid, FakeConfig
-    ):
-        """An attached machine raises AlreadyAttachedError on non-PRO."""
-        # Non-PRO raises UserFacingError on non-PRO image
-        m_cloud_instance_factory.side_effect = UserFacingError("Not-a-PRO")
-        account_name = "test_account"
-        cfg = FakeConfig.for_attached_machine(account_name=account_name)
-        with pytest.raises(AlreadyAttachedError):
-            action_auto_attach(mock.MagicMock(), cfg=cfg)
 
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(self, m_subp, _getuid, FakeConfig):
