@@ -17,16 +17,16 @@ should run at next boot to process any pending/unresovled config operations.
 import logging
 import os
 import sys
-import time
 
-from uaclient import config, contract, entitlements, status
-from uaclient.cli import assert_lock_file, setup_logging
+from uaclient import config, contract, entitlements, lock, status
+from uaclient.cli import setup_logging
 from uaclient.exceptions import LockHeldError, UserFacingError
 from uaclient.util import ProcessExecutionError, UrlError, subp
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
-SLEEP_RETRIES_ON_LOCK_HELD = [1, 1, 5]
+SLEEP_ON_LOCK_HELD = 1
+MAX_RETRIES_ON_LOCK_HELD = 7
 
 
 def run_command(cmd, cfg):
@@ -102,7 +102,6 @@ def process_remaining_deltas(cfg):
     cfg.remove_notice("", status.MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED)
 
 
-@assert_lock_file("ua-reboot-cmds")
 def process_reboot_operations(cfg):
 
     reboot_cmd_marker_file = cfg.data_path("marker-reboot-cmds")
@@ -139,21 +138,17 @@ def main(cfg):
     :raises: LockHeldError when lock still held by auto-attach after retries.
              UserFacingError for all other errors
     """
-    while True:
-        try:
+    try:
+        with lock.SpinLock(
+            cfg=cfg,
+            lock_holder="ua-reboot-cmds",
+            sleep_time=SLEEP_ON_LOCK_HELD,
+            max_retries=MAX_RETRIES_ON_LOCK_HELD,
+        ):
             process_reboot_operations(cfg=cfg)
-            break
-        except LockHeldError as e:
-            logging.debug(
-                "Retrying ua-reboot-cmds {} times on held lock".format(
-                    len(SLEEP_RETRIES_ON_LOCK_HELD)
-                )
-            )
-            if SLEEP_RETRIES_ON_LOCK_HELD:
-                time.sleep(SLEEP_RETRIES_ON_LOCK_HELD.pop(0))
-            else:
-                logging.warning("Lock not released. %s", str(e.msg))
-                sys.exit(1)
+    except LockHeldError as e:
+        logging.warning("Lock not released. %s", str(e.msg))
+        sys.exit(1)
 
 
 if __name__ == "__main__":
