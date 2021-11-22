@@ -8,7 +8,7 @@ from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 from uaclient.jobs.license_check import gcp_auto_attach
 
-LOG = logging.getLogger("ua_lib.license_check")
+LOG = logging.getLogger("ua.license_check")
 
 if __name__ == "__main__":
     cfg = UAConfig()

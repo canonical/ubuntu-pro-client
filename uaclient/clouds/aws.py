@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional
 from urllib.error import HTTPError
 
 from uaclient import exceptions, util
@@ -108,3 +108,15 @@ class UAAutoAttachAWSInstance(AutoAttachCloudInstance):
         if "ec2" == dmi_uuid[0:3] == dmi_serial[0:3]:
             return True
         return False
+
+    def is_license_present(self) -> bool:
+        """Unsupported"""
+        return False
+
+    def should_poll_for_license(self) -> bool:
+        """Unsupported"""
+        return False
+
+    def get_polling_fn(self) -> Optional[Callable]:
+        """Unsupported"""
+        return None
