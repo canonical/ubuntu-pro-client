@@ -16,6 +16,7 @@ BASE_SECURITY_URL = "https://ubuntu.com/security"
 BASE_UA_URL = "https://ubuntu.com/advantage"
 EOL_UA_URL_TMPL = "https://ubuntu.com/{hyphenatedrelease}"
 BASE_ESM_URL = "https://ubuntu.com/esm"
+CLOUD_BUILD_INFO = "/etc/cloud/build.info"
 DOCUMENTATION_URL = (
     "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
 )

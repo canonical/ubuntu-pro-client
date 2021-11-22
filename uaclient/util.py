@@ -701,7 +701,6 @@ def write_file(filename: str, content: str, mode: int = 0o644) -> None:
     @param filename: The full path of the file to write.
     @param content: The content to write to the file.
     @param mode: The filesystem mode to set on the file.
-    @param omode: The open mode used when opening the file (w, wb, a, etc.)
     """
     logging.debug("Writing file: %s", filename)
     with open(filename, "wb") as fh:
