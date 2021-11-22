@@ -591,6 +591,7 @@ Feature: Command behaviour when attached to an UA subscription
         # So the -error suffix does not appear there.
         Then stdout matches regexp:
         """
+        build.info
         cloud-id.txt
         jobs-status.json
         journalctl.txt

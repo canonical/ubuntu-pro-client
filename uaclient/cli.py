@@ -31,7 +31,11 @@ from uaclient import (
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import identity
-from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
+from uaclient.defaults import (
+    CLOUD_BUILD_INFO,
+    CONFIG_FIELD_ENVVAR_ALLOWLIST,
+    DEFAULT_CONFIG_FILE,
+)
 
 NAME = "ua"
 
@@ -1167,11 +1171,12 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             )
 
         ua_logs = (
-            cfg.cfg_path or "/etc/ubuntu-advantage/uaclient.conf",
+            cfg.cfg_path or DEFAULT_CONFIG_FILE,
             cfg.log_file,
             cfg.timer_log_file,
             cfg.license_check_log_file,
             cfg.data_path("jobs-status"),
+            CLOUD_BUILD_INFO,
             *(
                 entitlement.repo_list_file_tmpl.format(name=entitlement.name)
                 for entitlement in entitlements.ENTITLEMENT_CLASSES
@@ -1181,13 +1186,9 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
 
         for log in ua_logs:
             if os.path.isfile(log):
-                print(log)
-                shutil.copy(log, output_dir)
-
-        extra_logs = ("/etc/cloud/build.info",)
-
-        for log in extra_logs:
-            if os.path.isfile(log):
+                log_content = util.load_file(log)
+                log_content = util.redact_sensitive_logs(log_content)
+                util.write_file(log, log_content)
                 shutil.copy(log, output_dir)
 
         with tarfile.open(output_file, "w:gz") as results:

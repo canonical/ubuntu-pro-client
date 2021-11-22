@@ -503,6 +503,7 @@ Feature: Command behaviour when unattached
         When I run `ls -1 logs/` as non-root
         Then stdout matches regexp:
         """
+        build.info
         cloud-id.txt
         jobs-status.json
         journalctl.txt
