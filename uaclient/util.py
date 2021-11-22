@@ -368,6 +368,12 @@ def is_lts(series: str) -> bool:
 
 
 @lru_cache(maxsize=None)
+def is_current_series_lts() -> bool:
+    series = get_platform_info()["series"]
+    return is_lts(series)
+
+
+@lru_cache(maxsize=None)
 def is_active_esm(series: str) -> bool:
     """Return True when Ubuntu series supports ESM and is actively in ESM."""
     if not is_lts(series):
