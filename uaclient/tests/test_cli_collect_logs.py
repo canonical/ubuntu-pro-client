@@ -92,8 +92,6 @@ class TestActionCollectLogs:
                     "-u",
                     "ua-reboot-cmds.service",
                     "-u",
-                    "ua-license-check.service",
-                    "-u",
                     "ubuntu-advantage.service",
                     "-u",
                     "cloud-init-local.service",
@@ -116,21 +114,12 @@ class TestActionCollectLogs:
                 ["systemctl", "status", "ua-reboot-cmds.service"], rcs=[0, 3]
             ),
             mock.call(
-                ["systemctl", "status", "ua-license-check.path"], rcs=[0, 3]
-            ),
-            mock.call(
-                ["systemctl", "status", "ua-license-check.service"], rcs=[0, 3]
-            ),
-            mock.call(
-                ["systemctl", "status", "ua-license-check.timer"], rcs=[0, 3]
-            ),
-            mock.call(
                 ["systemctl", "status", "ubuntu-advantage.service"], rcs=[0, 3]
             ),
         ]
 
-        assert m_copy.call_count == 15
-        assert redact.call_count == 15
+        assert m_copy.call_count == 14
+        assert redact.call_count == 14
 
 
 class TestParser:
