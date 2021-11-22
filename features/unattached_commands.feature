@@ -521,9 +521,6 @@ Feature: Command behaviour when unattached
         ua-auto-attach.path.txt-error
         ua-auto-attach.service.txt-error
         uaclient.conf
-        ua-license-check.path.txt
-        ua-license-check.service.txt
-        ua-license-check.timer.txt
         ua-reboot-cmds.service.txt
         ua.service.txt
         ua-status.json

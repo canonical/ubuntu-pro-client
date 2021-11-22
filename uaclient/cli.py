@@ -26,7 +26,6 @@ from uaclient import (
     contract,
     entitlements,
     exceptions,
-    jobs,
     lock,
     security,
     security_status,
@@ -75,9 +74,6 @@ UA_SERVICES = (
     "ua-auto-attach.path",
     "ua-auto-attach.service",
     "ua-reboot-cmds.service",
-    "ua-license-check.path",
-    "ua-license-check.service",
-    "ua-license-check.timer",
     "ua.service",
 )
 
@@ -980,7 +976,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
     contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
-    jobs.enable_license_check_if_applicable(cfg)
     config.update_ua_messages(cfg)
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
@@ -1150,7 +1145,6 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             cfg.cfg_path or DEFAULT_CONFIG_FILE,
             cfg.log_file,
             cfg.timer_log_file,
-            cfg.license_check_log_file,
             cfg.daemon_log_file,
             cfg.data_path("jobs-status"),
             CLOUD_BUILD_INFO,
