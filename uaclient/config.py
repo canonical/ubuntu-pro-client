@@ -80,7 +80,6 @@ VALID_UA_CONFIG_KEYS = (
     "security_url",
     "settings_overrides",
     "timer_log_file",
-    "license_check_log_file",
     "daemon_log_file",
     "ua_config",
 )
@@ -104,7 +103,6 @@ class UAConfig:
         "marker-reboot-cmds": DataPath(
             "marker-reboot-cmds-required", False, False
         ),
-        "marker-license-check": DataPath("marker-license-check", False, True),
         "services-once-enabled": DataPath(
             "services-once-enabled", False, True
         ),
@@ -323,12 +321,6 @@ class UAConfig:
     def timer_log_file(self) -> str:
         return self.cfg.get(
             "timer_log_file", CONFIG_DEFAULTS["timer_log_file"]
-        )
-
-    @property
-    def license_check_log_file(self):
-        return self.cfg.get(
-            "license_check_log_file", CONFIG_DEFAULTS["license_check_log_file"]
         )
 
     @property
@@ -1060,7 +1052,6 @@ class UAConfig:
             "data_dir",
             "log_file",
             "timer_log_file",
-            "license_check_log_file",
             "daemon_log_file",
         ):
             cfg_dict[attr] = getattr(self, attr)
