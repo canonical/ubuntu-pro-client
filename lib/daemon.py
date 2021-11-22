@@ -3,10 +3,11 @@ import sys
 
 from systemd.daemon import notify  # type: ignore
 
+from uaclient import daemon
 from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
 
-LOG = logging.getLogger("ua_lib.daemon")
+LOG = logging.getLogger("ua")
 
 
 def main() -> int:
@@ -25,9 +26,18 @@ def main() -> int:
 
     LOG.debug("daemon started")
 
+    daemon.on_start(cfg)
+
+    threads = daemon.start_background_threads(cfg)
+
+    # TODO: when we start providing services to other software on the machine
+    # then make sure this is not called until those services are available
     notify("READY=1")
 
-    # TODO: actually do something
+    daemon.main_thread(cfg)
+
+    for thread in threads:
+        thread.join()
 
     return 0
 
