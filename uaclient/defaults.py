@@ -32,7 +32,6 @@ CONFIG_DEFAULTS = {
     "log_level": "INFO",
     "log_file": "/var/log/ubuntu-advantage.log",
     "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
-    "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",
     "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",
 }
 
@@ -40,7 +39,6 @@ CONFIG_FIELD_ENVVAR_ALLOWLIST = [
     "ua_data_dir",
     "ua_log_file",
     "ua_timer_log_file",
-    "ua_license_check_log_file",
     "ua_daemon_log_file",
     "ua_log_level",
     "ua_security_url",
