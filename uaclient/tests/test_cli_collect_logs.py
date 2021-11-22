@@ -50,6 +50,8 @@ class TestActionAutoAttach:
         assert HELP_OUTPUT == out
 
     @mock.patch(M_PATH + "tarfile.open")
+    @mock.patch("builtins.open")
+    @mock.patch(M_PATH + "util.redact_sensitive_logs", return_value="test")
     # let's pretend all files exist
     @mock.patch(M_PATH + "os.path.isfile", return_value=True)
     @mock.patch(M_PATH + "util.write_file")
@@ -61,6 +63,8 @@ class TestActionAutoAttach:
         m_copy,
         _write_file,
         _isfile,
+        redact,
+        _fopen,
         _tarfile,
         _getuid,
         FakeConfig,
@@ -121,7 +125,8 @@ class TestActionAutoAttach:
             mock.call(["systemctl", "status", "ua.service"], rcs=[0, 3]),
         ]
 
-        assert m_copy.call_count == 14
+        assert m_copy.call_count == 15
+        assert redact.call_count == 15
 
 
 class TestParser:
