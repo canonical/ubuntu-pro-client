@@ -6,11 +6,10 @@ import logging
 
 from uaclient import config, exceptions, jobs
 from uaclient.cli import action_auto_attach
-from uaclient.clouds.gcp import GCP_LICENSES, UAAutoAttachGCPInstance
+from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.clouds.identity import get_cloud_type
-from uaclient.util import get_platform_info
 
-LOG = logging.getLogger("ua_lib.license_check.jobs.license_check")
+LOG = logging.getLogger("ua.license_check.jobs.license_check")
 
 
 def gcp_auto_attach(cfg: config.UAConfig) -> bool:
@@ -31,20 +30,21 @@ def gcp_auto_attach(cfg: config.UAConfig) -> bool:
         jobs.disable_license_check_if_applicable(cfg)
         return False
 
-    series = get_platform_info()["series"]
-    if series not in GCP_LICENSES:
-        LOG.info("Disabling gcp_auto_attach job. Not on LTS")
+    instance = UAAutoAttachGCPInstance(cfg)
+
+    if not instance.should_poll_for_license():
+        LOG.info("Disabling gcp_auto_attach job. Release not supported.")
         jobs.disable_license_check_if_applicable(cfg)
         return False
 
     # Only try to auto_attach if the license is found in the metadata.
     # If there is a problem finding the metadata, do not error out.
     try:
-        licenses = UAAutoAttachGCPInstance().get_licenses_from_identity()
+        is_license_present = instance.is_license_present()
     except Exception:
         return False
 
-    if GCP_LICENSES[series] in licenses:
+    if is_license_present:
         try:
             # This function already uses the assert lock decorator,
             # which means that we don't need to make create another

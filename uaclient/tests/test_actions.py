@@ -72,7 +72,7 @@ class TestAutoAttach:
     ):
         cfg = FakeConfig()
 
-        auto_attach(cfg, fake_instance_factory())
+        auto_attach(cfg, fake_instance_factory(cfg))
 
         assert [
             mock.call(cfg, token="token", allow_enable=True)
@@ -115,7 +115,7 @@ class TestAutoAttach:
             error_response=http_response,
         )
         with pytest.raises(NonAutoAttachImageError) as excinfo:
-            auto_attach(cfg, fake_instance_factory())
+            auto_attach(cfg, fake_instance_factory(cfg))
         assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
@@ -140,6 +140,6 @@ class TestAutoAttach:
         m_request_auto_attach_contract_token.side_effect = unexpected_error
 
         with pytest.raises(ContractAPIError) as excinfo:
-            auto_attach(cfg, fake_instance_factory())
+            auto_attach(cfg, fake_instance_factory(cfg))
 
         assert unexpected_error == excinfo.value
