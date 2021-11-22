@@ -166,7 +166,6 @@ Current jobs being checked and executed are:
 | --- | ----------- | -------- |
 | update_messaging | Update MOTD and APT messages | 6 hours |
 | update_status | Update UA status | 12 hours |
-| gcp_auto_attach | Try to auto-attach on a GCP instance | 5 minutes |
 
 - The `update_messaging` job makes sure that the MOTD and APT messages match the
 available/enabled services on the system, showing information about available
@@ -174,10 +173,6 @@ packages or security updates. See [MOTD messages](#motd-messages).
 - The `update_status` job makes sure the `ua status` command will have the latest
 information even when executed by a non-root user, updating the
 `/var/lib/ubuntu-advantage/status.json` file.
-- The `gcp_auto_attach` job is only operable on Google Cloud Platform (GCP) generic
-Ubuntu VMs without an active Ubuntu Advantage license. It polls GCP metadata every 5
-minutes to discover if a license has been attached to the VM through Google Cloud and
-will perform `ua auto-attach` in that case.
 
 The timer intervals can be changed using the `ua config set` command.
 ```bash
