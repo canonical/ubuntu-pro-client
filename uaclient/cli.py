@@ -1183,6 +1183,13 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
 
         for log in ua_logs:
             if os.path.isfile(log):
+                print(log)
+                shutil.copy(log, output_dir)
+
+        extra_logs = ("/etc/cloud/build.info",)
+
+        for log in extra_logs:
+            if os.path.isfile(log):
                 shutil.copy(log, output_dir)
 
         with tarfile.open(output_file, "w:gz") as results:
