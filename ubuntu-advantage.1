@@ -151,13 +151,6 @@ updates.
 Makes sure the `ua status` command will have the latest information even when
 executed by a non-root user, updating the
 \fB/var/lib/ubuntu-advantage/status.json\fP file.
-.TP
-.B
-\fBgcp_auto_attach\fP
-Only operable on Google Cloud Platform (GCP) generic Ubuntu VMs without an
-active Ubuntu Advantage license. It polls GCP metadata every 5 minutes to
-discover if a license has been attached to the VM through Google Cloud and will
-perform `ua auto-attach` in that case.
 
 
 .SH CONFIGURATION
@@ -189,10 +182,6 @@ The log file for the Ubuntu Advantage client
 .B
 \fBtimer_log_file\fP
 The log file for the Ubuntu Advantage timer and timer jobs
-.TP
-.B
-\fBlicense_check_log_file\fP
-The log file for the Ubuntu Advantage license check job (only used on GCP)
 .TP
 .B
 \fBdaemon_log_file\fP
@@ -240,7 +229,7 @@ Additionally, some configuration options can be overridden in the environment
 by setting an environment variable prefaced by \fBUA_<option_name>\fP. Both
 uppercase and lowercase environment variables are allowed. The configuration
 options that support this are: data_dir, log_file, timer_log_file,
-license_check_log_file, daemon_log_file, log_level, and security_url.
+daemon_log_file, log_level, and security_url.
 
 For example, the following overrides the log_level found in uaclient.conf:
 .PP
