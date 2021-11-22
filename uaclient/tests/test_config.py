@@ -236,7 +236,6 @@ CFG_BASE_CONTENT = """\
 contract_url: https://contracts.canonical.com
 daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
-license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
@@ -256,7 +255,6 @@ features:
     hide: true
   new: 2
   show_beta: true
-license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
 log_level: debug
 security_url: https://ubuntu.com/security
@@ -1563,7 +1561,6 @@ class TestParseConfig:
             "data_dir": "/var/lib/ubuntu-advantage",
             "log_file": "/var/log/ubuntu-advantage.log",
             "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
-            "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",  # noqa: E501
             "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",  # noqa: E501
             "log_level": "INFO",
         }

@@ -27,7 +27,6 @@ from uaclient import (
     entitlements,
     event_logger,
     exceptions,
-    jobs,
     lock,
     messages,
     security,
@@ -80,9 +79,6 @@ UA_SERVICES = (
     "ua-auto-attach.path",
     "ua-auto-attach.service",
     "ua-reboot-cmds.service",
-    "ua-license-check.path",
-    "ua-license-check.service",
-    "ua-license-check.timer",
     "ubuntu-advantage.service",
 )
 
@@ -1113,7 +1109,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
     cfg.delete_cache()
-    jobs.enable_license_check_if_applicable(cfg)
     daemon.start()
     update_apt_and_motd_messages(cfg)
     event.info(messages.DETACH_SUCCESS)
@@ -1138,7 +1133,6 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     else:
         event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
-    jobs.disable_license_check_if_applicable(cfg)
     daemon.stop()
 
     status, _ret = actions.status(cfg)
@@ -1353,7 +1347,6 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             cfg.cfg_path or DEFAULT_CONFIG_FILE,
             cfg.log_file,
             cfg.timer_log_file,
-            cfg.license_check_log_file,
             cfg.daemon_log_file,
             cfg.data_path("jobs-status"),
             CLOUD_BUILD_INFO,
