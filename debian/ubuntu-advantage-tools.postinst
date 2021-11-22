@@ -145,9 +145,9 @@ from uaclient.config import UAConfig
 cfg = UAConfig()
 status = cfg.read_cache('status-cache')
 if status:
-    for service in status['services']:
-       if service['name'] == '${service_name}':
-           print(service['status'])
+    for service in status.get('services', []):
+       if service.get('name', '') == '${service_name}':
+           print(service.get('status', ''))
 ")
    if [ "${_RET}" = "enabled" ]; then
        return  0
