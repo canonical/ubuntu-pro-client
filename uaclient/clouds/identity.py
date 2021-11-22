@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import clouds, exceptions, util
-from uaclient.config import apply_config_settings_override
+from uaclient.config import UAConfig, apply_config_settings_override
 
 # Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
 DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
@@ -49,7 +49,7 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)
 
 
-def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
+def cloud_instance_factory(cfg: UAConfig) -> clouds.AutoAttachCloudInstance:
     """
     :raises CloudFactoryError: if no cloud instance object can be constructed
     :raises CloudFactoryNoCloudError: if no cloud instance object can be
@@ -75,7 +75,7 @@ def cloud_instance_factory() -> clouds.AutoAttachCloudInstance:
     cls = cloud_instance_map.get(cloud_type)
     if not cls:
         raise exceptions.CloudFactoryUnsupportedCloudError(cloud_type)
-    instance = cls()
+    instance = cls(cfg)
     if not instance.is_viable:
         raise exceptions.CloudFactoryNonViableCloudError(cloud_type)
     return instance
