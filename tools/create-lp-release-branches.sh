@@ -32,7 +32,7 @@ else
   set -e
 fi
 
-for release in xenial bionic focal hirsute
+for release in xenial bionic focal hirsute impish
 do
   echo
   echo $release
@@ -49,6 +49,7 @@ do
       bionic) version=${UA_VERSION}~18.04.1;;
       focal) version=${UA_VERSION}~20.04.1;;
       hirsute) version=${UA_VERSION}~21.04.1;;
+      impish) version=${UA_VERSION}~21.10.1;;
   esac
   dch_cmd=(dch -v ${version} -D ${release} -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
   if [ -z "$DO_IT" ]; then
