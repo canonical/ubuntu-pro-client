@@ -127,6 +127,19 @@ output.
 Show version of the Ubuntu Advantage package.
 
 
+.SH DAEMON
+UA client sets up a daemon to run jobs that need to occur in the background.
+If you are uninterested in UA services, you can safely stop and disable the
+daemon using systemctl:
+
+sudo systemctl stop ua.service
+sudo systemctl disable ua.service
+
+Currently, the daemon supports automatically updating GCP compute instances
+to Ubuntu Pro when a Pro license is added. In the future, the daemon will also
+replace the Timer Jobs described in the next section.
+
+
 .SH TIMER JOBS
 UA client sets up a systemd timer to run jobs that need to be executed
 recurrently. The timer itself ticks every 5 minutes on average, and decides
