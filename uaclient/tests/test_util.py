@@ -934,6 +934,42 @@ class TestRedactSensitiveLogs:
                 "Contract value for 'resourceToken' changed to S3kR3T",
                 "Contract value for 'resourceToken' changed to <REDACTED>",
             ),
+            (
+                "data: {'contractToken': 'SEKRET', "
+                "'contractTokenInfo':{'expiry'}}",
+                "data: {'contractToken': '<REDACTED>', "
+                "'contractTokenInfo':{'expiry'}}",
+            ),
+            (
+                "data: {'resourceToken': 'SEKRET', "
+                "'entitlement': {'affordances':'blah blah' }}",
+                "data: {'resourceToken': '<REDACTED>', "
+                "'entitlement': {'affordances':'blah blah' }}",
+            ),
+            (
+                "https://contracts.canonical.com/v1/resources/livepatch"
+                "?token=SEKRET: invalid token",
+                "https://contracts.canonical.com/v1/resources/livepatch"
+                "?token=<REDACTED> invalid token",
+            ),
+            (
+                'data: {"identityToken": "SEket.124-_ys"}',
+                'data: {"identityToken": "<REDACTED>"}',
+            ),
+            (
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: none",
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: none",
+            ),
+            (
+                "response: "
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: none",
+                "response: "
+                "http://metadata/computeMetadata/v1/instance/service-accounts/"
+                "default/identity?audience=contracts.canon, data: <REDACTED>",
+            ),
         ),
     )
     def test_redact_all_matching_regexs(self, raw_log, expected):
