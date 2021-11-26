@@ -555,8 +555,15 @@ def readurl(
             )
         )
     )
-    resp = request.urlopen(req, timeout=timeout)
-    content = resp.read().decode("utf-8")
+    http_error_found = False
+    try:
+        resp = request.urlopen(req, timeout=timeout)
+        http_error_found = False
+    except error.HTTPError as e:
+        resp = e
+        http_error_found = True
+    setattr(resp, "body", resp.read().decode("utf-8"))
+    content = resp.body
     if "application/json" in str(resp.headers.get("Content-type", "")):
         content = json.loads(content)
     sorted_header_str = ", ".join(
@@ -569,6 +576,8 @@ def readurl(
             )
         )
     )
+    if http_error_found:
+        raise resp
     return content, resp.headers
 
 
@@ -669,7 +678,7 @@ def subp(
             break
         except ProcessExecutionError as e:
             if capture:
-                logging.debug(str(e))
+                logging.debug(redact_sensitive_logs(str(e)))
             if not retry_sleeps:
                 raise
             retry_msg = " Retrying %d more times." % len(retry_sleeps)
@@ -767,6 +776,12 @@ REDACT_SENSITIVE_LOGS = [
     r"(https://bearer:)[^\@]+",
     r"(/snap/bin/canonical-livepatch\s+enable\s+)[^\s]+",
     r"(Contract\s+value\s+for\s+'resourceToken'\s+changed\s+to\s+).*",
+    r"(\'resourceToken\': \')[^\']+",
+    r"(\'contractToken\': \')[^\']+",
+    r"(https://contracts.canonical.com/v1/resources/livepatch\?token=)[^\s]+",
+    r"(\"identityToken\": \")[^\"]+",
+    r"(response:\s+http://metadata/computeMetadata/v1/instance/"
+    "service-accounts.*data: ).*",
 ]
 
 
