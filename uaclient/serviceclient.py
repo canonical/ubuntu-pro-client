@@ -68,11 +68,15 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 timeout=self.url_timeout,
             )
         except error.URLError as e:
-            if hasattr(e, "read"):
+            body = None
+            if hasattr(e, "body"):
+                body = e.body
+            elif hasattr(e, "read"):
+                body = e.read().decode("utf-8")
+            if body:
                 try:
                     error_details = json.loads(
-                        e.read().decode("utf-8"),
-                        cls=util.DatetimeAwareJSONDecoder,
+                        body, cls=util.DatetimeAwareJSONDecoder
                     )
                 except ValueError:
                     error_details = None
