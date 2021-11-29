@@ -11,7 +11,7 @@ import pytest
 import yaml
 
 from uaclient import status, util, version
-from uaclient.cli import action_status, main
+from uaclient.cli import action_status, get_parser, main, status_parser
 
 M_PATH = "uaclient.cli."
 
@@ -20,11 +20,60 @@ RESPONSE_AVAILABLE_SERVICES = [
     {"name": "livepatch", "available": True},
     {"name": "fips", "available": False},
     {"name": "esm-infra", "available": False},
-    {"name": "esm-apps", "available": False},
+    {"name": "esm-apps", "available": True},
     {"name": "fips-updates", "available": False},
     {"name": "ros", "available": False},
     {"name": "ros-updates", "available": False},
 ]
+
+RESPONSE_CONTRACT_INFO = {
+    "accountInfo": {
+        "createdAt": "2019-06-14T06:45:50Z",
+        "id": "some_id",
+        "name": "Name",
+        "type": "paid",
+    },
+    "contractInfo": {
+        "createdAt": "2021-05-21T20:00:53Z",
+        "createdBy": "someone",
+        "effectiveTo": "9999-12-31T00:00:00Z",
+        "id": "some_id",
+        "name": "Name",
+        "products": ["uai-essential-virtual"],
+        "resourceEntitlements": [
+            {
+                "type": "esm-infra",
+                "entitled": True,
+                "obligations": {"enableByDefault": True},
+            },
+            {
+                "type": "esm-apps",
+                "entitled": False,
+                "obligations": {"enableByDefault": True},
+            },
+            {
+                "type": "livepatch",
+                "entitled": True,
+                "obligations": {"enableByDefault": False},
+            },
+            {
+                "type": "support",
+                "entitled": True,
+                "affordances": {"supportLevel": "essential"},
+            },
+        ],
+    },
+}
+
+SIMULATED_STATUS = """\
+SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+esm-infra     no         yes        yes           UA Infra: Extended Security\
+ Maintenance (ESM)
+fips          no         no         no            NIST-certified core packages
+fips-updates  no         no         no            NIST-certified core packages\
+ with priority security updates
+livepatch     yes        yes        no            Canonical Livepatch service
+"""
 
 UNATTACHED_STATUS = """\
 SERVICE       AVAILABLE  DESCRIPTION
@@ -178,12 +227,22 @@ of:
 * AVAILABLE: whether this service would be available if this machine
   were attached. The possible values are yes or no.
 
+If --simulate-with-token is used, then the output has five
+columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
+as mentioned above, and AUTO_ENABLED shows whether the service is set
+to be enabled when that token is attached.
+
+If the --all flag is set, beta and unavailable services are also
+listed in the output.
+
 Flags:
   -h, --help            show this help message and exit
   --wait                Block waiting on ua to complete
   --format {tabular,json,yaml}
                         output status in the specified format (default:
                         tabular)
+  --simulate-with-token TOKEN
+                        simulate the output status using a provided token
   --all                 Allow the visualization of beta services
 """
 )
@@ -195,12 +254,17 @@ Flags:
     M_PATH + "contract.get_available_resources",
     return_value=RESPONSE_AVAILABLE_SERVICES,
 )
+@mock.patch(
+    M_PATH + "contract.get_contract_information",
+    return_value=RESPONSE_CONTRACT_INFO,
+)
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionStatus:
     def test_status_help(
         self,
-        _getuid,
-        _get_available_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
         capsys,
@@ -224,8 +288,9 @@ class TestActionStatus:
     )
     def test_attached(
         self,
-        m_getuid,
-        m_get_avail_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
         notices,
@@ -237,7 +302,9 @@ class TestActionStatus:
         """Check that root and non-root will emit attached status"""
         cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("notices", notices)
-        assert 0 == action_status(mock.MagicMock(all=use_all), cfg=cfg)
+        assert 0 == action_status(
+            mock.MagicMock(all=use_all, simulate_with_token=None), cfg=cfg
+        )
         # capsys already converts colorized non-printable chars to space
         # Strip non-printables from output
         printable_stdout = capsys.readouterr()[0].replace(" " * 17, " " * 8)
@@ -259,8 +326,9 @@ class TestActionStatus:
 
     def test_unattached(
         self,
-        m_getuid,
-        m_get_avail_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
         capsys,
@@ -269,8 +337,29 @@ class TestActionStatus:
         """Check that unattached status is emitted to console"""
         cfg = FakeConfig()
 
-        assert 0 == action_status(mock.MagicMock(all=False), cfg=cfg)
+        assert 0 == action_status(
+            mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
+        )
         assert UNATTACHED_STATUS == capsys.readouterr()[0]
+
+    def test_simulated(
+        self,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        capsys,
+        FakeConfig,
+    ):
+        """Check that a simulated status is emitted to console"""
+        cfg = FakeConfig()
+
+        assert 0 == action_status(
+            mock.MagicMock(all=False, simulate_with_token="some_token"),
+            cfg=cfg,
+        )
+        assert SIMULATED_STATUS == capsys.readouterr()[0]
 
     @mock.patch("uaclient.version.get_version", return_value="test_version")
     @mock.patch("uaclient.util.subp")
@@ -278,10 +367,11 @@ class TestActionStatus:
     def test_wait_blocks_until_lock_released(
         self,
         m_sleep,
-        m_subp,
+        _m_subp,
         _m_get_version,
-        m_getuid,
-        m_get_avail_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
         capsys,
@@ -298,11 +388,13 @@ class TestActionStatus:
 
         m_sleep.side_effect = fake_sleep
 
-        assert 0 == action_status(mock.MagicMock(all=False), cfg=cfg)
+        assert 0 == action_status(
+            mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
+        )
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
-    @pytest.mark.parametrize("format_type", (("json"), ("yaml")))
+    @pytest.mark.parametrize("format_type", ("json", "yaml"))
     @pytest.mark.parametrize(
         "environ",
         (
@@ -318,8 +410,9 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_unattached_formats(
         self,
-        m_getuid,
-        m_get_avail_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
         use_all,
@@ -331,7 +424,9 @@ class TestActionStatus:
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
 
-        args = mock.MagicMock(format=format_type, all=use_all)
+        args = mock.MagicMock(
+            format=format_type, all=use_all, simulate_with_token=None
+        )
         with mock.patch.object(os, "environ", environ):
             assert 0 == action_status(args, cfg=cfg)
 
@@ -342,6 +437,21 @@ class TestActionStatus:
                 {"name": "UA_DATA_DIR", "value": "data_dir"},
                 {"name": "UA_FEATURES_ALLOW_BETA", "value": True},
             ]
+
+        expected_services = [
+            {
+                "name": "esm-apps",
+                "description": "UA Apps: Extended Security Maintenance (ESM)",
+                "available": "yes",
+            },
+            {
+                "name": "livepatch",
+                "description": "Canonical Livepatch service",
+                "available": "yes",
+            },
+        ]
+        if not use_all:
+            expected_services.pop(0)
 
         expected = {
             "_doc": (
@@ -357,13 +467,7 @@ class TestActionStatus:
             "effective": None,
             "expires": None,
             "notices": [],
-            "services": [
-                {
-                    "name": "livepatch",
-                    "description": "Canonical Livepatch service",
-                    "available": "yes",
-                }
-            ],
+            "services": expected_services,
             "environment_vars": expected_environment,
             "contract": {
                 "id": "",
@@ -380,6 +484,7 @@ class TestActionStatus:
             },
             "config_path": None,
             "config": {"data_dir": mock.ANY},
+            "simulated": False,
         }
 
         if format_type == "json":
@@ -387,7 +492,7 @@ class TestActionStatus:
         else:
             assert expected == yaml.safe_load(capsys.readouterr()[0])
 
-    @pytest.mark.parametrize("format_type", (("json"), ("yaml")))
+    @pytest.mark.parametrize("format_type", ("json", "yaml"))
     @pytest.mark.parametrize(
         "environ",
         (
@@ -403,8 +508,9 @@ class TestActionStatus:
     @pytest.mark.parametrize("use_all", (True, False))
     def test_attached_formats(
         self,
-        m_getuid,
-        m_get_avail_resources,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
         use_all,
@@ -416,7 +522,9 @@ class TestActionStatus:
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig.for_attached_machine()
 
-        args = mock.MagicMock(format=format_type, all=use_all)
+        args = mock.MagicMock(
+            format=format_type, all=use_all, simulate_with_token=None
+        )
 
         with mock.patch.object(os, "environ", environ):
             assert 0 == action_status(args, cfg=cfg)
@@ -501,6 +609,7 @@ class TestActionStatus:
             },
             "config_path": None,
             "config": {"data_dir": mock.ANY},
+            "simulated": False,
         }
 
         if format_type == "json":
@@ -528,13 +637,130 @@ class TestActionStatus:
 
             assert expected == yaml_output
 
+    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    @pytest.mark.parametrize("use_all", (True, False))
+    def test_simulated_formats(
+        self,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        use_all,
+        format_type,
+        capsys,
+        FakeConfig,
+    ):
+        """Check that unattached status json output is emitted to console"""
+        cfg = FakeConfig()
+
+        args = mock.MagicMock(
+            format=format_type, all=use_all, simulate_with_token="some_token"
+        )
+
+        assert 0 == action_status(args, cfg=cfg)
+
+        expected_services = [
+            {
+                "auto_enabled": "yes",
+                "available": "yes",
+                "description": "UA Apps: Extended Security Maintenance (ESM)",
+                "entitled": "no",
+                "name": "esm-apps",
+            },
+            {
+                "auto_enabled": "yes",
+                "available": "no",
+                "description": "UA Infra: Extended Security Maintenance (ESM)",
+                "entitled": "yes",
+                "name": "esm-infra",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "NIST-certified core packages",
+                "entitled": "no",
+                "name": "fips",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "NIST-certified core packages with priority"
+                " security updates",
+                "entitled": "no",
+                "name": "fips-updates",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "yes",
+                "description": "Canonical Livepatch service",
+                "entitled": "yes",
+                "name": "livepatch",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "Security Updates for the Robot Operating"
+                " System",
+                "entitled": "no",
+                "name": "ros",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
+                "description": "All Updates for the Robot Operating System",
+                "entitled": "no",
+                "name": "ros-updates",
+            },
+        ]
+
+        if not use_all:
+            expected_services = expected_services[1:-2]
+
+        expected = {
+            "_doc": "Content provided in json response is currently considered"
+            " Experimental and may change",
+            "_schema_version": "0.1",
+            "attached": False,
+            "machine_id": None,
+            "notices": [],
+            "account": {
+                "created_at": "2019-06-14T06:45:50Z",
+                "external_account_ids": [],
+                "id": "some_id",
+                "name": "Name",
+            },
+            "contract": {
+                "created_at": "2021-05-21T20:00:53Z",
+                "id": "some_id",
+                "name": "Name",
+                "products": ["uai-essential-virtual"],
+                "tech_support_level": "essential",
+            },
+            "environment_vars": [],
+            "execution_status": "inactive",
+            "execution_details": "No Ubuntu Advantage operations are running",
+            "expires": "9999-12-31T00:00:00Z",
+            "effective": None,
+            "services": expected_services,
+            "simulated": True,
+            "version": version.get_version(features=cfg.features),
+            "config_path": None,
+            "config": {"data_dir": mock.ANY},
+        }
+
+        if format_type == "json":
+            assert expected == json.loads(capsys.readouterr()[0])
+        else:
+            assert expected == yaml.safe_load(capsys.readouterr()[0])
+
     def test_error_on_connectivity_errors(
         self,
-        m_getuid,
+        _m_getuid,
+        _m_get_contract_information,
         m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
-        capsys,
         FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
@@ -545,7 +771,9 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         with pytest.raises(util.UrlError):
-            action_status(mock.MagicMock(all=False), cfg=cfg)
+            action_status(
+                mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
+            )
 
     @pytest.mark.parametrize(
         "encoding,expected_dash",
@@ -554,6 +782,7 @@ class TestActionStatus:
     def test_unicode_dash_replacement_when_unprintable(
         self,
         _m_getuid,
+        _m_get_contract_information,
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
@@ -568,7 +797,8 @@ class TestActionStatus:
 
         with mock.patch("sys.stdout", fake_stdout):
             action_status(
-                mock.MagicMock(all=True), cfg=FakeConfig.for_attached_machine()
+                mock.MagicMock(all=True, simulate_with_token=None),
+                cfg=FakeConfig.for_attached_machine(),
             )
 
         fake_stdout.flush()  # Make sure all output is in underlying_stdout
@@ -580,3 +810,30 @@ class TestActionStatus:
 
         expected_out = ATTACHED_STATUS.format(dash=expected_dash, notices="")
         assert expected_out == out
+
+
+class TestStatusParser:
+    def test_status_parser_updates_parser_config(self):
+        """Update the parser configuration for 'status'."""
+        m_parser = status_parser(mock.Mock())
+        assert "status" == m_parser.prog
+
+        full_parser = get_parser()
+        with mock.patch(
+            "sys.argv",
+            [
+                "ua",
+                "status",
+                "--format",
+                "json",
+                "--simulate-with-token",
+                "some_token",
+                "--all",
+            ],
+        ):
+            args = full_parser.parse_args()
+        assert "status" == args.command
+        assert True is args.all
+        assert "json" == args.format
+        assert "some_token" == args.simulate_with_token
+        assert "action_status" == args.action.__name__

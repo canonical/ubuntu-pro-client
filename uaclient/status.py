@@ -348,6 +348,9 @@ Open a browser to: {}/subscribe""".format(
 
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
+STATUS_SIMULATED_TMPL = """\
+{name: <14}{available: <11}{entitled: <11}{auto_enabled: <14}{description}"""
+
 STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # The widths listed below for entitled and status are actually 9 characters
 # less than reality because we colorize the values in entitled and status
@@ -633,7 +636,21 @@ def get_section_column_content(
 
 def format_tabular(status: Dict[str, Any]) -> str:
     """Format status dict for tabular output."""
-    if not status["attached"]:
+    if not status.get("attached"):
+        if status.get("simulated"):
+            content = [
+                STATUS_SIMULATED_TMPL.format(
+                    name="SERVICE",
+                    available="AVAILABLE",
+                    entitled="ENTITLED",
+                    auto_enabled="AUTO_ENABLED",
+                    description="DESCRIPTION",
+                )
+            ]
+            for service in status["services"]:
+                content.append(STATUS_SIMULATED_TMPL.format(**service))
+            return "\n".join(content)
+
         content = [
             STATUS_UNATTACHED_TMPL.format(
                 name="SERVICE",
@@ -698,12 +715,13 @@ def _format_status_output(status: Dict[str, Any]) -> Dict[str, Any]:
         or name == "UA_CONFIG_FILE"
     ]
 
-    available_services = [
-        service
-        for service in status.get("services", [])
-        if service.get("available", "yes") == "yes"
-    ]
-    status["services"] = available_services
+    if not status.get("simulated"):
+        available_services = [
+            service
+            for service in status.get("services", [])
+            if service.get("available", "yes") == "yes"
+        ]
+        status["services"] = available_services
 
     # We don't need the origin info in the json output
     status.pop("origin", "")
