@@ -565,6 +565,14 @@ def status_parser(parser):
 
         * AVAILABLE: whether this service would be available if this machine
           were attached. The possible values are yes or no.
+
+        If --simulate-with-token is used, then the output has five
+        columns. SERVICE, AVAILABLE, ENTITLED and DESCRIPTION are the same
+        as mentioned above, and AUTO_ENABLED shows whether the service is set
+        to be enabled when that token is attached.
+
+        If the --all flag is set, beta and unavailable services are also
+        listed in the output.
         """
     )
 
@@ -584,6 +592,12 @@ def status_parser(parser):
                 STATUS_FORMATS[0]
             )
         ),
+    )
+    parser.add_argument(
+        "--simulate-with-token",
+        metavar="TOKEN",
+        action="store",
+        help=("simulate the output status using a provided token"),
     )
     parser.add_argument(
         "--all",
@@ -1301,7 +1315,11 @@ def action_status(args, *, cfg):
     if not cfg:
         cfg = config.UAConfig()
     show_beta = args.all if args else False
-    status = cfg.status(show_beta=show_beta)
+    token = args.simulate_with_token if args else None
+    if token:
+        status = cfg.simulate_status(token=token, show_beta=show_beta)
+    else:
+        status = cfg.status(show_beta=show_beta)
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
     config_active = bool(status["execution_status"] == active_value)
     if args and args.wait and config_active:

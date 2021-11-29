@@ -7,7 +7,7 @@ import sys
 from collections import OrderedDict, namedtuple
 from datetime import datetime
 from functools import wraps
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
@@ -47,6 +47,7 @@ DEFAULT_STATUS = {
         "created_at": "",
         "external_account_ids": [],
     },
+    "simulated": False,
 }  # type: Dict[str, Any]
 
 LOG = logging.getLogger(__name__)
@@ -558,9 +559,16 @@ class UAConfig:
                 mode = 0o644
         util.write_file(filepath, content, mode=mode)
 
-    def _remove_beta_resources(self, response) -> Dict[str, Any]:
-        """Remove beta services from response dict"""
+    def _handle_beta_resources(self, show_beta, response) -> Dict[str, Any]:
+        """Remove beta services from response dict if needed"""
         from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        config_allow_beta = util.is_config_value_true(
+            config=self.cfg, path_to_value="features.allow_beta"
+        )
+        show_beta |= config_allow_beta
+        if show_beta:
+            return response
 
         new_response = copy.deepcopy(response)
 
@@ -751,7 +759,114 @@ class UAConfig:
                 response["contract"]["tech_support_level"] = supportLevel
         return response
 
-    def status(self, show_beta=False) -> Dict[str, Any]:
+    def _get_entitlement_information(
+        self, entitlements: List[Dict[str, Any]], entitlement_name: str
+    ) -> Dict[str, Any]:
+        """Extract information from the entitlements array."""
+        for entitlement in entitlements:
+            if entitlement.get("type") == entitlement_name:
+                return {
+                    "entitled": "yes" if entitlement.get("entitled") else "no",
+                    "auto_enabled": "yes"
+                    if entitlement.get("obligations", {}).get(
+                        "enableByDefault"
+                    )
+                    else "no",
+                    "affordances": entitlement.get("affordances", {}),
+                }
+        return {"entitled": "no", "auto_enabled": "no", "affordances": {}}
+
+    def simulate_status(
+        self, token: str, show_beta: bool = False
+    ) -> Dict[str, Any]:
+        """Return a status dictionary based on a token."""
+        from uaclient.contract import (
+            get_available_resources,
+            get_contract_information,
+        )
+        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+
+        response = copy.deepcopy(DEFAULT_STATUS)
+
+        contract_information = get_contract_information(self, token)
+
+        contract_info = contract_information.get("contractInfo", {})
+        account_info = contract_information.get("accountInfo", {})
+
+        response.update(
+            {
+                "version": version.get_version(features=self.features),
+                "contract": {
+                    "id": contract_info.get("id", ""),
+                    "name": contract_info.get("name", ""),
+                    "created_at": contract_info.get("createdAt", ""),
+                    "products": contract_info.get("products", []),
+                },
+                "account": {
+                    "name": account_info.get("name", ""),
+                    "id": account_info.get("id"),
+                    "created_at": account_info.get("createdAt", ""),
+                    "external_account_ids": account_info.get(
+                        "externalAccountIDs", []
+                    ),
+                },
+                "simulated": True,
+            }
+        )
+
+        if contract_info.get("effectiveTo"):
+            response["expires"] = contract_info.get("effectiveTo")
+        if contract_info.get("effectiveFrom"):
+            response["effective"] = contract_info.get("effectiveFrom")
+
+        status_cache = self.read_cache("status-cache")
+        if status_cache:
+            resources = status_cache.get("services")
+        else:
+            resources = get_available_resources(self)
+
+        entitlements = contract_info.get("resourceEntitlements", [])
+
+        inapplicable_resources = [
+            resource["name"]
+            for resource in sorted(resources, key=lambda x: x["name"])
+            if not resource["available"]
+        ]
+
+        for resource in sorted(resources, key=lambda x: x.get("name", "")):
+            entitlement_name = resource.get("name", "")
+            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(entitlement_name)
+            if ent_cls:
+                ent = ent_cls(self)
+                entitlement_information = self._get_entitlement_information(
+                    entitlements, entitlement_name
+                )
+                response["services"].append(
+                    {
+                        "name": ent.name,
+                        "description": ent.description,
+                        "entitled": entitlement_information["entitled"],
+                        "auto_enabled": entitlement_information[
+                            "auto_enabled"
+                        ],
+                        "available": "yes"
+                        if ent.name not in inapplicable_resources
+                        else "no",
+                    }
+                )
+
+        support = self._get_entitlement_information(entitlements, "support")
+        if support["entitled"]:
+            supportLevel = support["affordances"].get("supportLevel")
+            if supportLevel:
+                response["contract"]["tech_support_level"] = supportLevel
+
+        response.update(self._get_config_status())
+        response = self._handle_beta_resources(show_beta, response)
+
+        return response
+
+    def status(self, show_beta: bool = False) -> Dict[str, Any]:
         """Return status as a dict, using a cache for non-root users
 
         When unattached, get available resources from the contract service
@@ -760,7 +875,6 @@ class UAConfig:
 
         Write the status-cache when called by root.
         """
-
         if os.getuid() != 0:
             response = cast("Dict[str, Any]", self.read_cache("status-cache"))
             if not response:
@@ -769,7 +883,9 @@ class UAConfig:
             response = self._unattached_status()
         else:
             response = self._attached_status()
+
         response.update(self._get_config_status())
+
         if os.getuid() == 0:
             self.write_cache("status-cache", response)
 
@@ -782,12 +898,7 @@ class UAConfig:
                     ),
                 )
 
-        config_allow_beta = util.is_config_value_true(
-            config=self.cfg, path_to_value="features.allow_beta"
-        )
-        show_beta |= config_allow_beta
-        if not show_beta:
-            response = self._remove_beta_resources(response)
+        response = self._handle_beta_resources(show_beta, response)
 
         return response
 
