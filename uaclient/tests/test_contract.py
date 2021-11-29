@@ -9,12 +9,14 @@ import pytest
 from uaclient import exceptions, util
 from uaclient.contract import (
     API_V1_CONTEXT_MACHINE_TOKEN,
+    API_V1_CONTRACT_INFORMATION,
     API_V1_RESOURCES,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
     ContractAPIError,
     UAContractClient,
     get_available_resources,
+    get_contract_information,
     process_entitlement_delta,
     request_updated_contract,
 )
@@ -125,6 +127,27 @@ class TestUAContractClient:
         assert [
             mock.call("/v1/resources/cis/context/machines/machineId", **params)
         ] == request_url.call_args_list
+
+    def test_request_contract_information(
+        self, _m_machine_id, m_request_url, FakeConfig
+    ):
+        m_request_url.return_value = ("response", {})
+
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        params = {
+            "headers": {
+                "user-agent": "UA-Client/{}".format(get_version()),
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": "Bearer some_token",
+            }
+        }
+
+        assert "response" == client.request_contract_information("some_token")
+        assert [
+            mock.call("/v1/contract", **params)
+        ] == m_request_url.call_args_list
 
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     def test_report_machine_activity(
@@ -332,6 +355,27 @@ class TestGetAvailableResources:
 
         client.side_effect = fake_contract_client
         assert new_resources == get_available_resources(cfg)
+
+
+class TestGetContractInformation:
+    @mock.patch(M_PATH + "UAContractClient")
+    def test_get_contract_information_from_contract_server(
+        self, m_client, FakeConfig
+    ):
+        cfg = FakeConfig()
+
+        url = API_V1_CONTRACT_INFORMATION
+
+        information = {"contract": "some_contract_data"}
+
+        def fake_contract_client(cfg):
+            fake_client = FakeContractClient(cfg)
+            fake_client._responses = {url: information}
+
+            return fake_client
+
+        m_client.side_effect = fake_contract_client
+        assert information == get_contract_information(cfg, "some_token")
 
 
 class TestRequestUpdatedContract:
