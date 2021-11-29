@@ -80,7 +80,7 @@ Show security updates for packages in the system, including all
 available ESM related content.
 
 .TP
-.BR "status" " [--format=tabular|json|yaml]"
+.BR "status" " [--format=tabular|json|yaml] [--simulate-with-token TOKEN] [--all]"
 Report current status of Ubuntu Advantage services on system.
 
 This shows whether this machine is attached to an Ubuntu Advantage
@@ -113,6 +113,14 @@ of:
 .BR "AVAILABLE" ":"
 whether this service would be available if this machine were attached.
 The possible values are \fIyes\fR or \fIno\fR.
+
+If --simulate-with-token is used, then the output has five columns.
+\fBSERVICE\fR, \fBAVAILABLE\fR, \fBENTITLED\fR and \fBDESCRIPTION\fR are the
+same as mentioned above, and \fBAUTO_ENABLED\fR shows whether the service is
+set to be enabled when that token is attached.
+
+If the --all flag is set, beta and unavailable services are also listed in the
+output.
 
 .TP
 .B version
