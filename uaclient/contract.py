@@ -13,6 +13,7 @@ API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
 )
 API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
+API_V1_CONTRACT_INFORMATION = "/v1/contract"
 ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
 
 
@@ -99,6 +100,16 @@ class UAContractClient(serviceclient.UAServiceClient):
             API_V1_RESOURCES, query_params=query_params
         )
         return resource_response
+
+    def request_contract_information(
+        self, contract_token: str
+    ) -> Dict[str, Any]:
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(contract_token)})
+        response_data, _response_headers = self.request_url(
+            API_V1_CONTRACT_INFORMATION, headers=headers
+        )
+        return response_data
 
     def request_auto_attach_contract_token(
         self, *, instance: clouds.AutoAttachCloudInstance
@@ -470,7 +481,13 @@ def request_updated_contract(
 
 
 def get_available_resources(cfg) -> List[Dict]:
-    """Query available resources from the contrct server for this machine."""
+    """Query available resources from the contract server for this machine."""
     client = UAContractClient(cfg)
     resources = client.request_resources()
     return resources.get("resources", [])
+
+
+def get_contract_information(cfg, token: str) -> Dict[str, Any]:
+    """Query contract information for a specific token"""
+    client = UAContractClient(cfg)
+    return client.request_contract_information(token)
