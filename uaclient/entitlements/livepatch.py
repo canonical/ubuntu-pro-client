@@ -16,6 +16,8 @@ ERROR_MSG_MAP = {
     "unsupported kernel": "Your running kernel is not supported by Livepatch.",
 }
 
+LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
+
 
 def unconfigure_livepatch_proxy(
     protocol_type: str, retry_sleeps: Optional[List[float]] = None
@@ -29,10 +31,10 @@ def unconfigure_livepatch_proxy(
         on failure; sleeping half a second before the first retry and 1 second
         before the second retry.
     """
-    if not util.which("/snap/bin/canonical-livepatch"):
+    if not util.which(LIVEPATCH_CMD):
         return
     util.subp(
-        ["canonical-livepatch", "config", "{}-proxy=".format(protocol_type)],
+        [LIVEPATCH_CMD, "config", "{}-proxy=".format(protocol_type)],
         retry_sleeps=retry_sleeps,
     )
 
@@ -61,21 +63,13 @@ def configure_livepatch_proxy(
 
     if http_proxy:
         util.subp(
-            [
-                "canonical-livepatch",
-                "config",
-                "http-proxy={}".format(http_proxy),
-            ],
+            [LIVEPATCH_CMD, "config", "http-proxy={}".format(http_proxy)],
             retry_sleeps=retry_sleeps,
         )
 
     if https_proxy:
         util.subp(
-            [
-                "canonical-livepatch",
-                "config",
-                "https-proxy={}".format(https_proxy),
-            ],
+            [LIVEPATCH_CMD, "config", "https-proxy={}".format(https_proxy)],
             retry_sleeps=retry_sleeps,
         )
 
@@ -86,7 +80,7 @@ def get_config_option_value(key: str) -> Optional[str]:
     :param protocol: can be any valid livepatch config option
     :return: the value of the livepatch config option, or None if not set
     """
-    out, _ = util.subp(["canonical-livepatch", "config"])
+    out, _ = util.subp([LIVEPATCH_CMD, "config"])
     match = re.search("^{}: (.*)$".format(key), out, re.MULTILINE)
     value = match.group(1) if match else None
     if value:
@@ -151,8 +145,8 @@ class LivepatchEntitlement(base.UAEntitlement):
             )
         elif "snapd" not in apt.get_installed_packages():
             raise exceptions.UserFacingError(
-                "/usr/bin/snap is present but snapd is not installed;"
-                " cannot enable {}".format(self.title)
+                "{} is present but snapd is not installed;"
+                " cannot enable {}".format(snap.SNAP_CMD, self.title)
             )
 
         try:
@@ -177,7 +171,7 @@ class LivepatchEntitlement(base.UAEntitlement):
             retry_sleeps=snap.SNAP_INSTALL_RETRIES,
         )
 
-        if not util.which("/snap/bin/canonical-livepatch"):
+        if not util.which(LIVEPATCH_CMD):
             print("Installing canonical-livepatch snap")
             try:
                 util.subp(
@@ -230,18 +224,13 @@ class LivepatchEntitlement(base.UAEntitlement):
                     self.title,
                 )
                 try:
-                    util.subp(["/snap/bin/canonical-livepatch", "disable"])
+                    util.subp([LIVEPATCH_CMD, "disable"])
                 except util.ProcessExecutionError as e:
                     logging.error(str(e))
                     return False
             try:
                 util.subp(
-                    [
-                        "/snap/bin/canonical-livepatch",
-                        "enable",
-                        livepatch_token,
-                    ],
-                    capture=True,
+                    [LIVEPATCH_CMD, "enable", livepatch_token], capture=True
                 )
             except util.ProcessExecutionError as e:
                 msg = "Unable to enable Livepatch: "
@@ -261,15 +250,15 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         @return: True on success, False otherwise.
         """
-        if not util.which("/snap/bin/canonical-livepatch"):
+        if not util.which(LIVEPATCH_CMD):
             return True
-        util.subp(["/snap/bin/canonical-livepatch", "disable"], capture=True)
+        util.subp([LIVEPATCH_CMD, "disable"], capture=True)
         return True
 
     def application_status(self) -> Tuple[ApplicationStatus, str]:
         status = (ApplicationStatus.ENABLED, "")
 
-        if not util.which("/snap/bin/canonical-livepatch"):
+        if not util.which(LIVEPATCH_CMD):
             return (
                 ApplicationStatus.DISABLED,
                 "canonical-livepatch snap is not installed.",
@@ -277,8 +266,7 @@ class LivepatchEntitlement(base.UAEntitlement):
 
         try:
             util.subp(
-                ["/snap/bin/canonical-livepatch", "status"],
-                retry_sleeps=LIVEPATCH_RETRIES,
+                [LIVEPATCH_CMD, "status"], retry_sleeps=LIVEPATCH_RETRIES
             )
         except util.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
@@ -350,11 +338,7 @@ def process_config_directives(cfg):
     ca_certs = directives.get("caCerts")
     if ca_certs:
         util.subp(
-            [
-                "/snap/bin/canonical-livepatch",
-                "config",
-                "ca-certs={}".format(ca_certs),
-            ],
+            [LIVEPATCH_CMD, "config", "ca-certs={}".format(ca_certs)],
             capture=True,
         )
     remote_server = directives.get("remoteServer", "")
@@ -363,7 +347,7 @@ def process_config_directives(cfg):
     if remote_server:
         util.subp(
             [
-                "/snap/bin/canonical-livepatch",
+                LIVEPATCH_CMD,
                 "config",
                 "remote-server={}".format(remote_server),
             ],

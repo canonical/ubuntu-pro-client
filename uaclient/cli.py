@@ -37,6 +37,11 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
 )
 
+# TODO: Better address service commands running on cli
+# It is not ideal for us to import an entitlement directly on the cli module.
+# We need to refactor this to avoid that type of coupling in the code.
+from uaclient.entitlements.livepatch import LIVEPATCH_CMD
+
 NAME = "ua"
 
 USAGE_TMPL = "{name} {command} [flags]"
@@ -1143,7 +1148,7 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             "ua status --format json", "{}/ua-status.json".format(output_dir)
         )
         _write_command_output_to_file(
-            "canonical-livepatch status",
+            "{} status".format(LIVEPATCH_CMD),
             "{}/livepatch-status.txt".format(output_dir),
         )
         _write_command_output_to_file(
