@@ -75,7 +75,7 @@ class TestActionAutoAttach:
         assert m_subp.call_args_list == [
             mock.call(["cloud-id"], rcs=None),
             mock.call(["ua", "status", "--format", "json"], rcs=None),
-            mock.call(["canonical-livepatch", "status"], rcs=None),
+            mock.call(["/snap/bin/canonical-livepatch", "status"], rcs=None),
             mock.call(["systemctl", "list-timers", "--all"], rcs=None),
             mock.call(
                 [
