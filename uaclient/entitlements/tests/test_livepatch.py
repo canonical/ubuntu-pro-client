@@ -12,6 +12,7 @@ import pytest
 
 from uaclient import apt, exceptions, status
 from uaclient.entitlements.livepatch import (
+    LIVEPATCH_CMD,
     LivepatchEntitlement,
     configure_livepatch_proxy,
     get_config_option_value,
@@ -84,7 +85,7 @@ class TestConfigureLivepatchProxy:
             expected_calls.append(
                 mock.call(
                     [
-                        "canonical-livepatch",
+                        LIVEPATCH_CMD,
                         "config",
                         "http-proxy={}".format(http_proxy),
                     ],
@@ -96,7 +97,7 @@ class TestConfigureLivepatchProxy:
             expected_calls.append(
                 mock.call(
                     [
-                        "canonical-livepatch",
+                        LIVEPATCH_CMD,
                         "config",
                         "https-proxy={}".format(https_proxy),
                     ],
@@ -183,7 +184,7 @@ check-interval: 60  # minutes""",
         ret = get_config_option_value(key)
         assert ret == expected_ret
         assert [
-            mock.call(["canonical-livepatch", "config"])
+            mock.call([LIVEPATCH_CMD, "config"])
         ] == m_util_subp.call_args_list
 
 
@@ -203,7 +204,7 @@ class TestUnconfigureLivepatchProxy:
         self, subp, which, livepatch_installed, protocol_type, retry_sleeps
     ):
         if livepatch_installed:
-            which.return_value = "/snap/bin/canonical-livepatch"
+            which.return_value = LIVEPATCH_CMD
         else:
             which.return_value = None
         kwargs = {"protocol_type": protocol_type}
@@ -213,11 +214,7 @@ class TestUnconfigureLivepatchProxy:
         if livepatch_installed:
             expected_calls = [
                 mock.call(
-                    [
-                        "canonical-livepatch",
-                        "config",
-                        protocol_type + "-proxy=",
-                    ],
+                    [LIVEPATCH_CMD, "config", protocol_type + "-proxy="],
                     retry_sleeps=retry_sleeps,
                 )
             ]
@@ -291,7 +288,7 @@ class TestLivepatchProcessConfigDirectives:
             process_config_directives(cfg)
         expected_subp = mock.call(
             [
-                "/snap/bin/canonical-livepatch",
+                LIVEPATCH_CMD,
                 "config",
                 livepatch_param_tmpl.format(directive_value),
             ],
@@ -314,16 +311,10 @@ class TestLivepatchProcessConfigDirectives:
             process_config_directives(cfg)
         expected_calls = [
             mock.call(
-                ["/snap/bin/canonical-livepatch", "config", "ca-certs=value2"],
-                capture=True,
+                [LIVEPATCH_CMD, "config", "ca-certs=value2"], capture=True
             ),
             mock.call(
-                [
-                    "/snap/bin/canonical-livepatch",
-                    "config",
-                    "remote-server=value1",
-                ],
-                capture=True,
+                [LIVEPATCH_CMD, "config", "remote-server=value1"], capture=True
             ),
         ]
         assert expected_calls == m_subp.call_args_list
@@ -609,17 +600,14 @@ class TestLivepatchEntitlementEnable:
     mocks_config = [
         mock.call(
             [
-                "/snap/bin/canonical-livepatch",
+                LIVEPATCH_CMD,
                 "config",
                 "remote-server=https://alt.livepatch.com",
             ],
             capture=True,
         ),
-        mock.call(["/snap/bin/canonical-livepatch", "disable"]),
-        mock.call(
-            ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
-            capture=True,
-        ),
+        mock.call([LIVEPATCH_CMD, "disable"]),
+        mock.call([LIVEPATCH_CMD, "enable", "livepatch-token"], capture=True),
     ]
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -677,10 +665,7 @@ class TestLivepatchEntitlementEnable:
             assert expected_log not in caplog_text()
         else:
             assert expected_log in caplog_text()
-        expected_calls = [
-            mock.call("/usr/bin/snap"),
-            mock.call("/snap/bin/canonical-livepatch"),
-        ]
+        expected_calls = [mock.call("/usr/bin/snap"), mock.call(LIVEPATCH_CMD)]
         assert expected_calls == m_which.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
@@ -723,10 +708,7 @@ class TestLivepatchEntitlementEnable:
             "Canonical livepatch enabled.\n"
         )
         assert (msg, "") == capsys.readouterr()
-        expected_calls = [
-            mock.call("/usr/bin/snap"),
-            mock.call("/snap/bin/canonical-livepatch"),
-        ]
+        expected_calls = [mock.call("/usr/bin/snap"), mock.call(LIVEPATCH_CMD)]
         assert expected_calls == m_which.call_args_list
         assert m_validate_proxy.call_count == 2
         assert m_snap_proxy.call_count == 1
@@ -801,16 +783,15 @@ class TestLivepatchEntitlementEnable:
             ),
             mock.call(
                 [
-                    "/snap/bin/canonical-livepatch",
+                    LIVEPATCH_CMD,
                     "config",
                     "remote-server=https://alt.livepatch.com",
                 ],
                 capture=True,
             ),
-            mock.call(["/snap/bin/canonical-livepatch", "disable"]),
+            mock.call([LIVEPATCH_CMD, "disable"]),
             mock.call(
-                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
-                capture=True,
+                [LIVEPATCH_CMD, "enable", "livepatch-token"], capture=True
             ),
         ]
         assert subp_calls == m_subp.call_args_list
@@ -851,15 +832,14 @@ class TestLivepatchEntitlementEnable:
             ),
             mock.call(
                 [
-                    "/snap/bin/canonical-livepatch",
+                    LIVEPATCH_CMD,
                     "config",
                     "remote-server=https://alt.livepatch.com",
                 ],
                 capture=True,
             ),
             mock.call(
-                ["/snap/bin/canonical-livepatch", "enable", "livepatch-token"],
-                capture=True,
+                [LIVEPATCH_CMD, "enable", "livepatch-token"], capture=True
             ),
         ]
         assert subp_no_livepatch_disable == m_subp.call_args_list
