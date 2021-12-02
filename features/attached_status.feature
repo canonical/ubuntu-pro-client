@@ -11,14 +11,14 @@ Feature: Attached status
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version
+            services version simulated
             """
         When I run `ua status --format yaml` as non-root
         Then stdout is formatted as `yaml` and has keys:
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version
+            services version simulated
             """
 
         Examples: ubuntu release
