@@ -19,16 +19,16 @@ def main() -> int:
     # Make sure the ua-daemon logger does not generate double logging
     # by propagating to the root logger
     LOG.propagate = False
-    # The root logger should only log errors to the daemon log file
-    setup_logging(
-        logging.CRITICAL, logging.ERROR, log_file=cfg.daemon_log_file
-    )
+    # TODO: keep an eye on logs as we add features to make sure they don't
+    # fill up too much
+    setup_logging(logging.INFO, logging.DEBUG, log_file=cfg.daemon_log_file)
 
     LOG.debug("daemon started")
 
     daemon.on_start(cfg)
 
     threads = daemon.start_background_threads(cfg)
+    LOG.debug("started {} threads".format(len(threads)))
 
     # TODO: when we start providing services to other software on the machine
     # then make sure this is not called until those services are available
@@ -38,6 +38,8 @@ def main() -> int:
 
     for thread in threads:
         thread.join()
+
+    LOG.debug("daemon finished")
 
     return 0
 
