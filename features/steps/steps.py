@@ -230,6 +230,20 @@ def when_i_run_command_with_stdin(
     )
 
 
+@when("I do a preflight check for `{contract_token}` {user_spec}")
+def when_i_preflight(context, contract_token, user_spec):
+    token = getattr(context.config, contract_token)
+    command = "ua status --simulate-with-token {}".format(token)
+    if user_spec == "with the all flag":
+        command += " --all"
+    if "formatted as" in user_spec:
+        output_format = user_spec.split()[2]
+        command += " --format {}".format(output_format)
+    when_i_run_command(
+        context=context, command=command, user_spec="as non-root"
+    )
+
+
 @when("I run `{command}` {user_spec}")
 def when_i_run_command(
     context,
