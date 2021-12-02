@@ -9,14 +9,14 @@ Feature: Unattached status
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version
+            services version simulated
             """
         When I run `ua status --format yaml` as non-root
         Then stdout is formatted as `yaml` and has keys:
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version
+            services version simulated
             """
 
         Examples: ubuntu release
@@ -123,3 +123,58 @@ Feature: Unattached status
            | focal   | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
            | hirsute | no       | no     | no  | no   | no          | no    | no  | no        |
            | impish  | no       | no     | no  | no   | no          | no    | no  | no        |
+
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token
+    Scenario Outline: Simulate status in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I do a preflight check for `contract_token` without the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+        cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+        cis           <cis>       +yes  +no   +Center for Internet Security Audit Tools
+        esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          <fips>      +yes  +no   +NIST-certified core packages
+        fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
+        livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
+        """
+        When I do a preflight check for `contract_token` with the all flag
+        Then stdout matches regexp:
+        """
+        SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+        cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+        cis           <cis>       +yes  +no   +Center for Internet Security Audit Tools
+        esm-apps      <esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          <fips>      +yes  +no   +NIST-certified core packages
+        fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
+        livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
+        ros           <ros>       +yes  +no   +Security Updates for the Robot Operating System
+        ros-updates   <ros>       +yes  +no   +All Updates for the Robot Operating System
+        """
+        When I do a preflight check for `contract_token` formatted as json
+        Then stdout is formatted as `json` and has keys:
+        """
+        _doc _schema_version account attached config config_path contract effective
+        environment_vars execution_details execution_status expires machine_id notices
+        services version simulated
+        """
+        When I do a preflight check for `contract_token` formatted as yaml
+        Then stdout is formatted as `yaml` and has keys:
+        """
+        _doc _schema_version account attached config config_path contract effective
+        environment_vars execution_details execution_status expires machine_id notices
+        services version simulated
+        """
+
+
+        Examples: ubuntu release
+           | release | esm-apps | cc-eal | cis | fips | esm-infra | ros | livepatch |
+           | xenial  | yes      | yes    | yes | yes  | yes       | yes | yes       |
+           | bionic  | yes      | no     | yes | yes  | yes       | yes | yes       |
+           | focal   | yes      | no     | yes | yes  | yes       | no  | yes       |
+           | hirsute | no       | no     | no  | no   | no        | no  | no        |
+           | impish  | no       | no     | no  | no   | no        | no  | no        |
