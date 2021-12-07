@@ -21,7 +21,8 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  |
            | focal   |
            | hirsute |
-           | impish |
+           | impish  |
+           | jammy   |
 
     @uses.config.contract_token_staging_expired
     @series.all
@@ -41,4 +42,5 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
            | bionic  |
            | focal   |
            | hirsute |
-           | impish |
+           | impish  |
+           | jammy   |

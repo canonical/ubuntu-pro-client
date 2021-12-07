@@ -14,6 +14,7 @@ Feature: UA Install and Uninstall related tests
            | focal   |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.lts
     @uses.config.contract_token

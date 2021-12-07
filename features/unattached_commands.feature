@@ -29,6 +29,7 @@ Feature: Command behaviour when unattached
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.xenial
     @uses.config.machine_type.lxd.container
@@ -134,6 +135,8 @@ Feature: Command behaviour when unattached
            | hirsute | refresh |
            | impish  | detach  |
            | impish  | refresh |
+           | jammy   | detach  |
+           | jammy   | refresh |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -174,6 +177,10 @@ Feature: Command behaviour when unattached
            | impish  | disable  | livepatch |
            | impish  | enable   | unknown   |
            | impish  | disable  | unknown   |
+           | jammy  | enable   | livepatch |
+           | jammy  | disable  | livepatch |
+           | jammy  | enable   | unknown   |
+           | jammy  | disable  | unknown   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -215,6 +222,7 @@ Feature: Command behaviour when unattached
            | xenial   | yes          |
            | hirsute  | no           |
            | impish   | no           |
+           | jammy    | no           |
 
 
     @series.all
@@ -245,6 +253,7 @@ Feature: Command behaviour when unattached
            | focal   |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -530,3 +539,4 @@ Feature: Command behaviour when unattached
           | focal   |
           | hirsute |
           | impish  |
+          | jammy   |

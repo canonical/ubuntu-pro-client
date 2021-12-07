@@ -14,6 +14,7 @@ SERIES_TO_VERSION = {
     "focal": "20.04",
     "hirsute": "21.04",
     "impish": "21.10",
+    "jammy": "22.04",
 }
 
 TOKEN_TO_ENVVAR = {
@@ -30,7 +31,7 @@ PLATFORM_SERIES_TESTS = {
     "gcpgeneric": ["xenial", "bionic", "focal", "hirsute"],
     "gcppro": ["xenial", "bionic", "focal"],
     "vm": ["xenial", "bionic", "focal"],
-    "lxd": ["xenial", "bionic", "focal", "hirsute", "impish"],
+    "lxd": ["xenial", "bionic", "focal", "hirsute", "impish", "jammy"],
     "upgrade": ["xenial", "bionic", "focal", "hirsute", "impish"],
 }
 
