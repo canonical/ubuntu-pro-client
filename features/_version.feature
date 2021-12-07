@@ -31,7 +31,8 @@ Feature: UA is expected version
             | bionic  |
             | focal   |
             | hirsute |
-            | impish |
+            | impish  |
+            | jammy   |
 
     @series.all
     @uses.config.check_version
@@ -58,4 +59,4 @@ Feature: UA is expected version
             | bionic  |
             | focal   |
             | hirsute |
-            | impish |
+            | impish  |

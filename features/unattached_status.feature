@@ -26,6 +26,7 @@ Feature: Unattached status
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -123,7 +124,7 @@ Feature: Unattached status
            | focal   | yes      | no     | yes | yes  | yes         | yes   | no  | yes       |
            | hirsute | no       | no     | no  | no   | no          | no    | no  | no        |
            | impish  | no       | no     | no  | no   | no          | no    | no  | no        |
-
+           | jammy   | no       | no     | no  | no   | no          | no    | no  | no        |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -178,3 +179,4 @@ Feature: Unattached status
            | focal   | yes      | no     | yes | yes  | yes       | no  | yes       |
            | hirsute | no       | no     | no  | no   | no        | no  | no        |
            | impish  | no       | no     | no  | no   | no        | no  | no        |
+           | jammy   | no       | no     | no  | no   | no        | no  | no        |

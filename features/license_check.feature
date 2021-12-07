@@ -92,6 +92,7 @@ Feature: License check timer only runs in environments where necessary
             | focal   |
             | hirsute |
             | impish  |
+            | jammy   |
 
     @series.lts
     @uses.config.machine_type.aws.pro
