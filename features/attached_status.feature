@@ -28,3 +28,4 @@ Feature: Attached status
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |

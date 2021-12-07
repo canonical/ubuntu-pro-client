@@ -49,6 +49,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -65,6 +66,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -91,6 +93,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -116,6 +119,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -226,6 +230,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -248,6 +253,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -299,6 +305,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -448,6 +455,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | enabled      |
            | hirsute | n/a          |
            | impish  | n/a          |
+           | jammy   | n/a          |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -570,6 +578,7 @@ Feature: Command behaviour when attached to an UA subscription
            | focal   |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
