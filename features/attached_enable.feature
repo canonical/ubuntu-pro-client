@@ -142,6 +142,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | xenial  |
            | hirsute |
            | impish  |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
