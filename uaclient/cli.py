@@ -25,6 +25,7 @@ from uaclient import (
     config,
     contract,
     entitlements,
+    event_logger,
     exceptions,
     jobs,
     lock,
@@ -807,6 +808,7 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
+@event_logger.capture_info_events
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua disable")
@@ -850,6 +852,7 @@ def action_disable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
+@event_logger.capture_info_events
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
@@ -922,6 +925,7 @@ def action_enable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
+@event_logger.capture_info_events
 @assert_root
 @assert_attached()
 @assert_lock_file("ua detach")
@@ -1070,6 +1074,7 @@ def action_auto_attach(args, *, cfg):
         return 0
 
 
+@event_logger.capture_info_events
 @assert_not_attached
 @assert_root
 @assert_lock_file("ua attach")
@@ -1374,6 +1379,7 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
     print(ua_status.MESSAGE_REFRESH_CONTRACT_SUCCESS)
 
 
+@event_logger.capture_info_events
 @assert_root
 @assert_lock_file("ua refresh")
 def action_refresh(args, *, cfg: config.UAConfig):
