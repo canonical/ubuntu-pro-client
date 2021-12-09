@@ -505,7 +505,6 @@ class TestFIPSEntitlementEnable:
                     fips_ent.enable()
 
         expected_msg = "Cannot enable FIPS when Livepatch is enabled"
-        print(fake_stdout.getvalue())
         assert expected_msg in fake_stdout.getvalue().strip()
 
     @mock.patch("uaclient.util.handle_message_operations")

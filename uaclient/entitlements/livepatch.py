@@ -2,7 +2,9 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import apt, exceptions, snap, status, util
+from uaclient import apt
+from uaclient import event_logger as event
+from uaclient import exceptions, snap, status, util
 from uaclient.entitlements import base
 from uaclient.status import ApplicationStatus
 from uaclient.types import StaticAffordance
@@ -55,7 +57,7 @@ def configure_livepatch_proxy(
                                snap calls
     """
     if http_proxy or https_proxy:
-        print(
+        event.info(
             status.MESSAGE_SETTING_SERVICE_PROXY.format(
                 service=LivepatchEntitlement.title
             )
@@ -126,8 +128,8 @@ class LivepatchEntitlement(base.UAEntitlement):
         @return: True on success, False otherwise.
         """
         if not util.which(snap.SNAP_CMD):
-            print("Installing snapd")
-            print(status.MESSAGE_APT_UPDATING_LISTS)
+            event.info("Installing snapd")
+            event.info(status.MESSAGE_APT_UPDATING_LISTS)
             try:
                 apt.run_apt_command(
                     ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
@@ -172,7 +174,7 @@ class LivepatchEntitlement(base.UAEntitlement):
         )
 
         if not util.which(LIVEPATCH_CMD):
-            print("Installing canonical-livepatch snap")
+            event.info("Installing canonical-livepatch snap")
             try:
                 util.subp(
                     [snap.SNAP_CMD, "install", "canonical-livepatch"],
@@ -205,7 +207,7 @@ class LivepatchEntitlement(base.UAEntitlement):
                 process_config_directives(entitlement_cfg)
             except util.ProcessExecutionError as e:
                 msg = "Unable to configure Livepatch: " + str(e)
-                print(msg)
+                event.info(msg)
                 logging.error(msg)
                 return False
         if process_token:
@@ -240,9 +242,9 @@ class LivepatchEntitlement(base.UAEntitlement):
                         break
                 if msg == "Unable to enable Livepatch: ":
                     msg += str(e)
-                print(msg)
+                event.info(msg)
                 return False
-            print("Canonical livepatch enabled.")
+            event.info("Canonical livepatch enabled.")
         return True
 
     def _perform_disable(self, silent=False):
