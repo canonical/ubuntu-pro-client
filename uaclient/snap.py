@@ -1,7 +1,9 @@
 import logging
 from typing import List, Optional
 
-from uaclient import apt, status, util
+from uaclient import apt
+from uaclient import event_logger as event
+from uaclient import status, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -40,7 +42,7 @@ def configure_snap_proxy(
         return
 
     if http_proxy or https_proxy:
-        print(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="snap"))
+        event.info(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="snap"))
 
     if http_proxy:
         util.subp(

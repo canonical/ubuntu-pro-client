@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 from typing import Dict, List, Optional
 
+from uaclient import event_logger as event
 from uaclient import exceptions, gpg, status, util
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
@@ -403,7 +404,7 @@ def setup_apt_proxy(
     :return: None
     """
     if http_proxy or https_proxy:
-        print(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"))
+        event.info(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"))
 
     apt_proxy_config = ""
     if http_proxy:
