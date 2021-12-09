@@ -20,16 +20,9 @@ from typing import List
 
 import yaml
 
-from uaclient import (
-    actions,
-    config,
-    contract,
-    entitlements,
-    exceptions,
-    lock,
-    security,
-    security_status,
-)
+from uaclient import actions, config, contract, entitlements
+from uaclient import event_logger as event
+from uaclient import exceptions, lock, security, security_status
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -854,7 +847,7 @@ def action_enable(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    print(ua_status.MESSAGE_REFRESH_CONTRACT_ENABLE)
+    event.info(ua_status.MESSAGE_REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
     except (util.UrlError, exceptions.UserFacingError):
@@ -885,7 +878,7 @@ def action_enable(args, *, cfg, **kwargs):
                 and isinstance(reason, ua_status.CanEnableFailure)
             ):
                 if reason.message is not None:
-                    print(reason.message)
+                    event.info(reason.message)
                 if reason.reason == ua_status.CanEnableFailureReason.IS_BETA:
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist
@@ -893,7 +886,7 @@ def action_enable(args, *, cfg, **kwargs):
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:
-            print(e)
+            event.info(e)
             ret = False
 
     if entitlements_not_found:
@@ -964,7 +957,9 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
 
     if to_disable:
         suffix = "s" if len(to_disable) > 1 else ""
-        print("Detach will disable the following service{}:".format(suffix))
+        event.info(
+            "Detach will disable the following service{}:".format(suffix)
+        )
         for ent in to_disable:
             print("    {}".format(ent.name))
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
@@ -987,13 +982,13 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     ]
 
     if contract_name:
-        print(
+        event.info(
             ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
                 contract_name=contract_name
             )
         )
     else:
-        print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
+        event.info(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     action_status(args=None, cfg=cfg)
 
@@ -1056,7 +1051,7 @@ def action_auto_attach(args, *, cfg):
     try:
         actions.auto_attach(cfg, instance)
     except util.UrlError:
-        print(ua_status.MESSAGE_ATTACH_FAILURE)
+        event.info(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError:
         return 1
@@ -1078,7 +1073,7 @@ def action_attach(args, *, cfg):
             cfg, token=args.token, allow_enable=args.auto_enable
         )
     except util.UrlError:
-        print(ua_status.MESSAGE_ATTACH_FAILURE)
+        event.info(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError:
         return 1

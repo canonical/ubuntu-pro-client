@@ -11,7 +11,9 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
-from uaclient import apt, exceptions, snap, status, util, version
+from uaclient import apt
+from uaclient import event_logger as event
+from uaclient import exceptions, snap, status, util, version
 from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -1031,7 +1033,7 @@ class UAConfig:
 
         if len(services_with_proxies) > 0:
             services = ", ".join(services_with_proxies)
-            print(
+            event.info(
                 status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
                     services=services
                 )

@@ -4,7 +4,9 @@ import re
 from itertools import groupby
 from typing import Callable, Dict, List, Tuple, Union
 
-from uaclient import apt, exceptions, status, util
+from uaclient import apt
+from uaclient import event_logger as event
+from uaclient import exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.types import StaticAffordance
@@ -68,7 +70,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         :param verbose: If true, print messages to stdout
         """
         if verbose:
-            print("Installing {title} packages".format(title=self.title))
+            event.info("Installing {title} packages".format(title=self.title))
 
         # We need to guarantee that the metapackage is installed.
         # While the other packages should still be installed, if they
@@ -97,7 +99,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     package_list=[pkg], cleanup_on_failure=False, verbose=False
                 )
             except exceptions.UserFacingError:
-                print(
+                event.info(
                     status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
                         service=self.title, pkg=pkg
                     )
@@ -109,7 +111,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         @param operation: The operation being executed.
         """
         if util.should_reboot():
-            print(
+            event.info(
                 status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation
                 )

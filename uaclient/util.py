@@ -27,6 +27,7 @@ from typing import (
 from urllib import error, request
 from urllib.parse import urlparse
 
+from uaclient import event_logger as event
 from uaclient import exceptions, status
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
@@ -470,11 +471,11 @@ def prompt_choices(msg: str = "", valid_choices: List[str] = []) -> str:
         value, ", ".join([choice.upper() for choice in valid_choices])
     )
     while True:
-        print(msg)
+        event.info(msg)
         value = input("> ").lower()
         if value in valid_choices:
             break
-        print(error_msg)
+        event.info(error_msg)
     return value
 
 
@@ -855,7 +856,7 @@ def handle_message_operations(
     """
     for msg_op in msg_ops:
         if isinstance(msg_op, str):
-            print(msg_op)
+            event.info(msg_op)
         else:  # Then we are a callable and dict of args
             functor, args = msg_op
             if not functor(**args):
