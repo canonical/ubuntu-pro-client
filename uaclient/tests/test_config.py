@@ -1755,8 +1755,6 @@ class TestMachineTokenOverlay:
         )
 
         cfg = UAConfig(cfg=user_cfg)
-        print(expected)
-        print(cfg.machine_token)
         assert expected == cfg.machine_token
 
     @mock.patch("uaclient.config.UAConfig.read_cache")
