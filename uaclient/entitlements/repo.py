@@ -5,7 +5,9 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt, contract, exceptions, status, util
+from uaclient import apt, contract
+from uaclient import event_logger as event
+from uaclient import exceptions, status, util
 from uaclient.entitlements import base
 from uaclient.status import ApplicationStatus
 
@@ -73,7 +75,7 @@ class RepoEntitlement(base.UAEntitlement):
             if not util.handle_message_operations(msg_ops):
                 return False
             self.install_packages()
-        print(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
+        event.info(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         self._check_for_reboot_msg(operation="install")
         return True
 
@@ -214,7 +216,7 @@ class RepoEntitlement(base.UAEntitlement):
         """
 
         if verbose:
-            print("Installing {title} packages".format(title=self.title))
+            event.info("Installing {title} packages".format(title=self.title))
 
         if self.apt_noninteractive:
             env = {"DEBIAN_FRONTEND": "noninteractive"}
@@ -327,7 +329,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         if prerequisite_pkgs:
             if not silent:
-                print(
+                event.info(
                     "Installing prerequisites: {}".format(
                         ", ".join(prerequisite_pkgs)
                     )
@@ -348,7 +350,7 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
         if not silent:
-            print(status.MESSAGE_APT_UPDATING_LISTS)
+            event.info(status.MESSAGE_APT_UPDATING_LISTS)
         try:
             apt.run_apt_command(
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
@@ -398,7 +400,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         if run_apt_update:
             if not silent:
-                print(status.MESSAGE_APT_UPDATING_LISTS)
+                event.info(status.MESSAGE_APT_UPDATING_LISTS)
             apt.run_apt_command(
                 ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
             )

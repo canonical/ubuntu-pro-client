@@ -170,8 +170,6 @@ class TestESMDisableAptAuthOnly:
 
         inst = ESMAppsEntitlement(cfg)
         with mock.patch.object(ESMAppsEntitlement, "is_beta", is_beta):
-            print(is_beta, cfg_allow_beta)
-            print(inst.valid_service)
             assert disable_apt_auth_only is inst.disable_apt_auth_only
         is_lts_calls = []
         if series != "trusty":
