@@ -1,3 +1,44 @@
+ubuntu-advantage-tools (27.5~22.04.1) jammy; urgency=medium
+
+  * d/control:
+    - Update homepage URL
+  * d/rules:
+    - remove calls to enable/start the license-check timer
+    - add calls to enable/start the ua daemon
+  * d/tools.postinst:
+    - remove logic to trigger license-check
+    - purge old license-check.timer/service/path files
+  * d/tools.postrm:
+    - include the daemon log file in the list of logs to remove
+    - use common prefix to remove ua related gpg files
+  * New upstream release 27.5:
+    - aws: add support for the IPv6 metadata endpoint
+    - cis: update URL for the documentation
+    - cli:
+      + add endpoint to simulate the status using a specific contract token
+      + fix return code when attaching an already attached machine (GH: #1867)
+      + fix security-status to consider all possible origins to show updates
+      + include cloud build.info in the collect-logs tarball
+      + only show services which exist in the contracts server in ua status
+    - daemon:
+      + add ua daemon configuration and entrypoint
+      + move the GCP auto-attach job to the daemon
+    - docs:
+      + add the daemon information
+      + fix typos and wrong/outdated information
+    - livepatch: always use the full path in livepatch calls (LP: #1951954)
+    - timer: remove timer-based license-check
+    - logs:
+      + improve rules to redact sensitive information from all log files
+      + redact sensitive information from older unredacted log files
+    - tests:
+      + add integration tests for the new scenarios
+      + add manual tests for features not covered by behave
+      + add jammy integration tests
+      + check for the version reported by dpkg when testing
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Thu, 09 Dec 2021 19:49:30 -0300
+
 ubuntu-advantage-tools (27.4.2~22.04.1) jammy; urgency=medium
 
   * d/tools.postinst:
