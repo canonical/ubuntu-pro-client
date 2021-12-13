@@ -170,40 +170,6 @@ Feature: FIPS enablement in lxd VMs
 
         When I run `ua enable <fips-service> --assume-yes` with sudo
         When I reboot the `<release>` machine
-        # TODO after contract server is updated to allow livepatch on fips, remove this overlay
-        When I create the file `/tmp/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "livepatch",
-                            "affordances": {
-                                "kernelFlavors": [
-                                    "fips"
-                                ]
-                            },
-                            "series": {
-                                "bionic": {
-                                    "affordances": {
-                                        "kernelFlavors": [
-                                            "fips"
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/tmp/machine-token-overlay.json"
-        """
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
             """
@@ -235,42 +201,6 @@ Feature: FIPS enablement in lxd VMs
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Attached enable FIPS-updates while livepatch is enabled
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        # TODO after contract server is updated to allow livepatch on fips, remove this overlay
-        When I create the file `/root/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "livepatch",
-                            "affordances": {
-                                "kernelFlavors": [
-                                    "generic",
-                                    "fips"
-                                ]
-                            },
-                            "series": {
-                                "bionic": {
-                                    "affordances": {
-                                        "kernelFlavors": [
-                                            "generic",
-                                            "fips"
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/root/machine-token-overlay.json"
-        """
         When I attach `contract_token` with sudo
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
