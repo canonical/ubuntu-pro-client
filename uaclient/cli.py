@@ -25,13 +25,13 @@ from uaclient import (
     config,
     contract,
     entitlements,
+    event_logger,
     exceptions,
     jobs,
     lock,
     security,
     security_status,
 )
-from uaclient import event_logger as event
 from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
@@ -81,6 +81,8 @@ UA_SERVICES = (
     "ua-license-check.timer",
 )
 
+event = event_logger.get_event_logger()
+
 
 class UAArgumentParser(argparse.ArgumentParser):
     def __init__(
@@ -128,9 +130,13 @@ def assert_lock_file(lock_holder=None):
     def wrapper(f):
         @wraps(f)
         def new_f(*args, cfg, **kwargs):
-            with lock.SingleAttemptLock(cfg=cfg, lock_holder=lock_holder):
-                retval = f(*args, cfg=cfg, **kwargs)
-            return retval
+            try:
+                with lock.SingleAttemptLock(cfg=cfg, lock_holder=lock_holder):
+                    retval = f(*args, cfg=cfg, **kwargs)
+                return retval
+            except exceptions.LockHeldError as e:
+                event.raise_error_and_finish(exception=e)
+                return 1
 
         return new_f
 
@@ -143,8 +149,26 @@ def assert_root(f):
     @wraps(f)
     def new_f(*args, **kwargs):
         if os.getuid() != 0:
-            raise exceptions.NonRootUserError()
-        return f(*args, **kwargs)
+            event.raise_error_and_finish(
+                exception=exceptions.NonRootUserError()
+            )
+            return 1
+        else:
+            return f(*args, **kwargs)
+
+    return new_f
+
+
+def set_event_mode(f):
+    """Decorator asserting root user"""
+
+    @wraps(f)
+    def new_f(cmd_args, *args, **kwargs):
+        if cmd_args and cmd_args.format == "json":
+            event.set_event_mode(event_logger.EventLoggerMode.MACHINE_READABLE)
+        ret = f(cmd_args, *args, **kwargs)
+        event.reset()
+        return ret
 
     return new_f
 
@@ -166,7 +190,8 @@ def assert_attached(unattached_msg_tmpl=None):
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
-                raise exception
+                event.raise_error_and_finish(exception=exception)
+                return 1
             return f(args, cfg=cfg, **kwargs)
 
         return new_f
@@ -180,7 +205,7 @@ def assert_not_attached(f):
     @wraps(f)
     def new_f(args, cfg):
         if cfg.is_attached:
-            raise exceptions.AlreadyAttachedError(cfg)
+            event.raise_error(exception=exceptions.AlreadyAttachedError(cfg))
         return f(args, cfg=cfg)
 
     return new_f
@@ -498,6 +523,13 @@ def enable_parser(parser):
     )
     parser.add_argument(
         "--beta", action="store_true", help="allow beta service to be enabled"
+    )
+    parser.add_argument(
+        "--format",
+        action="store",
+        choices=["cli", "json"],
+        default="cli",
+        help=("output enable in the specified format (default: cli)"),
     )
     return parser
 
@@ -852,6 +884,7 @@ def action_disable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
+@set_event_mode
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
@@ -868,6 +901,7 @@ def action_enable(args, *, cfg, **kwargs):
         logging.debug(
             ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE, exc_info=True
         )
+        event.warning(warning_msg=ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE)
 
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
@@ -894,15 +928,22 @@ def action_enable(args, *, cfg, **kwargs):
             ):
                 if reason.message is not None:
                     event.info(reason.message)
+                    event.error(error_msg=reason.message, service=ent_name)
                 if reason.reason == ua_status.CanEnableFailureReason.IS_BETA:
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist
                     entitlements_not_found.append(ent_name)
+            elif ent_ret:
+                event.service_processed(service=ent_name)
+            elif not ent_ret and reason is None:
+                event.failed_service(service=ent_name)
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:
-            event.info(e)
+            event.raise_error(exception=e, service=ent_name)
             ret = False
+        except Exception as e:
+            event.raise_error(exception=e, service=ent_name)
 
     if entitlements_not_found:
         valid_names = ", ".join(valid_services_names)
@@ -915,13 +956,19 @@ def action_enable(args, *, cfg, **kwargs):
             )
         )
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-        raise exceptions.UserFacingError(
+        not_found_exception = exceptions.UserFacingError(
             tmpl.format(
                 operation="enable",
                 name=", ".join(entitlements_not_found),
                 service_msg=service_msg,
             )
         )
+        event.services_failed(entitlements_not_found)
+        event.raise_error(exception=not_found_exception)
+        ret = False
+
+    if args and args.format == "json":
+        print(event.process_events())
 
     return 0 if ret else 1
 
