@@ -350,6 +350,29 @@ class TestSubp:
         for log in expected_logs:
             assert log in logs
 
+    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
+    @pytest.mark.parametrize("capture", [True, False])
+    @mock.patch("uaclient.util._subp")
+    def test_log_subp_fails_stdout_stderr_capture_toggle(
+        self, m_subp, capture, caplog_text
+    ):
+        """When subp fails, capture the logs in stdout/stderr"""
+        out = "Tried downloading file"
+        err = "Network error"
+        m_subp.side_effect = util.ProcessExecutionError(
+            "Serious apt error", stdout=out, stderr=err
+        )
+        with pytest.raises(util.ProcessExecutionError):
+            util.subp(["apt", "nothing"], capture=capture)
+
+        logs = caplog_text()
+        expected_logs = ["Stderr: {}".format(err), "Stdout: {}".format(out)]
+        for log in expected_logs:
+            if capture:
+                assert log in logs
+            else:
+                assert log not in logs
+
 
 class TestParseOSRelease:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
