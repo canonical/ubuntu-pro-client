@@ -6,8 +6,7 @@ import subprocess
 import tempfile
 from typing import Dict, List, Optional
 
-from uaclient import event_logger as event
-from uaclient import exceptions, gpg, status, util
+from uaclient import event_logger, exceptions, gpg, status, util
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -27,6 +26,8 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 # resolve to apt conflict or try again.
 # Hope for an optimal first try.
 APT_RETRIES = [1.0, 5.0, 10.0]
+
+event = event_logger.get_event_logger()
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
