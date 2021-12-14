@@ -2,9 +2,7 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import apt
-from uaclient import event_logger as event
-from uaclient import exceptions, snap, status, util
+from uaclient import apt, event_logger, exceptions, snap, status, util
 from uaclient.entitlements import base
 from uaclient.status import ApplicationStatus
 from uaclient.types import StaticAffordance
@@ -19,6 +17,8 @@ ERROR_MSG_MAP = {
 }
 
 LIVEPATCH_CMD = "/snap/bin/canonical-livepatch"
+
+event = event_logger.get_event_logger()
 
 
 def unconfigure_livepatch_proxy(

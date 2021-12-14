@@ -278,6 +278,12 @@ MESSAGE_MISSING_APT_URL_DIRECTIVE = """\
 Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 MESSAGE_NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
 MESSAGE_LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
+MESSAGE_LOCK_HELD_ERROR = (
+    """\
+Unable to perform: {lock_request}.
+"""
+    + MESSAGE_LOCK_HELD
+)
 PROMPT_YES_NO = """Are you sure? (y/N) """
 MESSAGE_REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"

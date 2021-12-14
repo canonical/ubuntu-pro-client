@@ -4,12 +4,12 @@ import re
 from itertools import groupby
 from typing import Callable, Dict, List, Tuple, Union
 
-from uaclient import apt
-from uaclient import event_logger as event
-from uaclient import exceptions, status, util
+from uaclient import apt, event_logger, exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.types import StaticAffordance
+
+event = event_logger.get_event_logger()
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
@@ -110,7 +110,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         @param operation: The operation being executed.
         """
-        if util.should_reboot():
+        reboot_required = util.should_reboot()
+        event.needs_reboot(reboot_required)
+        if reboot_required:
             event.info(
                 status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation

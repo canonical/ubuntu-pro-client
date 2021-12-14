@@ -538,3 +538,29 @@ Feature: Command behaviour when unattached
           | hirsute |
           | impish  |
           | jammy   |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Unattached enable fails in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        Then I will see the following on stderr:
+          """
+          To use 'esm-infra' you need an Ubuntu Advantage subscription
+          Personal and community subscriptions are available at no charge
+          See https://ubuntu.com/advantage
+          """
+        When I verify that running `ua enable esm-infra --format json` `with sudo` exits `1`
+        Then I will see the following on stdout:
+          """
+          {"_schema_version": 0.1, "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          """
+        
+        Examples: ubuntu release
+          | release |
+          | xenial  |
+          | bionic  |
+          | focal   |
+          | hirsute |
+          | impish  |
+          | jammy   |
