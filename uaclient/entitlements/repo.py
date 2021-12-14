@@ -5,13 +5,13 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt, contract
-from uaclient import event_logger as event
-from uaclient import exceptions, status, util
+from uaclient import apt, contract, event_logger, exceptions, status, util
 from uaclient.entitlements import base
 from uaclient.status import ApplicationStatus
 
 APT_DISABLED_PIN = "-32768"
+
+event = event_logger.get_event_logger()
 
 
 class RepoEntitlement(base.UAEntitlement):
@@ -56,7 +56,9 @@ class RepoEntitlement(base.UAEntitlement):
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
-        return util.should_reboot(installed_pkgs=set(self.packages))
+        reboot_required = util.should_reboot(installed_pkgs=set(self.packages))
+        event.needs_reboot(reboot_required)
+        return reboot_required
 
     @property
     @abc.abstractmethod

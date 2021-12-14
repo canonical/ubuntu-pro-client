@@ -1,14 +1,14 @@
 import logging
 from typing import List, Optional
 
-from uaclient import apt
-from uaclient import event_logger as event
-from uaclient import status, util
+from uaclient import apt, event_logger, status, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
 HTTP_PROXY_OPTION = "proxy.http"
 HTTPS_PROXY_OPTION = "proxy.https"
+
+event = event_logger.get_event_logger()
 
 
 def is_installed() -> bool:

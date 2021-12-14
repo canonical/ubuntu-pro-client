@@ -10,9 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
-from uaclient import apt
-from uaclient import event_logger as event
-from uaclient import exceptions, snap, status, util, version
+from uaclient import apt, event_logger, exceptions, snap, status, util, version
 from uaclient.defaults import (
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
@@ -85,11 +83,12 @@ VALID_UA_CONFIG_KEYS = (
     "ua_config",
 )
 
-
 # A data path is a filename, an attribute ("private") indicating whether it
 # should only be readable by root, and an attribute ("permanent") indicating
 # whether it should stick around even when detached.
 DataPath = namedtuple("DataPath", ("filename", "private", "permanent"))
+
+event = event_logger.get_event_logger()
 
 
 class UAConfig:

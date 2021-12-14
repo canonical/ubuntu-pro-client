@@ -27,8 +27,7 @@ from typing import (
 from urllib import error, request
 from urllib.parse import urlparse
 
-from uaclient import event_logger as event
-from uaclient import exceptions, status
+from uaclient import event_logger, exceptions, status
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -44,6 +43,8 @@ PROXY_VALIDATION_APT_HTTP_URL = "http://archive.ubuntu.com"
 PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
 PROXY_VALIDATION_SNAP_HTTPS_URL = "https://api.snapcraft.io"
+
+event = event_logger.get_event_logger()
 
 
 class LogFormatter(logging.Formatter):

@@ -6,6 +6,7 @@ from typing import Any, Dict
 import mock
 import pytest
 
+from uaclient import event_logger
 from uaclient.config import UAConfig
 
 # We are doing this because we are sure that python3-apt comes with the distro,
@@ -126,3 +127,11 @@ def FakeConfig(tmpdir):
                 self.cfg.update({"features": features_override})
 
     return _FakeConfig
+
+
+@pytest.fixture
+def event():
+    event = event_logger.get_event_logger()
+    event.reset()
+
+    return event
