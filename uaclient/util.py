@@ -679,6 +679,8 @@ def subp(
         except ProcessExecutionError as e:
             if capture:
                 logging.debug(redact_sensitive_logs(str(e)))
+                msg = "Stderr: {}\nStdout: {}".format(e.stderr, e.stdout)
+                logging.warning(redact_sensitive_logs(msg))
             if not retry_sleeps:
                 raise
             retry_msg = " Retrying %d more times." % len(retry_sleeps)
