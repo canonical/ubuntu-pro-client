@@ -38,42 +38,19 @@ BIG_URL = "http://" + "adsf" * 10
 ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
- - cc-eal: Common Criteria EAL2 Provisioning Packages
-   (https://ubuntu.com/cc-eal)
- - cis: Center for Internet Security Audit Tools
-   (https://ubuntu.com/security/certifications#cis)
- - esm-apps: UA Apps: Extended Security Maintenance (ESM)
-   (https://ubuntu.com/security/esm)
- - esm-infra: UA Infra: Extended Security Maintenance (ESM)
-   (https://ubuntu.com/security/esm)
- - fips-updates: NIST-certified core packages with priority security updates
-   (https://ubuntu.com/security/certifications#fips)
- - fips: NIST-certified core packages
-   (https://ubuntu.com/security/certifications#fips)
- - livepatch: Canonical Livepatch service
-   (https://ubuntu.com/security/livepatch)
- - ros-updates: All Updates for the Robot Operating System
-   (https://ubuntu.com/robotics/ros-esm)
- - ros: Security Updates for the Robot Operating System
-   (https://ubuntu.com/robotics/ros-esm)
+ - a-service: A service which does a thing (http://help.for.a.service)
+ - beta-service: Beta service which is beta (http://help.for.beta.service)
+ - some-service: Some service which does something
+   (http://help.for.some.service)
 """
 )
 
 SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
- - cc-eal: Common Criteria EAL2 Provisioning Packages
-   (https://ubuntu.com/cc-eal)
- - cis: Center for Internet Security Audit Tools
-   (https://ubuntu.com/security/certifications#cis)
- - esm-infra: UA Infra: Extended Security Maintenance (ESM)
-   (https://ubuntu.com/security/esm)
- - fips-updates: NIST-certified core packages with priority security updates
-   (https://ubuntu.com/security/certifications#fips)
- - fips: NIST-certified core packages
-   (https://ubuntu.com/security/certifications#fips)
- - livepatch: Canonical Livepatch service
-   (https://ubuntu.com/security/livepatch)
+ - a-service: A service which does a thing (http://help.for.a.service)
+ - some-service: Some service which does something
+   (http://help.for.some.service)
 """
 )
 
@@ -140,7 +117,31 @@ class TestCLIParser:
 
     def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
         """Help output is sourced from entitlement name and description."""
-        out, type_request = get_help()
+        some_service = mock.MagicMock()
+        some_service.is_beta = False
+        some_service.help_doc_url = "http://help.for.some.service"
+        some_service.description = "Some service which does something"
+
+        a_service = mock.MagicMock()
+        a_service.is_beta = False
+        a_service.help_doc_url = "http://help.for.a.service"
+        a_service.description = "A service which does a thing"
+
+        beta_service = mock.MagicMock()
+        beta_service.is_beta = True
+        beta_service.help_doc_url = "http://help.for.beta.service"
+        beta_service.description = "Beta service which is beta"
+
+        m_ent_classes = {
+            "some-service": some_service,
+            "a-service": a_service,
+            "beta-service": beta_service,
+        }
+
+        with mock.patch(
+            "uaclient.entitlements.ENTITLEMENT_CLASS_BY_NAME", m_ent_classes
+        ):
+            out, type_request = get_help()
 
         if type_request == "base":
             assert SERVICES_WRAPPED_HELP in out

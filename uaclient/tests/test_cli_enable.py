@@ -16,7 +16,7 @@ Enable an Ubuntu Advantage service.
 
 Arguments:
   service       the name(s) of the Ubuntu Advantage services to enable. One
-                of: cc-eal, cis, esm-infra, fips, fips-updates, livepatch
+                of: cc-eal, esm-infra, fips, fips-updates, livepatch, usg
 
 Flags:
   -h, --help    show this help message and exit
@@ -29,12 +29,38 @@ Flags:
 @mock.patch("uaclient.cli.os.getuid")
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
-    def test_enable_help(self, _getuid, _request_updated_contract, capsys):
+    @pytest.mark.parametrize("has_usg", (False, True))
+    @mock.patch("uaclient.entitlements.valid_services")
+    def test_enable_help(
+        self,
+        m_valid_services,
+        _getuid,
+        _request_updated_contract,
+        has_usg,
+        capsys,
+    ):
+        valid_services = [
+            "cc-eal",
+            "cis",
+            "esm-infra",
+            "fips",
+            "fips-updates",
+            "livepatch",
+        ]
+        if has_usg:
+            valid_services.remove("cis")
+            valid_services.append("usg")
+        m_valid_services.return_value = valid_services
+
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
                 main()
         out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
+        if has_usg:
+            assert HELP_OUTPUT == out
+        else:
+            assert "cc-eal, cis, esm-infra" in out
+            assert "livepatch, usg" not in out
 
     def test_non_root_users_are_rejected(
         self, _request_updated_contract, getuid, FakeConfig

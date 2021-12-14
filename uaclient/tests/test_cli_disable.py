@@ -23,7 +23,7 @@ Disable an Ubuntu Advantage service.
 
 Arguments:
   service       the name(s) of the Ubuntu Advantage services to disable One
-                of: cc-eal, cis, esm-infra, fips, fips-updates, livepatch
+                of: cc-eal, esm-infra, fips, fips-updates, livepatch, usg
 
 Flags:
   -h, --help    show this help message and exit
@@ -34,12 +34,32 @@ Flags:
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 class TestDisable:
-    def test_disable_help(self, _getuid, capsys):
+    @pytest.mark.parametrize("has_usg", (False, True))
+    @mock.patch("uaclient.entitlements.valid_services")
+    def test_disable_help(self, m_valid_services, _getuid, has_usg, capsys):
+        valid_services = [
+            "cc-eal",
+            "cis",
+            "esm-infra",
+            "fips",
+            "fips-updates",
+            "livepatch",
+        ]
+        if has_usg:
+            valid_services.remove("cis")
+            valid_services.append("usg")
+        m_valid_services.return_value = valid_services
+
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "disable", "--help"]):
                 main()
         out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
+
+        if has_usg:
+            assert HELP_OUTPUT == out
+        else:
+            assert "cc-eal, cis, esm-infra" in out
+            assert "livepatch, usg" not in out
 
     @pytest.mark.parametrize("service", [["testitlement"], ["ent1", "ent2"]])
     @pytest.mark.parametrize("assume_yes", (True, False))

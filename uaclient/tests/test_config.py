@@ -895,6 +895,8 @@ class TestStatus:
             for cls in entitlements.ENTITLEMENT_CLASSES
             if not self.check_beta(cls, show_beta, cfg)
         ]
+        expected_services.sort(key=lambda x: x["name"])
+
         expected = copy.deepcopy(DEFAULT_STATUS)
         expected.update(
             {
@@ -1165,6 +1167,8 @@ class TestStatus:
                     "available": mock.ANY,
                 }
             )
+            expected["services"].sort(key=lambda x: x["name"])
+
         with mock.patch(
             "uaclient.config.UAConfig._get_config_status"
         ) as m_get_cfg_status:

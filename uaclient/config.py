@@ -357,7 +357,12 @@ class UAConfig:
                     entitlement_name
                 ]
             util.apply_series_overrides(entitlement_cfg, self.series)
-            self._entitlements[entitlement_name] = entitlement_cfg
+            presented_name = (
+                entitlement_cfg["entitlement"]
+                .get("affordances", {})
+                .get("presentAs", entitlement_name)
+            )
+            self._entitlements[presented_name] = entitlement_cfg
         return self._entitlements
 
     @property

@@ -4,7 +4,7 @@ from uaclient.config import UAConfig
 from uaclient.entitlements import fips
 from uaclient.entitlements.base import UAEntitlement  # noqa: F401
 from uaclient.entitlements.cc import CommonCriteriaEntitlement
-from uaclient.entitlements.cis import CISEntitlement
+from uaclient.entitlements.cis import get_cis_usg_entitlement
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
@@ -12,7 +12,6 @@ from uaclient.util import is_config_value_true
 
 ENTITLEMENT_CLASSES = [
     CommonCriteriaEntitlement,
-    CISEntitlement,
     ESMAppsEntitlement,
     ESMInfraEntitlement,
     fips.FIPSEntitlement,
@@ -20,6 +19,7 @@ ENTITLEMENT_CLASSES = [
     LivepatchEntitlement,
     ROSEntitlement,
     ROSUpdatesEntitlement,
+    get_cis_usg_entitlement(),
 ]  # type: List[Type[UAEntitlement]]
 
 

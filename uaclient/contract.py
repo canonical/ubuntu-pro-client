@@ -78,6 +78,10 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token, _headers = self.request_url(
             API_V1_CONTEXT_MACHINE_TOKEN, data=data, headers=headers
         )
+
+        resources = machine_token.get("availableResources", [])
+        _check_for_present_as_in_resources(resources)
+
         self.cfg.write_cache("machine-token", machine_token)
 
         util.get_machine_id.cache_clear()
@@ -272,6 +276,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         if headers.get("expires"):
             response["expires"] = headers["expires"]
         if not detach:
+            resources = response.get("availableResources", [])
+            _check_for_present_as_in_resources(resources)
             self.cfg.write_cache("machine-token", response)
             util.get_machine_id.cache_clear()
             machine_id = response.get("machineTokenInfo", {}).get(
@@ -425,6 +431,15 @@ def _create_attach_forbidden_message(e: ContractAPIError) -> str:
     return msg
 
 
+def _check_for_present_as_in_resources(
+    resources: List[Dict[str, Any]]
+) -> None:
+    """Change resource name if it should be presented differently."""
+    for resource in resources:
+        if resource.get("presentAs"):
+            resource["name"] = resource["presentAs"]
+
+
 def request_updated_contract(
     cfg, contract_token: Optional[str] = None, allow_enable=False
 ):
@@ -483,8 +498,10 @@ def request_updated_contract(
 def get_available_resources(cfg) -> List[Dict]:
     """Query available resources from the contract server for this machine."""
     client = UAContractClient(cfg)
-    resources = client.request_resources()
-    return resources.get("resources", [])
+    response = client.request_resources()
+    resources = response.get("resources", [])
+    _check_for_present_as_in_resources(resources)
+    return resources
 
 
 def get_contract_information(cfg, token: str) -> Dict[str, Any]:
