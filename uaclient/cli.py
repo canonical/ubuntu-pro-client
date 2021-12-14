@@ -1440,7 +1440,7 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
         # Setup readable-by-root-only debug file logging if running as root
         log_file_path = pathlib.Path(log_file)
         log_file_path.touch()
-        log_file_path.chmod(0o600)
+        log_file_path.chmod(0o644)
 
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(log_level)
