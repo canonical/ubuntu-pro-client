@@ -356,6 +356,18 @@ remove_old_systemd_timers() {
         deb-systemd-helper unmask ua-messaging.timer > /dev/null || true
     fi
     if [ -L $OLD_LICENSE_CHECK_PATH_MASKED_LOCATION ]; then
+        if [ -d /run/systemd/system ]; then
+            # If the old ua-license-check.timer was running during upgrade
+            # then it will be in a failed state because the files were removed
+            # The failed state is ephemeral and only needs to be cleared if
+            # it is there so that the system doesn't say it is degraded.
+            # If the old timer was not running, then this is a noop.
+            systemctl --system daemon-reload > /dev/null || true
+            systemctl reset-failed ua-license-check.timer > /dev/null 2>&1 || true
+            # In rare race-condition scenarios, the service can also get into
+            # the same failed state.
+            systemctl reset-failed ua-license-check.service > /dev/null 2>&1 || true
+        fi
         deb-systemd-helper purge ua-license-check.path > /dev/null || true
         deb-systemd-helper unmask ua-license-check.path > /dev/null || true
     fi

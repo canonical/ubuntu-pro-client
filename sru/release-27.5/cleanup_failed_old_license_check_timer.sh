@@ -38,20 +38,20 @@ sleep 10
 lxc exec test -- apt-get update >/dev/null
 lxc exec test -- apt-get install -y ubuntu-advantage-tools locate >/dev/null
 print_and_run_cmd "ua version"
-explanatory_message "Note where all license-check artifacts are before upgrade"
-print_and_run_cmd "updatedb"
-print_and_run_cmd "locate ua-license-check"
+explanatory_message "Start the timer to make sure its state is fixed on upgrade"
+print_and_run_cmd "systemctl start ua-license-check.timer"
+print_and_run_cmd "systemctl status ua-license-check.timer"
 
 explanatory_message "installing new version of ubuntu-advantage-tools from local copy"
 lxc file push $deb test/tmp/ua.deb > /dev/null
 print_and_run_cmd "dpkg -i /tmp/ua.deb"
 print_and_run_cmd "ua version"
 
-explanatory_message "license-check artifacts should be gone"
-print_and_run_cmd "updatedb"
-print_and_run_cmd "locate ua-license-check || true"
-result=$(lxc exec test -- locate ua-license-check || true)
-test -z "$result"
+explanatory_message "systemd should not list the timer as failed"
+print_and_run_cmd "systemctl status ua-license-check.timer || true"
+print_and_run_cmd "systemctl --no-pager | grep ua-license-check || true"
+result=$(lxc exec test -- sh -c "systemctl --no-pager | grep ua-license-check.timer" || true)
+echo "$result" | grep -qv "ua-license-check.timer\s\+not-found\s\+failed"
 
 echo -e "${GREEN}Test Passed${END_COLOR}"
 cleanup
