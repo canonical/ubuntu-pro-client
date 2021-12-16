@@ -50,8 +50,9 @@ class TestMainConfigSet:
             ),
         ),
     )
+    @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_set_error_with_help_on_invalid_key_value_pair(
-        self, _logging, _getuid, kv_pair, err_msg, capsys
+        self, _m_resources, _logging, _getuid, kv_pair, err_msg, capsys
     ):
         """Exit 1 and print help on invalid key_value_pair input param."""
         with pytest.raises(SystemExit):
@@ -66,8 +67,11 @@ class TestMainConfigSet:
 
 @mock.patch("uaclient.config.UAConfig.write_cfg")
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
+@mock.patch("uaclient.cli.contract.get_available_resources")
 class TestActionConfigSet:
-    def test_set_error_on_non_root_user(self, getuid, _write_cfg, FakeConfig):
+    def test_set_error_on_non_root_user(
+        self, _m_resources, getuid, _write_cfg, FakeConfig
+    ):
         """Root is required to run ua config set."""
         getuid.return_value = 1
         args = mock.MagicMock(key_value_pair="something=1")
@@ -94,6 +98,7 @@ class TestActionConfigSet:
         configure_snap_proxy,
         livepatch_status,
         configure_livepatch_proxy,
+        _m_resources,
         _getuid,
         _write_cfg,
         key,
@@ -147,6 +152,7 @@ class TestActionConfigSet:
         self,
         validate_proxy,
         setup_apt_proxy,
+        _m_resources,
         _getuid,
         _write_cfg,
         key,
@@ -169,7 +175,9 @@ class TestActionConfigSet:
             mock.call(proxy_type.replace("_proxy", ""), value, url)
         ] == validate_proxy.call_args_list
 
-    def test_set_timer_interval(self, _getuid, _write_cfg, FakeConfig):
+    def test_set_timer_interval(
+        self, _m_resources, _getuid, _write_cfg, FakeConfig
+    ):
         args = mock.MagicMock(key_value_pair="update_messaging_timer=28800")
         cfg = FakeConfig()
         action_config_set(args, cfg=cfg)
@@ -177,7 +185,7 @@ class TestActionConfigSet:
 
     @pytest.mark.parametrize("invalid_value", ("notanumber", -1))
     def test_error_when_interval_is_not_valid(
-        self, _getuid, _write_cfg, FakeConfig, invalid_value
+        self, _m_resources, _getuid, _write_cfg, FakeConfig, invalid_value
     ):
         args = mock.MagicMock(
             key_value_pair="update_messaging_timer={}".format(invalid_value)

@@ -237,26 +237,27 @@ class TestActionAttach:
         assert [mock.call(cfg)] == update_ua_messages.call_args_list
 
 
+@mock.patch(M_PATH + "contract.get_available_resources")
 class TestParser:
-    def test_attach_parser_usage(self):
+    def test_attach_parser_usage(self, _m_resources):
         parser = attach_parser(mock.Mock())
         assert "ua attach <token> [flags]" == parser.usage
 
-    def test_attach_parser_prog(self):
+    def test_attach_parser_prog(self, _m_resources):
         parser = attach_parser(mock.Mock())
         assert "attach" == parser.prog
 
-    def test_attach_parser_optionals_title(self):
+    def test_attach_parser_optionals_title(self, _m_resources):
         parser = attach_parser(mock.Mock())
         assert "Flags" == parser._optionals.title
 
-    def test_attach_parser_stores_token(self):
+    def test_attach_parser_stores_token(self, _m_resources):
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "attach", "token"]):
             args = full_parser.parse_args()
         assert "token" == args.token
 
-    def test_attach_parser_allows_empty_required_token(self):
+    def test_attach_parser_allows_empty_required_token(self, _m_resources):
         """Token required but parse_args allows none due to action_attach"""
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "attach"]):
@@ -264,7 +265,7 @@ class TestParser:
         assert None is args.token
 
     def test_attach_parser_help_points_to_ua_contract_dashboard_url(
-        self, capsys
+        self, _m_resources, capsys
     ):
         """Contracts' dashboard URL is referenced by ua attach --help."""
         full_parser = get_parser()
@@ -273,7 +274,9 @@ class TestParser:
                 full_parser.parse_args()
         assert UA_AUTH_TOKEN_URL in capsys.readouterr()[0]
 
-    def test_attach_parser_accepts_and_stores_no_auto_enable(self):
+    def test_attach_parser_accepts_and_stores_no_auto_enable(
+        self, _m_resources
+    ):
         full_parser = get_parser()
         with mock.patch(
             "sys.argv", ["ua", "attach", "--no-auto-enable", "token"]
@@ -281,7 +284,7 @@ class TestParser:
             args = full_parser.parse_args()
         assert not args.auto_enable
 
-    def test_attach_parser_defaults_to_auto_enable(self):
+    def test_attach_parser_defaults_to_auto_enable(self, _m_resources):
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "attach", "token"]):
             args = full_parser.parse_args()

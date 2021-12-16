@@ -76,7 +76,7 @@ class TestWriteAPTAndMOTDTemplates:
             (True, ContractExpiryStatus.ACTIVE_EXPIRED_SOON, True, False),
         ),
     )
-    @mock.patch(M_PATH + "entitlements")
+    @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_write_esm_service_msg_templates")
     @mock.patch(M_PATH + "util.is_active_esm")
     @mock.patch(M_PATH + "get_contract_expiry_status")
@@ -85,7 +85,7 @@ class TestWriteAPTAndMOTDTemplates:
         get_contract_expiry_status,
         util_is_active_esm,
         write_esm_service_templates,
-        entitlements,
+        m_entitlement_factory,
         is_active_esm,
         contract_expiry_status,
         infra_enabled,
@@ -100,10 +100,16 @@ class TestWriteAPTAndMOTDTemplates:
         infra_cls = mock.MagicMock()
         infra_obj = infra_cls.return_value
         infra_obj.application_status.return_value = (infra_status, "")
-        entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "esm-apps": mock.MagicMock(),
-            "esm-infra": infra_cls,
-        }
+        infra_obj.name = "esm-infra"
+
+        def factory_side_effect(name):
+            if name == "esm-infra":
+                return infra_cls
+            if name == "esm-apps":
+                return mock.MagicMock()
+
+        m_entitlement_factory.side_effect = factory_side_effect
+
         get_contract_expiry_status.return_value = (
             contract_expiry_status,
             -12355,  # unused in this test
@@ -143,7 +149,7 @@ class TestWriteAPTAndMOTDTemplates:
             ("xenial", True, 21, True, False, None, False, True),
         ),
     )
-    @mock.patch(M_PATH + "entitlements")
+    @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "_remove_msg_templates")
     @mock.patch(M_PATH + "_write_esm_service_msg_templates")
     @mock.patch(M_PATH + "util.is_active_esm")
@@ -154,7 +160,7 @@ class TestWriteAPTAndMOTDTemplates:
         util_is_active_esm,
         write_esm_service_templates,
         remove_msg_templates,
-        entitlements,
+        m_entitlement_factory,
         series,
         is_active_esm,
         contract_days,
@@ -182,15 +188,20 @@ class TestWriteAPTAndMOTDTemplates:
         infra_cls = mock.MagicMock()
         infra_obj = infra_cls.return_value
         infra_obj.application_status.return_value = (infra_status, "")
-        type(infra_obj).name = mock.PropertyMock(return_value="esm-infra")
+        infra_obj.name = "esm-infra"
         apps_cls = mock.MagicMock()
-        type(apps_cls).is_beta = esm_apps_beta
+        apps_cls.is_beta = esm_apps_beta
         apps_obj = apps_cls.return_value
-        type(apps_obj).name = mock.PropertyMock(return_value="esm-apps")
-        entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "esm-apps": apps_cls,
-            "esm-infra": infra_cls,
-        }
+        apps_obj.name = "esm-apps"
+
+        def factory_side_effect(name):
+            if name == "esm-infra":
+                return infra_cls
+            if name == "esm-apps":
+                return apps_cls
+
+        m_entitlement_factory.side_effect = factory_side_effect
+
         cfg = FakeConfig.for_attached_machine()
         os.makedirs(os.path.join(cfg.data_dir, "messages"))
         if cfg_allow_beta:
@@ -575,14 +586,14 @@ class TestWriteESMAnnouncementMessage:
     @mock.patch(
         M_PATH + "entitlements.repo.RepoEntitlement.application_status"
     )
-    @mock.patch(M_PATH + "entitlements")
+    @mock.patch(M_PATH + "entitlements.entitlement_factory")
     @mock.patch(M_PATH + "util.is_active_esm")
     @mock.patch(M_PATH + "util.get_platform_info")
     def test_message_based_on_beta_status_and_count_until_active_esm(
         self,
         get_platform_info,
         util_is_active_esm,
-        entitlements,
+        m_entitlement_factory,
         esm_application_status,
         series,
         release,
@@ -605,7 +616,7 @@ class TestWriteESMAnnouncementMessage:
             cfg.override_features({"allow_beta": cfg_allow_beta})
 
         m_entitlement_cls = mock.MagicMock()
-        type(m_entitlement_cls).is_beta = is_beta
+        m_entitlement_cls.is_beta = is_beta
         m_ent_obj = m_entitlement_cls.return_value
         if apps_enabled:
             status_return = ApplicationStatus.ENABLED, ""
@@ -613,10 +624,8 @@ class TestWriteESMAnnouncementMessage:
             status_return = ApplicationStatus.DISABLED, ""
         m_ent_obj.application_status.return_value = status_return
 
-        type(m_entitlement_cls).is_beta = is_beta
-        entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "esm-apps": m_entitlement_cls
-        }
+        m_entitlement_factory.return_value = m_entitlement_cls
+
         write_esm_announcement_message(cfg, series)
         if expected is None:
             assert False is os.path.exists(esm_news_path)

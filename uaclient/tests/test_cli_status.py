@@ -402,7 +402,7 @@ class TestActionStatus:
             {
                 "UA_DATA_DIR": "data_dir",
                 "UA_TEST": "test",
-                "UA_FEATURES_ALLOW_BETA": True,
+                "UA_FEATURES_ALLOW_BETA": "true",
                 "UA_CONFIG_FILE": "config_file",
             },
         ),
@@ -435,7 +435,7 @@ class TestActionStatus:
             expected_environment = [
                 {"name": "UA_CONFIG_FILE", "value": "config_file"},
                 {"name": "UA_DATA_DIR", "value": "data_dir"},
-                {"name": "UA_FEATURES_ALLOW_BETA", "value": True},
+                {"name": "UA_FEATURES_ALLOW_BETA", "value": "true"},
             ]
 
         expected_services = [
@@ -500,7 +500,7 @@ class TestActionStatus:
             {
                 "UA_DATA_DIR": "data_dir",
                 "UA_TEST": "test",
-                "UA_FEATURES_ALLOW_BETA": True,
+                "UA_FEATURES_ALLOW_BETA": "true",
                 "UA_CONFIG_FILE": "config_file",
             },
         ),
@@ -534,7 +534,7 @@ class TestActionStatus:
             expected_environment = [
                 {"name": "UA_CONFIG_FILE", "value": "config_file"},
                 {"name": "UA_DATA_DIR", "value": "data_dir"},
-                {"name": "UA_FEATURES_ALLOW_BETA", "value": True},
+                {"name": "UA_FEATURES_ALLOW_BETA", "value": "true"},
             ]
 
         if use_all:
@@ -813,7 +813,8 @@ class TestActionStatus:
 
 
 class TestStatusParser:
-    def test_status_parser_updates_parser_config(self):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_status_parser_updates_parser_config(self, _m_resources):
         """Update the parser configuration for 'status'."""
         m_parser = status_parser(mock.Mock())
         assert "status" == m_parser.prog

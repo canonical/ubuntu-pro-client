@@ -282,14 +282,16 @@ class TestParser:
         parser = detach_parser(mock.Mock())
         assert "Flags" == parser._optionals.title
 
-    def test_detach_parser_accepts_and_stores_assume_yes(self):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_detach_parser_accepts_and_stores_assume_yes(self, _m_resources):
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "detach", "--assume-yes"]):
             args = full_parser.parse_args()
 
         assert args.assume_yes
 
-    def test_detach_parser_defaults_to_not_assume_yes(self):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_detach_parser_defaults_to_not_assume_yes(self, _m_resources):
         full_parser = get_parser()
         with mock.patch("sys.argv", ["ua", "detach"]):
             args = full_parser.parse_args()

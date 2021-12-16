@@ -34,14 +34,25 @@ from uaclient.exceptions import (
 BIG_DESC = "123456789 " * 7 + "next line"
 BIG_URL = "http://" + "adsf" * 10
 
+AVAILABLE_RESOURCES = [
+    {"name": "cc-eal"},
+    {"name": "cis"},
+    {"name": "esm-apps"},
+    {"name": "esm-infra"},
+    {"name": "fips-updates"},
+    {"name": "fips"},
+    {"name": "livepatch"},
+    {"name": "ros-updates"},
+    {"name": "ros"},
+]
 
 ALL_SERVICES_WRAPPED_HELP = textwrap.dedent(
     """
 Client to manage Ubuntu Advantage services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
- - cis: Center for Internet Security Audit Tools
-   (https://ubuntu.com/security/certifications#cis)
+ - cis: Security compliance and audit tools
+   (https://ubuntu.com/security/certifications/docs/usg)
  - esm-apps: UA Apps: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
  - esm-infra: UA Infra: Extended Security Maintenance (ESM)
@@ -64,8 +75,8 @@ SERVICES_WRAPPED_HELP = textwrap.dedent(
 Client to manage Ubuntu Advantage services on a machine.
  - cc-eal: Common Criteria EAL2 Provisioning Packages
    (https://ubuntu.com/cc-eal)
- - cis: Center for Internet Security Audit Tools
-   (https://ubuntu.com/security/certifications#cis)
+ - cis: Security compliance and audit tools
+   (https://ubuntu.com/security/certifications/docs/usg)
  - esm-infra: UA Infra: Extended Security Maintenance (ESM)
    (https://ubuntu.com/security/esm)
  - fips-updates: NIST-certified core packages with priority security updates
@@ -119,17 +130,21 @@ class TestCLIParser:
     maxDiff = None
 
     @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.cli.contract")
     def test_help_descr_and_url_is_wrapped_at_eighty_chars(
-        self, m_entitlements, get_help
+        self, m_contract, m_entitlements, get_help
     ):
         """Help lines are wrapped at 80 chars"""
 
-        def cls_mock_factory(desc, url):
-            return mock.Mock(description=desc, help_doc_url=url, is_beta=False)
+        mocked_ent = mock.MagicMock(
+            presentation_name="test",
+            description=BIG_DESC,
+            help_doc_url=BIG_URL,
+            is_beta=False,
+        )
 
-        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "test": cls_mock_factory(BIG_DESC, BIG_URL)
-        }
+        m_entitlements.entitlement_factory.return_value = mocked_ent
+        m_contract.get_available_resources.return_value = [{"name": "test"}]
 
         lines = [
             " - test: " + " ".join(["123456789"] * 7),
@@ -138,10 +153,13 @@ class TestCLIParser:
         out, _ = get_help()
         assert "\n".join(lines) in out
 
-    def test_help_sourced_dynamically_from_each_entitlement(self, get_help):
+    @mock.patch("uaclient.cli.contract")
+    def test_help_sourced_dynamically_from_each_entitlement(
+        self, m_contract, get_help
+    ):
         """Help output is sourced from entitlement name and description."""
+        m_contract.get_available_resources.return_value = AVAILABLE_RESOURCES
         out, type_request = get_help()
-
         if type_request == "base":
             assert SERVICES_WRAPPED_HELP in out
         else:
@@ -167,8 +185,6 @@ class TestCLIParser:
         self, m_attached, m_available_resources, out_format, expected_return
     ):
         """Test help command for a valid service in an unnatached ua client."""
-        import uaclient.entitlements as ent
-
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
@@ -189,8 +205,9 @@ class TestCLIParser:
         ]
 
         fake_stdout = io.StringIO()
-        with mock.patch.object(
-            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)
@@ -222,8 +239,6 @@ class TestCLIParser:
         self, m_attached, m_available_resources, ent_status, ent_msg, is_beta
     ):
         """Test help command for a valid service in an attached ua client."""
-        import uaclient.entitlements as ent
-
         m_args = mock.MagicMock()
         m_service_name = mock.PropertyMock(return_value="test")
         type(m_args).service = m_service_name
@@ -256,7 +271,7 @@ class TestCLIParser:
 
         status_msg = "enabled" if ent_msg == "yes" else "—"
         ufs_call_count = 1 if ent_msg == "yes" else 0
-        ent_name_call_count = 3 if ent_msg == "yes" else 2
+        ent_name_call_count = 2 if ent_msg == "yes" else 1
         is_beta_call_count = 1 if status_msg == "enabled" else 0
 
         expected_msgs = [
@@ -275,8 +290,9 @@ class TestCLIParser:
         expected_msg = "\n\n".join(expected_msgs)
 
         fake_stdout = io.StringIO()
-        with mock.patch.object(
-            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
                 action_help(m_args, cfg=None)
@@ -653,7 +669,8 @@ class TestMain:
         assert "UA_FEATURES_WOW=XYZ" in log
         assert "NOT_UA_ENV=YES" not in log
 
-    def test_argparse_errors_well_formatted(self, capsys):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_argparse_errors_well_formatted(self, _m_resources, capsys):
         parser = get_parser()
         with mock.patch("sys.argv", ["ua", "enable"]):
             with pytest.raises(SystemExit) as excinfo:
@@ -834,14 +851,11 @@ class TestSetupLogging:
 
 
 class TestGetValidEntitlementNames:
-    @mock.patch("uaclient.cli.entitlements")
-    def test_get_valid_entitlements(self, m_entitlements):
-        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {
-            "ent1": True,
-            "ent2": True,
-            "ent3": True,
-        }
-
+    @mock.patch(
+        "uaclient.cli.entitlements.valid_services",
+        return_value=["ent1", "ent2", "ent3"],
+    )
+    def test_get_valid_entitlements(self, _m_valid_services):
         service = ["ent1", "ent3", "ent4"]
         expected_ents_found = ["ent1", "ent3"]
         expected_ents_not_found = ["ent4"]

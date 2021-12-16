@@ -29,7 +29,10 @@ Flags:
 @mock.patch("uaclient.cli.os.getuid")
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
-    def test_enable_help(self, _getuid, _request_updated_contract, capsys):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_enable_help(
+        self, _m_resources, _getuid, _request_updated_contract, capsys
+    ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
                 main()
@@ -147,8 +150,7 @@ class TestActionEnable:
         m_getuid.return_value = 0
 
         m_entitlement_cls = mock.MagicMock()
-        m_ents_dict = {"testitlement": m_entitlement_cls}
-        m_valid_services.return_value = list(m_ents_dict.keys())
+        m_valid_services.return_value = ["testitlement"]
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (True, None)
 
@@ -158,18 +160,28 @@ class TestActionEnable:
         args.assume_yes = assume_yes
         args.beta = False
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             action_enable(args, cfg)
 
         assert [
-            mock.call(cfg, assume_yes=assume_yes, allow_beta=False)
+            mock.call(
+                cfg,
+                assume_yes=assume_yes,
+                allow_beta=False,
+                called_name="testitlement",
+            )
         ] == m_entitlement_cls.call_args_list
 
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.entitlements.valid_services")
     def test_entitlements_not_found_disabled_and_enabled(
         self,
+        m_valid_services,
+        m_entitlement_factory,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
@@ -183,6 +195,7 @@ class TestActionEnable:
         m_ent1_obj.enable.return_value = (False, None)
 
         m_ent2_cls = mock.Mock()
+        m_ent2_cls.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls).is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
@@ -192,12 +205,21 @@ class TestActionEnable:
         )
 
         m_ent3_cls = mock.Mock()
+        m_ent3_cls.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls).is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
+        def factory_side_effect(name):
+            if name == "ent2":
+                return m_ent2_cls
+            if name == "ent3":
+                return m_ent3_cls
+            return None
+
+        m_entitlement_factory.side_effect = factory_side_effect
+        m_valid_services.return_value = ["ent2", "ent3"]
 
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
@@ -208,33 +230,33 @@ class TestActionEnable:
 
         expected_msg = "One moment, checking your subscription first\n"
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
-        ):
-            with pytest.raises(exceptions.UserFacingError) as err:
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg)
 
-            assert (
-                expected_error_tmpl.format(
-                    operation="enable",
-                    name="ent1, ent2",
-                    service_msg=(
-                        "Try "
-                        + ", ".join(
-                            entitlements.valid_services(allow_beta=False)
-                        )
-                        + "."
-                    ),
-                )
-                == err.value.msg
+        assert (
+            expected_error_tmpl.format(
+                operation="enable",
+                name="ent1, ent2",
+                service_msg=(
+                    "Try "
+                    + ", ".join(entitlements.valid_services(allow_beta=False))
+                    + "."
+                ),
             )
-            assert expected_msg == fake_stdout.getvalue()
+            == err.value.msg
+        )
+        assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
-                mock.call(cfg, assume_yes=assume_yes, allow_beta=False)
+                mock.call(
+                    cfg,
+                    assume_yes=assume_yes,
+                    allow_beta=False,
+                    called_name=m_ent_cls.name,
+                )
             ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call()
@@ -245,12 +267,12 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
-    @mock.patch(
-        "uaclient.entitlements.is_config_value_true", return_value=False
-    )
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.entitlements.valid_services")
     def test_entitlements_not_found_and_beta(
         self,
-        _m_is_config_value_true,
+        m_valid_services,
+        m_entitlement_factory,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
@@ -265,6 +287,7 @@ class TestActionEnable:
         m_ent1_obj.enable.return_value = (False, None)
 
         m_ent2_cls = mock.Mock()
+        m_ent2_cls.name = "ent2"
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls)._is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
@@ -277,12 +300,11 @@ class TestActionEnable:
             )
 
         m_ent3_cls = mock.Mock()
+        m_ent3_cls.name = "ent3"
         m_ent3_is_beta = mock.PropertyMock(return_value=False)
         type(m_ent3_cls)._is_beta = m_ent3_is_beta
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
-
-        m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
 
         cfg = FakeConfig.for_attached_machine()
         assume_yes = False
@@ -291,49 +313,67 @@ class TestActionEnable:
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
+        def factory_side_effect(name):
+            if name == "ent2":
+                return m_ent2_cls
+            if name == "ent3":
+                return m_ent3_cls
+            return None
+
+        m_entitlement_factory.side_effect = factory_side_effect
+
+        def valid_services_side_effect(allow_beta, all_names=False):
+            if allow_beta:
+                return ["ent2", "ent3"]
+            return ["ent2"]
+
+        m_valid_services.side_effect = valid_services_side_effect
+
         expected_msg = "One moment, checking your subscription first\n"
         not_found_name = "ent1"
         mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
-        ):
-            service_names = entitlements.valid_services(allow_beta=beta_flag)
-            if not beta_flag:
-                not_found_name += ", ent2"
-                ent_str = "Try " + ", ".join(service_names) + "."
-            else:
-                ent_str = "Try " + ", ".join(service_names) + "."
-                mock_ent_list.append(m_ent2_cls)
-                mock_obj_list.append(m_ent3_obj)
-            service_msg = "\n".join(
-                textwrap.wrap(
-                    ent_str,
-                    width=80,
-                    break_long_words=False,
-                    break_on_hyphens=False,
-                )
+        service_names = entitlements.valid_services(allow_beta=beta_flag)
+        if not beta_flag:
+            not_found_name += ", ent2"
+            ent_str = "Try " + ", ".join(service_names) + "."
+        else:
+            ent_str = "Try " + ", ".join(service_names) + "."
+            mock_ent_list.append(m_ent2_cls)
+            mock_obj_list.append(m_ent3_obj)
+        service_msg = "\n".join(
+            textwrap.wrap(
+                ent_str,
+                width=80,
+                break_long_words=False,
+                break_on_hyphens=False,
             )
+        )
 
-            with pytest.raises(exceptions.UserFacingError) as err:
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    action_enable(args_mock, cfg)
+        with pytest.raises(exceptions.UserFacingError) as err:
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                action_enable(args_mock, cfg)
 
-            assert (
-                expected_error_tmpl.format(
-                    operation="enable",
-                    name=not_found_name,
-                    service_msg=service_msg,
-                )
-                == err.value.msg
+        assert (
+            expected_error_tmpl.format(
+                operation="enable",
+                name=not_found_name,
+                service_msg=service_msg,
             )
-            assert expected_msg == fake_stdout.getvalue()
+            == err.value.msg
+        )
+        assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in mock_ent_list:
             assert [
-                mock.call(cfg, assume_yes=assume_yes, allow_beta=beta_flag)
+                mock.call(
+                    cfg,
+                    assume_yes=assume_yes,
+                    allow_beta=beta_flag,
+                    called_name=m_ent_cls.name,
+                )
             ] == m_ent_cls.call_args_list
 
         expected_enable_call = mock.call()
@@ -343,12 +383,8 @@ class TestActionEnable:
         assert 0 == m_ent1_obj.call_count
 
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
-    @mock.patch(
-        "uaclient.entitlements.is_config_value_true", return_value=False
-    )
     def test_print_message_when_can_enable_fails(
         self,
-        _m_is_config_value_true,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
@@ -365,16 +401,17 @@ class TestActionEnable:
             ),
         )
 
-        m_ents_dict = {"ent1": m_entitlement_cls}
-
         cfg = FakeConfig.for_attached_machine()
         args_mock = mock.Mock()
         args_mock.service = ["ent1"]
         args_mock.assume_yes = False
         args_mock.beta = False
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
+        ), mock.patch(
+            "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
@@ -431,12 +468,8 @@ class TestActionEnable:
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
-    @mock.patch(
-        "uaclient.entitlements.is_config_value_true", return_value=False
-    )
     def test_entitlement_instantiated_and_enabled(
         self,
-        _m_is_config_value_true,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
@@ -451,20 +484,27 @@ class TestActionEnable:
         cfg = FakeConfig.for_attached_machine()
         cfg.status = mock.Mock()
 
-        m_ents_dict = {"testitlement": m_entitlement_cls}
-
         args = mock.MagicMock()
         args.assume_yes = False
         args.beta = allow_beta
         args.service = ["testitlement"]
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
+        ), mock.patch(
+            "uaclient.entitlements.valid_services",
+            return_value=["testitlement"],
         ):
             ret = action_enable(args, cfg)
 
         assert [
-            mock.call(cfg, assume_yes=False, allow_beta=allow_beta)
+            mock.call(
+                cfg,
+                assume_yes=False,
+                allow_beta=allow_beta,
+                called_name="testitlement",
+            )
         ] == m_entitlement_cls.call_args_list
 
         m_entitlement = m_entitlement_cls.return_value

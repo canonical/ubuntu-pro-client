@@ -73,7 +73,7 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        cis           yes      +Center for Internet Security Audit Tools
+        cis           yes      +Security compliance and audit tools
         esm-infra     yes      +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I attach `contract_token` with sudo

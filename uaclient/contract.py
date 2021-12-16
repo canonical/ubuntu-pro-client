@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from uaclient import clouds, exceptions, serviceclient, status, util
+from uaclient.config import UAConfig
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
@@ -366,7 +367,7 @@ def process_entitlement_delta(
     :raise UserFacingError: on failure to process deltas.
     :return: Dict of processed deltas
     """
-    from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+    from uaclient.entitlements import entitlement_factory
 
     if series_overrides:
         util.apply_series_overrides(new_access)
@@ -382,9 +383,8 @@ def process_entitlement_delta(
                     orig_access, new_access
                 )
             )
-        try:
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME[name]
-        except KeyError:
+        ent_cls = entitlement_factory(name)
+        if not ent_cls:
             logging.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
@@ -480,14 +480,14 @@ def request_updated_contract(
     )
 
 
-def get_available_resources(cfg) -> List[Dict]:
+def get_available_resources(cfg: UAConfig) -> List[Dict]:
     """Query available resources from the contract server for this machine."""
     client = UAContractClient(cfg)
     resources = client.request_resources()
     return resources.get("resources", [])
 
 
-def get_contract_information(cfg, token: str) -> Dict[str, Any]:
+def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     """Query contract information for a specific token"""
     client = UAContractClient(cfg)
     return client.request_contract_information(token)
