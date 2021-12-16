@@ -2,22 +2,47 @@ from typing import Callable, Dict, List, Tuple, Union
 
 from uaclient.entitlements import repo
 
-CIS_DOCS_URL = "https://ubuntu.com/security/certifications/docs/cis"
+CIS_DOCS_URL = "https://ubuntu.com/security/cis"
+USG_DOCS_URL = "https://ubuntu.com/security/certifications/docs/usg"
 
 
 class CISEntitlement(repo.RepoEntitlement):
 
-    help_doc_url = "https://ubuntu.com/security/certifications#cis"
+    help_doc_url = USG_DOCS_URL
     name = "cis"
-    title = "CIS Audit"
-    description = "Center for Internet Security Audit Tools"
+    description = "Security compliance and audit tools"
     repo_key_file = "ubuntu-advantage-cis.gpg"
     apt_noninteractive = True
 
     @property
     def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
-        return {
+        if self._called_name == "usg":
+            return {
+                "post_enable": [
+                    "Visit {} for the next steps".format(USG_DOCS_URL)
+                ]
+            }
+        messages = {
             "post_enable": [
                 "Visit {} to learn how to use CIS".format(CIS_DOCS_URL)
             ]
-        }
+        }  # type: Dict[str, List[Union[str, Tuple[Callable, Dict]]]]
+        if "usg" in self.valid_names:
+            messages["pre_enable"] = [
+                "From Ubuntu 20.04 and onwards 'ua enable cis' has been",
+                "replaced by 'ua enable usg'. See more information at:",
+                USG_DOCS_URL,
+            ]
+        return messages
+
+    @property
+    def packages(self) -> List[str]:
+        if self._called_name == "usg":
+            return []
+        return super().packages
+
+    @property
+    def title(self) -> str:
+        if self._called_name == "cis":
+            return "CIS Audit"
+        return "Ubuntu Security Guides"

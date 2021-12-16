@@ -617,7 +617,7 @@ def _perform_disable(entitlement_name, cfg, *, assume_yes):
 
     @return: True on success, False otherwise
     """
-    ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[entitlement_name]
+    ent_cls = entitlements.entitlement_factory(entitlement_name)
     entitlement = ent_cls(cfg, assume_yes=assume_yes)
     ret = entitlement.disable()
     cfg.status()  # Update the status cache
@@ -633,7 +633,9 @@ def get_valid_entitlement_names(names: List[str]):
     entitlements_found = []
 
     for ent_name in names:
-        if ent_name in entitlements.ENTITLEMENT_CLASS_BY_NAME:
+        if ent_name in entitlements.valid_services(
+            allow_beta=True, all_names=True
+        ):
             entitlements_found.append(ent_name)
 
     entitlements_not_found = sorted(set(names) - set(entitlements_found))
@@ -872,12 +874,14 @@ def action_enable(args, *, cfg, **kwargs):
     )
     valid_services_names = entitlements.valid_services(allow_beta=args.beta)
     ret = True
-
     for ent_name in entitlements_found:
         try:
-            ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[ent_name]
+            ent_cls = entitlements.entitlement_factory(ent_name)
             entitlement = ent_cls(
-                cfg, assume_yes=args.assume_yes, allow_beta=args.beta
+                cfg,
+                assume_yes=args.assume_yes,
+                allow_beta=args.beta,
+                called_name=ent_name,
             )
             ent_ret, reason = entitlement.enable()
             cfg.status()  # Update the status cache
@@ -1175,29 +1179,36 @@ def get_parser():
     base_desc = __doc__
     non_beta_services_desc = []
     beta_services_desc = []
-    sorted_classes = sorted(entitlements.ENTITLEMENT_CLASS_BY_NAME.items())
-    for name, ent_cls in sorted_classes:
-        if ent_cls.help_doc_url:
-            url = " ({})".format(ent_cls.help_doc_url)
-        else:
-            url = ""
-        service_line = service_line_tmpl.format(
-            name=name, description=ent_cls.description, url=url
-        )
-        if len(service_line) <= 80:
-            service_info = [service_line]
-        else:
-            wrapped_words = []
-            line = service_line
-            while len(line) > 80:
-                [line, wrapped_word] = line.rsplit(" ", 1)
-                wrapped_words.insert(0, wrapped_word)
-            service_info = [line + "\n   " + " ".join(wrapped_words)]
 
-        if ent_cls.is_beta:
-            beta_services_desc.extend(service_info)
-        else:
-            non_beta_services_desc.extend(service_info)
+    resources = contract.get_available_resources(config.UAConfig())
+    for resource in resources:
+        ent_cls = entitlements.entitlement_factory(resource["name"])
+        if ent_cls:
+            # Because we are not sure of the presentation name if unattached
+            presentation_name = resource.get("presentedAs", resource["name"])
+            if ent_cls.help_doc_url:
+                url = " ({})".format(ent_cls.help_doc_url)
+            else:
+                url = ""
+            service_line = service_line_tmpl.format(
+                name=presentation_name,
+                description=ent_cls.description,
+                url=url,
+            )
+            if len(service_line) <= 80:
+                service_info = [service_line]
+            else:
+                wrapped_words = []
+                line = service_line
+                while len(line) > 80:
+                    [line, wrapped_word] = line.rsplit(" ", 1)
+                    wrapped_words.insert(0, wrapped_word)
+                service_info = [line + "\n   " + " ".join(wrapped_words)]
+
+            if ent_cls.is_beta:
+                beta_services_desc.extend(service_info)
+            else:
+                non_beta_services_desc.extend(service_info)
 
     parser = UAArgumentParser(
         prog=NAME,

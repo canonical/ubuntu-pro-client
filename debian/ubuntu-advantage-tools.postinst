@@ -57,8 +57,8 @@ MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
     UA_SERVICES=$(/usr/bin/python3 -c "
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
-print(*ENTITLEMENT_CLASS_BY_NAME.keys(), sep=' ')
+from uaclient.entitlements import valid_services
+print(*valid_services(allow_beta=True, all_names=True), sep=' ')
 ")
 
     for file in "$DIR"/*; do
@@ -118,8 +118,8 @@ check_service_is_beta() {
     service_name=$1
     _IS_BETA_SVC=$(/usr/bin/python3 -c "
 from uaclient.config import UAConfig
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
-ent_cls = ENTITLEMENT_CLASS_BY_NAME.get('${service_name}')
+from uaclient.entitlements import entitlement_factory
+ent_cls = entitlement_factory('${service_name}')
 if ent_cls:
     cfg = UAConfig()
     allow_beta = cfg.features.get('allow_beta', False)

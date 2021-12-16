@@ -29,8 +29,11 @@ optional arguments:
 
 
 @mock.patch(M_PATH + "security_status.security_status")
+@mock.patch(M_PATH + "contract.get_available_resources")
 class TestActionSecurityStatus:
-    def test_security_status_help(self, _m_security_status, capsys):
+    def test_security_status_help(
+        self, _m_resources, _m_security_status, capsys
+    ):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "security-status", "--help"]
@@ -47,6 +50,7 @@ class TestActionSecurityStatus:
         self,
         m_dumps,
         m_safe_dump,
+        _m_resources,
         m_security_status,
         output_format,
         FakeConfig,
@@ -72,7 +76,12 @@ class TestActionSecurityStatus:
     # Remove this once we have human-readable text
     @pytest.mark.parametrize("with_wrong_format", (False, True))
     def test_require_format_flag(
-        self, _m_security_status, with_wrong_format, FakeConfig, capsys
+        self,
+        _m_resources,
+        _m_security_status,
+        with_wrong_format,
+        FakeConfig,
+        capsys,
     ):
         cmdline_args = ["/usr/bin/ua", "security-status"]
         if with_wrong_format:
@@ -100,7 +109,7 @@ class TestActionSecurityStatus:
         ((False, "the following arguments are required: --beta"), (True, "")),
     )
     def test_require_beta_flag(
-        self, m_security_status, beta_flag, expected_err, capsys
+        self, _m_resources, m_security_status, beta_flag, expected_err, capsys
     ):
         m_security_status.return_value = {}
         cmdline_args = ["/usr/bin/ua", "security-status", "--format", "json"]
@@ -119,7 +128,8 @@ class TestActionSecurityStatus:
 
 
 class TestParser:
-    def test_security_status_parser_updates_parser_config(self):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_security_status_parser_updates_parser_config(self, _m_resources):
         """Update the parser configuration for 'security-status'."""
         m_parser = security_status_parser(mock.Mock())
         assert "security-status" == m_parser.prog

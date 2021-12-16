@@ -57,7 +57,8 @@ def fake_instance_factory():
 # For all of these tests we want to appear as root, so mock on the class
 @mock.patch(M_PATH + "os.getuid", return_value=0)
 class TestActionAutoAttach:
-    def test_auto_attach_help(self, _getuid, capsys):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_auto_attach_help(self, _m_resources, _getuid, capsys):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "auto-attach", "--help"]
@@ -272,7 +273,8 @@ class TestActionAutoAttach:
 
 
 class TestParser:
-    def test_auto_attach_parser_updates_parser_config(self):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_auto_attach_parser_updates_parser_config(self, _m_resources):
         """Update the parser configuration for 'auto-attach'."""
         m_parser = auto_attach_parser(mock.Mock())
         assert "ua auto-attach [flags]" == m_parser.usage

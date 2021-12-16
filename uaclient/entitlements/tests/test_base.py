@@ -286,8 +286,6 @@ class TestUaEntitlement:
     def test_can_enable_when_incompatible_service_found(
         self, concrete_entitlement_factory
     ):
-        import uaclient.entitlements as ent
-
         base_ent = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
@@ -306,8 +304,9 @@ class TestUaEntitlement:
         with mock.patch.object(
             base_ent, "is_access_expired", return_value=False
         ):
-            with mock.patch.object(
-                ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+            with mock.patch(
+                "uaclient.entitlements.entitlement_factory",
+                return_value=m_entitlement_cls,
             ):
                 ret, reason = base_ent.can_enable()
 
@@ -320,8 +319,6 @@ class TestUaEntitlement:
     def test_can_enable_when_required_service_found(
         self, concrete_entitlement_factory
     ):
-        import uaclient.entitlements as ent
-
         base_ent = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
@@ -337,8 +334,9 @@ class TestUaEntitlement:
         ]
         type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
 
-        with mock.patch.object(
-            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             ret, reason = base_ent.can_enable()
 
@@ -363,8 +361,6 @@ class TestUaEntitlement:
         assume_yes,
         concrete_entitlement_factory,
     ):
-        import uaclient.entitlements as ent
-
         m_prompt.return_value = assume_yes
         m_is_config_value_true.return_value = block_disable_on_enable
         base_ent = concrete_entitlement_factory(
@@ -386,8 +382,9 @@ class TestUaEntitlement:
         with mock.patch.object(
             base_ent, "is_access_expired", return_value=False
         ):
-            with mock.patch.object(
-                ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+            with mock.patch(
+                "uaclient.entitlements.entitlement_factory",
+                return_value=m_entitlement_cls,
             ):
                 ret, reason = base_ent.enable()
 
@@ -416,8 +413,6 @@ class TestUaEntitlement:
     def test_enable_when_required_service_found(
         self, m_prompt, assume_yes, concrete_entitlement_factory
     ):
-        import uaclient.entitlements as ent
-
         m_prompt.return_value = assume_yes
         base_ent = concrete_entitlement_factory(
             entitled=True,
@@ -436,8 +431,9 @@ class TestUaEntitlement:
         m_entitlement_obj.enable.return_value = (True, "")
         type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
 
-        with mock.patch.object(
-            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             ret, reason = base_ent.enable()
 
@@ -678,8 +674,6 @@ class TestUaEntitlement:
     def test_disable_when_dependent_service_found(
         self, m_prompt, concrete_entitlement_factory
     ):
-        import uaclient.entitlements as ent
-
         m_prompt.return_value = True
         base_ent = concrete_entitlement_factory(
             entitled=True,
@@ -697,8 +691,9 @@ class TestUaEntitlement:
         m_entitlement_obj.disable.return_value = True
         type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
 
-        with mock.patch.object(
-            ent, "ENTITLEMENT_CLASS_BY_NAME", {"test": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             ret = base_ent.disable()
 
@@ -709,6 +704,39 @@ class TestUaEntitlement:
         assert ret == expected_ret
         assert m_prompt.call_count == expected_prompt_call
         assert m_entitlement_obj.disable.call_count == expected_disable_call
+
+    @pytest.mark.parametrize(
+        "p_name,expected",
+        (
+            ("pretty_name", ["testconcreteentitlement", "pretty_name"]),
+            ("testconcreteentitlement", ["testconcreteentitlement"]),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.presentation_name",
+        new_callable=mock.PropertyMock,
+    )
+    def test_valid_names(
+        self, m_p_name, p_name, expected, concrete_entitlement_factory
+    ):
+        m_p_name.return_value = p_name
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert expected == entitlement.valid_names
+
+    def test_presentation_name(self, concrete_entitlement_factory):
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert "testconcreteentitlement" == entitlement.presentation_name
+        m_entitlements = {
+            "testconcreteentitlement": {
+                "entitlement": {
+                    "affordances": {"presentedAs": "something_else"}
+                }
+            }
+        }
+        with mock.patch(
+            "uaclient.config.UAConfig.entitlements", m_entitlements
+        ):
+            assert "something_else" == entitlement.presentation_name
 
 
 class TestUaEntitlementUserFacingStatus:
