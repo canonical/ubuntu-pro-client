@@ -206,13 +206,13 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
     no_warranty_file = ExternalMessage.UBUNTU_NO_WARRANTY.value
     msg_dir = os.path.join(cfg.data_dir, "messages")
 
-    apps_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME["esm-apps"]
+    apps_cls = entitlements.entitlement_factory("esm-apps")
     apps_inst = apps_cls(cfg)
     config_allow_beta = util.is_config_value_true(
         config=cfg.cfg, path_to_value="features.allow_beta"
     )
     apps_valid = bool(config_allow_beta or not apps_cls.is_beta)
-    infra_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME["esm-infra"]
+    infra_cls = entitlements.entitlement_factory("esm-infra")
     infra_inst = infra_cls(cfg)
 
     expiry_status, remaining_days = get_contract_expiry_status(cfg)
@@ -292,7 +292,7 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
     :param cfg: UAConfig instance for this environment.
     :param series: string of Ubuntu release series: 'xenial'.
     """
-    apps_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME["esm-apps"]
+    apps_cls = entitlements.entitlement_factory("esm-apps")
     apps_inst = apps_cls(cfg)
     enabled_status = ApplicationStatus.ENABLED
     apps_not_enabled = apps_inst.application_status()[0] != enabled_status

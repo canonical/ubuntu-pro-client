@@ -1621,8 +1621,6 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        import uaclient.security as sec
-
         m_should_reboot.return_value = should_reboot
         m_get_cloud_type.return_value = ("cloud", None)
 
@@ -1641,13 +1639,12 @@ A fix is available in Ubuntu standard updates.\n"""
             ApplicabilityStatus.INAPPLICABLE,
             "",
         )
-        type(m_entitlement_obj).name = mock.PropertyMock(
-            return_value="esm-infra"
-        )
+        m_entitlement_obj.name = "esm-infra"
 
         cfg = FakeConfig()
-        with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.security.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1718,8 +1715,6 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        import uaclient.security as sec
-
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
         m_is_pocket_beta_service.return_value = False
@@ -1740,8 +1735,9 @@ A fix is available in Ubuntu standard updates.\n"""
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
-        with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()
@@ -1808,8 +1804,6 @@ A fix is available in Ubuntu standard updates.\n"""
         FakeConfig,
         capsys,
     ):
-        import uaclient.security as sec
-
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
         m_is_pocket_beta_service.return_value = False
@@ -1830,8 +1824,9 @@ A fix is available in Ubuntu standard updates.\n"""
 
         cfg = FakeConfig()
         cfg.for_attached_machine()
-        with mock.patch.object(
-            sec, "ENTITLEMENT_CLASS_BY_NAME", {"esm-infra": m_entitlement_cls}
+        with mock.patch(
+            "uaclient.entitlements.entitlement_factory",
+            return_value=m_entitlement_cls,
         ):
             with mock.patch("uaclient.util.sys") as m_sys:
                 m_stdout = mock.MagicMock()

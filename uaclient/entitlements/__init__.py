@@ -1,4 +1,4 @@
-from typing import Dict, List, Type, cast  # noqa: F401
+from typing import List, Type  # noqa: F401
 
 from uaclient.config import UAConfig
 from uaclient.entitlements import fips
@@ -23,27 +23,46 @@ ENTITLEMENT_CLASSES = [
 ]  # type: List[Type[UAEntitlement]]
 
 
-ENTITLEMENT_CLASS_BY_NAME = dict(
-    (cast(str, cls.name), cls) for cls in ENTITLEMENT_CLASSES
-)  # type: Dict[str, Type[UAEntitlement]]
+def entitlement_factory(name: str):
+    """Returns a UAEntitlement class based on the provided name.
+
+    The return type is Optional[Type[UAEntitlement]].
+    It cannot be explicit because of the Python version on Xenial (3.5.2).
+    """
+    for entitlement in ENTITLEMENT_CLASSES:
+        if name in entitlement().valid_names:
+            return entitlement
+    return None
 
 
-def valid_services(allow_beta: bool = False) -> List[str]:
+def valid_services(
+    allow_beta: bool = False, all_names: bool = False
+) -> List[str]:
     """Return a list of valid (non-beta) services.
 
     @param allow_beta: if we should allow beta services to be marked as valid
+    @param all_names: if we should return all the names for a service instead
+        of just the presentation_name
     """
     cfg = UAConfig()
     allow_beta_cfg = is_config_value_true(cfg.cfg, "features.allow_beta")
     allow_beta |= allow_beta_cfg
 
-    if allow_beta:
-        return sorted(ENTITLEMENT_CLASS_BY_NAME.keys())
+    entitlements = ENTITLEMENT_CLASSES
+    if not allow_beta:
+        entitlements = [
+            entitlement
+            for entitlement in entitlements
+            if not entitlement.is_beta
+        ]
+
+    if all_names:
+        names = []
+        for entitlement in entitlements:
+            names.extend(entitlement().valid_names)
+
+        return sorted(names)
 
     return sorted(
-        [
-            ent_name
-            for ent_name, ent_cls in ENTITLEMENT_CLASS_BY_NAME.items()
-            if not ent_cls.is_beta
-        ]
+        [entitlement().presentation_name for entitlement in entitlements]
     )
