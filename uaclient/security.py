@@ -16,7 +16,7 @@ from uaclient.clouds.identity import (
 )
 from uaclient.config import UAConfig
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
-from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+from uaclient.entitlements import entitlement_factory
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -763,7 +763,7 @@ def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     elif pocket == UA_APPS_POCKET:
         service_to_check = "esm-apps"
 
-    ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(service_to_check)
+    ent_cls = entitlement_factory(service_to_check)
     return ent_cls(cfg) if ent_cls else None
 
 

@@ -46,10 +46,12 @@ class TestDisable:
     @pytest.mark.parametrize(
         "disable_return,return_code", ((True, 0), (False, 1))
     )
-    @mock.patch("uaclient.cli.entitlements")
+    @mock.patch("uaclient.cli.entitlements.entitlement_factory")
+    @mock.patch("uaclient.cli.entitlements.valid_services")
     def test_entitlement_instantiated_and_disabled(
         self,
-        m_entitlements,
+        m_valid_services,
+        m_entitlement_factory,
         _m_getuid,
         disable_return,
         return_code,
@@ -59,19 +61,25 @@ class TestDisable:
     ):
         entitlements_cls = []
         entitlements_obj = []
-        m_entitlements.ENTITLEMENT_CLASS_BY_NAME = {}
+        ent_dict = {}
+        m_valid_services.return_value = []
+
         for entitlement_name in service:
             m_entitlement_cls = mock.Mock()
 
             m_entitlement = m_entitlement_cls.return_value
             m_entitlement.disable.return_value = disable_return
 
-            m_entitlements.ENTITLEMENT_CLASS_BY_NAME[
-                entitlement_name
-            ] = m_entitlement_cls
-
             entitlements_obj.append(m_entitlement)
             entitlements_cls.append(m_entitlement_cls)
+            m_valid_services.return_value.append(entitlement_name)
+            ent_dict[entitlement_name] = m_entitlement_cls
+
+        def factory_side_effect(name, ent_dict=ent_dict):
+            return ent_dict.get(name)
+
+        m_entitlement_factory.side_effect = factory_side_effect
+
         m_cfg = mock.Mock()
         m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
@@ -97,11 +105,15 @@ class TestDisable:
         assert len(entitlements_cls) == m_cfg.status.call_count
 
     @pytest.mark.parametrize("assume_yes", (True, False))
-    @mock.patch(
-        "uaclient.entitlements.is_config_value_true", return_value=False
-    )
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.entitlements.valid_services")
     def test_entitlements_not_found_disabled_and_enabled(
-        self, _m_is_config_value_true, _m_getuid, assume_yes, tmpdir
+        self,
+        m_valid_services,
+        m_entitlement_factory,
+        _m_getuid,
+        assume_yes,
+        tmpdir,
     ):
         expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         num_calls = 2
@@ -118,7 +130,15 @@ class TestDisable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.disable.return_value = True
 
-        m_ents_dict = {"ent2": m_ent2_cls, "ent3": m_ent3_cls}
+        def factory_side_effect(name):
+            if name == "ent2":
+                return m_ent2_cls
+            if name == "ent3":
+                return m_ent3_cls
+            return None
+
+        m_entitlement_factory.side_effect = factory_side_effect
+        m_valid_services.return_value = ["ent2", "ent3"]
 
         m_cfg = mock.Mock()
         m_cfg.check_lock_info.return_value = (-1, "")
@@ -127,11 +147,8 @@ class TestDisable:
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
-        with mock.patch.object(
-            entitlements, "ENTITLEMENT_CLASS_BY_NAME", m_ents_dict
-        ):
-            with pytest.raises(exceptions.UserFacingError) as err:
-                action_disable(args_mock, cfg=m_cfg)
+        with pytest.raises(exceptions.UserFacingError) as err:
+            action_disable(args_mock, cfg=m_cfg)
 
         assert (
             expected_error_tmpl.format(

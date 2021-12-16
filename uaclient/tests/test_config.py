@@ -24,8 +24,9 @@ from uaclient.config import (
 )
 from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
 from uaclient.entitlements import (
-    ENTITLEMENT_CLASS_BY_NAME,
     ENTITLEMENT_CLASSES,
+    entitlement_factory,
+    valid_services,
 )
 from uaclient.status import (
     MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
@@ -46,17 +47,20 @@ DEFAULT_CFG_STATUS = {
 }
 
 ALL_RESOURCES_AVAILABLE = [
-    {"name": name, "available": True} for name in ENTITLEMENT_CLASS_BY_NAME
+    {"name": name, "available": True}
+    for name in valid_services(allow_beta=True)
 ]
 ALL_RESOURCES_ENTITLED = [
-    {"type": name, "entitled": True} for name in ENTITLEMENT_CLASS_BY_NAME
+    {"type": name, "entitled": True}
+    for name in valid_services(allow_beta=True)
 ]
 NO_RESOURCES_ENTITLED = [
-    {"type": name, "entitled": False} for name in ENTITLEMENT_CLASS_BY_NAME
+    {"type": name, "entitled": False}
+    for name in valid_services(allow_beta=True)
 ]
 RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
     {"name": name, "available": name == "fips"}
-    for name in ENTITLEMENT_CLASS_BY_NAME
+    for name in valid_services(allow_beta=True)
 ]
 
 
@@ -698,8 +702,8 @@ class TestDeleteCache:
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 class TestStatus:
-    esm_desc = ENTITLEMENT_CLASS_BY_NAME["esm-infra"].description
-    ros_desc = ENTITLEMENT_CLASS_BY_NAME["ros"].description
+    esm_desc = entitlement_factory("esm-infra").description
+    ros_desc = entitlement_factory("ros").description
 
     def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:

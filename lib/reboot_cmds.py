@@ -18,8 +18,9 @@ import logging
 import os
 import sys
 
-from uaclient import config, contract, entitlements, lock, status
+from uaclient import config, contract, lock, status
 from uaclient.cli import setup_logging
+from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.exceptions import LockHeldError, UserFacingError
 from uaclient.util import ProcessExecutionError, UrlError, subp
 
@@ -57,9 +58,7 @@ def fix_pro_pkg_holds(cfg):
         if service.get("name") == "fips":
             service_status = service.get("status")
             if service_status == "enabled":
-                ent_cls = entitlements.ENTITLEMENT_CLASS_BY_NAME[
-                    service.get("name")
-                ]
+                ent_cls = FIPSEntitlement
                 logging.debug(
                     "Attempting to remove Ubuntu Pro FIPS package holds"
                 )

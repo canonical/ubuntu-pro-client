@@ -569,7 +569,7 @@ class UAConfig:
 
     def _handle_beta_resources(self, show_beta, response) -> Dict[str, Any]:
         """Remove beta services from response dict if needed"""
-        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+        from uaclient.entitlements import entitlement_factory
 
         config_allow_beta = util.is_config_value_true(
             config=self.cfg, path_to_value="features.allow_beta"
@@ -583,7 +583,7 @@ class UAConfig:
         released_resources = []
         for resource in new_response.get("services", {}):
             resource_name = resource["name"]
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource_name)
+            ent_cls = entitlement_factory(resource_name)
 
             if ent_cls is None:
                 """
@@ -647,18 +647,18 @@ class UAConfig:
     def _unattached_status(self) -> Dict[str, Any]:
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+        from uaclient.entitlements import entitlement_factory
 
         response = copy.deepcopy(DEFAULT_STATUS)
         response["version"] = version.get_version(features=self.features)
 
         resources = get_available_resources(self)
-        for resource in sorted(resources, key=lambda x: x.get("name", "")):
+        for resource in resources:
             if resource.get("available"):
                 available = status.UserFacingAvailability.AVAILABLE.value
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource.get("name", ""))
+            ent_cls = entitlement_factory(resource.get("name", ""))
 
             if not ent_cls:
                 LOG.debug(
@@ -670,11 +670,13 @@ class UAConfig:
 
             response["services"].append(
                 {
-                    "name": resource["name"],
+                    "name": resource.get("presentedAs", resource["name"]),
                     "description": ent_cls.description,
                     "available": available,
                 }
             )
+        response["services"].sort(key=lambda x: x.get("name", ""))
+
         return response
 
     def _attached_service_status(
@@ -693,7 +695,7 @@ class UAConfig:
                 ent_status, details = ent.user_facing_status()
 
         return {
-            "name": ent.name,
+            "name": ent.presentation_name,
             "description": ent.description,
             "entitled": contract_status.value,
             "status": ent_status.value,
@@ -707,7 +709,7 @@ class UAConfig:
     def _attached_status(self) -> Dict[str, Any]:
         """Return configuration of attached status as a dictionary."""
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+        from uaclient.entitlements import entitlement_factory
 
         response = copy.deepcopy(DEFAULT_STATUS)
         machineTokenInfo = self.machine_token["machineTokenInfo"]
@@ -752,13 +754,14 @@ class UAConfig:
             if not resource.get("available")
         }
 
-        for resource in sorted(resources, key=lambda x: x.get("name", "")):
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(resource.get("name", ""))
+        for resource in resources:
+            ent_cls = entitlement_factory(resource.get("name", ""))
             if ent_cls:
                 ent = ent_cls(self)
                 response["services"].append(
                     self._attached_service_status(ent, inapplicable_resources)
                 )
+        response["services"].sort(key=lambda x: x.get("name", ""))
 
         support = self.entitlements.get("support", {}).get("entitlement")
         if support:
@@ -792,7 +795,7 @@ class UAConfig:
             get_available_resources,
             get_contract_information,
         )
-        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+        from uaclient.entitlements import entitlement_factory
 
         response = copy.deepcopy(DEFAULT_STATUS)
 
@@ -843,7 +846,7 @@ class UAConfig:
 
         for resource in sorted(resources, key=lambda x: x.get("name", "")):
             entitlement_name = resource.get("name", "")
-            ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(entitlement_name)
+            ent_cls = entitlement_factory(entitlement_name)
             if ent_cls:
                 ent = ent_cls(self)
                 entitlement_information = self._get_entitlement_information(
@@ -918,7 +921,7 @@ class UAConfig:
         :raises: UserFacingError when no help is available.
         """
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import ENTITLEMENT_CLASS_BY_NAME
+        from uaclient.entitlements import entitlement_factory
 
         resources = get_available_resources(self)
         help_resource = None
@@ -930,11 +933,12 @@ class UAConfig:
         response_dict["name"] = name
 
         for resource in resources:
-            if resource["name"] == name and name in ENTITLEMENT_CLASS_BY_NAME:
-                help_resource = resource
-                help_ent_cls = ENTITLEMENT_CLASS_BY_NAME.get(name)
-                help_ent = help_ent_cls(self)
-                break
+            if resource["name"] == name or resource.get("presentedAs") == name:
+                help_ent_cls = entitlement_factory(name)
+                if help_ent_cls:
+                    help_resource = resource
+                    help_ent = help_ent_cls(self)
+                    break
 
         if help_resource is None:
             raise exceptions.UserFacingError(
