@@ -188,7 +188,9 @@ Feature: Command behaviour when attached to an UA subscription
           """
           SERVICE       AVAILABLE  DESCRIPTION
           cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
-          cis           +<cis>      +Center for Internet Security Audit Tools
+          """
+       Then stdout matches regexp:
+          """
           esm-apps      +<esm-apps> +UA Apps: Extended Security Maintenance \(ESM\)
           esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
           fips          +<fips>     +NIST-certified core packages
@@ -197,6 +199,10 @@ Feature: Command behaviour when attached to an UA subscription
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System
           """
+       Then stdout matches regexp:
+          """
+          <cis_or_usg>           +<cis>      +Center for Internet Security Audit Tools
+          """
        And stdout matches regexp:
           """
           This machine is not attached to a UA subscription.
@@ -204,10 +210,10 @@ Feature: Command behaviour when attached to an UA subscription
        And I verify that running `apt update` `with sudo` exits `0`
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update | ros |
-           | bionic  | yes      | no     | yes | yes  | yes         | yes  |
-           | focal   | yes      | no     | yes | yes  | yes         | no  |
-           | xenial  | yes      | yes    | yes | yes  | yes         | yes |
+           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg |
+           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        |
+           | bionic  | yes      | no     | yes | yes  | yes         | yes | cis        |
+           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        |
 
     @series.all
     @uses.config.machine_type.lxd.container
