@@ -28,6 +28,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             | impish  |
             | jammy   |
 
+    @wip
     @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attach command in a ubuntu lxd container
@@ -62,12 +63,18 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        cis          +yes      +disabled        +Center for Internet Security Audit Tools
+        """
+        And stdout matches regexp:
+        """
         esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +n/a      +NIST-certified core packages
         fips-updates +yes      +n/a      +NIST-certified core packages with priority security updates
         livepatch    +yes      +n/a      +Canonical Livepatch service
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg> +yes      +disabled        +Center for Internet Security Audit Tools
         """
         And stderr matches regexp:
         """
@@ -162,11 +169,12 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         """
         Examples: ubuntu release packages
-           | release | downrev_pkg                 | cc_status |
-           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  |
-           | bionic  | libkrad0=1.16-2build1       | n/a       |
-           | focal   | hello=2.10-2ubuntu2         | n/a       |
+           | release | downrev_pkg                 | cc_status | cis_or_usg |
+           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        |
+           | bionic  | libkrad0=1.16-2build1       | n/a       | cis        |
+           | focal   | hello=2.10-2ubuntu2         | n/a       | usg        |
 
+    @wip
     @series.all
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
@@ -175,7 +183,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         {
             "machineTokenInfo": {
-                "contractInfo": {
+                "contractInfo":develop {
                     "resourceEntitlements": [
                         {
                             "type": "esm-apps",
@@ -204,11 +212,17 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        cis          +yes      +disabled +Center for Internet Security Audit Tools
+        """
+        And stdout matches regexp:
+        """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status>      +NIST-certified core packages
         fips-updates +yes      +<fips_status>      +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +<lp_desc>
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
         """
         And stderr matches regexp:
         """
@@ -216,10 +230,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | fips_status |lp_status | lp_desc                       | cc_status |
-           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  |
-           | bionic  | disabled    |enabled   | Canonical Livepatch service   | n/a       |
-           | focal   | n/a         |enabled   | Canonical Livepatch service   | n/a       |
+           | release | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg |
+           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        |
+           | bionic  | disabled    |enabled   | Canonical Livepatch service   | n/a       | cis        |
+           | focal   | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -258,11 +272,17 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        cis          +yes      +disabled +Center for Internet Security Audit Tools
+        """
+        And stdout matches regexp:
+        """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
         """
         And stderr matches regexp:
         """
@@ -270,10 +290,10 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status |
-           | xenial  | n/a       | n/a         | disabled  |
-           | bionic  | n/a       | disabled    | n/a       |
-           | focal   | enabled   | n/a         | n/a       |
+           | release | lp_status | fips_status | cc_status | cis_or_usg |
+           | xenial  | n/a       | n/a         | disabled  | cis        |
+           | bionic  | n/a       | disabled    | n/a       | cis        |
+           | focal   | enabled   | n/a         | n/a       | usg        |
 
     @series.all
     @uses.config.machine_type.gcp.generic
@@ -312,11 +332,17 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         SERVICE       ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
-        cis          +yes      +disabled +Center for Internet Security Audit Tools
+        """
+        And stdout matches regexp:
+        """
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
         fips         +yes      +<fips_status> +NIST-certified core packages
         fips-updates +yes      +<fips_status> +NIST-certified core packages with priority security updates
         livepatch    +yes      +<lp_status>  +Canonical Livepatch service
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
         """
         And stderr matches regexp:
         """
@@ -324,7 +350,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status |
-           | xenial  | n/a       | n/a         | disabled  |
-           | bionic  | n/a       | disabled    | n/a       |
-           | focal   | enabled   | n/a         | n/a       |
+           | release | lp_status | fips_status | cc_status | cis_or_usg |
+           | xenial  | n/a       | n/a         | disabled  | cis        |
+           | bionic  | n/a       | disabled    | n/a       | cis        |
+           | focal   | enabled   | n/a         | n/a       | usg        |
