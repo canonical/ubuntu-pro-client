@@ -56,8 +56,11 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
   [here](https://help.launchpad.net/YourAccount/ImportingYourPGPKey) to create a key,
   publish it to `hkp://keyserver.ubuntu.com`, and import it into Launchpad.
 * Before you run `sbuild-it` for the first time, you'll need to set up a chroot for each Ubuntu release.
-  Follow [these instructions](https://gist.github.com/smoser/14df5f0cd621e10d2282d7c90345e322#new-sbuild-creation)
-  to create a chroot for each supported release.
+  Run the following to set up chroots with dependencies pre-installed for each release:
+  ```bash
+  apt-get install sbuild-launchpad-chroot
+  bash ./tools/setup_sbuild.sh # This will give you usage information on how to call it with the correct parameters
+  ```
 * You must have launchpad already properly configured in your system in order to upload packages to the PPAs. Follow [this guide](https://help.launchpad.net/Packaging/PPA/Uploading) to get set up.
 
 ### I. Preliminary/staging release to team infrastructure
