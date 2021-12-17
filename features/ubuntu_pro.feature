@@ -27,12 +27,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -44,10 +50,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         .*CONNECT 169.254.169.254.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    |
-           | xenial  | disabled | disabled | disabled |
-           | bionic  | disabled | n/a      | disabled |
-           | focal   | n/a      | n/a      | disabled |
+           | release | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
+           | xenial  | disabled | disabled | disabled | cis        |
+           | bionic  | disabled | n/a      | disabled | cis        |
+           | focal   | n/a      | n/a      | disabled | usg        |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -76,12 +82,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch-s>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -93,10 +105,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         .*CONNECT 169.254.169.254.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s |
-           | xenial  | n/a      | disabled | disabled | enabled     |
-           | bionic  | disabled | n/a      | disabled | n/a         |
-           | focal   | n/a      | n/a      | disabled | enabled     |
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | enabled     | cis        |
+           | bionic  | disabled | n/a      | disabled | n/a         | cis        |
+           | focal   | n/a      | n/a      | disabled | enabled     | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -125,12 +137,18 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch-s> +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -142,10 +160,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         .*CONNECT metadata.*
         """
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s |
-           | xenial  | n/a      | disabled | disabled | n/a         |
-           | bionic  | disabled | n/a      | disabled | n/a         |
-           | focal   | n/a      | n/a      | disabled | enabled     |
+           | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | n/a         | cis        |
+           | bionic  | disabled | n/a      | disabled | n/a         | cis        |
+           | focal   | n/a      | n/a      | disabled | enabled     | usg        |
 
     @series.lts
     @uses.config.machine_type.aws.pro
@@ -165,24 +183,36 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +enabled  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -248,10 +278,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg |
-           | xenial  | disabled | disabled | disabled | libkrad0  | jq       |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg |
+           | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        |
+           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | cis        |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | usg        |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -271,24 +301,36 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes +<cis-s> +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes +<cis-s> +Center for Internet Security Audit Tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -354,10 +396,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
+           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
@@ -377,24 +419,36 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes +<cis-s> +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes +<cis-s> +Center for Internet Security Audit Tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
-            cis           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            """
+        Then stdout matches regexp:
+            """
             esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes +<fips-s> +NIST-certified core packages
             fips-updates  +yes +<fips-s> +NIST-certified core packages with priority security updates
             livepatch     +yes +<livepatch>  +Canonical Livepatch service
+            """
+        Then stdout matches regexp:
+            """
+            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -460,7 +514,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
 
         Examples: ubuntu release
-           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch |
-           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   |
+           | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
+           | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       | cis        |
+           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
