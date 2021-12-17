@@ -501,6 +501,10 @@ you're on:
 [configure sbuild](https://wiki.ubuntu.com/SimpleSbuild) and
 use that for the build:
 
+Setup some chroots for sbuild with this script
+```shell
+bash ./tools/setup_sbuild.sh
+```
 
 ```shell
 debuild -S
