@@ -844,7 +844,7 @@ class UAConfig:
             if not resource["available"]
         ]
 
-        for resource in sorted(resources, key=lambda x: x.get("name", "")):
+        for resource in resources:
             entitlement_name = resource.get("name", "")
             ent_cls = entitlement_factory(entitlement_name)
             if ent_cls:
@@ -854,7 +854,7 @@ class UAConfig:
                 )
                 response["services"].append(
                     {
-                        "name": ent.name,
+                        "name": resource.get("presentedAs", ent.name),
                         "description": ent.description,
                         "entitled": entitlement_information["entitled"],
                         "auto_enabled": entitlement_information[
@@ -865,6 +865,7 @@ class UAConfig:
                         else "no",
                     }
                 )
+        response["services"].sort(key=lambda x: x.get("name", ""))
 
         support = self._get_entitlement_information(entitlements, "support")
         if support["entitled"]:
