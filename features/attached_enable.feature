@@ -188,11 +188,12 @@ Feature: Enable command behaviour when attached to an UA subscription
            | focal   |
            | xenial  |
 
-    @series.lts
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
+        When I attach `contract_token_staging` with sudo
         And I verify that running `ua enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
             """
@@ -209,7 +210,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I run `apt-cache policy usg-common` as non-root
         Then stdout does not match regexp:
@@ -218,7 +219,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I verify that running `ua enable cis` `with sudo` exits `1`
         Then stdout matches regexp
@@ -257,11 +258,168 @@ Feature: Enable command behaviour when attached to an UA subscription
         CIS audit scan completed
         """
 
-        Examples: not entitled services
+        Examples: cis script
            | release | cis_script                                  |
-           | focal   | Canonical_Ubuntu_20.04_CIS-harden.sh        |
            | bionic  | Canonical_Ubuntu_18.04_CIS-harden.sh        |
            | xenial  | Canonical_Ubuntu_16.04_CIS_v1.1.0-harden.sh |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable of cis service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I verify that running `ua enable cis` `with sudo` exits `0`
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            From Ubuntu 20.04, 'ua enable cis' is deprecated.
+            Consider running 'ua enable usg' and then 'apt-get install usg-cisbenchmark
+            to get the CIS audit package.
+            Enabling USG instead.
+            Updating package lists
+            CIS Audit enabled
+            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
+            """
+        When I run `apt-cache policy usg-cisbenchmark` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+        When I run `apt-cache policy usg-common` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        And stdout matches regexp:
+        """
+        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        """
+        When I verify that running `ua enable cis` `with sudo` exits `1`
+        Then stdout matches regexp
+        """
+        One moment, checking your subscription first
+        CIS Audit is already enabled.
+        See: sudo ua status
+        """
+        When I run `cis-audit level1_server` with sudo
+        Then stdout matches regexp
+        """
+        Title.*Ensure no duplicate UIDs exist
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*pass
+        """
+        And stdout matches regexp:
+        """
+        Title.*Ensure default user umask is 027 or more restrictive
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*fail
+        """
+        And stdout matches regexp
+        """
+        CIS audit scan completed
+        """
+        When I verify that running `/usr/share/ubuntu-scap-security-guides/cis-hardening/<cis_script> lvl1_server` `with sudo` exits `0`
+        And I run `cis-audit level1_server` with sudo
+        Then stdout matches regexp:
+        """
+        Title.*Ensure default user umask is 027 or more restrictive
+        Rule.*xccdf_com.ubuntu.<release>.cis_rule_CIS-.*
+        Result.*pass
+        """
+        And stdout matches regexp
+        """
+        CIS audit scan completed
+        """
+
+        Examples: cis script
+           | release | cis_script                                  |
+           | focal   | Canonical_Ubuntu_20.04_CIS-harden.sh        |
+
+    @series.bionic
+    @series.xenial
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable of cis service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I verify that running `ua enable usg` `with sudo` exits `1`
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        Then I will see the following on stderr:
+            """
+            Cannot enable unknown service 'usg'.
+            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            """
+
+        Examples: cis service
+           | release |
+           | bionic  |
+           | xenial  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable of usg service in a focal machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token_staging` with sudo
+        And I run `ua enable usg` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Updating package lists
+            CIS Audit enabled
+            Visit https://ubuntu.com/security/certifications/docs/cis for the next steps on USG
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            usg         +yes    +enabled   +Center for Internet Security Audit Tools
+            """
+        When I run `ua disable usg` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            usg         +yes    +disabled   +Center for Internet Security Audit Tools
+            """
+        When I run `ua enable cis` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            From Ubuntu 20.04, 'ua enable cis' is deprecated.
+            Consider running 'ua enable usg' and then 'apt-get install usg-cisbenchmark
+            to get the CIS audit package.
+            Enabling USG instead.
+            Updating package lists
+            CIS Audit enabled
+            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            usg         +yes    +enabled   +Center for Internet Security Audit Tools
+            """
+        When I run `ua disable usg` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            usg         +yes    +disabled   +Center for Internet Security Audit Tools
+            """
+
+        Examples: cis service
+           | release |
+           | focal  |
 
     @series.bionic
     @series.xenial
