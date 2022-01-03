@@ -41,3 +41,19 @@ class TestValidServices:
             assert expected_services == entitlements.valid_services(
                 all_names=show_all_names
             )
+
+
+class TestEntitlementFactory:
+    def test_entitlement_factory(self):
+        m_cls_1 = mock.MagicMock()
+        m_cls_1.return_value.valid_names = ["ent1", "othername"]
+
+        m_cls_2 = mock.MagicMock()
+        m_cls_2.return_value.valid_names = ["ent2"]
+
+        ents = {m_cls_1, m_cls_2}
+
+        with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
+            assert m_cls_1 == entitlements.entitlement_factory("othername")
+            assert m_cls_2 == entitlements.entitlement_factory("ent2")
+            assert None is entitlements.entitlement_factory("nonexistent")

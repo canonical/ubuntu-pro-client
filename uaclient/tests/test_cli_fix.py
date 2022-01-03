@@ -27,7 +27,8 @@ Flags:
 
 
 class TestActionFix:
-    def test_fix_help(self, capsys):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_fix_help(self, _m_resources, capsys):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "fix", "--help"]):
                 main()

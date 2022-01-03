@@ -39,8 +39,9 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
 
 
 @mock.patch(M_PATH + "os.getuid", return_value=0)
-class TestActionAutoAttach:
-    def test_collect_logs_help(self, _getuid, capsys):
+class TestActionCollectLogs:
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_collect_logs_help(self, _m_resources, _getuid, capsys):
         with pytest.raises(SystemExit):
             with mock.patch(
                 "sys.argv", ["/usr/bin/ua", "collect-logs", "--help"]
@@ -119,7 +120,8 @@ class TestActionAutoAttach:
 
 
 class TestParser:
-    def test_collect_logs_parser_updates_parser_config(self):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_collect_logs_parser_updates_parser_config(self, _m_resources):
         """Update the parser configuration for 'collect-logs'."""
         m_parser = collect_logs_parser(mock.Mock())
         assert "ua collect-logs [flags]" == m_parser.usage

@@ -1470,7 +1470,10 @@ class TestProcessConfig:
 
 class TestParseConfig:
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
-    def test_parse_config_uses_defaults_when_no_config_present(self, m_exists):
+    @mock.patch("uaclient.contract.get_available_resources")
+    def test_parse_config_uses_defaults_when_no_config_present(
+        self, _m_resources, m_exists
+    ):
         cwd = os.getcwd()
         with mock.patch.dict("uaclient.config.os.environ", values={}):
             config = parse_config()
@@ -1551,8 +1554,15 @@ class TestParseConfig:
         ],
     )
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
+    @mock.patch("uaclient.contract.get_available_resources")
     def test_parse_config_scrubs_user_environ_values(
-        self, m_exists, envvar_name, envvar_val, field, expected_val
+        self,
+        _m_resources,
+        m_exists,
+        envvar_name,
+        envvar_val,
+        field,
+        expected_val,
     ):
         user_values = {envvar_name: envvar_val}
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):

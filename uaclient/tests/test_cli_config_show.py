@@ -23,10 +23,11 @@ Available Commands:
 
 @mock.patch("uaclient.cli.logging.error")
 @mock.patch("uaclient.cli.setup_logging")
+@mock.patch(M_PATH + "contract.get_available_resources")
 class TestMainConfigShow:
     @pytest.mark.parametrize("additional_params", ([], ["--help"]))
     def test_config_show_help(
-        self, _logging, logging_error, additional_params, capsys
+        self, _m_resources, _logging, logging_error, additional_params, capsys
     ):
         """Show help for --help and absent positional param"""
         with pytest.raises(SystemExit):
@@ -46,7 +47,7 @@ class TestMainConfigShow:
             ] == logging_error.call_args_list
 
     def test_config_show_error_on_invalid_subcommand(
-        self, _logging, _logging_error, capsys
+        self, _m_resources, _logging, _logging_error, capsys
     ):
         """Exit 1 on invalid subcommands."""
         with pytest.raises(SystemExit):

@@ -705,6 +705,39 @@ class TestUaEntitlement:
         assert m_prompt.call_count == expected_prompt_call
         assert m_entitlement_obj.disable.call_count == expected_disable_call
 
+    @pytest.mark.parametrize(
+        "p_name,expected",
+        (
+            ("pretty_name", ["testconcreteentitlement", "pretty_name"]),
+            ("testconcreteentitlement", ["testconcreteentitlement"]),
+        ),
+    )
+    @mock.patch(
+        "uaclient.entitlements.base.UAEntitlement.presentation_name",
+        new_callable=mock.PropertyMock,
+    )
+    def test_valid_names(
+        self, m_p_name, p_name, expected, concrete_entitlement_factory
+    ):
+        m_p_name.return_value = p_name
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert expected == entitlement.valid_names
+
+    def test_presentation_name(self, concrete_entitlement_factory):
+        entitlement = concrete_entitlement_factory(entitled=True)
+        assert "testconcreteentitlement" == entitlement.presentation_name
+        m_entitlements = {
+            "testconcreteentitlement": {
+                "entitlement": {
+                    "affordances": {"presentedAs": "something_else"}
+                }
+            }
+        }
+        with mock.patch(
+            "uaclient.config.UAConfig.entitlements", m_entitlements
+        ):
+            assert "something_else" == entitlement.presentation_name
+
 
 class TestUaEntitlementUserFacingStatus:
     def test_inapplicable_when_not_applicable(

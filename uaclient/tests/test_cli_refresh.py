@@ -24,7 +24,8 @@ Flags:
 
 @mock.patch("os.getuid", return_value=0)
 class TestActionRefresh:
-    def test_refresh_help(self, _getuid, capsys):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_refresh_help(self, _m_resources, _getuid, capsys):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "refresh", "--help"]):
                 main()
