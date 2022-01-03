@@ -14,7 +14,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
             """
             SERVICE       ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
-            cis           +yes      +n/a      +Center for Internet Security Audit Tools
+            cis           +yes      +n/a      +Security compliance and audit tools
             esm-apps      +yes      +n/a      +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     +yes      +n/a      +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +yes      +n/a      +NIST-certified core packages
@@ -73,7 +73,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg> +yes      +disabled        +Center for Internet Security Audit Tools
+        <cis_or_usg> +yes      +disabled        +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -181,7 +181,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         {
             "machineTokenInfo": {
-                "contractInfo":develop {
+                "contractInfo": {
                     "resourceEntitlements": [
                         {
                             "type": "esm-apps",
@@ -220,7 +220,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
+        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -280,7 +280,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
+        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -340,7 +340,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Center for Internet Security Audit Tools
+        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
         """
         And stderr matches regexp:
         """

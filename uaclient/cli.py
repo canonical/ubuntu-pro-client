@@ -1175,29 +1175,36 @@ def get_parser():
     base_desc = __doc__
     non_beta_services_desc = []
     beta_services_desc = []
-    for ent_cls in entitlements.ENTITLEMENT_CLASSES:
-        ent = ent_cls()
-        if ent.help_doc_url:
-            url = " ({})".format(ent.help_doc_url)
-        else:
-            url = ""
-        service_line = service_line_tmpl.format(
-            name=ent.presentation_name, description=ent.description, url=url
-        )
-        if len(service_line) <= 80:
-            service_info = [service_line]
-        else:
-            wrapped_words = []
-            line = service_line
-            while len(line) > 80:
-                [line, wrapped_word] = line.rsplit(" ", 1)
-                wrapped_words.insert(0, wrapped_word)
-            service_info = [line + "\n   " + " ".join(wrapped_words)]
 
-        if ent.is_beta:
-            beta_services_desc.extend(service_info)
-        else:
-            non_beta_services_desc.extend(service_info)
+    resources = contract.get_available_resources(config.UAConfig())
+    for resource in resources:
+        ent_cls = entitlements.entitlement_factory(resource["name"])
+        if ent_cls:
+            # Because we are not sure of the presentation name if unattached
+            presentation_name = resource.get("presentedAs", resource["name"])
+            if ent_cls.help_doc_url:
+                url = " ({})".format(ent_cls.help_doc_url)
+            else:
+                url = ""
+            service_line = service_line_tmpl.format(
+                name=presentation_name,
+                description=ent_cls.description,
+                url=url,
+            )
+            if len(service_line) <= 80:
+                service_info = [service_line]
+            else:
+                wrapped_words = []
+                line = service_line
+                while len(line) > 80:
+                    [line, wrapped_word] = line.rsplit(" ", 1)
+                    wrapped_words.insert(0, wrapped_word)
+                service_info = [line + "\n   " + " ".join(wrapped_words)]
+
+            if ent_cls.is_beta:
+                beta_services_desc.extend(service_info)
+            else:
+                non_beta_services_desc.extend(service_info)
 
     parser = UAArgumentParser(
         prog=NAME,

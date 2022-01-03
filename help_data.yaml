@@ -7,17 +7,11 @@ cc-eal:
 
 cis:
     help: |
-      CIS benchmarks locks down your systems by removing non-secure programs,
-      disabling unused filesystems, disabling unnecessary ports or services to
-      prevent cyber attacks and malware, auditing privileged operations and
-      restricting administrative privileges. The cis command installs
-      tooling needed to automate audit and hardening according to a desired
-      CIS profile - level 1 or level 2 for server or workstation on
-      Ubuntu 18.04 LTS or 16.04 LTS. The audit tooling uses OpenSCAP libraries
-      to do a scan of the system. The tool provides options to generate a
-      report in XML or a html format. The report shows compliance for all the
-      rules against the profile selected during the scan. You can find out
-      more at https://ubuntu.com/security/certifications#cis
+      Ubuntu Security Guides is a tool for hardening and auditing and allows for
+      environment-specific customizations. It enables compliance with profiles
+      such as DISA-STIG and the CIS benchmarks. Find out more at
+      https://ubuntu.com/security/certifications/docs/usg
+
 
 esm-apps:
     help: |

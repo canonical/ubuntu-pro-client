@@ -38,12 +38,12 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<cis>( +<cis-available> +Security compliance and audit tools)?
             ?esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
-            ?<usg>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -53,7 +53,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<cis>( +<cis-available> +Security compliance and audit tools)?
             ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
@@ -61,7 +61,7 @@ Feature: Unattached status
             livepatch     <livepatch> +Canonical Livepatch service
             ros           <ros>       +Security Updates for the Robot Operating System
             ros-updates   <ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -71,12 +71,12 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<cis>( +<cis-available> +Security compliance and audit tools)?
             ?esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
             fips-updates  <fips>      +NIST-certified core packages with priority security updates
             livepatch     <livepatch> +Canonical Livepatch service
-            ?<usg>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -86,7 +86,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<cis>( +<cis-available> +Security compliance and audit tools)?
             ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
@@ -94,7 +94,7 @@ Feature: Unattached status
             livepatch     <livepatch> +Canonical Livepatch service
             ros           <ros>       +Security Updates for the Robot Operating System
             ros-updates   <ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -109,7 +109,7 @@ Feature: Unattached status
             """
             SERVICE       AVAILABLE  DESCRIPTION
             cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
-            ?<cis>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<cis>( +<cis-available> +Security compliance and audit tools)?
             ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
             esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          <fips>      +NIST-certified core packages
@@ -117,7 +117,7 @@ Feature: Unattached status
             livepatch     <livepatch> +Canonical Livepatch service
             ros           <ros>       +Security Updates for the Robot Operating System
             ros-updates   <ros>       +All Updates for the Robot Operating System
-            ?<usg>( +<cis-available> +Center for Internet Security Audit Tools)?
+            ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
             See https://ubuntu.com/advantage
@@ -143,19 +143,19 @@ Feature: Unattached status
         """
         SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
         cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-        ?<cis>( +<cis-available> +yes +no +Center for Internet Security Audit Tools)?
+        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
         ?esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
         fips          <fips>      +yes  +no   +NIST-certified core packages
         fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
         livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
-        ?<usg>( +<cis-available> +yes +no +Center for Internet Security Audit Tools)?
+        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
         """
         When I do a preflight check for `contract_token_staging` with the all flag
         Then stdout matches regexp:
         """
         SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
         cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
-        ?<cis>( +<cis-available> +yes +no +Center for Internet Security Audit Tools)?
+        ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
         ?esm-apps      <esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
         fips          <fips>      +yes  +no   +NIST-certified core packages
@@ -163,7 +163,7 @@ Feature: Unattached status
         livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
         ros           <ros>       +yes  +no   +Security Updates for the Robot Operating System
         ros-updates   <ros>       +yes  +no   +All Updates for the Robot Operating System
-        ?<usg>( +<cis-available> +yes +no +Center for Internet Security Audit Tools)?
+        ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
         """
         When I do a preflight check for `contract_token_staging` formatted as json
         Then stdout is formatted as `json` and has keys:

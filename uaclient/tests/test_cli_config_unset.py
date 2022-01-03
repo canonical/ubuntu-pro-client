@@ -24,6 +24,7 @@ M_LIVEPATCH = "uaclient.entitlements.livepatch."
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
 @mock.patch("uaclient.cli.setup_logging")
+@mock.patch("uaclient.cli.contract.get_available_resources")
 class TestMainConfigUnSet:
     @pytest.mark.parametrize(
         "kv_pair,err_msg",
@@ -43,7 +44,7 @@ class TestMainConfigUnSet:
         ),
     )
     def test_set_error_with_help_on_invalid_key_value_pair(
-        self, _logging, _getuid, kv_pair, err_msg, capsys
+        self, _m_resources, _logging, _getuid, kv_pair, err_msg, capsys
     ):
         """Exit 1 and print help on invalid key_value_pair input param."""
         with pytest.raises(SystemExit):

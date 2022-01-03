@@ -38,7 +38,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -93,7 +93,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -148,7 +148,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
@@ -194,7 +194,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -212,7 +212,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -312,7 +312,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes +<cis-s> +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -330,7 +330,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`
@@ -430,7 +430,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes +<cis-s> +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes +<cis-s> +Security compliance and audit tools
             """
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
@@ -448,7 +448,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
             """
         Then stdout matches regexp:
             """
-            <cis_or_usg>           +yes  +<cis-s>  +Center for Internet Security Audit Tools
+            <cis_or_usg>           +yes  +<cis-s>  +Security compliance and audit tools
             """
         When I run `systemctl start ua-auto-attach.service` with sudo
         And I verify that running `systemctl status ua-auto-attach.service` `as non-root` exits `0,3`

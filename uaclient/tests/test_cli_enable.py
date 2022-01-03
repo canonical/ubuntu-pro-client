@@ -29,7 +29,10 @@ Flags:
 @mock.patch("uaclient.cli.os.getuid")
 @mock.patch("uaclient.contract.request_updated_contract")
 class TestActionEnable:
-    def test_enable_help(self, _getuid, _request_updated_contract, capsys):
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_enable_help(
+        self, _m_resources, _getuid, _request_updated_contract, capsys
+    ):
         with pytest.raises(SystemExit):
             with mock.patch("sys.argv", ["/usr/bin/ua", "enable", "--help"]):
                 main()

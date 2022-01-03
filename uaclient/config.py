@@ -342,13 +342,19 @@ class UAConfig:
             return {}
 
         self._entitlements = {}
-        contractInfo = machine_token["machineTokenInfo"]["contractInfo"]
+        contractInfo = machine_token.get("machineTokenInfo", {}).get(
+            "contractInfo"
+        )
+        if not contractInfo:
+            return {}
+
         tokens_by_name = dict(
-            (e["type"], e["token"])
+            (e.get("type"), e.get("token"))
             for e in machine_token.get("resourceTokens", [])
         )
         ent_by_name = dict(
-            (e["type"], e) for e in contractInfo["resourceEntitlements"]
+            (e.get("type"), e)
+            for e in contractInfo.get("resourceEntitlements", [])
         )
         for entitlement_name, ent_value in ent_by_name.items():
             entitlement_cfg = {"entitlement": ent_value}
@@ -935,7 +941,7 @@ class UAConfig:
 
         for resource in resources:
             if resource["name"] == name or resource.get("presentedAs") == name:
-                help_ent_cls = entitlement_factory(name)
+                help_ent_cls = entitlement_factory(resource["name"])
                 if help_ent_cls:
                     help_resource = resource
                     help_ent = help_ent_cls(self)

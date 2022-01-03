@@ -813,7 +813,8 @@ class TestActionStatus:
 
 
 class TestStatusParser:
-    def test_status_parser_updates_parser_config(self):
+    @mock.patch(M_PATH + "contract.get_available_resources")
+    def test_status_parser_updates_parser_config(self, _m_resources):
         """Update the parser configuration for 'status'."""
         m_parser = status_parser(mock.Mock())
         assert "status" == m_parser.prog

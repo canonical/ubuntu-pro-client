@@ -201,7 +201,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Updating package lists
             Installing CIS Audit packages
             CIS Audit enabled
-            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
+            Visit https://ubuntu.com/security/cis to learn how to use CIS
             """
         When I run `apt-cache policy usg-cisbenchmark` as non-root
         Then stdout does not match regexp:
@@ -272,14 +272,13 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            From Ubuntu 20.04, 'ua enable cis' is deprecated.
-            Consider running 'ua enable usg' and then 'apt-get install usg-cisbenchmark
-            to get the CIS audit package.
-            Enabling USG instead.
+            From Ubuntu 20.04 and onwards 'ua enable cis' has been
+            replaced by 'ua enable usg'. See more information at:
+            https://ubuntu.com/security/certifications/docs/usg
             Updating package lists
             Installing CIS Audit packages
             CIS Audit enabled
-            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
+            Visit https://ubuntu.com/security/cis to learn how to use CIS
             """
         When I run `apt-cache policy usg-cisbenchmark` as non-root
         Then stdout does not match regexp:
@@ -303,10 +302,9 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout matches regexp
         """
         One moment, checking your subscription first
-        From Ubuntu 20.04, 'ua enable cis' is deprecated.
-        Consider running 'ua enable usg' and then 'apt-get install usg-cisbenchmark
-        to get the CIS audit package.
-        Enabling USG instead.
+        From Ubuntu 20.04 and onwards 'ua enable cis' has been
+        replaced by 'ua enable usg'. See more information at:
+        https://ubuntu.com/security/certifications/docs/usg
         CIS Audit is already enabled.
         See: sudo ua status
         """
@@ -347,7 +345,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @series.bionic
     @series.xenial
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached enable of cis service in a ubuntu machine
+    Scenario Outline: Attached enable of usg service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token_staging` with sudo
         And I verify that running `ua enable usg` `with sudo` exits `1`
@@ -376,13 +374,13 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             Updating package lists
-            CIS Audit enabled
-            Visit https://ubuntu.com/security/certifications/docs/cis for the next steps on USG
+            Ubuntu Security Guides enabled
+            Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            usg         +yes    +enabled   +Center for Internet Security Audit Tools
+            usg         +yes    +enabled   +Security compliance and audit tools
             """
         When I run `ua disable usg` with sudo
         Then stdout matches regexp:
@@ -392,25 +390,24 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            usg         +yes    +disabled   +Center for Internet Security Audit Tools
+            usg         +yes    +disabled   +Security compliance and audit tools
             """
         When I run `ua enable cis` with sudo
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
-            From Ubuntu 20.04, 'ua enable cis' is deprecated.
-            Consider running 'ua enable usg' and then 'apt-get install usg-cisbenchmark
-            to get the CIS audit package.
-            Enabling USG instead.
+            From Ubuntu 20.04 and onwards 'ua enable cis' has been
+            replaced by 'ua enable usg'. See more information at:
+            https://ubuntu.com/security/certifications/docs/usg
             Updating package lists
             Installing CIS Audit packages
             CIS Audit enabled
-            Visit https://ubuntu.com/security/certifications/docs/cis to learn how to use CIS
+            Visit https://ubuntu.com/security/cis to learn how to use CIS
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            usg         +yes    +enabled   +Center for Internet Security Audit Tools
+            usg         +yes    +enabled   +Security compliance and audit tools
             """
         When I run `ua disable usg` with sudo
         Then stdout matches regexp:
@@ -420,7 +417,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            usg         +yes    +disabled   +Center for Internet Security Audit Tools
+            usg         +yes    +disabled   +Security compliance and audit tools
             """
 
         Examples: cis service
