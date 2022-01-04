@@ -52,6 +52,63 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @series.xenial
     @series.bionic
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached enable of different services using json format
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable foobar --format json` `as non-root` exits `1`
+        And stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        And I verify that running `ua enable foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        And I verify that running `ua enable ros foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
+        And I verify that running `ua enable esm-infra --format json` `with sudo` exits `1`
+        Then I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        When I run `ua disable esm-infra` with sudo
+        And I run `ua enable esm-infra --format json` with sudo
+        Then stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "success", "warnings": []}
+        """
+        When I run `ua disable esm-infra` with sudo
+        And I verify that running `ua enable esm-infra foobar --format json` `with sudo` exits `1`
+        Then stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
+        """
+        When I run `ua disable esm-infra esm-apps` with sudo
+        And I run `ua enable esm-infra esm-apps --beta --format json` with sudo
+        Then stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+        """
+
+        Examples: ubuntu release
+           | release | valid_services                                         |
+           | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
+           | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
+           | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
+
+    @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -60,16 +117,6 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I will see the following on stderr:
             """
             This command must be run as root (try using sudo).
-            """
-        And I verify that running `ua enable foobar --format json` `as non-root` exits `1`
-        And stdout is formatted as `json` and has keys:
-            """
-            result processed_services failed_services needs_reboot
-            errors warnings _schema_version
-            """
-        And I will see the following on stdout:
-            """
-            {"_schema_version": 0.1, "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua enable foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -81,11 +128,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             Cannot enable unknown service 'foobar'.
             Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
             """
-        And I verify that running `ua enable foobar --format json` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            {"_schema_version": 0.1, "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry cc-eal, cis, esm-infra, fips, fips-updates, livepatch.", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-            """
         And I verify that running `ua enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
             """
@@ -96,22 +138,12 @@ Feature: Enable command behaviour when attached to an UA subscription
             Cannot enable unknown service 'foobar, ros'.
             Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
             """
-        And I verify that running `ua enable ros foobar --format json` `with sudo` exits `1`
-        And I will see the following on stdout:
-        """
-        {"_schema_version": 0.1, "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry cc-eal, cis, esm-infra, fips, fips-updates, livepatch.", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
-        """
         And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
             """
             One moment, checking your subscription first
             UA Infra: ESM is already enabled.
             See: sudo ua status
-            """
-        And I verify that running `ua enable esm-infra --format json` `with sudo` exits `1`
-        Then I will see the following on stdout:
-            """
-            {"_schema_version": 0.1, "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         When I run `apt-cache policy` with sudo
         Then apt-cache policy for the following url has permission `500`
