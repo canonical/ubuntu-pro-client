@@ -1,5 +1,6 @@
 # Integration testing
 behave
+jsonschema
 PyHamcrest
 pycloudlib @ git+https://github.com/canonical/pycloudlib.git@756a2c2de044ca60eaa7cdc76653d23a1339dc0a
 

@@ -7,6 +7,7 @@ import shlex
 import subprocess
 import time
 
+import jsonschema  # type: ignore
 import yaml
 from behave import given, then, when
 from hamcrest import (
@@ -778,6 +779,15 @@ def i_restore_the_saved_key_value_on_contract(context, key):
         contract_field=key.split(".")[-1],
         new_value=saved_value,
     )
+
+
+@then("stdout is a json matching the `{schema}` schema")
+def stdout_matches_the_json_schema(context, schema):
+    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
+        jsonschema.validate(
+            instance=json.loads(context.process.stdout.strip()),
+            schema=json.load(schema_file),
+        )
 
 
 def get_command_prefix_for_user_spec(user_spec):
