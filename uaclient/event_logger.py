@@ -11,7 +11,7 @@ import json
 import sys
 from typing import Dict, List, Optional, Set  # noqa: F401
 
-JSON_SCHEMA_VERSION = 0.1
+JSON_SCHEMA_VERSION = "0.1"
 _event_logger = None
 
 
