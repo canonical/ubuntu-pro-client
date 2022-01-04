@@ -7,7 +7,7 @@ import mock
 import pytest
 
 from uaclient import entitlements, event_logger, exceptions, status
-from uaclient.cli import action_enable, main
+from uaclient.cli import action_enable, main, main_error_handler
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -43,8 +43,15 @@ class TestActionEnable:
         out, _err = capsys.readouterr()
         assert HELP_OUTPUT == out
 
+    @mock.patch("uaclient.cli.contract.get_available_resources")
     def test_non_root_users_are_rejected(
-        self, _request_updated_contract, getuid, capsys, event, FakeConfig
+        self,
+        _m_resources,
+        _request_updated_contract,
+        getuid,
+        capsys,
+        event,
+        FakeConfig,
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         getuid.return_value = 1
@@ -54,14 +61,17 @@ class TestActionEnable:
         with pytest.raises(exceptions.NonRootUserError):
             action_enable(args, cfg=cfg)
 
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            ret = action_enable(args, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch(
+                    "sys.argv", ["/usr/bin/ua", "enable", "--format json"]
+                ):
+                    main()
 
-        expected_ret = 1
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -78,7 +88,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(capsys.readouterr()[0])
-        assert expected_ret == ret
 
     @mock.patch("uaclient.cli.util.subp")
     def test_lock_file_exists(
@@ -104,18 +113,18 @@ class TestActionEnable:
             "Operation in progress: ua disable (pid:123)"
         ) == err.value.msg
 
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
+        with pytest.raises(SystemExit):
             with mock.patch.object(
-                cfg, "check_lock_info"
-            ) as m_check_lock_info:
-                m_check_lock_info.return_value = (1, "lock_holder")
-                ret = action_enable(args, cfg=cfg)
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch.object(
+                    cfg, "check_lock_info"
+                ) as m_check_lock_info:
+                    m_check_lock_info.return_value = (1, "lock_holder")
+                    main_error_handler(action_enable)(args, cfg)
 
-        expected_ret = 1
         expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
             lock_request="ua enable", lock_holder="lock_holder", pid=1
         )
@@ -131,7 +140,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(capsys.readouterr()[0])
-        assert expected_ret == ret
 
     @pytest.mark.parametrize(
         "uid,expected_error_template",
@@ -161,14 +169,14 @@ class TestActionEnable:
             action_enable(args, cfg)
         assert expected_error == err.value.msg
 
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            ret = action_enable(args, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                main_error_handler(action_enable)(args, cfg)
 
-        expected_ret = 1
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -181,7 +189,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(capsys.readouterr()[0])
-        assert expected_ret == ret
 
     @pytest.mark.parametrize(
         "uid,expected_error_template",
@@ -231,17 +238,17 @@ class TestActionEnable:
         )
 
         args.format = "json"
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            with mock.patch.object(event, "set_event_mode"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch.object(event, "set_event_mode"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args, cfg)
 
-        expected_ret = 1
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -254,7 +261,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
 
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -388,17 +394,17 @@ class TestActionEnable:
 
         event.reset()
         args_mock.format = "json"
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            with mock.patch.object(event, "set_event_mode"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args_mock, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch.object(event, "set_event_mode"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
-        expected_ret = 1
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -411,7 +417,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
@@ -528,17 +533,17 @@ class TestActionEnable:
 
         event.reset()
         args_mock.format = "json"
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            with mock.patch.object(event, "set_event_mode"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args_mock, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch.object(event, "set_event_mode"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg=cfg)
 
-        expected_ret = 1
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
             expected_failed_services = ["ent1"]
@@ -555,7 +560,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
 
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
@@ -679,17 +683,17 @@ class TestActionEnable:
 
         event.reset()
         args_mock.format = "json"
-        with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
-        ):
-            with mock.patch.object(event, "set_event_mode"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_enable(args_mock, cfg=cfg)
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                with mock.patch.object(event, "set_event_mode"):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        main_error_handler(action_enable)(args_mock, cfg)
 
-        expected_ret = 1
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
@@ -702,7 +706,6 @@ class TestActionEnable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
-        assert expected_ret == ret
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
     @mock.patch("uaclient.contract.get_available_resources", return_value={})
