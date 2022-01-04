@@ -4,6 +4,34 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.5~22.04.1) jammy; urgency=medium
+
+  * d/control:
+    - Update homepage URL
+  * d/tools.postinst:
+    - Refactor to use valid_services
+  * New upstream release 27.5:
+    - aws: add support for the IPv6 metadata endpoint
+    - cis: update URL for the documentation
+    - cli:
+      + add endpoint to simulate the status using a specific contract token
+      + fix return code when attaching an already attached machine (GH: #1867)
+      + fix security-status to consider all possible origins to show updates
+      + include cloud build.info in the collect-logs tarball
+      + only show services which exist in the contracts server in ua status
+    - docs: fix typos and wrong/outdated information
+    - livepatch: always use the full path in livepatch calls (LP: #1951954)
+    - logs:
+      + improve rules to redact sensitive information from all log files
+      + redact sensitive information from older unredacted log files
+      + log errors from external software execution, for debugging purposes
+    - usg:
+      + support the presentedAs affordance from the contract server, showing
+        services in the CLI with the appropriate names
+      + replace the CIS entitlement by USG on Focal and onwards
+
+ -- Renan Rodrigo <renanrodrigo@canonical.com>  Tue, 04 Jan 2022 17:30:26 -0300
+
 ubuntu-advantage-tools (27.4.2~22.04.1) jammy; urgency=medium
 
   * d/tools.postinst:
