@@ -166,13 +166,9 @@ def assert_lock_file(lock_holder=None):
     def wrapper(f):
         @wraps(f)
         def new_f(*args, cfg, **kwargs):
-            try:
-                with lock.SingleAttemptLock(cfg=cfg, lock_holder=lock_holder):
-                    retval = f(*args, cfg=cfg, **kwargs)
-                return retval
-            except exceptions.LockHeldError as e:
-                event.raise_error_and_finish(exception=e)
-                return 1
+            with lock.SingleAttemptLock(cfg=cfg, lock_holder=lock_holder):
+                retval = f(*args, cfg=cfg, **kwargs)
+            return retval
 
         return new_f
 
@@ -185,10 +181,7 @@ def assert_root(f):
     @wraps(f)
     def new_f(*args, **kwargs):
         if os.getuid() != 0:
-            event.raise_error_and_finish(
-                exception=exceptions.NonRootUserError()
-            )
-            return 1
+            raise exceptions.NonRootUserError()
         else:
             return f(*args, **kwargs)
 
@@ -196,7 +189,7 @@ def assert_root(f):
 
 
 def set_event_mode(f):
-    """Decorator asserting root user"""
+    """Decorator setting the right event logger mode"""
 
     @wraps(f)
     def new_f(cmd_args, *args, **kwargs):
@@ -226,8 +219,7 @@ def assert_attached(unattached_msg_tmpl=None):
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
-                event.raise_error_and_finish(exception=exception)
-                return 1
+                raise exception
             return f(args, cfg=cfg, **kwargs)
 
         return new_f
@@ -241,7 +233,7 @@ def assert_not_attached(f):
     @wraps(f)
     def new_f(args, cfg):
         if cfg.is_attached:
-            event.raise_error(exception=exceptions.AlreadyAttachedError(cfg))
+            raise exceptions.AlreadyAttachedError(cfg)
         return f(args, cfg=cfg)
 
     return new_f
@@ -976,10 +968,9 @@ def action_enable(args, *, cfg, **kwargs):
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:
-            event.raise_error(exception=e, service=ent_name)
+            event.info(e.msg)
+            event.error(error_msg=e.msg, service=ent_name)
             ret = False
-        except Exception as e:
-            event.raise_error(exception=e, service=ent_name)
 
     if entitlements_not_found:
         valid_names = ", ".join(valid_services_names)
@@ -992,20 +983,16 @@ def action_enable(args, *, cfg, **kwargs):
             )
         )
         tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
-        not_found_exception = exceptions.UserFacingError(
+        event.services_failed(entitlements_not_found)
+        raise exceptions.UserFacingError(
             tmpl.format(
                 operation="enable",
                 name=", ".join(entitlements_not_found),
                 service_msg=service_msg,
             )
         )
-        event.services_failed(entitlements_not_found)
-        event.raise_error(exception=not_found_exception)
-        ret = False
 
-    if args and args.format == "json":
-        print(event.process_events())
-
+    event.process_events()
     return 0 if ret else 1
 
 
@@ -1521,7 +1508,10 @@ def main_error_handler(func):
                     tmpl = (
                         ua_status.MESSAGE_SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
                     )
-                print(tmpl.format(url=exc.url), file=sys.stderr)
+                event.error(error_msg=tmpl.format(url=exc.url))
+                event.info(
+                    info_msg=tmpl.format(url=exc.url), file_type=sys.stderr
+                )
             else:
                 with util.disable_log_to_console():
                     msg_args = {"url": exc.url, "error": exc}
@@ -1532,22 +1522,37 @@ def main_error_handler(func):
                     else:
                         msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
                     logging.exception(msg_tmpl.format(**msg_args))
-                print(ua_status.MESSAGE_CONNECTIVITY_ERROR, file=sys.stderr)
+
+                event.error(error_msg=ua_status.MESSAGE_CONNECTIVITY_ERROR)
+                event.info(
+                    info_msg=ua_status.MESSAGE_CONNECTIVITY_ERROR,
+                    file_type=sys.stderr,
+                )
             lock.clear_lock_file_if_present()
+            event.process_events()
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.error(exc.msg)
-            print("{}".format(exc.msg), file=sys.stderr)
+            event.error(error_msg=exc.msg)
+            event.info(info_msg="{}".format(exc.msg), file_type=sys.stderr)
             if not isinstance(exc, exceptions.LockHeldError):
                 # Only clear the lock if it is ours.
                 lock.clear_lock_file_if_present()
+            event.process_events()
             sys.exit(exc.exit_code)
-        except Exception:
+        except Exception as e:
             with util.disable_log_to_console():
                 logging.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
-            print(ua_status.MESSAGE_UNEXPECTED_ERROR, file=sys.stderr)
+            event.info(
+                info_msg=ua_status.MESSAGE_UNEXPECTED_ERROR,
+                file_type=sys.stderr,
+            )
+            event.error(
+                error_msg=getattr(e, "msg", str(e)), error_type="exception"
+            )
+            event.process_events()
             sys.exit(1)
 
     return wrapper
