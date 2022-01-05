@@ -368,9 +368,9 @@ when you should set UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1
 | ------------- | ------------------ |
 | lxd.container | num_scenarios > 7  |
 | lxd.vm        | never              |
-| gcp*          | num_scenarios > 5  |
-| azure*        | num_scenarios > 14 |
-| aws*          | num_scenarios > 11 |
+| gcp           | num_scenarios > 5  |
+| azure         | num_scenarios > 14 |
+| aws           | num_scenarios > 11 |
 
 #### Integration testing on EC2
 The following tox environments allow for testing focal on EC2:
@@ -521,6 +521,14 @@ sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
 # emulating different architectures in sbuild-launchpad-chroot
 sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "--series=focal
 ```
+
+> Note: Every so often, it is recommended to update your chroots.
+> ```bash
+> # to update a single chroot
+> sudo sbuild-launchpad-chroot update -n ua-xenial-amd64
+> # this script can be used to update all chroots
+> sudo PATTERN=\* sh /usr/share/doc/sbuild/examples/sbuild-debian-developer-setup-update-all
+> ```
 
 ### Setting up an lxc development container
 ```shell
