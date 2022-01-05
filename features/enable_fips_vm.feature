@@ -11,8 +11,13 @@ Feature: FIPS enablement in lxd VMs
         And I run `ua disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
-        And I run `ua enable <fips-service> --assume-yes` with sudo
+        And I run `ua enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
+            """
+            This will install the FIPS packages. The Livepatch service will be unavailable.
+            Warning: This action can take some time and cannot be undone.
+            """
+        And stdout matches regexp:
             """
             Updating package lists
             Installing <fips-name> packages
@@ -51,8 +56,12 @@ Feature: FIPS enablement in lxd VMs
             """
             FIPS support requires system reboot to complete configuration
             """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `ua disable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
+            """
+            This will disable the FIPS entitlement but the FIPS packages will remain installed.
+            """
+        And stdout matches regexp:
             """
             Updating package lists
             A reboot is required to complete disable operation
@@ -105,8 +114,13 @@ Feature: FIPS enablement in lxd VMs
         When I attach `contract_token` with sudo
         And I run `ua disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
-        When I run `ua enable <fips-service> --assume-yes` with sudo
+        When I run `ua enable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
+            """
+            This will install the FIPS packages including security updates.
+            Warning: This action can take some time and cannot be undone.
+            """
+        And stdout matches regexp:
             """
             Updating package lists
             Installing <fips-name> packages
@@ -136,8 +150,12 @@ Feature: FIPS enablement in lxd VMs
         """
         1
         """
-        When I run `ua disable <fips-service> --assume-yes` with sudo
+        When I run `ua disable <fips-service>` `with sudo` and stdin `y`
         Then stdout matches regexp:
+            """
+            This will disable the FIPS entitlement but the FIPS packages will remain installed.
+            """
+        And stdout matches regexp:
             """
             Updating package lists
             A reboot is required to complete disable operation
