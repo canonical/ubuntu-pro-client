@@ -317,21 +317,22 @@ To fix it, run the following commands:
 """
 PROMPT_FIPS_PRE_ENABLE = (
     """\
-This will install the FIPS core packages.
+This will install the FIPS packages. The Livepatch service will be unavailable.
+Warning: This action can take some time and cannot be undone.
 """
     + PROMPT_YES_NO
 )
 PROMPT_FIPS_UPDATES_PRE_ENABLE = (
     """\
-This will install the FIPS core packages and will include priority updates
-with security fixes.
+This will install the FIPS packages including security updates.
+Warning: This action can take some time and cannot be undone.
 """
     + PROMPT_YES_NO
 )
 PROMPT_FIPS_PRE_DISABLE = (
     """\
-This will disable access to certified FIPS packages.
-"""
+This will disable the FIPS entitlement but the FIPS packages will remain installed.
+"""  # noqa
     + PROMPT_YES_NO
 )
 
