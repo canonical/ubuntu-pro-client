@@ -485,7 +485,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             Updating package lists
-            Ubuntu Security Guides enabled
+            Ubuntu Security Guide enabled
             Visit https://ubuntu.com/security/certifications/docs/usg for the next steps
             """
         When I run `ua status` with sudo

@@ -7,7 +7,7 @@ cc-eal:
 
 cis:
     help: |
-      Ubuntu Security Guides is a tool for hardening and auditing and allows for
+      Ubuntu Security Guide is a tool for hardening and auditing and allows for
       environment-specific customizations. It enables compliance with profiles
       such as DISA-STIG and the CIS benchmarks. Find out more at
       https://ubuntu.com/security/certifications/docs/usg
