@@ -141,6 +141,7 @@ class UAClientBehaveConfig:
         "ppa_keyid",
         "userdata_file",
         "check_version",
+        "sbuild_chroot",
     ]
     redact_options = [
         "aws_access_key_id",
@@ -191,6 +192,7 @@ class UAClientBehaveConfig:
         ppa_keyid: str = DAILY_PPA_KEYID,
         userdata_file: str = None,
         check_version: str = None,
+        sbuild_chroot: str = None,
         cmdline_tags: List = []
     ) -> None:
         # First, store the values we've detected
@@ -223,6 +225,7 @@ class UAClientBehaveConfig:
         self.ppa_keyid = ppa_keyid
         self.userdata_file = userdata_file
         self.check_version = check_version
+        self.sbuild_chroot = sbuild_chroot
         self.filter_series = set(
             [
                 tag.split(".")[1]
@@ -653,7 +656,9 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
 
         with emit_spinner_on_travis("Building debs from local source... "):
             deb_paths = build_debs(
-                series=series, cache_source=context.config.cache_source
+                series=series,
+                cache_source=context.config.cache_source,
+                chroot=context.config.sbuild_chroot,
             )
 
     if "pro" in context.config.machine_type:

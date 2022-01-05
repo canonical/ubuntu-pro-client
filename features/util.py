@@ -8,7 +8,7 @@ import tempfile
 import textwrap
 import time
 from contextlib import contextmanager
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 import yaml
 
@@ -153,7 +153,9 @@ def repo_state_hash(
     return hashlib.md5(output_to_hash).hexdigest()
 
 
-def build_debs(series: str, cache_source: bool = False) -> List[str]:
+def build_debs(
+    series: str, cache_source: bool = False, chroot: Optional[str] = None
+) -> List[str]:
     """
     Build the package through sbuild and store the debs into
     output_deb_dir
@@ -231,19 +233,34 @@ def build_debs(series: str, cache_source: bool = False) -> List[str]:
 
     curr_dir = os.getcwd()
     os.chdir(SBUILD_DIR)
-    logging.info("--- Running sbuild")
+
+    sbuild_cmd = [
+        "sbuild",
+        "--no-run-lintian",
+        "--resolve-alternatives",
+        "--no-clean-source",
+        "--arch",
+        "amd64",
+        "-d",
+        series,
+        SOURCE_PR_UNTAR_DIR,
+    ]
+    if chroot is not None:
+        sbuild_cmd += ["--chroot", chroot]
+    else:
+        # use ua-series-arch chroot if present
+        ua_chroot = "ua-{}-amd64".format(series)
+        proc = subprocess.run(
+            ["schroot", "--info", "--chroot", ua_chroot],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if proc.returncode == 0:
+            sbuild_cmd += ["--chroot", ua_chroot]
+
+    logging.info('--- Running "{}"'.format(" ".join(sbuild_cmd)))
     subprocess.run(
-        [
-            "sbuild",
-            "--no-run-lintian",
-            "--resolve-alternatives",
-            "--no-clean-source",
-            "--arch",
-            "amd64",
-            "-d",
-            series,
-            SOURCE_PR_UNTAR_DIR,
-        ],
+        sbuild_cmd,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         check=True,
