@@ -45,4 +45,4 @@ class CISEntitlement(repo.RepoEntitlement):
     def title(self) -> str:
         if self._called_name == "cis":
             return "CIS Audit"
-        return "Ubuntu Security Guides"
+        return "Ubuntu Security Guide"
