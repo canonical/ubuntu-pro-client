@@ -49,7 +49,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             | hirsute | 21.04      | Hirsute Hippo |
             | impish  | 21.10      | Impish Indri  |
 
-    @series.lts
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -103,8 +104,58 @@ Feature: Enable command behaviour when attached to an UA subscription
         Examples: ubuntu release
            | release | infra-pkg | esm-infra-url                       |
            | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
-           | focal   | hello     | https://esm.ubuntu.com/infra/ubuntu |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario: Attached enable of a service in a ubuntu machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua enable foobar` `as non-root` exits `1`
+        And I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo).
+            """
+        And I verify that running `ua enable foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable unknown service 'foobar'.
+            Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+            """
+        And I verify that running `ua enable ros foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            """
+        And stderr matches regexp:
+            """
+            Cannot enable unknown service 'foobar, ros'.
+            Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+            """
+        And I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            UA Infra: ESM is already enabled.
+            See: sudo ua status
+            """
+        When I run `apt-cache policy` with sudo
+        Then apt-cache policy for the following url has permission `500`
+        """
+        https://esm.ubuntu.com/infra/ubuntu focal-infra-updates/main amd64 Packages
+        """
+        And I verify that running `apt update` `with sudo` exits `0`
+        When I run `apt install -y hello` with sudo, retrying exit [100]
+        And I run `apt-cache policy hello` as non-root
+        Then stdout matches regexp:
+        """
+        \s*500 https://esm.ubuntu.com/infra/ubuntu focal-infra-security/main amd64 Packages
+        \s*500 https://esm.ubuntu.com/infra/ubuntu focal-infra-updates/main amd64 Packages
+        """
 
     @series.all
     @uses.config.machine_type.lxd.container

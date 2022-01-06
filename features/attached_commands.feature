@@ -123,7 +123,8 @@ Feature: Command behaviour when attached to an UA subscription
            | impish  |
            | jammy   |
 
-    @series.lts
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -160,8 +161,42 @@ Feature: Command behaviour when attached to an UA subscription
         Examples: ubuntu release
            | release |
            | bionic  |
-           | focal   |
            | xenial  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario: Attached disable of a service in a ubuntu machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua disable foobar` `as non-root` exits `1`
+        And stderr matches regexp:
+            """
+            This command must be run as root \(try using sudo\).
+            """
+        And I verify that running `ua disable foobar` `with sudo` exits `1`
+        And stderr matches regexp:
+            """
+            Cannot disable unknown service 'foobar'.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates, usg.
+            """
+        And I verify that running `ua disable esm-infra` `as non-root` exits `1`
+        And stderr matches regexp:
+            """
+            This command must be run as root \(try using sudo\).
+            """
+        When I run `ua disable esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            Updating package lists
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -315,7 +350,8 @@ Feature: Command behaviour when attached to an UA subscription
            | impish  |
            | jammy   |
 
-    @series.lts
+    @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of different services in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -359,8 +395,48 @@ Feature: Command behaviour when attached to an UA subscription
         Examples: ubuntu release
            | release |
            | bionic  |
-           | focal   |
            | xenial  |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario: Attached disable of different services in a ubuntu machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua disable esm-infra livepatch foobar` `as non-root` exits `1`
+        And stderr matches regexp:
+            """
+            This command must be run as root \(try using sudo\)
+            """
+        And I verify that running `ua disable esm-infra livepatch foobar` `with sudo` exits `1`
+        And I will see the following on stdout:
+            """
+            Updating package lists
+            Livepatch is not currently enabled
+            See: sudo ua status
+            """
+        And stderr matches regexp:
+            """
+            Cannot disable unknown service 'foobar'.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
+            ros-updates, usg.
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            esm-infra    +yes      +disabled +UA Infra: Extended Security Maintenance \(ESM\)
+            """
+        When I run `touch /var/run/reboot-required` with sudo
+        And I run `touch /var/run/reboot-required.pkgs` with sudo
+        And I run `ua enable esm-infra` with sudo
+        Then stdout matches regexp:
+            """
+            Updating package lists
+            UA Infra: ESM enabled
+            """
+        And stdout does not match regexp:
+            """
+            A reboot is required to complete install.
+            """
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -459,11 +535,104 @@ Feature: Command behaviour when attached to an UA subscription
         Examples: ubuntu release
            | release | infra-status |
            | bionic  | enabled      |
-           | focal   | enabled      |
            | xenial  | enabled      |
            | hirsute | n/a          |
            | impish  | n/a          |
            | jammy   | n/a          |
+
+    @series.focal
+    @uses.config.machine_type.lxd.container
+    Scenario: Help command on an attached machine
+        Given a `focal` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        And I run `ua help esm-infra` with sudo
+        Then I will see the following on stdout:
+            """
+            Name:
+            esm-infra
+
+            Entitled:
+            yes
+
+            Status:
+            enabled
+
+            Help:
+            esm-infra provides access to a private ppa which includes available high
+            and critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main
+            repository between the end of the standard Ubuntu LTS security
+            maintenance and its end of life. It is enabled by default with
+            Extended Security Maintenance (ESM) for UA Apps and UA Infra.
+            You can find our more about the esm service at
+            https://ubuntu.com/security/esm
+            """
+        When I run `ua help esm-infra --format json` with sudo
+        Then I will see the following on stdout:
+            """
+            {"name": "esm-infra", "entitled": "yes", "status": "enabled", "help": "esm-infra provides access to a private ppa which includes available high\nand critical CVE fixes for Ubuntu LTS packages in the Ubuntu Main\nrepository between the end of the standard Ubuntu LTS security\nmaintenance and its end of life. It is enabled by default with\nExtended Security Maintenance (ESM) for UA Apps and UA Infra.\nYou can find our more about the esm service at\nhttps://ubuntu.com/security/esm\n"}
+            """
+        And I verify that running `ua help invalid-service` `with sudo` exits `1`
+        And I will see the following on stderr:
+            """
+            No help available for 'invalid-service'
+            """
+        When I run `ua --help` as non-root
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
+         - fips-updates: NIST-certified core packages with priority security updates
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified core packages
+           \(https://ubuntu.com/security/certifications#fips\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+         - usg: Security compliance and audit tools
+           \(https://ubuntu.com/security/certifications/docs/usg\)
+        """
+        When I run `ua help` with sudo
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
+         - fips-updates: NIST-certified core packages with priority security updates
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified core packages
+           \(https://ubuntu.com/security/certifications#fips\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+         - usg: Security compliance and audit tools
+           \(https://ubuntu.com/security/certifications/docs/usg\)
+        """
+        When I run `ua help --all` as non-root
+        Then stdout matches regexp:
+        """
+        Client to manage Ubuntu Advantage services on a machine.
+         - cc-eal: Common Criteria EAL2 Provisioning Packages
+           \(https://ubuntu.com/cc-eal\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
+         - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
+         - fips-updates: NIST-certified core packages with priority security updates
+           \(https://ubuntu.com/security/certifications#fips\)
+         - fips: NIST-certified core packages
+           \(https://ubuntu.com/security/certifications#fips\)
+         - livepatch: Canonical Livepatch service
+           \(https://ubuntu.com/security/livepatch\)
+         - ros-updates: All Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - ros: Security Updates for the Robot Operating System
+           \(https://ubuntu.com/robotics/ros-esm\)
+         - usg: Security compliance and audit tools
+           \(https://ubuntu.com/security/certifications/docs/usg\)
+        """
 
     @series.lts
     @uses.config.machine_type.lxd.container
