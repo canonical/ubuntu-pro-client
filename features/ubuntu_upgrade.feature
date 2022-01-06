@@ -169,7 +169,7 @@ Feature: Upgrade between releases when uaclient is attached
     @upgrade
     Scenario Outline: Attached upgrade with cis enabled across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I run `ua enable cis` with sudo
         # update-manager-core requires ua < 28. Our tests that build the package will
         # generate ua with version 28. We are removing that package here to make sure

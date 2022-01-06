@@ -137,8 +137,7 @@ Feature: Unattached status
     @uses.config.contract_token
     Scenario Outline: Simulate status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
-        When I do a preflight check for `contract_token_staging` without the all flag
+        When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
         """
         SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
@@ -150,7 +149,7 @@ Feature: Unattached status
         livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
         ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
         """
-        When I do a preflight check for `contract_token_staging` with the all flag
+        When I do a preflight check for `contract_token` with the all flag
         Then stdout matches regexp:
         """
         SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
@@ -165,14 +164,14 @@ Feature: Unattached status
         ros-updates   <ros>       +yes  +no   +All Updates for the Robot Operating System
         ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
         """
-        When I do a preflight check for `contract_token_staging` formatted as json
+        When I do a preflight check for `contract_token` formatted as json
         Then stdout is formatted as `json` and has keys:
         """
         _doc _schema_version account attached config config_path contract effective
         environment_vars execution_details execution_status expires machine_id notices
         services version simulated
         """
-        When I do a preflight check for `contract_token_staging` formatted as yaml
+        When I do a preflight check for `contract_token` formatted as yaml
         Then stdout is formatted as `yaml` and has keys:
         """
         _doc _schema_version account attached config config_path contract effective
