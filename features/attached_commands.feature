@@ -165,7 +165,7 @@ Feature: Command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached detach in an ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         Then I verify that running `ua detach` `as non-root` exits `1`
         And stderr matches regexp:
             """

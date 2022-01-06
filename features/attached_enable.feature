@@ -193,7 +193,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I verify that running `ua enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
             """
@@ -210,7 +210,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I run `apt-cache policy usg-common` as non-root
         Then stdout does not match regexp:
@@ -219,7 +219,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I verify that running `ua enable cis` `with sudo` exits `1`
         Then stdout matches regexp
@@ -267,7 +267,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of cis service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I verify that running `ua enable cis` `with sudo` exits `0`
         Then I will see the following on stdout:
             """
@@ -287,7 +287,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I run `apt-cache policy usg-common` as non-root
         Then stdout does not match regexp:
@@ -296,7 +296,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
-        \s* 500 https://esm.staging.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
+        \s* 500 https://esm.ubuntu.com/cis/ubuntu <release>/main amd64 Packages
         """
         When I verify that running `ua enable cis` `with sudo` exits `1`
         Then stdout matches regexp
@@ -347,7 +347,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of usg service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I verify that running `ua enable usg` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
@@ -368,7 +368,7 @@ Feature: Enable command behaviour when attached to an UA subscription
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of usg service in a focal machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         And I run `ua enable usg` with sudo
         Then I will see the following on stdout:
             """
