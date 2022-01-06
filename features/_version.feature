@@ -6,6 +6,7 @@ Feature: UA is expected version
     @uses.config.machine_type.lxd.vm
     @uses.config.machine_type.aws.generic
     @uses.config.machine_type.aws.pro
+    @uses.config.machine_type.aws.pro.fips
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.azure.pro
     @uses.config.machine_type.gcp.generic
