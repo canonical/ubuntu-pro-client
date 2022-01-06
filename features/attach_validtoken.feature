@@ -49,7 +49,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         \d+ update(s)? can be applied immediately.
         """
-        When I attach `contract_token_staging` with sudo
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         UA Infra: ESM enabled
@@ -317,7 +317,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         features:
           machine_token_overlay: "/tmp/machine-token-overlay.json"
         """
-        And I attach `contract_token_staging` with sudo
+        And I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         UA Infra: ESM enabled
