@@ -12,7 +12,7 @@ ubuntu-advantage-tools (27.5~22.04.1) jammy; urgency=medium
     - Refactor to use valid_services
   * d/tools.postrm:
     - Use a wildcard to remove ua related gpg files
-  * New upstream release 27.5:
+  * New upstream release 27.5 (LP: #1956456)
     - aws: add support for the IPv6 metadata endpoint
     - cis: update URL for the documentation
     - cli:
