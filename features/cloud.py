@@ -218,7 +218,10 @@ class Cloud:
         if "pro" in self.machine_type:
             with open(self.pro_ids_path, "r") as stream:
                 pro_ids = yaml.safe_load(stream.read())
-            image_name = pro_ids[series]
+            if "fips" in self.machine_type:
+                image_name = pro_ids[series + "-fips"]
+            else:
+                image_name = pro_ids[series]
         else:
             image_name = self.api.daily_image(release=series)
 
@@ -539,7 +542,7 @@ class Azure(Cloud):
             List of ports to open for network ingress to the instance
 
         :returns:
-            An AWS cloud provider instance
+            An Azure cloud provider instance
         """
         if not image_name:
             image_name = self.locate_image_name(series)
@@ -654,7 +657,7 @@ class GCP(Cloud):
             List of ports to open for network ingress to the instance
 
         :returns:
-            An AWS cloud provider instance
+            An GCP cloud provider instance
         """
         if not image_name:
             image_name = self.locate_image_name(series)
