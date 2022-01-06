@@ -51,7 +51,11 @@ Feature: Upgrade between releases when uaclient is unattached
    @upgrade
    Scenario Outline: Unattached upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `apt-get dist-upgrade --assume-yes` with sudo
+        # update-manager-core requires ua < 28. Our tests that build the package will
+        # generate ua with version 28. We are removing that package here to make sure
+        # do-release-upgrade will be able to run
+        When I run `apt remove update-manager-core -y` with sudo
+        And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the `<release>` machine
         And I create the file `/etc/update-manager/release-upgrades.d/ua-test.cfg` with the following
@@ -73,7 +77,6 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        cis           yes      +Security compliance and audit tools
         esm-infra     yes      +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I attach `contract_token` with sudo
