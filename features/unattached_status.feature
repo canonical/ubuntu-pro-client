@@ -128,9 +128,9 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | bionic  | yes      | no     | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | hirsute | no       | no     | cis | yes           | no   | no        | no  | no        |     |
-           | impish  | no       | no     | cis | yes           | no   | no        | no  | no        |     |
-           | jammy   | no       | no     | cis | yes           | no   | no        | no  | no        |     |
+           | hirsute | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -185,6 +185,6 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | bionic  | yes      | no     | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | hirsute | no       | no     | cis | yes           | no   | no        | no  | no        |     |
-           | impish  | no       | no     | cis | yes           | no   | no        | no  | no        |     |
-           | jammy   | no       | no     | cis | yes           | no   | no        | no  | no        |     |
+           | hirsute | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
