@@ -14,9 +14,12 @@ Feature: License check timer only runs in environments where necessary
         # verify attach disables it
         When I wait `5` seconds
         When I attach `contract_token` with sudo
+        # The job will be automatically disabled after it runs once
+        And I wait `300` seconds
         Then I verify the `ua-license-check` systemd timer is disabled
         # verify detach enables it
         When I run `ua detach --assume-yes` with sudo
+        And I wait `5` seconds
         Then I verify the `ua-license-check` systemd timer is scheduled to run within `10` minutes
         # verify stopping and deleting marker file and stopping disables it
         #   We need to call stop both before and after rm-ing the marker file
@@ -108,6 +111,8 @@ Feature: License check timer only runs in environments where necessary
         log_file: /var/log/ubuntu-advantage.log
         """
         When I run `ua auto-attach` with sudo
+        # The job will be automatically disabled after it runs once
+        And I wait `300` seconds
         Then I verify the `ua-license-check` systemd timer is disabled
         # verify creating marker file enables it, but it disables itself
         When I run `touch /var/lib/ubuntu-advantage/marker-license-check` with sudo
