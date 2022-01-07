@@ -1014,6 +1014,8 @@ def _inform_ubuntu_pro_existence_if_applicable() -> None:
 
 def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     """Attach to a UA subscription with a given token.
+    TODO: Refactor this to use actions.attach_with_token instead of simulating
+          a cli call
 
     :return: True if attach performed without errors.
     """
@@ -1025,7 +1027,10 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     return bool(
         0
         == cli.action_attach(
-            argparse.Namespace(token=token, auto_enable=True), cfg
+            argparse.Namespace(
+                token=token, auto_enable=True, attach_config=None
+            ),
+            cfg,
         )
     )
 

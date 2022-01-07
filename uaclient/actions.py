@@ -1,6 +1,14 @@
 import logging
 
-from uaclient import clouds, config, contract, exceptions, status, util
+from uaclient import (
+    clouds,
+    config,
+    contract,
+    entitlements,
+    exceptions,
+    status,
+    util,
+)
 from uaclient.clouds import identity
 
 LOG = logging.getLogger("ua.actions")
@@ -66,3 +74,23 @@ def auto_attach(
     token = tokenResponse["contractToken"]
 
     attach_with_token(cfg, token=token, allow_enable=True)
+
+
+def enable_entitlement_by_name(
+    cfg: config.UAConfig,
+    name: str,
+    *,
+    assume_yes: bool = False,
+    allow_beta: bool = False
+):
+    """
+    Constructs an entitlement based on the name provided. Passes kwargs onto
+    the entitlement constructor.
+    :raise EntitlementNotFoundError: If no entitlement with the given name is
+        found, then raises this error.
+    """
+    ent_cls = entitlements.entitlement_factory(name, not_found_okay=False)
+    entitlement = ent_cls(
+        cfg, assume_yes=assume_yes, allow_beta=allow_beta, called_name=name
+    )
+    return entitlement.enable()

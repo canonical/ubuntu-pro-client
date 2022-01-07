@@ -171,6 +171,115 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | bionic  | libkrad0=1.16-2build1       | disabled  | cis        |
            | focal   | hello=2.10-2ubuntu2         | n/a       | usg        |
 
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attach command with attach config
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # simplest happy path
+        When I create the file `/tmp/attach.yaml` with the following
+        """
+        token: <contract_token>
+        """
+        When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
+        When I run `ua attach --attach-config /tmp/attach.yaml` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps +yes +enabled
+        """
+        And stdout matches regexp:
+        """
+        esm-infra +yes +enabled
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg> +yes +disabled
+        """
+        When I run `ua detach --assume-yes` with sudo
+        # don't allow both token on cli and config
+        Then I verify that running `ua attach TOKEN --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Do not pass the TOKEN arg if you are using --attach-config.
+        Include the token in the attach-config file instead.
+        """
+        # happy path with service overrides
+        When I create the file `/tmp/attach.yaml` with the following
+        """
+        token: <contract_token>
+        enable_services:
+          - esm-apps
+          - <cis_or_usg>
+        """
+        When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
+        When I run `ua attach --attach-config /tmp/attach.yaml` with sudo
+        Then stdout matches regexp:
+        """
+        esm-apps +yes +enabled
+        """
+        And stdout matches regexp:
+        """
+        esm-infra +yes +disabled
+        """
+        And stdout matches regexp:
+        """
+        <cis_or_usg> +yes +enabled
+        """
+        When I run `ua detach --assume-yes` with sudo
+        # missing token
+        When I create the file `/tmp/attach.yaml` with the following
+        """
+        enable_services:
+          - esm-apps
+          - <cis_or_usg>
+        """
+        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Error while reading /tmp/attach.yaml: Got value with incorrect type for field
+        "token": Expected value with type StringDataValue but got value: None
+        """
+        # other schema error
+        When I create the file `/tmp/attach.yaml` with the following
+        """
+        token: <contract_token>
+        enable_services: {cis: true}
+        """
+        When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
+        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Error while reading /tmp/attach.yaml: Got value with incorrect type for field
+        "enable_services": Expected value with type list but got value: {\'cis\': True}
+        """
+        # invalid service name
+        When I create the file `/tmp/attach.yaml` with the following
+        """
+        token: <contract_token>
+        enable_services:
+          - esm-apps
+          - nonexistent
+          - nonexistent2
+        """
+        When I replace `<contract_token>` in `/tmp/attach.yaml` with token `contract_token`
+        Then I verify that running `ua attach --attach-config /tmp/attach.yaml` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        esm-apps +yes +enabled
+        """
+        And stdout matches regexp:
+        """
+        esm-infra +yes +disabled
+        """
+        Then stderr matches regexp:
+        """
+        Cannot enable unknown service 'nonexistent, nonexistent2'.
+        """
+        Examples: ubuntu
+           | release | cis_or_usg |
+           | xenial  | cis        |
+           | bionic  | cis        |
+           | focal   | usg        |
+
     @series.all
     @uses.config.machine_type.aws.generic
     Scenario Outline: Attach command in an generic AWS Ubuntu VM
