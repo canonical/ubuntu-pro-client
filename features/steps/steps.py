@@ -422,6 +422,25 @@ def when_i_wait(context, seconds):
     time.sleep(int(seconds))
 
 
+@when("I replace `{original}` in `{filename}` with `{new}`")
+def when_i_replace_string_in_file(context, original, filename, new):
+    when_i_run_command(
+        context,
+        "sed -i 's/{original}/{new}/' {filename}".format(
+            original=original, new=new, filename=filename
+        ),
+        "with sudo",
+    )
+
+
+@when("I replace `{original}` in `{filename}` with token `{token_name}`")
+def when_i_replace_string_in_file_with_token(
+    context, original, filename, token_name
+):
+    token = getattr(context.config, token_name)
+    when_i_replace_string_in_file(context, original, filename, token)
+
+
 @then("I will see the following on stdout")
 def then_i_will_see_on_stdout(context):
     assert_that(context.process.stdout.strip(), equal_to(context.text))

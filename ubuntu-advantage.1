@@ -21,11 +21,21 @@ described in more detail below.
 
 .SH COMMANDS
 .TP
-.BR "attach" " [--no-auto-enable] <token>"
+.BR "attach" " [--no-auto-enable] [--attach-config=/path/to/file.yaml] <token>"
 Connect an Ubuntu Advantage support contract to this machine.
 
 The \fItoken\fR parameter can be obtained from
 https://auth.contracts.canonical.com/.
+
+The \fI--attach-config\fR option can be used to provide a file with the token
+and optionally, a list of services to enable after attaching. The \fItoken\fR
+parameter should not be used if this option is provided. An attach config file
+looks like the following:
+    token: YOUR_TOKEN_HERE  # required
+    enable_services:        # optional list of service names to auto-enable
+        - esm-infra
+        - esm-apps
+        - cis
 
 The optional \fI--no-auto-enable\fR flag will disable the automatic
 enablement of recommended entitlements which usually happens immediately

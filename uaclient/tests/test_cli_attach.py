@@ -2,6 +2,7 @@ import copy
 
 import mock
 import pytest
+import yaml
 
 from uaclient import status
 from uaclient.cli import (
@@ -16,6 +17,7 @@ from uaclient.exceptions import (
     NonRootUserError,
     UserFacingError,
 )
+from uaclient.testing.fakes import FakeFile
 from uaclient.util import UrlError
 
 M_PATH = "uaclient.cli."
@@ -108,8 +110,7 @@ class TestActionAttach:
 
     def test_token_is_a_required_argument(self, _m_getuid, FakeConfig):
         """When missing the required token argument, raise a UserFacingError"""
-        args = mock.MagicMock()
-        args.token = None
+        args = mock.MagicMock(token=None, attach_config=None)
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=FakeConfig())
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
@@ -146,7 +147,7 @@ class TestActionAttach:
     ):
         """If auto-enable of a service fails, attach status is updated."""
         token = "contract-token"
-        args = mock.MagicMock(token=token)
+        args = mock.MagicMock(token=token, attach_config=None)
         cfg = FakeConfig()
         cfg.status()  # persist unattached status
         # read persisted status cache from disk
@@ -189,7 +190,7 @@ class TestActionAttach:
         # TODO: Improve this test with less general mocking and more
         # post-conditions
         token = "contract-token"
-        args = mock.MagicMock(token=token)
+        args = mock.MagicMock(token=token, attach_config=None)
         cfg = FakeConfig()
 
         def fake_contract_attach(contract_token):
@@ -221,7 +222,7 @@ class TestActionAttach:
         auto_enable,
         FakeConfig,
     ):
-        args = mock.MagicMock(auto_enable=auto_enable)
+        args = mock.MagicMock(auto_enable=auto_enable, attach_config=None)
 
         def fake_contract_updates(cfg, contract_token, allow_enable):
             cfg.write_cache("machine-token", BASIC_MACHINE_TOKEN)
@@ -235,6 +236,80 @@ class TestActionAttach:
         expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
         assert [expected_call] == m_ruc.call_args_list
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
+
+    def test_attach_config_and_token_mutually_exclusive(
+        self, _m_getuid, FakeConfig
+    ):
+        args = mock.MagicMock(
+            token="something", attach_config=FakeFile("something")
+        )
+        cfg = FakeConfig()
+        with pytest.raises(UserFacingError) as e:
+            action_attach(args, cfg=cfg)
+        assert e.value.msg == status.MESSAGE_ATTACH_TOKEN_ARG_XOR_CONFIG
+
+    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "actions.attach_with_token")
+    def test_token_from_attach_config(
+        self, m_attach_with_token, _m_post_cli_attach, _m_getuid, FakeConfig
+    ):
+        args = mock.MagicMock(
+            token=None,
+            attach_config=FakeFile(yaml.dump({"token": "faketoken"})),
+        )
+        cfg = FakeConfig()
+        action_attach(args, cfg=cfg)
+        assert [
+            mock.call(mock.ANY, token="faketoken", allow_enable=True)
+        ] == m_attach_with_token.call_args_list
+
+    def test_attach_config_invalid_config(self, _m_getuid, FakeConfig):
+        args = mock.MagicMock(
+            token=None,
+            attach_config=FakeFile(
+                yaml.dump({"token": "something", "enable_services": "cis"}),
+                name="fakename",
+            ),
+        )
+        cfg = FakeConfig()
+        with pytest.raises(UserFacingError) as e:
+            action_attach(args, cfg=cfg)
+        assert "Error while reading fakename: " in e.value.msg
+
+    @pytest.mark.parametrize("auto_enable", (True, False))
+    @mock.patch(
+        M_PATH + "actions.enable_entitlement_by_name",
+        return_value=(True, None),
+    )
+    @mock.patch(M_PATH + "_post_cli_attach")
+    @mock.patch(M_PATH + "actions.attach_with_token")
+    def test_attach_config_enable_services(
+        self,
+        m_attach_with_token,
+        _m_post_cli_attach,
+        m_enable,
+        _m_getuid,
+        auto_enable,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        args = mock.MagicMock(
+            token=None,
+            attach_config=FakeFile(
+                yaml.dump({"token": "faketoken", "enable_services": ["cis"]})
+            ),
+            auto_enable=auto_enable,
+        )
+        action_attach(args, cfg=cfg)
+        assert [
+            mock.call(mock.ANY, token="faketoken", allow_enable=False)
+        ] == m_attach_with_token.call_args_list
+        if auto_enable:
+            assert [
+                mock.call(cfg, "cis", assume_yes=True, allow_beta=True)
+            ] == m_enable.call_args_list
+        else:
+            assert [] == m_enable.call_args_list
 
 
 @mock.patch(M_PATH + "contract.get_available_resources")

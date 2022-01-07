@@ -1,4 +1,4 @@
-from typing import Any, List, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 
 from uaclient.exceptions import UserFacingError
 
@@ -178,3 +178,19 @@ class DataObject(DataValue):
         if not isinstance(val, dict):
             raise IncorrectTypeError("dict", val)
         return cls.from_dict(val)
+
+
+class AttachActionsConfigFile(DataObject):
+    """
+    The format of the yaml file that can be passed with
+    ua attach --attach-config /path/to/file
+    """
+
+    fields = [
+        Field("token", StringDataValue),
+        Field("enable_services", data_list(StringDataValue), required=False),
+    ]
+
+    def __init__(self, *, token: str, enable_services: Optional[List[str]]):
+        self.token = token
+        self.enable_services = enable_services

@@ -34,3 +34,20 @@ class FakeContractClient(UAContractClient):
         if isinstance(response, Exception):
             raise response
         return response, {"header1": ""}
+
+
+class FakeFile:
+    def __init__(self, content: str, name: str = "fakefile"):
+        self.content = content
+        self.cursor = 0
+        self.name = name
+
+    def read(self, size=None):
+        if self.cursor == len(self.content):
+            return ""
+        if size is None or size >= len(self.content):
+            self.cursor = len(self.content)
+            return self.content
+        ret = self.content[self.cursor : size]
+        self.cursor += size
+        return ret
