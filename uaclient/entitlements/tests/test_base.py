@@ -24,6 +24,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         applicability_status=None,
         application_status=None,
         allow_beta=False,
+        **kwargs
     ):
         super().__init__(cfg, allow_beta=allow_beta)
         self._disable = disable
