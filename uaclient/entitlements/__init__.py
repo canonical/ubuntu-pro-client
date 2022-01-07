@@ -23,16 +23,27 @@ ENTITLEMENT_CLASSES = [
 ]  # type: List[Type[UAEntitlement]]
 
 
-def entitlement_factory(name: str):
+class EntitlementNotFoundError(Exception):
+    pass
+
+
+def entitlement_factory(name: str, not_found_okay: bool = True):
     """Returns a UAEntitlement class based on the provided name.
 
     The return type is Optional[Type[UAEntitlement]].
     It cannot be explicit because of the Python version on Xenial (3.5.2).
+    :param name: The name of the entitlement to return
+    :param not_found_okay: If True and no entitlement with the given name is
+        found, then returns None.
+    :raise EntitlementNotFoundError: If not_found_okay is False and no
+        entitlement with the given name is found, then raises this error.
     """
     for entitlement in ENTITLEMENT_CLASSES:
         if name in entitlement().valid_names:
             return entitlement
-    return None
+    if not_found_okay:
+        return None
+    raise EntitlementNotFoundError()
 
 
 def valid_services(

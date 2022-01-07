@@ -340,7 +340,7 @@ class TestActionEnable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        def factory_side_effect(name):
+        def factory_side_effect(name, not_found_okay=True):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -467,7 +467,7 @@ class TestActionEnable:
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
-        def factory_side_effect(name):
+        def factory_side_effect(name, not_found_okay=True):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":

@@ -36,6 +36,7 @@ from uaclient import status as ua_status
 from uaclient import util, version
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
+from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
 from uaclient.defaults import (
     CLOUD_BUILD_INFO,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
@@ -369,6 +370,14 @@ def attach_parser(parser):
         action="store_false",
         dest="auto_enable",
         help="do not enable any recommended services automatically",
+    )
+    parser.add_argument(
+        "--attach-config",
+        type=argparse.FileType("r"),
+        help=(
+            "use the provided attach config file instead of passing the token"
+            " on the cli"
+        ),
     )
     return parser
 
@@ -734,7 +743,7 @@ def action_config_show(args, *, cfg, **kwargs):
             raise exceptions.UserFacingError(
                 textwrap.fill(
                     msg,
-                    width=ua_status.PRINT_WRAP_WIDTH,
+                    width=PRINT_WRAP_WIDTH,
                     subsequent_indent=" " * indent_position,
                 )
             )
@@ -912,6 +921,31 @@ def action_disable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
+def _create_enable_entitlements_not_found_message(
+    entitlements_not_found, *, allow_beta: bool
+) -> str:
+    """
+    Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL message
+    based on the attempted services and valid services.
+    """
+    valid_services_names = entitlements.valid_services(allow_beta=allow_beta)
+    valid_names = ", ".join(valid_services_names)
+    service_msg = "\n".join(
+        textwrap.wrap(
+            "Try " + valid_names + ".",
+            width=80,
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+    )
+    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    return tmpl.format(
+        operation="enable",
+        name=", ".join(entitlements_not_found),
+        service_msg=service_msg,
+    )
+
+
 @set_event_mode
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
@@ -935,18 +969,12 @@ def action_enable(args, *, cfg, **kwargs):
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
-    valid_services_names = entitlements.valid_services(allow_beta=args.beta)
     ret = True
     for ent_name in entitlements_found:
         try:
-            ent_cls = entitlements.entitlement_factory(ent_name)
-            entitlement = ent_cls(
-                cfg,
-                assume_yes=args.assume_yes,
-                allow_beta=args.beta,
-                called_name=ent_name,
+            ent_ret, reason = actions.enable_entitlement_by_name(
+                cfg, ent_name, assume_yes=args.assume_yes, allow_beta=args.beta
             )
-            ent_ret, reason = entitlement.enable()
             cfg.status()  # Update the status cache
 
             if (
@@ -973,24 +1001,11 @@ def action_enable(args, *, cfg, **kwargs):
             ret = False
 
     if entitlements_not_found:
-        valid_names = ", ".join(valid_services_names)
-        service_msg = "\n".join(
-            textwrap.wrap(
-                "Try " + valid_names + ".",
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
+        msg = _create_enable_entitlements_not_found_message(
+            entitlements_not_found, allow_beta=args.beta
         )
-        tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
         event.services_failed(entitlements_not_found)
-        raise exceptions.UserFacingError(
-            tmpl.format(
-                operation="enable",
-                name=", ".join(entitlements_not_found),
-                service_msg=service_msg,
-            )
-        )
+        raise exceptions.UserFacingError(msg)
 
     event.process_events()
     return 0 if ret else 1
@@ -1151,22 +1166,70 @@ def action_auto_attach(args, *, cfg):
 @assert_root
 @assert_lock_file("ua attach")
 def action_attach(args, *, cfg):
-    if not args.token:
+    if not args.token and not args.attach_config:
         raise exceptions.UserFacingError(
             ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
         )
-    try:
-        actions.attach_with_token(
-            cfg, token=args.token, allow_enable=args.auto_enable
+    if args.token and args.attach_config:
+        raise exceptions.UserFacingError(
+            ua_status.MESSAGE_ATTACH_TOKEN_ARG_XOR_CONFIG
         )
+
+    if args.token:
+        token = args.token
+        enable_services_override = None
+    else:
+        try:
+            attach_config = AttachActionsConfigFile.from_dict(
+                yaml.safe_load(args.attach_config)
+            )
+        except IncorrectTypeError as e:
+            raise exceptions.UserFacingError(
+                textwrap.fill(
+                    "Error while reading {}: {}".format(
+                        args.attach_config.name, e.msg
+                    ),
+                    width=PRINT_WRAP_WIDTH,
+                )
+            )
+        token = attach_config.token
+        enable_services_override = attach_config.enable_services
+
+    allow_enable = args.auto_enable and enable_services_override is None
+
+    try:
+        actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
     except util.UrlError:
         event.info(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError:
         return 1
     else:
+        ret = 0
+        if enable_services_override is not None and args.auto_enable:
+            found, not_found = get_valid_entitlement_names(
+                enable_services_override
+            )
+            for name in found:
+                ent_ret, reason = actions.enable_entitlement_by_name(
+                    cfg, name, assume_yes=True, allow_beta=True
+                )
+                if not ent_ret:
+                    ret = 1
+                    if (
+                        reason is not None
+                        and isinstance(reason, ua_status.CanEnableFailure)
+                        and reason.message is not None
+                    ):
+                        event.info(reason.message)
+            if not_found:
+                msg = _create_enable_entitlements_not_found_message(
+                    not_found, allow_beta=True
+                )
+                logging.warning(msg)
+                ret = 1
         _post_cli_attach(cfg)
-        return 0
+        return ret
 
 
 def _write_command_output_to_file(

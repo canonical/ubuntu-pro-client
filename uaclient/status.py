@@ -387,6 +387,10 @@ MESSAGE_ATTACH_INVALID_TOKEN = (
 Invalid token. See """
     + BASE_UA_URL
 )
+MESSAGE_ATTACH_TOKEN_ARG_XOR_CONFIG = """\
+Do not pass the TOKEN arg if you are using --attach-config.
+Include the token in the attach-config file instead.
+    """
 MESSAGE_ATTACH_REQUIRES_TOKEN = (
     """\
 Attach requires a token: sudo ua attach <TOKEN>
