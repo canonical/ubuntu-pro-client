@@ -289,7 +289,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status | cc_status | cis_or_usg |
-           | xenial  | n/a       | n/a         | disabled  | cis        |
+           | xenial  | enabled   | n/a         | disabled  | cis        |
            | bionic  | n/a       | disabled    | n/a       | cis        |
            | focal   | enabled   | n/a         | n/a       | usg        |
 
