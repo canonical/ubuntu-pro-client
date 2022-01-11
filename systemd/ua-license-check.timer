@@ -1,0 +1,12 @@
+# This timer is only activated when on a GCP Ubuntu LTS instance that is not
+# already using Ubuntu Advantage services (via ua-license-check.path).
+# This timer triggers a service that will poll the metadata for a GCP instance.
+# If the user has added an Ubuntu Pro license to the instance, it will
+# activate Ubuntu Advantage services.
+[Unit]
+Description=Timer to poll for Ubuntu Pro licenses (Only enabled on GCP LTS non-pro)
+
+[Timer]
+OnCalendar=*:0/5
+RandomizedDelaySec=5min
+OnStartupSec=2min

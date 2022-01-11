@@ -35,8 +35,6 @@ OLD_CLIENT_FIPS_PPA="private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu"
 UA_TIMER_NAME="ua-timer.timer"
 OLD_MESSAGING_TIMER="ua-messaging.timer"
 OLD_MESSAGING_TIMER_MASKED_LOCATION="/etc/systemd/system/timers.target.wants/$OLD_MESSAGING_TIMER"
-OLD_LICENSE_CHECK_PATH="ua-license-check.path"
-OLD_LICENSE_CHECK_PATH_MASKED_LOCATION="/etc/systemd/system/multi-user.target.wants/$OLD_LICENSE_CHECK_PATH"
 
 ESM_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-trusty"
 ESM_INFRA_OLD_APT_PREF_FILE_TRUSTY="$APT_PREFERENCES_DIR/ubuntu-esm-infra-trusty"
@@ -51,7 +49,7 @@ SYSTEMD_HELPER_ENABLED_AUTO_ATTACH_DSH="/var/lib/systemd/deb-systemd-helper-enab
 SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/ua-auto-attach.service"
 
 REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
-OLD_LICENSE_CHECK_MARKER_FILE="/var/lib/ubuntu-advantage/marker-license-check"
+LICENSE_CHECK_MARKER_FILE="/var/lib/ubuntu-advantage/marker-license-check"
 
 MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 
@@ -310,9 +308,14 @@ notify_wrong_fips_metapackage_on_cloud() {
     fi
 }
 
-rm_old_license_check_marker() {
-    if [ -f $OLD_LICENSE_CHECK_MARKER_FILE ]; then
-        rm -f $OLD_LICENSE_CHECK_MARKER_FILE
+enable_periodic_license_check() {
+    cloud_id=$(cloud-id 2>/dev/null) || cloud_id=""
+    if echo "$cloud_id" | grep -q "^gce"; then
+        if check_is_lts "${UBUNTU_CODENAME}"; then
+            if [ ! -f $MACHINE_TOKEN_FILE ]; then
+                touch $LICENSE_CHECK_MARKER_FILE
+            fi
+        fi
     fi
 }
 
@@ -352,12 +355,10 @@ remove_old_systemd_timers() {
     # Since we actually want to remove this service from now on
     # we have replicated that behavior here
     if [ -L $OLD_MESSAGING_TIMER_MASKED_LOCATION ]; then
-        deb-systemd-helper purge ua-messaging.timer > /dev/null || true
-        deb-systemd-helper unmask ua-messaging.timer > /dev/null || true
-    fi
-    if [ -L $OLD_LICENSE_CHECK_PATH_MASKED_LOCATION ]; then
-        deb-systemd-helper purge ua-license-check.path > /dev/null || true
-        deb-systemd-helper unmask ua-license-check.path > /dev/null || true
+        if [ -x "/usr/bin/deb-systemd-helper" ]; then
+            deb-systemd-helper purge ua-messaging.timer > /dev/null || true
+            deb-systemd-helper unmask ua-messaging.timer > /dev/null || true
+        fi
     fi
 }
 
@@ -443,7 +444,7 @@ case "$1" in
         fi
       fi
       mark_reboot_for_fips_pro
-      rm_old_license_check_marker
+      enable_periodic_license_check
       disable_new_timer_if_old_timer_already_disabled $PREVIOUS_PKG_VER
       remove_old_systemd_timers
       ;;

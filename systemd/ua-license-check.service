@@ -1,0 +1,11 @@
+# This service is only activated when on a GCP Ubuntu LTS instance that is not
+# already using Ubuntu Advantage services (via ua-license-check.timer).
+# This service polls the metadata for a GCP instance. If the user has added an
+# Ubuntu Pro license to the instance, it will activate Ubuntu Advantage services.
+[Unit]
+Description=Poll for Ubuntu Pro licenses (Only enabled on GCP LTS non-pro)
+After=network.target network-online.target systemd-networkd.service ua-auto-attach.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/lib/ubuntu-advantage/license_check.py
