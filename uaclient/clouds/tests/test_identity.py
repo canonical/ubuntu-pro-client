@@ -87,34 +87,30 @@ class TestGetCloudType:
 
 @mock.patch(M_PATH + "get_cloud_type")
 class TestCloudInstanceFactory:
-    def test_raise_error_when_unable_to_get_cloud_type(
-        self, m_get_cloud_type, FakeConfig
-    ):
+    def test_raise_error_when_unable_to_get_cloud_type(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
         m_get_cloud_type.return_value = (
             None,
             NoCloudTypeReason.NO_CLOUD_DETECTED,
         )
         with pytest.raises(CloudFactoryNoCloudError):
-            cloud_instance_factory(FakeConfig())
+            cloud_instance_factory()
         assert 1 == m_get_cloud_type.call_count
 
-    def test_raise_error_when_not_supported(
-        self, m_get_cloud_type, FakeConfig
-    ):
+    def test_raise_error_when_not_supported(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
         m_get_cloud_type.return_value = ("unsupported-cloud", None)
         with pytest.raises(CloudFactoryUnsupportedCloudError):
-            cloud_instance_factory(FakeConfig())
+            cloud_instance_factory()
 
     @pytest.mark.parametrize("cloud_type", ("aws", "azure"))
     def test_raise_error_when_not_viable_for_ubuntu_pro(
-        self, m_get_cloud_type, cloud_type, FakeConfig
+        self, m_get_cloud_type, cloud_type
     ):
         """Raise error when AWS or Azure instance is not viable auto-attach."""
         m_get_cloud_type.return_value = (cloud_type, None)
 
-        def fake_invalid_instance(cfg):
+        def fake_invalid_instance():
             instance = mock.Mock()
             instance.is_viable = False
             return instance
@@ -127,13 +123,13 @@ class TestCloudInstanceFactory:
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_invalid_instance
             with pytest.raises(CloudFactoryNonViableCloudError):
-                cloud_instance_factory(FakeConfig())
+                cloud_instance_factory()
 
     @pytest.mark.parametrize(
         "cloud_type", ("aws", "aws-gov", "aws-china", "azure")
     )
     def test_return_cloud_instance_on_viable_clouds(
-        self, m_get_cloud_type, cloud_type, FakeConfig
+        self, m_get_cloud_type, cloud_type
     ):
         """Return UAAutoAttachInstance when matching cloud_type is viable."""
         m_get_cloud_type.return_value = (cloud_type, None)
@@ -141,7 +137,7 @@ class TestCloudInstanceFactory:
         fake_instance = mock.Mock()
         fake_instance.is_viable = True
 
-        def fake_viable_instance(cfg):
+        def fake_viable_instance():
             return fake_instance
 
         if cloud_type == "azure":
@@ -151,4 +147,4 @@ class TestCloudInstanceFactory:
 
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_viable_instance
-            assert fake_instance == cloud_instance_factory(FakeConfig())
+            assert fake_instance == cloud_instance_factory()

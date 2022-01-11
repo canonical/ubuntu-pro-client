@@ -1021,7 +1021,7 @@ def action_auto_attach(args, *, cfg):
 
     instance = None  # type: Optional[AutoAttachCloudInstance]
     try:
-        instance = identity.cloud_instance_factory(cfg)
+        instance = identity.cloud_instance_factory()
     except exceptions.CloudFactoryError as e:
         if cfg.is_attached:
             # We are attached on non-Pro Image, just report already attached

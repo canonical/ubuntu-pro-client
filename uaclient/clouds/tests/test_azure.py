@@ -11,13 +11,13 @@ M_PATH = "uaclient.clouds.azure."
 
 
 class TestUAAutoAttachAzureInstance:
-    def test_cloud_type(self, FakeConfig):
+    def test_cloud_type(self):
         """cloud_type is returned as azure."""
-        instance = UAAutoAttachAzureInstance(FakeConfig())
+        instance = UAAutoAttachAzureInstance()
         assert "azure" == instance.cloud_type
 
     @mock.patch(M_PATH + "util.readurl")
-    def test_identity_doc_from_azure_url_pkcs7(self, readurl, FakeConfig):
+    def test_identity_doc_from_azure_url_pkcs7(self, readurl):
         """Return attested signature and compute info as Azure identity doc"""
 
         def fake_readurl(url, headers):
@@ -29,7 +29,7 @@ class TestUAAutoAttachAzureInstance:
                 raise AssertionError("Unexpected URL provided %s" % url)
 
         readurl.side_effect = fake_readurl
-        instance = UAAutoAttachAzureInstance(FakeConfig())
+        instance = UAAutoAttachAzureInstance()
         assert {
             "compute": {"computekey": "computeval"},
             "pkcs7": "attestedWOOT!===",
@@ -46,7 +46,7 @@ class TestUAAutoAttachAzureInstance:
     @mock.patch(M_PATH + "util.time.sleep")
     @mock.patch(M_PATH + "util.readurl")
     def test_retry_backoff_on_failed_identity_doc(
-        self, readurl, sleep, fail_count, exception, caplog_text, FakeConfig
+        self, readurl, sleep, fail_count, exception, caplog_text
     ):
         """Retries backoff before failing to get Azure.identity_doc"""
 
@@ -66,7 +66,7 @@ class TestUAAutoAttachAzureInstance:
             raise AssertionError("Unexpected url requested {}".format(url))
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAzureInstance(FakeConfig())
+        instance = UAAutoAttachAzureInstance()
         if exception:
             with pytest.raises(HTTPError) as excinfo:
                 instance.identity_doc
@@ -101,13 +101,7 @@ class TestUAAutoAttachAzureInstance:
     @mock.patch(M_PATH + "os.path.exists")
     @mock.patch(M_PATH + "util.load_file")
     def test_is_viable_based_on_dmi_chassis_asset_tag_or_ovf_env(
-        self,
-        load_file,
-        m_exists,
-        chassis_asset_tag,
-        ovf_env_exists,
-        viable,
-        FakeConfig,
+        self, load_file, m_exists, chassis_asset_tag, ovf_env_exists, viable
     ):
         """Platform viable if chassis asset tag matches or ovf.env exists."""
 
@@ -126,20 +120,5 @@ class TestUAAutoAttachAzureInstance:
             raise AssertionError("Invalid load_file of {}".format(f_name))
 
         load_file.side_effect = fake_load_file
-        instance = UAAutoAttachAzureInstance(FakeConfig())
+        instance = UAAutoAttachAzureInstance()
         assert viable is instance.is_viable
-
-    def test_unsupported_is_license_present(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAzureInstance(FakeConfig())
-        assert not instance.is_license_present()
-
-    def test_unsupported_should_poll_for_license(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAzureInstance(FakeConfig())
-        assert not instance.should_poll_for_license()
-
-    def test_unsupported_get_polling_fn(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAzureInstance(FakeConfig())
-        assert instance.get_polling_fn() is None

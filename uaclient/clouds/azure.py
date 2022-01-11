@@ -1,5 +1,5 @@
 import os
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict
 from urllib.error import HTTPError
 
 from uaclient import util
@@ -48,15 +48,3 @@ class UAAutoAttachAzureInstance(AutoAttachCloudInstance):
             if AZURE_CHASSIS_ASSET_TAG == chassis_asset_tag.strip():
                 return True
         return os.path.exists(AZURE_OVF_ENV_FILE)
-
-    def is_license_present(self) -> bool:
-        """Unsupported"""
-        return False
-
-    def should_poll_for_license(self) -> bool:
-        """Unsupported"""
-        return False
-
-    def get_polling_fn(self) -> Optional[Callable]:
-        """Unsupported"""
-        return None

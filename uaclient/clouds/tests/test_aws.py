@@ -22,17 +22,17 @@ M_PATH = "uaclient.clouds.aws."
 
 
 class TestUAAutoAttachAWSInstance:
-    def test_cloud_type(self, FakeConfig):
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+    def test_cloud_type(self):
+        instance = UAAutoAttachAWSInstance()
         assert "aws" == instance.cloud_type
 
     @mock.patch(M_PATH + "util.readurl")
-    def test__get_imds_v2_token_headers_none_on_404(self, readurl, FakeConfig):
+    def test__get_imds_v2_token_headers_none_on_404(self, readurl):
         """A 404 on private AWS regions indicates lack IMDSv2 support."""
         readurl.side_effect = HTTPError(
             "http://me", 404, "No IMDSv2 support", None, BytesIO()
         )
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         assert None is instance._get_imds_v2_token_headers(
             ip_address=IMDS_IPV4_ADDRESS
         )
@@ -42,11 +42,9 @@ class TestUAAutoAttachAWSInstance:
         assert 1 == readurl.call_count
 
     @mock.patch(M_PATH + "util.readurl")
-    def test__get_imds_v2_token_headers_caches_response(
-        self, readurl, FakeConfig
-    ):
+    def test__get_imds_v2_token_headers_caches_response(self, readurl):
         """Return API token headers for IMDSv2 access. Response is cached."""
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         url = "http://169.254.169.254/latest/api/token"
         readurl.return_value = "somebase64token==", {"header": "stuff"}
         assert {
@@ -68,7 +66,7 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "util.time.sleep")
     @mock.patch(M_PATH + "util.readurl")
     def test_retry_backoff_on__get_imds_v2_token_headers_caches_response(
-        self, readurl, sleep, fail_count, exception, caplog_text, FakeConfig
+        self, readurl, sleep, fail_count, exception, caplog_text
     ):
         """Retry backoff before failing _get_imds_v2_token_headers."""
 
@@ -84,7 +82,7 @@ class TestUAAutoAttachAWSInstance:
             return "base64token==", {"header": "stuff"}
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         if exception:
             with pytest.raises(HTTPError) as excinfo:
                 instance._get_imds_v2_token_headers(
@@ -110,10 +108,10 @@ class TestUAAutoAttachAWSInstance:
             assert log in logs
 
     @mock.patch(M_PATH + "util.readurl")
-    def test_identity_doc_from_aws_url_pkcs7(self, readurl, FakeConfig):
+    def test_identity_doc_from_aws_url_pkcs7(self, readurl):
         """Return pkcs7 content from IMDS as AWS' identity doc"""
         readurl.return_value = "pkcs7WOOT!==", {"header": "stuff"}
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         assert {"pkcs7": "pkcs7WOOT!=="} == instance.identity_doc
         url = "http://169.254.169.254/latest/dynamic/instance-identity/pkcs7"
         token_url = "http://169.254.169.254/latest/api/token"
@@ -134,7 +132,7 @@ class TestUAAutoAttachAWSInstance:
     @mock.patch(M_PATH + "util.time.sleep")
     @mock.patch(M_PATH + "util.readurl")
     def test_retry_backoff_on_failed_identity_doc(
-        self, readurl, sleep, fail_count, exception, caplog_text, FakeConfig
+        self, readurl, sleep, fail_count, exception, caplog_text
     ):
         """Retry backoff is attempted before failing to get AWS.identity_doc"""
 
@@ -153,7 +151,7 @@ class TestUAAutoAttachAWSInstance:
             return "pkcs7WOOT!==", {"header": "stuff"}
 
         readurl.side_effect = fake_someurlerrors
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         if exception:
             with pytest.raises(HTTPError) as excinfo:
                 instance.identity_doc
@@ -174,12 +172,10 @@ class TestUAAutoAttachAWSInstance:
 
     @pytest.mark.parametrize("uuid", ("ec2", "ec2yep"))
     @mock.patch(M_PATH + "util.load_file")
-    def test_is_viable_based_on_sys_hypervisor_uuid(
-        self, load_file, uuid, FakeConfig
-    ):
+    def test_is_viable_based_on_sys_hypervisor_uuid(self, load_file, uuid):
         """Viable ec2 platform is determined by /sys/hypervisor/uuid prefix"""
         load_file.return_value = uuid
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         assert True is instance.is_viable
 
     @pytest.mark.parametrize(
@@ -197,13 +193,7 @@ class TestUAAutoAttachAWSInstance:
     )
     @mock.patch(M_PATH + "util.load_file")
     def test_is_viable_based_on_sys_product_serial_and_uuid(
-        self,
-        load_file,
-        hypervisor_uuid,
-        prod_uuid,
-        prod_serial,
-        viable,
-        FakeConfig,
+        self, load_file, hypervisor_uuid, prod_uuid, prod_serial, viable
     ):
         """Platform is viable when product serial and uuid start with ec2"""
 
@@ -219,15 +209,15 @@ class TestUAAutoAttachAWSInstance:
             raise AssertionError("Invalid load_file of {}".format(f_name))
 
         load_file.side_effect = fake_load_file
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         assert viable is instance.is_viable
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch(M_PATH + "util.readurl")
     def test_identity_doc_default_to_ipv6_if_ipv4_fail(
-        self, readurl, caplog_text, FakeConfig
+        self, readurl, caplog_text
     ):
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+        instance = UAAutoAttachAWSInstance()
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
@@ -271,9 +261,10 @@ class TestUAAutoAttachAWSInstance:
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
     @mock.patch(M_PATH + "util.readurl")
     def test_identity_doc_logs_error_if_both_ipv4_and_ipv6_fails(
-        self, readurl, caplog_text, FakeConfig
+        self, readurl, caplog_text
     ):
-        instance = UAAutoAttachAWSInstance(FakeConfig())
+
+        instance = UAAutoAttachAWSInstance()
         ipv4_address = IMDS_IPV4_ADDRESS
         ipv6_address = IMDS_IPV6_ADDRESS
 
@@ -309,18 +300,3 @@ class TestUAAutoAttachAWSInstance:
 
         for expected_log in expected_logs:
             assert expected_log in caplog_text()
-
-    def test_unsupported_is_license_present(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAWSInstance(FakeConfig())
-        assert not instance.is_license_present()
-
-    def test_unsupported_should_poll_for_license(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAWSInstance(FakeConfig())
-        assert not instance.should_poll_for_license()
-
-    def test_unsupported_get_polling_fn(self, FakeConfig):
-        """Unsupported"""
-        instance = UAAutoAttachAWSInstance(FakeConfig())
-        assert instance.get_polling_fn() is None
