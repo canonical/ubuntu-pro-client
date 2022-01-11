@@ -140,13 +140,6 @@ by a string formatted as:
 
 `<protocol>://[<username>:<password>@]<fqdn>:<port>`
 
-### Daemon
-UA Client installs a daemon that starts on boot via systemd as `ua.service`.
-The service can be safely disabled if you have no interest in Ubuntu Advantage
-services.
-
-TODO fill in this section as we add functionality to the daemon.
-
 ### Timer jobs
 UA client sets up a systemd timer to run jobs that need to be executed recurrently.
 The timer itself ticks every 5 minutes on average, and decides which jobs need

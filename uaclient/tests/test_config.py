@@ -231,7 +231,6 @@ CFG_BASE_CONTENT = """\
 # picked up by Ubuntu-Advantage client.
 
 contract_url: https://contracts.canonical.com
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 license_check_log_file: /var/log/ubuntu-advantage-license-check.log
 log_file: /var/log/ubuntu-advantage.log
@@ -246,7 +245,6 @@ CFG_FEATURES_CONTENT = """\
 # picked up by Ubuntu-Advantage client.
 
 contract_url: https://contracts.canonical.com
-daemon_log_file: /var/log/ubuntu-advantage-daemon.log
 data_dir: /var/lib/ubuntu-advantage
 features:
   extra_security_params:
@@ -1491,7 +1489,6 @@ class TestParseConfig:
             "log_file": "/var/log/ubuntu-advantage.log",
             "timer_log_file": "/var/log/ubuntu-advantage-timer.log",
             "license_check_log_file": "/var/log/ubuntu-advantage-license-check.log",  # noqa: E501
-            "daemon_log_file": "/var/log/ubuntu-advantage-daemon.log",  # noqa: E501
             "log_level": "INFO",
         }
         assert expected_default_config == config
