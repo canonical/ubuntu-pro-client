@@ -1,0 +1,14 @@
+# The marker file used here is only created when on a GCP Ubuntu LTS instance
+# that is not already using Ubuntu Advantage services.
+# This path triggers a timer that will periodically poll the metadata for a GCP
+# instance. If the user has added an Ubuntu Pro license to the instance, it will
+# activate Ubuntu Advantage services.
+[Unit]
+Description=Trigger to poll for Ubuntu Pro licenses (Only enabled on GCP LTS non-pro)
+
+[Path]
+PathExists=/var/lib/ubuntu-advantage/marker-license-check
+Unit=ua-license-check.timer
+
+[Install]
+WantedBy=multi-user.target
