@@ -219,22 +219,6 @@ class UAConfig:
         self.cfg["ua_config"]["metering_timer"] = value
         self.write_cfg()
 
-    @property
-    def should_poll_for_licenses(self) -> bool:
-        # TODO: when supported
-        #     1. change default here to True
-        #     2. add this field to UA_CONFIGURABLE_KEYS
-        return self.cfg.get("ua_config", {}).get(
-            "should_poll_for_licenses", False
-        )
-
-    @should_poll_for_licenses.setter
-    def should_poll_for_licenses(self, value: bool):
-        if "ua_config" not in self.cfg:
-            self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["should_poll_for_licenses"] = value
-        self.write_cfg()
-
     def check_lock_info(self) -> Tuple[int, str]:
         """Return lock info if config lock file is present the lock is active.
 
