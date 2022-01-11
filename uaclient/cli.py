@@ -78,7 +78,6 @@ UA_SERVICES = (
     "ua-license-check.path",
     "ua-license-check.service",
     "ua-license-check.timer",
-    "ua.service",
 )
 
 
@@ -1155,7 +1154,6 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             cfg.log_file,
             cfg.timer_log_file,
             cfg.license_check_log_file,
-            cfg.daemon_log_file,
             cfg.data_path("jobs-status"),
             CLOUD_BUILD_INFO,
             *(
