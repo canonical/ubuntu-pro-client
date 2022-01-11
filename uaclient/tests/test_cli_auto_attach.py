@@ -48,7 +48,7 @@ def test_non_root_users_are_rejected(getuid, FakeConfig):
         action_auto_attach(mock.MagicMock(), cfg=cfg)
 
 
-def fake_instance_factory(cfg):
+def fake_instance_factory():
     m_instance = mock.Mock()
     m_instance.identity_doc = "pkcs7-validated-by-backend"
     return m_instance
@@ -113,9 +113,7 @@ class TestActionAutoAttach:
             assert [] == m_auto_attach.call_args_list
             assert [] == m_post_cli_attach.call_args_list
         else:
-            assert [
-                mock.call(mock.ANY)
-            ] == m_cloud_instance_factory.call_args_list
+            assert [mock.call()] == m_cloud_instance_factory.call_args_list
             assert [mock.call()] == m_get_instance_id.call_args_list
             assert [
                 mock.call(mock.ANY, mock.ANY)
