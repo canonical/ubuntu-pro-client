@@ -143,16 +143,9 @@ by a string formatted as:
 ### Daemon
 UA Client installs a daemon that starts on boot via systemd as `ua.service`.
 The service can be safely disabled if you have no interest in Ubuntu Advantage
-services using systemctl:
+services.
 
-```
-sudo systemctl stop ua.service
-sudo systemctl disable ua.service
-```
-
-Currently, the daemon supports automatically updating GCP compute instances
-to Ubuntu Pro when a Pro license is added. In the future, the daemon will also
-replace the Timer jobs described in the next section.
+TODO fill in this section as we add functionality to the daemon.
 
 ### Timer jobs
 UA client sets up a systemd timer to run jobs that need to be executed recurrently.
