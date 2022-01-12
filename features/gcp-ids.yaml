@@ -1,3 +1,3 @@
-xenial: "projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1604-xenial-v20210329"
-bionic: "projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1804-bionic-v20210329"
-focal: "projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-2004-focal-v20210329"
+bionic: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1804-bionic-v20220117
+focal: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-2004-focal-v20220110
+xenial: projects/ubuntu-os-pro-cloud/global/images/ubuntu-pro-1604-xenial-v20211213
