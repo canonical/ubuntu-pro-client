@@ -60,10 +60,10 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_entitlements_disabled_appropriately(
         self,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
         m_getuid,
@@ -122,13 +122,17 @@ class TestActionDetach:
             assert 0 == disabled_cls.return_value.disable.call_count
             assert 1 == return_code
         assert [mock.call(assume_yes=assume_yes)] == m_prompt.call_args_list
+        if expect_disable:
+            assert [
+                mock.call(cfg)
+            ] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_config_cache_deleted(
         self,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
         m_getuid,
@@ -148,14 +152,14 @@ class TestActionDetach:
         action_detach(mock.MagicMock(), m_cfg)
 
         assert [mock.call()] == m_cfg.delete_cache.call_args_list
-        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_correct_message_emitted(
         self,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
         m_getuid,
@@ -178,14 +182,14 @@ class TestActionDetach:
         out, _err = capsys.readouterr()
 
         assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
-        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_returns_zero(
         self,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
         m_getuid,
@@ -205,7 +209,7 @@ class TestActionDetach:
         ret = action_detach(mock.MagicMock(), m_cfg)
 
         assert 0 == ret
-        assert [mock.call(m_cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @pytest.mark.parametrize(
         "classes,expected_message",
@@ -238,10 +242,10 @@ class TestActionDetach:
     )
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.cli.update_apt_and_motd_messages")
     def test_informational_message_emitted(
         self,
-        m_update_ua_messages,
+        m_update_apt_and_motd_msgs,
         m_client,
         m_entitlements,
         m_getuid,
@@ -267,6 +271,7 @@ class TestActionDetach:
         out, _err = capsys.readouterr()
 
         assert expected_message in out
+        assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
 
 class TestParser:

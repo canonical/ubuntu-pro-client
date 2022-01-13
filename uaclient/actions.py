@@ -16,6 +16,8 @@ def attach_with_token(
     :raise ContractAPIError: On unexpected errors when talking to the contract
         server.
     """
+    from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+
     try:
         contract.request_updated_contract(
             cfg, token, allow_enable=allow_enable
@@ -24,15 +26,15 @@ def attach_with_token(
         with util.disable_log_to_console():
             LOG.exception(exc)
         cfg.status()  # Persist updated status in the event of partial attach
-        config.update_ua_messages(cfg)
+        update_apt_and_motd_messages(cfg)
         raise exc
     except exceptions.UserFacingError as exc:
         LOG.warning(exc.msg)
         cfg.status()  # Persist updated status in the event of partial attach
-        config.update_ua_messages(cfg)
+        update_apt_and_motd_messages(cfg)
         raise exc
 
-    config.update_ua_messages(cfg)
+    update_apt_and_motd_messages(cfg)
 
 
 def auto_attach(
