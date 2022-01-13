@@ -3,9 +3,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @slow
     @series.xenial
+    @series.bionic
     @uses.config.machine_type.lxd.container
-    Scenario: Attached enable Common Criteria service in an ubuntu lxd container
-        Given a `xenial` machine with ubuntu-advantage-tools installed
+    Scenario Outline: Attached enable Common Criteria service in an ubuntu lxd container
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua enable cc-eal` `as non-root` exits `1`
         And I will see the following on stderr:
@@ -22,8 +23,11 @@ Feature: Enable command behaviour when attached to an UA subscription
             CC EAL2 enabled
             Please follow instructions in /usr/share/doc/ubuntu-commoncriteria/README to configure EAL2
             """
+        Examples: ubuntu release
+            | release |
+            | xenial  |
+            | bionic  |
 
-    @series.bionic
     @series.focal
     @series.hirsute
     @series.impish
@@ -36,7 +40,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             This command must be run as root (try using sudo).
             """
-        When I verify that running `ua enable cc-eal --beta` `with sudo` exits `1`
+        When I verify that running `ua enable cc-eal` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
             One moment, checking your subscription first
@@ -44,7 +48,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
         Examples: ubuntu release
             | release | version    | full_name     |
-            | bionic  | 18.04 LTS  | Bionic Beaver |
             | focal   | 20.04 LTS  | Focal Fossa   |
             | hirsute | 21.04      | Hirsute Hippo |
             | impish  | 21.10      | Impish Indri  |
