@@ -24,14 +24,14 @@ class TestAttachWithToken:
             ),
         ],
     )
-    @mock.patch(M_PATH + "config.update_ua_messages")
+    @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "config.UAConfig.status")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_attach_with_token(
         self,
         m_request_updated_contract,
         m_status,
-        m_update_ua_messages,
+        m_update_apt_and_motd_msgs,
         request_updated_contract_side_effect,
         expected_error_class,
         expect_status_call,
@@ -48,7 +48,7 @@ class TestAttachWithToken:
             attach_with_token(cfg, "token", False)
         if expect_status_call:
             assert [mock.call()] == m_status.call_args_list
-        assert [mock.call(cfg)] == m_update_ua_messages.call_args_list
+        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
 
 class TestAutoAttach:
@@ -59,12 +59,10 @@ class TestAutoAttach:
         + "contract.UAContractClient.request_auto_attach_contract_token",
         return_value={"contractToken": "token"},
     )
-    @mock.patch(M_PATH + "config.update_ua_messages")
     @mock.patch(M_PATH + "config.UAConfig.write_cache")
     def test_happy_path_on_auto_attach(
         self,
         m_write_cache,
-        m_update_ua_messages,
         m_request_auto_attach_contract_token,
         m_get_instance_id,
         m_attach_with_token,
