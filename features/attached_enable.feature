@@ -660,11 +660,14 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I will see the following on stdout
             """
             One moment, checking your subscription first
-            """
-        And I will see the following on stderr
-            """
             Cannot enable FIPS when Livepatch is enabled.
             """
+        Then I verify that running `ua enable fips --assume-yes --format json` `with sudo` exits `1`
+        And stdout is a json matching the `enable` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable FIPS when Livepatch is enabled.", "service": "fips", "type": "service"}], "failed_services": ["fips"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
 
     @slow
     @series.xenial

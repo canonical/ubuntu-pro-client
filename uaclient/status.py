@@ -456,8 +456,8 @@ Disable {dependent_service} and proceed to disable {service_being_disabled}? \
 (y/N) """
 
 MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
-Cannot enable {service_being_enabled} when {incompatible_service} is enabled.
-"""
+Cannot enable {service_being_enabled} when \
+{incompatible_service} is enabled."""
 
 MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE = """\
 Cannot enable {service_being_enabled} when {required_service} is disabled.
