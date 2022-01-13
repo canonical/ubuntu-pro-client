@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import yaml
 
-from uaclient import config, contract, status, util
+from uaclient import config, contract, event_logger, status, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
     MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
@@ -26,6 +26,8 @@ RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
     r"-(?P<flavor>[A-Za-z0-9_-]+)"
 )
+
+event = event_logger.get_event_logger()
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
@@ -200,8 +202,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return False, None
             elif fail.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE:
                 # Try to disable those services before proceeding with enable
-                handle_incompat_ret = self.handle_incompatible_services()
-                if not handle_incompat_ret:
+                incompat_ret, error = self.handle_incompatible_services()
+                if not incompat_ret:
+                    fail.message = error
                     return False, fail
             elif (
                 fail.reason
@@ -360,7 +363,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def handle_incompatible_services(self) -> bool:
+    def handle_incompatible_services(self) -> Tuple[bool, Optional[str]]:
         """
         Prompt user when incompatible services are found during enable.
 
@@ -404,25 +407,23 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     )
 
                     if cfg_block_disable_on_enable:
-                        logging.info(e_msg)
-                        return False
+                        return False, e_msg
 
                     if not util.prompt_for_confirmation(
                         msg=user_msg, assume_yes=self.assume_yes
                     ):
-                        print(e_msg)
-                        return False
+                        return False, e_msg
 
                     disable_msg = "Disabling incompatible service: {}".format(
                         ent.title
                     )
-                    logging.info(disable_msg)
+                    event.info(disable_msg)
 
                     ret = ent.disable()
                     if not ret:
-                        return ret
+                        return ret, None
 
-        return True
+        return True, None
 
     def _enable_required_services(self) -> bool:
         """
