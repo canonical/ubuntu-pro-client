@@ -128,12 +128,12 @@ class TestActionAttach:
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.contract.get_available_resources")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
         self,
         request_updated_contract,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
@@ -166,11 +166,11 @@ class TestActionAttach:
         ), "Did not persist on disk status during attach failure"
         logs = caplog_text()
         assert expected_log in logs
-        assert [mock.call(cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
     )
@@ -179,7 +179,7 @@ class TestActionAttach:
         self,
         action_status,
         contract_machine_attach,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         _m_should_reboot,
         _m_remove_notice,
         _m_getuid,
@@ -204,16 +204,16 @@ class TestActionAttach:
         assert 1 == action_status.call_count
         expected_calls = [mock.call(contract_token=token)]
         assert expected_calls == contract_machine_attach.call_args_list
-        assert [mock.call(cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
     @mock.patch("uaclient.contract.get_available_resources")
-    @mock.patch("uaclient.config.update_ua_messages")
+    @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(
         self,
-        update_ua_messages,
+        m_update_apt_and_motd_msgs,
         _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
@@ -234,7 +234,7 @@ class TestActionAttach:
 
         expected_call = mock.call(mock.ANY, mock.ANY, allow_enable=auto_enable)
         assert [expected_call] == m_ruc.call_args_list
-        assert [mock.call(cfg)] == update_ua_messages.call_args_list
+        assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
 
 @mock.patch(M_PATH + "contract.get_available_resources")

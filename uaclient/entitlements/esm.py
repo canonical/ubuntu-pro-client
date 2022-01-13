@@ -1,8 +1,8 @@
 from typing import Optional, Tuple  # noqa: F401
 
 from uaclient import util
-from uaclient.config import update_ua_messages
 from uaclient.entitlements import repo
+from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
@@ -12,13 +12,13 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
     def _perform_enable(self, silent: bool = False) -> bool:
         enable_performed = super()._perform_enable(silent=silent)
         if enable_performed:
-            update_ua_messages(self.cfg)
+            update_apt_and_motd_messages(self.cfg)
         return enable_performed
 
     def disable(self, silent=False) -> bool:
         disable_performed = super().disable(silent=silent)
         if disable_performed:
-            update_ua_messages(self.cfg)
+            update_apt_and_motd_messages(self.cfg)
         return disable_performed
 
 

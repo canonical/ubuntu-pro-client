@@ -46,6 +46,7 @@ from uaclient.defaults import (
 # It is not ideal for us to import an entitlement directly on the cli module.
 # We need to refactor this to avoid that type of coupling in the code.
 from uaclient.entitlements.livepatch import LIVEPATCH_CMD
+from uaclient.jobs.update_messaging import update_apt_and_motd_messages
 
 NAME = "ua"
 
@@ -1021,7 +1022,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
     jobs.enable_license_check_if_applicable(cfg)
-    config.update_ua_messages(cfg)
+    update_apt_and_motd_messages(cfg)
     print(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
