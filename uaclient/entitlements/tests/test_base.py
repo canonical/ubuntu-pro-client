@@ -523,6 +523,7 @@ class TestUaEntitlement:
     ):
         """When can_enable returns False enable returns False."""
         m_can_enable.return_value = (False, can_enable_fail)
+        m_handle_incompat.return_value = (False, None)
         entitlement = concrete_entitlement_factory(entitled=True)
         entitlement._perform_enable = mock.Mock()
 
