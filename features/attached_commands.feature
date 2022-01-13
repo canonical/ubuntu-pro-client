@@ -245,7 +245,7 @@ Feature: Command behaviour when attached to an UA subscription
        Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg |
            | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        |
-           | bionic  | yes      | no     | yes | yes  | yes         | yes | cis        |
+           | bionic  | yes      | yes     | yes | yes  | yes         | yes | cis        |
            | focal   | yes      | no     | yes | yes  | yes         | no  | usg        |
 
     @series.all

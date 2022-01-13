@@ -52,7 +52,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
            | xenial  | disabled | disabled | disabled | cis        |
-           | bionic  | disabled | n/a      | disabled | cis        |
+           | bionic  | disabled | disabled | disabled | cis        |
            | focal   | n/a      | n/a      | disabled | usg        |
 
     @series.lts
@@ -107,7 +107,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | enabled     | cis        |
-           | bionic  | disabled | n/a      | disabled | n/a         | cis        |
+           | bionic  | disabled | disabled | disabled | n/a         | cis        |
            | focal   | n/a      | n/a      | disabled | enabled     | usg        |
 
     @series.lts
@@ -162,7 +162,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | n/a         | cis        |
-           | bionic  | disabled | n/a      | disabled | n/a         | cis        |
+           | bionic  | disabled | disabled | disabled | n/a         | cis        |
            | focal   | n/a      | n/a      | disabled | enabled     | usg        |
 
     @series.lts
@@ -280,7 +280,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg |
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        |
            | focal   | n/a      | n/a      | disabled | hello     | ant      | usg        |
 
     @series.lts
@@ -398,7 +398,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
            | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
 
     @series.lts
@@ -516,5 +516,5 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       | cis        |
-           | bionic  | disabled | n/a      | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
            | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
