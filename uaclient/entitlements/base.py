@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import yaml
 
-from uaclient import config, contract, status, util
+from uaclient import config, contract, event_logger, status, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
     MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
@@ -26,6 +26,8 @@ RE_KERNEL_UNAME = (
     r"(?P<major>[\d]+)[.-](?P<minor>[\d]+)[.-](?P<patch>[\d]+\-[\d]+)"
     r"-(?P<flavor>[A-Za-z0-9_-]+)"
 )
+
+event = event_logger.get_event_logger()
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
@@ -208,7 +210,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
             ):
                 # Try to enable those services before proceeding with enable
-                if not self._enable_required_services():
+                req_ret, error = self._enable_required_services()
+                if not req_ret:
+                    fail.message = error
                     return False, fail
             else:
                 # every other reason means we can't continue
@@ -424,7 +428,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
-    def _enable_required_services(self) -> bool:
+    def _enable_required_services(self) -> Tuple[bool, Optional[str]]:
         """
         Prompt user when required services are found during enable.
 
@@ -438,8 +442,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             ent_cls = entitlement_factory(required_service)
             if not ent_cls:
                 msg = "Required service {} not found.".format(required_service)
-                logging.error(msg)
-                return False
+                return False, msg
 
             ent = ent_cls(self.cfg, allow_beta=True)
 
@@ -462,15 +465,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 if not util.prompt_for_confirmation(
                     msg=user_msg, assume_yes=self.assume_yes
                 ):
-                    print(e_msg)
-                    return False
+                    return False, e_msg
 
-                print("Enabling required service: {}".format(ent.title))
-                ret, _ = ent.enable(silent=True)
+                event.info("Enabling required service: {}".format(ent.title))
+                ret, fail = ent.enable(silent=True)
                 if not ret:
-                    return ret
+                    msg = "Cannot enable required service: {}".format(
+                        ent.title
+                    )
+                    if fail.message:
+                        msg += "\n" + fail.message
 
-        return True
+                    return ret, msg
+
+        return True, None
 
     def applicability_status(self) -> Tuple[ApplicabilityStatus, str]:
         """Check all contract affordances to vet current platform

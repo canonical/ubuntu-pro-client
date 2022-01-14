@@ -504,7 +504,7 @@ class TestUaEntitlement:
     )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement._enable_required_services",
-        return_value=False,
+        return_value=(False, "required error msg"),
     )
     @mock.patch(
         "uaclient.entitlements.base.UAEntitlement.handle_incompatible_services",  # noqa: E501
@@ -532,6 +532,61 @@ class TestUaEntitlement:
         assert handle_incompat_calls == m_handle_incompat.call_count
         assert enable_req_calls == m_enable_required.call_count
         assert 0 == entitlement._perform_enable.call_count
+
+        if enable_req_calls:
+            assert can_enable_fail.message == "required error msg"
+
+    @pytest.mark.parametrize("enable_fail_message", (("not entitled"), (None)))
+    @mock.patch("uaclient.util.handle_message_operations")
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    @mock.patch("uaclient.util.prompt_for_confirmation")
+    def test_enable_false_when_fails_to_enable_required_service(
+        self,
+        m_handle_msg,
+        m_ent_factory,
+        m_prompt_for_confirmation,
+        enable_fail_message,
+        concrete_entitlement_factory,
+    ):
+        m_handle_msg.return_value = True
+
+        fail_reason = status.CanEnableFailure(
+            status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+        )
+        enable_fail_reason = status.CanEnableFailure(
+            status.CanEnableFailureReason.NOT_ENTITLED,
+            message=enable_fail_message,
+        )
+
+        m_ent_cls = mock.Mock()
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.enable.return_value = (False, enable_fail_reason)
+        m_ent_obj.application_status.return_value = (
+            status.ApplicationStatus.DISABLED,
+            None,
+        )
+        type(m_ent_obj).title = mock.PropertyMock(return_value="Test")
+        m_ent_factory.return_value = m_ent_cls
+
+        m_prompt_for_confirmation.return_vale = True
+
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(status.ApplicationStatus.DISABLED, ""),
+        )
+        entitlement._required_services = "test"
+
+        with mock.patch.object(entitlement, "can_enable") as m_can_enable:
+            m_can_enable.return_value = (False, fail_reason)
+            ret, fail = entitlement.enable()
+
+        assert not ret
+        expected_msg = "Cannot enable required service: Test"
+        if enable_fail_reason.message:
+            expected_msg += "\n" + enable_fail_reason.message
+        assert expected_msg == fail.message
+        assert 1 == m_can_enable.call_count
+        assert 1 == m_ent_factory.call_count
 
     @pytest.mark.parametrize(
         "orig_access,delta",
