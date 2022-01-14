@@ -801,6 +801,12 @@ Feature: Enable command behaviour when attached to an UA subscription
         ROS ESM Security Updates cannot be enabled with UA Apps: ESM disabled.
         Enable UA Apps: ESM and proceed to enable ROS ESM Security Updates\? \(y\/N\) Cannot enable ROS ESM Security Updates when UA Apps: ESM is disabled.
         """
+        When I verify that running `ua enable ros --beta --format json` `with sudo` and stdin `N` exits `1`
+        Then I will see the following on stdout:
+        """
+        ROS ESM Security Updates cannot be enabled with UA Apps: ESM disabled.
+        Enable UA Apps: ESM and proceed to enable ROS ESM Security Updates? (y/N) {"_schema_version": "0.1", "errors": [{"message": "Cannot enable ROS ESM Security Updates when UA Apps: ESM is disabled.\n", "service": "ros", "type": "service"}], "failed_services": ["ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
 
         When I run `ua enable ros --beta` `with sudo` and stdin `y`
         Then stdout matches regexp
