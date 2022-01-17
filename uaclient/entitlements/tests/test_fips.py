@@ -700,35 +700,12 @@ class TestFIPSEntitlementEnable:
             [
                 not cfg_allow_default_fips_metapkg_on_gcp,
                 "ubuntu-gcp-fips" not in additional_pkgs,
-                series != "bionic",
+                series not in ("bionic", "focal"),
             ]
         ):
             assert not actual_value
         else:
             assert actual_value
-
-    @pytest.mark.parametrize(
-        "cfg_fips_metapkg_on_focal_cloud", ((True), (False))
-    )
-    @pytest.mark.parametrize("cloud_id", (("azure"), ("aws")))
-    @mock.patch("uaclient.util.is_config_value_true")
-    def test_prevent_enabling_fips_on_focal_cloud(
-        self,
-        m_is_config_value,
-        cloud_id,
-        cfg_fips_metapkg_on_focal_cloud,
-        entitlement,
-    ):
-        series = "focal"
-        m_is_config_value.return_value = cfg_fips_metapkg_on_focal_cloud
-        actual_value = entitlement._allow_fips_on_cloud_instance(
-            series=series, cloud_id=cloud_id
-        )
-
-        if cfg_fips_metapkg_on_focal_cloud:
-            assert actual_value
-        else:
-            assert not actual_value
 
     @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @mock.patch(
@@ -1121,7 +1098,7 @@ class TestFipsEntitlementPackages:
     @mock.patch(M_PATH + "get_cloud_type")
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.apt.get_installed_packages")
-    def test_packages_are_override_when_bionic_cloud_instance(
+    def test_packages_are_override_on_cloud_instance(
         self,
         m_installed_packages,
         m_platform_info,
@@ -1149,7 +1126,7 @@ class TestFipsEntitlementPackages:
 
         if all(
             [
-                series == "bionic",
+                series in ("bionic", "focal"),
                 cloud_id
                 in (
                     "azure",
