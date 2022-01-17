@@ -16,7 +16,7 @@ import textwrap
 import time
 from functools import wraps
 from typing import Optional  # noqa: F401
-from typing import List
+from typing import List, Tuple
 
 import yaml
 
@@ -40,6 +40,7 @@ from uaclient.defaults import (
     CLOUD_BUILD_INFO,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
+    PRINT_WRAP_WIDTH,
 )
 
 # TODO: Better address service commands running on cli
@@ -93,8 +94,6 @@ class UAArgumentParser(argparse.ArgumentParser):
         epilog=None,
         formatter_class=argparse.HelpFormatter,
         base_desc: str = None,
-        non_beta_services_desc: List[str] = None,
-        beta_services_desc: List[str] = None,
     ):
         super().__init__(
             prog=prog,
@@ -104,25 +103,61 @@ class UAArgumentParser(argparse.ArgumentParser):
         )
 
         self.base_desc = base_desc
-        self.non_beta_services_desc = non_beta_services_desc
-        self.beta_services_desc = beta_services_desc
 
     def error(self, message):
         self.print_usage(sys.stderr)
         self.exit(2, message + "\n")
 
     def print_help(self, file=None, show_all=False):
-        desc_vars = [
-            self.base_desc,
-            self.non_beta_services_desc,
-            self.beta_services_desc,
-        ]
-        if any(desc_vars):
-            services = sorted(self.non_beta_services_desc)
+        if self.base_desc:
+            non_beta_services_desc, beta_services_desc = (
+                UAArgumentParser._get_service_descriptions()
+            )
+            service_descriptions = sorted(non_beta_services_desc)
             if show_all:
-                services = sorted(services + self.beta_services_desc)
-            self.description = "\n".join([self.base_desc] + services)
+                service_descriptions = sorted(
+                    service_descriptions + beta_services_desc
+                )
+            self.description = "\n".join(
+                [self.base_desc] + service_descriptions
+            )
         super().print_help(file=file)
+
+    @staticmethod
+    def _get_service_descriptions() -> Tuple[List[str], List[str]]:
+        service_info_tmpl = " - {name}: {description}{url}"
+        non_beta_services_desc = []
+        beta_services_desc = []
+
+        resources = contract.get_available_resources(config.UAConfig())
+        for resource in resources:
+            ent_cls = entitlements.entitlement_factory(resource["name"])
+            if ent_cls:
+                # Because we don't know the presentation name if unattached
+                presentation_name = resource.get(
+                    "presentedAs", resource["name"]
+                )
+                if ent_cls.help_doc_url:
+                    url = " ({})".format(ent_cls.help_doc_url)
+                else:
+                    url = ""
+                service_info = textwrap.fill(
+                    service_info_tmpl.format(
+                        name=presentation_name,
+                        description=ent_cls.description,
+                        url=url,
+                    ),
+                    width=PRINT_WRAP_WIDTH,
+                    subsequent_indent="   ",
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
+                if ent_cls.is_beta:
+                    beta_services_desc.append(service_info)
+                else:
+                    non_beta_services_desc.append(service_info)
+
+        return (non_beta_services_desc, beta_services_desc)
 
 
 def assert_lock_file(lock_holder=None):
@@ -1213,49 +1248,13 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
 
 
 def get_parser():
-    service_line_tmpl = " - {name}: {description}{url}"
     base_desc = __doc__
-    non_beta_services_desc = []
-    beta_services_desc = []
-
-    resources = contract.get_available_resources(config.UAConfig())
-    for resource in resources:
-        ent_cls = entitlements.entitlement_factory(resource["name"])
-        if ent_cls:
-            # Because we are not sure of the presentation name if unattached
-            presentation_name = resource.get("presentedAs", resource["name"])
-            if ent_cls.help_doc_url:
-                url = " ({})".format(ent_cls.help_doc_url)
-            else:
-                url = ""
-            service_line = service_line_tmpl.format(
-                name=presentation_name,
-                description=ent_cls.description,
-                url=url,
-            )
-            if len(service_line) <= 80:
-                service_info = [service_line]
-            else:
-                wrapped_words = []
-                line = service_line
-                while len(line) > 80:
-                    [line, wrapped_word] = line.rsplit(" ", 1)
-                    wrapped_words.insert(0, wrapped_word)
-                service_info = [line + "\n   " + " ".join(wrapped_words)]
-
-            if ent_cls.is_beta:
-                beta_services_desc.extend(service_info)
-            else:
-                non_beta_services_desc.extend(service_info)
-
     parser = UAArgumentParser(
         prog=NAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         usage=USAGE_TMPL.format(name=NAME, command="<command>"),
         epilog=EPILOG_TMPL.format(name=NAME, command="<command>"),
         base_desc=base_desc,
-        non_beta_services_desc=non_beta_services_desc,
-        beta_services_desc=beta_services_desc,
     )
     parser.add_argument(
         "--debug",
