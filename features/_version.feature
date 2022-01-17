@@ -9,6 +9,7 @@ Feature: UA is expected version
     @uses.config.machine_type.aws.pro.fips
     @uses.config.machine_type.azure.generic
     @uses.config.machine_type.azure.pro
+    @uses.config.machine_type.azure.pro.fips
     @uses.config.machine_type.gcp.generic
     @uses.config.machine_type.gcp.pro
     Scenario Outline: Check ua version
