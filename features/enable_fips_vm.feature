@@ -103,7 +103,7 @@ Feature: FIPS enablement in lxd VMs
         Then stdout is a json matching the `enable` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": 0.1, "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
 
         Examples: ubuntu release
@@ -218,7 +218,7 @@ Feature: FIPS enablement in lxd VMs
         Then stdout is a json matching the `enable` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": 0.1, "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": true, "processed_services": ["<fips-service>"], "result": "success", "warnings": []}
         """
 
         Examples: ubuntu release
