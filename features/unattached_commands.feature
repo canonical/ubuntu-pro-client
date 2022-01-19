@@ -540,7 +540,7 @@ Feature: Command behaviour when unattached
           Personal and community subscriptions are available at no charge
           See https://ubuntu.com/advantage
           """
-        When I verify that running `ua enable esm-infra --format json` `with sudo` exits `1`
+        When I verify that running `ua enable esm-infra --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `enable` schema
         And I will see the following on stdout:
           """

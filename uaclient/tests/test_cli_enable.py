@@ -62,15 +62,18 @@ class TestActionEnable:
             action_enable(args, cfg=cfg)
 
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+            with mock.patch(
+                "sys.argv",
+                [
+                    "/usr/bin/ua",
+                    "enable",
+                    "foobar",
+                    "--assume-yes",
+                    "--format",
+                    "json",
+                ],
             ):
-                with mock.patch(
-                    "sys.argv", ["/usr/bin/ua", "enable", "--format json"]
-                ):
-                    main()
+                main()
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -113,17 +116,15 @@ class TestActionEnable:
             "Operation in progress: ua disable (pid:123)"
         ) == err.value.msg
 
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(
-                    cfg, "check_lock_info"
-                ) as m_check_lock_info:
-                    m_check_lock_info.return_value = (1, "lock_holder")
-                    main_error_handler(action_enable)(args, cfg)
+                cfg, "check_lock_info"
+            ) as m_check_lock_info:
+                m_check_lock_info.return_value = (1, "lock_holder")
+                main_error_handler(action_enable)(args, cfg)
 
         expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
             lock_request="ua enable", lock_holder="lock_holder", pid=1
@@ -161,21 +162,21 @@ class TestActionEnable:
         """Check that root user gets unattached message."""
 
         m_getuid.return_value = uid
+
         cfg = FakeConfig()
+        args = mock.MagicMock()
+        args.service = ["esm-infra"]
+
         expected_error = expected_error_template.format(name="esm-infra")
         with pytest.raises(exceptions.UserFacingError) as err:
-            args = mock.MagicMock()
-            args.service = ["esm-infra"]
             action_enable(args, cfg)
         assert expected_error == err.value.msg
 
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                main_error_handler(action_enable)(args, cfg)
+            main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -238,16 +239,12 @@ class TestActionEnable:
         )
 
         args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args, cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -394,16 +391,12 @@ class TestActionEnable:
 
         event.reset()
         args_mock.format = "json"
+        # For json format, we need that flag
+        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -533,16 +526,12 @@ class TestActionEnable:
 
         event.reset()
         args_mock.format = "json"
+        # For json format, we need that flag
+        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg=cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg=cfg)
 
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
@@ -602,23 +591,18 @@ class TestActionEnable:
                 == fake_stdout.getvalue()
             )
 
-        event.reset()
         args_mock.format = "json"
+        # For json format, we need that flag
+        args_mock.assume_yes = True
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
         ):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        ret = action_enable(args_mock, cfg=cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                ret = action_enable(args_mock, cfg=cfg)
 
         expected_ret = 1
         expected = {
@@ -681,18 +665,13 @@ class TestActionEnable:
         )
         assert expected_error == err.value.msg
 
-        event.reset()
         args_mock.format = "json"
+        # For json format, we need that flag
+        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_enable)(args_mock, cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -756,8 +735,9 @@ class TestActionEnable:
         assert expected_ret == ret
         assert 1 == cfg.status.call_count
 
-        event.reset()
         args_mock.format = "json"
+        # For json format, we need that flag
+        args_mock.assume_yes = True
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
@@ -765,15 +745,9 @@ class TestActionEnable:
             "uaclient.entitlements.valid_services",
             return_value=["testitlement"],
         ):
-            with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
-            ):
-                with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        ret = action_enable(args_mock, cfg=cfg)
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                ret = action_enable(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -786,3 +760,38 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
         assert expected_ret == ret
+
+    def test_format_json_fails_when_assume_yes_flag_not_used(
+        self, _m_get_available_resources, _m_getuid, event
+    ):
+        cfg = mock.MagicMock()
+        args_mock = mock.MagicMock()
+        args_mock.format = "json"
+        args_mock.assume_yes = False
+
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args_mock, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(fake_stdout.getvalue())

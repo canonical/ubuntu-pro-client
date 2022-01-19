@@ -203,6 +203,24 @@ def set_event_mode(f):
     return new_f
 
 
+def verify_json_format_args(f):
+    """Decorator to verify if correct params are used for json format"""
+
+    @wraps(f)
+    def new_f(cmd_args, *args, **kwargs):
+        if not cmd_args:
+            return f(cmd_args, *args, **kwargs)
+
+        if cmd_args.format == "json" and not cmd_args.assume_yes:
+            raise exceptions.UserFacingError(
+                ua_status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES
+            )
+        else:
+            return f(cmd_args, *args, **kwargs)
+
+    return new_f
+
+
 def assert_attached(unattached_msg_tmpl=None):
     """Decorator asserting attached config.
 
@@ -947,6 +965,7 @@ def _create_enable_entitlements_not_found_message(
 
 
 @set_event_mode
+@verify_json_format_args
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
