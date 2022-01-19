@@ -244,18 +244,6 @@ Feature: Enable command behaviour when attached to an UA subscription
             One moment, checking your subscription first
             Cannot install Livepatch on a container.
             """
-        And I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS on a container.
-            """
-        And I verify that running `ua enable fips-updates --assume-yes` `with sudo` exits `1`
-        And I will see the following on stdout:
-            """
-            One moment, checking your subscription first
-            Cannot install FIPS Updates on a container.
-            """
 
         Examples: Un-supported services in containers
            | release |
