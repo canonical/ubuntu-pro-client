@@ -1039,6 +1039,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
     else:
         print(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
+    jobs.disable_license_check_if_applicable(cfg)
     action_status(args=None, cfg=cfg)
 
 
