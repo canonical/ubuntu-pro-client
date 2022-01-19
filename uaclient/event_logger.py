@@ -58,6 +58,7 @@ class EventLogger:
         self._processed_services = set()
         self._failed_services = set()
         self._needs_reboot = False
+        self._event_logger_mode = EventLoggerMode.CLI
 
     def set_event_mode(self, event_mode: EventLoggerMode):
         """Set the event logger mode.

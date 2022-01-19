@@ -99,7 +99,7 @@ Feature: FIPS enablement in lxd VMs
             """
             Disabling FIPS requires system reboot to complete operation
             """
-        When I run `ua enable <fips-service> --assume-yes --format json` with sudo
+        When I run `ua enable <fips-service> --assume-yes --format json --assume-yes` with sudo
         Then stdout is a json matching the `enable` schema
         And I will see the following on stdout:
         """
@@ -214,7 +214,7 @@ Feature: FIPS enablement in lxd VMs
             livepatch +yes +enabled
             """
         When I run `ua disable <fips-service> --assume-yes` with sudo
-        And I run `ua enable <fips-service> --assume-yes --format json` with sudo
+        And I run `ua enable <fips-service> --assume-yes --format json --assume-yes` with sudo
         Then stdout is a json matching the `enable` schema
         And I will see the following on stdout:
         """
