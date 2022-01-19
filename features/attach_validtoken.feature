@@ -65,8 +65,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +n/a      +NIST-certified core packages
-        fips-updates +yes      +n/a      +NIST-certified core packages with priority security updates
+        fips         +yes      +disabled +NIST-certified core packages
+        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
         livepatch    +yes      +n/a      +Canonical Livepatch service
         """
         And stdout matches regexp:

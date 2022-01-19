@@ -1,6 +1,5 @@
-from typing import Callable, Dict, List, Tuple, Union
-
 from uaclient.entitlements import repo
+from uaclient.types import MessagingOperationsDict
 
 CC_README = "/usr/share/doc/ubuntu-commoncriteria/README"
 
@@ -15,7 +14,7 @@ class CommonCriteriaEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     @property
-    def messaging(self) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
+    def messaging(self) -> MessagingOperationsDict:
         return {
             "pre_install": [
                 "(This will download more than 500MB of packages, so may take"

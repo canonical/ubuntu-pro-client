@@ -328,6 +328,10 @@ class TestLivepatchProcessConfigDirectives:
         assert 0 == m_subp.call_count
 
 
+@mock.patch(
+    "uaclient.entitlements.fips.FIPSEntitlement.application_status",
+    return_value=DISABLED_APP_STATUS,
+)
 @mock.patch(M_LIVEPATCH_STATUS, return_value=DISABLED_APP_STATUS)
 @mock.patch(
     "uaclient.entitlements.livepatch.util.is_container", return_value=False
@@ -341,6 +345,7 @@ class TestLivepatchEntitlementCanEnable:
         self,
         _m_is_container,
         _m_livepatch_status,
+        _m_fips_status,
         supported_kernel_ver,
         capsys,
         entitlement,
@@ -357,7 +362,7 @@ class TestLivepatchEntitlementCanEnable:
         assert [mock.call()] == m_container.call_args_list
 
     def test_can_enable_false_on_unsupported_kernel_min_version(
-        self, _m_is_container, _m_livepatch_status, entitlement
+        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
         """"False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -375,7 +380,7 @@ class TestLivepatchEntitlementCanEnable:
             assert msg == reason.message
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
-        self, _m_is_container, _m_livepatch_status, entitlement
+        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
         """"When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -406,6 +411,7 @@ class TestLivepatchEntitlementCanEnable:
         self,
         _m_is_container,
         _m_livepatch_status,
+        _m_fips_status,
         kernel_version,
         meets_min_version,
         entitlement,
@@ -433,7 +439,7 @@ class TestLivepatchEntitlementCanEnable:
                 assert msg == reason.message
 
     def test_can_enable_false_on_unsupported_architecture(
-        self, _m_is_container, _m_livepatch_status, entitlement
+        self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
         """"When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
@@ -450,7 +456,7 @@ class TestLivepatchEntitlementCanEnable:
             assert msg == reason.message
 
     def test_can_enable_false_on_containers(
-        self, m_is_container, _m_livepatch_status, entitlement
+        self, m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
         """When is_container is True, can_enable returns False."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
