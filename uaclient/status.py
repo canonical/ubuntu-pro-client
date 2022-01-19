@@ -412,6 +412,9 @@ MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME = """\
 This machine is now successfully attached'
 """
 
+MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES = """\
+json formatted response requires --assume-yes flag."""
+
 MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL = """\
 Cannot {operation} unknown service '{name}'.
 {service_msg}"""
