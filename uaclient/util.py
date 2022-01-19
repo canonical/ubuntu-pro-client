@@ -14,7 +14,6 @@ from functools import lru_cache, wraps
 from http.client import HTTPMessage
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     Mapping,
@@ -28,6 +27,7 @@ from urllib import error, request
 from urllib.parse import urlparse
 
 from uaclient import event_logger, exceptions, status
+from uaclient.types import MessagingOperations
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
@@ -839,9 +839,7 @@ def is_installed(package_name: str) -> bool:
         return False
 
 
-def handle_message_operations(
-    msg_ops: List[Union[str, Tuple[Callable, Dict]]],
-) -> bool:
+def handle_message_operations(msg_ops: Optional[MessagingOperations],) -> bool:
     """Emit messages to the console for user interaction
 
     :param msg_op: A list of strings or tuples. Any string items are printed.
@@ -851,6 +849,9 @@ def handle_message_operations(
 
     :return: True upon success, False on failure.
     """
+    if not msg_ops:
+        return True
+
     for msg_op in msg_ops:
         if isinstance(msg_op, str):
             event.info(msg_op)

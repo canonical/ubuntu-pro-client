@@ -2,14 +2,75 @@ import logging
 import os
 import re
 from itertools import groupby
-from typing import Callable, Dict, List, Tuple, Union
+from typing import List, Optional, Tuple  # noqa: F401
 
 from uaclient import apt, event_logger, exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
-from uaclient.types import StaticAffordance
+from uaclient.types import (  # noqa: F401
+    MessagingOperations,
+    MessagingOperationsDict,
+    StaticAffordance,
+)
 
 event = event_logger.get_event_logger()
+
+CONDITIONAL_PACKAGES_EVERYWHERE = [
+    "strongswan",
+    "strongswan-hmac",
+    "openssh-client",
+    "openssh-server",
+]
+CONDITIONAL_PACKAGES_OPENSSH_HMAC = [
+    "openssh-client-hmac",
+    "openssh-server-hmac",
+]
+FIPS_CONDITIONAL_PACKAGES = {
+    "xenial": CONDITIONAL_PACKAGES_EVERYWHERE
+    + CONDITIONAL_PACKAGES_OPENSSH_HMAC,
+    "bionic": CONDITIONAL_PACKAGES_EVERYWHERE
+    + CONDITIONAL_PACKAGES_OPENSSH_HMAC,
+    "focal": CONDITIONAL_PACKAGES_EVERYWHERE,
+}
+
+
+# In containers, we don't install the ubuntu-fips
+# metapackage, but we do want to auto-upgrade any
+# fips related packages that are already installed.
+# These lists need to be kept up to date with the
+# Depends of ubuntu-fips.
+# Note that these lists only include those packages
+# that are relevant for a container to upgrade
+# after enabling fips or fips-updates.
+UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL = [
+    "openssl",
+    "libssl1.0.0",
+    "libssl1.0.0-hmac",
+]
+UBUNTU_FIPS_METAPACKAGE_DEPENDS_BIONIC = [
+    "openssl",
+    "libssl1.1",
+    "libssl1.1-hmac",
+    "libgcrypt20",
+    "libgcrypt20-hmac",
+]
+UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL = [
+    "openssl",
+    "libssl1.1",
+    "libssl1.1-hmac",
+    "libgcrypt20",
+    "libgcrypt20-hmac",
+]
+FIPS_CONTAINER_CONDITIONAL_PACKAGES = {
+    "xenial": CONDITIONAL_PACKAGES_EVERYWHERE
+    + CONDITIONAL_PACKAGES_OPENSSH_HMAC
+    + UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL,
+    "bionic": CONDITIONAL_PACKAGES_EVERYWHERE
+    + CONDITIONAL_PACKAGES_OPENSSH_HMAC
+    + UBUNTU_FIPS_METAPACKAGE_DEPENDS_BIONIC,
+    "focal": CONDITIONAL_PACKAGES_EVERYWHERE
+    + UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL,
+}
 
 
 class FIPSCommonEntitlement(repo.RepoEntitlement):
@@ -37,24 +98,12 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         2. Install the corresponding hmac version of that package
            when available.
         """
-        conditional_packages = [
-            "strongswan",
-            "strongswan-hmac",
-            "openssh-client",
-            "openssh-server",
-        ]
-
         series = util.get_platform_info().get("series", "")
-        # On Focal, we don't have the openssh hmac packages.
-        # Therefore, we will not try to install them during
-        # when enabling any FIPS service
-        if series in ("xenial", "bionic"):
-            conditional_packages += [
-                "openssh-client-hmac",
-                "openssh-server-hmac",
-            ]
 
-        return conditional_packages
+        if util.is_container():
+            return FIPS_CONTAINER_CONDITIONAL_PACKAGES.get(series, [])
+
+        return FIPS_CONDITIONAL_PACKAGES.get(series, [])
 
     def install_packages(
         self,
@@ -171,7 +220,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:
-        # Use a lambda so we can mock util.is_container in tests
         cloud_titles = {"aws": "an AWS", "azure": "an Azure", "gce": "a GCP"}
         cloud_id, _ = get_cloud_type()
         if cloud_id is None:
@@ -182,11 +230,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             series=series.title(), cloud=cloud_titles.get(cloud_id)
         )
         return (
-            (
-                "Cannot install {} on a container.".format(self.title),
-                lambda: util.is_container(),
-                False,
-            ),
             (
                 blocked_message,
                 lambda: self._allow_fips_on_cloud_instance(series, cloud_id),
@@ -237,11 +280,17 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     @property
     def packages(self) -> List[str]:
+        if util.is_container():
+            return []
         packages = super().packages
         return self._replace_metapackage_on_cloud_instance(packages)
 
     def application_status(self) -> Tuple[status.ApplicationStatus, str]:
         super_status, super_msg = super().application_status()
+
+        if util.is_container() and not util.should_reboot():
+            self.cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+            return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
             self.cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
@@ -367,23 +416,30 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         )
 
     @property
-    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
+    def messaging(self,) -> MessagingOperationsDict:
+        post_enable = None  # type: Optional[MessagingOperations]
+        if util.is_container():
+            pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                title=self.title
+            )
+            post_enable = [status.MESSAGE_FIPS_RUN_APT_UPGRADE]
+        else:
+            pre_enable_prompt = status.PROMPT_FIPS_PRE_ENABLE
+
         return {
             "pre_enable": [
                 (
                     util.prompt_for_confirmation,
-                    {
-                        "msg": status.PROMPT_FIPS_PRE_ENABLE,
-                        "assume_yes": self.assume_yes,
-                    },
+                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
                 )
             ],
+            "post_enable": post_enable,
             "pre_disable": [
                 (
                     util.prompt_for_confirmation,
                     {
-                        "assume_yes": self.assume_yes,
                         "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        "assume_yes": self.assume_yes,
                     },
                 )
             ],
@@ -432,23 +488,30 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     description = "NIST-certified core packages with priority security updates"
 
     @property
-    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
+    def messaging(self,) -> MessagingOperationsDict:
+        post_enable = None  # type: Optional[MessagingOperations]
+        if util.is_container():
+            pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                title=self.title
+            )
+            post_enable = [status.MESSAGE_FIPS_RUN_APT_UPGRADE]
+        else:
+            pre_enable_prompt = status.PROMPT_FIPS_UPDATES_PRE_ENABLE
+
         return {
             "pre_enable": [
                 (
                     util.prompt_for_confirmation,
-                    {
-                        "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
-                        "assume_yes": self.assume_yes,
-                    },
+                    {"msg": pre_enable_prompt, "assume_yes": self.assume_yes},
                 )
             ],
+            "post_enable": post_enable,
             "pre_disable": [
                 (
                     util.prompt_for_confirmation,
                     {
-                        "assume_yes": self.assume_yes,
                         "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        "assume_yes": self.assume_yes,
                     },
                 )
             ],

@@ -1,6 +1,7 @@
-from typing import Callable, Dict, List, Tuple, Union
+from typing import List
 
 from uaclient.entitlements import repo
+from uaclient.types import MessagingOperationsDict
 
 CIS_DOCS_URL = "https://ubuntu.com/security/cis"
 USG_DOCS_URL = "https://ubuntu.com/security/certifications/docs/usg"
@@ -15,7 +16,7 @@ class CISEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     @property
-    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
+    def messaging(self,) -> MessagingOperationsDict:
         if self._called_name == "usg":
             return {
                 "post_enable": [
@@ -26,7 +27,7 @@ class CISEntitlement(repo.RepoEntitlement):
             "post_enable": [
                 "Visit {} to learn how to use CIS".format(CIS_DOCS_URL)
             ]
-        }  # type: Dict[str, List[Union[str, Tuple[Callable, Dict]]]]
+        }  # type: MessagingOperationsDict
         if "usg" in self.valid_names:
             messages["pre_enable"] = [
                 "From Ubuntu 20.04 and onwards 'ua enable cis' has been",

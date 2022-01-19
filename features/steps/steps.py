@@ -602,6 +602,16 @@ def verify_installed_package_matches_version_regexp(context, package, regex):
     assert_that(context.process.stdout.strip(), matches_regexp(regex))
 
 
+@then(
+    "I verify that packages `{packages}` installed versions match regexp `{regex}`"  # noqa: E501
+)
+def verify_installed_packages_match_version_regexp(context, packages, regex):
+    for package in packages.split(" "):
+        verify_installed_package_matches_version_regexp(
+            context, package, regex
+        )
+
+
 @then("I verify that `{package}` is installed from apt source `{apt_source}`")
 def verify_package_is_installed_from_apt_source(context, package, apt_source):
     when_i_run_command(
@@ -628,6 +638,18 @@ def verify_package_is_installed_from_apt_source(context, package, apt_source):
     raise AssertionError(
         "Package {package} is not installed".format(package=package)
     )
+
+
+@then(
+    "I verify that `{packages}` are installed from apt source `{apt_source}`"
+)
+def verify_packages_are_installed_from_apt_source(
+    context, packages, apt_source
+):
+    for package in packages.split(" "):
+        verify_package_is_installed_from_apt_source(
+            context, package, apt_source
+        )
 
 
 @then("I verify that the timer interval for `{job}` is `{interval}`")

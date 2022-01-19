@@ -354,6 +354,22 @@ Warning: This action can take some time and cannot be undone.
 """
     + PROMPT_YES_NO
 )
+PROMPT_FIPS_CONTAINER_PRE_ENABLE = (
+    """\
+Warning: Enabling {title} in a container.
+         This will install the FIPS packages but not the kernel.
+         This container must run on a host with {title} enabled to be
+         compliant.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+
+MESSAGE_FIPS_RUN_APT_UPGRADE = """\
+Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
+version.
+"""
+
 PROMPT_FIPS_PRE_DISABLE = (
     """\
 This will disable the FIPS entitlement but the FIPS packages will remain installed.
