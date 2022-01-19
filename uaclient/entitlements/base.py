@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
 
@@ -24,7 +24,7 @@ from uaclient.status import (
     ContractStatus,
     UserFacingStatus,
 )
-from uaclient.types import StaticAffordance
+from uaclient.types import MessagingOperationsDict, StaticAffordance
 from uaclient.util import is_config_value_true
 
 RE_KERNEL_UNAME = (
@@ -149,7 +149,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
-    def messaging(self,) -> Dict[str, List[Union[str, Tuple[Callable, Dict]]]]:
+    def messaging(self,) -> MessagingOperationsDict:
         return {}
 
     def __init__(

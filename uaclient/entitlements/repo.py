@@ -72,11 +72,9 @@ class RepoEntitlement(base.UAEntitlement):
         @raises: UserFacingError on failure to install suggested packages
         """
         self.setup_apt_config(silent=silent)
-        if self.packages:
-            msg_ops = self.messaging.get("pre_install", [])
-            if not util.handle_message_operations(msg_ops):
-                return False
-            self.install_packages()
+
+        self.install_packages()
+
         event.info(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
         self._check_for_reboot_msg(operation="install")
         return True
@@ -217,6 +215,16 @@ class RepoEntitlement(base.UAEntitlement):
         :param verbose: If true, print messages to stdout
         """
 
+        if not package_list:
+            package_list = self.packages
+
+        if not package_list:
+            return
+
+        msg_ops = self.messaging.get("pre_install", [])
+        if not util.handle_message_operations(msg_ops):
+            return
+
         if verbose:
             event.info("Installing {title} packages".format(title=self.title))
 
@@ -230,8 +238,7 @@ class RepoEntitlement(base.UAEntitlement):
         else:
             env = {}
             apt_options = []
-        if not package_list:
-            package_list = self.packages
+
         try:
             apt.run_apt_command(
                 ["apt-get", "install", "--assume-yes"]

@@ -12,7 +12,15 @@ import pytest
 
 from uaclient import apt, defaults, exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason
-from uaclient.entitlements.fips import FIPSEntitlement, FIPSUpdatesEntitlement
+from uaclient.entitlements.fips import (
+    CONDITIONAL_PACKAGES_EVERYWHERE,
+    CONDITIONAL_PACKAGES_OPENSSH_HMAC,
+    UBUNTU_FIPS_METAPACKAGE_DEPENDS_BIONIC,
+    UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL,
+    UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL,
+    FIPSEntitlement,
+    FIPSUpdatesEntitlement,
+)
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
@@ -39,31 +47,61 @@ def entitlement(fips_entitlement_factory):
 
 
 class TestFIPSEntitlementDefaults:
-    @pytest.mark.parametrize("series", (("xenial"), ("bionic"), ("focal")))
+    @pytest.mark.parametrize(
+        "series, is_container, expected",
+        (
+            (
+                "xenial",
+                False,
+                CONDITIONAL_PACKAGES_EVERYWHERE
+                + CONDITIONAL_PACKAGES_OPENSSH_HMAC,
+            ),
+            (
+                "xenial",
+                True,
+                CONDITIONAL_PACKAGES_EVERYWHERE
+                + CONDITIONAL_PACKAGES_OPENSSH_HMAC
+                + UBUNTU_FIPS_METAPACKAGE_DEPENDS_XENIAL,
+            ),
+            (
+                "bionic",
+                False,
+                CONDITIONAL_PACKAGES_EVERYWHERE
+                + CONDITIONAL_PACKAGES_OPENSSH_HMAC,
+            ),
+            (
+                "bionic",
+                True,
+                CONDITIONAL_PACKAGES_EVERYWHERE
+                + CONDITIONAL_PACKAGES_OPENSSH_HMAC
+                + UBUNTU_FIPS_METAPACKAGE_DEPENDS_BIONIC,
+            ),
+            ("focal", False, CONDITIONAL_PACKAGES_EVERYWHERE),
+            (
+                "focal",
+                True,
+                CONDITIONAL_PACKAGES_EVERYWHERE
+                + UBUNTU_FIPS_METAPACKAGE_DEPENDS_FOCAL,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.is_container")
     @mock.patch("uaclient.util.get_platform_info")
-    def test_condiotional_packages(
-        self, m_get_platform_info, series, entitlement
+    def test_conditional_packages(
+        self,
+        m_get_platform_info,
+        m_is_container,
+        series,
+        is_container,
+        expected,
+        entitlement,
     ):
         """Test conditional package respect series restrictions"""
         m_get_platform_info.return_value = {"series": series}
+        m_is_container.return_value = is_container
 
         conditional_packages = entitlement.conditional_packages
-        if series == "focal":
-            assert [
-                "strongswan",
-                "strongswan-hmac",
-                "openssh-client",
-                "openssh-server",
-            ] == conditional_packages
-        else:
-            assert [
-                "strongswan",
-                "strongswan-hmac",
-                "openssh-client",
-                "openssh-server",
-                "openssh-client-hmac",
-                "openssh-server-hmac",
-            ] == conditional_packages
+        assert expected == conditional_packages
 
     def test_default_repo_key_file(self, entitlement):
         """GPG keyring file is the same for both FIPS and FIPS with Updates"""
@@ -91,6 +129,7 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
+                "post_enable": None,
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -111,11 +150,73 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
+                "post_enable": None,
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+            },
+        }
+
+        if entitlement.name in expected_msging:
+            assert expected_msging[entitlement.name] == entitlement.messaging
+        else:
+            assert False, "Unknown entitlement {}".format(entitlement.name)
+
+    @mock.patch("uaclient.util.is_container", return_value=True)
+    def test_messaging_on_containers(
+        self, _m_is_container, fips_entitlement_factory
+    ):
+        """FIPS and FIPS Updates have different messaging on containers"""
+        entitlement = fips_entitlement_factory()
+
+        expected_msging = {
+            "fips": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": False,
+                            "msg": status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
+                                title="FIPS"
+                            ),
+                        },
+                    )
+                ],
+                "post_enable": [status.MESSAGE_FIPS_RUN_APT_UPGRADE],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": False,
+                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        },
+                    )
+                ],
+            },
+            "fips-updates": {
+                "pre_enable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "msg": status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
+                                title="FIPS Updates"
+                            ),
+                            "assume_yes": False,
+                        },
+                    )
+                ],
+                "post_enable": [status.MESSAGE_FIPS_RUN_APT_UPGRADE],
+                "pre_disable": [
+                    (
+                        util.prompt_for_confirmation,
+                        {
+                            "assume_yes": False,
                             "msg": status.PROMPT_FIPS_PRE_DISABLE,
                         },
                     )
