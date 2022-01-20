@@ -666,7 +666,7 @@ class TestUASecurityClient:
                 client.get_cves(**m_kwargs)
             assert (
                 "get_cves() got an unexpected keyword argument 'invalidparam'"
-            ) == str(exc.value)
+            ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
             for key in SAMPLE_GET_CVES_QUERY_PARAMS:
@@ -716,7 +716,7 @@ class TestUASecurityClient:
             assert (
                 "get_notices() got an unexpected keyword argument"
                 " 'invalidparam'"
-            ) == str(exc.value)
+            ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
             for key in SAMPLE_GET_NOTICES_QUERY_PARAMS:
@@ -790,7 +790,7 @@ class TestUASecurityClient:
                 client.get_cve(**m_kwargs)
             assert (
                 "get_cve() missing 1 required positional argument: 'cve_id'"
-            ) == str(exc.value)
+            ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
             request_url.return_value = ("body", "headers")
@@ -830,7 +830,7 @@ class TestUASecurityClient:
             assert (
                 "get_notice() missing 1 required positional argument:"
                 " 'notice_id'"
-            ) == str(exc.value)
+            ) in str(exc.value)
             assert 0 == request_url.call_count
         else:
             request_url.return_value = ("body", "headers")
