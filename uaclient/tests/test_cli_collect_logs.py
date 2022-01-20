@@ -1,3 +1,4 @@
+import re
 import textwrap
 
 import mock
@@ -15,16 +16,16 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua collect-logs [flags]
+usage: ua collect-logs \[flags\]
 
 Collect UA logs and relevant system information into a tarball.
 
-optional arguments:
+(optional arguments|options):
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
-                        tarball where the logs will be stored. (Defaults to
-                        ./ua_logs.tar.gz)
-"""
+                        tarball where the logs will be stored. \(Defaults to
+                        ./ua_logs.tar.gz\)
+"""  # noqa
 )
 
 
@@ -48,7 +49,7 @@ class TestActionCollectLogs:
             ):
                 main()
         out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
+        assert re.match(HELP_OUTPUT, out)
 
     @mock.patch(M_PATH + "tarfile.open")
     @mock.patch("builtins.open")
