@@ -1,3 +1,4 @@
+import re
 import textwrap
 
 import mock
@@ -14,17 +15,17 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: security-status [-h] --format {json,yaml} --beta
+usage: security-status \[-h\] --format {json,yaml} --beta
 
 Show security updates for packages in the system, including all available ESM
 related content.
 
-optional arguments:
+(optional arguments|options):
   -h, --help            show this help message and exit
-  --format {json,yaml}  Format for the output (json or yaml)
+  --format {json,yaml}  Format for the output \(json or yaml\)
   --beta                Acknowledge that this output is not final and may
                         change in the next version
-"""
+"""  # noqa
 )
 
 
@@ -41,7 +42,7 @@ class TestActionSecurityStatus:
                 main()
 
         out, _err = capsys.readouterr()
-        assert HELP_OUTPUT == out
+        assert re.match(HELP_OUTPUT, out)
 
     @pytest.mark.parametrize("output_format", ("json", "yaml"))
     @mock.patch(M_PATH + "yaml.safe_dump")
