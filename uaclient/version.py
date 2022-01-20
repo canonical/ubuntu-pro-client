@@ -8,7 +8,7 @@ import os.path
 
 from uaclient import util
 
-__VERSION__ = "27.5"
+__VERSION__ = "27.6"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
 VERSION_TMPL = "{version}{feature_suffix}"
 
