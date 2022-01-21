@@ -411,7 +411,7 @@ class TestESMInfraEntitlementEnable:
 class TestESMEntitlementDisable:
     @pytest.mark.parametrize("silent", [False, True])
     @mock.patch("uaclient.util.get_platform_info")
-    @mock.patch(M_PATH + "can_disable", return_value=False)
+    @mock.patch(M_PATH + "can_disable", return_value=(False, None))
     def test_disable_returns_false_on_can_disable_false_and_does_nothing(
         self,
         m_can_disable,
@@ -423,8 +423,10 @@ class TestESMEntitlementDisable:
         entitlement = ESMInfraEntitlement({})
 
         with mock.patch("uaclient.apt.remove_auth_apt_repo") as m_remove_apt:
-            assert False is entitlement.disable(silent)
-        assert [mock.call(silent)] == m_can_disable.call_args_list
+            ret, fail = entitlement.disable(silent)
+            assert ret is False
+            assert fail is None
+        assert [mock.call()] == m_can_disable.call_args_list
         assert 0 == m_remove_apt.call_count
 
     @mock.patch(
@@ -435,7 +437,9 @@ class TestESMEntitlementDisable:
     ):
         """When can_disable, disable removes apt configuration"""
 
-        with mock.patch.object(entitlement, "can_disable", return_value=True):
+        with mock.patch.object(
+            entitlement, "can_disable", return_value=(True, None)
+        ):
             with mock.patch.object(
                 entitlement, "remove_apt_config"
             ) as m_remove_apt_config:

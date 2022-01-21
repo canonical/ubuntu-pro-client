@@ -1,8 +1,9 @@
-from typing import Optional, Tuple  # noqa: F401
+from typing import Optional, Tuple, Union  # noqa: F401
 
 from uaclient import util
 from uaclient.entitlements import repo
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+from uaclient.status import CanDisableFailure
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):
@@ -15,11 +16,13 @@ class ESMBaseEntitlement(repo.RepoEntitlement):
             update_apt_and_motd_messages(self.cfg)
         return enable_performed
 
-    def disable(self, silent=False) -> bool:
-        disable_performed = super().disable(silent=silent)
+    def disable(
+        self, silent=False
+    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
+        disable_performed, fail = super().disable(silent=silent)
         if disable_performed:
             update_apt_and_motd_messages(self.cfg)
-        return disable_performed
+        return disable_performed, fail
 
 
 class ESMAppsEntitlement(ESMBaseEntitlement):

@@ -443,7 +443,9 @@ class TestRepoEnable:
     @mock.patch(M_PATH + "util.subp", return_value=("", ""))
     @mock.patch(M_PATH + "util.should_reboot")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
-    @mock.patch.object(RepoTestEntitlement, "can_disable", return_value=True)
+    @mock.patch.object(
+        RepoTestEntitlement, "can_disable", return_value=(True, None)
+    )
     def test_enable_can_exit_on_pre_or_post_disable_messaging_hooks(
         self,
         _can_disable,
@@ -464,7 +466,8 @@ class TestRepoEnable:
         m_should_reboot.return_value = False
         with mock.patch.object(type(entitlement), "messaging", messaging):
             with mock.patch.object(type(entitlement), "packages", []):
-                assert retval is entitlement.disable()
+                ret, fail = entitlement.disable()
+                assert retval == ret
         stdout, _ = capsys.readouterr()
         assert output == stdout
 

@@ -124,6 +124,25 @@ class CanEnableFailure:
         self.message = message
 
 
+@enum.unique
+class CanDisableFailureReason(enum.Enum):
+    """
+    An enum representing the reasons an entitlement can't be disabled.
+    """
+
+    ALREADY_DISABLED = object()
+    ACTIVE_DEPENDENT_SERVICES = object()
+    NOT_FOUND_DEPENDENT_SERVICE = object()
+
+
+class CanDisableFailure:
+    def __init__(
+        self, reason: CanDisableFailureReason, message: Optional[str] = None
+    ) -> None:
+        self.reason = reason
+        self.message = message
+
+
 ESSENTIAL = "essential"
 STANDARD = "standard"
 ADVANCED = "advanced"
@@ -473,6 +492,10 @@ Cannot enable {service_being_enabled} when {required_service} is disabled.
 MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE = """\
 Cannot disable {service_being_disabled} when {dependent_service} is enabled.
 """
+MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE = """\
+Cannot disable dependent service: {required_service}"""
+MESSAGE_DISABLING_DEPENDENT_SERVICE = """\
+Disabling required service: {required_service}"""
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = (
     """\
