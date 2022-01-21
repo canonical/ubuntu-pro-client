@@ -493,6 +493,12 @@ def then_stream_matches_regexp(context, stream):
     assert_that(content, matches_regexp(context.text))
 
 
+@then("{stream} contains substring")
+def then_stream_contains_substring(context, stream):
+    content = getattr(context.process, stream).strip()
+    assert_that(content, contains_string(context.text))
+
+
 @then("I will see the following on stderr")
 def then_i_will_see_on_stderr(context):
     assert_that(context.process.stderr.strip(), equal_to(context.text))

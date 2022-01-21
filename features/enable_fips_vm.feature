@@ -8,7 +8,12 @@ Feature: FIPS enablement in lxd VMs
     Scenario Outline: Attached enable of FIPS in an ubuntu lxd vm
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch` with sudo
+        When I run `ua status --format json` with sudo
+        Then stdout contains substring
+        """
+        {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "disabled", "status_details": "FIPS is not configured"}
+        """
+        When I run `ua disable livepatch` with sudo
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y openssh-client openssh-server strongswan` with sudo, retrying exit [100]
         And I run `apt-mark hold openssh-client openssh-server strongswan` with sudo
         And I run `ua enable <fips-service>` `with sudo` and stdin `y`
@@ -40,6 +45,12 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I run `ua status --format json` with sudo
+        Then stdout contains substring:
+        """
+        {"available": "yes", "blocked_by": [{"name": "fips", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}], "description": "Canonical Livepatch service", "description_override": null, "entitled": "yes", "name": "livepatch", "status": "n/a", "status_details": "Cannot enable Livepatch when FIPS is enabled."}
+        """
+
         When I reboot the `<release>` machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
@@ -157,6 +168,12 @@ Feature: FIPS enablement in lxd VMs
         And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
         And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+        When I run `ua status --format json` with sudo
+        Then stdout contains substring:
+        """
+        {"available": "yes", "blocked_by": [{"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled."}
+        """
+
         When I reboot the `<release>` machine
         And  I run `uname -r` as non-root
         Then stdout matches regexp:
@@ -225,6 +242,11 @@ Feature: FIPS enablement in lxd VMs
             """
             livepatch +yes +enabled
             """
+        When I run `ua status --format json` with sudo
+        Then stdout contains substring:
+        """
+        {"available": "yes", "blocked_by": [{"name": "livepatch", "reason": "Livepatch cannot be enabled while running the official FIPS certified kernel. If you would like a FIPS compliant kernel with additional bug fixes and security updates, you can use the FIPS Updates service with Livepatch.", "reason_code": "livepatch-invalidates-fips"}, {"name": "fips-updates", "reason": "FIPS cannot be enabled if FIPS Updates has ever been enabled because FIPS Updates installs security patches that aren't officially certified.", "reason_code": "fips-updates-invalidates-fips"}], "description": "NIST-certified core packages", "description_override": null, "entitled": "yes", "name": "fips", "status": "n/a", "status_details": "Cannot enable FIPS when FIPS Updates is enabled."}
+        """
         When I run `ua disable <fips-service> --assume-yes` with sudo
         And I run `ua enable <fips-service> --assume-yes --format json --assume-yes` with sudo
         Then stdout is a json matching the `ua_operation` schema

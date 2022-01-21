@@ -3,8 +3,11 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import apt, event_logger, exceptions, snap, status, util
-from uaclient.entitlements import base
-from uaclient.status import ApplicationStatus
+from uaclient.entitlements.base import IncompatibleService, UAEntitlement
+from uaclient.status import (
+    NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS,
+    ApplicationStatus,
+)
 from uaclient.types import StaticAffordance
 
 LIVEPATCH_RETRIES = [0.5, 1.0]
@@ -91,12 +94,22 @@ def get_config_option_value(key: str) -> Optional[str]:
     return value.strip() if value else None
 
 
-class LivepatchEntitlement(base.UAEntitlement):
+class LivepatchEntitlement(UAEntitlement):
 
     help_doc_url = "https://ubuntu.com/security/livepatch"
     name = "livepatch"
     title = "Livepatch"
     description = "Canonical Livepatch service"
+
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        from uaclient.entitlements.fips import FIPSEntitlement
+
+        return (
+            IncompatibleService(
+                FIPSEntitlement, NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS
+            ),
+        )
 
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:

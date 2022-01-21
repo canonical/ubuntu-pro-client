@@ -143,6 +143,12 @@ class CanDisableFailure:
         self.message = message
 
 
+class NamedMessage:
+    def __init__(self, name: str, msg: str):
+        self.name = name
+        self.msg = msg
+
+
 ESSENTIAL = "essential"
 STANDARD = "standard"
 ADVANCED = "advanced"
@@ -632,6 +638,20 @@ See {docs_url} for more information on ua proxy configuration.
     docs_url=DOCUMENTATION_URL
 )
 
+NAMED_MESSAGE_FIPS_UPDATES_INVALIDATES_FIPS = NamedMessage(
+    "fips-updates-invalidates-fips",
+    "FIPS cannot be enabled if FIPS Updates has ever been enabled because"
+    " FIPS Updates installs security patches that aren't officially"
+    " certified.",
+)
+NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
+    "livepatch-invalidates-fips",
+    "Livepatch cannot be enabled while running the official FIPS"
+    " certified kernel. If you would like a FIPS compliant kernel"
+    " with additional bug fixes and security updates, you can use"
+    " the FIPS Updates service with Livepatch.",
+)
+
 
 def colorize(string: str) -> str:
     """Return colorized string if using a tty, else original string."""
@@ -786,7 +806,9 @@ def format_json_status(status: Dict[str, Any]) -> str:
     from uaclient.util import DatetimeAwareJSONEncoder
 
     return json.dumps(
-        _format_status_output(status), cls=DatetimeAwareJSONEncoder
+        _format_status_output(status),
+        cls=DatetimeAwareJSONEncoder,
+        sort_keys=True,
     )
 
 

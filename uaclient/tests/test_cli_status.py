@@ -139,6 +139,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
     {
         "description": "UA Infra: Extended Security Maintenance (ESM)",
@@ -148,6 +149,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
     {
         "description": "NIST-certified core packages",
@@ -157,6 +159,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "no",
+        "blocked_by": [],
     },
     {
         "description": (
@@ -168,6 +171,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
     {
         "description": "Canonical Livepatch service",
@@ -177,6 +181,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
     {
         "description": "Security Updates for the Robot Operating System",
@@ -186,6 +191,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
     {
         "description": "All Updates for the Robot Operating System",
@@ -195,6 +201,7 @@ SERVICES_JSON_ALL = [
         "status": "—",
         "status_details": "",
         "available": "yes",
+        "blocked_by": [],
     },
 ]
 
