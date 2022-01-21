@@ -16,7 +16,7 @@ from uaclient.clouds.identity import (
 )
 from uaclient.config import UAConfig
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
-from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements import EntitlementNotFoundError, entitlement_factory
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -763,8 +763,11 @@ def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     elif pocket == UA_APPS_POCKET:
         service_to_check = "esm-apps"
 
-    ent_cls = entitlement_factory(service_to_check)
-    return ent_cls(cfg) if ent_cls else None
+    try:
+        ent_cls = entitlement_factory(service_to_check)
+        return ent_cls(cfg)
+    except EntitlementNotFoundError:
+        return None
 
 
 def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:

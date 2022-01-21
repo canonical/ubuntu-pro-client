@@ -560,7 +560,10 @@ class UAConfig:
 
     def _handle_beta_resources(self, show_beta, response) -> Dict[str, Any]:
         """Remove beta services from response dict if needed"""
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         config_allow_beta = util.is_config_value_true(
             config=self.cfg, path_to_value="features.allow_beta"
@@ -574,9 +577,9 @@ class UAConfig:
         released_resources = []
         for resource in new_response.get("services", {}):
             resource_name = resource["name"]
-            ent_cls = entitlement_factory(resource_name)
-
-            if ent_cls is None:
+            try:
+                ent_cls = entitlement_factory(resource_name)
+            except EntitlementNotFoundError:
                 """
                 Here we cannot know the status of a service,
                 since it is not listed as a valid entitlement.
@@ -638,7 +641,10 @@ class UAConfig:
     def _unattached_status(self) -> Dict[str, Any]:
         """Return unattached status as a dict."""
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         response = copy.deepcopy(DEFAULT_STATUS)
         response["version"] = version.get_version(features=self.features)
@@ -649,9 +655,9 @@ class UAConfig:
                 available = status.UserFacingAvailability.AVAILABLE.value
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
-            ent_cls = entitlement_factory(resource.get("name", ""))
-
-            if not ent_cls:
+            try:
+                ent_cls = entitlement_factory(resource.get("name", ""))
+            except EntitlementNotFoundError:
                 LOG.debug(
                     "Ignoring availability of unknown service %s"
                     " from contract server",
@@ -700,7 +706,10 @@ class UAConfig:
     def _attached_status(self) -> Dict[str, Any]:
         """Return configuration of attached status as a dictionary."""
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         response = copy.deepcopy(DEFAULT_STATUS)
         machineTokenInfo = self.machine_token["machineTokenInfo"]
@@ -746,12 +755,14 @@ class UAConfig:
         }
 
         for resource in resources:
-            ent_cls = entitlement_factory(resource.get("name", ""))
-            if ent_cls:
-                ent = ent_cls(self)
-                response["services"].append(
-                    self._attached_service_status(ent, inapplicable_resources)
-                )
+            try:
+                ent_cls = entitlement_factory(resource.get("name", ""))
+            except EntitlementNotFoundError:
+                continue
+            ent = ent_cls(self)
+            response["services"].append(
+                self._attached_service_status(ent, inapplicable_resources)
+            )
         response["services"].sort(key=lambda x: x.get("name", ""))
 
         support = self.entitlements.get("support", {}).get("entitlement")
@@ -786,7 +797,10 @@ class UAConfig:
             get_available_resources,
             get_contract_information,
         )
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         response = copy.deepcopy(DEFAULT_STATUS)
 
@@ -837,25 +851,25 @@ class UAConfig:
 
         for resource in resources:
             entitlement_name = resource.get("name", "")
-            ent_cls = entitlement_factory(entitlement_name)
-            if ent_cls:
-                ent = ent_cls(self)
-                entitlement_information = self._get_entitlement_information(
-                    entitlements, entitlement_name
-                )
-                response["services"].append(
-                    {
-                        "name": resource.get("presentedAs", ent.name),
-                        "description": ent.description,
-                        "entitled": entitlement_information["entitled"],
-                        "auto_enabled": entitlement_information[
-                            "auto_enabled"
-                        ],
-                        "available": "yes"
-                        if ent.name not in inapplicable_resources
-                        else "no",
-                    }
-                )
+            try:
+                ent_cls = entitlement_factory(entitlement_name)
+            except EntitlementNotFoundError:
+                continue
+            ent = ent_cls(self)
+            entitlement_information = self._get_entitlement_information(
+                entitlements, entitlement_name
+            )
+            response["services"].append(
+                {
+                    "name": resource.get("presentedAs", ent.name),
+                    "description": ent.description,
+                    "entitled": entitlement_information["entitled"],
+                    "auto_enabled": entitlement_information["auto_enabled"],
+                    "available": "yes"
+                    if ent.name not in inapplicable_resources
+                    else "no",
+                }
+            )
         response["services"].sort(key=lambda x: x.get("name", ""))
 
         support = self._get_entitlement_information(entitlements, "support")
@@ -913,7 +927,10 @@ class UAConfig:
         :raises: UserFacingError when no help is available.
         """
         from uaclient.contract import get_available_resources
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         resources = get_available_resources(self)
         help_resource = None
@@ -926,11 +943,13 @@ class UAConfig:
 
         for resource in resources:
             if resource["name"] == name or resource.get("presentedAs") == name:
-                help_ent_cls = entitlement_factory(resource["name"])
-                if help_ent_cls:
-                    help_resource = resource
-                    help_ent = help_ent_cls(self)
-                    break
+                try:
+                    help_ent_cls = entitlement_factory(resource["name"])
+                except EntitlementNotFoundError:
+                    continue
+                help_resource = resource
+                help_ent = help_ent_cls(self)
+                break
 
         if help_resource is None:
             raise exceptions.UserFacingError(
