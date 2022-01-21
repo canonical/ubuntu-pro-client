@@ -117,6 +117,49 @@ Feature: Command behaviour when attached to an UA subscription
            | impish  |
            | jammy   |
 
+    @series.lts
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo
+        Then I verify that running `ua disable foobar --format json` `as non-root` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        And I verify that running `ua disable foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        And I verify that running `ua disable livepatch --format json` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo ua status", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        """
+        And I verify that running `ua disable esm-infra esm-apps --format json` `with sudo` exits `0`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+        """
+        When I run `ua enable esm-infra` with sudo
+        Then I verify that running `ua disable esm-infra foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+        """
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
+        """
+
+        Examples: ubuntu release
+           | release | valid_services                                                                      |
+           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
+           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
+
     @series.xenial
     @series.bionic
     @uses.config.machine_type.lxd.container
