@@ -495,7 +495,7 @@ Cannot disable {service_being_disabled} when {dependent_service} is enabled.
 MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE = """\
 Cannot disable dependent service: {required_service}"""
 MESSAGE_DISABLING_DEPENDENT_SERVICE = """\
-Disabling required service: {required_service}"""
+Disabling dependent service: {required_service}"""
 
 MESSAGE_FIPS_BLOCK_ON_CLOUD = (
     """\

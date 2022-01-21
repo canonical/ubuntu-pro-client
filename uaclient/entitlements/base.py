@@ -245,7 +245,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def can_disable(self) -> Tuple[bool, Optional[CanDisableFailure]]:
+    def can_disable(
+        self, ignore_dependent_services: bool = False
+    ) -> Tuple[bool, Optional[CanDisableFailure]]:
         """Report whether or not disabling is possible for the entitlement.
 
         :return:
@@ -265,7 +267,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ),
             )
 
-        if self.dependent_services:
+        if self.dependent_services and not ignore_dependent_services:
             if self.detect_dependent_services():
                 return (
                     False,
