@@ -613,6 +613,13 @@ def disable_parser(parser):
         action="store_true",
         help="do not prompt for confirmation before performing the disable",
     )
+    parser.add_argument(
+        "--format",
+        action="store",
+        choices=["cli", "json"],
+        default="cli",
+        help=("output disable in the specified format (default: cli)"),
+    )
     return parser
 
 
@@ -706,8 +713,21 @@ def _perform_disable(entitlement_name, cfg, *, assume_yes):
     @return: True on success, False otherwise
     """
     ent_cls = entitlements.entitlement_factory(entitlement_name)
-    entitlement = ent_cls(cfg, assume_yes=assume_yes)
-    ret = entitlement.disable()
+    ent = ent_cls(cfg, assume_yes=assume_yes)
+    ret, reason = ent.disable()
+
+    if not ret:
+        event.service_failed(ent.name)
+
+        if reason is not None and isinstance(
+            reason, ua_status.CanDisableFailure
+        ):
+            if reason.message is not None:
+                event.info(reason.message)
+                event.error(error_msg=reason.message, service=ent.name)
+    else:
+        event.service_processed(ent.name)
+
     cfg.status()  # Update the status cache
     return ret
 
@@ -896,6 +916,7 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
+@set_event_mode
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua disable")
@@ -936,6 +957,7 @@ def action_disable(args, *, cfg, **kwargs):
             )
         )
 
+    event.process_events()
     return 0 if ret else 1
 
 
@@ -1054,7 +1076,11 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     to_disable = []
     for ent_cls in entitlements.ENTITLEMENT_CLASSES:
         ent = ent_cls(cfg=cfg, assume_yes=assume_yes)
-        if ent.can_disable():
+        # For detach, we should not consider that a service
+        # cannot be disabled because of dependent services,
+        # since we are going to disable all of them anyway
+        ret, _ = ent.can_disable(ignore_dependent_services=True)
+        if ret:
             to_disable.append(ent)
 
     """
@@ -1080,7 +1106,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
             "Detach will disable the following service{}:".format(suffix)
         )
         for ent in to_disable:
-            print("    {}".format(ent.name))
+            event.info("    {}".format(ent.name))
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
@@ -1092,7 +1118,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     cfg.delete_cache()
     jobs.enable_license_check_if_applicable(cfg)
     update_apt_and_motd_messages(cfg)
-    print(ua_status.MESSAGE_DETACH_SUCCESS)
+    event.info(ua_status.MESSAGE_DETACH_SUCCESS)
     return 0
 
 
