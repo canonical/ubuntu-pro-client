@@ -132,31 +132,31 @@ class UAArgumentParser(argparse.ArgumentParser):
 
         resources = contract.get_available_resources(config.UAConfig())
         for resource in resources:
-            ent_cls = entitlements.entitlement_factory(resource["name"])
-            if ent_cls:
-                # Because we don't know the presentation name if unattached
-                presentation_name = resource.get(
-                    "presentedAs", resource["name"]
-                )
-                if ent_cls.help_doc_url:
-                    url = " ({})".format(ent_cls.help_doc_url)
-                else:
-                    url = ""
-                service_info = textwrap.fill(
-                    service_info_tmpl.format(
-                        name=presentation_name,
-                        description=ent_cls.description,
-                        url=url,
-                    ),
-                    width=PRINT_WRAP_WIDTH,
-                    subsequent_indent="   ",
-                    break_long_words=False,
-                    break_on_hyphens=False,
-                )
-                if ent_cls.is_beta:
-                    beta_services_desc.append(service_info)
-                else:
-                    non_beta_services_desc.append(service_info)
+            try:
+                ent_cls = entitlements.entitlement_factory(resource["name"])
+            except entitlements.EntitlementNotFoundError:
+                continue
+            # Because we don't know the presentation name if unattached
+            presentation_name = resource.get("presentedAs", resource["name"])
+            if ent_cls.help_doc_url:
+                url = " ({})".format(ent_cls.help_doc_url)
+            else:
+                url = ""
+            service_info = textwrap.fill(
+                service_info_tmpl.format(
+                    name=presentation_name,
+                    description=ent_cls.description,
+                    url=url,
+                ),
+                width=PRINT_WRAP_WIDTH,
+                subsequent_indent="   ",
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+            if ent_cls.is_beta:
+                beta_services_desc.append(service_info)
+            else:
+                non_beta_services_desc.append(service_info)
 
         return (non_beta_services_desc, beta_services_desc)
 

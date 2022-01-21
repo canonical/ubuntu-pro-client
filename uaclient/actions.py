@@ -89,7 +89,7 @@ def enable_entitlement_by_name(
     :raise EntitlementNotFoundError: If no entitlement with the given name is
         found, then raises this error.
     """
-    ent_cls = entitlements.entitlement_factory(name, not_found_okay=False)
+    ent_cls = entitlements.entitlement_factory(name)
     entitlement = ent_cls(
         cfg, assume_yes=assume_yes, allow_beta=allow_beta, called_name=name
     )

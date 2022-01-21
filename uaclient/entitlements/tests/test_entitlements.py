@@ -56,4 +56,5 @@ class TestEntitlementFactory:
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
             assert m_cls_1 == entitlements.entitlement_factory("othername")
             assert m_cls_2 == entitlements.entitlement_factory("ent2")
-            assert None is entitlements.entitlement_factory("nonexistent")
+        with pytest.raises(entitlements.EntitlementNotFoundError):
+            entitlements.entitlement_factory("nonexistent")
