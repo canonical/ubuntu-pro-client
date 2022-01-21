@@ -9,11 +9,12 @@ from uaclient.testing.fakes import FakeContractClient
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
-    m_instance = mock.Mock(
-        can_disable=mock.Mock(return_value=can_disable), dependent_services=()
-    )
+    m_instance = mock.MagicMock()
+    m_instance.can_disable.return_value = (can_disable, None)
+    type(m_instance).dependent_services = mock.PropertyMock(return_value=())
     if name:
-        m_instance.name = name
+        type(m_instance).name = mock.PropertyMock(return_value=name)
+
     return mock.Mock(return_value=m_instance)
 
 
@@ -99,7 +100,7 @@ class TestActionDetach:
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
             assert [
-                mock.call()
+                mock.call(ignore_dependent_services=True)
             ] == ent_cls.return_value.can_disable.call_args_list
 
             assert [

@@ -164,6 +164,29 @@ class TestUaEntitlement:
         )
         assert fail.message is None
 
+    @mock.patch("uaclient.entitlements.entitlement_factory")
+    def test_can_disable_when_ignoring_depedent_service(
+        self, m_ent_factory, concrete_entitlement_factory
+    ):
+        """When  status is INACTIVE, can_disable returns False."""
+        entitlement = concrete_entitlement_factory(
+            entitled=True,
+            application_status=(status.ApplicationStatus.ENABLED, ""),
+            dependent_services=("test",),
+        )
+
+        m_ent_cls = mock.Mock()
+        m_ent_obj = m_ent_cls.return_value
+        m_ent_obj.application_status.return_value = (
+            status.ApplicationStatus.ENABLED,
+            None,
+        )
+        m_ent_factory.return_value = m_ent_cls
+
+        ret, fail = entitlement.can_disable(ignore_dependent_services=True)
+        assert ret is True
+        assert fail is None
+
     def test_can_disable_true_on_entitlement_active(
         self, capsys, concrete_entitlement_factory
     ):
