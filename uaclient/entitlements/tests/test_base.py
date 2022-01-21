@@ -7,7 +7,7 @@ import pytest
 
 from uaclient import config, status, util
 from uaclient.entitlements import EntitlementNotFoundError, base
-from uaclient.status import ContractStatus
+from uaclient.status import ContractStatus, NamedMessage
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
@@ -25,6 +25,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         application_status=None,
         allow_beta=False,
         dependent_services=None,
+        blocking_incompatible_services=None,
         **kwargs
     ):
         super().__init__(cfg, allow_beta=allow_beta)
@@ -33,6 +34,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
         self._applicability_status = applicability_status
         self._application_status = application_status
         self._dependent_services = (dependent_services,)
+        self._blocking_incompatible_services = blocking_incompatible_services
 
     def _perform_disable(self, **kwargs):
         self._application_status = (
@@ -49,6 +51,12 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def application_status(self):
         return self._application_status
+
+    def blocking_incompatible_services(self):
+        if self._blocking_incompatible_services is not None:
+            return self._blocking_incompatible_services
+        else:
+            return super().blocking_incompatible_services()
 
 
 @pytest.fixture
@@ -346,7 +354,6 @@ class TestUaEntitlement:
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        base_ent._incompatible_services = ["test"]
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -354,16 +361,13 @@ class TestUaEntitlement:
             status.ApplicationStatus.ENABLED,
             "",
         ]
-        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+        base_ent._incompatible_services = (
+            base.IncompatibleService(
+                m_entitlement_cls, NamedMessage("test", "test")
+            ),
+        )
 
-        with mock.patch.object(
-            base_ent, "is_access_expired", return_value=False
-        ):
-            with mock.patch(
-                "uaclient.entitlements.entitlement_factory",
-                return_value=m_entitlement_cls,
-            ):
-                ret, reason = base_ent.can_enable()
+        ret, reason = base_ent.can_enable()
 
         assert ret is False
         assert (
@@ -424,7 +428,6 @@ class TestUaEntitlement:
             applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
             application_status=(status.ApplicationStatus.DISABLED, ""),
         )
-        base_ent._incompatible_services = ["test"]
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
@@ -432,16 +435,13 @@ class TestUaEntitlement:
             status.ApplicationStatus.ENABLED,
             "",
         ]
-        type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
+        base_ent._incompatible_services = (
+            base.IncompatibleService(
+                m_entitlement_cls, NamedMessage("test", "test")
+            ),
+        )
 
-        with mock.patch.object(
-            base_ent, "is_access_expired", return_value=False
-        ):
-            with mock.patch(
-                "uaclient.entitlements.entitlement_factory",
-                return_value=m_entitlement_cls,
-            ):
-                ret, reason = base_ent.enable()
+        ret, reason = base_ent.enable()
 
         expected_prompt_call = 1
         if block_disable_on_enable:
