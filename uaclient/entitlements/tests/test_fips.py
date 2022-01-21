@@ -795,7 +795,9 @@ class TestFIPSEntitlementDisable:
         tmpdir,
     ):
         """When can_disable, disable removes apt config and packages."""
-        with mock.patch.object(entitlement, "can_disable", return_value=True):
+        with mock.patch.object(
+            entitlement, "can_disable", return_value=(True, None)
+        ):
             with mock.patch.object(
                 entitlement, "remove_apt_config"
             ) as m_remove_apt_config:
