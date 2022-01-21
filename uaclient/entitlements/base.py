@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
@@ -22,6 +22,7 @@ from uaclient.status import (
     CanEnableFailure,
     CanEnableFailureReason,
     ContractStatus,
+    NamedMessage,
     UserFacingStatus,
 )
 from uaclient.types import MessagingOperationsDict, StaticAffordance
@@ -33,6 +34,14 @@ RE_KERNEL_UNAME = (
 )
 
 event = event_logger.get_event_logger()
+
+
+class IncompatibleService:
+    def __init__(
+        self, entitlement: Type["UAEntitlement"], named_msg: NamedMessage
+    ):
+        self.entitlement = entitlement
+        self.named_msg = named_msg
 
 
 class UAEntitlement(metaclass=abc.ABCMeta):
@@ -50,7 +59,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     _help_info = None  # type: str
 
     # List of services that are incompatible with this service
-    _incompatible_services = ()  # type: Tuple[str, ...]
+    _incompatible_services = ()  # type: Tuple[IncompatibleService, ...]
 
     # List of services that must be active before enabling this service
     _required_services = ()  # type: Tuple[str, ...]
@@ -116,7 +125,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return ()
 
     @property
-    def incompatible_services(self) -> Tuple[str, ...]:
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
         """
         Return a list of packages that aren't compatible with the entitlement.
         When we are enabling the entitlement we can directly ask the user
@@ -401,6 +410,18 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True
 
+    def blocking_incompatible_services(self) -> List[IncompatibleService]:
+        """
+        :return: List of incompatible services that are enabled
+        """
+        ret = []
+        for service in self.incompatible_services:
+            ent_status, _ = service.entitlement(self.cfg).application_status()
+            if ent_status == status.ApplicationStatus.ENABLED:
+                ret.append(service)
+
+        return ret
+
     def detect_incompatible_services(self) -> bool:
         """
         Check for incompatible services.
@@ -409,9 +430,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if there are incompatible services enabled
             False if there are no incompatible services enabled
         """
-        return self._check_any_service_is_active(
-            services=self.incompatible_services
-        )
+        return len(self.blocking_incompatible_services()) > 0
 
     def handle_incompatible_services(self) -> Tuple[bool, Optional[str]]:
         """
@@ -428,52 +447,39 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         features:
           block_disable_on_enable: true
         """
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
-        )
-
         cfg_block_disable_on_enable = util.is_config_value_true(
             config=self.cfg.cfg,
             path_to_value="features.block_disable_on_enable",
         )
-        for incompatible_service in self.incompatible_services:
-            try:
-                ent_cls = entitlement_factory(incompatible_service)
-            except EntitlementNotFoundError:
-                continue
-            ent = ent_cls(self.cfg)
-            enabled_status = status.ApplicationStatus.ENABLED
+        for service in self.blocking_incompatible_services():
+            ent = service.entitlement(self.cfg)
 
-            is_service_enabled = ent.application_status()[0] == enabled_status
+            user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
+                service_being_enabled=self.title,
+                incompatible_service=ent.title,
+            )
 
-            if is_service_enabled:
-                user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
-                    service_being_enabled=self.title,
-                    incompatible_service=ent.title,
-                )
+            e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+                service_being_enabled=self.title,
+                incompatible_service=ent.title,
+            )
 
-                e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
-                    service_being_enabled=self.title,
-                    incompatible_service=ent.title,
-                )
+            if cfg_block_disable_on_enable:
+                return False, e_msg
 
-                if cfg_block_disable_on_enable:
-                    return False, e_msg
+            if not util.prompt_for_confirmation(
+                msg=user_msg, assume_yes=self.assume_yes
+            ):
+                return False, e_msg
 
-                if not util.prompt_for_confirmation(
-                    msg=user_msg, assume_yes=self.assume_yes
-                ):
-                    return False, e_msg
+            disable_msg = "Disabling incompatible service: {}".format(
+                ent.title
+            )
+            event.info(disable_msg)
 
-                disable_msg = "Disabling incompatible service: {}".format(
-                    ent.title
-                )
-                event.info(disable_msg)
-
-                ret = ent.disable()
-                if not ret:
-                    return ret, None
+            ret = ent.disable()
+            if not ret:
+                return ret, None
 
         return True, None
 

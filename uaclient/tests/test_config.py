@@ -28,9 +28,14 @@ from uaclient.entitlements import (
     entitlement_factory,
     valid_services,
 )
+from uaclient.entitlements.base import IncompatibleService
+from uaclient.entitlements.fips import FIPSEntitlement
+from uaclient.entitlements.ros import ROSEntitlement
+from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 from uaclient.status import (
     MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
     ContractStatus,
+    NamedMessage,
     UserFacingConfigStatus,
     UserFacingStatus,
 )
@@ -895,6 +900,7 @@ class TestStatus:
                 "status_details": mock.ANY,
                 "description_override": None,
                 "available": mock.ANY,
+                "blocked_by": [],
             }
             for cls in entitlements.ENTITLEMENT_CLASSES
             if not self.check_beta(cls, show_beta, cfg)
@@ -1049,6 +1055,10 @@ class TestStatus:
         ),
     )
     @mock.patch("uaclient.config.os.getuid", return_value=0)
+    @mock.patch(
+        M_PATH + "fips.FIPSCommonEntitlement.application_status",
+        return_value=(status.ApplicationStatus.DISABLED, ""),
+    )
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.user_facing_status")
@@ -1063,6 +1073,7 @@ class TestStatus:
         m_esm_uf_status,
         m_livepatch_contract_status,
         m_livepatch_uf_status,
+        _m_fips_status,
         _m_getuid,
         _m_should_reboot,
         m_remove_notice,
@@ -1167,6 +1178,7 @@ class TestStatus:
                     "status_details": details,
                     "description_override": None,
                     "available": mock.ANY,
+                    "blocked_by": [],
                 }
             )
         with mock.patch(
@@ -1307,6 +1319,48 @@ class TestAttachedServiceStatus:
         ret = FakeConfig()._attached_service_status(ent, unavailable_resources)
 
         assert expected_status == ret["status"]
+
+    @pytest.mark.parametrize(
+        "blocking_incompatible_services, expected_blocked_by",
+        (
+            ([], []),
+            (
+                [
+                    IncompatibleService(
+                        FIPSEntitlement, NamedMessage("code", "msg")
+                    )
+                ],
+                [{"name": "fips", "reason": "msg", "reason_code": "code"}],
+            ),
+            (
+                [
+                    IncompatibleService(
+                        FIPSEntitlement, NamedMessage("code", "msg")
+                    ),
+                    IncompatibleService(
+                        ROSEntitlement, NamedMessage("code2", "msg2")
+                    ),
+                ],
+                [
+                    {"name": "fips", "reason": "msg", "reason_code": "code"},
+                    {"name": "ros", "reason": "msg2", "reason_code": "code2"},
+                ],
+            ),
+        ),
+    )
+    def test_blocked_by(
+        self,
+        blocking_incompatible_services,
+        expected_blocked_by,
+        tmpdir,
+        FakeConfig,
+    ):
+        cfg = UAConfig({"data_dir": tmpdir.strpath})
+        ent = ConcreteTestEntitlement(
+            blocking_incompatible_services=blocking_incompatible_services
+        )
+        service_status = cfg._attached_service_status(ent, [])
+        assert service_status["blocked_by"] == expected_blocked_by
 
 
 class TestProcessConfig:
