@@ -58,57 +58,58 @@ Feature: Enable command behaviour when attached to an UA subscription
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua enable foobar --format json` `as non-root` exits `1`
-        And stdout is a json matching the `enable` schema
+        And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua enable foobar --format json` `with sudo` exits `1`
-        And stdout is a json matching the `enable` schema
+        And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua enable foobar --format json --assume-yes` `as non-root` exits `1`
-        And stdout is a json matching the `enable` schema
+        And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua enable foobar --format json --assume-yes` `with sudo` exits `1`
-        And stdout is a json matching the `enable` schema
+        And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua enable ros foobar --format json --assume-yes` `with sudo` exits `1`
-        And stdout is a json matching the `enable` schema
+        And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         And I verify that running `ua enable esm-infra --format json --assume-yes` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
         Then I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         When I run `ua disable esm-infra` with sudo
         And I run `ua enable esm-infra --format json --assume-yes` with sudo
-        Then stdout is a json matching the `enable` schema
+        Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "success", "warnings": []}
         """
         When I run `ua disable esm-infra` with sudo
         And I verify that running `ua enable esm-infra foobar --format json --assume-yes` `with sudo` exits `1`
-        Then stdout is a json matching the `enable` schema
+        Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
         """
         When I run `ua disable esm-infra esm-apps` with sudo
         And I run `ua enable esm-infra esm-apps --beta --format json --assume-yes` with sudo
-        Then stdout is a json matching the `enable` schema
+        Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
