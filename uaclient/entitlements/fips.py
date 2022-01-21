@@ -7,6 +7,11 @@ from typing import List, Optional, Tuple  # noqa: F401
 from uaclient import apt, event_logger, exceptions, status, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
+from uaclient.entitlements.base import IncompatibleService
+from uaclient.status import (
+    NAMED_MESSAGE_FIPS_UPDATES_INVALIDATES_FIPS,
+    NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS,
+)
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
@@ -361,7 +366,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     title = "FIPS"
     description = "NIST-certified core packages"
     origin = "UbuntuFIPS"
-    _incompatible_services = ("livepatch",)  # type: Tuple[str, ...]
 
     fips_pro_package_holds = [
         "fips-initramfs",
@@ -380,6 +384,20 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         "strongswan",
         "strongswan-hmac",
     ]
+
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        from uaclient.entitlements.livepatch import LivepatchEntitlement
+
+        return (
+            IncompatibleService(
+                LivepatchEntitlement, NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS
+            ),
+            IncompatibleService(
+                FIPSUpdatesEntitlement,
+                NAMED_MESSAGE_FIPS_UPDATES_INVALIDATES_FIPS,
+            ),
+        )
 
     @property
     def static_affordances(self) -> Tuple[StaticAffordance, ...]:

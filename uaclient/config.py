@@ -678,7 +678,7 @@ class UAConfig:
 
     def _attached_service_status(
         self, ent, inapplicable_resources
-    ) -> Dict[str, Optional[str]]:
+    ) -> Dict[str, Any]:
         details = ""
         description_override = None
         contract_status = ent.contract_status()
@@ -691,6 +691,15 @@ class UAConfig:
             else:
                 ent_status, details = ent.user_facing_status()
 
+        blocked_by = [
+            {
+                "name": service.entitlement.name,
+                "reason_code": service.named_msg.name,
+                "reason": service.named_msg.msg,
+            }
+            for service in ent.blocking_incompatible_services()
+        ]
+
         return {
             "name": ent.presentation_name,
             "description": ent.description,
@@ -701,6 +710,7 @@ class UAConfig:
             "available": "yes"
             if ent.name not in inapplicable_resources
             else "no",
+            "blocked_by": blocked_by,
         }
 
     def _attached_status(self) -> Dict[str, Any]:
