@@ -2,6 +2,7 @@ import abc
 import logging
 import os
 import re
+import sys
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -11,9 +12,13 @@ from uaclient import config, contract, event_logger, status, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
     MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
+    MESSAGE_DISABLING_DEPENDENT_SERVICE,
+    MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE,
     MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
     MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE,
     ApplicabilityStatus,
+    CanDisableFailure,
+    CanDisableFailureReason,
     CanEnableFailure,
     CanEnableFailureReason,
     ContractStatus,
@@ -240,22 +245,36 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def can_disable(self, silent: bool = False) -> bool:
+    def can_disable(self) -> Tuple[bool, Optional[CanDisableFailure]]:
         """Report whether or not disabling is possible for the entitlement.
 
-        @param silent: Boolean set True to silence printed messages/warnings.
+        :return:
+            (True, None) if can disable
+            (False, CanDisableFailure) if can't disable
         """
         application_status, _ = self.application_status()
 
         if application_status == status.ApplicationStatus.DISABLED:
-            if not silent:
-                print(
-                    status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+            return (
+                False,
+                CanDisableFailure(
+                    CanDisableFailureReason.ALREADY_DISABLED,
+                    message=status.MESSAGE_ALREADY_DISABLED_TMPL.format(
                         title=self.title
-                    )
+                    ),
+                ),
+            )
+
+        if self.dependent_services:
+            if self.detect_dependent_services():
+                return (
+                    False,
+                    CanDisableFailure(
+                        CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+                    ),
                 )
-            return False
-        return True
+
+        return True, None
 
     def can_enable(self) -> Tuple[bool, Optional[CanEnableFailure]]:
         """
@@ -327,6 +346,35 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return (True, None)
 
+    def _check_any_service_is_active(self, services: Tuple[str, ...]) -> bool:
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
+
+        for service in services:
+            try:
+                ent_cls = entitlement_factory(service)
+            except EntitlementNotFoundError:
+                continue
+            ent_status, _ = ent_cls(self.cfg).application_status()
+            if ent_status == status.ApplicationStatus.ENABLED:
+                return True
+
+        return False
+
+    def detect_dependent_services(self) -> bool:
+        """
+        Check for depedent services.
+
+        :return:
+            True if there are dependent services enabled
+            False if there are no dependent services enabled
+        """
+        return self._check_any_service_is_active(
+            services=self.dependent_services
+        )
+
     def check_required_services_active(self):
         """
         Check if all required services are active
@@ -359,21 +407,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if there are incompatible services enabled
             False if there are no incompatible services enabled
         """
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
+        return self._check_any_service_is_active(
+            services=self.incompatible_services
         )
-
-        for incompatible_service in self.incompatible_services:
-            try:
-                ent_cls = entitlement_factory(incompatible_service)
-            except EntitlementNotFoundError:
-                continue
-            ent_status, _ = ent_cls(self.cfg).application_status()
-            if ent_status == status.ApplicationStatus.ENABLED:
-                return True
-
-        return False
 
     def handle_incompatible_services(self) -> Tuple[bool, Optional[str]]:
         """
@@ -593,7 +629,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         pass
 
-    def _disable_dependent_services(self):
+    def _disable_dependent_services(
+        self, silent: bool
+    ) -> Tuple[bool, Optional[str]]:
         """
         Disable dependent services
 
@@ -602,6 +640,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         If that is true, we will alert the user about this
         and prompt for confirmation to disable these services
         as well.
+
+        @param silent: Boolean set True to silence print/log of messages
         """
         from uaclient.entitlements import (
             EntitlementNotFoundError,
@@ -609,15 +649,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         )
 
         for dependent_service in self.dependent_services:
-            ent_cls = entitlement_factory(dependent_service)
             try:
                 ent_cls = entitlement_factory(dependent_service)
             except EntitlementNotFoundError:
                 msg = "Dependent service {} not found.".format(
                     dependent_service
                 )
-                logging.error(msg)
-                return False
+                event.info(info_msg=msg, file_type=sys.stderr)
+                return False, msg
 
             ent = ent_cls(self.cfg)
 
@@ -639,15 +678,26 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 if not util.prompt_for_confirmation(
                     msg=user_msg, assume_yes=self.assume_yes
                 ):
-                    print(e_msg)
-                    return False
+                    return False, e_msg
 
-                print("Disabling dependent service: {}".format(ent.title))
-                ret = ent.disable(silent=True)
+                if not silent:
+                    event.info(
+                        MESSAGE_DISABLING_DEPENDENT_SERVICE.format(
+                            required_service=ent.title
+                        )
+                    )
+
+                ret, fail = ent.disable(silent=True)
                 if not ret:
-                    return ret
+                    msg = MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE.format(
+                        required_service=ent.title
+                    )
+                    if fail.message:
+                        msg += "\n" + fail.message
 
-        return True
+                    return False, msg
+
+        return True, None
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
@@ -665,30 +715,49 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 )
             )
 
-    def disable(self, silent: bool = False) -> bool:
+    def disable(
+        self, silent: bool = False
+    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
         """Disable specific entitlement
 
         @param silent: Boolean set True to silence print/log of messages
 
-        @return: True on success, False otherwise.
+        @return: tuple of (success, optional reason)
+            (True, None) on success.
+            (False, reason) otherwise. reason is only non-None if it is a
+                populated CanDisableFailure reason. This may expand to
+                include other types of reasons in the future.
         """
         msg_ops = self.messaging.get("pre_disable", [])
         if not util.handle_message_operations(msg_ops):
-            return False
-        if not self.can_disable(silent):
-            return False
-        if not self._disable_dependent_services():
-            return False
+            return False, None
+
+        can_disable, fail = self.can_disable()
+        if not can_disable:
+            if fail is None:
+                # this shouldn't happen, but if it does we shouldn't continue
+                return False, None
+            elif (
+                fail.reason
+                == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+            ):
+                ret, msg = self._disable_dependent_services(silent=silent)
+                if not ret:
+                    fail.message = msg
+                    return False, fail
+            else:
+                # every other reason means we can't continue
+                return False, fail
 
         if not self._perform_disable(silent=silent):
-            return False
+            return False, None
 
         msg_ops = self.messaging.get("post_disable", [])
         if not util.handle_message_operations(msg_ops):
-            return False
-        self._check_for_reboot_msg(operation="disable operation")
+            return False, None
 
-        return True
+        self._check_for_reboot_msg(operation="disable operation")
+        return True, None
 
     def contract_status(self) -> ContractStatus:
         """Return whether the user is entitled to the entitlement or not"""
@@ -774,7 +843,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 application_status, _ = self.application_status()
 
             if application_status != status.ApplicationStatus.DISABLED:
-                if self.can_disable(silent=True):
+                if self.can_disable():
                     self.disable()
                     logging.info(
                         "Due to contract refresh, '%s' is now disabled.",

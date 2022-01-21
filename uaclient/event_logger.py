@@ -131,6 +131,9 @@ class EventLogger:
     def services_failed(self, services: List[str]):
         self._failed_services.update(services)
 
+    def service_failed(self, service: str):
+        self._failed_services.add(service)
+
     def needs_reboot(self, reboot_required: bool):
         self._needs_reboot = reboot_required
 
