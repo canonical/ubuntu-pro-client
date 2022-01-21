@@ -119,12 +119,12 @@ check_service_is_beta() {
     _IS_BETA_SVC=$(/usr/bin/python3 -c "
 from uaclient.config import UAConfig
 from uaclient.entitlements import entitlement_factory
-ent_cls = entitlement_factory('${service_name}')
-if ent_cls:
+try:
+    ent_cls = entitlement_factory('${service_name}')
     cfg = UAConfig()
     allow_beta = cfg.features.get('allow_beta', False)
     print(all([ent_cls.is_beta, not allow_beta]))
-else:
+except Exception:
     print(True)
 ")
 if [ "${_IS_BETA_SVC}" = "True" ]; then

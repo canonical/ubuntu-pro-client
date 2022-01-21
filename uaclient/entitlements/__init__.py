@@ -27,7 +27,7 @@ class EntitlementNotFoundError(Exception):
     pass
 
 
-def entitlement_factory(name: str, not_found_okay: bool = True):
+def entitlement_factory(name: str):
     """Returns a UAEntitlement class based on the provided name.
 
     The return type is Optional[Type[UAEntitlement]].
@@ -41,8 +41,6 @@ def entitlement_factory(name: str, not_found_okay: bool = True):
     for entitlement in ENTITLEMENT_CLASSES:
         if name in entitlement().valid_names:
             return entitlement
-    if not_found_okay:
-        return None
     raise EntitlementNotFoundError()
 
 
