@@ -99,7 +99,7 @@ class TestActionDetach:
         # Check that can_disable is called correctly
         for ent_cls in m_entitlements.ENTITLEMENT_CLASSES:
             assert [
-                mock.call(silent=True)
+                mock.call()
             ] == ent_cls.return_value.can_disable.call_args_list
 
             assert [
