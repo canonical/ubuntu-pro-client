@@ -367,9 +367,9 @@ when you should set UACLIENT_BEHAVE_SNAPSHOT_STRATEGY=1
 The following tox environments allow for testing focal on EC2:
 
 ```
-  # To test ubuntu-pro-images on EC2
+  # To test ubuntu-pro-images
   tox -e behave-awspro-20.04
-  # To test Canonical cloud images (non-ubuntu-pro) on EC2
+  # To test Canonical cloud images (non-ubuntu-pro)
   tox -e behave-awsgeneric-20.04
 ```
 
@@ -417,9 +417,9 @@ UACLIENT_BEHAVE_REUSE_IMAGE=your-custom-ami tox -e behave-awspro-20.04
 The following tox environments allow for testing focal on Azure:
 
 ```
-  # To test ubuntu-pro-images on EC2
+  # To test ubuntu-pro-images
   tox -e behave-azurepro-20.04
-  # To test Canonical cloud images (non-ubuntu-pro) on EC2
+  # To test Canonical cloud images (non-ubuntu-pro)
   tox -e behave-azuregeneric-20.04
 ```
 
