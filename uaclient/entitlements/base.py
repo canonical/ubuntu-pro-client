@@ -333,14 +333,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if all required services are active
             False is at least one of the required services is disabled
         """
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         for required_service in self.required_services:
-            ent_cls = entitlement_factory(required_service)
-            if ent_cls:
+            try:
+                ent_cls = entitlement_factory(required_service)
                 ent_status, _ = ent_cls(self.cfg).application_status()
                 if ent_status != status.ApplicationStatus.ENABLED:
                     return False
+            except EntitlementNotFoundError:
+                pass
 
         return True
 
@@ -352,14 +357,19 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if there are incompatible services enabled
             False if there are no incompatible services enabled
         """
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         for incompatible_service in self.incompatible_services:
-            ent_cls = entitlement_factory(incompatible_service)
-            if ent_cls:
-                ent_status, _ = ent_cls(self.cfg).application_status()
-                if ent_status == status.ApplicationStatus.ENABLED:
-                    return True
+            try:
+                ent_cls = entitlement_factory(incompatible_service)
+            except EntitlementNotFoundError:
+                continue
+            ent_status, _ = ent_cls(self.cfg).application_status()
+            if ent_status == status.ApplicationStatus.ENABLED:
+                return True
 
         return False
 
@@ -378,50 +388,52 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         features:
           block_disable_on_enable: true
         """
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         cfg_block_disable_on_enable = util.is_config_value_true(
             config=self.cfg.cfg,
             path_to_value="features.block_disable_on_enable",
         )
         for incompatible_service in self.incompatible_services:
-            ent_cls = entitlement_factory(incompatible_service)
+            try:
+                ent_cls = entitlement_factory(incompatible_service)
+            except EntitlementNotFoundError:
+                continue
+            ent = ent_cls(self.cfg)
+            enabled_status = status.ApplicationStatus.ENABLED
 
-            if ent_cls:
-                ent = ent_cls(self.cfg)
-                enabled_status = status.ApplicationStatus.ENABLED
+            is_service_enabled = ent.application_status()[0] == enabled_status
 
-                is_service_enabled = (
-                    ent.application_status()[0] == enabled_status
+            if is_service_enabled:
+                user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
+                    service_being_enabled=self.title,
+                    incompatible_service=ent.title,
                 )
 
-                if is_service_enabled:
-                    user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
-                        service_being_enabled=self.title,
-                        incompatible_service=ent.title,
-                    )
+                e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+                    service_being_enabled=self.title,
+                    incompatible_service=ent.title,
+                )
 
-                    e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
-                        service_being_enabled=self.title,
-                        incompatible_service=ent.title,
-                    )
+                if cfg_block_disable_on_enable:
+                    return False, e_msg
 
-                    if cfg_block_disable_on_enable:
-                        return False, e_msg
+                if not util.prompt_for_confirmation(
+                    msg=user_msg, assume_yes=self.assume_yes
+                ):
+                    return False, e_msg
 
-                    if not util.prompt_for_confirmation(
-                        msg=user_msg, assume_yes=self.assume_yes
-                    ):
-                        return False, e_msg
+                disable_msg = "Disabling incompatible service: {}".format(
+                    ent.title
+                )
+                event.info(disable_msg)
 
-                    disable_msg = "Disabling incompatible service: {}".format(
-                        ent.title
-                    )
-                    event.info(disable_msg)
-
-                    ret = ent.disable()
-                    if not ret:
-                        return ret, None
+                ret = ent.disable()
+                if not ret:
+                    return ret, None
 
         return True, None
 
@@ -433,11 +445,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         that must be enabled first. In that situation, we can ask the user
         if the required service should be enabled before proceeding.
         """
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         for required_service in self.required_services:
-            ent_cls = entitlement_factory(required_service)
-            if not ent_cls:
+            try:
+                ent_cls = entitlement_factory(required_service)
+            except EntitlementNotFoundError:
                 msg = "Required service {} not found.".format(required_service)
                 logging.error(msg)
                 return False
@@ -581,10 +597,22 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         and prompt for confirmation to disable these services
         as well.
         """
-        from uaclient.entitlements import entitlement_factory
+        from uaclient.entitlements import (
+            EntitlementNotFoundError,
+            entitlement_factory,
+        )
 
         for dependent_service in self.dependent_services:
             ent_cls = entitlement_factory(dependent_service)
+            try:
+                ent_cls = entitlement_factory(dependent_service)
+            except EntitlementNotFoundError:
+                msg = "Dependent service {} not found.".format(
+                    dependent_service
+                )
+                logging.error(msg)
+                return False
+
             ent = ent_cls(self.cfg)
 
             is_service_enabled = (

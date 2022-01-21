@@ -367,7 +367,10 @@ def process_entitlement_delta(
     :raise UserFacingError: on failure to process deltas.
     :return: Dict of processed deltas
     """
-    from uaclient.entitlements import entitlement_factory
+    from uaclient.entitlements import (
+        EntitlementNotFoundError,
+        entitlement_factory,
+    )
 
     if series_overrides:
         util.apply_series_overrides(new_access)
@@ -383,8 +386,9 @@ def process_entitlement_delta(
                     orig_access, new_access
                 )
             )
-        ent_cls = entitlement_factory(name)
-        if not ent_cls:
+        try:
+            ent_cls = entitlement_factory(name)
+        except EntitlementNotFoundError:
             logging.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
