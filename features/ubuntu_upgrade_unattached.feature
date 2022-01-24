@@ -3,7 +3,6 @@ Feature: Upgrade between releases when uaclient is unattached
 
     @slow
     @series.focal
-    @series.hirsute
     @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
@@ -40,8 +39,7 @@ Feature: Upgrade between releases when uaclient is unattached
 
         Examples: ubuntu release
         | release  | next_release | devel_release   |
-        | focal    | hirsute      |                 |
-        | hirsute  | impish       |                 |
+        | focal    | impish      |                 |
         | impish   | jammy        | --devel-release |
 
    @slow
