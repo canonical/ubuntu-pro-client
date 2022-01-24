@@ -12,7 +12,6 @@ SERIES_TO_VERSION = {
     "xenial": "16.04",
     "bionic": "18.04",
     "focal": "20.04",
-    "hirsute": "21.04",
     "impish": "21.10",
     "jammy": "22.04",
 }
@@ -28,11 +27,11 @@ PLATFORM_SERIES_TESTS = {
     "azurepro": ["xenial", "bionic", "focal"],
     "awsgeneric": ["xenial", "bionic", "focal"],
     "awspro": ["xenial", "bionic", "focal"],
-    "gcpgeneric": ["xenial", "bionic", "focal", "hirsute"],
+    "gcpgeneric": ["xenial", "bionic", "focal", "impish"],
     "gcppro": ["xenial", "bionic", "focal"],
     "vm": ["xenial", "bionic", "focal"],
-    "lxd": ["xenial", "bionic", "focal", "hirsute", "impish", "jammy"],
-    "upgrade": ["xenial", "bionic", "focal", "hirsute", "impish"],
+    "lxd": ["xenial", "bionic", "focal", "impish", "jammy"],
+    "upgrade": ["xenial", "bionic", "focal", "impish"],
 }
 
 

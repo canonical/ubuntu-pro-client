@@ -26,6 +26,5 @@ Feature: Attached status
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |

@@ -39,7 +39,7 @@ Feature: License check timer only runs in environments where necessary
             | bionic  |
             | focal   |
 
-    @series.hirsute
+    @series.impish
     @uses.config.contract_token
     @uses.config.machine_type.gcp.generic
     Scenario Outline: license_check is disabled gcp generic non lts
@@ -59,7 +59,7 @@ Feature: License check timer only runs in environments where necessary
         Then I verify the `ua-license-check` systemd timer is disabled
         Examples: version
             | release |
-            | hirsute |
+            | impish  |
 
     @series.all
     @uses.config.contract_token
@@ -91,7 +91,6 @@ Feature: License check timer only runs in environments where necessary
             | xenial  |
             | bionic  |
             | focal   |
-            | hirsute |
             | impish  |
             | jammy   |
 

@@ -27,7 +27,6 @@ Feature: Command behaviour when unattached
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -131,8 +130,6 @@ Feature: Command behaviour when unattached
            | focal   | refresh |
            | xenial  | detach  |
            | xenial  | refresh |
-           | hirsute | detach  |
-           | hirsute | refresh |
            | impish  | detach  |
            | impish  | refresh |
            | jammy   | detach  |
@@ -169,10 +166,6 @@ Feature: Command behaviour when unattached
            | xenial  | disable  | livepatch |
            | xenial  | enable   | unknown   |
            | xenial  | disable  | unknown   |
-           | hirsute | enable   | livepatch |
-           | hirsute | disable  | livepatch |
-           | hirsute | enable   | unknown   |
-           | hirsute | disable  | unknown   |
            | impish  | enable   | livepatch |
            | impish  | disable  | livepatch |
            | impish  | enable   | unknown   |
@@ -220,7 +213,6 @@ Feature: Command behaviour when unattached
            | bionic   | yes          |
            | focal    | yes          |
            | xenial   | yes          |
-           | hirsute  | no           |
            | impish   | no           |
            | jammy    | no           |
 
@@ -251,7 +243,6 @@ Feature: Command behaviour when unattached
            | xenial  |
            | bionic  |
            | focal   |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -535,6 +526,5 @@ Feature: Command behaviour when unattached
           | release |
           | bionic  |
           | focal   |
-          | hirsute |
           | impish  |
           | jammy   |
