@@ -552,6 +552,5 @@ Feature: Command behaviour when unattached
           | xenial  |
           | bionic  |
           | focal   |
-          | hirsute |
           | impish  |
           | jammy   |
