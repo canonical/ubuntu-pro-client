@@ -226,9 +226,11 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     lxc exec dev-i -- bash /setup_proposed.sh
     ```
 
-    e. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
+    e. With the package in proposed, perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
 
-    f. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:
+    f. Once [ubuntu-advantage-tools shows up in the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html), perform the [Ubuntu-advantage-client SRU verification steps](https://wiki.ubuntu.com/UbuntuAdvantageToolsUpdates). This typically involves running all behave targets with `UACLIENT_BEHAVE_ENABLE_PROPOSED=1 UACLIENT_BEHAVE_CHECK_VERSION=<this-version>` and saving the output.
+
+    g. After all tests have passed, tarball all of the output files and upload them to the SRU bug with a message that looks like this:
     ```
     We have run the full ubuntu-advantage-tools integration test suite against the version in -proposed. The results are attached. All tests passed (or call out specific explained failures).
     
@@ -238,33 +240,23 @@ If this is your first time releasing ubuntu-advantage-tools, you'll need to do t
     ```
     Change the tags on the bug from `verification-needed` to `verification-done` (including the verification tags for each release).
 
-    g. For any other related Launchpad bugs that are fixed in this release. Perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
+    h. For any other related Launchpad bugs that are fixed in this release. Perform the verification steps necessary for those bugs and mark them `verification-done` as needed. This will likely involve following the test steps, but instead of adding the staging PPA, enabling -proposed.
 
-    h. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html).
+    i. Once all SRU bugs are tagged as `verification*-done`, all SRU-bugs should be listed as green in [the pending_sru page](https://people.canonical.com/~ubuntu-archive/pending-sru.html).
     
-    i. After the pending sru page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
+    j. After the pending sru page says that ubuntu-advantage-tools has been in proposed for 7 days, it is now time to ping the [current SRU vanguard](https://wiki.ubuntu.com/StableReleaseUpdates#Publishing) for acceptance of ubuntu-advantage-tools into -updates.
 
-    j. Ping the Ubuntu Server team member who approved the version in step `II.4` to now upload to the devel release.
+    k. Ping the Ubuntu Server team member who approved the version in step `II.4` to now upload to the devel release.
 
-    k. Check `rmadison ubuntu-advantage-tools` for updated version in devel release
+    l. Check `rmadison ubuntu-advantage-tools` for updated version in devel release
 
-    l. Confirm availability in <devel-series>-updates pocket via `lxc launch ubuntu-daily:<devel-series> dev-i; lxc exec dev-i -- apt update; lxc exec dev-i -- apt-cache policy ubuntu-advantage-tools`
+    m. Confirm availability in <devel-series>-updates pocket via `lxc launch ubuntu-daily:<devel-series> dev-i; lxc exec dev-i -- apt update; lxc exec dev-i -- apt-cache policy ubuntu-advantage-tools`
 
-### III. Final release to team infrastructure
+### III. Github Repository Post-release Update
 
 1. Ensure the version tag is correct on github. The `version` git tag should point to the commit that was released as that version to ubuntu -updates. If changes were made in response to feedback during the release process, the tag may have to be moved.
-2. Perform the steps from `I.3` above but use a `~stableppaX` suffix instead of `~rcX` in the version name, and upload to `ppa:ua-client/stable` instead of staging.
-3. Bring in any changes that were made to the release branch into `main` via PR (e.g. Changelog edits).
+2. Bring in any changes that were made to the release branch into `main` via PR (e.g. Changelog edits).
 
-## Ubuntu PRO Release Process
+## Cloud Images Update
 
-Below is the procedure used to release ubuntu-advantage-tools to Ubuntu PRO images:
-
- 1. [Open Daily PPA copy-package operation](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily/+copy-packages)
- 2. Check Xenial, Bionic, Focal, Hirsute, Impish packages
- 3. Select Destination PPA: UA Client Premium [~ua-client/ubuntu/staging]
- 4. Select Destination series: The same series
- 5. Copy options: "Copy existing binaries"
- 6. Click Copy packages
- 7. Notify Pro Image creators about expected Premium PPA version (patviafore/powersj)
- 8. Once new PRO AMIs are publicly available run `./tools/refresh-aws-pro-ids` to update AMIs we test during CI runs
+After the release process is finished, CPC must be informed. They will be responsible to update the cloud images using the package from the pockets it was released to (whether it is the `stable` PPA or the`-updates` pocket).
