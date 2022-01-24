@@ -47,7 +47,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -64,7 +63,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -91,7 +89,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -117,7 +114,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -324,7 +320,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -347,7 +342,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -399,7 +393,6 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -589,7 +582,6 @@ Feature: Command behaviour when attached to an UA subscription
            | release | infra-status |
            | bionic  | enabled      |
            | xenial  | enabled      |
-           | hirsute | n/a          |
            | impish  | n/a          |
            | jammy   | n/a          |
 
@@ -806,7 +798,6 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | bionic  |
            | focal   |
-           | hirsute |
            | impish  |
            | jammy   |
 

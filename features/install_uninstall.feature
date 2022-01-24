@@ -12,7 +12,6 @@ Feature: UA Install and Uninstall related tests
            | xenial  |
            | bionic  |
            | focal   |
-           | hirsute |
            | impish  |
            | jammy   |
 
