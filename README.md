@@ -33,7 +33,7 @@ Below is a list of platforms and releases ubuntu-advantage-tools supports
 | Bionic | amd64, arm64, armhf, i386, ppc64el, s390x | Active SRU of all features |
 | Focal | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
 | Groovy | amd64, arm64, armhf, ppc64el, riscv64, s390x | Last release 27.1 |
-| Hirsute | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
+| Hirsute | amd64, arm64, armhf, ppc64el, riscv64, s390x | Last release 27.5 |
 | Impish | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
 
 Note: ppc64el will not have support for APT JSON hook messaging due to insufficient golang packages
