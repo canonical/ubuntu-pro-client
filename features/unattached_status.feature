@@ -24,7 +24,6 @@ Feature: Unattached status
            | bionic  |
            | focal   |
            | xenial  |
-           | hirsute |
            | impish  |
            | jammy   |
 
@@ -128,7 +127,6 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | hirsute | no       | no     | cis | no            | no   | no        | no  | no        |     |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
            | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
 
@@ -185,6 +183,5 @@ Feature: Unattached status
            | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | hirsute | no       | no     | cis | no            | no   | no        | no  | no        |     |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
            | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |

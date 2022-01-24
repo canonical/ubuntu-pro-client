@@ -31,7 +31,6 @@ Feature: UA is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | hirsute |
             | impish  |
             | jammy   |
 
@@ -59,5 +58,4 @@ Feature: UA is expected version
             | xenial  |
             | bionic  |
             | focal   |
-            | hirsute |
             | impish  |

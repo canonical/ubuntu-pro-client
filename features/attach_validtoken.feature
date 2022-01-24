@@ -3,7 +3,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
     @series.jammy
-    @series.hirsute
     @series.impish
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached command in a non-lts ubuntu machine
@@ -24,7 +23,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release
             | release |
-            | hirsute |
             | impish  |
             | jammy   |
 
