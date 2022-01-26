@@ -114,9 +114,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESMApps",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -130,9 +130,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESMApps",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -162,9 +162,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESMApps",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -178,9 +178,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESMApps",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -210,17 +210,17 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-infra-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-infra-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESM",
                                 "label": "Ubuntu",
                                 "site": ""
                             },
                             {
-                                "archive": "hirsute",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "Ubuntu",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -234,17 +234,17 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-infra-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-infra-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESM",
                                 "label": "Ubuntu",
                                 "site": ""
                             },
                             {
-                                "archive": "hirsute",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "Ubuntu",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -274,9 +274,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-infra-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-infra-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESM",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -290,9 +290,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-infra-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-infra-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "UbuntuESM",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -322,8 +322,8 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
                                 "version": "1.0",
                                 "origin": "UbuntuESMApps",
                                 "label": "Google",
@@ -338,8 +338,8 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-apps-security",
-                                "codename": "hirsute",
+                                "archive": "focal-apps-security",
+                                "codename": "focal",
                                 "version": "1.0",
                                 "origin": "UbuntuESMApps",
                                 "label": "Google",
@@ -370,9 +370,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "Ubuntu",
                                 "label": "Ubuntu",
                                 "site": ""
@@ -386,9 +386,9 @@ const mockJson = `
                         "pin": 500,
                         "origins": [
                             {
-                                "archive": "hirsute-security",
-                                "codename": "hirsute",
-                                "version": "21.04",
+                                "archive": "focal-security",
+                                "codename": "focal",
+                                "version": "20.04",
                                 "origin": "Ubuntu",
                                 "label": "Ubuntu",
                                 "site": ""
