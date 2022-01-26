@@ -455,3 +455,38 @@ class TestDisable:
             "warnings": [],
         }
         assert expected == json.loads(fake_stdout.getvalue())
+
+    def test_format_json_fails_when_assume_yes_flag_not_used(
+        self, _m_getuid, event
+    ):
+        cfg = mock.MagicMock()
+        args_mock = mock.MagicMock()
+        args_mock.format = "json"
+        args_mock.assume_yes = False
+
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event,
+                "_event_logger_mode",
+                event_logger.EventLoggerMode.MACHINE_READABLE,
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_disable)(args_mock, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(fake_stdout.getvalue())
