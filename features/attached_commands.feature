@@ -123,35 +123,47 @@ Feature: Command behaviour when attached to an UA subscription
 
     @series.lts
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached disable of an already disabled service in a ubuntu machine
+    Scenario Outline: Attached disable with json format
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         Then I verify that running `ua disable foobar --format json` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        Then I verify that running `ua disable foobar --format json` `with sudo` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        Then I verify that running `ua disable foobar --format json --assume-yes` `as non-root` exits `1`
+        And stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+            """
             {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `ua disable foobar --format json` `with sudo` exits `1`
+        And I verify that running `ua disable foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
             {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
-        And I verify that running `ua disable livepatch --format json` `with sudo` exits `1`
+        And I verify that running `ua disable livepatch --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo ua status", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
-        And I verify that running `ua disable esm-infra esm-apps --format json` `with sudo` exits `0`
+        And I verify that running `ua disable esm-infra esm-apps --format json --assume-yes` `with sudo` exits `0`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
         {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
         """
         When I run `ua enable esm-infra` with sudo
-        Then I verify that running `ua disable esm-infra foobar --format json` `with sudo` exits `1`
+        Then I verify that running `ua disable esm-infra foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
