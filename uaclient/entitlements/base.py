@@ -719,7 +719,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def disable(
         self, silent: bool = False
-    ) -> Tuple[bool, Union[None, CanDisableFailure]]:
+    ) -> Tuple[bool, Optional[CanDisableFailure]]:
         """Disable specific entitlement
 
         @param silent: Boolean set True to silence print/log of messages

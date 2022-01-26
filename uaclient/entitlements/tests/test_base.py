@@ -138,7 +138,7 @@ class TestUaEntitlement:
         assert expected_msg == fail.message
 
     @mock.patch("uaclient.entitlements.entitlement_factory")
-    def test_can_disable_false_on_depedent_service(
+    def test_can_disable_false_on_dependent_service(
         self, m_ent_factory, concrete_entitlement_factory
     ):
         """When  status is INACTIVE, can_disable returns False."""
@@ -165,7 +165,7 @@ class TestUaEntitlement:
         assert fail.message is None
 
     @mock.patch("uaclient.entitlements.entitlement_factory")
-    def test_can_disable_when_ignoring_depedent_service(
+    def test_can_disable_when_ignoring_dependent_service(
         self, m_ent_factory, concrete_entitlement_factory
     ):
         """When  status is INACTIVE, can_disable returns False."""

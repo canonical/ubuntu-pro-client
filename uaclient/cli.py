@@ -917,6 +917,7 @@ def action_config_unset(args, *, cfg, **kwargs):
 
 
 @set_event_mode
+@verify_json_format_args
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua disable")
