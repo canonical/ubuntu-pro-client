@@ -8,6 +8,7 @@ from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
+from uaclient.exceptions import EntitlementNotFoundError
 from uaclient.util import is_config_value_true
 
 ENTITLEMENT_CLASSES = [
@@ -21,10 +22,6 @@ ENTITLEMENT_CLASSES = [
     ROSEntitlement,
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
-
-
-class EntitlementNotFoundError(Exception):
-    pass
 
 
 def entitlement_factory(name: str):

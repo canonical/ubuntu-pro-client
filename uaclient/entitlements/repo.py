@@ -173,7 +173,7 @@ class RepoEntitlement(base.UAEntitlement):
             application_status, _ = self.application_status()
 
         if application_status == status.ApplicationStatus.DISABLED:
-            return True
+            return False
 
         if not self._check_apt_url_is_applied(delta_apt_url):
             logging.info(

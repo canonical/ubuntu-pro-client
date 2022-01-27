@@ -1,17 +1,21 @@
 import logging
+import sys
+from typing import Optional  # noqa: F401
 
 from uaclient import (
     clouds,
     config,
     contract,
     entitlements,
+    event_logger,
     exceptions,
-    status,
-    util,
 )
+from uaclient import status as ua_status
+from uaclient import util
 from uaclient.clouds import identity
 
 LOG = logging.getLogger("ua.actions")
+event = event_logger.get_event_logger()
 
 
 def attach_with_token(
@@ -31,13 +35,11 @@ def attach_with_token(
             cfg, token, allow_enable=allow_enable
         )
     except util.UrlError as exc:
-        with util.disable_log_to_console():
-            LOG.exception(exc)
         cfg.status()  # Persist updated status in the event of partial attach
         update_apt_and_motd_messages(cfg)
         raise exc
     except exceptions.UserFacingError as exc:
-        LOG.warning(exc.msg)
+        event.info(exc.msg, file_type=sys.stderr)
         cfg.status()  # Persist updated status in the event of partial attach
         update_apt_and_motd_messages(cfg)
         raise exc
@@ -64,7 +66,7 @@ def auto_attach(
     except contract.ContractAPIError as e:
         if e.code and 400 <= e.code < 500:
             raise exceptions.NonAutoAttachImageError(
-                status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
+                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
         raise e
     current_iid = identity.get_instance_id()
@@ -94,3 +96,22 @@ def enable_entitlement_by_name(
         cfg, assume_yes=assume_yes, allow_beta=allow_beta, called_name=name
     )
     return entitlement.enable()
+
+
+def status(
+    cfg: config.UAConfig,
+    *,
+    simulate_with_token: Optional[str] = None,
+    show_beta: bool = False
+):
+    """
+    Construct the current UA status dictionary.
+    """
+    if simulate_with_token:
+        status = cfg.simulate_status(
+            token=simulate_with_token, show_beta=show_beta
+        )
+    else:
+        status = cfg.status(show_beta=show_beta)
+
+    return status

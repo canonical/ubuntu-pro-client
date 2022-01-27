@@ -546,7 +546,7 @@ Feature: Command behaviour when unattached
           """
           {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
-        
+
         Examples: ubuntu release
           | release |
           | xenial  |

@@ -15,8 +15,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import Optional  # noqa: F401
-from typing import List, Tuple
+from typing import List, Optional, Tuple  # noqa
 
 import yaml
 
@@ -134,7 +133,7 @@ class UAArgumentParser(argparse.ArgumentParser):
         for resource in resources:
             try:
                 ent_cls = entitlements.entitlement_factory(resource["name"])
-            except entitlements.EntitlementNotFoundError:
+            except exceptions.EntitlementNotFoundError:
                 continue
             # Because we don't know the presentation name if unattached
             presentation_name = resource.get("presentedAs", resource["name"])
@@ -396,6 +395,13 @@ def attach_parser(parser):
             "use the provided attach config file instead of passing the token"
             " on the cli"
         ),
+    )
+    parser.add_argument(
+        "--format",
+        action="store",
+        choices=["cli", "json"],
+        default="cli",
+        help=("output enable in the specified format (default: cli)"),
     )
     return parser
 
@@ -1124,9 +1130,14 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
 
 
 def _post_cli_attach(cfg: config.UAConfig) -> None:
-    contract_name = cfg.machine_token["machineTokenInfo"]["contractInfo"][
-        "name"
-    ]
+    contract_name = None
+
+    if cfg.machine_token:
+        contract_name = (
+            cfg.machine_token.get("machineTokenInfo", {})
+            .get("contractInfo", {})
+            .get("name")
+        )
 
     if contract_name:
         event.info(
@@ -1138,7 +1149,11 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
         event.info(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     jobs.disable_license_check_if_applicable(cfg)
-    action_status(args=None, cfg=cfg)
+
+    status = actions.status(cfg)
+    output = ua_status.format_tabular(status)
+    event.info(util.handle_unicode_characters(output))
+    event.process_events()
 
 
 @assert_root
@@ -1208,6 +1223,7 @@ def action_auto_attach(args, *, cfg):
         return 0
 
 
+@set_event_mode
 @assert_not_attached
 @assert_root
 @assert_lock_file("ua attach")
@@ -1246,9 +1262,15 @@ def action_attach(args, *, cfg):
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
     except util.UrlError:
-        event.info(ua_status.MESSAGE_ATTACH_FAILURE)
+        msg = ua_status.MESSAGE_ATTACH_FAILURE
+        event.info(msg)
+        event.error(error_msg=msg)
+        event.process_events()
         return 1
-    except exceptions.UserFacingError:
+    except exceptions.UserFacingError as exc:
+        event.info(exc.msg)
+        event.error(error_msg=exc.msg)
+        event.process_events()
         return 1
     else:
         ret = 0
@@ -1268,11 +1290,16 @@ def action_attach(args, *, cfg):
                         and reason.message is not None
                     ):
                         event.info(reason.message)
+                        event.error(error_msg=reason.message, service=name)
+                else:
+                    event.service_processed(name)
+
             if not_found:
                 msg = _create_enable_entitlements_not_found_message(
                     not_found, allow_beta=True
                 )
-                logging.warning(msg)
+                event.info(msg, file_type=sys.stderr)
+                event.error(error_msg=msg)
                 ret = 1
         _post_cli_attach(cfg)
         return ret
@@ -1472,18 +1499,22 @@ def action_status(args, *, cfg):
         cfg = config.UAConfig()
     show_beta = args.all if args else False
     token = args.simulate_with_token if args else None
-    if token:
-        status = cfg.simulate_status(token=token, show_beta=show_beta)
-    else:
-        status = cfg.status(show_beta=show_beta)
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
+
+    status = actions.status(
+        cfg, simulate_with_token=token, show_beta=show_beta
+    )
     config_active = bool(status["execution_status"] == active_value)
+
     if args and args.wait and config_active:
         while status["execution_status"] == active_value:
             print(".", end="")
             time.sleep(1)
-            status = cfg.status(show_beta=show_beta)
+            status = actions.status(
+                cfg, simulate_with_token=token, show_beta=show_beta
+            )
         print("")
+
     if args and args.format == "json":
         print(ua_status.format_json_status(status))
     elif args and args.format == "yaml":
