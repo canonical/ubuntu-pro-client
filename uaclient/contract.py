@@ -1,7 +1,14 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import clouds, exceptions, serviceclient, status, util
+from uaclient import (
+    clouds,
+    event_logger,
+    exceptions,
+    serviceclient,
+    status,
+    util,
+)
 from uaclient.config import UAConfig
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
@@ -16,6 +23,8 @@ API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
 ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
+
+event = event_logger.get_event_logger()
 
 
 class ContractAPIError(util.UrlError):
@@ -63,9 +72,8 @@ class UAContractClient(serviceclient.UAServiceClient):
     api_error_cls = ContractAPIError
 
     def request_contract_machine_attach(self, contract_token, machine_id=None):
-        """Requests machine attach to the provided contact_id.
+        """Requests machine attach to the provided machine_id.
 
-        @param contract_id: Unique contract id provided by contract service.
         @param contract_token: Token string providing authentication to
             ContractBearer service endpoint.
         @param machine_id: Optional unique system machine id. When absent,
@@ -318,14 +326,17 @@ def process_entitlements_delta(
     unexpected_error = False
     for name, new_entitlement in sorted(new_entitlements.items()):
         try:
-            process_entitlement_delta(
+            deltas, service_enabled = process_entitlement_delta(
                 past_entitlements.get(name, {}),
                 new_entitlement,
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
+        except exceptions.EntitlementNotFoundError:
+            continue
         except exceptions.UserFacingError:
             delta_error = True
+            event.service_failed(name)
             with util.disable_log_to_console():
                 logging.error(
                     "Failed to process contract delta for {name}:"
@@ -333,11 +344,17 @@ def process_entitlements_delta(
                 )
         except Exception:
             unexpected_error = True
+            event.service_failed(name)
             with util.disable_log_to_console():
                 logging.exception(
                     "Unexpected error processing contract delta for {name}:"
                     " {delta}".format(name=name, delta=new_entitlement)
                 )
+        else:
+            # If we have any deltas to process and we were able to process
+            # them, then we will mark that service as successfully enabled
+            if service_enabled and deltas:
+                event.service_processed(name)
     if unexpected_error:
         raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
     elif delta_error:
@@ -351,7 +368,7 @@ def process_entitlement_delta(
     new_access: Dict[str, Any],
     allow_enable: bool = False,
     series_overrides: bool = True,
-) -> Dict:
+) -> Tuple[Dict, bool]:
     """Process a entitlement access dictionary deltas if they exist.
 
     :param orig_access: Dict with original entitlement access details before
@@ -365,17 +382,16 @@ def process_entitlement_delta(
         applied to the new_access dict.
 
     :raise UserFacingError: on failure to process deltas.
-    :return: Dict of processed deltas
+    :return: A tuple containing a dict of processed deltas and a
+             boolean indicating if the service was fully processed
     """
-    from uaclient.entitlements import (
-        EntitlementNotFoundError,
-        entitlement_factory,
-    )
+    from uaclient.entitlements import entitlement_factory
 
     if series_overrides:
         util.apply_series_overrides(new_access)
 
     deltas = util.get_dict_deltas(orig_access, new_access)
+    ret = False
     if deltas:
         name = orig_access.get("entitlement", {}).get("type")
         if not name:
@@ -388,16 +404,17 @@ def process_entitlement_delta(
             )
         try:
             ent_cls = entitlement_factory(name)
-        except EntitlementNotFoundError:
+        except exceptions.EntitlementNotFoundError as exc:
             logging.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
-            return deltas
+            raise exc
+
         entitlement = ent_cls(assume_yes=allow_enable)
-        entitlement.process_contract_deltas(
+        ret = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
-    return deltas
+    return deltas, ret
 
 
 def _create_attach_forbidden_message(e: ContractAPIError) -> str:

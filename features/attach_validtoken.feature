@@ -459,3 +459,38 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | xenial  | n/a       | n/a         | disabled  | cis        |
            | bionic  | n/a       | disabled    | disabled  | cis        |
            | focal   | enabled   | disabled    | n/a       | usg        |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attach command with json output
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I verify that running attach `as non-root` with json response exits `1`
+        Then I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+        When I verify that running attach `with sudo` with json response exits `0`
+        Then I will see the following on stdout:
+            """
+            {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        cc-eal        +yes +<cc-eal>  +Common Criteria EAL2 Provisioning Packages
+        """
+        And stdout matches regexp:
+        """
+        esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+        fips          +yes +disabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        livepatch     +yes +n/a  +Canonical Livepatch service
+        """
+
+        Examples: ubuntu release
+          | release | cc-eal   |
+          | xenial  | disabled |
+          | bionic  | disabled |
+          | focal   | n/a      |

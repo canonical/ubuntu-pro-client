@@ -131,3 +131,7 @@ class CloudFactoryUnsupportedCloudError(CloudFactoryError):
 
 class CloudFactoryNonViableCloudError(CloudFactoryError):
     pass
+
+
+class EntitlementNotFoundError(Exception):
+    pass

@@ -484,14 +484,14 @@ class TestLivepatchProcessContractDeltas:
     @mock.patch(M_PATH + "LivepatchEntitlement.setup_livepatch_config")
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(M_PATH + "LivepatchEntitlement.applicability_status")
-    def test_true_on_inactive_livepatch_service(
+    def test_false_on_inactive_livepatch_service(
         self,
         m_applicability_status,
         m_application_status,
         m_setup_livepatch_config,
         entitlement,
     ):
-        """When livepatch is INACTIVE return True and do no setup."""
+        """When livepatch is INACTIVE return False and do no setup."""
         m_applicability_status.return_value = (
             status.ApplicabilityStatus.APPLICABLE,
             "",
@@ -501,7 +501,7 @@ class TestLivepatchProcessContractDeltas:
             "",
         )
         deltas = {"entitlement": {"directives": {"caCerts": "new"}}}
-        assert entitlement.process_contract_deltas({}, deltas, False)
+        assert not entitlement.process_contract_deltas({}, deltas, False)
         assert [] == m_setup_livepatch_config.call_args_list
 
     @pytest.mark.parametrize(
