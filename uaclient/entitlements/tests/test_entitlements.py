@@ -2,7 +2,7 @@
 import mock
 import pytest
 
-from uaclient import entitlements
+from uaclient import entitlements, exceptions
 
 
 class TestValidServices:
@@ -56,5 +56,5 @@ class TestEntitlementFactory:
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
             assert m_cls_1 == entitlements.entitlement_factory("othername")
             assert m_cls_2 == entitlements.entitlement_factory("ent2")
-        with pytest.raises(entitlements.EntitlementNotFoundError):
+        with pytest.raises(exceptions.EntitlementNotFoundError):
             entitlements.entitlement_factory("nonexistent")

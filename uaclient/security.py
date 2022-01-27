@@ -16,7 +16,7 @@ from uaclient.clouds.identity import (
 )
 from uaclient.config import UAConfig
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
-from uaclient.entitlements import EntitlementNotFoundError, entitlement_factory
+from uaclient.entitlements import entitlement_factory
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -766,7 +766,7 @@ def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     try:
         ent_cls = entitlement_factory(service_to_check)
         return ent_cls(cfg)
-    except EntitlementNotFoundError:
+    except exceptions.EntitlementNotFoundError:
         return None
 
 
@@ -1031,7 +1031,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
         0
         == cli.action_attach(
             argparse.Namespace(
-                token=token, auto_enable=True, attach_config=None
+                token=token, auto_enable=True, attach_config=None, format="cli"
             ),
             cfg,
         )

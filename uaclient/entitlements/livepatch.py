@@ -321,7 +321,7 @@ class LivepatchEntitlement(UAEntitlement):
 
         application_status, _ = self.application_status()
         if application_status == status.ApplicationStatus.DISABLED:
-            return True  # only operate on changed directives when ACTIVE
+            return False  # only operate on changed directives when ACTIVE
         delta_directives = delta_entitlement.get("directives", {})
         supported_deltas = set(["caCerts", "remoteServer"])
         process_directives = bool(

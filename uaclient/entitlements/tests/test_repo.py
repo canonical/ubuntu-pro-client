@@ -145,7 +145,7 @@ class TestProcessContractDeltas:
             status.ApplicabilityStatus.APPLICABLE,
             "",
         )
-        assert entitlement.process_contract_deltas(
+        assert not entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
             {
                 "entitlement": {"obligations": {"enableByDefault": False}},
@@ -192,7 +192,7 @@ class TestProcessContractDeltas:
         m_application_status,
         m_enable,
         entitlement,
-        caplog_text,
+        capsys,
     ):
         """Log a message when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
@@ -215,7 +215,7 @@ class TestProcessContractDeltas:
         expected_msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
             name="repotest"
         )
-        assert expected_msg in caplog_text()
+        assert expected_msg in capsys.readouterr()[1]
 
     @pytest.mark.parametrize("packages", ([], ["extremetuxracer"]))
     @mock.patch.object(RepoTestEntitlement, "install_packages")
