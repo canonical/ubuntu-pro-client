@@ -269,7 +269,7 @@ class TestProcessEntitlementDeltas:
 
     def test_no_delta_on_equal_dicts(self):
         """No deltas are reported or processed when dicts are equal."""
-        assert {} == process_entitlement_delta(
+        assert ({}, False) == process_entitlement_delta(
             {"entitlement": {"no": "diff"}}, {"entitlement": {"no": "diff"}}
         )
 
@@ -278,11 +278,12 @@ class TestProcessEntitlementDeltas:
         self, m_process_contract_deltas
     ):
         """Call entitlement.process_contract_deltas to handle any deltas."""
+        m_process_contract_deltas.return_value = True
         original_access = {"entitlement": {"type": "esm-infra"}}
         new_access = copy.deepcopy(original_access)
         new_access["entitlement"]["newkey"] = "newvalue"
         expected = {"entitlement": {"newkey": "newvalue"}}
-        assert expected == process_entitlement_delta(
+        assert (expected, True) == process_entitlement_delta(
             original_access, new_access
         )
         expected_calls = [
@@ -296,7 +297,8 @@ class TestProcessEntitlementDeltas:
         # Limit delta processing logic to handle attached state-A to state-B
         # Fresh installs will have empty/unset
         new_access = {"entitlement": {"type": "esm-infra", "other": "val2"}}
-        assert new_access == process_entitlement_delta({}, new_access)
+        actual, _ = process_entitlement_delta({}, new_access)
+        assert new_access == actual
         expected_calls = [mock.call({}, new_access, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
 
@@ -574,7 +576,7 @@ class TestRequestUpdatedContract:
                     "Ubuntu Advantage server provided no aptKey directive for"
                     " esm-infra"
                 ),
-                None,
+                (None, False),
                 MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
             (RuntimeError("some APT error"), None, MESSAGE_UNEXPECTED_ERROR),
@@ -614,7 +616,7 @@ class TestRequestUpdatedContract:
         process_entitlement_delta.side_effect = (
             first_error,
             second_error,
-            None,
+            (None, False),
         )
 
         # resourceEntitlements specifically ordered reverse alphabetically
@@ -690,6 +692,7 @@ class TestRequestUpdatedContract:
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine(machine_token=machine_token)
+        process_entitlement_delta.return_value = (None, False)
         assert None is request_updated_contract(cfg)
         assert new_token == cfg.read_cache("machine-token")
 

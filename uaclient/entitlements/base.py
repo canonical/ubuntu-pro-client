@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from uaclient import config, contract, event_logger, status, util
+from uaclient import config, contract, event_logger, exceptions, status, util
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
     MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
@@ -394,10 +394,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             True if all required services are active
             False is at least one of the required services is disabled
         """
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
-        )
+        from uaclient.entitlements import entitlement_factory
 
         for required_service in self.required_services:
             try:
@@ -405,7 +402,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ent_status, _ = ent_cls(self.cfg).application_status()
                 if ent_status != status.ApplicationStatus.ENABLED:
                     return False
-            except EntitlementNotFoundError:
+            except exceptions.EntitlementNotFoundError:
                 pass
 
         return True
@@ -491,15 +488,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         that must be enabled first. In that situation, we can ask the user
         if the required service should be enabled before proceeding.
         """
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
-        )
+        from uaclient.entitlements import entitlement_factory
 
         for required_service in self.required_services:
             try:
                 ent_cls = entitlement_factory(required_service)
-            except EntitlementNotFoundError:
+            except exceptions.EntitlementNotFoundError:
                 msg = "Required service {} not found.".format(required_service)
                 return False, msg
 
@@ -651,15 +645,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         @param silent: Boolean set True to silence print/log of messages
         """
-        from uaclient.entitlements import (
-            EntitlementNotFoundError,
-            entitlement_factory,
-        )
+        from uaclient.entitlements import entitlement_factory
 
         for dependent_service in self.dependent_services:
             try:
                 ent_cls = entitlement_factory(dependent_service)
-            except EntitlementNotFoundError:
+            except exceptions.EntitlementNotFoundError:
                 msg = "Dependent service {} not found.".format(
                     dependent_service
                 )
@@ -887,13 +878,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
                     name=self.name
                 )
-                logging.info(msg)
+
+                event.info(msg, file_type=sys.stderr)
                 self.enable()
             else:
                 msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
                     name=self.name
                 )
-                logging.info(msg)
+                event.info(msg, file_type=sys.stderr)
             return True
 
         return False

@@ -548,6 +548,16 @@ def then_i_verify_that_running_cmd_with_spec_exits_with_codes(
 
 
 @when(
+    "I verify that running attach `{spec}` with json response exits `{exit_codes}`"  # noqa
+)
+def when_i_verify_attach_with_json_response(context, spec, exit_codes):
+    cmd = "ua attach {} --format json".format(context.config.contract_token)
+    then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+        context=context, cmd_name=cmd, spec=spec, exit_codes=exit_codes
+    )
+
+
+@when(
     "I verify that running `{cmd_name}` `{spec}` and stdin `{stdin}` exits `{exit_codes}`"  # noqa
 )
 def then_i_verify_that_running_cmd_with_spec_and_stdin_exits_with_codes(
