@@ -1034,7 +1034,7 @@ def action_enable(args, *, cfg, **kwargs):
             elif ent_ret:
                 event.service_processed(service=ent_name)
             elif not ent_ret and reason is None:
-                event.failed_service(service=ent_name)
+                event.service_failed(service=ent_name)
 
             ret &= ent_ret
         except exceptions.UserFacingError as e:
