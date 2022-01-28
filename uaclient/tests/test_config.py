@@ -776,6 +776,7 @@ class TestStatus:
             {"name": "ros", "available": False},
         ]
         expected = copy.deepcopy(DEFAULT_STATUS)
+        expected["version"] = mock.ANY
         expected["services"] = expected_services
         with mock.patch(
             "uaclient.config.UAConfig._get_config_status"
@@ -827,12 +828,17 @@ class TestStatus:
             ),
         ),
     )
+    @mock.patch(
+        M_PATH + "livepatch.LivepatchEntitlement.application_status",
+        return_value=(status.ApplicationStatus.DISABLED, ""),
+    )
     @mock.patch("uaclient.contract.get_available_resources")
     @mock.patch("uaclient.config.os.getuid", return_value=0)
     def test_root_attached(
         self,
         _m_getuid,
         m_get_avail_resources,
+        _m_livepatch_status,
         _m_should_reboot,
         _m_remove_notice,
         avail_res,
@@ -1059,6 +1065,10 @@ class TestStatus:
         M_PATH + "fips.FIPSCommonEntitlement.application_status",
         return_value=(status.ApplicationStatus.DISABLED, ""),
     )
+    @mock.patch(
+        M_PATH + "livepatch.LivepatchEntitlement.application_status",
+        return_value=(status.ApplicationStatus.DISABLED, ""),
+    )
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.user_facing_status")
     @mock.patch(M_PATH + "livepatch.LivepatchEntitlement.contract_status")
     @mock.patch(M_PATH + "esm.ESMAppsEntitlement.user_facing_status")
@@ -1073,6 +1083,7 @@ class TestStatus:
         m_esm_uf_status,
         m_livepatch_contract_status,
         m_livepatch_uf_status,
+        _m_livepatch_status,
         _m_fips_status,
         _m_getuid,
         _m_should_reboot,
