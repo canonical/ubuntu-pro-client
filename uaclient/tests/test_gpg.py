@@ -1,5 +1,6 @@
 import os
 
+import mock
 import pytest
 
 from uaclient import exceptions, gpg, util
@@ -39,7 +40,7 @@ class TestExportGPGKey:
         assert error_msg in str(excinfo.value)
         assert not os.path.exists(destination_keyfile)
 
-    def test_export_single_key_from_keyring_dir(self, home_dir, tmpdir):
+    def test_export_single_key_from_keyring_dir(self, home_dir, tmpdir, _subp):
         """Only a single key is exported from a multi-key source keyring."""
         source_key1 = tmpdir.join(
             "ubuntu-advantage-esm-{}.gpg".format(data.GPG_KEY1_ID)
@@ -51,10 +52,11 @@ class TestExportGPGKey:
         # Create keyring with both ESM and CC-EAL2 keys
         source_key1.write(data.GPG_KEY1, "wb")
         source_key2.write(data.GPG_KEY2, "wb")
-        gpg.export_gpg_key(
-            source_keyfile=source_key1.strpath,
-            destination_keyfile=destination_keyfile,
-        )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            gpg.export_gpg_key(
+                source_keyfile=source_key1.strpath,
+                destination_keyfile=destination_keyfile,
+            )
         gpg_dest_list_keys = [
             "gpg",
             "--no-auto-check-trustdb",
@@ -65,7 +67,8 @@ class TestExportGPGKey:
             destination_keyfile,
             "--list-keys",
         ]
-        dest_out, _err = util.subp(gpg_dest_list_keys)
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            dest_out, _err = util.subp(gpg_dest_list_keys)
 
         assert "Ubuntu Common Criteria EAL2" in dest_out
         # ESM didn't get exported
