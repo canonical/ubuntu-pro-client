@@ -280,18 +280,20 @@ class TestIsContainer:
 
 
 class TestSubp:
-    def test_raise_error_on_timeout(self):
+    def test_raise_error_on_timeout(self, _subp):
         """When cmd exceeds the timeout raises a TimeoutExpired error."""
-        with pytest.raises(subprocess.TimeoutExpired) as excinfo:
-            util.subp(["sleep", "2"], timeout=0)
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with pytest.raises(subprocess.TimeoutExpired) as excinfo:
+                util.subp(["sleep", "2"], timeout=0)
         msg = "Command '[b'sleep', b'2']' timed out after 0 seconds"
         assert msg == str(excinfo.value)
 
     @mock.patch("uaclient.util.time.sleep")
-    def test_default_do_not_retry_on_failure_return_code(self, m_sleep):
+    def test_default_do_not_retry_on_failure_return_code(self, m_sleep, _subp):
         """When no retry_sleeps are specified, do not retry failures."""
-        with pytest.raises(util.ProcessExecutionError) as excinfo:
-            util.subp(["ls", "--bogus"])
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with pytest.raises(util.ProcessExecutionError) as excinfo:
+                util.subp(["ls", "--bogus"])
 
         expected_errors = [
             "Failed running command 'ls --bogus' [exit(2)].",
@@ -302,19 +304,21 @@ class TestSubp:
         assert 0 == m_sleep.call_count  # no retries
 
     @mock.patch("uaclient.util.time.sleep")
-    def test_no_error_on_accepted_return_codes(self, m_sleep):
+    def test_no_error_on_accepted_return_codes(self, m_sleep, _subp):
         """When rcs list includes the exit code, do not raise an error."""
-        out, err = util.subp(["ls", "--bogus"], rcs=[2])
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            out, err = util.subp(["ls", "--bogus"], rcs=[2])
 
         assert "" == out
         assert "ls: unrecognized option '--bogus'" in err
         assert 0 == m_sleep.call_count  # no retries
 
     @mock.patch("uaclient.util.time.sleep")
-    def test_retry_with_specified_sleeps_on_error(self, m_sleep):
+    def test_retry_with_specified_sleeps_on_error(self, m_sleep, _subp):
         """When retry_sleeps given, use defined sleeps between each retry."""
-        with pytest.raises(util.ProcessExecutionError) as excinfo:
-            util.subp(["ls", "--bogus"], retry_sleeps=[1, 3, 0.4])
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with pytest.raises(util.ProcessExecutionError) as excinfo:
+                util.subp(["ls", "--bogus"], retry_sleeps=[1, 3, 0.4])
 
         expected_error = "Failed running command 'ls --bogus' [exit(2)]"
         assert expected_error in str(excinfo.value)
@@ -322,12 +326,13 @@ class TestSubp:
         assert expected_sleeps == m_sleep.call_args_list
 
     @mock.patch("uaclient.util.time.sleep")
-    def test_retry_doesnt_consume_retry_sleeps(self, m_sleep):
+    def test_retry_doesnt_consume_retry_sleeps(self, m_sleep, _subp):
         """When retry_sleeps given, use defined sleeps between each retry."""
         sleeps = [1, 3, 0.4]
         expected_sleeps = sleeps.copy()
-        with pytest.raises(util.ProcessExecutionError):
-            util.subp(["ls", "--bogus"], retry_sleeps=sleeps)
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with pytest.raises(util.ProcessExecutionError):
+                util.subp(["ls", "--bogus"], retry_sleeps=sleeps)
 
         assert expected_sleeps == sleeps
 

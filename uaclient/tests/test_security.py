@@ -222,9 +222,10 @@ class TestVersionCmpLe:
             ("2.1", "2.0", False),
         ),
     )
-    def test_version_cmp_le(self, ver1, ver2, is_lessorequal):
+    def test_version_cmp_le(self, ver1, ver2, is_lessorequal, _subp):
         """version_cmp_le returns True when ver1 less than or equal to ver2."""
-        assert is_lessorequal is version_cmp_le(ver1, ver2)
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            assert is_lessorequal is version_cmp_le(ver1, ver2)
 
 
 class TestCVE:
@@ -1357,23 +1358,27 @@ A fix is available in Ubuntu standard updates.\n"""
         expected_ret,
         FakeConfig,
         capsys,
+        _subp,
     ):
         """Messaging is based on affected status and installed packages."""
         get_cloud_type.return_value = cloud_type
         m_user_facing_status.return_value = (UserFacingStatus.INACTIVE, "")
         cfg = FakeConfig()
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            actual_ret = prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
-            assert expected_ret == actual_ret
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                actual_ret = prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
+                assert expected_ret == actual_ret
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1467,6 +1472,7 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_for_service.return_value = True
@@ -1479,17 +1485,20 @@ A fix is available in Ubuntu standard updates.\n"""
         m_action_attach.side_effect = fake_attach
 
         cfg = FakeConfig()
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1539,21 +1548,25 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_upgrade_packages.return_value = False
 
         cfg = FakeConfig()
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1620,6 +1633,7 @@ A fix is available in Ubuntu standard updates.\n"""
         should_reboot,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_should_reboot.return_value = should_reboot
         m_get_cloud_type.return_value = ("cloud", None)
@@ -1646,19 +1660,20 @@ A fix is available in Ubuntu standard updates.\n"""
             "uaclient.security.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
-            with mock.patch("uaclient.util.sys") as m_sys:
-                m_stdout = mock.MagicMock()
-                type(m_sys).stdout = m_stdout
-                type(m_stdout).encoding = mock.PropertyMock(
-                    return_value="utf-8"
-                )
-                prompt_for_affected_packages(
-                    cfg=cfg,
-                    issue_id="USN-###",
-                    affected_pkg_status=affected_pkg_status,
-                    installed_packages=installed_packages,
-                    usn_released_pkgs=usn_released_pkgs,
-                )
+            with mock.patch("uaclient.util._subp", side_effect=_subp):
+                with mock.patch("uaclient.util.sys") as m_sys:
+                    m_stdout = mock.MagicMock()
+                    type(m_sys).stdout = m_stdout
+                    type(m_stdout).encoding = mock.PropertyMock(
+                        return_value="utf-8"
+                    )
+                    prompt_for_affected_packages(
+                        cfg=cfg,
+                        issue_id="USN-###",
+                        affected_pkg_status=affected_pkg_status,
+                        installed_packages=installed_packages,
+                        usn_released_pkgs=usn_released_pkgs,
+                    )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1714,6 +1729,7 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
@@ -1739,19 +1755,20 @@ A fix is available in Ubuntu standard updates.\n"""
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
-            with mock.patch("uaclient.util.sys") as m_sys:
-                m_stdout = mock.MagicMock()
-                type(m_sys).stdout = m_stdout
-                type(m_stdout).encoding = mock.PropertyMock(
-                    return_value="utf-8"
-                )
-                prompt_for_affected_packages(
-                    cfg=cfg,
-                    issue_id="USN-###",
-                    affected_pkg_status=affected_pkg_status,
-                    installed_packages=installed_packages,
-                    usn_released_pkgs=usn_released_pkgs,
-                )
+            with mock.patch("uaclient.util._subp", side_effect=_subp):
+                with mock.patch("uaclient.util.sys") as m_sys:
+                    m_stdout = mock.MagicMock()
+                    type(m_sys).stdout = m_stdout
+                    type(m_stdout).encoding = mock.PropertyMock(
+                        return_value="utf-8"
+                    )
+                    prompt_for_affected_packages(
+                        cfg=cfg,
+                        issue_id="USN-###",
+                        affected_pkg_status=affected_pkg_status,
+                        installed_packages=installed_packages,
+                        usn_released_pkgs=usn_released_pkgs,
+                    )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1803,6 +1820,7 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_expired.return_value = False
@@ -1828,19 +1846,20 @@ A fix is available in Ubuntu standard updates.\n"""
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
-            with mock.patch("uaclient.util.sys") as m_sys:
-                m_stdout = mock.MagicMock()
-                type(m_sys).stdout = m_stdout
-                type(m_stdout).encoding = mock.PropertyMock(
-                    return_value="utf-8"
-                )
-                prompt_for_affected_packages(
-                    cfg=cfg,
-                    issue_id="USN-###",
-                    affected_pkg_status=affected_pkg_status,
-                    installed_packages=installed_packages,
-                    usn_released_pkgs=usn_released_pkgs,
-                )
+            with mock.patch("uaclient.util._subp", side_effect=_subp):
+                with mock.patch("uaclient.util.sys") as m_sys:
+                    m_stdout = mock.MagicMock()
+                    type(m_sys).stdout = m_stdout
+                    type(m_stdout).encoding = mock.PropertyMock(
+                        return_value="utf-8"
+                    )
+                    prompt_for_affected_packages(
+                        cfg=cfg,
+                        issue_id="USN-###",
+                        affected_pkg_status=affected_pkg_status,
+                        installed_packages=installed_packages,
+                        usn_released_pkgs=usn_released_pkgs,
+                    )
         out, err = capsys.readouterr()
         assert expected in out
 
@@ -1902,6 +1921,7 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
         m_check_subscription_for_service.return_value = True
@@ -1916,17 +1936,20 @@ A fix is available in Ubuntu standard updates.\n"""
                 }
             }
         )
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
 
         out, err = capsys.readouterr()
         assert expected in out
@@ -1971,6 +1994,7 @@ A fix is available in Ubuntu standard updates.\n"""
         expected,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
         m_is_pocket_beta_service.return_value = False
@@ -1984,17 +2008,20 @@ A fix is available in Ubuntu standard updates.\n"""
             }
         )
 
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_packages,
-                usn_released_pkgs=usn_released_pkgs,
-            )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_packages,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
 
         out, err = capsys.readouterr()
         assert expected in out
@@ -2043,22 +2070,26 @@ A fix is available in Ubuntu standard updates.\n"""
         exp_ret,
         FakeConfig,
         capsys,
+        _subp,
     ):
         m_get_cloud_type.return_value = ("cloud", None)
 
         cfg = FakeConfig()
-        with mock.patch("uaclient.util.sys") as m_sys:
-            m_stdout = mock.MagicMock()
-            type(m_sys).stdout = m_stdout
-            type(m_stdout).encoding = mock.PropertyMock(return_value="utf-8")
-            actual_ret = prompt_for_affected_packages(
-                cfg=cfg,
-                issue_id="USN-###",
-                affected_pkg_status=affected_pkg_status,
-                installed_packages=installed_pkgs,
-                usn_released_pkgs=usn_released_pkgs,
-            )
-            assert exp_ret == actual_ret
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            with mock.patch("uaclient.util.sys") as m_sys:
+                m_stdout = mock.MagicMock()
+                type(m_sys).stdout = m_stdout
+                type(m_stdout).encoding = mock.PropertyMock(
+                    return_value="utf-8"
+                )
+                actual_ret = prompt_for_affected_packages(
+                    cfg=cfg,
+                    issue_id="USN-###",
+                    affected_pkg_status=affected_pkg_status,
+                    installed_packages=installed_pkgs,
+                    usn_released_pkgs=usn_released_pkgs,
+                )
+                assert exp_ret == actual_ret
         out, err = capsys.readouterr()
         assert exp_msg in out
 
@@ -2159,7 +2190,10 @@ class TestFixSecurityIssueId:
     @pytest.mark.parametrize(
         "issue_id", (("CVE-1800-123456"), ("USN-12345-12"))
     )
-    def test_error_msg_when_issue_id_is_not_found(self, issue_id, FakeConfig):
+    @mock.patch("uaclient.security.query_installed_source_pkg_versions")
+    def test_error_msg_when_issue_id_is_not_found(
+        self, _m_query_versions, issue_id, FakeConfig
+    ):
         expected_message = "Error: {} not found.".format(issue_id)
         if "CVE" in issue_id:
             mock_func = "get_cve"
@@ -2342,7 +2376,7 @@ class TestMergeUSNReleasedBinaryPackageVersions:
         ),
     )
     def test_merge_usn_released_binary_package_versions(
-        self, usns_released_packages, expected_pkgs_dict
+        self, usns_released_packages, expected_pkgs_dict, _subp
     ):
         usns = []
         beta_packages = {"esm-infra": False, "esm-apps": True}
@@ -2354,9 +2388,10 @@ class TestMergeUSNReleasedBinaryPackageVersions:
             )
             usns.append(usn)
 
-        usn_pkgs_dict = merge_usn_released_binary_package_versions(
-            usns, beta_packages
-        )
+        with mock.patch("uaclient.util._subp", side_effect=_subp):
+            usn_pkgs_dict = merge_usn_released_binary_package_versions(
+                usns, beta_packages
+            )
         assert expected_pkgs_dict == usn_pkgs_dict
 
 

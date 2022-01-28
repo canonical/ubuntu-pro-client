@@ -14,6 +14,22 @@ from uaclient.config import UAConfig
 sys.modules["apt"] = mock.MagicMock()
 
 
+@pytest.yield_fixture(scope="session", autouse=True)
+def _subp():
+    """
+    A fixture that mocks util._subp for all tests.
+    If a test needs the actual _subp, this fixture yields it,
+    so just add an argument to the test named "_subp".
+    """
+    from uaclient.util import _subp
+
+    original = _subp
+    with mock.patch(
+        "uaclient.util._subp", return_value=("mockstdout", "mockstderr")
+    ):
+        yield original
+
+
 @pytest.fixture
 def caplog_text(request):
     """
