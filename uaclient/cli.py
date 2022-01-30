@@ -516,6 +516,13 @@ def detach_parser(parser):
         action="store_true",
         help="do not prompt for confirmation before performing the detach",
     )
+    parser.add_argument(
+        "--format",
+        action="store",
+        choices=["cli", "json"],
+        default="cli",
+        help=("output enable in the specified format (default: cli)"),
+    )
     return parser
 
 
@@ -708,7 +715,7 @@ def status_parser(parser):
     return parser
 
 
-def _perform_disable(entitlement_name, cfg, *, assume_yes):
+def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     """Perform the disable action on a named entitlement.
 
     :param entitlement_name: the name of the entitlement to enable
@@ -718,23 +725,23 @@ def _perform_disable(entitlement_name, cfg, *, assume_yes):
 
     @return: True on success, False otherwise
     """
-    ent_cls = entitlements.entitlement_factory(entitlement_name)
-    ent = ent_cls(cfg, assume_yes=assume_yes)
-    ret, reason = ent.disable()
+    ret, reason = entitlement.disable()
 
     if not ret:
-        event.service_failed(ent.name)
+        event.service_failed(entitlement.name)
 
         if reason is not None and isinstance(
             reason, ua_status.CanDisableFailure
         ):
             if reason.message is not None:
                 event.info(reason.message)
-                event.error(error_msg=reason.message, service=ent.name)
+                event.error(error_msg=reason.message, service=entitlement.name)
     else:
-        event.service_processed(ent.name)
+        event.service_processed(entitlement.name)
 
-    cfg.status()  # Update the status cache
+    if update_status:
+        cfg.status()  # Update the status cache
+
     return ret
 
 
@@ -939,8 +946,11 @@ def action_disable(args, *, cfg, **kwargs):
     tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
-    for entitlement in entitlements_found:
-        ret &= _perform_disable(entitlement, cfg, assume_yes=args.assume_yes)
+    for ent_name in entitlements_found:
+        ent_cls = entitlements.entitlement_factory(ent_name)
+        ent = ent_cls(cfg, assume_yes=args.assume_yes)
+
+        ret &= _perform_disable(ent, cfg, assume_yes=args.assume_yes)
 
     if entitlements_not_found:
         valid_names = (
@@ -1059,6 +1069,8 @@ def action_enable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
+@set_event_mode
+@verify_json_format_args
 @assert_root
 @assert_attached()
 @assert_lock_file("ua detach")
@@ -1117,7 +1129,8 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     if not util.prompt_for_confirmation(assume_yes=assume_yes):
         return 1
     for ent in to_disable:
-        ent.disable(silent=False)
+        _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
+
     contract_client = contract.UAContractClient(cfg)
     machine_token = cfg.machine_token["machineToken"]
     contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
@@ -1126,6 +1139,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     jobs.enable_license_check_if_applicable(cfg)
     update_apt_and_motd_messages(cfg)
     event.info(ua_status.MESSAGE_DETACH_SUCCESS)
+    event.process_events()
     return 0
 
 
