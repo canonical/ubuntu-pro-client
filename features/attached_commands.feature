@@ -292,6 +292,31 @@ Feature: Command behaviour when attached to an UA subscription
           This machine is not attached to a UA subscription.
           """
        And I verify that running `apt update` `with sudo` exits `0`
+       When I attach `contract_token` with sudo
+       Then I verify that running `ua enable foobar --format json` `as non-root` exits `1`
+       And stdout is a json matching the `ua_operation` schema
+       And I will see the following on stdout:
+           """
+           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            """
+       Then I verify that running `ua enable foobar --format json` `with sudo` exits `1`
+       And stdout is a json matching the `ua_operation` schema
+       And I will see the following on stdout:
+           """
+           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+           """
+       Then I verify that running `ua detach --format json --assume-yes` `as non-root` exits `1`
+       And stdout is a json matching the `ua_operation` schema
+       And I will see the following on stdout:
+           """
+           {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+           """
+       When I run `ua detach --format json --assume-yes` with sudo
+       Then stdout is a json matching the `ua_operation` schema
+       And I will see the following on stdout:
+           """
+           {"_schema_version": "0.1", "errors": [], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-apps", "esm-infra"], "result": "success", "warnings": []}
+           """
 
        Examples: ubuntu release
            | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg |

@@ -1,16 +1,25 @@
+import contextlib
+import io
+import json
 from textwrap import dedent
 
 import mock
 import pytest
 
-from uaclient import exceptions, status
-from uaclient.cli import action_detach, detach_parser, get_parser
+from uaclient import event_logger, exceptions, status
+from uaclient.cli import (
+    action_detach,
+    detach_parser,
+    get_parser,
+    main_error_handler,
+)
 from uaclient.testing.fakes import FakeContractClient
 
 
 def entitlement_cls_mock_factory(can_disable, name=None):
     m_instance = mock.MagicMock()
     m_instance.can_disable.return_value = (can_disable, None)
+    m_instance.disable.return_value = (can_disable, None)
     type(m_instance).dependent_services = mock.PropertyMock(return_value=())
     if name:
         type(m_instance).name = mock.PropertyMock(return_value=name)
@@ -22,38 +31,115 @@ def entitlement_cls_mock_factory(can_disable, name=None):
 @mock.patch("uaclient.cli.os.getuid")
 class TestActionDetach:
     def test_non_root_users_are_rejected(
-        self, m_getuid, _m_prompt, FakeConfig
+        self, m_getuid, _m_prompt, FakeConfig, event, capsys
     ):
         """Check that a UID != 0 will receive a message and exit non-zero"""
         m_getuid.return_value = 1
+        args = mock.MagicMock()
 
         cfg = FakeConfig.for_attached_machine()
         with pytest.raises(exceptions.NonRootUserError):
-            action_detach(mock.MagicMock(), cfg=cfg)
+            action_detach(args, cfg=cfg)
 
-    def test_unattached_error_message(self, m_getuid, _m_prompt, FakeConfig):
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
+        with pytest.raises(SystemExit):
+            main_error_handler(action_detach)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": status.MESSAGE_NONROOT_USER,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(capsys.readouterr()[0])
+
+    def test_unattached_error_message(
+        self, m_getuid, _m_prompt, FakeConfig, capsys, event
+    ):
         """Check that root user gets unattached message."""
 
         m_getuid.return_value = 0
         cfg = FakeConfig()
+        args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
-            action_detach(mock.MagicMock(), cfg=cfg)
+            action_detach(args, cfg=cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
+        with pytest.raises(SystemExit):
+            main_error_handler(action_detach)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": status.MESSAGE_UNATTACHED,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(capsys.readouterr()[0])
+
     @mock.patch("uaclient.cli.util.subp")
-    def test_lock_file_exists(self, m_subp, m_getuid, m_prompt, FakeConfig):
+    def test_lock_file_exists(
+        self, m_subp, m_getuid, m_prompt, FakeConfig, capsys, event
+    ):
         """Check when an operation holds a lock file, detach cannot run."""
         m_getuid.return_value = 0
         cfg = FakeConfig.for_attached_machine()
+        args = mock.MagicMock()
         with open(cfg.data_path("lock"), "w") as stream:
             stream.write("123:ua enable")
         with pytest.raises(exceptions.LockHeldError) as err:
-            action_detach(mock.MagicMock(), cfg=cfg)
+            action_detach(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        assert (
+        expected_error_msg = (
             "Unable to perform: ua detach.\n"
             "Operation in progress: ua enable (pid:123)"
-        ) == err.value.msg
+        )
+        assert expected_error_msg == err.value.msg
+
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
+        with pytest.raises(SystemExit):
+            main_error_handler(action_detach)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": expected_error_msg,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(capsys.readouterr()[0])
 
     @pytest.mark.parametrize(
         "prompt_response,assume_yes,expect_disable",
@@ -73,6 +159,8 @@ class TestActionDetach:
         assume_yes,
         expect_disable,
         FakeConfig,
+        event,
+        capsys,
     ):
         # The three parameters:
         #   prompt_response: the user's response to the prompt
@@ -90,7 +178,7 @@ class TestActionDetach:
 
         m_entitlements.ENTITLEMENT_CLASSES = [
             entitlement_cls_mock_factory(False),
-            entitlement_cls_mock_factory(True),
+            entitlement_cls_mock_factory(True, name="test"),
             entitlement_cls_mock_factory(False),
         ]
 
@@ -116,7 +204,7 @@ class TestActionDetach:
         disabled_cls = m_entitlements.ENTITLEMENT_CLASSES[1]
         if expect_disable:
             assert [
-                mock.call(silent=False)
+                mock.call()
             ] == disabled_cls.return_value.disable.call_args_list
             assert 0 == return_code
         else:
@@ -127,6 +215,27 @@ class TestActionDetach:
             assert [
                 mock.call(cfg)
             ] == m_update_apt_and_motd_msgs.call_args_list
+
+        cfg = FakeConfig.for_attached_machine()
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
+        fake_stdout = io.StringIO()
+        # On json response, we will never prompt the user
+        m_prompt.return_value = True
+        with contextlib.redirect_stdout(fake_stdout):
+            main_error_handler(action_detach)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "success",
+            "errors": [],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": ["test"],
+            "warnings": [],
+        }
+        assert expected == json.loads(fake_stdout.getvalue())
 
     @mock.patch("uaclient.cli.entitlements")
     @mock.patch("uaclient.contract.UAContractClient")
@@ -213,7 +322,7 @@ class TestActionDetach:
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @pytest.mark.parametrize(
-        "classes,expected_message",
+        "classes,expected_message,disabled_services",
         [
             (
                 [
@@ -227,6 +336,7 @@ class TestActionDetach:
                         ent1
                         ent3"""
                 ),
+                ["ent1", "ent3"],
             ),
             (
                 [
@@ -238,6 +348,7 @@ class TestActionDetach:
                     Detach will disable the following service:
                         ent1"""
                 ),
+                ["ent1"],
             ),
         ],
     )
@@ -254,8 +365,10 @@ class TestActionDetach:
         capsys,
         classes,
         expected_message,
+        disabled_services,
         FakeConfig,
         tmpdir,
+        event,
     ):
         m_getuid.return_value = 0
         m_entitlements.ENTITLEMENT_CLASSES = classes
@@ -266,13 +379,33 @@ class TestActionDetach:
         m_cfg = mock.MagicMock()
         m_cfg.check_lock_info.return_value = (-1, "")
         m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        args = mock.MagicMock()
 
-        action_detach(mock.MagicMock(), m_cfg)
+        action_detach(args, m_cfg)
 
         out, _err = capsys.readouterr()
 
         assert expected_message in out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
+
+        cfg = FakeConfig.for_attached_machine()
+        args.format = "json"
+        # For json format, we need that flag
+        args.assume_yes = True
+        fake_stdout = io.StringIO()
+        with contextlib.redirect_stdout(fake_stdout):
+            main_error_handler(action_detach)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "success",
+            "errors": [],
+            "failed_services": [],
+            "needs_reboot": False,
+            "processed_services": disabled_services,
+            "warnings": [],
+        }
+        assert expected == json.loads(fake_stdout.getvalue())
 
 
 class TestParser:
@@ -303,3 +436,11 @@ class TestParser:
             args = full_parser.parse_args()
 
         assert not args.assume_yes
+
+    @mock.patch("uaclient.cli.contract.get_available_resources")
+    def test_detach_parser_with_json_format(self, _m_resources):
+        full_parser = get_parser()
+        with mock.patch("sys.argv", ["ua", "detach", "--format", "json"]):
+            args = full_parser.parse_args()
+
+        assert "json" == args.format
