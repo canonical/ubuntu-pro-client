@@ -24,11 +24,22 @@ Feature: Proxy configuration
           https_proxy: http://<ci-proxy-ip>:3128
         """
         And I verify `/var/log/squid/access.log` is empty on `proxy` machine
+        # We need this for the route command
+        And I run `apt-get install net-tools` with sudo
+        # We will guarantee that the machine will only use the proxy when
+        # running the ua commands
+        And I run `route del default` with sudo
         And I attach `contract_token` with sudo
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
         .*CONNECT contracts.canonical.com.*
+        """
+        When I run `ua status` with sudo
+        # Just to verify that the machine is attached
+        Then stdout matches regexp:
+        """
+        esm-infra     +yes      +enabled      +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
