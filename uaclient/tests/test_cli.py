@@ -830,20 +830,20 @@ class TestSetupLogging:
     @pytest.mark.parametrize("pre_existing", (True, False))
     @mock.patch("uaclient.cli.os.getuid", return_value=0)
     @mock.patch("uaclient.cli.config")
-    def test_file_log_is_world_readable(
+    def test_file_log_only_readable_by_root(
         self, m_config, _m_getuid, logging_sandbox, tmpdir, pre_existing
     ):
         log_file = tmpdir.join("root-only.log")
         log_path = log_file.strpath
+
         if pre_existing:
             log_file.write("existing content\n")
-            os.chmod(log_path, 0o640)
-            assert 0o644 != stat.S_IMODE(os.lstat(log_path).st_mode)
+            assert 0o600 != stat.S_IMODE(os.lstat(log_path).st_mode)
 
         setup_logging(logging.INFO, logging.INFO, log_file=log_path)
         logging.info("after setup")
 
-        assert 0o644 == stat.S_IMODE(os.lstat(log_path).st_mode)
+        assert 0o600 == stat.S_IMODE(os.lstat(log_path).st_mode)
         log_content = log_file.read()
         assert "after setup" in log_content
         if pre_existing:
