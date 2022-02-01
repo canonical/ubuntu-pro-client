@@ -1,7 +1,5 @@
 ubuntu-advantage-tools (27.6~22.04.1) jammy; urgency=medium
 
-  * d/tools.postinst:
-    - make log files world readable
   * New upstream release 27.6 (LP: #1958556)
     - cli: only request available resources from contract server when needed
     - fips:
