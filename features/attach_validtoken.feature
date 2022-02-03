@@ -351,4 +351,4 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | lp_status | fips_status | cc_status | cis_or_usg |
            | xenial  | n/a       | n/a         | disabled  | cis        |
            | bionic  | n/a       | disabled    | disabled  | cis        |
-           | focal   | enabled   | n/a         | n/a       | usg        |
+           | focal   | enabled   | disabled    | n/a       | usg        |
