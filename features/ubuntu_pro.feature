@@ -53,7 +53,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | cis_or_usg |
            | xenial  | disabled | disabled | disabled | cis        |
            | bionic  | disabled | disabled | disabled | cis        |
-           | focal   | n/a      | n/a      | disabled | usg        |
+           | focal   | disabled | n/a      | disabled | usg        |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -108,7 +108,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | enabled     | cis        |
            | bionic  | disabled | disabled | disabled | n/a         | cis        |
-           | focal   | n/a      | n/a      | disabled | enabled     | usg        |
+           | focal   | disabled | n/a      | disabled | enabled     | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
