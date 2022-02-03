@@ -229,7 +229,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
            | release | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg |
            | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        |
            | bionic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        |
-           | focal   | n/a         |enabled   | Canonical Livepatch service   | n/a       | usg        |
+           | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        |
 
     @series.all
     @uses.config.machine_type.azure.generic
