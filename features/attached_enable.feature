@@ -627,6 +627,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stdout
             """
             One moment, checking your subscription first
+            Disabling incompatible service: Livepatch
             Updating package lists
             Installing FIPS packages
             FIPS enabled
