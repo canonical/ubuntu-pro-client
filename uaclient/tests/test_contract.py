@@ -20,6 +20,7 @@ from uaclient.contract import (
     process_entitlement_delta,
     request_updated_contract,
 )
+from uaclient.entitlements.base import UAEntitlement
 from uaclient.status import (
     MESSAGE_ATTACH_EXPIRED_TOKEN,
     MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
@@ -29,6 +30,7 @@ from uaclient.status import (
     MESSAGE_ATTACH_FORBIDDEN_NOT_YET,
     MESSAGE_ATTACH_INVALID_TOKEN,
     MESSAGE_UNEXPECTED_ERROR,
+    UserFacingStatus,
 )
 from uaclient.testing.fakes import FakeContractClient
 from uaclient.version import get_version
@@ -47,6 +49,7 @@ class TestUAContractClient:
         "detach,expected_http_method",
         ((None, "POST"), (False, "POST"), (True, "DELETE")),
     )
+    @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
     @mock.patch("uaclient.contract.util.get_platform_info")
     def test__request_machine_token_update(
         self,
@@ -56,6 +59,7 @@ class TestUAContractClient:
         detach,
         expected_http_method,
         machine_id_response,
+        activity_id,
         FakeConfig,
     ):
         """POST or DELETE to ua-contracts and write machine-token cache.
@@ -77,13 +81,26 @@ class TestUAContractClient:
         kwargs = {"machine_token": "mToken", "contract_id": "cId"}
         if detach is not None:
             kwargs["detach"] = detach
-        client._request_machine_token_update(**kwargs)
+        enabled_services = ["esm-apps", "livepatch"]
+
+        def entitlement_user_facing_status(self):
+            if self.name in enabled_services:
+                return (UserFacingStatus.ACTIVE, "")
+            return (UserFacingStatus.INACTIVE, "")
+
+        with mock.patch.object(type(cfg), "activity_id", activity_id):
+            with mock.patch.object(
+                UAEntitlement,
+                "user_facing_status",
+                new=entitlement_user_facing_status,
+            ):
+                client._request_machine_token_update(**kwargs)
 
         if not detach:  # Then we have written the updated cache
             assert machine_token == cfg.read_cache("machine-token")
             expected_machine_id = "machineId"
             if machine_id_response:
-                expected_machine_id = "contract-machine-id"
+                expected_machine_id = machine_id_response
 
             assert expected_machine_id == cfg.read_cache("machine-id")
         params = {
@@ -96,14 +113,20 @@ class TestUAContractClient:
             "method": expected_http_method,
         }
         if expected_http_method != "DELETE":
+            expected_activity_id = activity_id if activity_id else "machineId"
             params["data"] = {
                 "machineId": "machineId",
                 "architecture": "arch",
                 "os": {"kernel": "kernel"},
+                "activityInfo": {
+                    "activityToken": None,
+                    "activityID": expected_activity_id,
+                    "resources": enabled_services,
+                },
             }
-        assert [
+        assert request_url.call_args_list == [
             mock.call("/v1/contracts/cId/context/machines/machineId", **params)
-        ] == request_url.call_args_list
+        ]
 
     def test_request_resource_machine_access(
         self, get_machine_id, request_url, FakeConfig
@@ -150,8 +173,16 @@ class TestUAContractClient:
         ] == m_request_url.call_args_list
 
     @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
+    @pytest.mark.parametrize(
+        "enabled_services", (([]), (["esm-apps", "livepatch"]))
+    )
     def test_report_machine_activity(
-        self, get_machine_id, request_url, activity_id, FakeConfig
+        self,
+        get_machine_id,
+        request_url,
+        activity_id,
+        enabled_services,
+        FakeConfig,
     ):
         """POST machine activity report to the server."""
         machine_id = "machineId"
@@ -166,14 +197,22 @@ class TestUAContractClient:
         )
         cfg = FakeConfig.for_attached_machine()
         client = UAContractClient(cfg)
-        enabled_services = ["test1", "test2"]
+
+        def entitlement_user_facing_status(self):
+            if self.name in enabled_services:
+                return (UserFacingStatus.ACTIVE, "")
+            return (UserFacingStatus.INACTIVE, "")
+
         with mock.patch.object(type(cfg), "activity_id", activity_id):
-            with mock.patch(
-                "uaclient.config.UAConfig.write_cache"
-            ) as m_write_cache:
-                client.report_machine_activity(
-                    enabled_services=enabled_services
-                )
+            with mock.patch.object(
+                UAEntitlement,
+                "user_facing_status",
+                new=entitlement_user_facing_status,
+            ):
+                with mock.patch(
+                    "uaclient.config.UAConfig.write_cache"
+                ) as m_write_cache:
+                    client.report_machine_activity()
 
         expected_write_calls = 1
         assert expected_write_calls == m_write_cache.call_count
