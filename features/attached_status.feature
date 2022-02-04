@@ -7,18 +7,13 @@ Feature: Attached status
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
         And I run `ua status --format json` as non-root
-        Then stdout is formatted as `json` and has keys:
-            """
-            _doc _schema_version account attached config config_path contract effective
-            environment_vars execution_details execution_status expires machine_id notices
-            services version simulated
-            """
+        Then stdout is a json matching the `ua_status` schema
         When I run `ua status --format yaml` as non-root
         Then stdout is formatted as `yaml` and has keys:
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version simulated
+            services version simulated result errors warnings
             """
 
         Examples: ubuntu release

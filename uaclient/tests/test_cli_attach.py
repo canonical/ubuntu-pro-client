@@ -278,8 +278,8 @@ class TestActionAttach:
     @mock.patch("uaclient.status.format_tabular")
     def test_happy_path_with_token_arg(
         self,
-        m_status,
         m_format_tabular,
+        m_status,
         contract_machine_attach,
         m_update_apt_and_motd_msgs,
         _m_should_reboot,

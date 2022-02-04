@@ -771,9 +771,7 @@ class TestActionEnable:
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 fake_stdout = io.StringIO()
                 with contextlib.redirect_stdout(fake_stdout):

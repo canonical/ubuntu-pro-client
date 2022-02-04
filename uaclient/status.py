@@ -1,5 +1,4 @@
 import enum
-import json
 import os
 import sys
 import textwrap
@@ -779,7 +778,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
     return "\n".join(content)
 
 
-def _format_status_output(status: Dict[str, Any]) -> Dict[str, Any]:
+def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
     status["environment_vars"] = [
         {"name": name, "value": value}
         for name, value in sorted(os.environ.items())
@@ -800,19 +799,3 @@ def _format_status_output(status: Dict[str, Any]) -> Dict[str, Any]:
     status.pop("origin", "")
 
     return status
-
-
-def format_json_status(status: Dict[str, Any]) -> str:
-    from uaclient.util import DatetimeAwareJSONEncoder
-
-    return json.dumps(
-        _format_status_output(status),
-        cls=DatetimeAwareJSONEncoder,
-        sort_keys=True,
-    )
-
-
-def format_yaml_status(status: Dict[str, Any]) -> str:
-    import yaml
-
-    return yaml.dump(_format_status_output(status), default_flow_style=False)
