@@ -4,6 +4,7 @@ import json
 
 import mock
 import pytest
+import yaml
 
 from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
 
@@ -11,7 +12,7 @@ from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
 class TestEventLogger:
     @pytest.mark.parametrize(
         "event_mode",
-        ((EventLoggerMode.CLI), (EventLoggerMode.MACHINE_READABLE)),
+        ((EventLoggerMode.CLI), (EventLoggerMode.JSON), EventLoggerMode.YAML),
     )
     def test_process_events(self, event_mode, event):
         with mock.patch.object(event, "_event_logger_mode", event_mode):
@@ -56,7 +57,11 @@ class TestEventLogger:
 
         if event_mode == EventLoggerMode.CLI:
             assert expected_cli_out == fake_stdout.getvalue().strip()
-        else:
+        elif event_mode == EventLoggerMode.JSON:
             assert expected_machine_out == json.loads(
+                fake_stdout.getvalue().strip()
+            )
+        else:
+            assert expected_machine_out == yaml.safe_load(
                 fake_stdout.getvalue().strip()
             )

@@ -5,18 +5,13 @@ Feature: Unattached status
     Scenario Outline: Unattached status in a ubuntu machine - formatted
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua status --format json` as non-root
-        Then stdout is formatted as `json` and has keys:
-            """
-            _doc _schema_version account attached config config_path contract effective
-            environment_vars execution_details execution_status expires machine_id notices
-            services version simulated
-            """
+        Then stdout is a json matching the `ua_status` schema
         When I run `ua status --format yaml` as non-root
         Then stdout is formatted as `yaml` and has keys:
             """
             _doc _schema_version account attached config config_path contract effective
             environment_vars execution_details execution_status expires machine_id notices
-            services version simulated
+            services version simulated result errors warnings
             """
 
         Examples: ubuntu release
@@ -163,18 +158,13 @@ Feature: Unattached status
         ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
         """
         When I do a preflight check for `contract_token` formatted as json
-        Then stdout is formatted as `json` and has keys:
-        """
-        _doc _schema_version account attached config config_path contract effective
-        environment_vars execution_details execution_status expires machine_id notices
-        services version simulated
-        """
+        Then stdout is a json matching the `ua_status` schema
         When I do a preflight check for `contract_token` formatted as yaml
         Then stdout is formatted as `yaml` and has keys:
         """
         _doc _schema_version account attached config config_path contract effective
         environment_vars execution_details execution_status expires machine_id notices
-        services version simulated
+        services version simulated result errors warnings
         """
 
 
