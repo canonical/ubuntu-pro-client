@@ -281,7 +281,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | cis_or_usg |
            | xenial  | disabled | disabled | disabled | libkrad0  | jq       | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | cis        |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | usg        |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | usg        |
 
     @series.lts
     @uses.config.machine_type.azure.pro
@@ -399,7 +399,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
 
     @series.lts
     @uses.config.machine_type.gcp.pro
