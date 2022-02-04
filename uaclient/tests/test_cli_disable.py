@@ -126,9 +126,7 @@ class TestDisable:
         args_mock.assume_yes = True
         args_mock.format = "json"
         with mock.patch.object(
-            event,
-            "_event_logger_mode",
-            event_logger.EventLoggerMode.MACHINE_READABLE,
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(event, "set_event_mode"):
                 fake_stdout = io.StringIO()
@@ -241,9 +239,7 @@ class TestDisable:
         args_mock.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
@@ -299,9 +295,7 @@ class TestDisable:
         args.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
@@ -343,9 +337,7 @@ class TestDisable:
         args.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
@@ -391,9 +383,7 @@ class TestDisable:
         args.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
@@ -434,9 +424,7 @@ class TestDisable:
         args.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
                     fake_stdout = io.StringIO()
@@ -466,9 +454,7 @@ class TestDisable:
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                event,
-                "_event_logger_mode",
-                event_logger.EventLoggerMode.MACHINE_READABLE,
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 fake_stdout = io.StringIO()
                 with contextlib.redirect_stdout(fake_stdout):
