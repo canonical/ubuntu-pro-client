@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from uaclient import clouds, exceptions, serviceclient, status, util
 from uaclient.config import UAConfig
+from uaclient.status import UserFacingStatus
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (
@@ -172,26 +173,17 @@ class UAContractClient(serviceclient.UAServiceClient):
             detach=False,
         )
 
-    def report_machine_activity(self, enabled_services: "List[str]"):
+    def report_machine_activity(self):
         """Report current activity token and enabled services.
 
         This will report to the contracts backend all the current
         enabled services in the system.
         """
         contract_id = self.cfg.contract_id
-        activity_token = self.cfg.activity_token
         machine_token = self.cfg.machine_token.get("machineToken")
         machine_id = util.get_machine_id(self.cfg)
 
-        # If the activityID is null we should provide the endpoint
-        # with the instance machine id as the activityID
-        activity_id = self.cfg.activity_id or machine_id
-
-        request_data = {
-            "activityToken": activity_token,
-            "activityID": activity_id,
-            "resources": enabled_services,
-        }
+        request_data = self._get_activity_info(machine_id)
         url = API_V1_MACHINE_ACTIVITY.format(
             contract=contract_id, machine=machine_id
         )
@@ -260,6 +252,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         data = self._get_platform_data(machine_id)
+        data["activityInfo"] = self._get_activity_info()
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
             contract=contract_id, machine=data["machineId"]
         )
@@ -292,6 +285,29 @@ class UAContractClient(serviceclient.UAServiceClient):
             "machineId": machine_id,
             "architecture": arch,
             "os": platform_os,
+        }
+
+    def _get_activity_info(self, machine_id: Optional[str] = None):
+        """Return a dict of activity info data for contract requests"""
+        from uaclient.entitlements import ENTITLEMENT_CLASSES
+
+        if not machine_id:
+            machine_id = util.get_machine_id(self.cfg)
+
+        # If the activityID is null we should provide the endpoint
+        # with the instance machine id as the activityID
+        activity_id = self.cfg.activity_id or machine_id
+
+        enabled_services = [
+            ent(self.cfg).name
+            for ent in ENTITLEMENT_CLASSES
+            if ent(self.cfg).user_facing_status()[0] == UserFacingStatus.ACTIVE
+        ]
+
+        return {
+            "activityID": activity_id,
+            "activityToken": self.cfg.activity_token,
+            "resources": enabled_services,
         }
 
 
