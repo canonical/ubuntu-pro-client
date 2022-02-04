@@ -584,7 +584,7 @@ the project, you should install them via `dev-requirements.txt`.)
 ## Daily Builds
 
 On Launchpad, there is a [daily build recipe](https://code.launchpad.net/~canonical-server/+recipe/ua-client-daily),
-which will build the client and place it in the [ua-client-daily PPA](https://code.launchpad.net/~canonical-server/+archive/ubuntu/ua-client-daily).
+which will build the client and place it in the [ua-client-daily PPA](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily).
 
 ## Remastering custom golden images based on Ubuntu PRO
 
