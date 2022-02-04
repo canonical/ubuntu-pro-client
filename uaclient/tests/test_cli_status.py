@@ -492,6 +492,9 @@ class TestActionStatus:
             "config_path": None,
             "config": {"data_dir": mock.ANY},
             "simulated": False,
+            "errors": [],
+            "warnings": [],
+            "result": "success",
         }
 
         if format_type == "json":
@@ -617,6 +620,9 @@ class TestActionStatus:
             "config_path": None,
             "config": {"data_dir": mock.ANY},
             "simulated": False,
+            "errors": [],
+            "warnings": [],
+            "result": "success",
         }
 
         if format_type == "json":
@@ -754,6 +760,9 @@ class TestActionStatus:
             "version": version.get_version(features=cfg.features),
             "config_path": None,
             "config": {"data_dir": mock.ANY},
+            "errors": [],
+            "warnings": [],
+            "result": "success",
         }
 
         if format_type == "json":

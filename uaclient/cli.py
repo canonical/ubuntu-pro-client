@@ -193,8 +193,11 @@ def set_event_mode(f):
 
     @wraps(f)
     def new_f(cmd_args, *args, **kwargs):
-        if cmd_args and cmd_args.format == "json":
-            event.set_event_mode(event_logger.EventLoggerMode.MACHINE_READABLE)
+        if cmd_args:
+            if cmd_args.format == "json":
+                event.set_event_mode(event_logger.EventLoggerMode.JSON)
+            if cmd_args.format == "yaml":
+                event.set_event_mode(event_logger.EventLoggerMode.YAML)
         ret = f(cmd_args, *args, **kwargs)
         event.reset()
         return ret
@@ -1508,7 +1511,9 @@ def get_parser():
     return parser
 
 
+@set_event_mode
 def action_status(args, *, cfg):
+    event.set_command("status")
     if not cfg:
         cfg = config.UAConfig()
     show_beta = args.all if args else False
@@ -1522,20 +1527,17 @@ def action_status(args, *, cfg):
 
     if args and args.wait and config_active:
         while status["execution_status"] == active_value:
-            print(".", end="")
+            event.info(".", end="")
             time.sleep(1)
             status = actions.status(
                 cfg, simulate_with_token=token, show_beta=show_beta
             )
-        print("")
+        event.info("")
 
-    if args and args.format == "json":
-        print(ua_status.format_json_status(status))
-    elif args and args.format == "yaml":
-        print(ua_status.format_yaml_status(status))
-    else:
-        output = ua_status.format_tabular(status)
-        print(util.handle_unicode_characters(output))
+    event.set_output_content(status)
+    output = ua_status.format_tabular(status)
+    event.info(util.handle_unicode_characters(output))
+    event.process_events()
     return 0
 
 
