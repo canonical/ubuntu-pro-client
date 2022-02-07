@@ -108,10 +108,11 @@ def status(
     Construct the current UA status dictionary.
     """
     if simulate_with_token:
-        status = cfg.simulate_status(
+        status, ret = cfg.simulate_status(
             token=simulate_with_token, show_beta=show_beta
         )
     else:
         status = cfg.status(show_beta=show_beta)
+        ret = 0
 
-    return status
+    return status, ret

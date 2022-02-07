@@ -12,7 +12,7 @@ from uaclient.event_logger import JSON_SCHEMA_VERSION, EventLoggerMode
 class TestEventLogger:
     @pytest.mark.parametrize(
         "event_mode",
-        ((EventLoggerMode.CLI), (EventLoggerMode.JSON), EventLoggerMode.YAML),
+        (EventLoggerMode.CLI, EventLoggerMode.JSON, EventLoggerMode.YAML),
     )
     def test_process_events(self, event_mode, event):
         with mock.patch.object(event, "_event_logger_mode", event_mode):
@@ -54,6 +54,53 @@ class TestEventLogger:
                 "needs_reboot": True,
                 "processed_services": ["test"],
             }
+
+        if event_mode == EventLoggerMode.CLI:
+            assert expected_cli_out == fake_stdout.getvalue().strip()
+        elif event_mode == EventLoggerMode.JSON:
+            assert expected_machine_out == json.loads(
+                fake_stdout.getvalue().strip()
+            )
+        else:
+            assert expected_machine_out == yaml.safe_load(
+                fake_stdout.getvalue().strip()
+            )
+
+    @pytest.mark.parametrize(
+        "event_mode",
+        (EventLoggerMode.CLI, EventLoggerMode.JSON, EventLoggerMode.YAML),
+    )
+    def test_process_events_for_status(self, event_mode, event):
+        with mock.patch.object(event, "_event_logger_mode", event_mode):
+            fake_stdout = io.StringIO()
+            with contextlib.redirect_stdout(fake_stdout):
+                event.set_command("status")
+                event.set_output_content(
+                    {
+                        "some_status_key": "some_status_information",
+                        "a_list_of_things": ["first", "second", "third"],
+                    }
+                )
+                event.info(info_msg="test")
+                event.error(error_msg="error1")
+                event.warning(warning_msg="warning1")
+                event.process_events()
+
+            expected_machine_out = {
+                "some_status_key": "some_status_information",
+                "a_list_of_things": ["first", "second", "third"],
+                "environment_vars": [],
+                "services": [],
+                "result": "failure",
+                "errors": [
+                    {"message": "error1", "service": None, "type": "system"}
+                ],
+                "warnings": [
+                    {"message": "warning1", "service": None, "type": "system"}
+                ],
+            }
+
+            expected_cli_out = "test"
 
         if event_mode == EventLoggerMode.CLI:
             assert expected_cli_out == fake_stdout.getvalue().strip()
