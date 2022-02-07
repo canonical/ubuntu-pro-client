@@ -13,7 +13,6 @@ from uaclient.contract import (
     API_V1_RESOURCES,
     API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE,
     API_V1_TMPL_RESOURCE_MACHINE_ACCESS,
-    ContractAPIError,
     UAContractClient,
     get_available_resources,
     get_contract_information,
@@ -371,12 +370,12 @@ class TestGetAvailableResources:
         """Raise error get_available_resources can't contact backend"""
         cfg = FakeConfig()
 
-        urlerror = util.UrlError(
+        urlerror = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
         m_request_resources.side_effect = urlerror
 
-        with pytest.raises(util.UrlError) as exc:
+        with pytest.raises(exceptions.UrlError) as exc:
             get_available_resources(cfg)
         assert urlerror == exc.value
 
@@ -526,8 +525,8 @@ class TestRequestUpdatedContract:
         def fake_contract_client(cfg):
             fake_client = FakeContractClient(cfg)
             fake_client._responses = {
-                API_V1_CONTEXT_MACHINE_TOKEN: ContractAPIError(
-                    util.UrlError(
+                API_V1_CONTEXT_MACHINE_TOKEN: exceptions.ContractAPIError(
+                    exceptions.UrlError(
                         "Server error",
                         code=error_code,
                         url="http://me",

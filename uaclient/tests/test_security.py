@@ -16,7 +16,6 @@ from uaclient.security import (
     USN,
     CVEPackageStatus,
     FixStatus,
-    SecurityAPIError,
     UASecurityClient,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
@@ -51,7 +50,6 @@ from uaclient.status import (
     UserFacingStatus,
     colorize_commands,
 )
-from uaclient.util import UrlError
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."
@@ -2298,14 +2296,14 @@ class TestFixSecurityIssueId:
             mock_func = "get_notice"
             issue_type = "USN"
 
-        with mock.patch.object(UrlError, "__str__") as m_str:
+        with mock.patch.object(exceptions.UrlError, "__str__") as m_str:
             with mock.patch.object(UASecurityClient, mock_func) as m_func:
                 m_str.return_value = "NOT FOUND"
                 msg = "{} with id 'ID' does not exist".format(issue_type)
                 error_mock = mock.Mock()
                 type(error_mock).url = mock.PropertyMock(return_value="URL")
 
-                m_func.side_effect = SecurityAPIError(
+                m_func.side_effect = exceptions.SecurityAPIError(
                     e=error_mock, error_response={"message": msg}
                 )
 

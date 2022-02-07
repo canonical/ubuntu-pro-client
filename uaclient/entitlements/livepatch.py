@@ -168,7 +168,7 @@ class LivepatchEntitlement(UAEntitlement):
             util.subp(
                 [snap.SNAP_CMD, "wait", "system", "seed.loaded"], capture=True
             )
-        except util.ProcessExecutionError as e:
+        except exceptions.ProcessExecutionError as e:
             if re.search(r"unknown command .*wait", str(e).lower()):
                 logging.warning(status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD)
             else:
@@ -194,7 +194,7 @@ class LivepatchEntitlement(UAEntitlement):
                     capture=True,
                     retry_sleeps=snap.SNAP_INSTALL_RETRIES,
                 )
-            except util.ProcessExecutionError as e:
+            except exceptions.ProcessExecutionError as e:
                 msg = "Unable to install Livepatch client: " + str(e)
                 raise exceptions.UserFacingError(msg)
 
@@ -218,7 +218,7 @@ class LivepatchEntitlement(UAEntitlement):
         if process_directives:
             try:
                 process_config_directives(entitlement_cfg)
-            except util.ProcessExecutionError as e:
+            except exceptions.ProcessExecutionError as e:
                 msg = "Unable to configure Livepatch: " + str(e)
                 event.info(msg)
                 logging.error(msg)
@@ -240,14 +240,14 @@ class LivepatchEntitlement(UAEntitlement):
                 )
                 try:
                     util.subp([LIVEPATCH_CMD, "disable"])
-                except util.ProcessExecutionError as e:
+                except exceptions.ProcessExecutionError as e:
                     logging.error(str(e))
                     return False
             try:
                 util.subp(
                     [LIVEPATCH_CMD, "enable", livepatch_token], capture=True
                 )
-            except util.ProcessExecutionError as e:
+            except exceptions.ProcessExecutionError as e:
                 msg = "Unable to enable Livepatch: "
                 for error_message, print_message in ERROR_MSG_MAP.items():
                     if error_message in str(e):
@@ -283,7 +283,7 @@ class LivepatchEntitlement(UAEntitlement):
             util.subp(
                 [LIVEPATCH_CMD, "status"], retry_sleeps=LIVEPATCH_RETRIES
             )
-        except util.ProcessExecutionError as e:
+        except exceptions.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug("Livepatch not enabled. %s", str(e))
             status = (ApplicationStatus.DISABLED, str(e))

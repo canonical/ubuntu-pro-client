@@ -19,10 +19,10 @@ from uaclient.exceptions import (
     AlreadyAttachedError,
     LockHeldError,
     NonRootUserError,
+    UrlError,
     UserFacingError,
 )
 from uaclient.testing.fakes import FakeFile
-from uaclient.util import UrlError
 
 M_PATH = "uaclient.cli."
 

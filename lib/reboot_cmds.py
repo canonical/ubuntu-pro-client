@@ -18,11 +18,10 @@ import logging
 import os
 import sys
 
-from uaclient import config, contract, lock, status
+from uaclient import config, contract, exceptions, lock, status
 from uaclient.cli import setup_logging
 from uaclient.entitlements.fips import FIPSEntitlement
-from uaclient.exceptions import LockHeldError, UserFacingError
-from uaclient.util import ProcessExecutionError, UrlError, subp
+from uaclient.util import subp
 
 # Retry sleep backoff algorithm if lock is held.
 # Lock may be held by auto-attach on systems with ubuntu-advantage-pro.
@@ -34,7 +33,7 @@ def run_command(cmd, cfg):
     try:
         out, _ = subp(cmd.split(), capture=True)
         logging.debug("Successfully executed cmd: {}".format(cmd))
-    except ProcessExecutionError as exec_error:
+    except exceptions.ProcessExecutionError as exec_error:
         msg = (
             "Failed running cmd: {}\n"
             "Return code: {}\n"
@@ -75,7 +74,7 @@ def fix_pro_pkg_holds(cfg):
                     )
                 try:
                     entitlement.install_packages(cleanup_on_failure=False)
-                except UserFacingError as e:
+                except exceptions.UserFacingError as e:
                     logging.error(e.msg)
                     logging.warning(
                         "Failed to install packages at boot: {}".format(
@@ -89,7 +88,7 @@ def fix_pro_pkg_holds(cfg):
 def refresh_contract(cfg):
     try:
         contract.request_updated_contract(cfg)
-    except UrlError as exc:
+    except exceptions.UrlError as exc:
         logging.exception(exc)
         logging.warning(status.MESSAGE_REFRESH_CONTRACT_FAILURE)
         sys.exit(1)
@@ -145,7 +144,7 @@ def main(cfg):
             max_retries=MAX_RETRIES_ON_LOCK_HELD,
         ):
             process_reboot_operations(cfg=cfg)
-    except LockHeldError as e:
+    except exceptions.LockHeldError as e:
         logging.warning("Lock not released. %s", str(e.msg))
         sys.exit(1)
 
