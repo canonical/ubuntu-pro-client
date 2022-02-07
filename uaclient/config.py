@@ -238,7 +238,7 @@ class UAConfig:
         try:
             util.subp(["ps", lock_pid])
             return (int(lock_pid), lock_holder)
-        except util.ProcessExecutionError:
+        except exceptions.ProcessExecutionError:
             if os.getuid() != 0:
                 logging.debug(
                     "Found stale lock file previously held by %s:%s",

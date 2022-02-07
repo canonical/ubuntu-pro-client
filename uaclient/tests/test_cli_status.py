@@ -10,7 +10,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import status, util, version
+from uaclient import exceptions, status, version
 from uaclient.cli import action_status, get_parser, main, status_parser
 
 M_PATH = "uaclient.cli."
@@ -780,13 +780,13 @@ class TestActionStatus:
         FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
-        m_get_avail_resources.side_effect = util.UrlError(
+        m_get_avail_resources.side_effect = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known")
         )
 
         cfg = FakeConfig()
 
-        with pytest.raises(util.UrlError):
+        with pytest.raises(exceptions.UrlError):
             action_status(
                 mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
             )

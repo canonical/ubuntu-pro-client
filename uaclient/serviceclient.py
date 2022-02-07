@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Type
 from urllib import error
 from urllib.parse import urlencode
 
-from uaclient import config, util, version
+from uaclient import config, exceptions, util, version
 
 
 class UAServiceClient(metaclass=abc.ABCMeta):
@@ -82,7 +82,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                     error_details = None
                 if error_details:
                     raise self.api_error_cls(e, error_details)
-            raise util.UrlError(
+            raise exceptions.UrlError(
                 e, code=getattr(e, "code", None), headers=headers, url=url
             )
         return response, headers
@@ -129,7 +129,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         :return: A tuple of response and header dicts if the URL has an overlay
             response defined. Return (None, {}) otherwise.
 
-        :raises util.URLError: When faked response "code" is != 200.
+        :raises exceptions.URLError: When faked response "code" is != 200.
             URLError reason will be "response" value and any optional
             "headers" provided.
         """
@@ -146,7 +146,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
             return response["response"], response.get("headers", {})
         # Must be an error
         e = error.URLError(response["response"])
-        raise util.UrlError(
+        raise exceptions.UrlError(
             e,
             code=response["code"],
             headers=response.get("headers", {}),

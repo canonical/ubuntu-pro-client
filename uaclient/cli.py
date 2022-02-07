@@ -1019,7 +1019,7 @@ def action_enable(args, *, cfg, **kwargs):
     event.info(ua_status.MESSAGE_REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
-    except (util.UrlError, exceptions.UserFacingError):
+    except (exceptions.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
         logging.debug(
             ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE, exc_info=True
@@ -1230,7 +1230,7 @@ def action_auto_attach(args, *, cfg):
 
     try:
         actions.auto_attach(cfg, instance)
-    except util.UrlError:
+    except exceptions.UrlError:
         event.info(ua_status.MESSAGE_ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError:
@@ -1278,7 +1278,7 @@ def action_attach(args, *, cfg):
 
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
-    except util.UrlError:
+    except exceptions.UrlError:
         msg = ua_status.MESSAGE_ATTACH_FAILURE
         event.info(msg)
         event.error(error_msg=msg)
@@ -1328,7 +1328,7 @@ def _write_command_output_to_file(
     """Helper which runs a command and writes output or error to filename."""
     try:
         out, _ = util.subp(cmd.split(), rcs=return_codes)
-    except util.ProcessExecutionError as e:
+    except exceptions.ProcessExecutionError as e:
         util.write_file("{}-error".format(filename), str(e))
     else:
         util.write_file(filename, out)
@@ -1568,7 +1568,7 @@ def _action_refresh_config(args, cfg: config.UAConfig):
 def _action_refresh_contract(_args, cfg: config.UAConfig):
     try:
         contract.request_updated_contract(cfg)
-    except util.UrlError as exc:
+    except exceptions.UrlError as exc:
         with util.disable_log_to_console():
             logging.exception(exc)
         raise exceptions.UserFacingError(
@@ -1659,7 +1659,7 @@ def main_error_handler(func):
             print("Interrupt received; exiting.", file=sys.stderr)
             lock.clear_lock_file_if_present()
             sys.exit(1)
-        except util.UrlError as exc:
+        except exceptions.UrlError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
                 tmpl = ua_status.MESSAGE_SSL_VERIFICATION_ERROR_CA_CERTIFICATES
                 if util.is_installed("ca-certificates"):

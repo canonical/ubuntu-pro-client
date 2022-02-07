@@ -9,8 +9,8 @@ from lib.reboot_cmds import (
     process_reboot_operations,
     run_command,
 )
+from uaclient.exceptions import ProcessExecutionError
 from uaclient.status import MESSAGE_REBOOT_SCRIPT_FAILED
-from uaclient.util import ProcessExecutionError
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 

@@ -6,6 +6,7 @@ from urllib.error import HTTPError
 import mock
 import pytest
 
+from uaclient import exceptions
 from uaclient.clouds.aws import (
     AWS_TOKEN_PUT_HEADER,
     AWS_TOKEN_REQ_HEADER,
@@ -16,7 +17,6 @@ from uaclient.clouds.aws import (
     IMDS_V2_TOKEN_URL,
     UAAutoAttachAWSInstance,
 )
-from uaclient.exceptions import UserFacingError
 
 M_PATH = "uaclient.clouds.aws."
 
@@ -274,7 +274,9 @@ class TestUAAutoAttachAWSInstance:
             "No valid AWS IMDS endpoint discovered at "
             "addresses: {}, {}".format(IMDS_IPV4_ADDRESS, IMDS_IPV6_ADDRESS)
         )
-        with pytest.raises(UserFacingError, match=re.escape(expected_error)):
+        with pytest.raises(
+            exceptions.UserFacingError, match=re.escape(expected_error)
+        ):
             instance.identity_doc
 
         expected = [

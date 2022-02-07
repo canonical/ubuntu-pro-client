@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status, util
+from uaclient import exceptions, status
 from uaclient.cli import action_refresh, main
 
 HELP_OUTPUT = """\
@@ -81,7 +81,9 @@ class TestActionRefresh:
         self, request_updated_contract, logging_error, getuid, FakeConfig
     ):
         """On failure in request_updates_contract emit an error."""
-        request_updated_contract.side_effect = util.UrlError(mock.MagicMock())
+        request_updated_contract.side_effect = exceptions.UrlError(
+            mock.MagicMock()
+        )
 
         cfg = FakeConfig.for_attached_machine()
 

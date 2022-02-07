@@ -30,7 +30,7 @@ def get_instance_id() -> Optional[str]:
         # Present in cloud-init on >= Xenial
         out, _err = util.subp(["cloud-init", "query", "instance_id"])
         return out.strip()
-    except util.ProcessExecutionError:
+    except exceptions.ProcessExecutionError:
         pass
     logging.warning("Unable to determine current instance-id")
     return None
@@ -43,7 +43,7 @@ def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
         try:
             out, _err = util.subp(["cloud-id"])
             return (out.strip(), None)
-        except util.ProcessExecutionError:
+        except exceptions.ProcessExecutionError:
             return (None, NoCloudTypeReason.CLOUD_ID_ERROR)
     # If no cloud-id command, assume not on cloud
     return (None, NoCloudTypeReason.NO_CLOUD_DETECTED)

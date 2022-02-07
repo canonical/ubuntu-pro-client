@@ -1,6 +1,6 @@
 from typing import Any, List, Optional, Type, TypeVar
 
-from uaclient.exceptions import UserFacingError
+from uaclient import exceptions
 
 INCORRECT_TYPE_ERROR_MESSAGE = (
     "Expected value with type {type} but got value: {value}"
@@ -13,7 +13,7 @@ INCORRECT_FIELD_TYPE_ERROR_MESSAGE = (
 )
 
 
-class IncorrectTypeError(UserFacingError):
+class IncorrectTypeError(exceptions.UserFacingError):
     def __init__(self, expected_type: str, got_value: Any):
         super().__init__(
             INCORRECT_TYPE_ERROR_MESSAGE.format(

@@ -3,13 +3,12 @@
 import mock
 import pytest
 
-from uaclient import status
+from uaclient import exceptions, status
 from uaclient.snap import (
     configure_snap_proxy,
     get_config_option_value,
     unconfigure_snap_proxy,
 )
-from uaclient.util import ProcessExecutionError
 
 
 class TestConfigureSnapProxy:
@@ -68,7 +67,11 @@ class TestConfigureSnapProxy:
     @pytest.mark.parametrize(
         "key, subp_side_effect, expected_ret",
         [
-            ("proxy.http", ProcessExecutionError("doesn't matter"), None),
+            (
+                "proxy.http",
+                exceptions.ProcessExecutionError("doesn't matter"),
+                None,
+            ),
             ("proxy.https", ("value", ""), "value"),
         ],
     )

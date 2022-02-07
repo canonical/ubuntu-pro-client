@@ -22,7 +22,6 @@ from uaclient.entitlements.livepatch import (
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.snap import SNAP_CMD
 from uaclient.status import ApplicationStatus, ContractStatus
-from uaclient.util import ProcessExecutionError
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -917,7 +916,7 @@ class TestLivepatchEntitlementEnable:
         )
 
         m_subp.side_effect = [
-            ProcessExecutionError(
+            exceptions.ProcessExecutionError(
                 cmd="snapd wait system seed.loaded",
                 exit_code=-1,
                 stdout="",
@@ -968,7 +967,7 @@ class TestLivepatchEntitlementEnable:
         m_installed_pkgs.return_value = ["snapd"]
         stderr_msg = "test error"
 
-        m_subp.side_effect = ProcessExecutionError(
+        m_subp.side_effect = exceptions.ProcessExecutionError(
             cmd="snapd wait system seed.loaded",
             exit_code=-1,
             stdout="",
@@ -980,7 +979,9 @@ class TestLivepatchEntitlementEnable:
             with mock.patch.object(
                 entitlement, "setup_livepatch_config"
             ) as m_setup_livepatch:
-                with pytest.raises(ProcessExecutionError) as excinfo:
+                with pytest.raises(
+                    exceptions.ProcessExecutionError
+                ) as excinfo:
                     entitlement.enable()
 
             assert 1 == m_can_enable.call_count
@@ -1004,7 +1005,7 @@ class TestLivepatchApplicationStatus:
         m_which.return_value = which_result
 
         if subp_raise_exception:
-            m_subp.side_effect = ProcessExecutionError("error msg")
+            m_subp.side_effect = exceptions.ProcessExecutionError("error msg")
 
         status, details = entitlement.application_status()
 
@@ -1026,7 +1027,7 @@ class TestLivepatchApplicationStatus:
         from uaclient import util
 
         with mock.patch.object(util, "_subp") as m_subp:
-            m_subp.side_effect = ProcessExecutionError("error msg")
+            m_subp.side_effect = exceptions.ProcessExecutionError("error msg")
             status, details = entitlement.application_status()
 
             assert m_subp.call_count == 3
