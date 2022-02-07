@@ -188,7 +188,11 @@ class EventLogger:
         if self._event_logger_mode == EventLoggerMode.JSON:
             from uaclient.util import DatetimeAwareJSONEncoder
 
-            print(json.dumps(output, cls=DatetimeAwareJSONEncoder))
+            print(
+                json.dumps(
+                    output, cls=DatetimeAwareJSONEncoder, sort_keys=True
+                )
+            )
         elif self._event_logger_mode == EventLoggerMode.YAML:
             import yaml
 
