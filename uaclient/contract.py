@@ -28,49 +28,10 @@ ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
 event = event_logger.get_event_logger()
 
 
-class ContractAPIError(util.UrlError):
-    def __init__(self, e, error_response):
-        super().__init__(e, e.code, e.headers, e.url)
-        if "error_list" in error_response:
-            self.api_errors = error_response["error_list"]
-        else:
-            self.api_errors = [error_response]
-        for error in self.api_errors:
-            error["code"] = error.get("title", error.get("code"))
-
-    def __contains__(self, error_code):
-        for error in self.api_errors:
-            if error_code == error.get("code"):
-                return True
-            if error.get("message", "").startswith(error_code):
-                return True
-        return False
-
-    def __get__(self, error_code, default=None):
-        for error in self.api_errors:
-            if error["code"] == error_code:
-                return error["detail"]
-        return default
-
-    def __str__(self):
-        prefix = super().__str__()
-        details = []
-        for err in self.api_errors:
-            if not err.get("extra"):
-                details.append(err.get("detail", err.get("message", "")))
-            else:
-                for extra in err["extra"].values():
-                    if isinstance(extra, list):
-                        details.extend(extra)
-                    else:
-                        details.append(extra)
-        return prefix + ": [" + self.url + "]" + ", ".join(details)
-
-
 class UAContractClient(serviceclient.UAServiceClient):
 
     cfg_url_base_attr = "contract_url"
-    api_error_cls = ContractAPIError
+    api_error_cls = exceptions.ContractAPIError
 
     def request_contract_machine_attach(self, contract_token, machine_id=None):
         """Requests machine attach to the provided machine_id.
@@ -433,7 +394,7 @@ def process_entitlement_delta(
     return deltas, ret
 
 
-def _create_attach_forbidden_message(e: ContractAPIError) -> str:
+def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
     msg = status.MESSAGE_ATTACH_EXPIRED_TOKEN
     if (
         hasattr(e, "api_errors")
@@ -491,8 +452,8 @@ def request_updated_contract(
             contract_client.request_contract_machine_attach(
                 contract_token=contract_token
             )
-        except util.UrlError as e:
-            if isinstance(e, ContractAPIError):
+        except exceptions.UrlError as e:
+            if isinstance(e, exceptions.ContractAPIError):
                 if hasattr(e, "code"):
                     if e.code == 401:
                         raise exceptions.UserFacingError(

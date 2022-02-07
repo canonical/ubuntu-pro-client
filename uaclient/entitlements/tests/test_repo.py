@@ -595,7 +595,7 @@ class TestRepoEnable:
     ):
         def fake_subp(args, *other_args, **kwargs):
             if "install" in args:
-                raise util.ProcessExecutionError(args)
+                raise exceptions.ProcessExecutionError(args)
 
         m_subp.side_effect = fake_subp
 

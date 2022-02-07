@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Dict, Optional
+from urllib import error
 
 from uaclient import status
 
@@ -135,3 +136,106 @@ class CloudFactoryNonViableCloudError(CloudFactoryError):
 
 class EntitlementNotFoundError(Exception):
     pass
+
+
+class UrlError(IOError):
+    def __init__(
+        self,
+        cause: error.URLError,
+        code: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
+        url: Optional[str] = None,
+    ):
+        if getattr(cause, "reason", None):
+            cause_error = str(cause.reason)
+        else:
+            cause_error = str(cause)
+        super().__init__(cause_error)
+        self.code = code
+        self.headers = headers
+        if self.headers is None:
+            self.headers = {}
+        self.url = url
+
+
+class ProcessExecutionError(IOError):
+    def __init__(
+        self,
+        cmd: str,
+        exit_code: Optional[int] = None,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        self.stdout = stdout
+        self.stderr = stderr
+        self.exit_code = exit_code
+        if not exit_code:
+            message_tmpl = "Invalid command specified '{cmd}'."
+        else:
+            message_tmpl = (
+                "Failed running command '{cmd}' [exit({exit_code})]."
+                " Message: {stderr}"
+            )
+        super().__init__(
+            message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code)
+        )
+
+
+class ContractAPIError(UrlError):
+    def __init__(self, e, error_response):
+        super().__init__(e, e.code, e.headers, e.url)
+        if "error_list" in error_response:
+            self.api_errors = error_response["error_list"]
+        else:
+            self.api_errors = [error_response]
+        for api_error in self.api_errors:
+            api_error["code"] = api_error.get("title", api_error.get("code"))
+
+    def __contains__(self, error_code):
+        for api_error in self.api_errors:
+            if error_code == api_error.get("code"):
+                return True
+            if api_error.get("message", "").startswith(error_code):
+                return True
+        return False
+
+    def __get__(self, error_code, default=None):
+        for api_error in self.api_errors:
+            if api_error["code"] == error_code:
+                return api_error["detail"]
+        return default
+
+    def __str__(self):
+        prefix = super().__str__()
+        details = []
+        for err in self.api_errors:
+            if not err.get("extra"):
+                details.append(err.get("detail", err.get("message", "")))
+            else:
+                for extra in err["extra"].values():
+                    if isinstance(extra, list):
+                        details.extend(extra)
+                    else:
+                        details.append(extra)
+        return prefix + ": [" + self.url + "]" + ", ".join(details)
+
+
+class SecurityAPIError(UrlError):
+    def __init__(self, e, error_response):
+        super().__init__(e, e.code, e.headers, e.url)
+        self.message = error_response.get("message", "")
+
+    def __contains__(self, error_code):
+        return bool(error_code in self.message)
+
+    def __get__(self, error_str, default=None):
+        if error_str in self.message:
+            return self.message
+        return default
+
+    def __str__(self):
+        prefix = super().__str__()
+        details = [self.message]
+        if details:
+            return prefix + ": [" + self.url + "] " + ", ".join(details)
+        return prefix + ": [" + self.url + "]"

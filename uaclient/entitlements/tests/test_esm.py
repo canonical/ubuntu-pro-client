@@ -4,7 +4,7 @@ import os.path
 import mock
 import pytest
 
-from uaclient import apt, exceptions, util
+from uaclient import apt, exceptions
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 
 M_PATH = "uaclient.entitlements.esm.ESMInfraEntitlement."
@@ -327,7 +327,7 @@ class TestESMInfraEntitlementEnable:
 
         def fake_subp(cmd, capture=None, retry_sleeps=None, env={}):
             if cmd == ["apt-get", "update"]:
-                raise util.ProcessExecutionError(
+                raise exceptions.ProcessExecutionError(
                     "Failure", stderr="Could not get lock /var/lib/dpkg/lock"
                 )
             return "", ""
