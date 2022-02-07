@@ -10,6 +10,7 @@ from uaclient import (
     util,
 )
 from uaclient.config import UAConfig
+from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
 from uaclient.status import UserFacingStatus
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
@@ -23,7 +24,6 @@ API_V1_TMPL_RESOURCE_MACHINE_ACCESS = (
 API_V1_AUTO_ATTACH_CLOUD_TOKEN = "/v1/clouds/{cloud_type}/token"
 API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
-ATTACH_FAIL_DATE_FORMAT = "%B %d, %Y"
 
 event = event_logger.get_event_logger()
 

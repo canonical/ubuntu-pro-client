@@ -4,7 +4,7 @@ import logging
 import os
 import re
 from collections import OrderedDict, namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple, cast
 
@@ -12,6 +12,7 @@ import yaml
 
 from uaclient import apt, event_logger, exceptions, snap, status, util, version
 from uaclient.defaults import (
+    ATTACH_FAIL_DATE_FORMAT,
     BASE_CONTRACT_URL,
     BASE_SECURITY_URL,
     CONFIG_DEFAULTS,
@@ -792,17 +793,29 @@ class UAConfig:
 
     def simulate_status(
         self, token: str, show_beta: bool = False
-    ) -> Dict[str, Any]:
-        """Return a status dictionary based on a token."""
+    ) -> Tuple[Dict[str, Any], int]:
+        """Get a status dictionary based on a token.
+
+        Returns a tuple with the status dictionary and an integer value - 0 for
+        success, 1 for failure
+        """
         from uaclient.contract import (
             get_available_resources,
             get_contract_information,
         )
         from uaclient.entitlements import entitlement_factory
 
+        ret = 0
         response = copy.deepcopy(DEFAULT_STATUS)
 
-        contract_information = get_contract_information(self, token)
+        try:
+            contract_information = get_contract_information(self, token)
+        except exceptions.ContractAPIError as e:
+            if hasattr(e, "code") and e.code == 401:
+                raise exceptions.UserFacingError(
+                    status.MESSAGE_ATTACH_INVALID_TOKEN
+                )
+            raise e
 
         contract_info = contract_information.get("contractInfo", {})
         account_info = contract_information.get("accountInfo", {})
@@ -828,10 +841,31 @@ class UAConfig:
             }
         )
 
+        now = datetime.now(timezone.utc)
         if contract_info.get("effectiveTo"):
             response["expires"] = contract_info.get("effectiveTo")
+            expiration_datetime = util.parse_rfc3339_date(response["expires"])
+            delta = expiration_datetime - now
+            if delta.total_seconds() <= 0:
+                message = status.MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+                    contract_id=response["contract"]["id"],
+                    date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
+                )
+                event.error(message)
+                event.info("This token is not valid.\n" + message + "\n")
+                ret = 1
         if contract_info.get("effectiveFrom"):
             response["effective"] = contract_info.get("effectiveFrom")
+            effective_datetime = util.parse_rfc3339_date(response["effective"])
+            delta = now - effective_datetime
+            if delta.total_seconds() <= 0:
+                message = status.MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+                    contract_id=response["contract"]["id"],
+                    date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
+                )
+                event.error(message)
+                event.info("This token is not valid.\n" + message + "\n")
+                ret = 1
 
         status_cache = self.read_cache("status-cache")
         if status_cache:
@@ -879,7 +913,7 @@ class UAConfig:
         response.update(self._get_config_status())
         response = self._handle_beta_resources(show_beta, response)
 
-        return response
+        return response, ret
 
     def status(self, show_beta: bool = False) -> Dict[str, Any]:
         """Return status as a dict, using a cache for non-root users

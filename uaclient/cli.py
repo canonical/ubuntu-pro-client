@@ -1167,7 +1167,7 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
     jobs.disable_license_check_if_applicable(cfg)
 
-    status = actions.status(cfg)
+    status, _ret = actions.status(cfg)
     output = ua_status.format_tabular(status)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
@@ -1520,7 +1520,7 @@ def action_status(args, *, cfg):
     token = args.simulate_with_token if args else None
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
 
-    status = actions.status(
+    status, ret = actions.status(
         cfg, simulate_with_token=token, show_beta=show_beta
     )
     config_active = bool(status["execution_status"] == active_value)
@@ -1529,7 +1529,7 @@ def action_status(args, *, cfg):
         while status["execution_status"] == active_value:
             event.info(".", end="")
             time.sleep(1)
-            status = actions.status(
+            status, ret = actions.status(
                 cfg, simulate_with_token=token, show_beta=show_beta
             )
         event.info("")
@@ -1538,7 +1538,7 @@ def action_status(args, *, cfg):
     output = ua_status.format_tabular(status)
     event.info(util.handle_unicode_characters(output))
     event.process_events()
-    return 0
+    return ret
 
 
 def get_version(_args=None, _cfg=None):
