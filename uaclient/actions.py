@@ -11,7 +11,6 @@ from uaclient import (
     exceptions,
 )
 from uaclient import status as ua_status
-from uaclient import util
 from uaclient.clouds import identity
 
 LOG = logging.getLogger("ua.actions")
@@ -34,7 +33,7 @@ def attach_with_token(
         contract.request_updated_contract(
             cfg, token, allow_enable=allow_enable
         )
-    except util.UrlError as exc:
+    except exceptions.UrlError as exc:
         cfg.status()  # Persist updated status in the event of partial attach
         update_apt_and_motd_messages(cfg)
         raise exc
@@ -67,7 +66,7 @@ def auto_attach(
         tokenResponse = contract_client.request_auto_attach_contract_token(
             instance=cloud
         )
-    except contract.ContractAPIError as e:
+    except exceptions.ContractAPIError as e:
         if e.code and 400 <= e.code < 500:
             raise exceptions.NonAutoAttachImageError(
                 ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH

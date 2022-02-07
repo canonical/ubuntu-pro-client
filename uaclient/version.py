@@ -6,7 +6,7 @@ any of our dependencies installed.
 """
 import os.path
 
-from uaclient import util
+from uaclient import exceptions, util
 
 __VERSION__ = "27.6"
 PACKAGED_VERSION = "@@PACKAGED_VERSION@@"
@@ -39,7 +39,7 @@ def get_version(_args=None, features={}):
         try:
             out, _ = util.subp(cmd)
             return out.strip() + feature_suffix
-        except util.ProcessExecutionError:
+        except exceptions.ProcessExecutionError:
             # Rely on debian/changelog because we are in a git-ubuntu or other
             # packaging repo
             cmd = ["dpkg-parsechangelog", "-S", "version"]

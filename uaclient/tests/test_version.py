@@ -3,7 +3,7 @@ import os.path
 import mock
 import pytest
 
-from uaclient import util
+from uaclient import exceptions
 from uaclient.version import get_version
 
 
@@ -53,7 +53,7 @@ class TestGetVersion:
         def fake_subp(cmd):
             if cmd[0] == "git":
                 # Not matching tag on git-ubuntu pkg branches
-                raise util.ProcessExecutionError(
+                raise exceptions.ProcessExecutionError(
                     "fatal: No names found, cannot describe anything."
                 )
             if cmd[0] == "dpkg-parsechangelog":

@@ -59,49 +59,6 @@ class LogFormatter(logging.Formatter):
         return logging.Formatter(log_fmt).format(record)
 
 
-class UrlError(IOError):
-    def __init__(
-        self,
-        cause: error.URLError,
-        code: Optional[int] = None,
-        headers: Optional[Dict[str, str]] = None,
-        url: Optional[str] = None,
-    ):
-        if getattr(cause, "reason", None):
-            cause_error = str(cause.reason)
-        else:
-            cause_error = str(cause)
-        super().__init__(cause_error)
-        self.code = code
-        self.headers = headers
-        if self.headers is None:
-            self.headers = {}
-        self.url = url
-
-
-class ProcessExecutionError(IOError):
-    def __init__(
-        self,
-        cmd: str,
-        exit_code: Optional[int] = None,
-        stdout: str = "",
-        stderr: str = "",
-    ) -> None:
-        self.stdout = stdout
-        self.stderr = stderr
-        self.exit_code = exit_code
-        if not exit_code:
-            message_tmpl = "Invalid command specified '{cmd}'."
-        else:
-            message_tmpl = (
-                "Failed running command '{cmd}' [exit({exit_code})]."
-                " Message: {stderr}"
-            )
-        super().__init__(
-            message_tmpl.format(cmd=cmd, stderr=stderr, exit_code=exit_code)
-        )
-
-
 class DatetimeAwareJSONEncoder(json.JSONEncoder):
     """A json.JSONEncoder subclass that writes out isoformat'd datetimes."""
 
@@ -393,7 +350,7 @@ def is_container(run_path: str = "/run") -> bool:
     try:
         subp(["ischroot"])
         return False
-    except ProcessExecutionError:
+    except exceptions.ProcessExecutionError:
         pass
 
     try:
@@ -620,16 +577,16 @@ def _subp(
         (out, err) = proc.communicate(timeout=timeout)
     except OSError:
         try:
-            raise ProcessExecutionError(
+            raise exceptions.ProcessExecutionError(
                 cmd=redacted_cmd,
                 exit_code=proc.returncode,
                 stdout=out.decode("utf-8"),
                 stderr=err.decode("utf-8"),
             )
         except UnboundLocalError:
-            raise ProcessExecutionError(cmd=redacted_cmd)
+            raise exceptions.ProcessExecutionError(cmd=redacted_cmd)
     if proc.returncode not in rcs:
-        raise ProcessExecutionError(
+        raise exceptions.ProcessExecutionError(
             cmd=redacted_cmd,
             exit_code=proc.returncode,
             stdout=out.decode("utf-8"),
@@ -678,7 +635,7 @@ def subp(
         try:
             out, err = _subp(args, rcs, capture, timeout, env=env)
             break
-        except ProcessExecutionError as e:
+        except exceptions.ProcessExecutionError as e:
             if capture:
                 logging.debug(redact_sensitive_logs(str(e)))
                 msg = "Stderr: {}\nStdout: {}".format(e.stderr, e.stdout)
@@ -835,7 +792,7 @@ def is_installed(package_name: str) -> bool:
     try:
         out, _ = subp(["dpkg", "-l", package_name])
         return "ii  {} ".format(package_name) in out
-    except ProcessExecutionError:
+    except exceptions.ProcessExecutionError:
         return False
 
 

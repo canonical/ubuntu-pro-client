@@ -53,32 +53,11 @@ class FixStatus(enum.Enum):
     SYSTEM_VULNERABLE_UNTIL_REBOOT = 2
 
 
-class SecurityAPIError(util.UrlError):
-    def __init__(self, e, error_response):
-        super().__init__(e, e.code, e.headers, e.url)
-        self.message = error_response.get("message", "")
-
-    def __contains__(self, error_code):
-        return bool(error_code in self.message)
-
-    def __get__(self, error_str, default=None):
-        if error_str in self.message:
-            return self.message
-        return default
-
-    def __str__(self):
-        prefix = super().__str__()
-        details = [self.message]
-        if details:
-            return prefix + ": [" + self.url + "] " + ", ".join(details)
-        return prefix + ": [" + self.url + "]"
-
-
 class UASecurityClient(serviceclient.UAServiceClient):
 
     url_timeout = 20
     cfg_url_base_attr = "security_url"
-    api_error_cls = SecurityAPIError
+    api_error_cls = exceptions.SecurityAPIError
 
     def _get_query_params(
         self, query_params: Dict[str, Any]
@@ -579,7 +558,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
         try:
             cve = client.get_cve(cve_id=issue_id)
             usns = client.get_notices(details=issue_id)
-        except SecurityAPIError as e:
+        except exceptions.SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
                 msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
@@ -597,7 +576,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
         try:
             usn = client.get_notice(notice_id=issue_id)
             usns = get_related_usns(usn, client)
-        except SecurityAPIError as e:
+        except exceptions.SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
                 msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
@@ -1274,5 +1253,5 @@ def version_cmp_le(version1: str, version2: str) -> bool:
     try:
         util.subp(["dpkg", "--compare-versions", version1, "le", version2])
         return True
-    except util.ProcessExecutionError:
+    except exceptions.ProcessExecutionError:
         return False

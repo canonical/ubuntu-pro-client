@@ -529,7 +529,7 @@ class TestFIPSEntitlementEnable:
 
         def fake_subp(cmd, *args, **kwargs):
             if "install" in cmd:
-                raise util.ProcessExecutionError(cmd)
+                raise exceptions.ProcessExecutionError(cmd)
             return ("", "")
 
         with contextlib.ExitStack() as stack:
@@ -872,7 +872,7 @@ class TestFIPSEntitlementRemovePackages:
         self, m_get_installed_packages, m_subp, _m_get_platform, entitlement
     ):
         m_get_installed_packages.return_value = ["ubuntu-fips"]
-        m_subp.side_effect = util.ProcessExecutionError(cmd="test")
+        m_subp.side_effect = exceptions.ProcessExecutionError(cmd="test")
         expected_msg = "Could not disable {}.".format(entitlement.title)
 
         with pytest.raises(exceptions.UserFacingError) as exc_info:

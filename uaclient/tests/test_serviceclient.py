@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 import mock
 import pytest
 
-from uaclient import util
+from uaclient import exceptions
 from uaclient.serviceclient import UAServiceClient
 
 
@@ -33,7 +33,7 @@ class TestRequestUrl:
     @pytest.mark.parametrize(
         "fp,expected_exception,expected_attrs",
         (
-            (BytesIO(), util.UrlError, {"code": 619}),
+            (BytesIO(), exceptions.UrlError, {"code": 619}),
             (
                 BytesIO(b'{"a": "b"}'),
                 OurServiceClientException,
@@ -62,7 +62,7 @@ class TestRequestUrl:
         cfg = FakeConfig()
         cfg.cfg["contract_url"] = "http://example.com"
         client = OurServiceClient(cfg=cfg)
-        with pytest.raises(util.UrlError) as excinfo:
+        with pytest.raises(exceptions.UrlError) as excinfo:
             client.request_url("/")
 
         assert excinfo.value.code is None
@@ -177,7 +177,7 @@ class Test_GetFakeResponses:
         client = OurServiceClient(cfg=cfg)
         for response, headers in responses:
             if isinstance(response, Exception):
-                with pytest.raises(util.UrlError) as excinfo:
+                with pytest.raises(exceptions.UrlError) as excinfo:
                     client._get_fake_responses(url)
                 assert 404 == excinfo.value.code
                 assert "nothing to see" == str(excinfo.value)

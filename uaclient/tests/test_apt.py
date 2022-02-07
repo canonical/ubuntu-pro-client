@@ -199,7 +199,7 @@ class TestValidAptCredentials:
             "/does/not/exist"
         )
         # Failure apt-helper response
-        m_subp.side_effect = util.ProcessExecutionError(
+        m_subp.side_effect = exceptions.ProcessExecutionError(
             cmd="apt-helper ",
             exit_code=exit_code,
             stdout="Err:1...",
@@ -906,7 +906,7 @@ class TestRunAptCommand:
     ):
         error_msg = "\n".join(error_list)
 
-        m_subp.side_effect = util.ProcessExecutionError(
+        m_subp.side_effect = exceptions.ProcessExecutionError(
             cmd="apt update", stderr=error_msg
         )
 

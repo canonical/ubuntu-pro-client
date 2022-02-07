@@ -188,7 +188,7 @@ class TestIsContainer:
         """Return True when systemd-detect virt exits success."""
         util.is_container.cache_clear()
         m_subp.side_effect = [
-            util.ProcessExecutionError(
+            exceptions.ProcessExecutionError(
                 "Failed running command 'ischroot' [exit(1)]"
             ),
             "",
@@ -208,7 +208,7 @@ class TestIsContainer:
         """Return True when /run/container_type exists."""
         util.is_container.cache_clear()
         m_subp.side_effect = [
-            util.ProcessExecutionError(
+            exceptions.ProcessExecutionError(
                 "Failed running command 'ischroot' [exit(1)]"
             ),
             OSError("No systemd-detect-virt utility"),
@@ -227,7 +227,7 @@ class TestIsContainer:
         """Return True when /run/systemd/container exists."""
         util.is_container.cache_clear()
         m_subp.side_effect = [
-            util.ProcessExecutionError(
+            exceptions.ProcessExecutionError(
                 "Failed running command 'ischroot' [exit(1)]"
             ),
             OSError("No systemd-detect-virt utility"),
@@ -248,7 +248,7 @@ class TestIsContainer:
         """Return False when sytemd-detect-virt erros and no /run/* files."""
         util.is_container.cache_clear()
         m_subp.side_effect = [
-            util.ProcessExecutionError(
+            exceptions.ProcessExecutionError(
                 "Failed running command 'ischroot' [exit(1)]"
             ),
             OSError("No systemd-detect-virt utility"),
@@ -292,7 +292,7 @@ class TestSubp:
     def test_default_do_not_retry_on_failure_return_code(self, m_sleep, _subp):
         """When no retry_sleeps are specified, do not retry failures."""
         with mock.patch("uaclient.util._subp", side_effect=_subp):
-            with pytest.raises(util.ProcessExecutionError) as excinfo:
+            with pytest.raises(exceptions.ProcessExecutionError) as excinfo:
                 util.subp(["ls", "--bogus"])
 
         expected_errors = [
@@ -317,7 +317,7 @@ class TestSubp:
     def test_retry_with_specified_sleeps_on_error(self, m_sleep, _subp):
         """When retry_sleeps given, use defined sleeps between each retry."""
         with mock.patch("uaclient.util._subp", side_effect=_subp):
-            with pytest.raises(util.ProcessExecutionError) as excinfo:
+            with pytest.raises(exceptions.ProcessExecutionError) as excinfo:
                 util.subp(["ls", "--bogus"], retry_sleeps=[1, 3, 0.4])
 
         expected_error = "Failed running command 'ls --bogus' [exit(2)]"
@@ -331,7 +331,7 @@ class TestSubp:
         sleeps = [1, 3, 0.4]
         expected_sleeps = sleeps.copy()
         with mock.patch("uaclient.util._subp", side_effect=_subp):
-            with pytest.raises(util.ProcessExecutionError):
+            with pytest.raises(exceptions.ProcessExecutionError):
                 util.subp(["ls", "--bogus"], retry_sleeps=sleeps)
 
         assert expected_sleeps == sleeps
@@ -342,8 +342,10 @@ class TestSubp:
     def test_retry_logs_remaining_retries(self, m_sleep, m_subp, caplog_text):
         """When retry_sleeps given, use defined sleeps between each retry."""
         sleeps = [1, 3, 0.4]
-        m_subp.side_effect = util.ProcessExecutionError("Funky apt %d error")
-        with pytest.raises(util.ProcessExecutionError):
+        m_subp.side_effect = exceptions.ProcessExecutionError(
+            "Funky apt %d error"
+        )
+        with pytest.raises(exceptions.ProcessExecutionError):
             util.subp(["apt", "dostuff"], retry_sleeps=sleeps)
 
         logs = caplog_text()
@@ -364,10 +366,10 @@ class TestSubp:
         """When subp fails, capture the logs in stdout/stderr"""
         out = "Tried downloading file"
         err = "Network error"
-        m_subp.side_effect = util.ProcessExecutionError(
+        m_subp.side_effect = exceptions.ProcessExecutionError(
             "Serious apt error", stdout=out, stderr=err
         )
-        with pytest.raises(util.ProcessExecutionError):
+        with pytest.raises(exceptions.ProcessExecutionError):
             util.subp(["apt", "nothing"], capture=capture)
 
         logs = caplog_text()

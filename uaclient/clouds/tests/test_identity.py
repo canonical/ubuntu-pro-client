@@ -1,18 +1,13 @@
 import mock
 import pytest
 
+from uaclient import exceptions
 from uaclient.clouds.identity import (
     NoCloudTypeReason,
     cloud_instance_factory,
     get_cloud_type,
     get_instance_id,
 )
-from uaclient.exceptions import (
-    CloudFactoryNoCloudError,
-    CloudFactoryNonViableCloudError,
-    CloudFactoryUnsupportedCloudError,
-)
-from uaclient.util import ProcessExecutionError
 
 M_PATH = "uaclient.clouds.identity."
 
@@ -28,7 +23,9 @@ class TestGetInstanceID:
 
     @mock.patch(
         M_PATH + "util.subp",
-        side_effect=ProcessExecutionError("cloud-init query instance_id"),
+        side_effect=exceptions.ProcessExecutionError(
+            "cloud-init query instance_id"
+        ),
     )
     def test_none_when_cloud_init_query_fails(self, m_subp):
         """Return None when cloud-init query fails."""
@@ -48,7 +45,8 @@ class TestGetCloudType:
 
     @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
     @mock.patch(
-        M_PATH + "util.subp", side_effect=ProcessExecutionError("cloud-id")
+        M_PATH + "util.subp",
+        side_effect=exceptions.ProcessExecutionError("cloud-id"),
     )
     def test_error_when_cloud_id_fails(self, m_subp, m_which):
         assert (None, NoCloudTypeReason.CLOUD_ID_ERROR) == get_cloud_type()
@@ -93,14 +91,14 @@ class TestCloudInstanceFactory:
             None,
             NoCloudTypeReason.NO_CLOUD_DETECTED,
         )
-        with pytest.raises(CloudFactoryNoCloudError):
+        with pytest.raises(exceptions.CloudFactoryNoCloudError):
             cloud_instance_factory()
         assert 1 == m_get_cloud_type.call_count
 
     def test_raise_error_when_not_supported(self, m_get_cloud_type):
         """Raise appropriate error when unable to determine cloud_type."""
         m_get_cloud_type.return_value = ("unsupported-cloud", None)
-        with pytest.raises(CloudFactoryUnsupportedCloudError):
+        with pytest.raises(exceptions.CloudFactoryUnsupportedCloudError):
             cloud_instance_factory()
 
     @pytest.mark.parametrize("cloud_type", ("aws", "azure"))
@@ -122,7 +120,7 @@ class TestCloudInstanceFactory:
 
         with mock.patch(M_INSTANCE_PATH) as m_instance:
             m_instance.side_effect = fake_invalid_instance
-            with pytest.raises(CloudFactoryNonViableCloudError):
+            with pytest.raises(exceptions.CloudFactoryNonViableCloudError):
                 cloud_instance_factory()
 
     @pytest.mark.parametrize(

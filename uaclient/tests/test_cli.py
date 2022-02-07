@@ -11,7 +11,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import status, util
+from uaclient import exceptions, status
 from uaclient.cli import (
     action_help,
     assert_attached,
@@ -621,7 +621,7 @@ class TestMain:
     ):
 
         m_args = m_get_parser.return_value.parse_args.return_value
-        m_args.action.side_effect = util.UrlError(
+        m_args.action.side_effect = exceptions.UrlError(
             socket.gaierror(-2, "Name or service not known"), url=error_url
         )
 

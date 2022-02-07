@@ -1,10 +1,9 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status, util
+from uaclient import exceptions, status
 from uaclient.actions import attach_with_token, auto_attach
-from uaclient.contract import ContractAPIError
-from uaclient.exceptions import NonAutoAttachImageError
+from uaclient.exceptions import ContractAPIError, NonAutoAttachImageError
 from uaclient.tests.test_cli_auto_attach import fake_instance_factory
 
 M_PATH = "uaclient.actions."
@@ -16,7 +15,7 @@ class TestAttachWithToken:
         " expect_status_call",
         [
             (None, None, False),
-            (util.UrlError("cause"), util.UrlError, True),
+            (exceptions.UrlError("cause"), exceptions.UrlError, True),
             (
                 exceptions.UserFacingError("test"),
                 exceptions.UserFacingError,
@@ -108,7 +107,7 @@ class TestAutoAttach:
         """VMs running on non-auto-attach images do not return a token."""
         cfg = FakeConfig()
         m_request_auto_attach_contract_token.side_effect = ContractAPIError(
-            util.UrlError(
+            exceptions.UrlError(
                 http_msg, code=http_code, url="http://me", headers={}
             ),
             error_response=http_response,
@@ -131,7 +130,7 @@ class TestAutoAttach:
         cfg = FakeConfig()
 
         unexpected_error = ContractAPIError(
-            util.UrlError(
+            exceptions.UrlError(
                 "Server error", code=500, url="http://me", headers={}
             ),
             error_response={"message": "something unexpected"},

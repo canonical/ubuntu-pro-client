@@ -57,7 +57,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
                 timeout=APT_HELPER_TIMEOUT,
                 retry_sleeps=APT_RETRIES,
             )
-    except util.ProcessExecutionError as e:
+    except exceptions.ProcessExecutionError as e:
         if e.exit_code == 100:
             stderr = str(e.stderr).lower()
             if re.search(r"401\s+unauthorized|httperror401", stderr):
@@ -143,7 +143,7 @@ def run_apt_command(
         out, _err = util.subp(
             cmd, capture=True, retry_sleeps=APT_RETRIES, env=env
         )
-    except util.ProcessExecutionError as e:
+    except exceptions.ProcessExecutionError as e:
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
             error_msg += " Another process is running APT."
         else:

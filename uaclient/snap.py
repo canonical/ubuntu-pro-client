@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-from uaclient import apt, event_logger, status, util
+from uaclient import apt, event_logger, exceptions, status, util
 
 SNAP_CMD = "/usr/bin/snap"
 SNAP_INSTALL_RETRIES = [0.5, 1.0, 5.0]
@@ -91,5 +91,5 @@ def get_config_option_value(key: str) -> Optional[str]:
     try:
         out, _ = util.subp(["snap", "get", "system", key])
         return out.strip()
-    except util.ProcessExecutionError:
+    except exceptions.ProcessExecutionError:
         return None
