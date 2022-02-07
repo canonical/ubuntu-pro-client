@@ -1,3 +1,4 @@
+import copy
 import datetime
 import io
 import json
@@ -255,8 +256,8 @@ Flags:
 )
 
 
-@mock.patch("uaclient.util.should_reboot", return_value=False)
 @mock.patch("uaclient.config.UAConfig.remove_notice")
+@mock.patch("uaclient.util.should_reboot", return_value=False)
 @mock.patch(
     M_PATH + "contract.get_available_resources",
     return_value=RESPONSE_AVAILABLE_SERVICES,
@@ -664,7 +665,7 @@ class TestActionStatus:
         capsys,
         FakeConfig,
     ):
-        """Check that unattached status json output is emitted to console"""
+        """Check that simulated status json output is emitted to console"""
         cfg = FakeConfig()
 
         args = mock.MagicMock(
@@ -826,6 +827,110 @@ class TestActionStatus:
 
         expected_out = ATTACHED_STATUS.format(dash=expected_dash, notices="")
         assert expected_out == out
+
+    @pytest.mark.parametrize(
+        "exception_to_throw,exception_type,exception_message",
+        (
+            (
+                exceptions.UrlError("Not found", 404),
+                exceptions.UrlError,
+                "Not found",
+            ),
+            (
+                exceptions.ContractAPIError(
+                    exceptions.UrlError("Unauthorized", 401),
+                    {"message": "unauthorized"},
+                ),
+                exceptions.UserFacingError,
+                "Invalid token. See https://ubuntu.com/advantage",
+            ),
+        ),
+    )
+    def test_errors_are_raised_appropriately(
+        self,
+        _m_getuid,
+        m_get_contract_information,
+        _m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        exception_to_throw,
+        exception_type,
+        exception_message,
+        capsys,
+        FakeConfig,
+    ):
+        """Check that simulated status json/yaml output raises errors."""
+
+        m_get_contract_information.side_effect = exception_to_throw
+
+        cfg = FakeConfig()
+
+        args = mock.MagicMock(
+            format="json", all=False, simulate_with_token="some_token"
+        )
+
+        with pytest.raises(exception_type) as exc:
+            action_status(args, cfg=cfg)
+
+        assert exc.type == exception_type
+        assert exception_message in exc.value.args
+
+    @pytest.mark.parametrize(
+        "token_to_use,warning_message,contract_field,date_value",
+        (
+            (
+                "expired_token",
+                'Contract "some_id" expired on December 31, 2019',
+                "effectiveTo",
+                "2019-12-31T00:00:00Z",
+            ),
+            (
+                "token_not_valid_yet",
+                'Contract "some_id" is not effective until December 31, 9999',
+                "effectiveFrom",
+                "9999-12-31T00:00:00Z",
+            ),
+        ),
+    )
+    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    def test_errors_for_token_dates(
+        self,
+        _m_getuid,
+        m_get_contract_information,
+        _m_get_avail_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        format_type,
+        token_to_use,
+        warning_message,
+        contract_field,
+        date_value,
+        capsys,
+        FakeConfig,
+    ):
+        """Check errors for expired tokens, and not valid yet tokens."""
+
+        def contract_info_side_effect(cfg, token):
+            response = copy.deepcopy(RESPONSE_CONTRACT_INFO)
+            response["contractInfo"][contract_field] = date_value
+            return response
+
+        m_get_contract_information.side_effect = contract_info_side_effect
+
+        cfg = FakeConfig()
+
+        args = mock.MagicMock(
+            format=format_type, all=False, simulate_with_token=token_to_use
+        )
+
+        assert 1 == action_status(args, cfg=cfg)
+
+        if format_type == "json":
+            output = json.loads(capsys.readouterr()[0])
+        else:
+            output = yaml.safe_load(capsys.readouterr()[0])
+
+        assert output["errors"][0]["message"] == warning_message
 
 
 class TestStatusParser:

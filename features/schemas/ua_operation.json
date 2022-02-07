@@ -2,7 +2,8 @@
   "type": "object",
   "properties": {
     "_schema_version": {
-       "type": "string"
+       "type": "string",
+       "const": "0.1"
     },
     "result": {
        "type": "string",

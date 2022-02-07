@@ -274,7 +274,7 @@ class TestActionAttach:
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_contract_machine_attach"
     )
-    @mock.patch("uaclient.actions.status")
+    @mock.patch("uaclient.actions.status", return_value=("", 0))
     @mock.patch("uaclient.status.format_tabular")
     def test_happy_path_with_token_arg(
         self,
@@ -460,7 +460,7 @@ class TestActionAttach:
         FakeConfig,
         event,
     ):
-        m_status.return_value = "status"
+        m_status.return_value = ("status", 0)
         m_format_tabular.return_value = "status"
         m_handle_unicode.return_value = "status"
 
