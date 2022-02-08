@@ -24,14 +24,18 @@ class TestAttachWithToken:
             ),
         ],
     )
+    @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "config.UAConfig.status")
     @mock.patch(M_PATH + "contract.request_updated_contract")
+    @mock.patch(M_PATH + "config.UAConfig.write_cache")
     def test_attach_with_token(
         self,
+        m_write_cache,
         m_request_updated_contract,
         m_status,
         m_update_apt_and_motd_msgs,
+        _m_get_instance_id,
         request_updated_contract_side_effect,
         expected_error_class,
         expect_status_call,
@@ -48,23 +52,24 @@ class TestAttachWithToken:
             attach_with_token(cfg, "token", False)
         if expect_status_call:
             assert [mock.call()] == m_status.call_args_list
+        if not expect_status_call:
+            assert [
+                mock.call("instance-id", "my-iid")
+            ] == m_write_cache.call_args_list
+
         assert [mock.call(cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
 
 class TestAutoAttach:
     @mock.patch(M_PATH + "attach_with_token")
-    @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch(
         M_PATH
         + "contract.UAContractClient.request_auto_attach_contract_token",
         return_value={"contractToken": "token"},
     )
-    @mock.patch(M_PATH + "config.UAConfig.write_cache")
     def test_happy_path_on_auto_attach(
         self,
-        m_write_cache,
         m_request_auto_attach_contract_token,
-        m_get_instance_id,
         m_attach_with_token,
         FakeConfig,
     ):
@@ -75,10 +80,6 @@ class TestAutoAttach:
         assert [
             mock.call(cfg, token="token", allow_enable=True)
         ] == m_attach_with_token.call_args_list
-
-        assert [
-            mock.call("instance-id", "my-iid")
-        ] == m_write_cache.call_args_list
 
     @pytest.mark.parametrize(
         "http_msg,http_code,http_response",

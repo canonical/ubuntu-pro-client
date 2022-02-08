@@ -1103,7 +1103,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
             to_disable.append(ent)
 
     """
-    We will nake sure that services without dependencies are disabled first
+    We will make sure that services without dependencies are disabled first
     PS: This will only work because we have only three services with reverse
     dependencies:
     * ros: ros-updates
