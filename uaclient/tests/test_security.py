@@ -976,7 +976,7 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    No affected packages are installed.
+                    No affected source packages are installed.
                     {check} USN-### does not affect your system.
                     """.format(
                         check=OKGREEN_CHECK  # noqa: E126
@@ -991,7 +991,7 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
                     The update is already installed.
@@ -1009,7 +1009,7 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -1028,7 +1028,7 @@ class TestPromptForAffectedPackages:
                 (None, NoCloudTypeReason.NO_CLOUD_DETECTED),
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -1057,7 +1057,7 @@ class TestPromptForAffectedPackages:
                 ("azure", None),
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in UA Infra.
                     """
@@ -1079,7 +1079,7 @@ class TestPromptForAffectedPackages:
                 ("aws", None),
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in UA Infra.
                     """
@@ -1109,7 +1109,7 @@ class TestPromptForAffectedPackages:
                 ("gcp", None),
                 textwrap.dedent(
                     """\
-                    2 affected packages are installed: curl, slsrc
+                    2 affected source packages are installed: curl, slsrc
                     (1/2) curl:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -1181,7 +1181,7 @@ class TestPromptForAffectedPackages:
                 ("gcp", None),
                 textwrap.dedent(
                     """\
-                    15 affected packages are installed: {}
+                    15 affected source packages are installed: {}
                     (1/15, 2/15, 3/15) pkg1, pkg2, pkg9:
                     Sorry, no fix is available.
                     (4/15, 5/15) pkg7, pkg8:
@@ -1195,9 +1195,9 @@ class TestPromptForAffectedPackages:
                     """
                 ).format(
                     (
-                        "pkg1, pkg10, pkg11, pkg12, pkg13, pkg14,\n"
-                        "    pkg15, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8, "
-                        "pkg9"
+                        "pkg1, pkg10, pkg11, pkg12, pkg13,\n"
+                        "    pkg14, pkg15, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7,"
+                        " pkg8, pkg9"
                     )
                 )
                 + colorize_commands(
@@ -1249,7 +1249,7 @@ class TestPromptForAffectedPackages:
                 ("gcp", None),
                 textwrap.dedent(
                     """\
-                    9 affected packages are installed: {}
+                    9 affected source packages are installed: {}
                     (1/9, 2/9, 3/9) pkg1, pkg2, pkg9:
                     Sorry, no fix is available.
                     (4/9, 5/9) pkg7, pkg8:
@@ -1260,8 +1260,8 @@ class TestPromptForAffectedPackages:
                     A fix is coming soon. Try again tomorrow.
                     """
                 ).format(
-                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7,\n"
-                    "    pkg8, pkg9"
+                    "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6,\n"
+                    "    pkg7, pkg8, pkg9"
                 )
                 + "9 packages are still affected: {}".format(
                     "pkg1, pkg2, pkg3, pkg4, pkg5, pkg6, pkg7, pkg8,\n"
@@ -1315,7 +1315,7 @@ class TestPromptForAffectedPackages:
                 },
                 ("gcp", None),
                 """\
-5 affected packages are installed: longpackagename1, longpackagename2,
+5 affected source packages are installed: longpackagename1, longpackagename2,
     longpackagename3, longpackagename4, longpackagename5
 (1/5, 2/5, 3/5, 4/5, 5/5) longpackagename1, longpackagename2, longpackagename3,
     longpackagename4, longpackagename5:
@@ -1405,7 +1405,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 },
                 textwrap.dedent(
                     """\
-                    3 affected packages are installed: pkg1, pkg2, pkg3
+                    3 affected source packages are installed: pkg1, pkg2, pkg3
                     (1/3) pkg2:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -1525,7 +1525,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 },
                 textwrap.dedent(
                     """\
-                    3 affected packages are installed: pkg1, pkg2, pkg3
+                    3 affected source packages are installed: pkg1, pkg2, pkg3
                     (1/3) pkg1:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -1588,7 +1588,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in UA Infra.
                     """
@@ -1686,7 +1686,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in UA Infra.
                     """
@@ -1781,7 +1781,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in UA Infra.
                     """
@@ -1872,7 +1872,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in UA Infra.
                     """
@@ -1963,7 +1963,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in UA Infra.
                     """
@@ -2035,7 +2035,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"pkg1": {"pkg1": {"version": "2.0"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: pkg1
+                    1 affected source package is installed: pkg1
                     (1/1) pkg1:
                     A fix is available in Ubuntu standard updates.
                     """
@@ -2111,7 +2111,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 {"slsrc": {"sl": {"version": "2.1"}}},
                 textwrap.dedent(
                     """\
-                    1 affected package is installed: slsrc
+                    1 affected source package is installed: slsrc
                     (1/1) slsrc:
                     A fix is available in Ubuntu standard updates.
                     The update is already installed.

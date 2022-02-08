@@ -279,7 +279,7 @@ Feature: Command behaviour when unattached
             USN-4539-1: AWL vulnerability
             Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
-            1 affected package is installed: awl
+            1 affected source package is installed: awl
             \(1/1\) awl:
             A fix is available in Ubuntu standard updates.
             .*\{ apt update && apt install --only-upgrade -y libawl-php \}.*
@@ -290,7 +290,7 @@ Feature: Command behaviour when unattached
             """
             CVE-2020-28196: Kerberos vulnerability
             https://ubuntu.com/security/CVE-2020-28196
-            1 affected package is installed: krb5
+            1 affected source package is installed: krb5
             \(1/1\) krb5:
             A fix is available in Ubuntu standard updates.
             The update is already installed.
@@ -314,7 +314,7 @@ Feature: Command behaviour when unattached
             USN-4539-1: AWL vulnerability
             Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
-            1 affected package is installed: awl
+            1 affected source package is installed: awl
             \(1/1\) awl:
             Sorry, no fix is available.
             1 package is still affected: awl
@@ -325,7 +325,7 @@ Feature: Command behaviour when unattached
             """
             CVE-2020-15180: MariaDB vulnerabilities
             https://ubuntu.com/security/CVE-2020-15180
-            No affected packages are installed.
+            No affected source packages are installed.
             .*✔.* CVE-2020-15180 does not affect your system.
             """
         When I run `ua fix CVE-2020-28196` as non-root
@@ -333,7 +333,7 @@ Feature: Command behaviour when unattached
             """
             CVE-2020-28196: Kerberos vulnerability
             https://ubuntu.com/security/CVE-2020-28196
-            1 affected package is installed: krb5
+            1 affected source package is installed: krb5
             \(1/1\) krb5:
             A fix is available in Ubuntu standard updates.
             The update is already installed.
@@ -345,7 +345,7 @@ Feature: Command behaviour when unattached
             """
             CVE-2017-9233: Expat vulnerability
             https://ubuntu.com/security/CVE-2017-9233
-            3 affected packages are installed: expat, matanza, swish-e
+            3 affected source packages are installed: expat, matanza, swish-e
             \(1/3, 2/3\) matanza, swish-e:
             Sorry, no fix is available.
             \(3/3\) expat:
@@ -361,7 +361,7 @@ Feature: Command behaviour when unattached
             Found CVEs:
             https://ubuntu.com/security/CVE-2021-22946
             https://ubuntu.com/security/CVE-2021-22947
-            1 affected package is installed: curl
+            1 affected source package is installed: curl
             \(1/1\) curl:
             A fix is available in UA Infra.
             The update is not installed because this system is not attached to a
@@ -386,7 +386,7 @@ Feature: Command behaviour when unattached
             USN-5051-2: OpenSSL vulnerability
             Found CVEs:
             https://ubuntu.com/security/CVE-2021-3712
-            1 affected package is installed: openssl
+            1 affected source package is installed: openssl
             \(1/1\) openssl:
             A fix is available in UA Infra.
             .*\{ apt update && apt install --only-upgrade -y libssl1.0.0 openssl \}.*
@@ -431,7 +431,7 @@ Feature: Command behaviour when unattached
             USN-4539-1: AWL vulnerability
             Found CVEs:
             https://ubuntu.com/security/CVE-2020-11728
-            1 affected package is installed: awl
+            1 affected source package is installed: awl
             \(1/1\) awl:
             Ubuntu security engineers are investigating this issue.
             1 package is still affected: awl
@@ -442,7 +442,7 @@ Feature: Command behaviour when unattached
             """
             CVE-2020-28196: Kerberos vulnerability
             https://ubuntu.com/security/CVE-2020-28196
-            1 affected package is installed: krb5
+            1 affected source package is installed: krb5
             \(1/1\) krb5:
             A fix is available in Ubuntu standard updates.
             The update is already installed.
@@ -454,7 +454,7 @@ Feature: Command behaviour when unattached
         """
         CVE-2021-27135: xterm vulnerability
         https://ubuntu.com/security/CVE-2021-27135
-        1 affected package is installed: xterm
+        1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         Package fixes cannot be installed.
@@ -467,7 +467,7 @@ Feature: Command behaviour when unattached
         """
         CVE-2021-27135: xterm vulnerability
         https://ubuntu.com/security/CVE-2021-27135
-        1 affected package is installed: xterm
+        1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         .*\{ apt update && apt install --only-upgrade -y xterm \}.*
@@ -478,7 +478,7 @@ Feature: Command behaviour when unattached
         """
         CVE-2021-27135: xterm vulnerability
         https://ubuntu.com/security/CVE-2021-27135
-        1 affected package is installed: xterm
+        1 affected source package is installed: xterm
         \(1/1\) xterm:
         A fix is available in Ubuntu standard updates.
         The update is already installed.
