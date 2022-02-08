@@ -208,7 +208,7 @@ MESSAGE_SECURITY_ISSUE_UNAFFECTED = (
     OKGREEN_CHECK + " {issue} does not affect your system."
 )
 MESSAGE_SECURITY_AFFECTED_PKGS = (
-    "{count} affected package{plural_str} installed"
+    "{count} affected source package{plural_str} installed"
 )
 MESSAGE_USN_FIXED = "{issue} is addressed."
 MESSAGE_CVE_FIXED = "{issue} is resolved."
