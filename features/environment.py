@@ -75,6 +75,8 @@ class UAClientBehaveConfig:
     source of truth for test configuration (rather than having environment
     variable handling throughout the test code).
 
+    :param cloud_credentials_path:
+        Optional path the pycloudlib file containing the cloud credentials
     :param contract_token:
         A valid contract token to use during attach scenarios
     :param contract_token_staging:
@@ -120,14 +122,7 @@ class UAClientBehaveConfig:
         "snapshot_strategy",
     ]
     str_options = [
-        "aws_access_key_id",
-        "aws_secret_access_key",
-        "az_client_id",
-        "az_client_secret",
-        "az_tenant_id",
-        "az_subscription_id",
-        "gcp_credentials_path",
-        "gcp_project",
+        "cloud_credentials_path",
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
@@ -144,12 +139,6 @@ class UAClientBehaveConfig:
         "sbuild_chroot",
     ]
     redact_options = [
-        "aws_access_key_id",
-        "aws_secret_access_key",
-        "az_client_id",
-        "az_client_secret",
-        "az_tenant_id",
-        "az_subscription_id",
         "contract_token",
         "contract_token_staging",
         "contract_token_staging_expired",
@@ -164,14 +153,7 @@ class UAClientBehaveConfig:
     def __init__(
         self,
         *,
-        aws_access_key_id: str = None,
-        aws_secret_access_key: str = None,
-        az_client_id: str = None,
-        az_client_secret: str = None,
-        az_tenant_id: str = None,
-        az_subscription_id: str = None,
-        gcp_credentials_path: str = None,
-        gcp_project: str = None,
+        cloud_credentials_path: str = None,
         build_pr: bool = False,
         image_clean: bool = True,
         destroy_instances: bool = True,
@@ -196,14 +178,7 @@ class UAClientBehaveConfig:
         cmdline_tags: List = []
     ) -> None:
         # First, store the values we've detected
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
-        self.az_client_id = az_client_id
-        self.az_client_secret = az_client_secret
-        self.az_tenant_id = az_tenant_id
-        self.az_subscription_id = az_subscription_id
-        self.gcp_credentials_path = gcp_credentials_path
-        self.gcp_project = gcp_project
+        self.cloud_credentials_path = cloud_credentials_path
         self.build_pr = build_pr
         self.cache_source = cache_source
         self.enable_proposed = enable_proposed
@@ -239,12 +214,6 @@ class UAClientBehaveConfig:
                 print(" Reuse_image specified, it will not be deleted.")
 
         ignore_vars = ()  # type: Tuple[str, ...]
-        if "aws" not in self.machine_type:
-            ignore_vars += cloud.EC2.env_vars
-        if "azure" not in self.machine_type:
-            ignore_vars += cloud.Azure.env_vars
-        if "gcp" not in self.machine_type:
-            ignore_vars += cloud.GCP.env_vars
         if "pro" in self.machine_type:
             ignore_vars += (
                 "UACLIENT_BEHAVE_CONTRACT_TOKEN",
@@ -281,39 +250,38 @@ class UAClientBehaveConfig:
         timed_job_tag += "-" + random_suffix
 
         if "aws" in self.machine_type:
+            # For AWS, we need to specify on the pycloudlib config file that
+            # the AWS region must be us-east-2. The reason for that is because
+            # our image ids were captured using that region.
             self.cloud_manager = cloud.EC2(
-                aws_access_key_id,
-                aws_secret_access_key,
-                region=os.environ.get("AWS_DEFAULT_REGION", "us-east-2"),
                 machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
         elif "azure" in self.machine_type:
             self.cloud_manager = cloud.Azure(
-                az_client_id=az_client_id,
-                az_client_secret=az_client_secret,
-                az_tenant_id=az_tenant_id,
-                az_subscription_id=az_subscription_id,
                 machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
             )
         elif "gcp" in self.machine_type:
             self.cloud_manager = cloud.GCP(
                 machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
                 tag=timed_job_tag,
                 timestamp_suffix=False,
-                gcp_credentials_path=self.gcp_credentials_path,
-                gcp_project=gcp_project,
             )
         elif "lxd.vm" in self.machine_type:
             self.cloud_manager = cloud.LXDVirtualMachine(
-                machine_type=self.machine_type
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
             )
         else:
             self.cloud_manager = cloud.LXDContainer(
-                machine_type=self.machine_type
+                machine_type=self.machine_type,
+                cloud_credentials_path=self.cloud_credentials_path,
             )
 
         self.cloud_api = self.cloud_manager.api
@@ -432,22 +400,8 @@ def _should_skip_tags(context: Context, tags: List) -> str:
                 curr_machine_type = ".".join(parts[idx + 1 :])
                 machine_types.append(curr_machine_type)
                 if curr_machine_type == machine_type:
-                    if machine_type.startswith("lxd"):
-                        return ""
-
-                    cloud_manager = context.config.cloud_manager
-                    if cloud_manager and cloud_manager.missing_env_vars():
-                        return "".join(
-                            (
-                                "Skipped: {} machine_type requires:\n".format(
-                                    machine_type
-                                ),
-                                *cloud_manager.format_missing_env_vars(
-                                    cloud_manager.missing_env_vars()
-                                ),
-                            )
-                        )
                     return ""
+
                 break
             if val is None:
                 return "Skipped: tag value was None: {}".format(tag)

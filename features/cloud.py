@@ -2,15 +2,20 @@ import json
 import logging
 import os
 import time
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import pycloudlib  # type: ignore
+import toml
 import yaml
+
+DEFAULT_CONFIG_PATH = "~/.config/pycloudlib.toml"
 
 
 class Cloud:
     """Base class for cloud providers that should be tested through behave.
 
+    :cloud_credentials_path:
+        A string containing the path for the pycloudlib cloud credentials file
     :machine_type:
         A string representing the type of machine to launch (pro or generic)
     :region:
@@ -24,12 +29,11 @@ class Cloud:
 
     name = ""
     pro_ids_path = ""
-    env_vars: Tuple[str, ...] = ()
 
     def __init__(
         self,
         machine_type: str,
-        region: Optional[str] = None,
+        cloud_credentials_path: Optional[str],
         tag: Optional[str] = None,
         timestamp_suffix: bool = True,
     ) -> None:
@@ -38,29 +42,27 @@ class Cloud:
         else:
             self.tag = "uaclient-ci"
         self.machine_type = machine_type
-        self.region = region
         self._api = None
         self.key_name = pycloudlib.util.get_timestamped_tag(self.tag)
         self.timestamp_suffix = timestamp_suffix
+        self.cloud_credentials_path = cloud_credentials_path
 
-        missing_env_vars = self.missing_env_vars()
-        if missing_env_vars:
-            logging.warning(
-                "".join(
-                    [
-                        "UACLIENT_BEHAVE_MACHINE_TYPE={} requires".format(
-                            self.machine_type
-                        ),
-                        " the following env vars:\n",
-                        *self.format_missing_env_vars(missing_env_vars),
-                    ]
-                )
-            )
+    @property
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        raise NotImplementedError
 
     @property
     def api(self) -> pycloudlib.cloud.BaseCloud:
         """Return the api used to interact with the cloud provider."""
-        raise NotImplementedError
+        if self._api is None:
+            self._api = self.pycloudlib_cls(
+                config_file=self.cloud_credentials_path,
+                tag=self.tag,
+                timestamp_suffix=self.timestamp_suffix,
+            )
+
+        return self._api
 
     def _create_instance(
         self,
@@ -178,28 +180,6 @@ class Cloud:
         """
         return instance.id
 
-    def format_missing_env_vars(self, missing_env_vars: List) -> List[str]:
-        """Format missing env vars to be displayed in log.
-
-        :returns:
-            A list of env string formatted to be used when logging
-        """
-        return [" - {}\n".format(env_var) for env_var in missing_env_vars]
-
-    def missing_env_vars(self) -> List[str]:
-        """Return a list of env variables necessary for this cloud provider.
-
-        :returns:
-            A list of string representing the missing variables
-        """
-        return [
-            env_name
-            for env_name in self.env_vars
-            if not getattr(
-                self, env_name.lower().replace("uaclient_behave_", "")
-            )
-        ]
-
     def locate_image_name(self, series: str) -> str:
         """Locate and return the image name to use for vm provision.
 
@@ -260,61 +240,15 @@ class Cloud:
 
 
 class EC2(Cloud):
-    """Class that represents the EC2 cloud provider.
-
-    :param aws_access_key_id:
-        The aws access key id
-    :param aws_secret_access_key:
-        The aws secret access key
-    :region:
-        The region to be used to create the aws instances
-    :machine_type:
-        A string representing the type of machine to launch (pro or generic)
-    :tag:
-        A tag to be used when creating the resources on the cloud provider
-    :timestamp_suffix:
-        Boolean set true to direct pycloudlib to append a timestamp to the end
-        of the provided tag.
-    """
+    """Class that represents the EC2 cloud provider."""
 
     name = "aws"
-    env_vars: Tuple[str, ...] = ("aws_access_key_id", "aws_secret_access_key")
     pro_ids_path = "features/aws-ids.yaml"
 
-    def __init__(
-        self,
-        aws_access_key_id: Optional[str],
-        aws_secret_access_key: Optional[str],
-        machine_type: str,
-        region: Optional[str] = "us-east-2",
-        tag: Optional[str] = None,
-        timestamp_suffix: bool = True,
-    ) -> None:
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
-        logging.basicConfig(
-            filename="pycloudlib-behave.log", level=logging.DEBUG
-        )
-        super().__init__(
-            region=region,
-            machine_type=machine_type,
-            tag=tag,
-            timestamp_suffix=timestamp_suffix,
-        )
-
     @property
-    def api(self) -> pycloudlib.cloud.BaseCloud:
-        """Return the api used to interact with the cloud provider."""
-        if self._api is None:
-            self._api = pycloudlib.EC2(
-                tag=self.tag,
-                access_key_id=self.aws_access_key_id,
-                secret_access_key=self.aws_secret_access_key,
-                region=self.region,
-                timestamp_suffix=self.timestamp_suffix,
-            )
-
-        return self._api
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        return pycloudlib.EC2
 
     def manage_ssh_key(
         self,
@@ -397,73 +331,15 @@ class EC2(Cloud):
 
 
 class Azure(Cloud):
-    """Class that represents the Azure cloud provider.
-
-    :param az_client_id:
-        The Azure client id
-    :param az_client_secret
-        The Azure client secret
-    :param az_tenant_id:
-        The Azure tenant id
-    :param az_subscription_id:
-        The Azure subscription id
-    :machine_type:
-        A string representing the type of machine to launch (pro or generic)
-    :region:
-        The region to create the resources on
-    :tag:
-        A tag to be used when creating the resources on the cloud provider
-    :timestamp_suffix:
-        Boolean set true to direct pycloudlib to append a timestamp to the end
-        of the provided tag.
-    """
+    """Class that represents the Azure cloud provider."""
 
     name = "Azure"
-    env_vars: Tuple[str, ...] = (
-        "az_client_id",
-        "az_client_secret",
-        "az_tenant_id",
-        "az_subscription_id",
-    )
     pro_ids_path = "features/azure-ids.yaml"
 
-    def __init__(
-        self,
-        machine_type: str,
-        region: Optional[str] = "centralus",
-        tag: Optional[str] = None,
-        timestamp_suffix: bool = True,
-        az_client_id: Optional[str] = None,
-        az_client_secret: Optional[str] = None,
-        az_tenant_id: Optional[str] = None,
-        az_subscription_id: Optional[str] = None,
-    ) -> None:
-        self.az_client_id = az_client_id
-        self.az_client_secret = az_client_secret
-        self.az_tenant_id = az_tenant_id
-        self.az_subscription_id = az_subscription_id
-
-        super().__init__(
-            machine_type=machine_type,
-            region=region,
-            tag=tag,
-            timestamp_suffix=timestamp_suffix,
-        )
-
     @property
-    def api(self) -> pycloudlib.cloud.BaseCloud:
-        """Return the api used to interact with the cloud provider."""
-        if self._api is None:
-            self._api = pycloudlib.Azure(
-                tag=self.tag,
-                client_id=self.az_client_id,
-                client_secret=self.az_client_secret,
-                tenant_id=self.az_tenant_id,
-                subscription_id=self.az_subscription_id,
-                timestamp_suffix=self.timestamp_suffix,
-            )
-
-        return self._api
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        return pycloudlib.Azure
 
     def get_instance_id(
         self, instance: pycloudlib.instance.BaseInstance
@@ -559,57 +435,54 @@ class Azure(Cloud):
 
 
 class GCP(Cloud):
+    """Class that represents the Google Cloud Platform cloud provider."""
+
     name = "gcp"
     pro_ids_path = "features/gcp-ids.yaml"
+    cls_type = pycloudlib.GCE
 
-    """Class that represents the Google Cloud Platform cloud provider.
-
-    :param gcp_credentials_path
-        The GCP credentials path to use when authentiacting to GCP
-    :param gcp_project
-        The name of the GCP project to be used
-    :machine_type:
-        A string representing the type of machine to launch (pro or generic)
-    :region:
-        The region to create the resources on
-    :tag:
-        A tag to be used when creating the resources on the cloud provider
-    :timestamp_suffix:
-        Boolean set true to direct pycloudlib to append a timestamp to the end
-        of the provided tag.
-    """
-
-    env_vars: Tuple[str, ...] = ("gcp_credentials_path", "gcp_project")
+    @property
+    def pycloudlib_cls(self):
+        """Return the pycloudlib cls to be used as an api."""
+        return pycloudlib.GCE
 
     def __init__(
         self,
         machine_type: str,
-        region: Optional[str] = "us-west2",
+        cloud_credentials_path: Optional[str],
         tag: Optional[str] = None,
         timestamp_suffix: bool = True,
-        zone: Optional[str] = "a",
-        gcp_credentials_path: Optional[str] = None,
-        gcp_project: Optional[str] = None,
     ) -> None:
-        self.gcp_credentials_path = gcp_credentials_path
-        self.gcp_project = gcp_project
-        self.zone = zone
-
         super().__init__(
             machine_type=machine_type,
-            region=region,
+            cloud_credentials_path=cloud_credentials_path,
             tag=tag,
             timestamp_suffix=timestamp_suffix,
         )
-
         self._set_service_account_email()
 
     def _set_service_account_email(self):
         """Set service account email if credentials provided."""
+        credentials_path = (
+            self.cloud_credentials_path
+            or os.getenv("PYCLOUDLIB_CONFIG")
+            or DEFAULT_CONFIG_PATH
+        )
         json_credentials = {}
 
-        if self.gcp_credentials_path:
-            with open(self.gcp_credentials_path, "r") as f:
+        try:
+            credentials = toml.load(os.path.expanduser(credentials_path))
+        except toml.TomlDecodeError:
+            raise ValueError(
+                "Could not parse configuration file pointed to by "
+                "{}".format(credentials_path)
+            )
+
+        gcp_credentials_path = credentials.get("gce", {}).get(
+            "credentials_path"
+        )
+        if gcp_credentials_path:
+            with open(gcp_credentials_path, "r") as f:
                 json_credentials = json.load(f)
 
         self.service_account_email = json_credentials.get("client_email")
@@ -618,13 +491,10 @@ class GCP(Cloud):
     def api(self) -> pycloudlib.cloud.BaseCloud:
         """Return the api used to interact with the cloud provider."""
         if self._api is None:
-            self._api = pycloudlib.GCE(
+            self._api = self.pycloudlib_cls(
+                config_file=self.cloud_credentials_path,
                 tag=self.tag,
                 timestamp_suffix=self.timestamp_suffix,
-                credentials_path=self.gcp_credentials_path,
-                project=self.gcp_project,
-                zone=self.zone,
-                region=self.region,
                 service_account_email=self.service_account_email,
             )
 
@@ -671,25 +541,6 @@ class GCP(Cloud):
 
 class _LXD(Cloud):
     name = "_lxd"
-
-    def __init__(
-        self,
-        machine_type: str,
-        region: Optional[str] = None,
-        tag: Optional[str] = None,
-        timestamp_suffix: bool = True,
-    ) -> None:
-        super().__init__(
-            machine_type=machine_type,
-            region=region,
-            tag=tag,
-            timestamp_suffix=timestamp_suffix,
-        )
-
-    @property
-    def pycloudlib_cls(self):
-        """Return the pycloudlib cls to be used as an api."""
-        raise NotImplementedError
 
     def _create_instance(
         self,
@@ -778,16 +629,6 @@ class _LXD(Cloud):
 
         image_name = self.api.daily_image(release=series)
         return image_name
-
-    @property
-    def api(self) -> pycloudlib.cloud.BaseCloud:
-        """Return the api used to interact with the cloud provider."""
-        if self._api is None:
-            self._api = self.pycloudlib_cls(
-                tag=self.tag, timestamp_suffix=self.timestamp_suffix
-            )
-
-        return self._api
 
 
 class LXDVirtualMachine(_LXD):
