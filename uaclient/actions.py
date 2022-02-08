@@ -44,6 +44,10 @@ def attach_with_token(
         update_apt_and_motd_messages(cfg)
         raise exc
 
+    current_iid = identity.get_instance_id()
+    if current_iid:
+        cfg.write_cache("instance-id", current_iid)
+
     update_apt_and_motd_messages(cfg)
 
 
@@ -69,9 +73,6 @@ def auto_attach(
                 ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
             )
         raise e
-    current_iid = identity.get_instance_id()
-    if current_iid:
-        cfg.write_cache("instance-id", current_iid)
 
     token = tokenResponse["contractToken"]
 
