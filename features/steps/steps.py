@@ -19,6 +19,7 @@ from hamcrest import (
 )
 
 from features.environment import (
+    build_debs_from_sbuild,
     capture_container_as_image,
     create_instance_with_uat_installed,
 )
@@ -130,6 +131,18 @@ def given_a_machine(context, series):
     logging.info(
         "--- instance ip: {}".format(context.instances["uaclient"].ip)
     )
+
+
+@when("I have the `{series}` debs under test in `{dest}`")
+def when_i_have_the_debs_under_test(context, series, dest):
+    if not context.config.build_pr:
+        return
+    deb_paths = build_debs_from_sbuild(context, series)
+
+    for deb_path in deb_paths:
+        tools_or_pro = "tools" if "tools" in deb_path else "pro"
+        dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
+        context.instances["uaclient"].push_file(deb_path, dest_path)
 
 
 @when(
@@ -310,6 +323,11 @@ def when_i_run_command(
     context.process = process
 
 
+@when("I run shell command `{command}` {user_spec}")
+def when_i_run_shell_command(context, command, user_spec):
+    when_i_run_command(context, 'sh -c "{}"'.format(command), user_spec)
+
+
 @when("I fix `{issue}` by attaching to a subscription with `{token_type}`")
 def when_i_fix_a_issue_by_attaching(context, issue, token_type):
     token = getattr(context.config, token_type)
@@ -476,8 +494,24 @@ def when_i_wait(context, seconds):
     time.sleep(int(seconds))
 
 
+@when(
+    "I replace `{original}` in `{filename}` with `{new}` if `{config_var}` else `{else_new}`"  # noqa: E501
+)
+def when_i_replace_string_in_file_if_config(
+    context, original, filename, new, config_var, else_new
+):
+    if getattr(context.config, config_var):
+        new_var = new
+    else:
+        new_var = else_new
+    when_i_replace_string_in_file(context, original, filename, new_var)
+
+
 @when("I replace `{original}` in `{filename}` with `{new}`")
 def when_i_replace_string_in_file(context, original, filename, new):
+    new = new.replace("\\", r"\\")
+    new = new.replace("/", r"\/")
+    new = new.replace("&", r"\&")
     when_i_run_command(
         context,
         "sed -i 's/{original}/{new}/' {filename}".format(
@@ -493,6 +527,45 @@ def when_i_replace_string_in_file_with_token(
 ):
     token = getattr(context.config, token_name)
     when_i_replace_string_in_file(context, original, filename, token)
+
+
+@when(
+    "I replace `{original}` in `{filename}` with commands to install the `{series}` ua version under test"  # noqa: E501
+)
+def when_i_replace_string_in_file_with_install_commands(
+    context, original, filename, series
+):
+    if context.config.build_pr:
+        commands = "dpkg -i /ua.deb"
+    elif context.config.enable_proposed:
+        commands = (
+            'printf "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main" > /etc/apt/sources.list.d/uaclient-proposed.list'  # noqa: E501
+            " && "
+            'printf "Package: *\\nPin: release a={series}-proposed\\nPin-Priority: 400\\n" > /etc/apt/preferences.d/lower-proposed'  # noqa: E501
+            " && "
+            'printf "Package: ubuntu-advantage-tools\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n" > /etc/apt/preferences.d/uaclient-proposed'  # noqa: E501
+            " && "
+            "apt-get update"
+            " && "
+            "apt-get install -y ubuntu-advantage-tools"
+        ).format(series=series)
+    else:
+        commands = (
+            'printf "deb {ppa} {series} main" > /etc/apt/sources.list.d/uaclient-ppa.list'  # noqa: E501
+            " && "
+        ).format(ppa=context.config.ppa, series=series)
+        if series != "xenial":
+            commands += "apt-get install -y gnupg" " && "
+        commands += (
+            "apt-key adv --keyserver keyserver.ubuntu.com --recv-key {key}"
+            " && "
+        ).format(key=context.config.ppa_keyid)
+        if series != "xenial":
+            commands += "apt-get purge --auto-remove -y gnupg" " && "
+        commands += (
+            "apt-get update" " && " "apt-get install -y ubuntu-advantage-tools"
+        )
+    when_i_replace_string_in_file(context, original, filename, commands)
 
 
 @then("I will see the following on stdout")
@@ -881,6 +954,127 @@ def stdout_matches_the_json_schema(context, output_format, schema):
         )
     with open("features/schemas/{}.json".format(schema), "r") as schema_file:
         jsonschema.validate(instance=instance, schema=json.load(schema_file))
+
+
+@then("`{file_name}` is not present in any docker image layer")
+def file_is_not_present_in_any_docker_image_layer(context, file_name):
+    when_i_run_command(context, "ls -1R /var/lib/docker/overlay2", "with sudo")
+
+    filename_regex = r"^(.+):\n(.*[^:]\n)*({file_name})".format(
+        file_name=file_name
+    )
+    match = re.search(
+        filename_regex, context.process.stdout, flags=re.MULTILINE
+    )
+
+    if match:
+        raise AssertionError(
+            '"{}" found in "{}"'.format(file_name, match.group(1))
+        )
+
+
+# This defines "not significantly larger" as "less than 2MB larger"
+@then(
+    "docker image `{name}` is not significantly larger than `ubuntu:{series}` with `{package}` installed"  # noqa: E501
+)
+def docker_image_is_not_larger(context, name, series, package):
+    base_image_name = "ubuntu:{}".format(series)
+    base_upgraded_image_name = "{}-upgraded".format(series)
+
+    # We need to commpare against the base image after apt upgrade
+    # and package install
+    dockerfile = """\
+    FROM {}
+    RUN apt-get update \
+      && apt-get upgrade -y \
+      && apt-get install -y {} \
+      && rm -rf /var/lib/apt/lists/*
+    """.format(
+        base_image_name, package
+    )
+    context.text = dockerfile
+    when_i_create_file_with_content(context, "Dockerfile.base")
+    when_i_run_command(
+        context,
+        "docker build . -f Dockerfile.base -t {}".format(
+            base_upgraded_image_name
+        ),
+        "with sudo",
+    )
+
+    # find image sizes
+    when_i_run_command(
+        context,
+        'docker images --format "{{.Repository}}:{{.Tag}} {{.Size}}"',
+        "with sudo",
+    )
+    custom_image_line = ""
+    base_image_line = ""
+    for line in context.process.stdout.strip().split("\n"):
+        if line.startswith("{}:latest".format(name)):
+            custom_image_line = line
+        if line.startswith("{}:latest".format(base_upgraded_image_name)):
+            base_image_line = line
+        if custom_image_line and base_image_line:
+            break
+    if not custom_image_line or not base_image_line:
+        raise AssertionError(
+            "Couldn't find the image sizes in output:\n{}".format(
+                context.process.stdout
+            )
+        )
+
+    pattern = r".*:.* ([\d.]+)(\w+)"
+    custom_image_match = re.match(pattern, custom_image_line)
+    base_image_match = re.match(pattern, base_image_line)
+    if not custom_image_match:
+        raise AssertionError(
+            'Image size regex failed for "{}"'.format(custom_image_line)
+        )
+    if not base_image_match:
+        raise AssertionError(
+            'Image size regex failed for "{}"'.format(base_image_line)
+        )
+
+    custom_image_size_unit = custom_image_match.group(2)
+    base_image_size_unit = base_image_match.group(2)
+    # Unlikely that we'll ever want something other than MB here
+    if custom_image_size_unit != "MB":
+        raise AssertionError(
+            "Custom image size is not in MB ({})".format(
+                custom_image_size_unit
+            )
+        )
+    if base_image_size_unit != "MB":
+        raise AssertionError(
+            "Base image size is not in MB ({})".format(base_image_size_unit)
+        )
+
+    custom_image_size = float(custom_image_match.group(1)) * 1024  # MB -> KB
+    base_image_size = float(base_image_match.group(1)) * 1024  # MB -> KB
+
+    # Get ua test deb size
+    if context.config.build_pr:
+        when_i_run_command(
+            context, "du ubuntu-advantage-tools.deb", "with sudo"
+        )
+        # Example out: "1234\tubuntu-advantage-tools.deb"
+        ua_test_deb_size = int(
+            context.process.stdout.strip().split("\t")[0]
+        )  # KB
+    else:
+        ua_test_deb_size = 0
+
+    # Give us some space for bloat we don't control
+    extra_space = 2048
+
+    if custom_image_size > (base_image_size + ua_test_deb_size + extra_space):
+        raise AssertionError(
+            "Custom image size ({}) is over 2MB greater than the base image"
+            " size ({}) + ua test deb size ({})".format(
+                custom_image_size, base_image_size, ua_test_deb_size
+            )
+        )
 
 
 def get_command_prefix_for_user_spec(user_spec):
