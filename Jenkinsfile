@@ -7,24 +7,14 @@ pipeline {
         UACLIENT_BEHAVE_JENKINS_CHANGE_ID = "${CHANGE_ID}"
         UACLIENT_BEHAVE_BUILD_PR=1
         UACLIENT_BEHAVE_CONTRACT_TOKEN = credentials('ua-contract-token')
-        UACLIENT_BEHAVE_AWS_ACCESS_KEY_ID = credentials('ua-aws-access-key-id')
-        UACLIENT_BEHAVE_AWS_SECRET_ACCESS_KEY = credentials(
-            'ua-aws-secret-access-key'
-        )
-        UACLIENT_BEHAVE_AZ_CLIENT_ID = credentials('ua-azure-client-id')
-        UACLIENT_BEHAVE_AZ_CLIENT_SECRET = credentials(
-            'ua-azure-client-secret'
-        )
-        UACLIENT_BEHAVE_AZ_TENANT_ID = credentials('ua-azure-tenant')
-        UACLIENT_BEHAVE_AZ_SUBSCRIPTION_ID = credentials(
-            'ua-azure-subscription-id'
-        )
         UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING = credentials(
             'ua-contract-token-staging'
         )
-        UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED = credentials(
-            'ua-contract-token-staging-expired'
+        PYCLOUDLIB_CONFIG = credentials(
+            'pycloudlib-config'
         )
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('ua-gce-account')
+        AZURE_CONFIG_DIR="$TMPDIR/azure-config"
         JOB_SUFFIX = sh(returnStdout: true, script: "basename ${JOB_NAME}| cut -d'-' -f2").trim()
     }
 
