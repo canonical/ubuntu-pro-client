@@ -484,6 +484,20 @@ Feature: Command behaviour when unattached
         The update is already installed.
         .*✔.* CVE-2021-27135 is resolved.
         """
+        When I run `apt-get install libbz2-1.0=1.0.6-8.1 -y --allow-downgrades` with sudo
+        And I run `apt-get install bzip2=1.0.6-8.1 -y` with sudo
+        And I run `ua fix USN-4038-3` with sudo
+        Then stdout matches regexp:
+        """
+        USN-4038-3: bzip2 regression
+        Found Launchpad bugs:
+        https://launchpad.net/bugs/1834494
+        1 affected source package is installed: bzip2
+        \(1/1\) bzip2:
+        A fix is available in Ubuntu standard updates.
+        .*\{ apt update && apt install --only-upgrade -y bzip2 libbz2-1.0 \}.*
+        .*✔.* USN-4038-3 is resolved.
+        """
 
 
     @series.all
