@@ -1,5 +1,6 @@
 import copy
 import textwrap
+from collections import defaultdict
 
 import mock
 import pytest
@@ -19,6 +20,8 @@ from uaclient.security import (
     UASecurityClient,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
+    get_related_usns,
+    get_usn_affected_packages_status,
     merge_usn_released_binary_package_versions,
     override_usn_release_package_status,
     prompt_for_affected_packages,
@@ -165,6 +168,34 @@ SAMPLE_USN_RESPONSE = {
     },
     "summary": "Samba would allow unintended access to files over the ....\n",
     "title": "Samba vulnerability",
+    "type": "USN",
+}
+
+SAMPLE_USN_RESPONSE_NO_CVES = {
+    "cves_ids": [],
+    "id": "USN-4038-3",
+    "instructions": "In general, a standard system update will make all ...\n",
+    "references": ["https://launchpad.net/bugs/1834494"],
+    "release_packages": {
+        "bionic": [
+            {
+                "description": "high-level 3D graphics kit implementing ...",
+                "is_source": True,
+                "name": "coin3",
+                "version": "3.1.4~abc9f50-4ubuntu2+esm1",
+            },
+            {
+                "is_source": False,
+                "name": "libcoin80-runtime",
+                "source_link": "https://launchpad.net/ubuntu/+source/coin3",
+                "version": "3~18.04.1+esm2",
+                "version_link": "https://coin3...18.04.1+esm2",
+                "pocket": "security",
+            },
+        ]
+    },
+    "summary": "",
+    "title": "USN vulnerability",
     "type": "USN",
 }
 
@@ -516,6 +547,15 @@ https://ubuntu.com/security/CVE-2020-1473
 https://ubuntu.com/security/CVE-2020-1472
 https://ubuntu.com/security/CVE-2020-1473
 https://ubuntu.com/security/CVE-2020-1472""",
+            ),
+            (
+                SAMPLE_USN_RESPONSE_NO_CVES,
+                textwrap.dedent(
+                    """\
+                    USN-4038-3: USN vulnerability
+                    Found Launchpad bugs:
+                    https://launchpad.net/bugs/1834494"""
+                ),
             ),
         ),
     )
@@ -2186,6 +2226,62 @@ class TestUpgradePackagesAndAttach:
             assert m_subp.call_count == 0
 
 
+class TestGetRelatedUSNs:
+    def test_original_usn_returned_when_no_cves_are_found(self, FakeConfig):
+        cfg = FakeConfig()
+        client = UASecurityClient(cfg=cfg)
+        usn = USN(client, SAMPLE_USN_RESPONSE_NO_CVES)
+
+        assert [usn] == get_related_usns(usn, client)
+
+
+class TestGetUSNAffectedPackagesStatus:
+    @pytest.mark.parametrize(
+        "installed_packages, affected_packages",
+        (
+            (
+                {"coin3": {"libcoin80-runtime", "1.0"}},
+                {
+                    "coin3": CVEPackageStatus(
+                        defaultdict(
+                            str, {"status": "released", "pocket": "security"}
+                        )
+                    )
+                },
+            ),
+        ),
+    )
+    @mock.patch("uaclient.util.get_platform_info")
+    def test_pkgs_come_from_release_packages_if_usn_has_no_cves(
+        self,
+        m_platform_info,
+        installed_packages,
+        affected_packages,
+        FakeConfig,
+    ):
+        m_platform_info.return_value = {"series": "bionic"}
+
+        cfg = FakeConfig()
+        client = UASecurityClient(cfg=cfg)
+        usn = USN(client, SAMPLE_USN_RESPONSE_NO_CVES)
+        actual_value = get_usn_affected_packages_status(
+            usn, installed_packages
+        )
+
+        if not affected_packages:
+            assert actual_value is {}
+        else:
+            assert "coin3" in actual_value
+            assert (
+                affected_packages["coin3"].status
+                == actual_value["coin3"].status
+            )
+            assert (
+                affected_packages["coin3"].pocket_source
+                == actual_value["coin3"].pocket_source
+            )
+
+
 class TestFixSecurityIssueId:
     @pytest.mark.parametrize(
         "issue_id", (("CVE-1800-123456"), ("USN-12345-12"))
@@ -2217,33 +2313,6 @@ class TestFixSecurityIssueId:
                     fix_security_issue_id(FakeConfig(), issue_id)
 
         assert expected_message == exc.value.msg
-
-    @mock.patch("uaclient.security.query_installed_source_pkg_versions")
-    @mock.patch("uaclient.security.get_usn_affected_packages_status")
-    @mock.patch("uaclient.security.merge_usn_released_binary_package_versions")
-    def test_error_msg_when_usn_does_not_define_any_cves(
-        self,
-        m_merge_usn,
-        m_usn_affected_pkgs,
-        m_query_installed_pkgs,
-        FakeConfig,
-    ):
-        m_query_installed_pkgs.return_value = {}
-        m_usn_affected_pkgs.return_value = {}
-        m_merge_usn.return_value = {}
-        with mock.patch.object(UASecurityClient, "get_notice") as m_notice:
-            usn_mock = mock.MagicMock()
-            type(usn_mock).release_packages = mock.PropertyMock(
-                return_value={"a": {}}
-            )
-            type(usn_mock).cves_ids = mock.PropertyMock(return_value=[])
-            m_notice.return_value = usn_mock
-
-            with pytest.raises(exceptions.SecurityAPIMetadataError) as exc:
-                fix_security_issue_id(FakeConfig(), "USN-123")
-
-        expected_msg = "Error: USN-123 metadata defines no related CVEs."
-        assert expected_msg in exc.value.msg
 
     @mock.patch("uaclient.security.query_installed_source_pkg_versions")
     @mock.patch("uaclient.security.get_usn_affected_packages_status")
