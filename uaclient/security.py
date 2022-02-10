@@ -1,6 +1,5 @@
 import copy
 import enum
-import itertools
 import os
 import socket
 import textwrap
@@ -378,14 +377,23 @@ class USN:
     def title(self):
         return self.response.get("title")
 
+    @property
+    def references(self):
+        return self.response.get("references")
+
     def get_url_header(self):
         """Return a string representing the URL for this notice."""
-        lines = [
-            "{issue}: {title}".format(issue=self.id, title=self.title),
-            "Found CVEs:",
-        ]
-        for cve in self.cves_ids:
-            lines.append("https://ubuntu.com/security/{}".format(cve))
+        lines = ["{issue}: {title}".format(issue=self.id, title=self.title)]
+
+        if self.cves_ids:
+            lines.append("Found CVEs:")
+            for cve in self.cves_ids:
+                lines.append("https://ubuntu.com/security/{}".format(cve))
+        elif self.references:
+            lines.append("Found Launchpad bugs:")
+            for reference in self.references:
+                lines.append(reference)
+
         return "\n".join(lines)
 
     @property
@@ -491,7 +499,7 @@ def merge_usn_released_binary_package_versions(
 
     For each USN, iterate over release_packages to collect released binary
         package names and required fix version. If multiple related USNs
-        require differnt version fixes to the same binary package, track the
+        require different version fixes to the same binary package, track the
         maximum version required across all USNs.
 
     :param usns: List of USN response instances from which to calculate merge.
@@ -531,6 +539,31 @@ def merge_usn_released_binary_package_versions(
     return usn_pkg_versions
 
 
+def get_related_usns(usn, client):
+    """For a give usn, get the related USNs for it.
+
+    For each CVE associated with the given USN, we capture
+    other USNs that are related to the CVE. We consider those
+    USNs related to the original USN.
+    """
+
+    # If the usn does not have any associated cves on it,
+    # we must consider that only the current usn should be
+    # evaluated.
+    if not usn.cves:
+        return [usn]
+
+    related_usns = {}
+    for cve in usn.cves:
+        for related_usn_id in cve.notices_ids:
+            if related_usn_id not in related_usns:
+                related_usns[related_usn_id] = client.get_notice(
+                    notice_id=related_usn_id
+                )
+
+    return list(sorted(related_usns.values(), key=lambda x: x.id))
+
+
 def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
     issue_id = issue_id.upper()
     client = UASecurityClient(cfg=cfg)
@@ -538,8 +571,8 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
 
     # Used to filter out beta pockets during merge_usns
     beta_pockets = {
-        "esm-apps": _is_pocket_used_by_beta_service("esm-apps", cfg),
-        "esm-infra": _is_pocket_used_by_beta_service("esm-infra", cfg),
+        "esm-apps": _is_pocket_used_by_beta_service(UA_APPS_POCKET, cfg),
+        "esm-infra": _is_pocket_used_by_beta_service(UA_INFRA_POCKET, cfg),
     }
 
     if "CVE" in issue_id:
@@ -561,16 +594,9 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
             usns, beta_pockets
         )
     else:  # USN
-        related_usns = {}
         try:
             usn = client.get_notice(notice_id=issue_id)
-            for cve in usn.cves:
-                for related_usn_id in cve.notices_ids:
-                    if related_usn_id not in related_usns:
-                        related_usns[related_usn_id] = client.get_notice(
-                            notice_id=related_usn_id
-                        )
-            usns = list(sorted(related_usns.values(), key=lambda x: x.id))
+            usns = get_related_usns(usn, client)
         except SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
@@ -585,12 +611,6 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
             usns, beta_pockets
         )
         print(usn.get_url_header())
-        related_cves = set(itertools.chain(*[u.cves_ids for u in usns]))
-        if not related_cves:
-            raise exceptions.SecurityAPIMetadataError(
-                "{} metadata defines no related CVEs.".format(issue_id),
-                issue_id=issue_id,
-            )
         if not usn.response["release_packages"]:
             # Since usn.release_packages filters to our current release only
             # check overall metadata and error if empty.
@@ -609,16 +629,10 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
     )
 
 
-def get_usn_affected_packages_status(
-    usn: USN, installed_packages: Dict[str, Dict[str, str]]
-) -> Dict[str, CVEPackageStatus]:
-    """Walk CVEs related to a USN and return a dict of all affected packages.
-
-    :return: Dict keyed on source package name, with active CVEPackageStatus
-        for the current Ubuntu release.
-    """
+def get_affected_packages_from_cves(cves, installed_packages):
     affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
-    for cve in usn.cves:
+
+    for cve in cves:
         for pkg_name, pkg_status in get_cve_affected_source_packages_status(
             cve, installed_packages
         ).items():
@@ -628,7 +642,52 @@ def get_usn_affected_packages_status(
                 current_ver = affected_pkgs[pkg_name].fixed_version
                 if not version_cmp_le(current_ver, pkg_status.fixed_version):
                     affected_pkgs[pkg_name] = pkg_status
+
     return affected_pkgs
+
+
+def get_affected_packages_from_usn(usn, installed_packages):
+    affected_pkgs = {}  # type: Dict[str, CVEPackageStatus]
+    for pkg_name, pkg_info in usn.release_packages.items():
+        if pkg_name not in installed_packages:
+            continue
+
+        cve_response = defaultdict(str)
+        cve_response["status"] = "released"
+        # Here we are assuming that the pocket will be the same one across
+        # the different binary packages.
+        all_pockets = {
+            pkg_bin_info["pocket"]
+            for _, pkg_bin_info in pkg_info.items()
+            if pkg_bin_info.get("pocket")
+        }
+        if not all_pockets:
+            msg = (
+                "{} metadata defines no pocket information for "
+                "any release packages."
+            )
+            raise exceptions.SecurityAPIMetadataError(
+                msg.format(usn.id), issue_id=usn.id
+            )
+        cve_response["pocket"] = all_pockets.pop()
+
+        affected_pkgs[pkg_name] = CVEPackageStatus(cve_response=cve_response)
+
+    return affected_pkgs
+
+
+def get_usn_affected_packages_status(
+    usn: USN, installed_packages: Dict[str, Dict[str, str]]
+) -> Dict[str, CVEPackageStatus]:
+    """Walk CVEs related to a USN and return a dict of all affected packages.
+
+    :return: Dict keyed on source package name, with active CVEPackageStatus
+        for the current Ubuntu release.
+    """
+    if usn.cves:
+        return get_affected_packages_from_cves(usn.cves, installed_packages)
+    else:
+        return get_affected_packages_from_usn(usn, installed_packages)
 
 
 def get_cve_affected_source_packages_status(
@@ -763,11 +822,8 @@ def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     elif pocket == UA_APPS_POCKET:
         service_to_check = "esm-apps"
 
-    try:
-        ent_cls = entitlement_factory(service_to_check)
-        return ent_cls(cfg)
-    except exceptions.EntitlementNotFoundError:
-        return None
+    ent_cls = entitlement_factory(service_to_check)
+    return ent_cls(cfg) if ent_cls else None
 
 
 def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
@@ -781,7 +837,7 @@ def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
         if ent_status == status.UserFacingStatus.ACTIVE:
             return False
 
-        return ent.valid_service
+        return not ent.valid_service
 
     return False
 
@@ -1017,8 +1073,6 @@ def _inform_ubuntu_pro_existence_if_applicable() -> None:
 
 def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     """Attach to a UA subscription with a given token.
-    TODO: Refactor this to use actions.attach_with_token instead of simulating
-          a cli call
 
     :return: True if attach performed without errors.
     """
@@ -1031,7 +1085,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
         0
         == cli.action_attach(
             argparse.Namespace(
-                token=token, auto_enable=True, attach_config=None, format="cli"
+                token=token, auto_enable=True, format="cli", attach_config=None
             ),
             cfg,
         )
