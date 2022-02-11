@@ -243,6 +243,32 @@ pipeline {
                         '''
                     }
                 }
+                stage("azurepro 18.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-azurepro-18.04"
+                    }
+                    steps {
+                        sh '''
+                        set +x
+                        . $TMPDIR/bin/activate
+                        tox --parallel--safe-build -e behave-azurepro-18.04 -- --tags="~slow"
+                        '''
+                    }
+                }
+                stage("gcppro 18.04") {
+                    environment {
+                        UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
+                        UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-gcppro-18.04"
+                    }
+                    steps {
+                        sh '''
+                        set +x
+                        . $TMPDIR/bin/activate
+                        tox --parallel--safe-build -e behave-gcppro-18.04 -- --tags="~slow"
+                        '''
+                    }
+                }
             }
         }
     }
