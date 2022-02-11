@@ -33,6 +33,7 @@ ifneq (,$(findstring trusty,$(TOXENV)))
 endif
 	pip install tox
 	pip install tox-pip-version
+	pip install tox-setuptools-version
 
 travis-deb-install:
 	git fetch --unshallow
