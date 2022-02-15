@@ -7,12 +7,7 @@ Feature: Unattached status
         When I run `ua status --format json` as non-root
         Then stdout is a json matching the `ua_status` schema
         When I run `ua status --format yaml` as non-root
-        Then stdout is formatted as `yaml` and has keys:
-            """
-            _doc _schema_version account attached config config_path contract effective
-            environment_vars execution_details execution_status expires machine_id notices
-            services version simulated result errors warnings
-            """
+        Then stdout is a yaml matching the `ua_status` schema
         When I run `sed -i 's/contracts.can/invalidurl.notcan/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that running `ua status --format json` `as non-root` exits `1`
         Then stdout is a json matching the `ua_status` schema
@@ -21,10 +16,7 @@ Feature: Unattached status
             {"environment_vars": [], "errors": [{"message": "Failed to connect to authentication server\nCheck your Internet connection and try again.", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         And I verify that running `ua status --format yaml` `as non-root` exits `1`
-        Then stdout is formatted as `yaml` and has keys:
-            """
-            environment_vars errors result services warnings
-            """
+        Then stdout is a yaml matching the `ua_status` schema
         And I will see the following on stdout:
             """
             environment_vars: []
@@ -185,12 +177,7 @@ Feature: Unattached status
         When I do a preflight check for `contract_token` formatted as json
         Then stdout is a json matching the `ua_status` schema
         When I do a preflight check for `contract_token` formatted as yaml
-        Then stdout is formatted as `yaml` and has keys:
-            """
-            _doc _schema_version account attached config config_path contract effective
-            environment_vars execution_details execution_status expires machine_id notices
-            services version simulated result errors warnings
-            """
+        Then stdout is a yaml matching the `ua_status` schema
         When I verify that a preflight check for `invalid_token` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
@@ -198,10 +185,7 @@ Feature: Unattached status
             {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
-        Then stdout is formatted as `yaml` and has keys:
-            """
-            environment_vars errors result services warnings
-            """
+        Then stdout is a yaml matching the `ua_status` schema
         And I will see the following on stdout:
             """
             environment_vars: []
@@ -225,6 +209,7 @@ Feature: Unattached status
             \"message\": \"Contract .* expired on .*\"
             """
         When I verify that a preflight check for `contract_token_staging_expired` formatted as yaml exits 1
+        Then stdout is a yaml matching the `ua_status` schema
         Then stdout matches regexp:
             """
             errors:
