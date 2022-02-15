@@ -422,16 +422,10 @@ case "$1" in
       # log files need to be world-readable
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
+          # We are only making new log files world readable
+          chmod 0644 /var/log/ubuntu-advantage.log
       fi
-      chmod 0644 /var/log/ubuntu-advantage.log
       chown root:root /var/log/ubuntu-advantage.log
-
-      for log_file_suffix in timer license-check daemon
-      do
-        if [ -f /var/log/ubuntu-advantage-$log_file_suffix.log ]; then
-            chmod 0644 /var/log/ubuntu-advantage-$log_file_suffix.log
-        fi
-      done
 
       private_dir="/var/lib/ubuntu-advantage/private"
       if [ -d "$private_dir" ]; then
