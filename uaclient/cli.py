@@ -188,23 +188,6 @@ def assert_root(f):
     return new_f
 
 
-def set_event_mode(f):
-    """Decorator setting the right event logger mode"""
-
-    @wraps(f)
-    def new_f(cmd_args, *args, **kwargs):
-        if cmd_args:
-            if cmd_args.format == "json":
-                event.set_event_mode(event_logger.EventLoggerMode.JSON)
-            if cmd_args.format == "yaml":
-                event.set_event_mode(event_logger.EventLoggerMode.YAML)
-        ret = f(cmd_args, *args, **kwargs)
-        event.reset()
-        return ret
-
-    return new_f
-
-
 def verify_json_format_args(f):
     """Decorator to verify if correct params are used for json format"""
 
@@ -932,7 +915,6 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
-@set_event_mode
 @verify_json_format_args
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
@@ -1006,7 +988,6 @@ def _create_enable_entitlements_not_found_message(
     )
 
 
-@set_event_mode
 @verify_json_format_args
 @assert_root
 @assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
@@ -1072,7 +1053,6 @@ def action_enable(args, *, cfg, **kwargs):
     return 0 if ret else 1
 
 
-@set_event_mode
 @verify_json_format_args
 @assert_root
 @assert_attached()
@@ -1240,7 +1220,6 @@ def action_auto_attach(args, *, cfg):
         return 0
 
 
-@set_event_mode
 @assert_not_attached
 @assert_root
 @assert_lock_file("ua attach")
@@ -1511,9 +1490,7 @@ def get_parser():
     return parser
 
 
-@set_event_mode
 def action_status(args, *, cfg):
-    event.set_command("status")
     if not cfg:
         cfg = config.UAConfig()
     show_beta = args.all if args else False
@@ -1649,6 +1626,17 @@ def setup_logging(console_level, log_level, log_file=None, logger=None):
         logger.addHandler(file_handler)
 
 
+def set_event_mode(cmd_args):
+    """Set the right event mode based on the args provided"""
+    if cmd_args.command in ("attach", "detach", "enable", "disable", "status"):
+        event.set_command(cmd_args.command)
+        if hasattr(cmd_args, "format"):
+            if cmd_args.format == "json":
+                event.set_event_mode(event_logger.EventLoggerMode.JSON)
+            if cmd_args.format == "yaml":
+                event.set_event_mode(event_logger.EventLoggerMode.YAML)
+
+
 def main_error_handler(func):
     def wrapper(*args, **kwargs):
         try:
@@ -1727,6 +1715,7 @@ def main(sys_argv=None):
         print("Try 'ua --help' for more information.")
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
+    set_event_mode(args)
     cfg = config.UAConfig()
 
     http_proxy = cfg.http_proxy

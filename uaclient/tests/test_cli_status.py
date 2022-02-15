@@ -13,6 +13,7 @@ import yaml
 
 from uaclient import exceptions, status, version
 from uaclient.cli import action_status, get_parser, main, status_parser
+from uaclient.event_logger import EventLoggerMode
 
 M_PATH = "uaclient.cli."
 
@@ -402,7 +403,10 @@ class TestActionStatus:
         assert [mock.call(1)] * 3 == m_sleep.call_args_list
         assert "...\n" + UNATTACHED_STATUS == capsys.readouterr()[0]
 
-    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    @pytest.mark.parametrize(
+        "format_type,event_logger_mode",
+        (("json", EventLoggerMode.JSON), ("yaml", EventLoggerMode.YAML)),
+    )
     @pytest.mark.parametrize(
         "environ",
         (
@@ -426,8 +430,10 @@ class TestActionStatus:
         use_all,
         environ,
         format_type,
+        event_logger_mode,
         capsys,
         FakeConfig,
+        event,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig()
@@ -436,7 +442,10 @@ class TestActionStatus:
             format=format_type, all=use_all, simulate_with_token=None
         )
         with mock.patch.object(os, "environ", environ):
-            assert 0 == action_status(args, cfg=cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger_mode
+            ), mock.patch.object(event, "_command", "status"):
+                assert 0 == action_status(args, cfg=cfg)
 
         expected_environment = []
         if environ:
@@ -503,7 +512,10 @@ class TestActionStatus:
         else:
             assert expected == yaml.safe_load(capsys.readouterr()[0])
 
-    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    @pytest.mark.parametrize(
+        "format_type,event_logger_mode",
+        (("json", EventLoggerMode.JSON), ("yaml", EventLoggerMode.YAML)),
+    )
     @pytest.mark.parametrize(
         "environ",
         (
@@ -527,8 +539,10 @@ class TestActionStatus:
         use_all,
         environ,
         format_type,
+        event_logger_mode,
         capsys,
         FakeConfig,
+        event,
     ):
         """Check that unattached status json output is emitted to console"""
         cfg = FakeConfig.for_attached_machine()
@@ -538,7 +552,10 @@ class TestActionStatus:
         )
 
         with mock.patch.object(os, "environ", environ):
-            assert 0 == action_status(args, cfg=cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger_mode
+            ), mock.patch.object(event, "_command", "status"):
+                assert 0 == action_status(args, cfg=cfg)
 
         expected_environment = []
         if environ:
@@ -651,7 +668,10 @@ class TestActionStatus:
 
             assert expected == yaml_output
 
-    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    @pytest.mark.parametrize(
+        "format_type,event_logger_mode",
+        (("json", EventLoggerMode.JSON), ("yaml", EventLoggerMode.YAML)),
+    )
     @pytest.mark.parametrize("use_all", (True, False))
     def test_simulated_formats(
         self,
@@ -662,8 +682,10 @@ class TestActionStatus:
         _m_remove_notice,
         use_all,
         format_type,
+        event_logger_mode,
         capsys,
         FakeConfig,
+        event,
     ):
         """Check that simulated status json output is emitted to console"""
         cfg = FakeConfig()
@@ -672,7 +694,10 @@ class TestActionStatus:
             format=format_type, all=use_all, simulate_with_token="some_token"
         )
 
-        assert 0 == action_status(args, cfg=cfg)
+        with mock.patch.object(
+            event, "_event_logger_mode", event_logger_mode
+        ), mock.patch.object(event, "_command", "status"):
+            assert 0 == action_status(args, cfg=cfg)
 
         expected_services = [
             {
@@ -892,7 +917,10 @@ class TestActionStatus:
             ),
         ),
     )
-    @pytest.mark.parametrize("format_type", ("json", "yaml"))
+    @pytest.mark.parametrize(
+        "format_type,event_logger_mode",
+        (("json", EventLoggerMode.JSON), ("yaml", EventLoggerMode.YAML)),
+    )
     def test_errors_for_token_dates(
         self,
         _m_getuid,
@@ -901,12 +929,14 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         format_type,
+        event_logger_mode,
         token_to_use,
         warning_message,
         contract_field,
         date_value,
         capsys,
         FakeConfig,
+        event,
     ):
         """Check errors for expired tokens, and not valid yet tokens."""
 
@@ -923,7 +953,10 @@ class TestActionStatus:
             format=format_type, all=False, simulate_with_token=token_to_use
         )
 
-        assert 1 == action_status(args, cfg=cfg)
+        with mock.patch.object(
+            event, "_event_logger_mode", event_logger_mode
+        ), mock.patch.object(event, "_command", "status"):
+            assert 1 == action_status(args, cfg=cfg)
 
         if format_type == "json":
             output = json.loads(capsys.readouterr()[0])

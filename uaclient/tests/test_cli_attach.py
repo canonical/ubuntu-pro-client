@@ -86,10 +86,11 @@ def test_non_root_users_are_rejected(getuid, FakeConfig, capsys, event):
     with pytest.raises(NonRootUserError):
         action_attach(mock.MagicMock(), cfg)
 
-    args = mock.MagicMock()
-    args.format = "json"
     with pytest.raises(SystemExit):
-        main_error_handler(action_attach)(args, cfg)
+        with mock.patch.object(
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+        ):
+            main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
     expected = {
         "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -120,10 +121,11 @@ class TestActionAttach:
         with pytest.raises(AlreadyAttachedError):
             action_attach(mock.MagicMock(), cfg=cfg)
 
-        args = mock.MagicMock()
-        args.format = "json"
         with pytest.raises(SystemExit):
-            main_error_handler(action_attach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -159,14 +161,15 @@ class TestActionAttach:
             "Operation in progress: ua disable (pid:123)"
         ) == exc_info.value.msg
 
-        args = mock.MagicMock()
-        args.format = "json"
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                cfg, "check_lock_info"
-            ) as m_check_lock_info:
-                m_check_lock_info.return_value = (1, "lock_holder")
-                main_error_handler(action_attach)(args, cfg)
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                with mock.patch.object(
+                    cfg, "check_lock_info"
+                ) as m_check_lock_info:
+                    m_check_lock_info.return_value = (1, "lock_holder")
+                    main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
         expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
             lock_request="ua attach", lock_holder="lock_holder", pid=1
@@ -195,15 +198,17 @@ class TestActionAttach:
         assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
 
         args = mock.MagicMock()
-        args.format = "json"
         args.token = None
         args.attach_config = None
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                cfg, "check_lock_info"
-            ) as m_check_lock_info:
-                m_check_lock_info.return_value = (0, "lock_holder")
-                main_error_handler(action_attach)(args, cfg)
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                with mock.patch.object(
+                    cfg, "check_lock_info"
+                ) as m_check_lock_info:
+                    m_check_lock_info.return_value = (0, "lock_holder")
+                    main_error_handler(action_attach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -319,12 +324,16 @@ class TestActionAttach:
 
         cfg = FakeConfig()
         args = mock.MagicMock(token=token, attach_config=None)
-        args.format = "json"
-        with mock.patch.object(cfg, "check_lock_info") as m_check_lock_info:
-            m_check_lock_info.return_value = (0, "lock_holder")
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_attach)(args, cfg)
+        with mock.patch.object(
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+        ):
+            with mock.patch.object(
+                cfg, "check_lock_info"
+            ) as m_check_lock_info:
+                m_check_lock_info.return_value = (0, "lock_holder")
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_attach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -393,7 +402,9 @@ class TestActionAttach:
             mock.call(mock.ANY, token="faketoken", allow_enable=True)
         ] == m_attach_with_token.call_args_list
 
-    def test_attach_config_invalid_config(self, _m_getuid, FakeConfig, capsys):
+    def test_attach_config_invalid_config(
+        self, _m_getuid, FakeConfig, capsys, event
+    ):
         args = mock.MagicMock(
             token=None,
             attach_config=FakeFile(
@@ -410,9 +421,11 @@ class TestActionAttach:
             yaml.dump({"token": "something", "enable_services": "cis"}),
             name="fakename",
         )
-        args.format = "json"
         with pytest.raises(SystemExit):
-            main_error_handler(action_attach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_attach)(args, cfg)
 
         expected_message = (
             "Error while reading fakename: Got value with "
@@ -486,11 +499,13 @@ class TestActionAttach:
         args.attach_config = FakeFile(
             yaml.dump({"token": "faketoken", "enable_services": ["cis"]})
         )
-        args.format = "json"
 
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
-            main_error_handler(action_attach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_attach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -515,9 +530,9 @@ class TestActionAttach:
         m_process_entitlement_delta,
         _m_getuid,
         FakeConfig,
+        event,
     ):
         args = mock.MagicMock(token="token", attach_config=None)
-        args.format = "json"
         cfg = FakeConfig()
 
         m_process_entitlement_delta.side_effect = [
@@ -556,7 +571,10 @@ class TestActionAttach:
 
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
-            main_error_handler(action_attach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_attach)(args, cfg)
 
         msg = "Failed to enable default services, check: sudo ua status"
         expected = {
