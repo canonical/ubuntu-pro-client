@@ -41,11 +41,11 @@ class TestActionDetach:
         with pytest.raises(exceptions.NonRootUserError):
             action_detach(args, cfg=cfg)
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
-            main_error_handler(action_detach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -76,11 +76,11 @@ class TestActionDetach:
             action_detach(args, cfg=cfg)
         assert status.MESSAGE_UNATTACHED == err.value.msg
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
-            main_error_handler(action_detach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -118,11 +118,11 @@ class TestActionDetach:
         )
         assert expected_error_msg == err.value.msg
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
-            main_error_handler(action_detach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -217,14 +217,14 @@ class TestActionDetach:
             ] == m_update_apt_and_motd_msgs.call_args_list
 
         cfg = FakeConfig.for_attached_machine()
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         fake_stdout = io.StringIO()
         # On json response, we will never prompt the user
         m_prompt.return_value = True
         with contextlib.redirect_stdout(fake_stdout):
-            main_error_handler(action_detach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -389,12 +389,12 @@ class TestActionDetach:
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
         cfg = FakeConfig.for_attached_machine()
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         fake_stdout = io.StringIO()
         with contextlib.redirect_stdout(fake_stdout):
-            main_error_handler(action_detach)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_detach)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
