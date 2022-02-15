@@ -116,15 +116,15 @@ class TestActionEnable:
             "Operation in progress: ua disable (pid:123)"
         ) == err.value.msg
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
             with mock.patch.object(
-                cfg, "check_lock_info"
-            ) as m_check_lock_info:
-                m_check_lock_info.return_value = (1, "lock_holder")
-                main_error_handler(action_enable)(args, cfg)
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                with mock.patch.object(
+                    cfg, "check_lock_info"
+                ) as m_check_lock_info:
+                    m_check_lock_info.return_value = (1, "lock_holder")
+                    main_error_handler(action_enable)(args, cfg)
 
         expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
             lock_request="ua enable", lock_holder="lock_holder", pid=1
@@ -172,11 +172,11 @@ class TestActionEnable:
             action_enable(args, cfg)
         assert expected_error == err.value.msg
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
-            main_error_handler(action_enable)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -238,13 +238,13 @@ class TestActionEnable:
             == err.value.msg
         )
 
-        args.format = "json"
-        # For json format, we need that flag
-        args.assume_yes = True
         with pytest.raises(SystemExit):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -390,13 +390,13 @@ class TestActionEnable:
         assert 0 == m_ent1_obj.call_count
 
         event.reset()
-        args_mock.format = "json"
-        # For json format, we need that flag
-        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -525,13 +525,13 @@ class TestActionEnable:
         assert 0 == m_ent1_obj.call_count
 
         event.reset()
-        args_mock.format = "json"
-        # For json format, we need that flag
-        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg=cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args_mock, cfg=cfg)
 
         expected_failed_services = ["ent1", "ent2"]
         if beta_flag:
@@ -591,14 +591,13 @@ class TestActionEnable:
                 == fake_stdout.getvalue()
             )
 
-        args_mock.format = "json"
-        # For json format, we need that flag
-        args_mock.assume_yes = True
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
             "uaclient.entitlements.valid_services", return_value=["ent1"]
+        ), mock.patch.object(
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
@@ -665,13 +664,13 @@ class TestActionEnable:
         )
         assert expected_error == err.value.msg
 
-        args_mock.format = "json"
-        # For json format, we need that flag
-        args_mock.assume_yes = True
         with pytest.raises(SystemExit):
-            fake_stdout = io.StringIO()
-            with contextlib.redirect_stdout(fake_stdout):
-                main_error_handler(action_enable)(args_mock, cfg)
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args_mock, cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -735,15 +734,14 @@ class TestActionEnable:
         assert expected_ret == ret
         assert 1 == cfg.status.call_count
 
-        args_mock.format = "json"
-        # For json format, we need that flag
-        args_mock.assume_yes = True
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",
             return_value=m_entitlement_cls,
         ), mock.patch(
             "uaclient.entitlements.valid_services",
             return_value=["testitlement"],
+        ), mock.patch.object(
+            event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             fake_stdout = io.StringIO()
             with contextlib.redirect_stdout(fake_stdout):
