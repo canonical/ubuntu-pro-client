@@ -22,7 +22,12 @@ from features.environment import (
     capture_container_as_image,
     create_instance_with_uat_installed,
 )
-from features.util import SLOW_CMDS, emit_spinner_on_travis, nullcontext
+from features.util import (
+    SLOW_CMDS,
+    SafeLoaderWithoutDatetime,
+    emit_spinner_on_travis,
+    nullcontext,
+)
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
 from uaclient.util import DatetimeAwareJSONDecoder
 
@@ -509,27 +514,6 @@ def then_conditional_stdout_does_not_match_regexp(context, value1, value2):
         then_stream_does_not_match_regexp(context, "stdout")
 
 
-@then("stdout is formatted as `{output_format}` and has keys")
-def then_stdout_is_formatted_and_has_keys(context, output_format):
-    output = context.process.stdout.strip()
-    if output_format == "json":
-        data = json.loads(output)
-    elif output_format == "yaml":
-        data = yaml.safe_load(output)
-
-    keys = set(context.text.split())
-    output_keys = set(data.keys())
-
-    if keys != output_keys:
-        message = """
-        Missing keys in output: {}
-        Extra keys in output: {}
-        """.format(
-            keys - output_keys or "", output_keys - keys or ""
-        )
-        raise AssertionError(message)
-
-
 @then("{stream} does not match regexp")
 def then_stream_does_not_match_regexp(context, stream):
     content = getattr(context.process, stream).strip()
@@ -887,13 +871,16 @@ def i_restore_the_saved_key_value_on_contract(context, key):
     )
 
 
-@then("stdout is a json matching the `{schema}` schema")
-def stdout_matches_the_json_schema(context, schema):
-    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
-        jsonschema.validate(
-            instance=json.loads(context.process.stdout.strip()),
-            schema=json.load(schema_file),
+@then("stdout is a {output_format} matching the `{schema}` schema")
+def stdout_matches_the_json_schema(context, output_format, schema):
+    if output_format == "json":
+        instance = json.loads(context.process.stdout.strip())
+    elif output_format == "yaml":
+        instance = yaml.load(
+            context.process.stdout.strip(), SafeLoaderWithoutDatetime
         )
+    with open("features/schemas/{}.json".format(schema), "r") as schema_file:
+        jsonschema.validate(instance=instance, schema=json.load(schema_file))
 
 
 def get_command_prefix_for_user_spec(user_spec):
