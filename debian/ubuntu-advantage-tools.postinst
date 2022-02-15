@@ -419,15 +419,14 @@ case "$1" in
         fi
       fi
 
-      # We modify permissions for ubuntu-advantage.log because
-      # in a past version of UA, this log file was world readable.
-      # This isn't necessary for the timer/license-check log files,
-      # because they have always been only root-readable.
+      # log files need to be world-readable
       if [ ! -f /var/log/ubuntu-advantage.log ]; then
           touch /var/log/ubuntu-advantage.log
+          # We are only making new log files world readable
+          chmod 0644 /var/log/ubuntu-advantage.log
       fi
-      chmod 0600 /var/log/ubuntu-advantage.log
       chown root:root /var/log/ubuntu-advantage.log
+
       private_dir="/var/lib/ubuntu-advantage/private"
       if [ -d "$private_dir" ]; then
           chmod 0700 "$private_dir"
