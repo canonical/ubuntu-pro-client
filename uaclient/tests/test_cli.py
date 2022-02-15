@@ -833,15 +833,17 @@ class TestSetupLogging:
     ):
         log_file = tmpdir.join("root-only.log")
         log_path = log_file.strpath
+        expected_mode = 0o644
         if pre_existing:
+            expected_mode = 0o640
             log_file.write("existing content\n")
-            os.chmod(log_path, 0o640)
+            os.chmod(log_path, expected_mode)
             assert 0o644 != stat.S_IMODE(os.lstat(log_path).st_mode)
 
         setup_logging(logging.INFO, logging.INFO, log_file=log_path)
         logging.info("after setup")
 
-        assert 0o644 == stat.S_IMODE(os.lstat(log_path).st_mode)
+        assert expected_mode == stat.S_IMODE(os.lstat(log_path).st_mode)
         log_content = log_file.read()
         assert "after setup" in log_content
         if pre_existing:
