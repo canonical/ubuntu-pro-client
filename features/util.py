@@ -325,3 +325,10 @@ def emit_spinner_on_travis(msg: str = " "):
     finally:
         print()
         dot_process.terminate()
+
+
+class SafeLoaderWithoutDatetime(yaml.SafeLoader):
+    yaml_implicit_resolvers = {
+        k: [r for r in v if r[0] != "tag:yaml.org,2002:timestamp"]
+        for k, v in yaml.SafeLoader.yaml_implicit_resolvers.items()
+    }

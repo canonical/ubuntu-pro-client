@@ -958,10 +958,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         And I run `apt-get update` with sudo
         When I run `ua security-status --format json --beta` as non-root
-        Then stdout is formatted as `json` and has keys:
-        """
-        _schema_version summary packages
-        """
+        Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
         """
         "_schema_version": "0"
@@ -1013,10 +1010,7 @@ Feature: Command behaviour when attached to an UA subscription
         "status": "upgrade_available"
         """
         When I run `ua security-status --format yaml --beta` as non-root
-        Then stdout is formatted as `yaml` and has keys:
-        """
-        _schema_version summary packages
-        """
+        Then stdout is a yaml matching the `ua_security_status` schema
         And stdout matches regexp:
         """
         _schema_version: '0'
