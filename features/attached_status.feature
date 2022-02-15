@@ -9,12 +9,7 @@ Feature: Attached status
         And I run `ua status --format json` as non-root
         Then stdout is a json matching the `ua_status` schema
         When I run `ua status --format yaml` as non-root
-        Then stdout is formatted as `yaml` and has keys:
-            """
-            _doc _schema_version account attached config config_path contract effective
-            environment_vars execution_details execution_status expires machine_id notices
-            services version simulated result errors warnings
-            """
+        Then stdout is a yaml matching the `ua_status` schema
 
         Examples: ubuntu release
            | release |
