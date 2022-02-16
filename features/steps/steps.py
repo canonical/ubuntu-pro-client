@@ -292,11 +292,21 @@ def when_i_run_command(
 @when("I fix `{issue}` by attaching to a subscription with `{token_type}`")
 def when_i_fix_a_issue_by_attaching(context, issue, token_type):
     token = getattr(context.config, token_type)
+
+    if (
+        token_type == "contract_token_staging"
+        or token_type == "contract_token_staging_expired"
+    ):
+        change_contract_endpoint_to_staging(context, user_spec="with sudo")
+    else:
+        change_contract_endpoint_to_production(context, user_spec="with sudo")
+
     when_i_run_command(
         context=context,
         command="ua fix {}".format(issue),
         user_spec="with sudo",
         stdin="a\n{}\n".format(token),
+        verify_return=False,
     )
 
 
@@ -342,6 +352,26 @@ def when_i_update_contract_field_to_new_value(
     )
 
 
+def change_contract_endpoint_to_staging(context, user_spec):
+    when_i_run_command(
+        context,
+        "sed -i 's/contracts.can/contracts.staging.can/' {}".format(
+            DEFAULT_CONFIG_FILE
+        ),
+        user_spec,
+    )
+
+
+def change_contract_endpoint_to_production(context, user_spec):
+    when_i_run_command(
+        context,
+        "sed -i 's/contracts.staging.can/contracts.can/' {}".format(
+            DEFAULT_CONFIG_FILE
+        ),
+        user_spec,
+    )
+
+
 @when("I attach `{token_type}` {user_spec}")
 def when_i_attach_staging_token(
     context, token_type, user_spec, verify_return=True
@@ -351,13 +381,7 @@ def when_i_attach_staging_token(
         token_type == "contract_token_staging"
         or token_type == "contract_token_staging_expired"
     ):
-        when_i_run_command(
-            context,
-            "sed -i 's/contracts.can/contracts.staging.can/' {}".format(
-                DEFAULT_CONFIG_FILE
-            ),
-            user_spec,
-        )
+        change_contract_endpoint_to_staging(context, user_spec)
     cmd = "ua attach {}".format(token)
     when_i_run_command(context, cmd, user_spec, verify_return=False)
 
