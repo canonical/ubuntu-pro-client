@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+    }
+
     environment {
         TMPDIR = "/tmp/$BUILD_TAG/"
         UACLIENT_BEHAVE_JENKINS_BUILD_TAG = "${BUILD_TAG}"
