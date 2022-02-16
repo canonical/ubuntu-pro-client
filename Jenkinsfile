@@ -262,6 +262,8 @@ pipeline {
                 }
                 stage("gcppro 18.04") {
                     environment {
+                        https_proxy = "http://squid.internal:3128"
+                        no_proxy = "canonical.com,ubuntu.com,launchpad.net,launchpadcontent.net,launchpadlibrarian.net,snapcraft.io"
                         UACLIENT_BEHAVE_DEBS_PATH = "${TMPDIR}bionic/"
                         UACLIENT_BEHAVE_ARTIFACT_DIR = "artifacts/behave-gcppro-18.04"
                     }
