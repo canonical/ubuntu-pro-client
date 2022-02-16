@@ -354,6 +354,28 @@ Feature: Command behaviour when unattached
             2 packages are still affected: matanza, swish-e
             .*✘.* CVE-2017-9233 is not resolved.
             """
+        When I fix `USN-5079-2` by attaching to a subscription with `contract_token_staging_expired`
+        Then stdout matches regexp
+            """
+            USN-5079-2: curl vulnerabilities
+            Found CVEs:
+            https://ubuntu.com/security/CVE-2021-22946
+            https://ubuntu.com/security/CVE-2021-22947
+            1 affected source package is installed: curl
+            \(1/1\) curl:
+            A fix is available in UA Infra.
+            The update is not installed because this system is not attached to a
+            subscription.
+
+            Choose: \[S\]ubscribe at ubuntu.com \[A\]ttach existing token \[C\]ancel
+            > Enter your token \(from https://ubuntu.com/advantage\) to attach this system:
+            > .*\{ ua attach .*\}.*
+            Attach denied:
+            Contract ".*" expired on .*
+            Visit https://ubuntu.com/advantage to manage contract tokens.
+            1 package is still affected: curl
+            .*✘.* USN-5079-2 is not resolved.
+            """
         When I fix `USN-5079-2` by attaching to a subscription with `contract_token`
         Then stdout matches regexp:
             """
