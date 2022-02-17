@@ -48,9 +48,11 @@ Feature: Build docker images with ua services
         # Bloat is minimal (new size == original size + deb size + test package size)
         Then docker image `ua-test` is not significantly larger than `ubuntu:<container_release>` with `<test_package_name>` installed
 
-        # No secrets present
+        # No secrets or artifacts leftover
         Then `90ubuntu-advantage` is not present in any docker image layer
         Then `machine-token.json` is not present in any docker image layer
+        Then `ubuntu-advantage.log` is not present in any docker image layer
+        Then `uaclient.conf` is not present in any docker image layer
 
         # Service successfully enabled (Correct version of package installed)
         When I run `docker run ua-test dpkg-query --showformat='${Version}' --show <test_package_name>` with sudo
