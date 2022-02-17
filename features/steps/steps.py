@@ -193,7 +193,7 @@ def when_i_run_command_on_machine(context, command, user_spec, instance_name):
 
 @when("I verify `{file_name}` is empty on `{instance_name}` machine")
 def when_i_verify_file_is_empty_on_machine(context, file_name, instance_name):
-    command = 'sh -c "cat {} | wc -l"'
+    command = 'sh -c "cat {} | wc -l"'.format(file_name)
     when_i_run_command(
         context, command, user_spec="with sudo", instance_name=instance_name
     )
@@ -282,6 +282,9 @@ def when_i_run_command(
         logging.error("Error executing command: {}".format(command))
         logging.error("stdout: {}".format(result.stdout))
         logging.error("stderr: {}".format(result.stderr))
+    else:
+        logging.debug("stdout: {}".format(result.stdout))
+        logging.debug("stderr: {}".format(result.stderr))
 
     if verify_return:
         assert_that(process.returncode, equal_to(0))
@@ -372,9 +375,18 @@ def change_contract_endpoint_to_production(context, user_spec):
     )
 
 
+@when("I attach `{token_type}` {user_spec} and options `{options}`")
+def when_i_attach_staging_token_with_options(
+    context, token_type, user_spec, options
+):
+    when_i_attach_staging_token(
+        context, token_type, user_spec, options=options
+    )
+
+
 @when("I attach `{token_type}` {user_spec}")
 def when_i_attach_staging_token(
-    context, token_type, user_spec, verify_return=True
+    context, token_type, user_spec, verify_return=True, options=""
 ):
     token = getattr(context.config, token_type)
     if (
@@ -382,7 +394,7 @@ def when_i_attach_staging_token(
         or token_type == "contract_token_staging_expired"
     ):
         change_contract_endpoint_to_staging(context, user_spec)
-    cmd = "ua attach {}".format(token)
+    cmd = "ua attach {} {}".format(token, options).strip()
     when_i_run_command(context, cmd, user_spec, verify_return=False)
 
     if verify_return:
