@@ -29,7 +29,7 @@ Feature: Proxy configuration
         # We will guarantee that the machine will only use the proxy when
         # running the ua commands
         And I run `route del default` with sudo
-        And I attach `contract_token` with sudo
+        And I attach `contract_token` with sudo and options `--no-auto-enable`
         And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
         Then stdout matches regexp:
         """
@@ -39,7 +39,7 @@ Feature: Proxy configuration
         # Just to verify that the machine is attached
         Then stdout matches regexp:
         """
-        esm-infra     +yes      +enabled      +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes      +disabled      +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I run `truncate -s 0 /var/log/squid/access.log` `with sudo` on the `proxy` machine
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
