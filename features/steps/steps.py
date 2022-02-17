@@ -135,14 +135,52 @@ def given_a_machine(context, series):
 
 @when("I have the `{series}` debs under test in `{dest}`")
 def when_i_have_the_debs_under_test(context, series, dest):
-    if not context.config.build_pr:
-        return
-    deb_paths = build_debs_from_sbuild(context, series)
+    if context.config.build_pr:
+        deb_paths = build_debs_from_sbuild(context, series)
 
-    for deb_path in deb_paths:
-        tools_or_pro = "tools" if "tools" in deb_path else "pro"
-        dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
-        context.instances["uaclient"].push_file(deb_path, dest_path)
+        for deb_path in deb_paths:
+            tools_or_pro = "tools" if "tools" in deb_path else "pro"
+            dest_path = "{}/ubuntu-advantage-{}.deb".format(dest, tools_or_pro)
+            context.instances["uaclient"].push_file(deb_path, dest_path)
+    else:
+        if context.config.enable_proposed:
+            ppa_opts = ""
+        else:
+            if context.config.ppa.startswith("ppa"):
+                ppa = context.config.ppa
+            else:
+                # assumes format "http://domain.name/user/ppa/ubuntu"
+                match = re.match(
+                    r"https?://[\w.]+/([^/]+/[^/]+)", context.config.ppa
+                )
+                if not match:
+                    raise AssertionError(
+                        "ppa is in unsupported format: {}".format(
+                            context.config.ppa
+                        )
+                    )
+                ppa = "ppa:{}".format(match.group(1))
+            ppa_opts = "--distro ppa --ppa {}".format(ppa)
+        download_cmd = "pull-lp-debs {} ubuntu-advantage-tools {}".format(
+            ppa_opts, series
+        )
+        when_i_run_command(
+            context, "apt-get install -y ubuntu-dev-tools", "with sudo"
+        )
+        when_i_run_command(context, download_cmd, "with sudo")
+        logging.info("Download command `{}`".format(download_cmd))
+        logging.info("stdout: {}".format(context.process.stdout))
+        logging.info("stderr: {}".format(context.process.stderr))
+        when_i_run_shell_command(
+            context,
+            "cp ubuntu-advantage-tools*.deb ubuntu-advantage-tools.deb",
+            "with sudo",
+        )
+        when_i_run_shell_command(
+            context,
+            "cp ubuntu-advantage-pro*.deb ubuntu-advantage-pro.deb",
+            "with sudo",
+        )
 
 
 @when(
@@ -494,19 +532,6 @@ def when_i_wait(context, seconds):
     time.sleep(int(seconds))
 
 
-@when(
-    "I replace `{original}` in `{filename}` with `{new}` if `{config_var}` else `{else_new}`"  # noqa: E501
-)
-def when_i_replace_string_in_file_if_config(
-    context, original, filename, new, config_var, else_new
-):
-    if getattr(context.config, config_var):
-        new_var = new
-    else:
-        new_var = else_new
-    when_i_replace_string_in_file(context, original, filename, new_var)
-
-
 @when("I replace `{original}` in `{filename}` with `{new}`")
 def when_i_replace_string_in_file(context, original, filename, new):
     new = new.replace("\\", r"\\")
@@ -527,45 +552,6 @@ def when_i_replace_string_in_file_with_token(
 ):
     token = getattr(context.config, token_name)
     when_i_replace_string_in_file(context, original, filename, token)
-
-
-@when(
-    "I replace `{original}` in `{filename}` with commands to install the `{series}` ua version under test"  # noqa: E501
-)
-def when_i_replace_string_in_file_with_install_commands(
-    context, original, filename, series
-):
-    if context.config.build_pr:
-        commands = "dpkg -i /ua.deb"
-    elif context.config.enable_proposed:
-        commands = (
-            'printf "deb http://archive.ubuntu.com/ubuntu/ {series}-proposed main" > /etc/apt/sources.list.d/uaclient-proposed.list'  # noqa: E501
-            " && "
-            'printf "Package: *\\nPin: release a={series}-proposed\\nPin-Priority: 400\\n" > /etc/apt/preferences.d/lower-proposed'  # noqa: E501
-            " && "
-            'printf "Package: ubuntu-advantage-tools\\nPin: release a={series}-proposed\\nPin-Priority: 1001\\n" > /etc/apt/preferences.d/uaclient-proposed'  # noqa: E501
-            " && "
-            "apt-get update"
-            " && "
-            "apt-get install -y ubuntu-advantage-tools"
-        ).format(series=series)
-    else:
-        commands = (
-            'printf "deb {ppa} {series} main" > /etc/apt/sources.list.d/uaclient-ppa.list'  # noqa: E501
-            " && "
-        ).format(ppa=context.config.ppa, series=series)
-        if series != "xenial":
-            commands += "apt-get install -y gnupg" " && "
-        commands += (
-            "apt-key adv --keyserver keyserver.ubuntu.com --recv-key {key}"
-            " && "
-        ).format(key=context.config.ppa_keyid)
-        if series != "xenial":
-            commands += "apt-get purge --auto-remove -y gnupg" " && "
-        commands += (
-            "apt-get update" " && " "apt-get install -y ubuntu-advantage-tools"
-        )
-    when_i_replace_string_in_file(context, original, filename, commands)
 
 
 @then("I will see the following on stdout")
@@ -1054,16 +1040,9 @@ def docker_image_is_not_larger(context, name, series, package):
     base_image_size = float(base_image_match.group(1)) * 1024  # MB -> KB
 
     # Get ua test deb size
-    if context.config.build_pr:
-        when_i_run_command(
-            context, "du ubuntu-advantage-tools.deb", "with sudo"
-        )
-        # Example out: "1234\tubuntu-advantage-tools.deb"
-        ua_test_deb_size = int(
-            context.process.stdout.strip().split("\t")[0]
-        )  # KB
-    else:
-        ua_test_deb_size = 0
+    when_i_run_command(context, "du ubuntu-advantage-tools.deb", "with sudo")
+    # Example out: "1234\tubuntu-advantage-tools.deb"
+    ua_test_deb_size = int(context.process.stdout.strip().split("\t")[0])  # KB
 
     # Give us some space for bloat we don't control
     extra_space = 2048
