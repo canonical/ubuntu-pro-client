@@ -8,18 +8,18 @@ Feature: Build docker images with ua services
     Scenario Outline: Build docker images with ua services
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
-        When I run `apt install -y docker.io` with sudo
+        When I run `apt-get install -y docker.io` with sudo
         When I create the file `/home/ubuntu/Dockerfile` with the following:
         """
         FROM ubuntu:<container_release>
 
-        <copy_local_deb>
+        COPY ./ubuntu-advantage-tools.deb /ua.deb
 
         RUN --mount=type=secret,id=ua-attach-config \
             apt-get update \
             && apt-get install --no-install-recommends -y ubuntu-advantage-tools ca-certificates \
 
-            && <install_ua_under_test> \
+            && dpkg -i /ua.deb \
 
             && ua attach --attach-config /run/secrets/ua-attach-config \
 
@@ -35,8 +35,6 @@ Feature: Build docker images with ua services
 
             && rm -rf /var/lib/apt/lists/*
         """
-        When I replace `<copy_local_deb>` in `/home/ubuntu/Dockerfile` with `COPY ./ubuntu-advantage-tools.deb /ua.deb` if `build_pr` else ` `
-        When I replace `<install_ua_under_test>` in `/home/ubuntu/Dockerfile` with commands to install the `<container_release>` ua version under test
         When I create the file `/home/ubuntu/ua-attach-config.yaml` with the following:
         """
         token: <contract_token>
