@@ -5,7 +5,15 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import apt, contract, event_logger, exceptions, status, util
+from uaclient import (
+    apt,
+    contract,
+    event_logger,
+    exceptions,
+    messages,
+    status,
+    util,
+)
 from uaclient.entitlements import base
 from uaclient.status import ApplicationStatus
 
@@ -75,7 +83,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         self.install_packages()
 
-        event.info(status.MESSAGE_ENABLED_TMPL.format(title=self.title))
+        event.info(messages.ENABLED_TMPL.format(title=self.title))
         self._check_for_reboot_msg(operation="install")
         return True
 
@@ -102,7 +110,7 @@ class RepoEntitlement(base.UAEntitlement):
             )
         protocol, repo_path = repo_url.split("://")
         policy = apt.run_apt_command(
-            ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED
+            ["apt-cache", "policy"], messages.APT_POLICY_FAILED
         )
         match = re.search(
             r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
@@ -244,7 +252,7 @@ class RepoEntitlement(base.UAEntitlement):
                 ["apt-get", "install", "--assume-yes"]
                 + apt_options
                 + package_list,
-                status.MESSAGE_ENABLED_FAILED_TMPL.format(title=self.title),
+                messages.ENABLED_FAILED_TMPL.format(title=self.title),
                 env=env,
             )
         except exceptions.UserFacingError:
@@ -314,9 +322,7 @@ class RepoEntitlement(base.UAEntitlement):
                     "Cannot setup apt pin. Empty apt repo origin value '{}'.\n"
                     "{}".format(
                         self.origin,
-                        status.MESSAGE_ENABLED_FAILED_TMPL.format(
-                            title=self.title
-                        ),
+                        messages.ENABLED_FAILED_TMPL.format(title=self.title),
                     )
                 )
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
@@ -346,7 +352,7 @@ class RepoEntitlement(base.UAEntitlement):
             try:
                 apt.run_apt_command(
                     ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
-                    status.MESSAGE_APT_INSTALL_FAILED,
+                    messages.APT_INSTALL_FAILED,
                 )
             except exceptions.UserFacingError:
                 self.remove_apt_config()
@@ -359,10 +365,10 @@ class RepoEntitlement(base.UAEntitlement):
         # Side-effect is that apt policy will now report the repo as accessible
         # which allows ua status to report correct info
         if not silent:
-            event.info(status.MESSAGE_APT_UPDATING_LISTS)
+            event.info(messages.APT_UPDATING_LISTS)
         try:
             apt.run_apt_command(
-                ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+                ["apt-get", "update"], messages.APT_UPDATE_FAILED
             )
         except exceptions.UserFacingError:
             self.remove_apt_config(run_apt_update=False)
@@ -409,7 +415,7 @@ class RepoEntitlement(base.UAEntitlement):
 
         if run_apt_update:
             if not silent:
-                event.info(status.MESSAGE_APT_UPDATING_LISTS)
+                event.info(messages.APT_UPDATING_LISTS)
             apt.run_apt_command(
-                ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+                ["apt-get", "update"], messages.APT_UPDATE_FAILED
             )

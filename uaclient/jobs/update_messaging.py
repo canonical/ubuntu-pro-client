@@ -12,18 +12,18 @@ import os
 from typing import List, Tuple
 
 from uaclient import config, defaults, entitlements, util
-from uaclient.status import (
-    MESSAGE_ANNOUNCE_ESM_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_SOON_TMPL,
-    MESSAGE_DISABLED_APT_PKGS_TMPL,
-    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
-    MESSAGE_UBUNTU_NO_WARRANTY,
-    ApplicationStatus,
+from uaclient.messages import (
+    ANNOUNCE_ESM_TMPL,
+    CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
+    CONTRACT_EXPIRED_APT_PKGS_TMPL,
+    CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
+    CONTRACT_EXPIRED_MOTD_PKGS_TMPL,
+    CONTRACT_EXPIRED_SOON_TMPL,
+    DISABLED_APT_PKGS_TMPL,
+    DISABLED_MOTD_NO_PKGS_TMPL,
+    UBUNTU_NO_WARRANTY,
 )
+from uaclient.status import ApplicationStatus
 
 
 @enum.unique
@@ -130,7 +130,7 @@ def _write_esm_service_msg_templates(
         ua_esm_url = defaults.BASE_ESM_URL
     if ent.application_status()[0] == ApplicationStatus.ENABLED:
         if expiry_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_SOON_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_SOON_TMPL.format(
                 title=ent.title,
                 remaining_days=remaining_days,
                 url=defaults.BASE_UA_URL,
@@ -141,7 +141,7 @@ def _write_esm_service_msg_templates(
             grace_period_remaining = (
                 defaults.CONTRACT_EXPIRY_GRACE_PERIOD_DAYS + remaining_days
             )
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
                 title=ent.title,
                 expired_date=cfg.contract_expiry_datetime.strftime("%d %b %Y"),
                 remaining_days=grace_period_remaining,
@@ -150,31 +150,31 @@ def _write_esm_service_msg_templates(
             # Same cautionary message when in grace period
             motd_pkgs_msg = motd_no_pkgs_msg = no_pkgs_msg = pkgs_msg
         elif expiry_status == ContractExpiryStatus.EXPIRED:
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
                 pkg_num=tmpl_pkg_count_var,
                 pkg_names=tmpl_pkg_names_var,
                 title=ent.title,
                 name=ent.name,
                 url=defaults.BASE_UA_URL,
             )
-            no_pkgs_msg = MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
+            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
                 title=ent.title, url=defaults.BASE_UA_URL
             )
             motd_no_pkgs_msg = no_pkgs_msg
-            motd_pkgs_msg = MESSAGE_CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
+            motd_pkgs_msg = CONTRACT_EXPIRED_MOTD_PKGS_TMPL.format(
                 title=ent.title,
                 pkg_num=tmpl_pkg_count_var,
                 url=defaults.BASE_UA_URL,
             )
     elif expiry_status != ContractExpiryStatus.EXPIRED:  # Service not enabled
-        pkgs_msg = MESSAGE_DISABLED_APT_PKGS_TMPL.format(
+        pkgs_msg = DISABLED_APT_PKGS_TMPL.format(
             title=ent.title,
             pkg_num=tmpl_pkg_count_var,
             pkg_names=tmpl_pkg_names_var,
             eol_release=eol_release,
             url=ua_esm_url,
         )
-        no_pkgs_msg = MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL.format(
+        no_pkgs_msg = DISABLED_MOTD_NO_PKGS_TMPL.format(
             title=ent.title, url=ua_esm_url
         )
 
@@ -226,10 +226,10 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
             ContractExpiryStatus.EXPIRED,
             ContractExpiryStatus.NONE,
         ):
-            no_warranty_msg = MESSAGE_UBUNTU_NO_WARRANTY
+            no_warranty_msg = UBUNTU_NO_WARRANTY
         if infra_inst.application_status()[0] != enabled_status:
             msg_esm_infra = True
-            no_warranty_msg = MESSAGE_UBUNTU_NO_WARRANTY
+            no_warranty_msg = UBUNTU_NO_WARRANTY
         elif remaining_days <= defaults.CONTRACT_EXPIRY_PENDING_DAYS:
             msg_esm_infra = True
         _write_template_or_remove(
@@ -313,8 +313,7 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
         ua_esm_url = defaults.BASE_ESM_URL
     if all([series != "trusty", apps_not_beta, apps_not_enabled]):
         util.write_file(
-            esm_news_file,
-            "\n" + MESSAGE_ANNOUNCE_ESM_TMPL.format(url=ua_esm_url),
+            esm_news_file, "\n" + ANNOUNCE_ESM_TMPL.format(url=ua_esm_url)
         )
     else:
         util.remove_file(esm_news_file)

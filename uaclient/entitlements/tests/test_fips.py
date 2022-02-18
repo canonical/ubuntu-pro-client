@@ -10,7 +10,7 @@ from functools import partial
 import mock
 import pytest
 
-from uaclient import apt, defaults, exceptions, status, util
+from uaclient import apt, defaults, exceptions, messages, status, util
 from uaclient.clouds.identity import NoCloudTypeReason
 from uaclient.entitlements.fips import (
     CONDITIONAL_PACKAGES_EVERYWHERE,
@@ -188,7 +188,7 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_enable": [status.MESSAGE_FIPS_RUN_APT_UPGRADE],
+                "post_enable": [messages.FIPS_RUN_APT_UPGRADE],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -211,7 +211,7 @@ class TestFIPSEntitlementDefaults:
                         },
                     )
                 ],
-                "post_enable": [status.MESSAGE_FIPS_RUN_APT_UPGRADE],
+                "post_enable": [messages.FIPS_RUN_APT_UPGRADE],
                 "pre_disable": [
                     (
                         util.prompt_for_confirmation,
@@ -394,13 +394,13 @@ class TestFIPSEntitlementEnable:
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
         assert [
-            ["", status.MESSAGE_FIPS_REBOOT_REQUIRED]
+            ["", messages.FIPS_REBOOT_REQUIRED]
         ] == entitlement.cfg.read_cache("notices")
 
     @pytest.mark.parametrize(
         "fips_common_enable_return_value, expected_remove_notice_calls",
         [
-            (True, [mock.call("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)]),
+            (True, [mock.call("", messages.FIPS_INSTALL_OUT_OF_DATE)]),
             (False, []),
         ],
     )
@@ -909,7 +909,7 @@ class TestFIPSEntitlementDisable:
         assert [mock.call(silent=True)] == m_remove_apt_config.call_args_list
         assert [mock.call()] == m_remove_packages.call_args_list
         assert [
-            ["", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED]
+            ["", messages.FIPS_DISABLE_REBOOT_REQUIRED]
         ] == entitlement.cfg.read_cache("notices")
 
 
@@ -954,11 +954,11 @@ class TestFIPSEntitlementApplicationStatus:
             return orig_exists(path)
 
         msg = "sure is some status here"
-        entitlement.cfg.add_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+        entitlement.cfg.add_notice("", messages.FIPS_REBOOT_REQUIRED)
 
         if proc_content == "0":
             entitlement.cfg.add_notice(
-                "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+                "", messages.FIPS_DISABLE_REBOOT_REQUIRED
             )
 
         with mock.patch(
@@ -984,7 +984,7 @@ class TestFIPSEntitlementApplicationStatus:
         else:
             expected_msg = "Reboot to FIPS kernel required"
             assert [
-                ["", status.MESSAGE_FIPS_REBOOT_REQUIRED]
+                ["", messages.FIPS_REBOOT_REQUIRED]
             ] == entitlement.cfg.read_cache("notices")
 
         assert (expected_status, expected_msg) == application_status
@@ -1064,10 +1064,10 @@ class TestFipsEntitlementInstallPackages:
         expected_msg = "\n".join(
             [
                 "Installing {} packages".format(entitlement.title),
-                status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="b"
                 ),
-                status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                     service=entitlement.title, pkg="c"
                 ),
             ]

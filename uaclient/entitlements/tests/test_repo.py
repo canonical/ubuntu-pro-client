@@ -4,7 +4,7 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, exceptions, status, util
+from uaclient import apt, exceptions, messages, status, util
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -212,7 +212,7 @@ class TestProcessContractDeltas:
             allow_enable=False,
         )
         assert [] == m_enable.call_args_list
-        expected_msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+        expected_msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
             name="repotest"
         )
         assert expected_msg in capsys.readouterr()[1]

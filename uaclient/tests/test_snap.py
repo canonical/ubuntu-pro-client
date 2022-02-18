@@ -3,7 +3,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status
+from uaclient import exceptions, messages
 from uaclient.snap import (
     configure_snap_proxy,
     get_config_option_value,
@@ -60,7 +60,7 @@ class TestConfigureSnapProxy:
 
         out, _ = capsys.readouterr()
         if http_proxy or https_proxy:
-            assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
+            assert out.strip() == messages.SETTING_SERVICE_PROXY.format(
                 service="snap"
             )
 

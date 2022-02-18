@@ -3,7 +3,7 @@ import pytest
 
 from uaclient.exceptions import LockHeldError
 from uaclient.lock import SingleAttemptLock, SpinLock
-from uaclient.status import MESSAGE_LOCK_HELD
+from uaclient.messages import LOCK_HELD
 
 M_PATH = "uaclient.lock."
 M_PATH_UACONFIG = "uaclient.config.UAConfig."
@@ -97,7 +97,7 @@ class TestSingleAttemptLock:
 
         assert (
             "Unable to perform: some operation.\n"
-            + MESSAGE_LOCK_HELD.format(lock_holder="held", pid=10)
+            + LOCK_HELD.format(lock_holder="held", pid=10)
             == exc.value.msg
         )
 
@@ -155,7 +155,7 @@ class TestSpinLock:
 
         assert (
             "Unable to perform: request.\n"
-            + MESSAGE_LOCK_HELD.format(lock_holder="holder", pid=10)
+            + LOCK_HELD.format(lock_holder="holder", pid=10)
             == exc.value.msg
         )
 

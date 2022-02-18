@@ -11,7 +11,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import exceptions, status, version
+from uaclient import exceptions, messages, status, version
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.event_logger import EventLoggerMode
 
@@ -478,7 +478,7 @@ class TestActionStatus:
             "_schema_version": "0.1",
             "version": version.get_version(features=cfg.features),
             "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
-            "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+            "execution_details": messages.NO_ACTIVE_OPERATIONS,
             "attached": False,
             "machine_id": None,
             "effective": None,
@@ -614,7 +614,7 @@ class TestActionStatus:
             "_schema_version": "0.1",
             "version": version.get_version(features=cfg.features),
             "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
-            "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+            "execution_details": messages.NO_ACTIVE_OPERATIONS,
             "attached": True,
             "machine_id": "test_machine_id",
             "effective": effective,

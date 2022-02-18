@@ -9,8 +9,8 @@ from uaclient import (
     entitlements,
     event_logger,
     exceptions,
+    messages,
 )
-from uaclient import status as ua_status
 from uaclient.clouds import identity
 
 LOG = logging.getLogger("ua.actions")
@@ -69,7 +69,7 @@ def auto_attach(
     except exceptions.ContractAPIError as e:
         if e.code and 400 <= e.code < 500:
             raise exceptions.NonAutoAttachImageError(
-                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
+                messages.UNSUPPORTED_AUTO_ATTACH
             )
         raise e
 

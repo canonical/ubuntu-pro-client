@@ -19,17 +19,17 @@ from uaclient.jobs.update_messaging import (
     write_apt_and_motd_templates,
     write_esm_announcement_message,
 )
-from uaclient.status import (
-    MESSAGE_ANNOUNCE_ESM_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
-    MESSAGE_CONTRACT_EXPIRED_SOON_TMPL,
-    MESSAGE_DISABLED_APT_PKGS_TMPL,
-    MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL,
-    MESSAGE_UBUNTU_NO_WARRANTY,
-    ApplicationStatus,
+from uaclient.messages import (
+    ANNOUNCE_ESM_TMPL,
+    CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
+    CONTRACT_EXPIRED_APT_PKGS_TMPL,
+    CONTRACT_EXPIRED_GRACE_PERIOD_TMPL,
+    CONTRACT_EXPIRED_SOON_TMPL,
+    DISABLED_APT_PKGS_TMPL,
+    DISABLED_MOTD_NO_PKGS_TMPL,
+    UBUNTU_NO_WARRANTY,
 )
+from uaclient.status import ApplicationStatus
 
 M_PATH = "uaclient.jobs.update_messaging."
 
@@ -122,9 +122,7 @@ class TestWriteAPTAndMOTDTemplates:
         assert [mock.call("xenial")] == util_is_active_esm.call_args_list
         no_warranty_file = os.path.join(msg_dir, "ubuntu-no-warranty")
         if no_warranty:
-            assert MESSAGE_UBUNTU_NO_WARRANTY == util.load_file(
-                no_warranty_file
-            )
+            assert UBUNTU_NO_WARRANTY == util.load_file(no_warranty_file)
         else:
             assert False is os.path.exists(no_warranty_file)
 
@@ -358,7 +356,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
         )
         if expect_messages:
             assert (
-                MESSAGE_DISABLED_APT_PKGS_TMPL.format(
+                DISABLED_APT_PKGS_TMPL.format(
                     title=title,
                     pkg_num=pkg_count_var,
                     pkg_names=pkg_names_var,
@@ -368,7 +366,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
                 == pkgs_file.read()
             )
             assert (
-                MESSAGE_DISABLED_MOTD_NO_PKGS_TMPL.format(title=title, url=url)
+                DISABLED_MOTD_NO_PKGS_TMPL.format(title=title, url=url)
                 == no_pkgs_file.read()
             )
         else:
@@ -475,7 +473,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert False is os.path.exists(pkgs_msg_file)
             assert False is os.path.exists(no_pkgs_msg_file)
         elif contract_status == ContractExpiryStatus.ACTIVE_EXPIRED_SOON:
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_SOON_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_SOON_TMPL.format(
                 title="UA Apps: ESM",
                 remaining_days=remaining_days,
                 url=BASE_UA_URL,
@@ -483,7 +481,7 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert pkgs_msg == pkgs_tmpl.read()
             assert pkgs_msg == no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED_GRACE_PERIOD:
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_GRACE_PERIOD_TMPL.format(
                 title="UA Apps: ESM",
                 expired_date=cfg.contract_expiry_datetime.strftime("%d %b %Y"),
                 remaining_days=remaining_days
@@ -493,14 +491,14 @@ class Test_WriteESMServiceAPTMsgTemplates:
             assert pkgs_msg == pkgs_tmpl.read()
             assert pkgs_msg == no_pkgs_tmpl.read()
         elif contract_status == ContractExpiryStatus.EXPIRED:
-            pkgs_msg = MESSAGE_CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
+            pkgs_msg = CONTRACT_EXPIRED_APT_PKGS_TMPL.format(
                 pkg_num="{ESM_APPS_PKG_COUNT}",
                 pkg_names="{ESM_APPS_PACKAGES}",
                 title="UA Apps: ESM",
                 name="esm-apps",
                 url=BASE_UA_URL,
             )
-            no_pkgs_msg = MESSAGE_CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
+            no_pkgs_msg = CONTRACT_EXPIRED_APT_NO_PKGS_TMPL.format(
                 title="UA Apps: ESM", url=BASE_UA_URL
             )
             assert pkgs_msg == pkgs_tmpl.read()
@@ -525,9 +523,7 @@ class TestWriteESMAnnouncementMessage:
                 None,
                 False,
                 "\n"
-                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
-                    url="https://ubuntu.com/16-04"
-                ),
+                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
             ),
             # allow_beta uaclient.config overrides is_beta and days_until_esm
             (
@@ -538,9 +534,7 @@ class TestWriteESMAnnouncementMessage:
                 True,
                 False,
                 "\n"
-                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
-                    url="https://ubuntu.com/16-04"
-                ),
+                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/16-04"),
             ),
             # when esm-apps already enabled don't show
             ("xenial", "16.04", True, False, True, True, None),
@@ -551,10 +545,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n"
-                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
-                    url="https://ubuntu.com/esm"
-                ),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
             ),
             # Once Bionic transitions to ESM support, emit 18-04 messaging
             (
@@ -565,9 +556,7 @@ class TestWriteESMAnnouncementMessage:
                 None,
                 False,
                 "\n"
-                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
-                    url="https://ubuntu.com/18-04"
-                ),
+                + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/18-04"),
             ),
             (
                 "focal",
@@ -576,10 +565,7 @@ class TestWriteESMAnnouncementMessage:
                 False,
                 None,
                 False,
-                "\n"
-                + MESSAGE_ANNOUNCE_ESM_TMPL.format(
-                    url="https://ubuntu.com/esm"
-                ),
+                "\n" + ANNOUNCE_ESM_TMPL.format(url="https://ubuntu.com/esm"),
             ),
         ),
     )
