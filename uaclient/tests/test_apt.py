@@ -9,7 +9,7 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import apt, exceptions, status, util
+from uaclient import apt, exceptions, messages, util
 from uaclient.apt import (
     APT_AUTH_COMMENT,
     APT_CONFIG_PROXY_HTTP,
@@ -912,8 +912,7 @@ class TestRunAptCommand:
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             run_apt_command(
-                cmd=["apt", "update"],
-                error_msg=status.MESSAGE_APT_UPDATE_FAILED,
+                cmd=["apt", "update"], error_msg=messages.APT_UPDATE_FAILED
             )
 
         expected_message = "\n".join(output_list) + "."
@@ -931,13 +930,13 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        messages.APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         ),
                     )
                 ],
-                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY.format(service="APT"),
             ),
             (
                 {"https_proxy": "mock_https_proxy"},
@@ -945,13 +944,13 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        messages.APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
                     )
                 ],
-                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY.format(service="APT"),
             ),
             (
                 {
@@ -962,7 +961,7 @@ class TestAptProxyConfig:
                 [
                     mock.call(
                         APT_PROXY_CONF_FILE,
-                        status.MESSAGE_APT_PROXY_CONFIG_HEADER
+                        messages.APT_PROXY_CONFIG_HEADER
                         + APT_CONFIG_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         )
@@ -971,7 +970,7 @@ class TestAptProxyConfig:
                         ),
                     )
                 ],
-                status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY.format(service="APT"),
             ),
         ],
     )

@@ -3,7 +3,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import status
+from uaclient import messages
 from uaclient.cli import (
     action_auto_attach,
     auto_attach_parser,
@@ -128,19 +128,19 @@ class TestActionAutoAttach:
                 CloudFactoryNoCloudError("test"),
                 False,
                 UserFacingError,
-                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
             ),
             (
                 CloudFactoryNonViableCloudError("test"),
                 False,
                 UserFacingError,
-                status.MESSAGE_UNSUPPORTED_AUTO_ATTACH,
+                messages.UNSUPPORTED_AUTO_ATTACH,
             ),
             (
                 CloudFactoryUnsupportedCloudError("test"),
                 False,
                 NonAutoAttachImageError,
-                status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
                     cloud_type="test"
                 ),
             ),
@@ -148,13 +148,13 @@ class TestActionAutoAttach:
                 CloudFactoryNoCloudError("test"),
                 False,
                 UserFacingError,
-                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
             ),
             (
                 CloudFactoryError("test"),
                 False,
                 UserFacingError,
-                status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE,
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE,
             ),
             (CloudFactoryError("test"), True, AlreadyAttachedError, None),
         ],
@@ -269,7 +269,7 @@ class TestActionAutoAttach:
         with pytest.raises(UserFacingError) as err:
             action_auto_attach(mock.MagicMock(), cfg=cfg)
 
-        assert status.MESSAGE_DETACH_AUTOMATION_FAILURE == str(err.value)
+        assert messages.DETACH_AUTOMATION_FAILURE == str(err.value)
 
 
 class TestParser:

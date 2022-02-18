@@ -10,7 +10,7 @@ from lib.reboot_cmds import (
     run_command,
 )
 from uaclient.exceptions import ProcessExecutionError
-from uaclient.status import MESSAGE_REBOOT_SCRIPT_FAILED
+from uaclient.messages import REBOOT_SCRIPT_FAILED
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
@@ -157,7 +157,7 @@ class TestProcessRebootOperations:
             with mock.patch("uaclient.config.UAConfig.write_cache"):
                 process_reboot_operations(cfg=cfg)
 
-        expected_calls = [mock.call("", MESSAGE_REBOOT_SCRIPT_FAILED)]
+        expected_calls = [mock.call("", REBOOT_SCRIPT_FAILED)]
 
         assert expected_calls == m_add_notice.call_args_list
 

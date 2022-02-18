@@ -4,14 +4,10 @@ import re
 from itertools import groupby
 from typing import List, Optional, Tuple  # noqa: F401
 
-from uaclient import apt, event_logger, exceptions, status, util
+from uaclient import apt, event_logger, exceptions, messages, status, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
-from uaclient.status import (
-    NAMED_MESSAGE_FIPS_UPDATES_INVALIDATES_FIPS,
-    NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS,
-)
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
@@ -154,7 +150,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 )
             except exceptions.UserFacingError:
                 event.info(
-                    status.MESSAGE_FIPS_PACKAGE_NOT_AVAILABLE.format(
+                    messages.FIPS_PACKAGE_NOT_AVAILABLE.format(
                         service=self.title, pkg=pkg
                     )
                 )
@@ -168,16 +164,14 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         event.needs_reboot(reboot_required)
         if reboot_required:
             event.info(
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation
                 )
             )
             if operation == "install":
-                self.cfg.add_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+                self.cfg.add_notice("", messages.FIPS_REBOOT_REQUIRED)
             elif operation == "disable operation":
-                self.cfg.add_notice(
-                    "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
-                )
+                self.cfg.add_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
 
     def _allow_fips_on_cloud_instance(
         self, series: str, cloud_id: str
@@ -231,7 +225,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             cloud_id = ""
 
         series = util.get_platform_info().get("series", "")
-        blocked_message = status.MESSAGE_FIPS_BLOCK_ON_CLOUD.format(
+        blocked_message = messages.FIPS_BLOCK_ON_CLOUD.format(
             series=series.title(), cloud=cloud_titles.get(cloud_id)
         )
         return (
@@ -294,11 +288,11 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         super_status, super_msg = super().application_status()
 
         if util.is_container() and not util.should_reboot():
-            self.cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED)
             return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
-            self.cfg.remove_notice("", status.MESSAGE_FIPS_REBOOT_REQUIRED)
+            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED)
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
                     "", status.NOTICE_FIPS_MANUAL_DISABLE_URL
@@ -306,7 +300,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 return super_status, super_msg
             else:
                 self.cfg.remove_notice(
-                    "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
+                    "", messages.FIPS_DISABLE_REBOOT_REQUIRED
                 )
                 self.cfg.add_notice("", status.NOTICE_FIPS_MANUAL_DISABLE_URL)
                 return (
@@ -314,9 +308,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     "{} is not set to 1".format(self.FIPS_PROC_FILE),
                 )
         else:
-            self.cfg.remove_notice(
-                "", status.MESSAGE_FIPS_DISABLE_REBOOT_REQUIRED
-            )
+            self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
 
         if super_status != status.ApplicationStatus.ENABLED:
             return super_status, super_msg
@@ -346,7 +338,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 ["apt-get", "remove", "--assume-yes"]
                 + apt_options
                 + list(remove_packages),
-                status.MESSAGE_DISABLE_FAILED_TMPL.format(title=self.title),
+                messages.DISABLE_FAILED_TMPL.format(title=self.title),
                 env=env,
             )
 
@@ -391,11 +383,10 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
         return (
             IncompatibleService(
-                LivepatchEntitlement, NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS
+                LivepatchEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
             ),
             IncompatibleService(
-                FIPSUpdatesEntitlement,
-                NAMED_MESSAGE_FIPS_UPDATES_INVALIDATES_FIPS,
+                FIPSUpdatesEntitlement, messages.FIPS_UPDATES_INVALIDATES_FIPS
             ),
         )
 
@@ -440,7 +431,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
                 title=self.title
             )
-            post_enable = [status.MESSAGE_FIPS_RUN_APT_UPGRADE]
+            post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
             pre_enable_prompt = status.PROMPT_FIPS_PRE_ENABLE
 
@@ -492,7 +483,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 "defaulting to generic FIPS package."
             )
         if super()._perform_enable(silent=silent):
-            self.cfg.remove_notice("", status.MESSAGE_FIPS_INSTALL_OUT_OF_DATE)
+            self.cfg.remove_notice("", messages.FIPS_INSTALL_OUT_OF_DATE)
             return True
 
         return False
@@ -512,7 +503,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
             pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
                 title=self.title
             )
-            post_enable = [status.MESSAGE_FIPS_RUN_APT_UPGRADE]
+            post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
             pre_enable_prompt = status.PROMPT_FIPS_UPDATES_PRE_ENABLE
 

@@ -10,7 +10,16 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 
 import yaml
 
-from uaclient import apt, event_logger, exceptions, snap, status, util, version
+from uaclient import (
+    apt,
+    event_logger,
+    exceptions,
+    messages,
+    snap,
+    status,
+    util,
+    version,
+)
 from uaclient.defaults import (
     ATTACH_FAIL_DATE_FORMAT,
     BASE_CONTRACT_URL,
@@ -32,7 +41,7 @@ DEFAULT_STATUS = {
     "origin": None,
     "services": [],
     "execution_status": status.UserFacingConfigStatus.INACTIVE.value,
-    "execution_details": status.MESSAGE_NO_ACTIVE_OPERATIONS,
+    "execution_details": messages.NO_ACTIVE_OPERATIONS,
     "notices": [],
     "contract": {
         "id": "",
@@ -453,7 +462,7 @@ class UAConfig:
     def parse_machine_token_overlay(self, machine_token_overlay_path):
         if not os.path.exists(machine_token_overlay_path):
             raise exceptions.UserFacingError(
-                status.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
+                messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
                     file_path=machine_token_overlay_path
                 )
             )
@@ -466,7 +475,7 @@ class UAConfig:
             return json.loads(machine_token_overlay_content)
         except ValueError as e:
             raise exceptions.UserFacingError(
-                status.ERROR_JSON_DECODING_IN_FILE.format(
+                messages.ERROR_JSON_DECODING_IN_FILE.format(
                     error=str(e), file_path=machine_token_overlay_path
                 )
             )
@@ -610,12 +619,12 @@ class UAConfig:
         """
         userStatus = status.UserFacingConfigStatus
         status_val = userStatus.INACTIVE.value
-        status_desc = status.MESSAGE_NO_ACTIVE_OPERATIONS
+        status_desc = messages.NO_ACTIVE_OPERATIONS
         (lock_pid, lock_holder) = self.check_lock_info()
         notices = self.read_cache("notices") or []
         if lock_pid > 0:
             status_val = userStatus.ACTIVE.value
-            status_desc = status.MESSAGE_LOCK_HELD.format(
+            status_desc = messages.LOCK_HELD.format(
                 pid=lock_pid, lock_holder=lock_holder
             )
         elif os.path.exists(self.data_path("marker-reboot-cmds")):
@@ -625,7 +634,7 @@ class UAConfig:
                 if label == "Reboot required":
                     operation = description
                     break
-            status_desc = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+            status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                 operation=operation
             )
         return {
@@ -812,9 +821,7 @@ class UAConfig:
             contract_information = get_contract_information(self, token)
         except exceptions.ContractAPIError as e:
             if hasattr(e, "code") and e.code == 401:
-                raise exceptions.UserFacingError(
-                    status.MESSAGE_ATTACH_INVALID_TOKEN
-                )
+                raise exceptions.UserFacingError(messages.ATTACH_INVALID_TOKEN)
             raise e
 
         contract_info = contract_information.get("contractInfo", {})
@@ -847,7 +854,7 @@ class UAConfig:
             expiration_datetime = util.parse_rfc3339_date(response["expires"])
             delta = expiration_datetime - now
             if delta.total_seconds() <= 0:
-                message = status.MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+                message = messages.ATTACH_FORBIDDEN_EXPIRED.format(
                     contract_id=response["contract"]["id"],
                     date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
                 )
@@ -859,7 +866,7 @@ class UAConfig:
             effective_datetime = util.parse_rfc3339_date(response["effective"])
             delta = now - effective_datetime
             if delta.total_seconds() <= 0:
-                message = status.MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+                message = messages.ATTACH_FORBIDDEN_NOT_YET.format(
                     contract_id=response["contract"]["id"],
                     date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
                 )
@@ -942,7 +949,7 @@ class UAConfig:
             if not util.should_reboot():
                 self.remove_notice(
                     "",
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                         operation="fix operation"
                     ),
                 )
@@ -1076,7 +1083,7 @@ class UAConfig:
         if len(services_with_proxies) > 0:
             services = ", ".join(services_with_proxies)
             event.info(
-                status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
+                messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(
                     services=services
                 )
             )
@@ -1085,7 +1092,7 @@ class UAConfig:
         """Write config values back to config_path or DEFAULT_CONFIG_FILE."""
         if not config_path:
             config_path = DEFAULT_CONFIG_FILE
-        content = status.MESSAGE_UACLIENT_CONF_HEADER
+        content = messages.UACLIENT_CONF_HEADER
         cfg_dict = copy.deepcopy(self.cfg)
         if "log_level" not in cfg_dict:
             cfg_dict["log_level"] = CONFIG_DEFAULTS["log_level"]

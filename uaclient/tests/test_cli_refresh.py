@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status
+from uaclient import exceptions, messages
 from uaclient.cli import action_refresh, main
 
 HELP_OUTPUT = """\
@@ -90,7 +90,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
-        assert status.MESSAGE_REFRESH_CONTRACT_FAILURE == excinfo.value.msg
+        assert messages.REFRESH_CONTRACT_FAILURE == excinfo.value.msg
 
     @mock.patch("uaclient.contract.request_updated_contract")
     def test_refresh_contract_happy_path(
@@ -103,9 +103,7 @@ class TestActionRefresh:
         ret = action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
         assert 0 == ret
-        assert (
-            status.MESSAGE_REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
-        )
+        assert messages.REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
 
     @mock.patch("logging.exception")
@@ -122,7 +120,7 @@ class TestActionRefresh:
         with pytest.raises(exceptions.UserFacingError) as excinfo:
             action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
-        assert status.MESSAGE_REFRESH_CONFIG_FAILURE == excinfo.value.msg
+        assert messages.REFRESH_CONFIG_FAILURE == excinfo.value.msg
 
     @mock.patch("uaclient.config.UAConfig.process_config")
     def test_refresh_config_happy_path(
@@ -134,7 +132,7 @@ class TestActionRefresh:
         ret = action_refresh(mock.MagicMock(target="config"), cfg=cfg)
 
         assert 0 == ret
-        assert status.MESSAGE_REFRESH_CONFIG_SUCCESS in capsys.readouterr()[0]
+        assert messages.REFRESH_CONFIG_SUCCESS in capsys.readouterr()[0]
         assert [mock.call()] == m_process_config.call_args_list
 
     @mock.patch("uaclient.contract.request_updated_contract")
@@ -154,7 +152,7 @@ class TestActionRefresh:
         out, err = capsys.readouterr()
 
         assert 0 == ret
-        assert status.MESSAGE_REFRESH_CONFIG_SUCCESS in out
-        assert status.MESSAGE_REFRESH_CONTRACT_SUCCESS in out
+        assert messages.REFRESH_CONFIG_SUCCESS in out
+        assert messages.REFRESH_CONTRACT_SUCCESS in out
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_request_updated_contract.call_args_list

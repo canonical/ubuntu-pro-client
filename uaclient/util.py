@@ -26,7 +26,7 @@ from typing import (
 from urllib import error, request
 from urllib.parse import urlparse
 
-from uaclient import event_logger, exceptions, status
+from uaclient import event_logger, exceptions, messages, status
 from uaclient.types import MessagingOperations
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
@@ -719,7 +719,7 @@ def is_config_value_true(config: Dict[str, Any], path_to_value: str):
         return False
     else:
         raise exceptions.UserFacingError(
-            status.ERROR_INVALID_CONFIG_VALUE.format(
+            messages.ERROR_INVALID_CONFIG_VALUE.format(
                 path_to_value=path_to_value,
                 expected_value="boolean string: true or false",
                 value=value_str,
@@ -882,7 +882,7 @@ def validate_proxy(
 
     if not is_service_url(proxy):
         raise exceptions.UserFacingError(
-            status.MESSAGE_NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy)
+            messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy)
         )
 
     req = request.Request(test_url, method="HEAD")
@@ -896,12 +896,12 @@ def validate_proxy(
         with disable_log_to_console():
             msg = getattr(e, "reason", str(e))
             logging.error(
-                status.MESSAGE_ERROR_USING_PROXY.format(
+                messages.ERROR_USING_PROXY.format(
                     proxy=proxy, test_url=test_url, error=msg
                 )
             )
         raise exceptions.UserFacingError(
-            status.MESSAGE_NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy)
+            messages.NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy)
         )
 
 
@@ -922,7 +922,7 @@ def handle_unicode_characters(message: str) -> str:
         # Remove our unicode success/failure marks if we aren't going to be
         # writing to a utf-8 output; see
         # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/1463
-        message = message.replace(status.OKGREEN_CHECK + " ", "")
-        message = message.replace(status.FAIL_X + " ", "")
+        message = message.replace(messages.OKGREEN_CHECK + " ", "")
+        message = message.replace(messages.FAIL_X + " ", "")
 
     return message

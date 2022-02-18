@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from typing import Dict, List, Optional
 
-from uaclient import event_logger, exceptions, gpg, status, util
+from uaclient import event_logger, exceptions, gpg, messages, util
 
 APT_HELPER_TIMEOUT = 60.0  # 60 second timeout used for apt-helper call
 APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
@@ -118,7 +118,7 @@ def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
 
     if failed_repos:
         error_msg += "\n"
-        error_msg += status.MESSAGE_APT_UPDATE_INVALID_URL_CONFIG.format(
+        error_msg += messages.APT_UPDATE_INVALID_URL_CONFIG.format(
             "s" if len(failed_repos) > 1 else "",
             "\n".join(sorted(failed_repos)),
         )
@@ -183,7 +183,7 @@ def add_auth_apt_repo(
     # Does this system have updates suite enabled?
     updates_enabled = False
     policy = run_apt_command(
-        ["apt-cache", "policy"], status.MESSAGE_APT_POLICY_FAILED
+        ["apt-cache", "policy"], messages.APT_POLICY_FAILED
     )
     for line in policy.splitlines():
         # We only care about $suite-updates lines
@@ -405,7 +405,7 @@ def setup_apt_proxy(
     :return: None
     """
     if http_proxy or https_proxy:
-        event.info(status.MESSAGE_SETTING_SERVICE_PROXY.format(service="APT"))
+        event.info(messages.SETTING_SERVICE_PROXY.format(service="APT"))
 
     apt_proxy_config = ""
     if http_proxy:
@@ -415,9 +415,7 @@ def setup_apt_proxy(
             proxy_url=https_proxy
         )
     if apt_proxy_config != "":
-        apt_proxy_config = (
-            status.MESSAGE_APT_PROXY_CONFIG_HEADER + apt_proxy_config
-        )
+        apt_proxy_config = messages.APT_PROXY_CONFIG_HEADER + apt_proxy_config
 
     if apt_proxy_config == "":
         util.remove_file(APT_PROXY_CONF_FILE)
