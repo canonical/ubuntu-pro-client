@@ -11,7 +11,7 @@ import uuid
 import mock
 import pytest
 
-from uaclient import cli, exceptions, status, util
+from uaclient import cli, exceptions, messages, util
 
 PRIVACY_POLICY_URL = (
     "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
@@ -911,7 +911,7 @@ class TestIsConfigValueTrue:
                 config=cfg.cfg, path_to_value=path_to_value
             )
 
-        expected_msg = status.ERROR_INVALID_CONFIG_VALUE.format(
+        expected_msg = messages.ERROR_INVALID_CONFIG_VALUE.format(
             path_to_value=path_to_value,
             expected_value="boolean string: true or false",
             value=key_val,
@@ -1137,9 +1137,8 @@ class TestValidateProxy:
         with pytest.raises(exceptions.UserFacingError) as e:
             util.validate_proxy("http", proxy, "http://example.com")
 
-        assert (
-            e.value.msg
-            == status.MESSAGE_NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy)
+        assert e.value.msg == messages.NOT_SETTING_PROXY_INVALID_URL.format(
+            proxy=proxy
         )
 
     @pytest.mark.parametrize(
@@ -1198,15 +1197,12 @@ class TestValidateProxy:
                 "http", "http://localhost:1234", "http://example.com"
             )
 
-        assert (
-            e.value.msg
-            == status.MESSAGE_NOT_SETTING_PROXY_NOT_WORKING.format(
-                proxy="http://localhost:1234"
-            )
+        assert e.value.msg == messages.NOT_SETTING_PROXY_NOT_WORKING.format(
+            proxy="http://localhost:1234"
         )
 
         assert (
-            status.MESSAGE_ERROR_USING_PROXY.format(
+            messages.ERROR_USING_PROXY.format(
                 proxy="http://localhost:1234",
                 test_url="http://example.com",
                 error=expected_message,
@@ -1222,8 +1218,8 @@ class TestHandleUnicodeCharacters:
     @pytest.mark.parametrize(
         "message,modified_message",
         (
-            (status.OKGREEN_CHECK + " test", "test"),
-            (status.FAIL_X + " fail", "fail"),
+            (messages.OKGREEN_CHECK + " test", "test"),
+            (messages.FAIL_X + " fail", "fail"),
             ("\u2014 blah", "- blah"),
         ),
     )

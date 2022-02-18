@@ -10,7 +10,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import entitlements, exceptions, status, util, version
+from uaclient import entitlements, exceptions, messages, status, util, version
 from uaclient.config import (
     DEFAULT_STATUS,
     PRIVATE_SUBDIR,
@@ -33,9 +33,7 @@ from uaclient.entitlements.fips import FIPSEntitlement
 from uaclient.entitlements.ros import ROSEntitlement
 from uaclient.entitlements.tests.test_base import ConcreteTestEntitlement
 from uaclient.status import (
-    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
     ContractStatus,
-    NamedMessage,
     UserFacingConfigStatus,
     UserFacingStatus,
 )
@@ -787,7 +785,7 @@ class TestStatus:
             expected_calls = [
                 mock.call(
                     "",
-                    status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                         operation="fix operation"
                     ),
                 )
@@ -1035,7 +1033,7 @@ class TestStatus:
         expected_calls = [
             mock.call(
                 "",
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation="fix operation"
                 ),
             )
@@ -1204,7 +1202,7 @@ class TestStatus:
         expected_calls = [
             mock.call(
                 "",
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation="fix operation"
                 ),
             )
@@ -1265,7 +1263,7 @@ class TestStatus:
         cfg.write_cache("status-cache", expected_status)
 
         # Even non-root users can update execution_status details
-        details = MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+        details = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
             operation="configuration changes"
         )
         reboot_required = UserFacingConfigStatus.REBOOTREQUIRED.value
@@ -1338,7 +1336,7 @@ class TestAttachedServiceStatus:
             (
                 [
                     IncompatibleService(
-                        FIPSEntitlement, NamedMessage("code", "msg")
+                        FIPSEntitlement, messages.NamedMessage("code", "msg")
                     )
                 ],
                 [{"name": "fips", "reason": "msg", "reason_code": "code"}],
@@ -1346,10 +1344,10 @@ class TestAttachedServiceStatus:
             (
                 [
                     IncompatibleService(
-                        FIPSEntitlement, NamedMessage("code", "msg")
+                        FIPSEntitlement, messages.NamedMessage("code", "msg")
                     ),
                     IncompatibleService(
-                        ROSEntitlement, NamedMessage("code2", "msg2")
+                        ROSEntitlement, messages.NamedMessage("code2", "msg2")
                     ),
                 ],
                 [
@@ -1507,7 +1505,7 @@ class TestProcessConfig:
 
         expected_out = ""
         if snap_livepatch_msg:
-            expected_out = status.MESSAGE_PROXY_DETECTED_BUT_NOT_CONFIGURED.format(  # noqa: E501
+            expected_out = messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(  # noqa: E501
                 services=snap_livepatch_msg
             )
 
@@ -1837,7 +1835,7 @@ class TestMachineTokenOverlay:
         m_read_cache.return_value = self.machine_token_dict
 
         cfg = UAConfig(cfg=user_cfg)
-        expected_msg = status.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
+        expected_msg = messages.INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY.format(
             file_path=invalid_path
         )
 
@@ -1858,7 +1856,7 @@ class TestMachineTokenOverlay:
 
         json_str = '{"directives": {"remoteServer": "overlay"}'
         m_load_file.return_value = json_str
-        expected_msg = status.ERROR_JSON_DECODING_IN_FILE.format(
+        expected_msg = messages.ERROR_JSON_DECODING_IN_FILE.format(
             error="Expecting ',' delimiter: line 1 column 43 (char 42)",
             file_path=invalid_json_path,
         )

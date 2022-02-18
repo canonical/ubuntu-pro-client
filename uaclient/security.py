@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import apt, exceptions, serviceclient, status, util
+from uaclient import apt, exceptions, messages, serviceclient, status, util
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
@@ -212,7 +212,7 @@ class CVEPackageStatus:
         elif self.status == "not-affected":
             return "Source package is not affected on this release."
         elif self.status == "released":
-            return status.MESSAGE_SECURITY_FIX_RELEASE_STREAM.format(
+            return messages.SECURITY_FIX_RELEASE_STREAM.format(
                 fix_stream=self.pocket_source
             )
         return "UNKNOWN: {}".format(self.status)
@@ -561,7 +561,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
         except exceptions.SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
-                msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
+                msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
@@ -579,7 +579,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
         except exceptions.SecurityAPIError as e:
             msg = str(e)
             if "not found" in msg.lower():
-                msg = status.MESSAGE_SECURITY_FIX_NOT_FOUND_ISSUE.format(
+                msg = messages.SECURITY_FIX_NOT_FOUND_ISSUE.format(
                     issue_id=issue_id
                 )
             raise exceptions.UserFacingError(msg)
@@ -697,12 +697,12 @@ def print_affected_packages_header(
     count = len(affected_pkg_status)
     if count == 0:
         print(
-            status.MESSAGE_SECURITY_AFFECTED_PKGS.format(
+            messages.SECURITY_AFFECTED_PKGS.format(
                 count="No", plural_str="s are"
             )
             + "."
         )
-        print(status.MESSAGE_SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id))
+        print(messages.SECURITY_ISSUE_UNAFFECTED.format(issue=issue_id))
         return
 
     if count == 1:
@@ -710,7 +710,7 @@ def print_affected_packages_header(
     else:
         plural_str = "s are"
     msg = (
-        status.MESSAGE_SECURITY_AFFECTED_PKGS.format(
+        messages.SECURITY_AFFECTED_PKGS.format(
             count=count, plural_str=plural_str
         )
         + ": "
@@ -859,7 +859,7 @@ def _handle_released_package_fixes(
                     print(msg)
 
                     if not binary_pkgs:
-                        print(status.MESSAGE_SECURITY_UPDATE_INSTALLED)
+                        print(messages.SECURITY_UPDATE_INSTALLED)
                         continue
                     else:
                         # if even one pocket has binary_pkgs to install
@@ -923,7 +923,7 @@ def prompt_for_affected_packages(
     print_affected_packages_header(issue_id, affected_pkg_status)
     if count == 0:
         return FixStatus.SYSTEM_NON_VULNERABLE
-    fix_message = status.MESSAGE_SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
+    fix_message = messages.SECURITY_ISSUE_RESOLVED.format(issue=issue_id)
     src_pocket_pkgs = defaultdict(list)
     binary_pocket_pkgs = defaultdict(list)
     pkg_index = 0
@@ -935,7 +935,7 @@ def prompt_for_affected_packages(
     unfixed_pkgs = []
     for status_value, pkg_status_group in sorted(pkg_status_groups.items()):
         if status_value != "released":
-            fix_message = status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
+            fix_message = messages.SECURITY_ISSUE_NOT_RESOLVED.format(
                 issue=issue_id
             )
             print(
@@ -1006,16 +1006,14 @@ def prompt_for_affected_packages(
             # we successfully installed some packages, but
             # system reboot-required. This might be because
             # or our installations.
-            reboot_msg = status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+            reboot_msg = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                 operation="fix operation"
             )
             print(reboot_msg)
             cfg.add_notice("", reboot_msg)
             print(
                 util.handle_unicode_characters(
-                    status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
-                        issue=issue_id
-                    )
+                    messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
                 )
             )
             return FixStatus.SYSTEM_VULNERABLE_UNTIL_REBOOT
@@ -1031,9 +1029,7 @@ def prompt_for_affected_packages(
     else:
         print(
             util.handle_unicode_characters(
-                status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(
-                    issue=issue_id
-                )
+                messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
             )
         )
         return FixStatus.SYSTEM_STILL_VULNERABLE
@@ -1044,7 +1040,7 @@ def _inform_ubuntu_pro_existence_if_applicable() -> None:
     cloud_type, _ = get_cloud_type()
     if cloud_type in PRO_CLOUDS:
         print(
-            status.MESSAGE_SECURITY_USE_PRO_TMPL.format(
+            messages.SECURITY_USE_PRO_TMPL.format(
                 title=CLOUD_TYPE_TO_TITLE.get(cloud_type), cloud=cloud_type
             )
         )
@@ -1077,7 +1073,7 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     :return: True if attach performed.
     """
     _inform_ubuntu_pro_existence_if_applicable()
-    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
+    print(messages.SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION)
     choice = util.prompt_choices(
         "Choose: [S]ubscribe at ubuntu.com [A]ttach existing token [C]ancel",
         valid_choices=["s", "a", "c"],
@@ -1105,7 +1101,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
 
     from uaclient import cli
 
-    print(status.MESSAGE_SECURITY_SERVICE_DISABLED.format(service=service))
+    print(messages.SECURITY_SERVICE_DISABLED.format(service=service))
     choice = util.prompt_choices(
         "Choose: [E]nable {} [C]ancel".format(service),
         valid_choices=["e", "c"],
@@ -1144,13 +1140,13 @@ def _check_subscription_for_required_service(
                 return True
             else:
                 print(
-                    status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
+                    messages.SECURITY_UA_SERVICE_NOT_ENABLED.format(
                         service=ent.name
                     )
                 )
         else:
             print(
-                status.MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
+                messages.SECURITY_UA_SERVICE_NOT_ENTITLED.format(
                     service=ent.name
                 )
             )
@@ -1168,7 +1164,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     from uaclient import cli
 
     _inform_ubuntu_pro_existence_if_applicable()
-    print(status.MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
+    print(messages.SECURITY_UPDATE_NOT_INSTALLED_EXPIRED)
     choice = util.prompt_choices(
         "Choose: [R]enew your subscription (at {}) [C]ancel".format(
             BASE_UA_URL
@@ -1212,7 +1208,7 @@ def upgrade_packages_and_attach(
         return True
 
     if os.getuid() != 0:
-        print(status.MESSAGE_SECURITY_APT_NON_ROOT)
+        print(messages.SECURITY_APT_NON_ROOT)
         return False
 
     if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
@@ -1238,11 +1234,11 @@ def upgrade_packages_and_attach(
         )
     )
     apt.run_apt_command(
-        cmd=["apt-get", "update"], error_msg=status.MESSAGE_APT_UPDATE_FAILED
+        cmd=["apt-get", "update"], error_msg=messages.APT_UPDATE_FAILED
     )
     apt.run_apt_command(
         cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_packages,
-        error_msg=status.MESSAGE_APT_INSTALL_FAILED,
+        error_msg=messages.APT_INSTALL_FAILED,
         env={"DEBIAN_FRONTEND": "noninteractive"},
     )
     return True

@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, status
+from uaclient import entitlements, event_logger, exceptions, messages, status
 from uaclient.cli import action_disable, main, main_error_handler
 
 ALL_SERVICE_MSG = "\n".join(
@@ -168,7 +168,7 @@ class TestDisable:
         tmpdir,
         event,
     ):
-        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
         num_calls = 2
 
         m_ent1_cls = mock.Mock()
@@ -271,8 +271,8 @@ class TestDisable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
-            (1000, status.MESSAGE_NONROOT_USER),
+            (0, messages.INVALID_SERVICE_OP_FAILURE_TMPL),
+            (1000, messages.NONROOT_USER),
         ],
     )
     def test_invalid_service_error_message(
@@ -318,7 +318,7 @@ class TestDisable:
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
     def test_invalid_service_names(self, m_getuid, service, FakeConfig, event):
         m_getuid.return_value = 0
-        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -360,8 +360,8 @@ class TestDisable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL),
-            (1000, status.MESSAGE_NONROOT_USER),
+            (0, messages.ENABLE_FAILURE_UNATTACHED_TMPL),
+            (1000, messages.NONROOT_USER),
         ],
     )
     def test_unattached_error_message(
@@ -465,7 +465,7 @@ class TestDisable:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "message": messages.JSON_FORMAT_REQUIRE_ASSUME_YES,
                     "service": None,
                     "type": "system",
                 }

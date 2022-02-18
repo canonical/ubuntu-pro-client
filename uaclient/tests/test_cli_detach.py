@@ -6,7 +6,7 @@ from textwrap import dedent
 import mock
 import pytest
 
-from uaclient import event_logger, exceptions, status
+from uaclient import event_logger, exceptions, messages
 from uaclient.cli import (
     action_detach,
     detach_parser,
@@ -52,7 +52,7 @@ class TestActionDetach:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_NONROOT_USER,
+                    "message": messages.NONROOT_USER,
                     "service": None,
                     "type": "system",
                 }
@@ -74,7 +74,7 @@ class TestActionDetach:
         args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(args, cfg=cfg)
-        assert status.MESSAGE_UNATTACHED == err.value.msg
+        assert messages.UNATTACHED == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -87,7 +87,7 @@ class TestActionDetach:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_UNATTACHED,
+                    "message": messages.UNATTACHED,
                     "service": None,
                     "type": "system",
                 }
@@ -291,7 +291,7 @@ class TestActionDetach:
 
         out, _err = capsys.readouterr()
 
-        assert status.MESSAGE_DETACH_SUCCESS + "\n" == out
+        assert messages.DETACH_SUCCESS + "\n" == out
         assert [mock.call(m_cfg)] == m_update_apt_and_motd_msgs.call_args_list
 
     @mock.patch("uaclient.cli.entitlements")

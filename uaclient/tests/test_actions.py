@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status
+from uaclient import exceptions, messages
 from uaclient.actions import attach_with_token, auto_attach
 from uaclient.exceptions import ContractAPIError, NonAutoAttachImageError
 from uaclient.tests.test_cli_auto_attach import fake_instance_factory
@@ -114,7 +114,7 @@ class TestAutoAttach:
         )
         with pytest.raises(NonAutoAttachImageError) as excinfo:
             auto_attach(cfg, fake_instance_factory())
-        assert status.MESSAGE_UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
+        assert messages.UNSUPPORTED_AUTO_ATTACH == str(excinfo.value)
 
     @mock.patch(
         M_PATH + "contract.UAContractClient.request_auto_attach_contract_token"

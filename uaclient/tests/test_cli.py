@@ -11,7 +11,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import exceptions, status
+from uaclient import exceptions, messages, status
 from uaclient.cli import (
     action_help,
     assert_attached,
@@ -459,7 +459,7 @@ class TestMain:
         (
             (
                 TypeError("'NoneType' object is not subscriptable"),
-                status.MESSAGE_UNEXPECTED_ERROR + "\n",
+                messages.UNEXPECTED_ERROR + "\n",
                 "Unhandled exception, please file a bug",
             ),
         ),
@@ -633,7 +633,7 @@ class TestMain:
 
         out, err = capsys.readouterr()
         assert "" == out
-        assert "{}\n".format(status.MESSAGE_CONNECTIVITY_ERROR) == err
+        assert "{}\n".format(messages.CONNECTIVITY_ERROR) == err
         error_log = caplog_text()
 
         assert expected_log in error_log

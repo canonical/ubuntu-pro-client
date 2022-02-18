@@ -20,17 +20,17 @@ from uaclient.contract import (
     request_updated_contract,
 )
 from uaclient.entitlements.base import UAEntitlement
-from uaclient.status import (
-    MESSAGE_ATTACH_EXPIRED_TOKEN,
-    MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
-    MESSAGE_ATTACH_FORBIDDEN,
-    MESSAGE_ATTACH_FORBIDDEN_EXPIRED,
-    MESSAGE_ATTACH_FORBIDDEN_NEVER,
-    MESSAGE_ATTACH_FORBIDDEN_NOT_YET,
-    MESSAGE_ATTACH_INVALID_TOKEN,
-    MESSAGE_UNEXPECTED_ERROR,
-    UserFacingStatus,
+from uaclient.messages import (
+    ATTACH_EXPIRED_TOKEN,
+    ATTACH_FAILURE_DEFAULT_SERVICES,
+    ATTACH_FORBIDDEN,
+    ATTACH_FORBIDDEN_EXPIRED,
+    ATTACH_FORBIDDEN_NEVER,
+    ATTACH_FORBIDDEN_NOT_YET,
+    ATTACH_INVALID_TOKEN,
+    UNEXPECTED_ERROR,
 )
+from uaclient.status import UserFacingStatus
 from uaclient.testing.fakes import FakeContractClient
 from uaclient.version import get_version
 
@@ -452,12 +452,12 @@ class TestRequestUpdatedContract:
     @pytest.mark.parametrize(
         "error_code, error_msg, error_response",
         (
-            (401, MESSAGE_ATTACH_INVALID_TOKEN, '{"message": "unauthorized"}'),
-            (403, MESSAGE_ATTACH_EXPIRED_TOKEN, "{}"),
+            (401, ATTACH_INVALID_TOKEN, '{"message": "unauthorized"}'),
+            (403, ATTACH_EXPIRED_TOKEN, "{}"),
             (
                 403,
-                MESSAGE_ATTACH_FORBIDDEN.format(
-                    reason=MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+                ATTACH_FORBIDDEN.format(
+                    reason=ATTACH_FORBIDDEN_EXPIRED.format(
                         contract_id="contract-id", date="May 07, 2021"
                     )
                 ),
@@ -474,8 +474,8 @@ class TestRequestUpdatedContract:
             ),
             (
                 403,
-                MESSAGE_ATTACH_FORBIDDEN.format(
-                    reason=MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+                ATTACH_FORBIDDEN.format(
+                    reason=ATTACH_FORBIDDEN_NOT_YET.format(
                         contract_id="contract-id", date="May 07, 2021"
                     )
                 ),
@@ -492,8 +492,8 @@ class TestRequestUpdatedContract:
             ),
             (
                 403,
-                MESSAGE_ATTACH_FORBIDDEN.format(
-                    reason=MESSAGE_ATTACH_FORBIDDEN_NEVER.format(
+                ATTACH_FORBIDDEN.format(
+                    reason=ATTACH_FORBIDDEN_NEVER.format(
                         contract_id="contract-id"
                     )
                 ),
@@ -604,7 +604,7 @@ class TestRequestUpdatedContract:
             with pytest.raises(exceptions.UserFacingError) as exc:
                 request_updated_contract(cfg)
 
-        assert MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES == str(exc.value)
+        assert ATTACH_FAILURE_DEFAULT_SERVICES == str(exc.value)
 
     @pytest.mark.parametrize(
         "first_error, second_error, ux_error_msg",
@@ -615,9 +615,9 @@ class TestRequestUpdatedContract:
                     " esm-infra"
                 ),
                 (None, False),
-                MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES,
+                ATTACH_FAILURE_DEFAULT_SERVICES,
             ),
-            (RuntimeError("some APT error"), None, MESSAGE_UNEXPECTED_ERROR),
+            (RuntimeError("some APT error"), None, UNEXPECTED_ERROR),
             # Order high-priority RuntimeError as second_error to ensure it
             # is raised as primary error_msg
             (
@@ -626,7 +626,7 @@ class TestRequestUpdatedContract:
                     " esm-infra"
                 ),
                 RuntimeError("some APT error"),  # High-priority ordered 2
-                MESSAGE_UNEXPECTED_ERROR,
+                UNEXPECTED_ERROR,
             ),
         ),
     )

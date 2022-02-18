@@ -28,6 +28,7 @@ from uaclient import (
     exceptions,
     jobs,
     lock,
+    messages,
     security,
     security_status,
 )
@@ -198,7 +199,7 @@ def verify_json_format_args(f):
 
         if cmd_args.format == "json" and not cmd_args.assume_yes:
             raise exceptions.UserFacingError(
-                ua_status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES
+                messages.JSON_FORMAT_REQUIRE_ASSUME_YES
             )
         else:
             return f(cmd_args, *args, **kwargs)
@@ -917,7 +918,7 @@ def action_config_unset(args, *, cfg, **kwargs):
 
 @verify_json_format_args
 @assert_root
-@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_attached(messages.ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua disable")
 def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
@@ -928,7 +929,7 @@ def action_disable(args, *, cfg, **kwargs):
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
-    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
     for ent_name in entitlements_found:
@@ -980,7 +981,7 @@ def _create_enable_entitlements_not_found_message(
             break_on_hyphens=False,
         )
     )
-    tmpl = ua_status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+    tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
     return tmpl.format(
         operation="enable",
         name=", ".join(entitlements_not_found),
@@ -990,22 +991,20 @@ def _create_enable_entitlements_not_found_message(
 
 @verify_json_format_args
 @assert_root
-@assert_attached(ua_status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_attached(messages.ENABLE_FAILURE_UNATTACHED_TMPL)
 @assert_lock_file("ua enable")
 def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
 
     @return: 0 on success, 1 otherwise
     """
-    event.info(ua_status.MESSAGE_REFRESH_CONTRACT_ENABLE)
+    event.info(messages.REFRESH_CONTRACT_ENABLE)
     try:
         contract.request_updated_contract(cfg)
     except (exceptions.UrlError, exceptions.UserFacingError):
         # Inability to refresh is not a critical issue during enable
-        logging.debug(
-            ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE, exc_info=True
-        )
-        event.warning(warning_msg=ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE)
+        logging.debug(messages.REFRESH_CONTRACT_FAILURE, exc_info=True)
+        event.warning(warning_msg=messages.REFRESH_CONTRACT_FAILURE)
 
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
@@ -1121,7 +1120,7 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     cfg.delete_cache()
     jobs.enable_license_check_if_applicable(cfg)
     update_apt_and_motd_messages(cfg)
-    event.info(ua_status.MESSAGE_DETACH_SUCCESS)
+    event.info(messages.DETACH_SUCCESS)
     event.process_events()
     return 0
 
@@ -1138,12 +1137,10 @@ def _post_cli_attach(cfg: config.UAConfig) -> None:
 
     if contract_name:
         event.info(
-            ua_status.MESSAGE_ATTACH_SUCCESS_TMPL.format(
-                contract_name=contract_name
-            )
+            messages.ATTACH_SUCCESS_TMPL.format(contract_name=contract_name)
         )
     else:
-        event.info(ua_status.MESSAGE_ATTACH_SUCCESS_NO_CONTRACT_NAME)
+        event.info(messages.ATTACH_SUCCESS_NO_CONTRACT_NAME)
 
     jobs.disable_license_check_if_applicable(cfg)
 
@@ -1174,27 +1171,25 @@ def action_auto_attach(args, *, cfg):
             raise exceptions.AlreadyAttachedError(cfg)
         if isinstance(e, exceptions.CloudFactoryNoCloudError):
             raise exceptions.UserFacingError(
-                ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+                messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
             )
         if isinstance(e, exceptions.CloudFactoryNonViableCloudError):
-            raise exceptions.UserFacingError(
-                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH
-            )
+            raise exceptions.UserFacingError(messages.UNSUPPORTED_AUTO_ATTACH)
         if isinstance(e, exceptions.CloudFactoryUnsupportedCloudError):
             raise exceptions.NonAutoAttachImageError(
-                ua_status.MESSAGE_UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
+                messages.UNSUPPORTED_AUTO_ATTACH_CLOUD_TYPE.format(
                     cloud_type=e.cloud_type
                 )
             )
         # we shouldn't get here, but this is a reasonable default just in case
         raise exceptions.UserFacingError(
-            ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
         )
 
     if not instance:
         # we shouldn't get here, but this is a reasonable default just in case
         raise exceptions.UserFacingError(
-            ua_status.MESSAGE_UNABLE_TO_DETERMINE_CLOUD_TYPE
+            messages.UNABLE_TO_DETERMINE_CLOUD_TYPE
         )
 
     current_iid = identity.get_instance_id()
@@ -1205,13 +1200,13 @@ def action_auto_attach(args, *, cfg):
         print("Re-attaching Ubuntu Advantage subscription on new instance")
         if _detach(cfg, assume_yes=True) != 0:
             raise exceptions.UserFacingError(
-                ua_status.MESSAGE_DETACH_AUTOMATION_FAILURE
+                messages.DETACH_AUTOMATION_FAILURE
             )
 
     try:
         actions.auto_attach(cfg, instance)
     except exceptions.UrlError:
-        event.info(ua_status.MESSAGE_ATTACH_FAILURE)
+        event.info(messages.ATTACH_FAILURE)
         return 1
     except exceptions.UserFacingError:
         return 1
@@ -1225,13 +1220,9 @@ def action_auto_attach(args, *, cfg):
 @assert_lock_file("ua attach")
 def action_attach(args, *, cfg):
     if not args.token and not args.attach_config:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_ATTACH_REQUIRES_TOKEN
-        )
+        raise exceptions.UserFacingError(messages.ATTACH_REQUIRES_TOKEN)
     if args.token and args.attach_config:
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_ATTACH_TOKEN_ARG_XOR_CONFIG
-        )
+        raise exceptions.UserFacingError(messages.ATTACH_TOKEN_ARG_XOR_CONFIG)
 
     if args.token:
         token = args.token
@@ -1258,7 +1249,7 @@ def action_attach(args, *, cfg):
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
     except exceptions.UrlError:
-        msg = ua_status.MESSAGE_ATTACH_FAILURE
+        msg = messages.ATTACH_FAILURE
         event.info(msg)
         event.error(error_msg=msg)
         event.process_events()
@@ -1535,10 +1526,8 @@ def _action_refresh_config(args, cfg: config.UAConfig):
     except RuntimeError as exc:
         with util.disable_log_to_console():
             logging.exception(exc)
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_REFRESH_CONFIG_FAILURE
-        )
-    print(ua_status.MESSAGE_REFRESH_CONFIG_SUCCESS)
+        raise exceptions.UserFacingError(messages.REFRESH_CONFIG_FAILURE)
+    print(messages.REFRESH_CONFIG_SUCCESS)
 
 
 @assert_attached()
@@ -1548,10 +1537,8 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
     except exceptions.UrlError as exc:
         with util.disable_log_to_console():
             logging.exception(exc)
-        raise exceptions.UserFacingError(
-            ua_status.MESSAGE_REFRESH_CONTRACT_FAILURE
-        )
-    print(ua_status.MESSAGE_REFRESH_CONTRACT_SUCCESS)
+        raise exceptions.UserFacingError(messages.REFRESH_CONTRACT_FAILURE)
+    print(messages.REFRESH_CONTRACT_SUCCESS)
 
 
 @assert_root
@@ -1649,11 +1636,9 @@ def main_error_handler(func):
             sys.exit(1)
         except exceptions.UrlError as exc:
             if "CERTIFICATE_VERIFY_FAILED" in str(exc):
-                tmpl = ua_status.MESSAGE_SSL_VERIFICATION_ERROR_CA_CERTIFICATES
+                tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
                 if util.is_installed("ca-certificates"):
-                    tmpl = (
-                        ua_status.MESSAGE_SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
-                    )
+                    tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
                 event.error(error_msg=tmpl.format(url=exc.url))
                 event.info(
                     info_msg=tmpl.format(url=exc.url), file_type=sys.stderr
@@ -1663,16 +1648,15 @@ def main_error_handler(func):
                     msg_args = {"url": exc.url, "error": exc}
                     if exc.url:
                         msg_tmpl = (
-                            ua_status.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
+                            messages.LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL
                         )
                     else:
-                        msg_tmpl = ua_status.LOG_CONNECTIVITY_ERROR_TMPL
+                        msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
                     logging.exception(msg_tmpl.format(**msg_args))
 
-                event.error(error_msg=ua_status.MESSAGE_CONNECTIVITY_ERROR)
+                event.error(error_msg=messages.CONNECTIVITY_ERROR)
                 event.info(
-                    info_msg=ua_status.MESSAGE_CONNECTIVITY_ERROR,
-                    file_type=sys.stderr,
+                    info_msg=messages.CONNECTIVITY_ERROR, file_type=sys.stderr
                 )
             lock.clear_lock_file_if_present()
             event.process_events()
@@ -1692,8 +1676,7 @@ def main_error_handler(func):
                 logging.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
-                info_msg=ua_status.MESSAGE_UNEXPECTED_ERROR,
-                file_type=sys.stderr,
+                info_msg=messages.UNEXPECTED_ERROR, file_type=sys.stderr
             )
             event.error(
                 error_msg=getattr(e, "msg", str(e)), error_type="exception"

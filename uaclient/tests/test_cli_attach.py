@@ -7,7 +7,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import event_logger, status
+from uaclient import event_logger, messages
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -97,7 +97,7 @@ def test_non_root_users_are_rejected(getuid, FakeConfig, capsys, event):
         "result": "failure",
         "errors": [
             {
-                "message": status.MESSAGE_NONROOT_USER,
+                "message": messages.NONROOT_USER,
                 "service": None,
                 "type": "system",
             }
@@ -132,7 +132,7 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_ALREADY_ATTACHED.format(
+                    "message": messages.ALREADY_ATTACHED.format(
                         account_name=account_name
                     ),
                     "service": None,
@@ -171,7 +171,7 @@ class TestActionAttach:
                     m_check_lock_info.return_value = (1, "lock_holder")
                     main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
-        expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
+        expected_msg = messages.LOCK_HELD_ERROR.format(
             lock_request="ua attach", lock_holder="lock_holder", pid=1
         )
         expected = {
@@ -195,7 +195,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=cfg)
-        assert status.MESSAGE_ATTACH_REQUIRES_TOKEN == str(e.value)
+        assert messages.ATTACH_REQUIRES_TOKEN == str(e.value)
 
         args = mock.MagicMock()
         args.token = None
@@ -215,7 +215,7 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_ATTACH_REQUIRES_TOKEN,
+                    "message": messages.ATTACH_REQUIRES_TOKEN,
                     "service": None,
                     "type": "system",
                 }
@@ -385,7 +385,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=cfg)
-        assert e.value.msg == status.MESSAGE_ATTACH_TOKEN_ARG_XOR_CONFIG
+        assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG
 
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")

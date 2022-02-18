@@ -5,9 +5,9 @@ from typing import Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import config, status, util
+from uaclient import config, messages, status, util
 from uaclient.entitlements import EntitlementNotFoundError, base
-from uaclient.status import ContractStatus, NamedMessage
+from uaclient.status import ContractStatus
 
 
 class ConcreteTestEntitlement(base.UAEntitlement):
@@ -218,7 +218,7 @@ class TestUaEntitlement:
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
         assert reason.reason == status.CanEnableFailureReason.NOT_ENTITLED
-        assert reason.message == status.MESSAGE_UNENTITLED_TMPL.format(
+        assert reason.message == messages.UNENTITLED_TMPL.format(
             title=ConcreteTestEntitlement.title
         )
 
@@ -257,7 +257,7 @@ class TestUaEntitlement:
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
         assert reason.reason == status.CanEnableFailureReason.ALREADY_ENABLED
-        assert reason.message == status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+        assert reason.message == messages.ALREADY_ENABLED_TMPL.format(
             title=ConcreteTestEntitlement.title
         )
 
@@ -363,7 +363,7 @@ class TestUaEntitlement:
         ]
         base_ent._incompatible_services = (
             base.IncompatibleService(
-                m_entitlement_cls, NamedMessage("test", "test")
+                m_entitlement_cls, messages.NamedMessage("test", "test")
             ),
         )
 
@@ -437,7 +437,7 @@ class TestUaEntitlement:
         ]
         base_ent._incompatible_services = (
             base.IncompatibleService(
-                m_entitlement_cls, NamedMessage("test", "test")
+                m_entitlement_cls, messages.NamedMessage("test", "test")
             ),
         )
 
