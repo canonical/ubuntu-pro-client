@@ -2,12 +2,17 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import apt, event_logger, exceptions, snap, status, util
-from uaclient.entitlements.base import IncompatibleService, UAEntitlement
-from uaclient.status import (
-    NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS,
-    ApplicationStatus,
+from uaclient import (
+    apt,
+    event_logger,
+    exceptions,
+    messages,
+    snap,
+    status,
+    util,
 )
+from uaclient.entitlements.base import IncompatibleService, UAEntitlement
+from uaclient.status import ApplicationStatus
 from uaclient.types import StaticAffordance
 
 LIVEPATCH_RETRIES = [0.5, 1.0]
@@ -61,7 +66,7 @@ def configure_livepatch_proxy(
     """
     if http_proxy or https_proxy:
         event.info(
-            status.MESSAGE_SETTING_SERVICE_PROXY.format(
+            messages.SETTING_SERVICE_PROXY.format(
                 service=LivepatchEntitlement.title
             )
         )
@@ -107,7 +112,7 @@ class LivepatchEntitlement(UAEntitlement):
 
         return (
             IncompatibleService(
-                FIPSEntitlement, NAMED_MESSAGE_LIVEPATCH_INVALIDATES_FIPS
+                FIPSEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
             ),
         )
 
@@ -142,10 +147,10 @@ class LivepatchEntitlement(UAEntitlement):
         """
         if not util.which(snap.SNAP_CMD):
             event.info("Installing snapd")
-            event.info(status.MESSAGE_APT_UPDATING_LISTS)
+            event.info(messages.APT_UPDATING_LISTS)
             try:
                 apt.run_apt_command(
-                    ["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED
+                    ["apt-get", "update"], messages.APT_UPDATE_FAILED
                 )
             except exceptions.UserFacingError as e:
                 logging.debug(
@@ -170,7 +175,7 @@ class LivepatchEntitlement(UAEntitlement):
             )
         except exceptions.ProcessExecutionError as e:
             if re.search(r"unknown command .*wait", str(e).lower()):
-                logging.warning(status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD)
+                logging.warning(messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD)
             else:
                 raise
 

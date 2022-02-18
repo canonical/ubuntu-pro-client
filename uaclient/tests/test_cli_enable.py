@@ -6,7 +6,7 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, status
+from uaclient import entitlements, event_logger, exceptions, messages, status
 from uaclient.cli import action_enable, main, main_error_handler
 
 HELP_OUTPUT = textwrap.dedent(
@@ -80,7 +80,7 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_NONROOT_USER,
+                    "message": messages.NONROOT_USER,
                     "service": None,
                     "type": "system",
                 }
@@ -126,7 +126,7 @@ class TestActionEnable:
                     m_check_lock_info.return_value = (1, "lock_holder")
                     main_error_handler(action_enable)(args, cfg)
 
-        expected_msg = status.MESSAGE_LOCK_HELD_ERROR.format(
+        expected_msg = messages.LOCK_HELD_ERROR.format(
             lock_request="ua enable", lock_holder="lock_holder", pid=1
         )
         expected = {
@@ -145,8 +145,8 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, status.MESSAGE_ENABLE_FAILURE_UNATTACHED_TMPL),
-            (1000, status.MESSAGE_NONROOT_USER),
+            (0, messages.ENABLE_FAILURE_UNATTACHED_TMPL),
+            (1000, messages.NONROOT_USER),
         ],
     )
     def test_unattached_error_message(
@@ -194,8 +194,8 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL),
-            (1000, status.MESSAGE_NONROOT_USER),
+            (0, messages.INVALID_SERVICE_OP_FAILURE_TMPL),
+            (1000, messages.NONROOT_USER),
         ],
     )
     def test_invalid_service_error_message(
@@ -314,7 +314,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -427,7 +427,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -632,7 +632,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = status.MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
         expected_msg = "One moment, checking your subscription first\n"
 
         cfg = FakeConfig.for_attached_machine()
@@ -780,7 +780,7 @@ class TestActionEnable:
             "result": "failure",
             "errors": [
                 {
-                    "message": status.MESSAGE_JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "message": messages.JSON_FORMAT_REQUIRE_ASSUME_YES,
                     "service": None,
                     "type": "system",
                 }

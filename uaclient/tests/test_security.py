@@ -7,6 +7,19 @@ import pytest
 
 from uaclient import exceptions
 from uaclient.clouds.identity import NoCloudTypeReason
+from uaclient.messages import (
+    ENABLE_REBOOT_REQUIRED_TMPL,
+    FAIL_X,
+    OKGREEN_CHECK,
+    SECURITY_APT_NON_ROOT,
+    SECURITY_ISSUE_NOT_RESOLVED,
+    SECURITY_SERVICE_DISABLED,
+    SECURITY_UA_SERVICE_NOT_ENABLED,
+    SECURITY_UA_SERVICE_NOT_ENTITLED,
+    SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
+    SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
+    SECURITY_USE_PRO_TMPL,
+)
 from uaclient.security import (
     API_V1_CVE_TMPL,
     API_V1_CVES,
@@ -29,21 +42,6 @@ from uaclient.security import (
     version_cmp_le,
 )
 from uaclient.status import (
-    FAIL_X,
-    MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL,
-    MESSAGE_SECURITY_APT_NON_ROOT,
-    MESSAGE_SECURITY_ISSUE_NOT_RESOLVED,
-    MESSAGE_SECURITY_SERVICE_DISABLED,
-    MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED,
-    MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED,
-    MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED,
-)
-from uaclient.status import (
-    MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION as MSG_SUBSCRIPTION,
-)
-from uaclient.status import (
-    MESSAGE_SECURITY_USE_PRO_TMPL,
-    OKGREEN_CHECK,
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
     ApplicabilityStatus,
@@ -998,7 +996,7 @@ class TestPromptForAffectedPackages:
             "Error: USN-### metadata defines no fixed version for sl.\n"
             "1 package is still affected: slsrc\n"
             "{msg}".format(
-                msg=MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue="USN-###")
+                msg=SECURITY_ISSUE_NOT_RESOLVED.format(issue="USN-###")
             )
             == exc.value.msg
         )
@@ -1102,10 +1100,10 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
+                        SECURITY_USE_PRO_TMPL.format(
                             title="Azure", cloud="azure"
                         ),
-                        MSG_SUBSCRIPTION,
+                        SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 ),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
@@ -1124,10 +1122,8 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
-                            title="AWS", cloud="aws"
-                        ),
-                        MSG_SUBSCRIPTION,
+                        SECURITY_USE_PRO_TMPL.format(title="AWS", cloud="aws"),
+                        SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 ),
                 FixStatus.SYSTEM_STILL_VULNERABLE,
@@ -1164,10 +1160,8 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
-                            title="GCP", cloud="gcp"
-                        ),
-                        MSG_SUBSCRIPTION,
+                        SECURITY_USE_PRO_TMPL.format(title="GCP", cloud="gcp"),
+                        SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 )
                 + "\n"
@@ -1255,10 +1249,8 @@ class TestPromptForAffectedPackages:
                 )
                 + "\n".join(
                     [
-                        MESSAGE_SECURITY_USE_PRO_TMPL.format(
-                            title="GCP", cloud="gcp"
-                        ),
-                        MSG_SUBSCRIPTION,
+                        SECURITY_USE_PRO_TMPL.format(title="GCP", cloud="gcp"),
+                        SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION,
                     ]
                 )
                 + "\n"
@@ -1458,7 +1450,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MSG_SUBSCRIPTION
+                + SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION
                 + "\n"
                 + PROMPT_ENTER_TOKEN
                 + "\n"
@@ -1631,15 +1623,13 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MSG_SUBSCRIPTION
+                + SECURITY_UPDATE_NOT_INSTALLED_SUBSCRIPTION
                 + "\n"
                 + PROMPT_ENTER_TOKEN
                 + "\n"
                 + colorize_commands([["ua attach token"]])
                 + "\n"
-                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENTITLED.format(
-                    service="esm-infra"
-                )
+                + SECURITY_UA_SERVICE_NOT_ENTITLED.format(service="esm-infra")
                 + "\n"
                 + "1 package is still affected: pkg1"
                 + "\n"
@@ -1729,7 +1719,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-infra")
+                + SECURITY_SERVICE_DISABLED.format(service="esm-infra")
                 + "\n"
                 + colorize_commands([["ua enable esm-infra"]])
                 + "\n"
@@ -1824,11 +1814,9 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_SERVICE_DISABLED.format(service="esm-infra")
+                + SECURITY_SERVICE_DISABLED.format(service="esm-infra")
                 + "\n"
-                + MESSAGE_SECURITY_UA_SERVICE_NOT_ENABLED.format(
-                    service="esm-infra"
-                )
+                + SECURITY_UA_SERVICE_NOT_ENABLED.format(service="esm-infra")
                 + "\n"
                 + "1 package is still affected: pkg1"
                 + "\n"
@@ -1915,7 +1903,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
+                + SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
                 + "\n"
                 + PROMPT_EXPIRED_ENTER_TOKEN
                 + "\n"
@@ -2006,7 +1994,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     A fix is available in UA Infra.
                     """
                 )
-                + MESSAGE_SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
+                + SECURITY_UPDATE_NOT_INSTALLED_EXPIRED
                 + "\n"
                 + "1 package is still affected: pkg1"
                 + "\n"
@@ -2134,9 +2122,7 @@ A fix is available in Ubuntu standard updates.\n"""
         assert [
             mock.call(
                 "",
-                MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation="fix operation"
-                ),
+                ENABLE_REBOOT_REQUIRED_TMPL.format(operation="fix operation"),
             )
         ] == m_add_notice.call_args_list
 
@@ -2220,7 +2206,7 @@ class TestUpgradePackagesAndAttach:
             assert "apt update" in out
             assert "apt install --only-upgrade -y t1 t2" in out
         else:
-            assert MESSAGE_SECURITY_APT_NON_ROOT in out
+            assert SECURITY_APT_NON_ROOT in out
             assert m_subp.call_count == 0
 
 

@@ -5,8 +5,8 @@ from uaclient import (
     clouds,
     event_logger,
     exceptions,
+    messages,
     serviceclient,
-    status,
     util,
 )
 from uaclient.config import UAConfig
@@ -311,10 +311,10 @@ def process_entitlements_delta(
             if service_enabled and deltas:
                 event.service_processed(name)
     if unexpected_error:
-        raise exceptions.UserFacingError(status.MESSAGE_UNEXPECTED_ERROR)
+        raise exceptions.UserFacingError(messages.UNEXPECTED_ERROR)
     elif delta_error:
         raise exceptions.UserFacingError(
-            status.MESSAGE_ATTACH_FAILURE_DEFAULT_SERVICES
+            messages.ATTACH_FAILURE_DEFAULT_SERVICES
         )
 
 
@@ -373,7 +373,7 @@ def process_entitlement_delta(
 
 
 def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
-    msg = status.MESSAGE_ATTACH_EXPIRED_TOKEN
+    msg = messages.ATTACH_EXPIRED_TOKEN
     if (
         hasattr(e, "api_errors")
         and len(e.api_errors) > 0
@@ -385,19 +385,19 @@ def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
         reason_msg = ""
         if reason == "no-longer-effective":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
-            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_EXPIRED.format(
+            reason_msg = messages.ATTACH_FORBIDDEN_EXPIRED.format(
                 contract_id=contract_id, date=date
             )
         elif reason == "not-effective-yet":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
-            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_NOT_YET.format(
+            reason_msg = messages.ATTACH_FORBIDDEN_NOT_YET.format(
                 contract_id=contract_id, date=date
             )
         elif reason == "never-effective":
-            reason_msg = status.MESSAGE_ATTACH_FORBIDDEN_NEVER.format(
+            reason_msg = messages.ATTACH_FORBIDDEN_NEVER.format(
                 contract_id=contract_id
             )
-        msg = status.MESSAGE_ATTACH_FORBIDDEN.format(reason=reason_msg)
+        msg = messages.ATTACH_FORBIDDEN.format(reason=reason_msg)
     return msg
 
 
@@ -435,7 +435,7 @@ def request_updated_contract(
                 if hasattr(e, "code"):
                     if e.code == 401:
                         raise exceptions.UserFacingError(
-                            status.MESSAGE_ATTACH_INVALID_TOKEN
+                            messages.ATTACH_INVALID_TOKEN
                         )
                     elif e.code == 403:
                         msg = _create_attach_forbidden_message(e)
@@ -443,7 +443,7 @@ def request_updated_contract(
                 raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))
-            raise exceptions.UserFacingError(status.MESSAGE_CONNECTIVITY_ERROR)
+            raise exceptions.UserFacingError(messages.CONNECTIVITY_ERROR)
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]

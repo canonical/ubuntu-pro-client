@@ -8,21 +8,23 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from uaclient import config, contract, event_logger, exceptions, status, util
+from uaclient import (
+    config,
+    contract,
+    event_logger,
+    exceptions,
+    messages,
+    status,
+    util,
+)
 from uaclient.defaults import DEFAULT_HELP_FILE
 from uaclient.status import (
-    MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE,
-    MESSAGE_DISABLING_DEPENDENT_SERVICE,
-    MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE,
-    MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE,
-    MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE,
     ApplicabilityStatus,
     CanDisableFailure,
     CanDisableFailureReason,
     CanEnableFailure,
     CanEnableFailureReason,
     ContractStatus,
-    NamedMessage,
     UserFacingStatus,
 )
 from uaclient.types import MessagingOperationsDict, StaticAffordance
@@ -38,7 +40,9 @@ event = event_logger.get_event_logger()
 
 class IncompatibleService:
     def __init__(
-        self, entitlement: Type["UAEntitlement"], named_msg: NamedMessage
+        self,
+        entitlement: Type["UAEntitlement"],
+        named_msg: messages.NamedMessage,
     ):
         self.entitlement = entitlement
         self.named_msg = named_msg
@@ -270,7 +274,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanDisableFailure(
                     CanDisableFailureReason.ALREADY_DISABLED,
-                    message=status.MESSAGE_ALREADY_DISABLED_TMPL.format(
+                    message=messages.ALREADY_DISABLED_TMPL.format(
                         title=self.title
                     ),
                 ),
@@ -307,9 +311,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanEnableFailure(
                     CanEnableFailureReason.NOT_ENTITLED,
-                    message=status.MESSAGE_UNENTITLED_TMPL.format(
-                        title=self.title
-                    ),
+                    message=messages.UNENTITLED_TMPL.format(title=self.title),
                 ),
             )
 
@@ -319,7 +321,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanEnableFailure(
                     CanEnableFailureReason.ALREADY_ENABLED,
-                    message=status.MESSAGE_ALREADY_ENABLED_TMPL.format(
+                    message=messages.ALREADY_ENABLED_TMPL.format(
                         title=self.title
                     ),
                 ),
@@ -451,12 +453,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         for service in self.blocking_incompatible_services():
             ent = service.entitlement(self.cfg)
 
-            user_msg = status.MESSAGE_INCOMPATIBLE_SERVICE.format(
+            user_msg = messages.INCOMPATIBLE_SERVICE.format(
                 service_being_enabled=self.title,
                 incompatible_service=ent.title,
             )
 
-            e_msg = MESSAGE_INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
+            e_msg = messages.INCOMPATIBLE_SERVICE_STOPS_ENABLE.format(
                 service_being_enabled=self.title,
                 incompatible_service=ent.title,
             )
@@ -505,12 +507,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
             if is_service_disabled:
-                user_msg = status.MESSAGE_REQUIRED_SERVICE.format(
+                user_msg = messages.REQUIRED_SERVICE.format(
                     service_being_enabled=self.title,
                     required_service=ent.title,
                 )
 
-                e_msg = MESSAGE_REQUIRED_SERVICE_STOPS_ENABLE.format(
+                e_msg = messages.REQUIRED_SERVICE_STOPS_ENABLE.format(
                     service_being_enabled=self.title,
                     required_service=ent.title,
                 )
@@ -560,7 +562,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if affordance_arches and platform["arch"] not in affordance_arches:
             return (
                 ApplicabilityStatus.INAPPLICABLE,
-                status.MESSAGE_INAPPLICABLE_ARCH_TMPL.format(
+                messages.INAPPLICABLE_ARCH_TMPL.format(
                     title=self.title,
                     arch=platform["arch"],
                     supported_arches=", ".join(affordance_arches),
@@ -570,7 +572,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if affordance_series and platform["series"] not in affordance_series:
             return (
                 ApplicabilityStatus.INAPPLICABLE,
-                status.MESSAGE_INAPPLICABLE_SERIES_TMPL.format(
+                messages.INAPPLICABLE_SERIES_TMPL.format(
                     title=self.title, series=platform["version"]
                 ),
             )
@@ -582,14 +584,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not match or match.group("flavor") not in affordance_kernels:
                 return (
                     ApplicabilityStatus.INAPPLICABLE,
-                    status.MESSAGE_INAPPLICABLE_KERNEL_TMPL.format(
+                    messages.INAPPLICABLE_KERNEL_TMPL.format(
                         title=self.title,
                         kernel=kernel,
                         supported_kernels=", ".join(affordance_kernels),
                     ),
                 )
         if affordance_min_kernel:
-            invalid_msg = status.MESSAGE_INAPPLICABLE_KERNEL_VER_TMPL.format(
+            invalid_msg = messages.INAPPLICABLE_KERNEL_VER_TMPL.format(
                 title=self.title,
                 kernel=kernel,
                 min_kernel=affordance_min_kernel,
@@ -664,12 +666,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
             if is_service_enabled:
-                user_msg = status.MESSAGE_DEPENDENT_SERVICE.format(
+                user_msg = messages.DEPENDENT_SERVICE.format(
                     dependent_service=ent.title,
                     service_being_disabled=self.title,
                 )
 
-                e_msg = MESSAGE_DEPENDENT_SERVICE_STOPS_DISABLE.format(
+                e_msg = messages.DEPENDENT_SERVICE_STOPS_DISABLE.format(
                     service_being_disabled=self.title,
                     dependent_service=ent.title,
                 )
@@ -681,14 +683,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
                 if not silent:
                     event.info(
-                        MESSAGE_DISABLING_DEPENDENT_SERVICE.format(
+                        messages.DISABLING_DEPENDENT_SERVICE.format(
                             required_service=ent.title
                         )
                     )
 
                 ret, fail = ent.disable(silent=True)
                 if not ret:
-                    msg = MESSAGE_FAILED_DISABLING_DEPENDENT_SERVICE.format(
+                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
                         required_service=ent.title
                     )
                     if fail.message:
@@ -709,7 +711,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         if self._check_for_reboot():
             print(
-                status.MESSAGE_ENABLE_REBOOT_REQUIRED_TMPL.format(
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation
                 )
             )
@@ -875,14 +877,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         can_enable, _ = self.can_enable()
         if can_enable and enable_by_default:
             if allow_enable:
-                msg = status.MESSAGE_ENABLE_BY_DEFAULT_TMPL.format(
-                    name=self.name
-                )
+                msg = messages.ENABLE_BY_DEFAULT_TMPL.format(name=self.name)
 
                 event.info(msg, file_type=sys.stderr)
                 self.enable()
             else:
-                msg = status.MESSAGE_ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
+                msg = messages.ENABLE_BY_DEFAULT_MANUAL_TMPL.format(
                     name=self.name
                 )
                 event.info(msg, file_type=sys.stderr)

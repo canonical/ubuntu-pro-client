@@ -10,7 +10,7 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, exceptions, status
+from uaclient import apt, exceptions, messages, status
 from uaclient.entitlements.livepatch import (
     LIVEPATCH_CMD,
     LivepatchEntitlement,
@@ -108,7 +108,7 @@ class TestConfigureLivepatchProxy:
 
         out, _ = capsys.readouterr()
         if http_proxy or https_proxy:
-            assert out.strip() == status.MESSAGE_SETTING_SERVICE_PROXY.format(
+            assert out.strip() == messages.SETTING_SERVICE_PROXY.format(
                 service=LivepatchEntitlement.title
             )
 
@@ -578,7 +578,7 @@ class TestLivepatchProcessContractDeltas:
 class TestLivepatchEntitlementEnable:
 
     mocks_apt_update = [
-        mock.call(["apt-get", "update"], status.MESSAGE_APT_UPDATE_FAILED)
+        mock.call(["apt-get", "update"], messages.APT_UPDATE_FAILED)
     ]
     mocks_snapd_install = [
         mock.call(
@@ -943,7 +943,7 @@ class TestLivepatchEntitlementEnable:
             in fake_stdout.getvalue().strip()
         )
 
-        for msg in status.MESSAGE_SNAPD_DOES_NOT_HAVE_WAIT_CMD.split("\n"):
+        for msg in messages.SNAPD_DOES_NOT_HAVE_WAIT_CMD.split("\n"):
             assert msg in caplog_text()
 
         assert m_validate_proxy.call_count == 2

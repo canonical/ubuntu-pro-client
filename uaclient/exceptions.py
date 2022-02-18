@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from urllib import error
 
-from uaclient import status
+from uaclient import messages
 
 
 class UserFacingError(Exception):
@@ -45,9 +45,7 @@ class AlreadyAttachedOnPROError(UserFacingError):
 
     def __init__(self, instance_id: str):
         super().__init__(
-            status.MESSAGE_ALREADY_ATTACHED_ON_PRO.format(
-                instance_id=instance_id
-            )
+            messages.ALREADY_ATTACHED_ON_PRO.format(instance_id=instance_id)
         )
 
 
@@ -58,7 +56,7 @@ class AlreadyAttachedError(UserFacingError):
 
     def __init__(self, cfg):
         super().__init__(
-            status.MESSAGE_ALREADY_ATTACHED.format(
+            messages.ALREADY_ATTACHED.format(
                 account_name=cfg.accounts[0]["name"]
             )
         )
@@ -74,7 +72,7 @@ class LockHeldError(UserFacingError):
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
         super().__init__(
-            status.MESSAGE_LOCK_HELD_ERROR.format(
+            messages.LOCK_HELD_ERROR.format(
                 lock_request=lock_request, lock_holder=lock_holder, pid=pid
             )
         )
@@ -85,7 +83,7 @@ class MissingAptURLDirective(UserFacingError):
 
     def __init__(self, entitlement_name):
         super().__init__(
-            status.MESSAGE_MISSING_APT_URL_DIRECTIVE.format(
+            messages.MISSING_APT_URL_DIRECTIVE.format(
                 entitlement_name=entitlement_name
             )
         )
@@ -95,13 +93,13 @@ class NonRootUserError(UserFacingError):
     """An exception to be raised when a user needs to be root."""
 
     def __init__(self) -> None:
-        super().__init__(status.MESSAGE_NONROOT_USER)
+        super().__init__(messages.NONROOT_USER)
 
 
 class UnattachedError(UserFacingError):
     """An exception to be raised when a machine needs to be attached."""
 
-    def __init__(self, msg: str = status.MESSAGE_UNATTACHED) -> None:
+    def __init__(self, msg: str = messages.UNATTACHED) -> None:
         super().__init__(msg)
 
 
@@ -113,7 +111,7 @@ class SecurityAPIMetadataError(UserFacingError):
             "Error: "
             + msg
             + "\n"
-            + status.MESSAGE_SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
+            + messages.SECURITY_ISSUE_NOT_RESOLVED.format(issue=issue_id)
         )
 
 
