@@ -916,7 +916,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
         And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
         And I run `apt-get update` with sudo
-        When I run `ua security-status --format json --beta` as non-root
+        When I run `ua security-status --format json` as non-root
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
         """
@@ -947,7 +947,7 @@ Feature: Command behaviour when attached to an UA subscription
         "status": "pending_attach"
         """
         When I attach `contract_token` with sudo
-        And I run `ua security-status --format json --beta` as non-root
+        And I run `ua security-status --format json` as non-root
         Then stdout matches regexp:
         """
         "_schema_version": "0"
@@ -968,29 +968,23 @@ Feature: Command behaviour when attached to an UA subscription
         """
         "status": "upgrade_available"
         """
-        When I run `ua security-status --format yaml --beta` as non-root
+        When I run `ua security-status --format yaml` as non-root
         Then stdout is a yaml matching the `ua_security_status` schema
         And stdout matches regexp:
         """
         _schema_version: '0'
         """
-        When I verify that running `ua security-status --format json` `as non-root` exits `2`
+        When I verify that running `ua security-status --format unsupported` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
-        usage: security-status [-h] --format {json,yaml} --beta
-        the following arguments are required: --beta
-        """
-        When I verify that running `ua security-status --format unsupported --beta` `as non-root` exits `2`
-        Then I will see the following on stderr:
-        """
-        usage: security-status [-h] --format {json,yaml} --beta
+        usage: security-status [-h] --format {json,yaml}
         argument --format: invalid choice: 'unsupported' (choose from 'json', 'yaml')
         """
         When I verify that running `ua security-status` `as non-root` exits `2`
         Then I will see the following on stderr:
         """
-        usage: security-status [-h] --format {json,yaml} --beta
-        the following arguments are required: --format, --beta
+        usage: security-status [-h] --format {json,yaml}
+        the following arguments are required: --format
         """
         Examples: ubuntu release
            | release | package   | service   |
