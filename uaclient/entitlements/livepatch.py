@@ -129,12 +129,12 @@ class LivepatchEntitlement(UAEntitlement):
 
         return (
             (
-                "Cannot install Livepatch on a container.",
+                messages.LIVEPATCH_ERROR_INSTALL_ON_CONTAINER,
                 lambda: util.is_container(),
                 False,
             ),
             (
-                "Cannot enable Livepatch when FIPS is enabled.",
+                messages.LIVEPATCH_ERROR_WHEN_FIPS_ENABLED,
                 lambda: is_fips_enabled,
                 False,
             ),
@@ -149,9 +149,7 @@ class LivepatchEntitlement(UAEntitlement):
             event.info("Installing snapd")
             event.info(messages.APT_UPDATING_LISTS)
             try:
-                apt.run_apt_command(
-                    ["apt-get", "update"], messages.APT_UPDATE_FAILED
-                )
+                apt.run_apt_update_command()
             except exceptions.UserFacingError as e:
                 logging.debug(
                     "Trying to install snapd."
@@ -164,9 +162,8 @@ class LivepatchEntitlement(UAEntitlement):
                 retry_sleeps=apt.APT_RETRIES,
             )
         elif "snapd" not in apt.get_installed_packages():
-            raise exceptions.UserFacingError(
-                "{} is present but snapd is not installed;"
-                " cannot enable {}".format(snap.SNAP_CMD, self.title)
+            raise exceptions.SnapdNotProperlyInstalledError(
+                snap_cmd=snap.SNAP_CMD, service=self.title
             )
 
         try:
@@ -200,8 +197,7 @@ class LivepatchEntitlement(UAEntitlement):
                     retry_sleeps=snap.SNAP_INSTALL_RETRIES,
                 )
             except exceptions.ProcessExecutionError as e:
-                msg = "Unable to install Livepatch client: " + str(e)
-                raise exceptions.UserFacingError(msg)
+                raise exceptions.ErrorInstallingLivepatch(error_msg=str(e))
 
         configure_livepatch_proxy(http_proxy, https_proxy)
 
@@ -275,14 +271,13 @@ class LivepatchEntitlement(UAEntitlement):
         util.subp([LIVEPATCH_CMD, "disable"], capture=True)
         return True
 
-    def application_status(self) -> Tuple[ApplicationStatus, str]:
-        status = (ApplicationStatus.ENABLED, "")
+    def application_status(
+        self
+    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
+        status = (ApplicationStatus.ENABLED, None)
 
         if not util.which(LIVEPATCH_CMD):
-            return (
-                ApplicationStatus.DISABLED,
-                "canonical-livepatch snap is not installed.",
-            )
+            return (ApplicationStatus.DISABLED, messages.LIVEPATCH_NOT_ENABLED)
 
         try:
             util.subp(
@@ -291,7 +286,10 @@ class LivepatchEntitlement(UAEntitlement):
         except exceptions.ProcessExecutionError as e:
             # TODO(May want to parse INACTIVE/failure assessment)
             logging.debug("Livepatch not enabled. %s", str(e))
-            status = (ApplicationStatus.DISABLED, str(e))
+            return (
+                ApplicationStatus.DISABLED,
+                messages.NamedMessage(name="", msg=str(e)),
+            )
         return status
 
     def process_contract_deltas(

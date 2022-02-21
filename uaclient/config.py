@@ -626,7 +626,7 @@ class UAConfig:
             status_val = userStatus.ACTIVE.value
             status_desc = messages.LOCK_HELD.format(
                 pid=lock_pid, lock_holder=lock_holder
-            )
+            ).msg
         elif os.path.exists(self.data_path("marker-reboot-cmds")):
             status_val = userStatus.REBOOTREQUIRED.value
             operation = "configuration changes"
@@ -683,7 +683,7 @@ class UAConfig:
     def _attached_service_status(
         self, ent, inapplicable_resources
     ) -> Dict[str, Any]:
-        details = ""
+        status_details = ""
         description_override = None
         contract_status = ent.contract_status()
         if contract_status == status.ContractStatus.UNENTITLED:
@@ -694,6 +694,8 @@ class UAConfig:
                 description_override = inapplicable_resources[ent.name]
             else:
                 ent_status, details = ent.user_facing_status()
+                if details:
+                    status_details = details.msg
 
         blocked_by = [
             {
@@ -709,7 +711,7 @@ class UAConfig:
             "description": ent.description,
             "entitled": contract_status.value,
             "status": ent_status.value,
-            "status_details": details,
+            "status_details": status_details,
             "description_override": description_override,
             "available": "yes"
             if ent.name not in inapplicable_resources
@@ -821,7 +823,10 @@ class UAConfig:
             contract_information = get_contract_information(self, token)
         except exceptions.ContractAPIError as e:
             if hasattr(e, "code") and e.code == 401:
-                raise exceptions.UserFacingError(messages.ATTACH_INVALID_TOKEN)
+                raise exceptions.UserFacingError(
+                    msg=messages.ATTACH_INVALID_TOKEN.msg,
+                    msg_code=messages.ATTACH_INVALID_TOKEN.name,
+                )
             raise e
 
         contract_info = contract_information.get("contractInfo", {})
@@ -858,8 +863,8 @@ class UAConfig:
                     contract_id=response["contract"]["id"],
                     date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
                 )
-                event.error(message)
-                event.info("This token is not valid.\n" + message + "\n")
+                event.error(error_msg=message.msg, error_code=message.name)
+                event.info("This token is not valid.\n" + message.msg + "\n")
                 ret = 1
         if contract_info.get("effectiveFrom"):
             response["effective"] = contract_info.get("effectiveFrom")
@@ -870,8 +875,8 @@ class UAConfig:
                     contract_id=response["contract"]["id"],
                     date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
                 )
-                event.error(message)
-                event.info("This token is not valid.\n" + message + "\n")
+                event.error(error_msg=message.msg, error_code=message.name)
+                event.info("This token is not valid.\n" + message.msg + "\n")
                 ret = 1
 
         status_cache = self.read_cache("status-cache")

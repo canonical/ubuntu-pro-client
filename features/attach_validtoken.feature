@@ -467,7 +467,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I verify that running attach `as non-root` with json response exits `1`
         Then I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         When I verify that running attach `with sudo` with json response exits `0`
         Then I will see the following on stdout:

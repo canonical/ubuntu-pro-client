@@ -1234,11 +1234,11 @@ def upgrade_packages_and_attach(
         )
     )
     apt.run_apt_command(
-        cmd=["apt-get", "update"], error_msg=messages.APT_UPDATE_FAILED
+        cmd=["apt-get", "update"], error_msg=messages.APT_UPDATE_FAILED.msg
     )
     apt.run_apt_command(
         cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_packages,
-        error_msg=messages.APT_INSTALL_FAILED,
+        error_msg=messages.APT_INSTALL_FAILED.msg,
         env={"DEBIAN_FRONTEND": "noninteractive"},
     )
     return True

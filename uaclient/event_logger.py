@@ -103,18 +103,25 @@ class EventLogger:
         msg: str,
         service: Optional[str],
         event_dict: List[Dict[str, Optional[str]]],
+        code: Optional[str] = None,
         event_type: Optional[str] = None,
     ):
         if event_type is None:
             event_type = "service" if service else "system"
 
         event_dict.append(
-            {"type": event_type, "service": service, "message": msg}
+            {
+                "type": event_type,
+                "service": service,
+                "message": msg,
+                "message_code": code,
+            }
         )
 
     def error(
         self,
         error_msg: str,
+        error_code: Optional[str] = None,
         service: Optional[str] = None,
         error_type: Optional[str] = None,
     ):
@@ -129,6 +136,7 @@ class EventLogger:
                 msg=error_msg,
                 service=service,
                 event_dict=self._error_events,
+                code=error_code,
                 event_type=error_type,
             )
 

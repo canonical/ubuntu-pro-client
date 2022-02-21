@@ -82,7 +82,7 @@ def fix_pro_pkg_holds(cfg):
                         )
                     )
                     sys.exit(1)
-                cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED)
+                cfg.remove_notice("", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg)
 
 
 def refresh_contract(cfg):

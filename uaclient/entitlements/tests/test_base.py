@@ -143,7 +143,7 @@ class TestUaEntitlement:
             "Test Concrete Entitlement is not currently enabled\n"
             "See: sudo ua status"
         )
-        assert expected_msg == fail.message
+        assert expected_msg == fail.message.msg
 
     @mock.patch("uaclient.entitlements.entitlement_factory")
     def test_can_disable_false_on_dependent_service(
@@ -218,8 +218,11 @@ class TestUaEntitlement:
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
         assert reason.reason == status.CanEnableFailureReason.NOT_ENTITLED
-        assert reason.message == messages.UNENTITLED_TMPL.format(
-            title=ConcreteTestEntitlement.title
+        assert (
+            reason.message.msg
+            == messages.UNENTITLED.format(
+                title=ConcreteTestEntitlement.title
+            ).msg
         )
 
     @pytest.mark.parametrize("caplog_text", [logging.DEBUG], indirect=True)
@@ -257,8 +260,11 @@ class TestUaEntitlement:
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
         assert reason.reason == status.CanEnableFailureReason.ALREADY_ENABLED
-        assert reason.message == messages.ALREADY_ENABLED_TMPL.format(
-            title=ConcreteTestEntitlement.title
+        assert (
+            reason.message.msg
+            == messages.ALREADY_ENABLED.format(
+                title=ConcreteTestEntitlement.title
+            ).msg
         )
 
     def test_can_enable_false_on_entitlement_inapplicable(
@@ -609,9 +615,14 @@ class TestUaEntitlement:
         fail_reason = status.CanEnableFailure(
             status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
         )
+
+        if enable_fail_message:
+            msg = messages.NamedMessage("test-code", enable_fail_message)
+        else:
+            msg = None
+
         enable_fail_reason = status.CanEnableFailure(
-            status.CanEnableFailureReason.NOT_ENTITLED,
-            message=enable_fail_message,
+            status.CanEnableFailureReason.NOT_ENTITLED, message=msg
         )
 
         m_ent_cls = mock.Mock()
@@ -639,8 +650,8 @@ class TestUaEntitlement:
         assert not ret
         expected_msg = "Cannot enable required service: Test"
         if enable_fail_reason.message:
-            expected_msg += "\n" + enable_fail_reason.message
-        assert expected_msg == fail.message
+            expected_msg += "\n" + enable_fail_reason.message.msg
+        assert expected_msg == fail.message.msg
         assert 1 == m_can_enable.call_count
         assert 1 == m_ent_factory.call_count
 
@@ -834,9 +845,13 @@ class TestUaEntitlement:
         fail_reason = status.CanDisableFailure(
             status.CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
         )
+        if disable_fail_message:
+            msg = messages.NamedMessage("test-code", disable_fail_message)
+        else:
+            msg = None
+
         disable_fail_reason = status.CanDisableFailure(
-            status.CanDisableFailureReason.ALREADY_DISABLED,
-            message=disable_fail_message,
+            status.CanDisableFailureReason.ALREADY_DISABLED, message=msg
         )
 
         m_ent_cls = mock.Mock()
@@ -864,8 +879,8 @@ class TestUaEntitlement:
         assert not ret
         expected_msg = "Cannot disable dependent service: Test"
         if disable_fail_reason.message:
-            expected_msg += "\n" + disable_fail_reason.message
-        assert expected_msg == fail.message
+            expected_msg += "\n" + disable_fail_reason.message.msg
+        assert expected_msg == fail.message.msg
         assert 1 == m_can_disable.call_count
         assert 1 == m_ent_factory.call_count
 
@@ -894,7 +909,7 @@ class TestUaEntitlement:
 
         assert not ret
         expected_msg = "Dependent service test not found."
-        assert expected_msg == fail.message
+        assert expected_msg == fail.message.msg
         assert 1 == m_can_disable.call_count
         assert 1 == m_ent_factory.call_count
 
@@ -961,7 +976,7 @@ class TestUaEntitlementUserFacingStatus:
         user_facing_status, details = entitlement.user_facing_status()
         assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
-        assert expected_details == details
+        assert expected_details == details.msg
 
     def test_unavailable_when_applicable_but_no_entitlement_cfg(
         self, concrete_entitlement_factory
@@ -976,7 +991,7 @@ class TestUaEntitlementUserFacingStatus:
         user_facing_status, details = entitlement.user_facing_status()
         assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
-        assert expected_details == details
+        assert expected_details == details.msg
 
     @pytest.mark.parametrize(
         "application_status,expected_uf_status",

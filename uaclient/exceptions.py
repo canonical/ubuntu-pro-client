@@ -1,7 +1,9 @@
+import textwrap
 from typing import Dict, Optional
 from urllib import error
 
 from uaclient import messages
+from uaclient.defaults import PRINT_WRAP_WIDTH
 
 
 class UserFacingError(Exception):
@@ -15,8 +17,108 @@ class UserFacingError(Exception):
 
     exit_code = 1
 
-    def __init__(self, msg: str) -> None:
+    def __init__(self, msg: str, msg_code: Optional[str] = None) -> None:
         self.msg = msg
+        self.msg_code = msg_code
+
+
+class APTInstallError(UserFacingError):
+    def __init__(self, name: str, service_msg: str) -> None:
+        super().__init__(
+            msg=messages.APT_INSTALL_FAILED.msg,
+            msg_code=messages.APT_INSTALL_FAILED.name,
+        )
+
+
+class APTProcessConflictError(UserFacingError):
+    def __init__(self):
+        super().__init__(
+            msg=messages.APT_PROCESS_CONFLICT.msg,
+            msg_code=messages.APT_PROCESS_CONFLICT.name,
+        )
+
+
+class APTInvalidRepoError(UserFacingError):
+    def __init__(self, error_msg: str) -> None:
+        super().__init__(msg=error_msg)
+
+
+class APTUpdateProcessConflictError(UserFacingError):
+    def __init__(self) -> None:
+        super().__init__(
+            msg=messages.APT_UPDATE_PROCESS_CONFLICT.msg,
+            msg_code=messages.APT_UPDATE_PROCESS_CONFLICT.name,
+        )
+
+
+class APTUpdateInvalidRepoError(UserFacingError):
+    def __init__(self, repo_msg: str) -> None:
+        msg = messages.APT_UPDATE_INVALID_REPO.format(repo_msg=repo_msg)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class APTInstallProcessConflictError(UserFacingError):
+    def __init__(self, header_msg: Optional[str] = None) -> None:
+        if header_msg:
+            header_msg += ".\n"
+
+        msg = messages.APT_INSTALL_PROCESS_CONFLICT.format(
+            header_msg=header_msg
+        )
+
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class APTInstallInvalidRepoError(UserFacingError):
+    def __init__(
+        self, repo_msg: str, header_msg: Optional[str] = None
+    ) -> None:
+        if header_msg:
+            header_msg += ".\n"
+
+        msg = messages.APT_INSTALL_INVALID_REPO.format(
+            header_msg=header_msg, repo_msg=repo_msg
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class SnapdNotProperlyInstalledError(UserFacingError):
+    def __init__(self, snap_cmd: str, service: str) -> None:
+        msg = messages.SNAPD_NOT_PROPERLY_INSTALLED.format(
+            snap_cmd=snap_cmd, service=service
+        )
+
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class ErrorInstallingLivepatch(UserFacingError):
+    def __init__(self, error_msg: str) -> None:
+        msg = messages.ERROR_INSTALLING_LIVEPATCH.format(error_msg=error_msg)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class InvalidServiceToDisableError(UserFacingError):
+    def __init__(self, operation: str, name: str, service_msg: str) -> None:
+        msg = messages.INVALID_SERVICE_OP_FAILURE.format(
+            operation=operation, name=name, service_msg=service_msg
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class ProxyNotWorkingError(UserFacingError):
+    def __init__(self, proxy: str):
+        super().__init__(
+            msg=messages.NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy).msg,
+            msg_code=messages.NOT_SETTING_PROXY_NOT_WORKING.name,
+        )
+
+
+class ProxyInvalidUrl(UserFacingError):
+    def __init__(self, proxy: str):
+        super().__init__(
+            msg=messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy).msg,
+            msg_code=messages.NOT_SETTING_PROXY_INVALID_URL.name,
+        )
 
 
 class BetaServiceError(UserFacingError):
@@ -44,9 +146,8 @@ class AlreadyAttachedOnPROError(UserFacingError):
     exit_code = 0
 
     def __init__(self, instance_id: str):
-        super().__init__(
-            messages.ALREADY_ATTACHED_ON_PRO.format(instance_id=instance_id)
-        )
+        msg = messages.ALREADY_ATTACHED_ON_PRO.format(instance_id=instance_id)
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class AlreadyAttachedError(UserFacingError):
@@ -55,10 +156,29 @@ class AlreadyAttachedError(UserFacingError):
     exit_code = 2
 
     def __init__(self, cfg):
+        msg = messages.ALREADY_ATTACHED.format(
+            account_name=cfg.accounts[0].get("name", "")
+        )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class AttachInvalidConfigFileError(UserFacingError):
+    def __init__(self, config_name: str, error: str) -> None:
+        msg = messages.ATTACH_CONFIG_READ_ERROR.format(
+            config_name=config_name, error=error
+        )
+
         super().__init__(
-            messages.ALREADY_ATTACHED.format(
-                account_name=cfg.accounts[0]["name"]
-            )
+            msg=textwrap.fill(msg.msg, width=PRINT_WRAP_WIDTH),
+            msg_code=msg.name,
+        )
+
+
+class AttachInvalidTokenError(UserFacingError):
+    def __init__(self):
+        super().__init__(
+            msg=messages.ATTACH_INVALID_TOKEN.msg,
+            msg_code=messages.ATTACH_INVALID_TOKEN.name,
         )
 
 
@@ -71,36 +191,38 @@ class LockHeldError(UserFacingError):
     """
 
     def __init__(self, lock_request: str, lock_holder: str, pid: int):
-        super().__init__(
-            messages.LOCK_HELD_ERROR.format(
-                lock_request=lock_request, lock_holder=lock_holder, pid=pid
-            )
+        msg = messages.LOCK_HELD_ERROR.format(
+            lock_request=lock_request, lock_holder=lock_holder, pid=pid
         )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class MissingAptURLDirective(UserFacingError):
     """An exception for when the contract server doesn't include aptURL"""
 
     def __init__(self, entitlement_name):
-        super().__init__(
-            messages.MISSING_APT_URL_DIRECTIVE.format(
-                entitlement_name=entitlement_name
-            )
+        msg = messages.MISSING_APT_URL_DIRECTIVE.format(
+            entitlement_name=entitlement_name
         )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class NonRootUserError(UserFacingError):
     """An exception to be raised when a user needs to be root."""
 
     def __init__(self) -> None:
-        super().__init__(messages.NONROOT_USER)
+        super().__init__(
+            msg=messages.NONROOT_USER.msg, msg_code=messages.NONROOT_USER.name
+        )
 
 
 class UnattachedError(UserFacingError):
     """An exception to be raised when a machine needs to be attached."""
 
-    def __init__(self, msg: str = messages.UNATTACHED) -> None:
-        super().__init__(msg)
+    def __init__(
+        self, msg: messages.NamedMessage = messages.UNATTACHED
+    ) -> None:
+        super().__init__(msg=msg.msg, msg_code=msg.name)
 
 
 class SecurityAPIMetadataError(UserFacingError):

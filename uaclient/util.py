@@ -881,9 +881,7 @@ def validate_proxy(
         return None
 
     if not is_service_url(proxy):
-        raise exceptions.UserFacingError(
-            messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy)
-        )
+        raise exceptions.ProxyInvalidUrl(proxy)
 
     req = request.Request(test_url, method="HEAD")
     proxy_handler = request.ProxyHandler({protocol: proxy})
@@ -900,9 +898,7 @@ def validate_proxy(
                     proxy=proxy, test_url=test_url, error=msg
                 )
             )
-        raise exceptions.UserFacingError(
-            messages.NOT_SETTING_PROXY_NOT_WORKING.format(proxy=proxy)
-        )
+        raise exceptions.ProxyNotWorkingError(proxy)
 
 
 def handle_unicode_characters(message: str) -> str:
