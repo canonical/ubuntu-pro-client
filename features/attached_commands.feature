@@ -128,31 +128,31 @@ Feature: Command behaviour when attached to an UA subscription
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua disable foobar --format json` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua disable foobar --format json --assume-yes` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua disable foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua disable livepatch --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo ua status", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Livepatch is not currently enabled\nSee: sudo ua status", "message_code": "service-already-disabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         And I verify that running `ua disable esm-infra esm-apps --format json --assume-yes` `with sudo` exits `0`
         And stdout is a json matching the `ua_operation` schema
@@ -165,7 +165,7 @@ Feature: Command behaviour when attached to an UA subscription
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot disable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
         """
 
         Examples: ubuntu release
@@ -299,19 +299,19 @@ Feature: Command behaviour when attached to an UA subscription
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
-           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
        Then I verify that running `ua enable foobar --format json` `with sudo` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
-           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+           {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
            """
        Then I verify that running `ua detach --format json --assume-yes` `as non-root` exits `1`
        And stdout is a json matching the `ua_operation` schema
        And I will see the following on stdout:
            """
-           {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+           {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
            """
        When I run `ua detach --format json --assume-yes` with sudo
        Then stdout is a json matching the `ua_operation` schema

@@ -898,7 +898,7 @@ class TestActionStatus:
             action_status(args, cfg=cfg)
 
         assert exc.type == exception_type
-        assert exception_message in exc.value.args
+        assert exception_message in getattr(exc.value, "msg", exc.value.args)
 
     @pytest.mark.parametrize(
         "token_to_use,warning_message,contract_field,date_value",

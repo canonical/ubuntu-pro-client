@@ -169,7 +169,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 )
             )
             if operation == "install":
-                self.cfg.add_notice("", messages.FIPS_REBOOT_REQUIRED)
+                self.cfg.add_notice(
+                    "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+                )
             elif operation == "disable operation":
                 self.cfg.add_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
 
@@ -284,15 +286,21 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         packages = super().packages
         return self._replace_metapackage_on_cloud_instance(packages)
 
-    def application_status(self) -> Tuple[status.ApplicationStatus, str]:
+    def application_status(
+        self
+    ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
         super_status, super_msg = super().application_status()
 
         if util.is_container() and not util.should_reboot():
-            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED)
+            self.cfg.remove_notice(
+                "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+            )
             return super_status, super_msg
 
         if os.path.exists(self.FIPS_PROC_FILE):
-            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED)
+            self.cfg.remove_notice(
+                "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+            )
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
                     "", status.NOTICE_FIPS_MANUAL_DISABLE_URL
@@ -305,7 +313,9 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 self.cfg.add_notice("", status.NOTICE_FIPS_MANUAL_DISABLE_URL)
                 return (
                     status.ApplicationStatus.DISABLED,
-                    "{} is not set to 1".format(self.FIPS_PROC_FILE),
+                    messages.FIPS_PROC_FILE_ERROR.format(
+                        file_name=self.FIPS_PROC_FILE
+                    ),
                 )
         else:
             self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
@@ -314,7 +324,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             return super_status, super_msg
         return (
             status.ApplicationStatus.ENABLED,
-            "Reboot to FIPS kernel required",
+            messages.FIPS_REBOOT_REQUIRED,
         )
 
     def remove_packages(self) -> None:
@@ -409,15 +419,15 @@ class FIPSEntitlement(FIPSCommonEntitlement):
 
         return static_affordances + (
             (
-                "Cannot enable {} when {} is enabled.".format(
-                    self.title, fips_update.title
+                messages.FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED.format(
+                    fips=self.title, fips_updates=fips_update.title
                 ),
                 lambda: is_fips_update_enabled,
                 False,
             ),
             (
-                "Cannot enable {} because {} was once enabled.".format(
-                    self.title, fips_update.title
+                messages.FIPS_ERROR_WHEN_FIPS_UPDATES_ONCE_ENABLED.format(
+                    fips=self.title, fips_updates=fips_update.title
                 ),
                 lambda: fips_updates_once_enabled,
                 False,

@@ -82,7 +82,9 @@ def assert_valid_apt_credentials(repo_url, username, password):
         )
 
 
-def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
+def _parse_apt_update_for_invalid_apt_config(
+    apt_error: str
+) -> Optional[messages.NamedMessage]:
     """Parse apt update errors for invalid apt config in user machine.
 
     This functions parses apt update errors regarding the presence of
@@ -98,9 +100,9 @@ def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
     message.
 
     :param apt_error: The apt error string
-    :return: a string containing the parsed error message.
+    :return: a NamedMessage containing the error message
     """
-    error_msg = ""
+    error_msg = None
     failed_repos = set()
 
     for line in apt_error.strip().split("\n"):
@@ -117,17 +119,18 @@ def _parse_apt_update_for_invalid_apt_config(apt_error: str) -> str:
                 failed_repos.add(repo_url_match)
 
     if failed_repos:
-        error_msg += "\n"
-        error_msg += messages.APT_UPDATE_INVALID_URL_CONFIG.format(
-            "s" if len(failed_repos) > 1 else "",
-            "\n".join(sorted(failed_repos)),
+        error_msg = messages.APT_UPDATE_INVALID_URL_CONFIG.format(
+            plural="s" if len(failed_repos) > 1 else "",
+            failed_repos="\n".join(sorted(failed_repos)),
         )
 
     return error_msg
 
 
 def run_apt_command(
-    cmd: List[str], error_msg: str, env: Optional[Dict[str, str]] = {}
+    cmd: List[str],
+    error_msg: Optional[str] = None,
+    env: Optional[Dict[str, str]] = {},
 ) -> str:
     """Run an apt command, retrying upon failure APT_RETRIES times.
 
@@ -145,16 +148,64 @@ def run_apt_command(
         )
     except exceptions.ProcessExecutionError as e:
         if "Could not get lock /var/lib/dpkg/lock" in str(e.stderr):
-            error_msg += " Another process is running APT."
+            raise exceptions.APTProcessConflictError()
         else:
             """
             Treat errors where one of the APT repositories
             is invalid or unreachable. In that situation, we alert
             which repository is causing the error
             """
-            error_msg += _parse_apt_update_for_invalid_apt_config(e.stderr)
+            repo_error_msg = _parse_apt_update_for_invalid_apt_config(e.stderr)
+            if repo_error_msg:
+                raise exceptions.APTInvalidRepoError(
+                    error_msg=repo_error_msg.msg
+                )
 
-        raise exceptions.UserFacingError(error_msg)
+        msg = error_msg if error_msg else str(e)
+        raise exceptions.UserFacingError(msg)
+    return out
+
+
+def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
+    try:
+        out = run_apt_command(cmd=["apt-get", "update"], env=env)
+    except exceptions.APTProcessConflictError:
+        raise exceptions.APTUpdateProcessConflictError()
+    except exceptions.APTInvalidRepoError as e:
+        raise exceptions.APTUpdateInvalidRepoError(repo_msg=e.msg)
+    except exceptions.UserFacingError as e:
+        raise exceptions.UserFacingError(
+            msg=messages.APT_UPDATE_FAILED.msg + "\n" + e.msg,
+            msg_code=messages.APT_UPDATE_FAILED.name,
+        )
+
+    return out
+
+
+def run_apt_install_command(
+    packages: List[str],
+    apt_options: Optional[List[str]] = None,
+    error_msg: Optional[str] = None,
+    env: Optional[Dict[str, str]] = {},
+) -> str:
+    if apt_options is None:
+        apt_options = []
+
+    try:
+        out = run_apt_command(
+            cmd=["apt-get", "install", "--assume-yes"]
+            + apt_options
+            + packages,
+            error_msg=error_msg,
+            env=env,
+        )
+    except exceptions.APTProcessConflictError:
+        raise exceptions.APTInstallProcessConflictError(header_msg=error_msg)
+    except exceptions.APTInvalidRepoError as e:
+        raise exceptions.APTInstallInvalidRepoError(
+            repo_msg=e.msg, header_msg=error_msg
+        )
+
     return out
 
 
@@ -183,7 +234,7 @@ def add_auth_apt_repo(
     # Does this system have updates suite enabled?
     updates_enabled = False
     policy = run_apt_command(
-        ["apt-cache", "policy"], messages.APT_POLICY_FAILED
+        ["apt-cache", "policy"], messages.APT_POLICY_FAILED.msg
     )
     for line in policy.splitlines():
         # We only care about $suite-updates lines

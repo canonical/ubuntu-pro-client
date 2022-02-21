@@ -301,9 +301,9 @@ class TestProcessEntitlementDeltas:
             "Could not determine contract delta service type"
             " {{}} {}".format(new_access)
         )
-        with pytest.raises(RuntimeError) as exc:
+        with pytest.raises(exceptions.UserFacingError) as exc:
             process_entitlement_delta({}, new_access)
-        assert error_msg == str(exc.value)
+        assert error_msg == str(exc.value.msg)
 
     def test_no_delta_on_equal_dicts(self):
         """No deltas are reported or processed when dicts are equal."""
@@ -441,13 +441,13 @@ class TestRequestUpdatedContract:
 
         client.side_effect = fake_contract_client
         cfg = FakeConfig.for_attached_machine()
-        with pytest.raises(RuntimeError) as exc:
+        with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg, contract_token="something")
 
         expected_msg = (
             "Got unexpected contract_token on an already attached machine"
         )
-        assert expected_msg == str(exc.value)
+        assert expected_msg == str(exc.value.msg)
 
     @pytest.mark.parametrize(
         "error_code, error_msg, error_response",
@@ -459,7 +459,7 @@ class TestRequestUpdatedContract:
                 ATTACH_FORBIDDEN.format(
                     reason=ATTACH_FORBIDDEN_EXPIRED.format(
                         contract_id="contract-id", date="May 07, 2021"
-                    )
+                    ).msg
                 ),
                 """{
                 "code": "forbidden",
@@ -477,7 +477,7 @@ class TestRequestUpdatedContract:
                 ATTACH_FORBIDDEN.format(
                     reason=ATTACH_FORBIDDEN_NOT_YET.format(
                         contract_id="contract-id", date="May 07, 2021"
-                    )
+                    ).msg
                 ),
                 """{
                 "code": "forbidden",
@@ -495,7 +495,7 @@ class TestRequestUpdatedContract:
                 ATTACH_FORBIDDEN.format(
                     reason=ATTACH_FORBIDDEN_NEVER.format(
                         contract_id="contract-id"
-                    )
+                    ).msg
                 ),
                 """{
                 "code": "forbidden",
@@ -544,7 +544,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             request_updated_contract(cfg, contract_token="yep")
 
-        assert error_msg == str(exc.value)
+        assert error_msg.msg == str(exc.value.msg)
 
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")
     @mock.patch(M_PATH + "UAContractClient")
@@ -604,7 +604,7 @@ class TestRequestUpdatedContract:
             with pytest.raises(exceptions.UserFacingError) as exc:
                 request_updated_contract(cfg)
 
-        assert ATTACH_FAILURE_DEFAULT_SERVICES == str(exc.value)
+        assert ATTACH_FAILURE_DEFAULT_SERVICES.msg == str(exc.value.msg)
 
     @pytest.mark.parametrize(
         "first_error, second_error, ux_error_msg",
@@ -690,7 +690,7 @@ class TestRequestUpdatedContract:
         with pytest.raises(exceptions.UserFacingError) as exc:
             assert None is request_updated_contract(cfg)
         assert 3 == process_entitlement_delta.call_count
-        assert ux_error_msg == str(exc.value)
+        assert ux_error_msg.msg == str(exc.value.msg)
 
     @mock.patch(M_PATH + "process_entitlement_delta")
     @mock.patch("uaclient.util.get_machine_id", return_value="mid")

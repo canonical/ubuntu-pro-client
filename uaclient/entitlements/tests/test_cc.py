@@ -77,7 +77,7 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
         entitlement = CommonCriteriaEntitlement(cfg)
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
-        assert details == uf_status_details
+        assert details == uf_status_details.msg
 
 
 class TestCommonCriteriaEntitlementCanEnable:
@@ -94,7 +94,7 @@ class TestCommonCriteriaEntitlementCanEnable:
         uf_status, uf_status_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.INACTIVE == uf_status
         details = "{} is not configured".format(entitlement.title)
-        assert details == uf_status_details
+        assert details == uf_status_details.msg
         assert (True, None) == entitlement.can_enable()
         assert ("", "") == capsys.readouterr()
 

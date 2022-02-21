@@ -333,10 +333,14 @@ def process_entitlements_delta(
             if service_enabled and deltas:
                 event.service_processed(name)
     if unexpected_error:
-        raise exceptions.UserFacingError(messages.UNEXPECTED_ERROR)
+        raise exceptions.UserFacingError(
+            msg=messages.UNEXPECTED_ERROR.msg,
+            msg_code=messages.UNEXPECTED_ERROR.name,
+        )
     elif delta_error:
         raise exceptions.UserFacingError(
-            messages.ATTACH_FAILURE_DEFAULT_SERVICES
+            msg=messages.ATTACH_FAILURE_DEFAULT_SERVICES.msg,
+            msg_code=messages.ATTACH_FAILURE_DEFAULT_SERVICES.name,
         )
 
 
@@ -374,11 +378,10 @@ def process_entitlement_delta(
         if not name:
             name = deltas.get("entitlement", {}).get("type")
         if not name:
-            raise RuntimeError(
-                "Could not determine contract delta service type {} {}".format(
-                    orig_access, new_access
-                )
+            msg = messages.INVALID_CONTRACT_DELTAS_SERVICE_TYPE.format(
+                orig=orig_access, new=new_access
             )
+            raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
         try:
             ent_cls = entitlement_factory(name)
         except exceptions.EntitlementNotFoundError as exc:
@@ -394,7 +397,9 @@ def process_entitlement_delta(
     return deltas, ret
 
 
-def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
+def _create_attach_forbidden_message(
+    e: exceptions.ContractAPIError
+) -> messages.NamedMessage:
     msg = messages.ATTACH_EXPIRED_TOKEN
     if (
         hasattr(e, "api_errors")
@@ -404,7 +409,8 @@ def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
         info = e.api_errors[0]["info"]
         contract_id = info["contractId"]
         reason = info["reason"]
-        reason_msg = ""
+        reason_msg = None
+
         if reason == "no-longer-effective":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
             reason_msg = messages.ATTACH_FORBIDDEN_EXPIRED.format(
@@ -419,7 +425,11 @@ def _create_attach_forbidden_message(e: exceptions.ContractAPIError) -> str:
             reason_msg = messages.ATTACH_FORBIDDEN_NEVER.format(
                 contract_id=contract_id
             )
-        msg = messages.ATTACH_FORBIDDEN.format(reason=reason_msg)
+
+        if reason_msg:
+            msg = messages.ATTACH_FORBIDDEN.format(reason=reason_msg.msg)
+            msg.name = reason_msg.name
+
     return msg
 
 
@@ -443,9 +453,8 @@ def request_updated_contract(
     orig_token = cfg.machine_token
     orig_entitlements = cfg.entitlements
     if orig_token and contract_token:
-        raise RuntimeError(
-            "Got unexpected contract_token on an already attached machine"
-        )
+        msg = messages.UNEXPECTED_CONTRACT_TOKEN_ON_ATTACHED_MACHINE
+        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
     contract_client = UAContractClient(cfg)
     if contract_token:  # We are a mid ua-attach and need to get machinetoken
         try:
@@ -456,16 +465,19 @@ def request_updated_contract(
             if isinstance(e, exceptions.ContractAPIError):
                 if hasattr(e, "code"):
                     if e.code == 401:
-                        raise exceptions.UserFacingError(
-                            messages.ATTACH_INVALID_TOKEN
-                        )
+                        raise exceptions.AttachInvalidTokenError()
                     elif e.code == 403:
                         msg = _create_attach_forbidden_message(e)
-                        raise exceptions.UserFacingError(msg)
+                        raise exceptions.UserFacingError(
+                            msg=msg.msg, msg_code=msg.name
+                        )
                 raise e
             with util.disable_log_to_console():
                 logging.exception(str(e))
-            raise exceptions.UserFacingError(messages.CONNECTIVITY_ERROR)
+            raise exceptions.UserFacingError(
+                msg=messages.CONNECTIVITY_ERROR.msg,
+                msg_code=messages.CONNECTIVITY_ERROR.name,
+            )
     else:
         machine_token = orig_token["machineToken"]
         contract_id = orig_token["machineTokenInfo"]["contractInfo"]["id"]

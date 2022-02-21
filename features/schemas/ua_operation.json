@@ -18,6 +18,9 @@
           "message": {
             "type": "string"
            },
+           "message_code": {
+               "type": ["null", "string"]
+           },
            "service": {
              "type": ["null", "string"]
            }
@@ -38,6 +41,9 @@
         "properties": {
           "message": {
             "type": "string"
+           },
+           "message_code": {
+               "type": ["null", "string"]
            },
            "service": {
              "type": ["null", "string"]

@@ -257,7 +257,7 @@ class TestCLIParser:
         m_entitlement_obj.contract_status.return_value = ent_status
         m_entitlement_obj.user_facing_status.return_value = (
             status.UserFacingStatus.ACTIVE,
-            "active",
+            messages.NamedMessage("test-code", "active"),
         )
         m_ent_name = mock.PropertyMock(return_value="test")
         type(m_entitlement_obj).name = m_ent_name
@@ -459,7 +459,7 @@ class TestMain:
         (
             (
                 TypeError("'NoneType' object is not subscriptable"),
-                messages.UNEXPECTED_ERROR + "\n",
+                messages.UNEXPECTED_ERROR.msg + "\n",
                 "Unhandled exception, please file a bug",
             ),
         ),
@@ -633,7 +633,7 @@ class TestMain:
 
         out, err = capsys.readouterr()
         assert "" == out
-        assert "{}\n".format(messages.CONNECTIVITY_ERROR) == err
+        assert "{}\n".format(messages.CONNECTIVITY_ERROR.msg) == err
         error_log = caplog_text()
 
         assert expected_log in error_log

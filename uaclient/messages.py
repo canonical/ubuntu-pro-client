@@ -7,6 +7,17 @@ class NamedMessage:
         self.msg = msg
 
 
+class FormattedNamedMessage(NamedMessage):
+    def __init__(self, name: str, msg: str):
+        self.name = name
+        self.tmpl_msg = msg
+
+    def format(self, **msg_params):
+        return NamedMessage(
+            name=self.name, msg=self.tmpl_msg.format(**msg_params)
+        )
+
+
 class TxtColor:
     OKGREEN = "\033[92m"
     DISABLEGREY = "\033[37m"
@@ -16,6 +27,14 @@ class TxtColor:
 
 OKGREEN_CHECK = TxtColor.OKGREEN + "✔" + TxtColor.ENDC
 FAIL_X = TxtColor.FAIL + "✘" + TxtColor.ENDC
+
+ERROR_INVALID_CONFIG_VALUE = """\
+Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
+Expected {expected_value}, found {value}."""
+INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
+Failed to find the machine token overlay file: {file_path}"""
+ERROR_JSON_DECODING_IN_FILE = """\
+Found error: {error} when reading json file: {file_path}"""
 
 SECURITY_FIX_NOT_FOUND_ISSUE = "Error: {issue_id} not found."
 SECURITY_FIX_RELEASE_STREAM = "A fix is available in {fix_stream}."
@@ -54,59 +73,9 @@ Without it, we cannot fix the system."""
 SECURITY_UA_SERVICE_NOT_ENTITLED = """\
 Error: The current UA subscription is not entitled to: {service}.
 Without it, we cannot fix the system."""
-APT_INSTALL_FAILED = "APT install failed."
-APT_UPDATE_FAILED = "APT update failed."
-APT_UPDATE_INVALID_URL_CONFIG = (
-    "APT update failed to read APT config for the following URL{}:\n{}."
-)
-APT_POLICY_FAILED = "Failure checking APT policy."
 APT_UPDATING_LISTS = "Updating package lists"
-CONNECTIVITY_ERROR = """\
-Failed to connect to authentication server
-Check your Internet connection and try again."""
-LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR + " {error}"
-LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
-    CONNECTIVITY_ERROR + " Failed to access URL: {url}. {error}"
-)
-SSL_VERIFICATION_ERROR_CA_CERTIFICATES = """\
-Failed to access URL: {url}
-Cannot verify certificate of server
-Please install "ca-certificates" and try again."""
-SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = """\
-Failed to access URL: {url}
-Cannot verify certificate of server
-Please check your openssl configuration."""
-NONROOT_USER = "This command must be run as root (try using sudo)."
-ALREADY_DISABLED_TMPL = """\
-{title} is not currently enabled\nSee: sudo ua status"""
-ENABLED_FAILED_TMPL = "Could not enable {title}."
 DISABLE_FAILED_TMPL = "Could not disable {title}."
 ENABLED_TMPL = "{title} enabled"
-ALREADY_ATTACHED = """\
-This machine is already attached to '{account_name}'
-To use a different subscription first run: sudo ua detach."""
-ALREADY_ATTACHED_ON_PRO = """\
-Skipping attach: Instance '{instance_id}' is already attached."""
-ALREADY_ENABLED_TMPL = """\
-{title} is already enabled.\nSee: sudo ua status"""
-INAPPLICABLE_ARCH_TMPL = """\
-{title} is not available for platform {arch}.
-Supported platforms are: {supported_arches}."""
-INAPPLICABLE_SERIES_TMPL = """\
-{title} is not available for Ubuntu {series}."""
-INAPPLICABLE_KERNEL_TMPL = """\
-{title} is not available for kernel {kernel}.
-Supported flavors are: {supported_kernels}."""
-INAPPLICABLE_KERNEL_VER_TMPL = """\
-{title} is not available for kernel {kernel}.
-Minimum kernel version required: {min_kernel}."""
-UNENTITLED_TMPL = (
-    """\
-This subscription is not entitled to {title}
-For more information see: """
-    + BASE_UA_URL
-    + "."
-)
 UNABLE_TO_DETERMINE_CLOUD_TYPE = (
     """\
 Unable to determine auto-attach platform support
@@ -126,22 +95,7 @@ Auto-attach image support is not available on this image
 See: """
     + BASE_UA_URL
 )
-UNATTACHED = (
-    """\
-This machine is not attached to a UA subscription.
-See """
-    + BASE_UA_URL
-)
-MISSING_APT_URL_DIRECTIVE = """\
-Ubuntu Advantage server provided no aptURL directive for {entitlement_name}"""
 NO_ACTIVE_OPERATIONS = """No Ubuntu Advantage operations are running"""
-LOCK_HELD = """Operation in progress: {lock_holder} (pid:{pid})"""
-LOCK_HELD_ERROR = (
-    """\
-Unable to perform: {lock_request}.
-"""
-    + LOCK_HELD
-)
 REBOOT_SCRIPT_FAILED = (
     "Failed running reboot_cmds script. See: /var/log/ubuntu-advantage.log"
 )
@@ -156,9 +110,6 @@ SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
 FIPS_INSTALL_OUT_OF_DATE = (
     "This FIPS install is out of date, run: sudo ua enable fips"
 )
-FIPS_REBOOT_REQUIRED = (
-    "FIPS support requires system reboot to complete configuration."
-)
 FIPS_DISABLE_REBOOT_REQUIRED = (
     "Disabling FIPS requires system reboot to complete operation."
 )
@@ -167,46 +118,6 @@ FIPS_RUN_APT_UPGRADE = """\
 Please run `apt upgrade` to ensure all FIPS packages are updated to the correct
 version.
 """
-ATTACH_FORBIDDEN_EXPIRED = """\
-Contract \"{contract_id}\" expired on {date}"""
-ATTACH_FORBIDDEN_NOT_YET = """\
-Contract \"{contract_id}\" is not effective until {date}"""
-ATTACH_FORBIDDEN_NEVER = """\
-Contract \"{contract_id}\" has never been effective"""
-ATTACH_FORBIDDEN = """\
-Attach denied:
-{{reason}}
-Visit {url} to manage contract tokens.""".format(
-    url=BASE_UA_URL
-)
-ATTACH_EXPIRED_TOKEN = (
-    """\
-Expired token or contract. To obtain a new token visit: """
-    + BASE_UA_URL
-)
-ATTACH_INVALID_TOKEN = (
-    """\
-Invalid token. See """
-    + BASE_UA_URL
-)
-ATTACH_TOKEN_ARG_XOR_CONFIG = """\
-Do not pass the TOKEN arg if you are using --attach-config.
-Include the token in the attach-config file instead.
-    """
-ATTACH_REQUIRES_TOKEN = (
-    """\
-Attach requires a token: sudo ua attach <TOKEN>
-To obtain a token please visit: """
-    + BASE_UA_URL
-    + "."
-)
-ATTACH_FAILURE = (
-    """\
-Failed to attach machine. See """
-    + BASE_UA_URL
-)
-ATTACH_FAILURE_DEFAULT_SERVICES = """\
-Failed to enable default services, check: sudo ua status"""
 ATTACH_SUCCESS_TMPL = """\
 This machine is now attached to '{contract_name}'
 """
@@ -214,23 +125,6 @@ ATTACH_SUCCESS_NO_CONTRACT_NAME = """\
 This machine is now successfully attached'
 """
 
-JSON_FORMAT_REQUIRE_ASSUME_YES = """\
-json formatted response requires --assume-yes flag."""
-
-INVALID_SERVICE_OP_FAILURE_TMPL = """\
-Cannot {operation} unknown service '{name}'.
-{service_msg}"""
-UNEXPECTED_ERROR = """\
-Unexpected error(s) occurred.
-For more details, see the log: /var/log/ubuntu-advantage.log
-To file a bug run: ubuntu-bug ubuntu-advantage-tools"""
-ENABLE_FAILURE_UNATTACHED_TMPL = (
-    """\
-To use '{name}' you need an Ubuntu Advantage subscription
-Personal and community subscriptions are available at no charge
-See """
-    + BASE_UA_URL
-)
 ENABLE_BY_DEFAULT_TMPL = "Enabling default service {name}"
 ENABLE_REBOOT_REQUIRED_TMPL = """\
 A reboot is required to complete {operation}."""
@@ -260,29 +154,9 @@ DEPENDENT_SERVICE = """\
 Disable {dependent_service} and proceed to disable {service_being_disabled}? \
 (y/N) """
 
-INCOMPATIBLE_SERVICE_STOPS_ENABLE = """\
-Cannot enable {service_being_enabled} when \
-{incompatible_service} is enabled."""
-
-REQUIRED_SERVICE_STOPS_ENABLE = """\
-Cannot enable {service_being_enabled} when {required_service} is disabled.
-"""
-
-DEPENDENT_SERVICE_STOPS_DISABLE = """\
-Cannot disable {service_being_disabled} when {dependent_service} is enabled.
-"""
-FAILED_DISABLING_DEPENDENT_SERVICE = """\
-Cannot disable dependent service: {required_service}"""
 DISABLING_DEPENDENT_SERVICE = """\
 Disabling dependent service: {required_service}"""
 
-FIPS_BLOCK_ON_CLOUD = (
-    """\
-Ubuntu {series} does not provide {cloud} optimized FIPS kernel
-For help see: """
-    + BASE_UA_URL
-    + "."
-)
 SECURITY_APT_NON_ROOT = """\
 Package fixes cannot be installed.
 To install them, run this command as root (try using sudo)"""
@@ -370,12 +244,6 @@ UACLIENT_CONF_HEADER = """\
 """
 
 SETTING_SERVICE_PROXY = "Setting {service} proxy"
-NOT_SETTING_PROXY_INVALID_URL = (
-    '"{proxy}" is not a valid url. Not setting as proxy.'
-)
-NOT_SETTING_PROXY_NOT_WORKING = (
-    '"{proxy}" is not working. Not setting as proxy.'
-)
 ERROR_USING_PROXY = (
     'Error trying to use "{proxy}" as proxy to reach "{test_url}": {error}'
 )
@@ -385,6 +253,405 @@ No proxy set in config; however, proxy is configured for: {{services}}.
 See {docs_url} for more information on ua proxy configuration.
 """.format(
     docs_url=DOCUMENTATION_URL
+)
+
+FIPS_BLOCK_ON_CLOUD = FormattedNamedMessage(
+    "cloud-non-optimized-fips-kernel",
+    """\
+Ubuntu {series} does not provide {cloud} optimized FIPS kernel
+For help see: """
+    + BASE_UA_URL
+    + ".",
+)
+
+UNATTACHED = NamedMessage(
+    "unattached",
+    """\
+This machine is not attached to a UA subscription.
+See """
+    + BASE_UA_URL,
+)
+
+ENABLE_FAILURE_UNATTACHED = FormattedNamedMessage(
+    "enable-failure-unattached",
+    """\
+To use '{name}' you need an Ubuntu Advantage subscription
+Personal and community subscriptions are available at no charge
+See """
+    + BASE_UA_URL,
+)
+
+FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
+    "failed-disabling-dependent-service",
+    """\
+Cannot disable dependent service: {required_service}{error}""",
+)
+
+DEPENDENT_SERVICE_NOT_FOUND = FormattedNamedMessage(
+    "dependent-service-not-found", "Dependent service {service} not found."
+)
+
+DEPENDENT_SERVICE_STOPS_DISABLE = FormattedNamedMessage(
+    "depedent-service-stops-disable",
+    """\
+Cannot disable {service_being_disabled} when {dependent_service} is enabled.
+""",
+)
+
+ERROR_ENABLING_REQUIRED_SERVICE = FormattedNamedMessage(
+    "error-enabling-required-service",
+    "Cannot enable required service: {service}{error}",
+)
+
+REQUIRED_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "required-service-stops-enable",
+    """\
+Cannot enable {service_being_enabled} when {required_service} is disabled.
+""",
+)
+
+INCOMPATIBLE_SERVICE_STOPS_ENABLE = FormattedNamedMessage(
+    "incompatible-service-stops-enable",
+    """\
+Cannot enable {service_being_enabled} when \
+{incompatible_service} is enabled.""",
+)
+
+SERVICE_NOT_CONFIGURED = FormattedNamedMessage(
+    "service-not-configured", "{title} is not configured"
+)
+
+SERVICE_IS_ACTIVE = FormattedNamedMessage(
+    "service-is-active", "{title} is active"
+)
+
+NO_APT_URL_FOR_SERVICE = FormattedNamedMessage(
+    "no-apt-url-for-service", "{title} does not have an aptURL directive"
+)
+
+ALREADY_DISABLED = FormattedNamedMessage(
+    "service-already-disabled",
+    """\
+{title} is not currently enabled\nSee: sudo ua status""",
+)
+
+ALREADY_ENABLED = FormattedNamedMessage(
+    "service-already-enabled",
+    """\
+{title} is already enabled.\nSee: sudo ua status""",
+)
+
+ENABLED_FAILED = FormattedNamedMessage(
+    "enable-failes", "Could not enable {title}."
+)
+
+UNENTITLED = FormattedNamedMessage(
+    "subscription-not-entitled-to-service",
+    """\
+This subscription is not entitled to {title}
+For more information see: """
+    + BASE_UA_URL
+    + ".",
+)
+
+SERVICE_NOT_ENTITLED = FormattedNamedMessage(
+    "service-not-entitled", "{title} is not entitled"
+)
+
+INAPPLICABLE_KERNEL_VER = FormattedNamedMessage(
+    "inapplicable-kernel-version",
+    """\
+{title} is not available for kernel {kernel}.
+Minimum kernel version required: {min_kernel}.""",
+)
+
+INAPPLICABLE_KERNEL = FormattedNamedMessage(
+    "inapplicable-kernel",
+    """\
+{title} is not available for kernel {kernel}.
+Supported flavors are: {supported_kernels}.""",
+)
+
+INAPPLICABLE_SERIES = FormattedNamedMessage(
+    "inapplicable-series",
+    """\
+{title} is not available for Ubuntu {series}.""",
+)
+
+INAPPLICABLE_ARCH = FormattedNamedMessage(
+    "inapplicable-arch",
+    """\
+{title} is not available for platform {arch}.
+Supported platforms are: {supported_arches}.""",
+)
+
+NO_ENTITLEMENT_AFFORDANCES_CHECKED = NamedMessage(
+    "no-entitlement-affordances-checked", "no entitlement affordances checked"
+)
+
+NOT_SETTING_PROXY_INVALID_URL = FormattedNamedMessage(
+    "proxy-invalid-url", '"{proxy}" is not a valid url. Not setting as proxy.'
+)
+
+NOT_SETTING_PROXY_NOT_WORKING = FormattedNamedMessage(
+    "proxy-not-working", '"{proxy}" is not working. Not setting as proxy.'
+)
+
+ATTACH_INVALID_TOKEN = NamedMessage(
+    "attach-invalid-token",
+    """\
+Invalid token. See """
+    + BASE_UA_URL,
+)
+
+REQUIRED_SERVICE_NOT_FOUND = FormattedNamedMessage(
+    "required-service-not-found", "Required service {service} not found."
+)
+
+UNEXPECTED_CONTRACT_TOKEN_ON_ATTACHED_MACHINE = NamedMessage(
+    "unexpeced-contract-token-on-attached-machine",
+    "Got unexpected contract_token on an already attached machine",
+)
+
+APT_UPDATE_INVALID_REPO = FormattedNamedMessage(
+    "apt-update-invalid-repo", "APT update failed.\n{repo_msg}"
+)
+
+APT_INSTALL_FAILED = NamedMessage("apt-install-failes", "APT install failed.")
+
+APT_UPDATE_INVALID_URL_CONFIG = FormattedNamedMessage(
+    "apt-update-invalid-url-config",
+    (
+        "APT update failed to read APT config for the following "
+        "URL{plural}:\n{failed_repos}."
+    ),
+)
+
+APT_PROCESS_CONFLICT = NamedMessage(
+    "apt-process-conflict", "Another process is running APT."
+)
+
+APT_UPDATE_PROCESS_CONFLICT = NamedMessage(
+    "apt-update-failed-process-conflict",
+    "APT update failed. " + APT_PROCESS_CONFLICT.msg,
+)
+
+APT_UPDATE_FAILED = NamedMessage("apt-update-failed", "APT Update failed")
+
+APT_INSTALL_PROCESS_CONFLICT = FormattedNamedMessage(
+    "apt-install-failed-process-conflict",
+    "{header_msg}APT install failed. " + APT_PROCESS_CONFLICT.msg,
+)
+
+APT_INSTALL_INVALID_REPO = FormattedNamedMessage(
+    "apt-install-invalid-repo", "{header_msg}APT install failed.{repo_msg}"
+)
+
+SNAPD_NOT_PROPERLY_INSTALLED = FormattedNamedMessage(
+    "snapd-not-properly-installed-for-livepatch",
+    (
+        "{snap_cmd} is present but snapd is not installed;"
+        " cannot enable {service}"
+    ),
+)
+
+SSL_VERIFICATION_ERROR_CA_CERTIFICATES = FormattedNamedMessage(
+    "ssl-verification-error-ca-certificate",
+    """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please install "ca-certificates" and try again.""",
+)
+
+SSL_VERIFICATION_ERROR_OPENSSL_CONFIG = FormattedNamedMessage(
+    "ssl-verification-error-openssl-config",
+    """\
+Failed to access URL: {url}
+Cannot verify certificate of server
+Please check your openssl configuration.""",
+)
+
+MISSING_APT_URL_DIRECTIVE = FormattedNamedMessage(
+    "missing-apt-url-directive",
+    """\
+Ubuntu Advantage server provided no aptURL directive for {entitlement_name}""",
+)
+
+ALREADY_ATTACHED = FormattedNamedMessage(
+    name="already-attached",
+    msg=(
+        "This machine is already attached to '{account_name}'\n"
+        "To use a different subscription first run: sudo ua detach."
+    ),
+)
+
+ALREADY_ATTACHED_ON_PRO = FormattedNamedMessage(
+    "already-attached-on-pro",
+    """\
+Skipping attach: Instance '{instance_id}' is already attached.""",
+)
+
+CONNECTIVITY_ERROR = NamedMessage(
+    "connectivity-error",
+    """\
+Failed to connect to authentication server
+Check your Internet connection and try again.""",
+)
+
+NONROOT_USER = NamedMessage(
+    "nonroot-user", "This command must be run as root (try using sudo)."
+)
+
+ERROR_INSTALLING_LIVEPATCH = FormattedNamedMessage(
+    "error-installing-livepatch",
+    "Unable to install Livepatch client: {error_msg}",
+)
+
+APT_POLICY_FAILED = NamedMessage(
+    "apt-policy-failed", "Failure checking APT policy."
+)
+
+ATTACH_FORBIDDEN_EXPIRED = FormattedNamedMessage(
+    "attach-forbidden-expired",
+    """\
+Contract \"{contract_id}\" expired on {date}""",
+)
+
+ATTACH_FORBIDDEN_NOT_YET = FormattedNamedMessage(
+    "attach-forbidden-not-yet",
+    """\
+Contract \"{contract_id}\" is not effective until {date}""",
+)
+ATTACH_FORBIDDEN_NEVER = FormattedNamedMessage(
+    "attach-forbidden-never",
+    """\
+Contract \"{contract_id}\" has never been effective""",
+)
+
+ATTACH_FORBIDDEN = FormattedNamedMessage(
+    "attach-forbidden",
+    """\
+Attach denied:
+{{reason}}
+Visit {url} to manage contract tokens.""".format(
+        url=BASE_UA_URL
+    ),
+)
+
+ATTACH_EXPIRED_TOKEN = NamedMessage(
+    "attach-experied-token",
+    """\
+Expired token or contract. To obtain a new token visit: """
+    + BASE_UA_URL,
+)
+
+ATTACH_TOKEN_ARG_XOR_CONFIG = NamedMessage(
+    "attach-token-xor-config",
+    """\
+Do not pass the TOKEN arg if you are using --attach-config.
+Include the token in the attach-config file instead.
+    """,
+)
+
+ATTACH_REQUIRES_TOKEN = NamedMessage(
+    "attach-requires-token",
+    """\
+Attach requires a token: sudo ua attach <TOKEN>
+To obtain a token please visit: """
+    + BASE_UA_URL
+    + ".",
+)
+
+ATTACH_FAILURE = NamedMessage(
+    "attach-failure",
+    """\
+Failed to attach machine. See """
+    + BASE_UA_URL,
+)
+
+ATTACH_FAILURE_DEFAULT_SERVICES = NamedMessage(
+    "attach-failure-default-service",
+    """\
+Failed to enable default services, check: sudo ua status""",
+)
+
+INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
+    "invalid-contract-deltas-service-type",
+    "Could not determine contract delta service type {orig} {new}",
+)
+
+INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
+    "invalid-service-or-failure",
+    """\
+Cannot {operation} unknown service '{name}'.
+{service_msg}""",
+)
+
+LOCK_HELD = FormattedNamedMessage(
+    "lock-held", """Operation in progress: {lock_holder} (pid:{pid})"""
+)
+
+LOCK_HELD_ERROR = FormattedNamedMessage(
+    "lock-held-error",
+    """\
+Unable to perform: {lock_request}.
+"""
+    + LOCK_HELD.tmpl_msg,
+)
+
+UNEXPECTED_ERROR = NamedMessage(
+    "unexpected-error",
+    """\
+Unexpected error(s) occurred.
+For more details, see the log: /var/log/ubuntu-advantage.log
+To file a bug run: ubuntu-bug ubuntu-advantage-tools""",
+)
+
+ATTACH_CONFIG_READ_ERROR = FormattedNamedMessage(
+    "attach-config-read-error", "Error while reading {config_name}: {error}"
+)
+
+JSON_FORMAT_REQUIRE_ASSUME_YES = NamedMessage(
+    "json-format-require-assume-yes",
+    """\
+json formatted response requires --assume-yes flag.""",
+)
+
+LIVEPATCH_NOT_ENABLED = NamedMessage(
+    "livepatch-not-enabled", "canonical-livepatch snap is not installed."
+)
+
+LIVEPATCH_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
+    "livepatch-error-install-on-container",
+    "Cannot install Livepatch on a container.",
+)
+
+LIVEPATCH_ERROR_WHEN_FIPS_ENABLED = NamedMessage(
+    "livepatch-error-when-fips-enabled",
+    "Cannot enable Livepatch when FIPS is enabled.",
+)
+
+FIPS_REBOOT_REQUIRED = NamedMessage(
+    "fips-reboot-required", "Reboot to FIPS kernel required"
+)
+
+FIPS_SYSTEM_REBOOT_REQUIRED = NamedMessage(
+    "fips-system-reboot-required",
+    "FIPS support requires system reboot to complete configuration.",
+)
+
+FIPS_ERROR_WHEN_FIPS_UPDATES_ENABLED = FormattedNamedMessage(
+    "fips-enable-when-fips-updates-enabled",
+    "Cannot enable {fips} when {fips_updates} is enabled.",
+)
+
+FIPS_PROC_FILE_ERROR = FormattedNamedMessage(
+    "fips-proc-file-error", "{file_name} is not set to 1"
+)
+
+FIPS_ERROR_WHEN_FIPS_UPDATES_ONCE_ENABLED = FormattedNamedMessage(
+    "fips-enable-when-fips-updates-once-enabled",
+    "Cannot enable {fips} because {fips_updates} was once enabled.",
 )
 
 FIPS_UPDATES_INVALIDATES_FIPS = NamedMessage(
@@ -400,10 +667,8 @@ LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
     " with additional bug fixes and security updates, you can use"
     " the FIPS Updates service with Livepatch.",
 )
-ERROR_INVALID_CONFIG_VALUE = """\
-Invalid value for {path_to_value} in /etc/ubuntu-advantage/uaclient.conf. \
-Expected {expected_value}, found {value}."""
-INVALID_PATH_FOR_MACHINE_TOKEN_OVERLAY = """\
-Failed to find the machine token overlay file: {file_path}"""
-ERROR_JSON_DECODING_IN_FILE = """\
-Found error: {error} when reading json file: {file_path}"""
+
+LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
+LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
+    CONNECTIVITY_ERROR.msg + " Failed to access URL: {url}. {error}"
+)

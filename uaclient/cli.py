@@ -198,9 +198,8 @@ def verify_json_format_args(f):
             return f(cmd_args, *args, **kwargs)
 
         if cmd_args.format == "json" and not cmd_args.assume_yes:
-            raise exceptions.UserFacingError(
-                messages.JSON_FORMAT_REQUIRE_ASSUME_YES
-            )
+            msg = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
+            raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
         else:
             return f(cmd_args, *args, **kwargs)
 
@@ -721,8 +720,12 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
             reason, ua_status.CanDisableFailure
         ):
             if reason.message is not None:
-                event.info(reason.message)
-                event.error(error_msg=reason.message, service=entitlement.name)
+                event.info(reason.message.msg)
+                event.error(
+                    error_msg=reason.message.msg,
+                    error_code=reason.message.name,
+                    service=entitlement.name,
+                )
     else:
         event.service_processed(entitlement.name)
 
@@ -918,7 +921,7 @@ def action_config_unset(args, *, cfg, **kwargs):
 
 @verify_json_format_args
 @assert_root
-@assert_attached(messages.ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_attached(messages.ENABLE_FAILURE_UNATTACHED)
 @assert_lock_file("ua disable")
 def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
@@ -929,7 +932,6 @@ def action_disable(args, *, cfg, **kwargs):
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
         names
     )
-    tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
     ret = True
 
     for ent_name in entitlements_found:
@@ -952,12 +954,10 @@ def action_disable(args, *, cfg, **kwargs):
                 break_on_hyphens=False,
             )
         )
-        raise exceptions.UserFacingError(
-            tmpl.format(
-                operation="disable",
-                name=", ".join(entitlements_not_found),
-                service_msg=service_msg,
-            )
+        raise exceptions.InvalidServiceToDisableError(
+            operation="disable",
+            name=", ".join(entitlements_not_found),
+            service_msg=service_msg,
         )
 
     event.process_events()
@@ -966,9 +966,9 @@ def action_disable(args, *, cfg, **kwargs):
 
 def _create_enable_entitlements_not_found_message(
     entitlements_not_found, *, allow_beta: bool
-) -> str:
+) -> messages.NamedMessage:
     """
-    Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE_TMPL message
+    Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
     based on the attempted services and valid services.
     """
     valid_services_names = entitlements.valid_services(allow_beta=allow_beta)
@@ -981,8 +981,8 @@ def _create_enable_entitlements_not_found_message(
             break_on_hyphens=False,
         )
     )
-    tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
-    return tmpl.format(
+
+    return messages.INVALID_SERVICE_OP_FAILURE.format(
         operation="enable",
         name=", ".join(entitlements_not_found),
         service_msg=service_msg,
@@ -991,7 +991,7 @@ def _create_enable_entitlements_not_found_message(
 
 @verify_json_format_args
 @assert_root
-@assert_attached(messages.ENABLE_FAILURE_UNATTACHED_TMPL)
+@assert_attached(messages.ENABLE_FAILURE_UNATTACHED)
 @assert_lock_file("ua enable")
 def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.
@@ -1024,8 +1024,12 @@ def action_enable(args, *, cfg, **kwargs):
                 and isinstance(reason, ua_status.CanEnableFailure)
             ):
                 if reason.message is not None:
-                    event.info(reason.message)
-                    event.error(error_msg=reason.message, service=ent_name)
+                    event.info(reason.message.msg)
+                    event.error(
+                        error_msg=reason.message.msg,
+                        error_code=reason.message.name,
+                        service=ent_name,
+                    )
                 if reason.reason == ua_status.CanEnableFailureReason.IS_BETA:
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist
@@ -1038,7 +1042,9 @@ def action_enable(args, *, cfg, **kwargs):
             ret &= ent_ret
         except exceptions.UserFacingError as e:
             event.info(e.msg)
-            event.error(error_msg=e.msg, service=ent_name)
+            event.error(
+                error_msg=e.msg, error_code=e.msg_code, service=ent_name
+            )
             ret = False
 
     if entitlements_not_found:
@@ -1046,7 +1052,7 @@ def action_enable(args, *, cfg, **kwargs):
             entitlements_not_found, allow_beta=args.beta
         )
         event.services_failed(entitlements_not_found)
-        raise exceptions.UserFacingError(msg)
+        raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
 
     event.process_events()
     return 0 if ret else 1
@@ -1220,9 +1226,15 @@ def action_auto_attach(args, *, cfg):
 @assert_lock_file("ua attach")
 def action_attach(args, *, cfg):
     if not args.token and not args.attach_config:
-        raise exceptions.UserFacingError(messages.ATTACH_REQUIRES_TOKEN)
+        raise exceptions.UserFacingError(
+            msg=messages.ATTACH_REQUIRES_TOKEN.msg,
+            msg_code=messages.ATTACH_REQUIRES_TOKEN.name,
+        )
     if args.token and args.attach_config:
-        raise exceptions.UserFacingError(messages.ATTACH_TOKEN_ARG_XOR_CONFIG)
+        raise exceptions.UserFacingError(
+            msg=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg,
+            msg_code=messages.ATTACH_TOKEN_ARG_XOR_CONFIG.name,
+        )
 
     if args.token:
         token = args.token
@@ -1233,14 +1245,10 @@ def action_attach(args, *, cfg):
                 yaml.safe_load(args.attach_config)
             )
         except IncorrectTypeError as e:
-            raise exceptions.UserFacingError(
-                textwrap.fill(
-                    "Error while reading {}: {}".format(
-                        args.attach_config.name, e.msg
-                    ),
-                    width=PRINT_WRAP_WIDTH,
-                )
+            raise exceptions.AttachInvalidConfigFileError(
+                config_name=args.attach_config.name, error=e.msg
             )
+
         token = attach_config.token
         enable_services_override = attach_config.enable_services
 
@@ -1250,13 +1258,13 @@ def action_attach(args, *, cfg):
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
     except exceptions.UrlError:
         msg = messages.ATTACH_FAILURE
-        event.info(msg)
-        event.error(error_msg=msg)
+        event.info(msg.msg)
+        event.error(error_msg=msg.msg, error_code=msg.name)
         event.process_events()
         return 1
     except exceptions.UserFacingError as exc:
         event.info(exc.msg)
-        event.error(error_msg=exc.msg)
+        event.error(error_msg=exc.msg, error_code=exc.msg_code)
         event.process_events()
         return 1
     else:
@@ -1276,8 +1284,12 @@ def action_attach(args, *, cfg):
                         and isinstance(reason, ua_status.CanEnableFailure)
                         and reason.message is not None
                     ):
-                        event.info(reason.message)
-                        event.error(error_msg=reason.message, service=name)
+                        event.info(reason.message.msg)
+                        event.error(
+                            error_msg=reason.message.msg,
+                            error_code=reason.message.name,
+                            service=name,
+                        )
                 else:
                     event.service_processed(name)
 
@@ -1285,8 +1297,8 @@ def action_attach(args, *, cfg):
                 msg = _create_enable_entitlements_not_found_message(
                     not_found, allow_beta=True
                 )
-                event.info(msg, file_type=sys.stderr)
-                event.error(error_msg=msg)
+                event.info(msg.msg, file_type=sys.stderr)
+                event.error(error_msg=msg.msg, error_code=msg.name)
                 ret = 1
         _post_cli_attach(cfg)
         return ret
@@ -1639,10 +1651,9 @@ def main_error_handler(func):
                 tmpl = messages.SSL_VERIFICATION_ERROR_CA_CERTIFICATES
                 if util.is_installed("ca-certificates"):
                     tmpl = messages.SSL_VERIFICATION_ERROR_OPENSSL_CONFIG
-                event.error(error_msg=tmpl.format(url=exc.url))
-                event.info(
-                    info_msg=tmpl.format(url=exc.url), file_type=sys.stderr
-                )
+                msg = tmpl.format(url=exc.url)
+                event.error(error_msg=msg.msg, error_code=msg.name)
+                event.info(info_msg=msg.msg, file_type=sys.stderr)
             else:
                 with util.disable_log_to_console():
                     msg_args = {"url": exc.url, "error": exc}
@@ -1654,17 +1665,17 @@ def main_error_handler(func):
                         msg_tmpl = messages.LOG_CONNECTIVITY_ERROR_TMPL
                     logging.exception(msg_tmpl.format(**msg_args))
 
-                event.error(error_msg=messages.CONNECTIVITY_ERROR)
-                event.info(
-                    info_msg=messages.CONNECTIVITY_ERROR, file_type=sys.stderr
-                )
+                msg = messages.CONNECTIVITY_ERROR
+                event.error(error_msg=msg.msg, error_code=msg.name)
+                event.info(info_msg=msg.msg, file_type=sys.stderr)
+
             lock.clear_lock_file_if_present()
             event.process_events()
             sys.exit(1)
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.error(exc.msg)
-            event.error(error_msg=exc.msg)
+            event.error(error_msg=exc.msg, error_code=exc.msg_code)
             event.info(info_msg="{}".format(exc.msg), file_type=sys.stderr)
             if not isinstance(exc, exceptions.LockHeldError):
                 # Only clear the lock if it is ours.
@@ -1676,7 +1687,7 @@ def main_error_handler(func):
                 logging.exception("Unhandled exception, please file a bug")
             lock.clear_lock_file_if_present()
             event.info(
-                info_msg=messages.UNEXPECTED_ERROR, file_type=sys.stderr
+                info_msg=messages.UNEXPECTED_ERROR.msg, file_type=sys.stderr
             )
             event.error(
                 error_msg=getattr(e, "msg", str(e)), error_type="exception"

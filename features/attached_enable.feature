@@ -61,37 +61,37 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua enable foobar --format json` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "json formatted response requires --assume-yes flag.", "message_code": "json-format-require-assume-yes", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         Then I verify that running `ua enable foobar --format json --assume-yes` `as non-root` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "This command must be run as root (try using sudo).", "message_code": "nonroot-user", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua enable foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         And I verify that running `ua enable ros foobar --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar, ros'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar", "ros"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
         """
         And I verify that running `ua enable esm-infra --format json --assume-yes` `with sudo` exits `1`
         And stdout is a json matching the `ua_operation` schema
         Then I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "UA Infra: ESM is already enabled.\nSee: sudo ua status", "message_code": "service-already-enabled", "service": "esm-infra", "type": "service"}], "failed_services": ["esm-infra"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
         When I run `ua disable esm-infra` with sudo
         And I run `ua enable esm-infra --format json --assume-yes` with sudo
@@ -105,7 +105,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
         """
-        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
+        {"_schema_version": "0.1", "errors": [{"message": "Cannot enable unknown service 'foobar'.\nTry <valid_services>", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": ["foobar"], "needs_reboot": false, "processed_services": ["esm-infra"], "result": "failure", "warnings": []}
         """
         When I run `ua disable esm-infra esm-apps` with sudo
         And I run `ua enable esm-infra esm-apps --beta --format json --assume-yes` with sudo
@@ -635,6 +635,11 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             Cannot enable Livepatch when FIPS is enabled.
+            """
+        Then I verify that running `ua enable livepatch --format json --assume-yes` `with sudo` exits `1`
+        And I will see the following on stdout
+            """
+            {"_schema_version": "0.1", "errors": [{"message": "Cannot enable Livepatch when FIPS is enabled.", "message_code": "livepatch-error-when-fips-enabled", "service": "livepatch", "type": "service"}], "failed_services": ["livepatch"], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
 
     @series.bionic
