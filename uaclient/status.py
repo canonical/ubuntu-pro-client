@@ -9,7 +9,7 @@ from uaclient.defaults import (
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     PRINT_WRAP_WIDTH,
 )
-from uaclient.messages import UNATTACHED, TxtColor
+from uaclient.messages import UNATTACHED, NamedMessage, TxtColor
 
 
 @enum.unique
@@ -106,7 +106,9 @@ class CanEnableFailureReason(enum.Enum):
 
 class CanEnableFailure:
     def __init__(
-        self, reason: CanEnableFailureReason, message: Optional[str] = None
+        self,
+        reason: CanEnableFailureReason,
+        message: Optional[NamedMessage] = None,
     ) -> None:
         self.reason = reason
         self.message = message
@@ -125,7 +127,9 @@ class CanDisableFailureReason(enum.Enum):
 
 class CanDisableFailure:
     def __init__(
-        self, reason: CanDisableFailureReason, message: Optional[str] = None
+        self,
+        reason: CanDisableFailureReason,
+        message: Optional[NamedMessage] = None,
     ) -> None:
         self.reason = reason
         self.message = message
@@ -314,7 +318,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
         ]
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
-        content.extend(["", UNATTACHED])
+        content.extend(["", UNATTACHED.msg])
         return "\n".join(content)
 
     content = [STATUS_HEADER]

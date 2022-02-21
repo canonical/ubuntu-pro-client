@@ -97,7 +97,9 @@ class RepoEntitlement(base.UAEntitlement):
         """Clean up the entitlement without checks or messaging"""
         self.remove_apt_config(silent=silent)
 
-    def application_status(self) -> Tuple[ApplicationStatus, str]:
+    def application_status(
+        self
+    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
         directives = entitlement_cfg.get("entitlement", {}).get(
             "directives", {}
@@ -106,20 +108,23 @@ class RepoEntitlement(base.UAEntitlement):
         if not repo_url:
             return (
                 ApplicationStatus.DISABLED,
-                "{} does not have an aptURL directive".format(self.title),
+                messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
         protocol, repo_path = repo_url.split("://")
         policy = apt.run_apt_command(
-            ["apt-cache", "policy"], messages.APT_POLICY_FAILED
+            ["apt-cache", "policy"], messages.APT_POLICY_FAILED.msg
         )
         match = re.search(
             r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
         )
         if match and match.group("pin") != APT_DISABLED_PIN:
-            return ApplicationStatus.ENABLED, "{} is active".format(self.title)
+            return (
+                ApplicationStatus.ENABLED,
+                messages.SERVICE_IS_ACTIVE.format(title=self.title),
+            )
         return (
             ApplicationStatus.DISABLED,
-            "{} is not configured".format(self.title),
+            messages.SERVICE_NOT_CONFIGURED.format(title=self.title),
         )
 
     def _check_apt_url_is_applied(self, apt_url):
@@ -248,11 +253,11 @@ class RepoEntitlement(base.UAEntitlement):
             apt_options = []
 
         try:
-            apt.run_apt_command(
-                ["apt-get", "install", "--assume-yes"]
-                + apt_options
-                + package_list,
-                messages.ENABLED_FAILED_TMPL.format(title=self.title),
+            msg = messages.ENABLED_FAILED.format(title=self.title)
+            apt.run_apt_install_command(
+                packages=package_list,
+                apt_options=apt_options,
+                error_msg=msg.msg,
                 env=env,
             )
         except exceptions.UserFacingError:
@@ -322,7 +327,7 @@ class RepoEntitlement(base.UAEntitlement):
                     "Cannot setup apt pin. Empty apt repo origin value '{}'.\n"
                     "{}".format(
                         self.origin,
-                        messages.ENABLED_FAILED_TMPL.format(title=self.title),
+                        messages.ENABLED_FAILED.format(title=self.title).msg,
                     )
                 )
             repo_pref_file = self.repo_pref_file_tmpl.format(name=self.name)
@@ -350,10 +355,7 @@ class RepoEntitlement(base.UAEntitlement):
                     )
                 )
             try:
-                apt.run_apt_command(
-                    ["apt-get", "install", "--assume-yes"] + prerequisite_pkgs,
-                    messages.APT_INSTALL_FAILED,
-                )
+                apt.run_apt_install_command(packages=prerequisite_pkgs)
             except exceptions.UserFacingError:
                 self.remove_apt_config()
                 raise
@@ -367,9 +369,7 @@ class RepoEntitlement(base.UAEntitlement):
         if not silent:
             event.info(messages.APT_UPDATING_LISTS)
         try:
-            apt.run_apt_command(
-                ["apt-get", "update"], messages.APT_UPDATE_FAILED
-            )
+            apt.run_apt_update_command()
         except exceptions.UserFacingError:
             self.remove_apt_config(run_apt_update=False)
             raise
@@ -416,6 +416,4 @@ class RepoEntitlement(base.UAEntitlement):
         if run_apt_update:
             if not silent:
                 event.info(messages.APT_UPDATING_LISTS)
-            apt.run_apt_command(
-                ["apt-get", "update"], messages.APT_UPDATE_FAILED
-            )
+            apt.run_apt_update_command()

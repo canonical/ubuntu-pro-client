@@ -1095,19 +1095,19 @@ class TestStatus:
         m_repo_contract_status.return_value = status.ContractStatus.ENTITLED
         m_repo_uf_status.return_value = (
             status.UserFacingStatus.INAPPLICABLE,
-            "repo details",
+            messages.NamedMessage("test-code", "repo details"),
         )
         m_livepatch_contract_status.return_value = (
             status.ContractStatus.ENTITLED
         )
         m_livepatch_uf_status.return_value = (
             status.UserFacingStatus.ACTIVE,
-            "livepatch details",
+            messages.NamedMessage("test-code", "livepatch details"),
         )
         m_esm_contract_status.return_value = status.ContractStatus.ENTITLED
         m_esm_uf_status.return_value = (
             status.UserFacingStatus.ACTIVE,
-            "esm-apps details",
+            messages.NamedMessage("test-code", "esm-apps details"),
         )
         token = {
             "availableResources": ALL_RESOURCES_AVAILABLE,
@@ -1320,7 +1320,10 @@ class TestAttachedServiceStatus:
         ent = mock.MagicMock()
         ent.name = "test_entitlement"
         ent.contract_status.return_value = contract_status
-        ent.user_facing_status.return_value = (uf_status, "")
+        ent.user_facing_status.return_value = (
+            uf_status,
+            messages.NamedMessage("test-code", ""),
+        )
 
         unavailable_resources = (
             {ent.name: ""} if in_inapplicable_resources else {}

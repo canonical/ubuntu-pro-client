@@ -274,9 +274,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanDisableFailure(
                     CanDisableFailureReason.ALREADY_DISABLED,
-                    message=messages.ALREADY_DISABLED_TMPL.format(
-                        title=self.title
-                    ),
+                    message=messages.ALREADY_DISABLED.format(title=self.title),
                 ),
             )
 
@@ -311,7 +309,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanEnableFailure(
                     CanEnableFailureReason.NOT_ENTITLED,
-                    message=messages.UNENTITLED_TMPL.format(title=self.title),
+                    message=messages.UNENTITLED.format(title=self.title),
                 ),
             )
 
@@ -321,9 +319,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 False,
                 CanEnableFailure(
                     CanEnableFailureReason.ALREADY_ENABLED,
-                    message=messages.ALREADY_ENABLED_TMPL.format(
-                        title=self.title
-                    ),
+                    message=messages.ALREADY_ENABLED.format(title=self.title),
                 ),
             )
 
@@ -431,7 +427,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         return len(self.blocking_incompatible_services()) > 0
 
-    def handle_incompatible_services(self) -> Tuple[bool, Optional[str]]:
+    def handle_incompatible_services(
+        self
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when incompatible services are found during enable.
 
@@ -482,7 +480,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return True, None
 
-    def _enable_required_services(self) -> Tuple[bool, Optional[str]]:
+    def _enable_required_services(
+        self
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when required services are found during enable.
 
@@ -496,7 +496,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             try:
                 ent_cls = entitlement_factory(required_service)
             except exceptions.EntitlementNotFoundError:
-                msg = "Required service {} not found.".format(required_service)
+                msg = messages.REQUIRED_SERVICE_NOT_FOUND.format(
+                    service=required_service
+                )
                 return False, msg
 
             ent = ent_cls(self.cfg, allow_beta=True)
@@ -525,17 +527,20 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 event.info("Enabling required service: {}".format(ent.title))
                 ret, fail = ent.enable(silent=True)
                 if not ret:
-                    msg = "Cannot enable required service: {}".format(
-                        ent.title
-                    )
-                    if fail.message:
-                        msg += "\n" + fail.message
+                    error_msg = ""
+                    if fail.message and fail.message.msg:
+                        error_msg = "\n" + fail.message.msg
 
+                    msg = messages.ERROR_ENABLING_REQUIRED_SERVICE.format(
+                        error=error_msg, service=ent.title
+                    )
                     return ret, msg
 
         return True, None
 
-    def applicability_status(self) -> Tuple[ApplicabilityStatus, str]:
+    def applicability_status(
+        self
+    ) -> Tuple[ApplicabilityStatus, Optional[messages.NamedMessage]]:
         """Check all contract affordances to vet current platform
 
         Affordances are a list of support constraints for the entitlement.
@@ -543,7 +548,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         revisions.
 
         :return:
-            tuple of (ApplicabilityStatus, detailed_message). APPLICABLE if
+            tuple of (ApplicabilityStatus, NamedMessage). APPLICABLE if
             platform passes all defined affordances, INAPPLICABLE if it doesn't
             meet all of the provided constraints.
         """
@@ -551,7 +556,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not entitlement_cfg:
             return (
                 ApplicabilityStatus.APPLICABLE,
-                "no entitlement affordances checked",
+                messages.NO_ENTITLEMENT_AFFORDANCES_CHECKED,
             )
         for error_message, functor, expected_result in self.static_affordances:
             if functor() != expected_result:
@@ -562,7 +567,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if affordance_arches and platform["arch"] not in affordance_arches:
             return (
                 ApplicabilityStatus.INAPPLICABLE,
-                messages.INAPPLICABLE_ARCH_TMPL.format(
+                messages.INAPPLICABLE_ARCH.format(
                     title=self.title,
                     arch=platform["arch"],
                     supported_arches=", ".join(affordance_arches),
@@ -572,7 +577,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if affordance_series and platform["series"] not in affordance_series:
             return (
                 ApplicabilityStatus.INAPPLICABLE,
-                messages.INAPPLICABLE_SERIES_TMPL.format(
+                messages.INAPPLICABLE_SERIES.format(
                     title=self.title, series=platform["version"]
                 ),
             )
@@ -584,14 +589,14 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             if not match or match.group("flavor") not in affordance_kernels:
                 return (
                     ApplicabilityStatus.INAPPLICABLE,
-                    messages.INAPPLICABLE_KERNEL_TMPL.format(
+                    messages.INAPPLICABLE_KERNEL.format(
                         title=self.title,
                         kernel=kernel,
                         supported_kernels=", ".join(affordance_kernels),
                     ),
                 )
         if affordance_min_kernel:
-            invalid_msg = messages.INAPPLICABLE_KERNEL_VER_TMPL.format(
+            invalid_msg = messages.INAPPLICABLE_KERNEL_VER.format(
                 title=self.title,
                 kernel=kernel,
                 min_kernel=affordance_min_kernel,
@@ -618,7 +623,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 and kernel_minor < min_kern_minor
             ):
                 return ApplicabilityStatus.INAPPLICABLE, invalid_msg
-        return ApplicabilityStatus.APPLICABLE, ""
+        return ApplicabilityStatus.APPLICABLE, None
 
     @abc.abstractmethod
     def _perform_disable(self, silent: bool = False) -> bool:
@@ -635,7 +640,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     def _disable_dependent_services(
         self, silent: bool
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Disable dependent services
 
@@ -653,10 +658,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             try:
                 ent_cls = entitlement_factory(dependent_service)
             except exceptions.EntitlementNotFoundError:
-                msg = "Dependent service {} not found.".format(
-                    dependent_service
+                msg = messages.DEPENDENT_SERVICE_NOT_FOUND.format(
+                    service=dependent_service
                 )
-                event.info(info_msg=msg, file_type=sys.stderr)
+                event.info(info_msg=msg.msg, file_type=sys.stderr)
                 return False, msg
 
             ent = ent_cls(self.cfg)
@@ -690,12 +695,13 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
                 ret, fail = ent.disable(silent=True)
                 if not ret:
-                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
-                        required_service=ent.title
-                    )
-                    if fail.message:
-                        msg += "\n" + fail.message
+                    error_msg = ""
+                    if fail.message and fail.message.msg:
+                        error_msg = "\n" + fail.message.msg
 
+                    msg = messages.FAILED_DISABLING_DEPENDENT_SERVICE.format(
+                        error=error_msg, required_service=ent.title
+                    )
                     return False, msg
 
         return True, None
@@ -890,7 +896,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         return False
 
-    def user_facing_status(self) -> Tuple[UserFacingStatus, str]:
+    def user_facing_status(
+        self
+    ) -> Tuple[UserFacingStatus, Optional[messages.NamedMessage]]:
         """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
         if applicability != ApplicabilityStatus.APPLICABLE:
@@ -899,12 +907,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not entitlement_cfg:
             return (
                 UserFacingStatus.UNAVAILABLE,
-                "{} is not entitled".format(self.title),
+                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
             )
         elif entitlement_cfg["entitlement"].get("entitled", False) is False:
             return (
                 UserFacingStatus.UNAVAILABLE,
-                "{} is not entitled".format(self.title),
+                messages.SERVICE_NOT_ENTITLED.format(title=self.title),
             )
 
         application_status, explanation = self.application_status()
@@ -915,7 +923,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return user_facing_status, explanation
 
     @abc.abstractmethod
-    def application_status(self) -> Tuple[status.ApplicationStatus, str]:
+    def application_status(
+        self
+    ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
         """
         The current status of application of this entitlement
 

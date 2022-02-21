@@ -69,7 +69,7 @@ class TestUserFacingStatus:
             "Repo Test Class is not available for Ubuntu 14.04"
             " LTS (Trusty Tahr)."
         )
-        assert expected_details == details
+        assert expected_details == details.msg
         uf_status, _ = entitlement.user_facing_status()
         assert status.UserFacingStatus.INAPPLICABLE == uf_status
 
@@ -87,7 +87,7 @@ class TestUserFacingStatus:
         assert status.ApplicabilityStatus.APPLICABLE == applicability
         uf_status, uf_details = entitlement.user_facing_status()
         assert status.UserFacingStatus.UNAVAILABLE == uf_status
-        assert "Repo Test Class is not entitled" == uf_details
+        assert "Repo Test Class is not entitled" == uf_details.msg
 
 
 class TestProcessContractDeltas:
@@ -629,14 +629,13 @@ class TestRemoveAptConfig:
 
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
-    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
     def test_apt_get_update_called(
-        self, m_run_apt_command, _m_apt1, _m_apt2, entitlement
+        self, m_run_apt_update_command, _m_apt1, _m_apt2, entitlement
     ):
         entitlement.remove_apt_config()
 
-        expected_call = mock.call(["apt-get", "update"], mock.ANY)
-        assert expected_call in m_run_apt_command.call_args_list
+        assert mock.call() in m_run_apt_update_command.call_args_list
 
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
@@ -862,10 +861,10 @@ class TestSetupAptConfig:
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.run_apt_install_command")
     def test_install_prerequisite_packages(
         self,
-        m_run_apt_command,
+        m_run_apt_install_command,
         m_add_auth_repo,
         _m_setup_apt_proxy,
         entitlement,
@@ -883,16 +882,9 @@ class TestSetupAptConfig:
             mock.call("/usr/sbin/update-ca-certificates"),
         ] == m_exists.call_args_list
         install_call = mock.call(
-            [
-                "apt-get",
-                "install",
-                "--assume-yes",
-                "apt-transport-https",
-                "ca-certificates",
-            ],
-            "APT install failed.",
+            packages=["apt-transport-https", "ca-certificates"]
         )
-        assert install_call in m_run_apt_command.call_args_list
+        assert install_call in m_run_apt_install_command.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "util.get_platform_info")
@@ -945,14 +937,14 @@ class TestSetupAptConfig:
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
-    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.run_apt_update_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
     @mock.patch(M_PATH + "util.get_platform_info")
     def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
         self,
         m_get_platform_info,
         m_add_ppa_pinning,
-        m_run_apt_command,
+        m_run_apt_update_command,
         m_add_auth_repo,
         _m_setup_apt_proxy,
         entitlement_factory,
@@ -978,9 +970,7 @@ class TestSetupAptConfig:
                 entitlement.repo_pin_priority,
             )
         ] == m_add_ppa_pinning.call_args_list
-        assert [
-            mock.call(["apt-get", "update"], "APT update failed.")
-        ] == m_run_apt_command.call_args_list
+        assert [mock.call()] == m_run_apt_update_command.call_args_list
 
 
 class TestCheckAptURLIsApplied:
@@ -1021,7 +1011,8 @@ class TestApplicationStatus:
 
         assert status.ApplicationStatus.DISABLED == application_status
         assert (
-            "Repo Test Class does not have an aptURL directive" == explanation
+            "Repo Test Class does not have an aptURL directive"
+            == explanation.msg
         )
 
     @pytest.mark.parametrize(
@@ -1060,7 +1051,7 @@ class TestApplicationStatus:
             expected_status = status.ApplicationStatus.DISABLED
             expected_explanation = "Repo Test Class is not configured"
         assert expected_status == application_status
-        assert expected_explanation == explanation
+        assert expected_explanation == explanation.msg
 
 
 def success_call():
