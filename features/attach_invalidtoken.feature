@@ -18,7 +18,7 @@ Feature: Command behaviour when trying to attach a machine to an Ubuntu
         When I verify that running `ua attach invalid-token --format json` `with sudo` exits `1`
         Then I will see the following on stdout:
             """
-            {"_schema_version": "0.1", "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+            {"_schema_version": "0.1", "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
             """
 
         Examples: ubuntu release

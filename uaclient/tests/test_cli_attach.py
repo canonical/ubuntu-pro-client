@@ -97,7 +97,8 @@ def test_non_root_users_are_rejected(getuid, FakeConfig, capsys, event):
         "result": "failure",
         "errors": [
             {
-                "message": messages.NONROOT_USER,
+                "message": messages.NONROOT_USER.msg,
+                "message_code": messages.NONROOT_USER.name,
                 "service": None,
                 "type": "system",
             }
@@ -127,14 +128,14 @@ class TestActionAttach:
             ):
                 main_error_handler(action_attach)(mock.MagicMock(), cfg)
 
+        msg = messages.ALREADY_ATTACHED.format(account_name=account_name)
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.ALREADY_ATTACHED.format(
-                        account_name=account_name
-                    ),
+                    "message": msg.msg,
+                    "message_code": msg.name,
                     "service": None,
                     "type": "system",
                 }
@@ -178,7 +179,12 @@ class TestActionAttach:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_msg, "service": None, "type": "system"}
+                {
+                    "message": expected_msg.msg,
+                    "message_code": expected_msg.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -195,7 +201,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=cfg)
-        assert messages.ATTACH_REQUIRES_TOKEN == str(e.value)
+        assert messages.ATTACH_REQUIRES_TOKEN.msg == str(e.value.msg)
 
         args = mock.MagicMock()
         args.token = None
@@ -210,12 +216,14 @@ class TestActionAttach:
                     m_check_lock_info.return_value = (0, "lock_holder")
                     main_error_handler(action_attach)(args, cfg)
 
+        expected_msg = messages.ATTACH_REQUIRES_TOKEN
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.ATTACH_REQUIRES_TOKEN,
+                    "message": expected_msg.msg,
+                    "message_code": expected_msg.name,
                     "service": None,
                     "type": "system",
                 }
@@ -250,6 +258,7 @@ class TestActionAttach:
         error_class,
         error_str,
         FakeConfig,
+        event,
     ):
         """If auto-enable of a service fails, attach status is updated."""
         token = "contract-token"
@@ -385,7 +394,7 @@ class TestActionAttach:
         cfg = FakeConfig()
         with pytest.raises(UserFacingError) as e:
             action_attach(args, cfg=cfg)
-        assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG
+        assert e.value.msg == messages.ATTACH_TOKEN_ARG_XOR_CONFIG.msg
 
     @mock.patch(M_PATH + "_post_cli_attach")
     @mock.patch(M_PATH + "actions.attach_with_token")
@@ -427,10 +436,13 @@ class TestActionAttach:
             ):
                 main_error_handler(action_attach)(args, cfg)
 
-        expected_message = (
-            "Error while reading fakename: Got value with "
-            'incorrect type for field\n"enable_services": '
-            "Expected value with type list but got value: 'cis'"
+        expected_message = messages.ATTACH_CONFIG_READ_ERROR.format(
+            config_name="fakename",
+            error=(
+                "Got value with "
+                'incorrect type for field\n"enable_services": '
+                "Expected value with type list but got value: 'cis'"
+            ),
         )
 
         expected = {
@@ -438,7 +450,8 @@ class TestActionAttach:
             "result": "failure",
             "errors": [
                 {
-                    "message": expected_message,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }
@@ -576,11 +589,18 @@ class TestActionAttach:
             ):
                 main_error_handler(action_attach)(args, cfg)
 
-        msg = "Failed to enable default services, check: sudo ua status"
+        expected_msg = messages.ATTACH_FAILURE_DEFAULT_SERVICES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
-            "errors": [{"message": msg, "service": None, "type": "system"}],
+            "errors": [
+                {
+                    "message": expected_msg.msg,
+                    "message_code": expected_msg.name,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
             "failed_services": ["test2"],
             "needs_reboot": False,
             "processed_services": ["test1"],

@@ -75,7 +75,8 @@ class TestDisable:
 
         if not disable_return:
             fail = status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED, message="test"
+                status.CanDisableFailureReason.ALREADY_DISABLED,
+                message=messages.NamedMessage("test-code", "test"),
             )
         else:
             fail = None
@@ -146,7 +147,8 @@ class TestDisable:
         if not disable_return:
             expected["errors"] = [
                 {
-                    "message": fail.message,
+                    "message": "test",
+                    "message_code": "test-code",
                     "service": ent_name,
                     "type": "service",
                 }
@@ -168,7 +170,7 @@ class TestDisable:
         tmpdir,
         event,
     ):
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
         num_calls = 2
 
         m_ent1_cls = mock.Mock()
@@ -176,7 +178,8 @@ class TestDisable:
         m_ent1_obj.disable.return_value = (
             False,
             status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED, message="test"
+                status.CanDisableFailureReason.ALREADY_DISABLED,
+                message=messages.NamedMessage("test-code", "test"),
             ),
         )
         type(m_ent1_obj).name = mock.PropertyMock(return_value="ent1")
@@ -186,7 +189,8 @@ class TestDisable:
         m_ent2_obj.disable.return_value = (
             False,
             status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED, message="test"
+                status.CanDisableFailureReason.ALREADY_DISABLED,
+                message=messages.NamedMessage("test-code2", "test2"),
             ),
         )
         type(m_ent2_obj).name = mock.PropertyMock(return_value="ent2")
@@ -219,7 +223,7 @@ class TestDisable:
         assert (
             expected_error_tmpl.format(
                 operation="disable", name="ent1", service_msg="Try ent2, ent3."
-            )
+            ).msg
             == err.value.msg
         )
 
@@ -250,12 +254,18 @@ class TestDisable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": "test", "service": "ent2", "type": "service"},
+                {
+                    "message": "test2",
+                    "message_code": "test-code2",
+                    "service": "ent2",
+                    "type": "service",
+                },
                 {
                     "message": (
                         "Cannot disable unknown service 'ent1'.\n"
                         "Try ent2, ent3."
                     ),
+                    "message_code": "invalid-service-or-failure",
                     "service": None,
                     "type": "system",
                 },
@@ -271,7 +281,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.INVALID_SERVICE_OP_FAILURE_TMPL),
+            (0, messages.INVALID_SERVICE_OP_FAILURE),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -283,13 +293,18 @@ class TestDisable:
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
-        expected_error = expected_error_template.format(
-            operation="disable", name="bogus", service_msg=ALL_SERVICE_MSG
-        )
+
+        if not uid:
+            expected_error = expected_error_template.format(
+                operation="disable", name="bogus", service_msg=ALL_SERVICE_MSG
+            )
+        else:
+            expected_error = expected_error_template
+
         with pytest.raises(exceptions.UserFacingError) as err:
             args.service = ["bogus"]
             action_disable(args, cfg)
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
         args.format = "json"
@@ -306,7 +321,12 @@ class TestDisable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -318,7 +338,7 @@ class TestDisable:
     @pytest.mark.parametrize("service", [["bogus"], ["bogus1", "bogus2"]])
     def test_invalid_service_names(self, m_getuid, service, FakeConfig, event):
         m_getuid.return_value = 0
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         cfg = FakeConfig.for_attached_machine()
         args = mock.MagicMock()
@@ -331,7 +351,7 @@ class TestDisable:
             args.service = service
             action_disable(args, cfg)
 
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
         args.format = "json"
@@ -348,7 +368,12 @@ class TestDisable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -360,7 +385,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.ENABLE_FAILURE_UNATTACHED_TMPL),
+            (0, messages.ENABLE_FAILURE_UNATTACHED),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -372,12 +397,16 @@ class TestDisable:
 
         cfg = FakeConfig()
         args = mock.MagicMock()
-        expected_error = expected_error_template.format(name="esm-infra")
+        if not uid:
+            expected_error = expected_error_template.format(name="esm-infra")
+        else:
+            expected_error = expected_error_template
+
         with pytest.raises(exceptions.UserFacingError) as err:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
 
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
         args.format = "json"
@@ -394,7 +423,12 @@ class TestDisable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -408,9 +442,8 @@ class TestDisable:
         """Check inability to disable if operation in progress holds lock."""
         cfg = FakeConfig().for_attached_machine()
         args = mock.MagicMock()
-        expected_error = (
-            "Unable to perform: ua disable.\n"
-            "Operation in progress: ua enable (pid:123)"
+        expected_error = messages.LOCK_HELD_ERROR.format(
+            lock_request="ua disable", lock_holder="ua enable", pid="123"
         )
         with open(cfg.data_path("lock"), "w") as stream:
             stream.write("123:ua enable")
@@ -418,7 +451,7 @@ class TestDisable:
             args.service = ["esm-infra"]
             action_disable(args, cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         args.assume_yes = True
         args.format = "json"
@@ -435,7 +468,12 @@ class TestDisable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -460,12 +498,14 @@ class TestDisable:
                 with contextlib.redirect_stdout(fake_stdout):
                     main_error_handler(action_disable)(args_mock, cfg)
 
+        expected_message = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }

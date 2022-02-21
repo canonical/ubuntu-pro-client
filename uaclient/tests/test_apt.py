@@ -28,7 +28,7 @@ from uaclient.apt import (
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
-    run_apt_command,
+    run_apt_update_command,
     setup_apt_proxy,
 )
 from uaclient.entitlements.base import UAEntitlement
@@ -911,9 +911,7 @@ class TestRunAptCommand:
         )
 
         with pytest.raises(exceptions.UserFacingError) as excinfo:
-            run_apt_command(
-                cmd=["apt", "update"], error_msg=messages.APT_UPDATE_FAILED
-            )
+            run_apt_update_command()
 
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg

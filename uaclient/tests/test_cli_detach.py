@@ -47,12 +47,14 @@ class TestActionDetach:
             ):
                 main_error_handler(action_detach)(args, cfg)
 
+        expected_message = messages.NONROOT_USER
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.NONROOT_USER,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }
@@ -74,7 +76,7 @@ class TestActionDetach:
         args = mock.MagicMock()
         with pytest.raises(exceptions.UnattachedError) as err:
             action_detach(args, cfg=cfg)
-        assert messages.UNATTACHED == err.value.msg
+        assert messages.UNATTACHED.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -82,12 +84,14 @@ class TestActionDetach:
             ):
                 main_error_handler(action_detach)(args, cfg)
 
+        expected_message = messages.UNATTACHED
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.UNATTACHED,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }
@@ -112,11 +116,10 @@ class TestActionDetach:
         with pytest.raises(exceptions.LockHeldError) as err:
             action_detach(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        expected_error_msg = (
-            "Unable to perform: ua detach.\n"
-            "Operation in progress: ua enable (pid:123)"
+        expected_error_msg = messages.LOCK_HELD_ERROR.format(
+            lock_request="ua detach", lock_holder="ua enable", pid="123"
         )
-        assert expected_error_msg == err.value.msg
+        assert expected_error_msg.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -129,7 +132,8 @@ class TestActionDetach:
             "result": "failure",
             "errors": [
                 {
-                    "message": expected_error_msg,
+                    "message": expected_error_msg.msg,
+                    "message_code": expected_error_msg.name,
                     "service": None,
                     "type": "system",
                 }

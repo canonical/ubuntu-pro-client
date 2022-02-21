@@ -254,7 +254,7 @@ class TestLivepatchUserFacingStatus:
             "Livepatch is not available for Ubuntu 16.04 LTS"
             " (Xenial Xerus)."
         )
-        assert expected_details == details
+        assert expected_details == details.msg
 
     def test_user_facing_status_unavailable_on_unentitled(self, entitlement):
         """Status UNAVAILABLE on absent entitlement contract status."""
@@ -269,7 +269,7 @@ class TestLivepatchUserFacingStatus:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
         assert uf_status == status.UserFacingStatus.UNAVAILABLE
-        assert "Livepatch is not entitled" == details
+        assert "Livepatch is not entitled" == details.msg
 
 
 class TestLivepatchProcessConfigDirectives:
@@ -376,7 +376,7 @@ class TestLivepatchEntitlementCanEnable:
                 "Livepatch is not available for kernel 4.2.9-00-generic.\n"
                 "Minimum kernel version required: 4.4."
             )
-            assert msg == reason.message
+            assert msg == reason.message.msg
 
     def test_can_enable_false_on_unsupported_kernel_flavor(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
@@ -394,7 +394,7 @@ class TestLivepatchEntitlementCanEnable:
                 "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
                 "Supported flavors are: generic, lowlatency."
             )
-            assert msg == reason.message
+            assert msg == reason.message.msg
 
     @pytest.mark.parametrize(
         "kernel_version,meets_min_version",
@@ -435,7 +435,7 @@ class TestLivepatchEntitlementCanEnable:
                         kernel_version
                     )
                 )
-                assert msg == reason.message
+                assert msg == reason.message.msg
 
     def test_can_enable_false_on_unsupported_architecture(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
@@ -452,7 +452,7 @@ class TestLivepatchEntitlementCanEnable:
                 "Livepatch is not available for platform ppc64le.\n"
                 "Supported platforms are: x86_64."
             )
-            assert msg == reason.message
+            assert msg == reason.message.msg
 
     def test_can_enable_false_on_containers(
         self, m_is_container, _m_livepatch_status, _m_fips_status, entitlement
@@ -468,7 +468,7 @@ class TestLivepatchEntitlementCanEnable:
             assert False is result
             assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = "Cannot install Livepatch on a container."
-            assert msg == reason.message
+            assert msg == reason.message.msg
 
 
 class TestLivepatchProcessContractDeltas:
@@ -577,9 +577,7 @@ class TestLivepatchProcessContractDeltas:
 @mock.patch("uaclient.entitlements.livepatch.configure_livepatch_proxy")
 class TestLivepatchEntitlementEnable:
 
-    mocks_apt_update = [
-        mock.call(["apt-get", "update"], messages.APT_UPDATE_FAILED)
-    ]
+    mocks_apt_update = [mock.call()]
     mocks_snapd_install = [
         mock.call(
             ["apt-get", "install", "--assume-yes", "snapd"],
@@ -619,7 +617,8 @@ class TestLivepatchEntitlementEnable:
     @pytest.mark.parametrize("apt_update_success", (True, False))
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
-    @mock.patch("uaclient.apt.run_apt_command")
+    @mock.patch("uaclient.apt.run_apt_install_command")
+    @mock.patch("uaclient.apt.run_apt_update_command")
     @mock.patch("uaclient.util.which", return_value=False)
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -630,7 +629,8 @@ class TestLivepatchEntitlementEnable:
         m_can_enable,
         m_app_status,
         m_which,
-        m_run_apt,
+        m_run_apt_update,
+        m_run_apt_install,
         m_subp,
         _m_get_platform_info,
         m_livepatch_proxy,
@@ -645,16 +645,16 @@ class TestLivepatchEntitlementEnable:
         application_status = status.ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
 
-        def fake_run_apt(cmd, message):
+        def fake_run_apt_update():
             if apt_update_success:
                 return
             raise exceptions.UserFacingError("Apt go BOOM")
 
-        m_run_apt.side_effect = fake_run_apt
+        m_run_apt_update.side_effect = fake_run_apt_update
 
         assert entitlement.enable()
         assert self.mocks_install + self.mocks_config in m_subp.call_args_list
-        assert self.mocks_apt_update == m_run_apt.call_args_list
+        assert self.mocks_apt_update == m_run_apt_update.call_args_list
         msg = (
             "Installing snapd\n"
             "Updating package lists\n"
@@ -884,7 +884,7 @@ class TestLivepatchEntitlementEnable:
                 msg = "Cannot enable Livepatch when {} is enabled.".format(
                     cls_title
                 )
-                assert msg.strip() == reason.message.strip()
+                assert msg.strip() == reason.message.msg.strip()
 
         assert m_validate_proxy.call_count == 0
         assert m_snap_proxy.call_count == 0
@@ -1011,13 +1011,13 @@ class TestLivepatchApplicationStatus:
 
         if not which_result:
             assert status == ApplicationStatus.DISABLED
-            assert "canonical-livepatch snap is not installed." in details
+            assert "canonical-livepatch snap is not installed." in details.msg
         elif subp_raise_exception:
             assert status == ApplicationStatus.DISABLED
-            assert "error msg" in details
+            assert "error msg" in details.msg
         else:
             assert status == ApplicationStatus.ENABLED
-            assert "" == details
+            assert details is None
 
     @mock.patch("time.sleep")
     @mock.patch("uaclient.util.which", return_value=True)
@@ -1033,4 +1033,4 @@ class TestLivepatchApplicationStatus:
             assert m_subp.call_count == 3
             assert m_sleep.call_count == 2
             assert status == ApplicationStatus.DISABLED
-            assert "error msg" in details
+            assert "error msg" in details.msg

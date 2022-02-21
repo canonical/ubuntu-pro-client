@@ -1137,8 +1137,9 @@ class TestValidateProxy:
         with pytest.raises(exceptions.UserFacingError) as e:
             util.validate_proxy("http", proxy, "http://example.com")
 
-        assert e.value.msg == messages.NOT_SETTING_PROXY_INVALID_URL.format(
-            proxy=proxy
+        assert (
+            e.value.msg
+            == messages.NOT_SETTING_PROXY_INVALID_URL.format(proxy=proxy).msg
         )
 
     @pytest.mark.parametrize(
@@ -1197,8 +1198,11 @@ class TestValidateProxy:
                 "http", "http://localhost:1234", "http://example.com"
             )
 
-        assert e.value.msg == messages.NOT_SETTING_PROXY_NOT_WORKING.format(
-            proxy="http://localhost:1234"
+        assert (
+            e.value.msg
+            == messages.NOT_SETTING_PROXY_NOT_WORKING.format(
+                proxy="http://localhost:1234"
+            ).msg
         )
 
         assert (

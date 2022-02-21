@@ -75,12 +75,14 @@ class TestActionEnable:
             ):
                 main()
 
+        expected_message = messages.NONROOT_USER
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.NONROOT_USER,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }
@@ -111,10 +113,11 @@ class TestActionEnable:
         with pytest.raises(exceptions.LockHeldError) as err:
             action_enable(args, cfg=cfg)
         assert [mock.call(["ps", "123"])] == m_subp.call_args_list
-        assert (
-            "Unable to perform: ua enable.\n"
-            "Operation in progress: ua disable (pid:123)"
-        ) == err.value.msg
+
+        expected_message = messages.LOCK_HELD_ERROR.format(
+            lock_request="ua enable", lock_holder="ua disable", pid="123"
+        )
+        assert expected_message.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -133,7 +136,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_msg, "service": None, "type": "system"}
+                {
+                    "message": expected_msg.msg,
+                    "message_code": expected_msg.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -145,7 +153,7 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.ENABLE_FAILURE_UNATTACHED_TMPL),
+            (0, messages.ENABLE_FAILURE_UNATTACHED),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -167,10 +175,14 @@ class TestActionEnable:
         args = mock.MagicMock()
         args.service = ["esm-infra"]
 
-        expected_error = expected_error_template.format(name="esm-infra")
+        if not uid:
+            expected_error = expected_error_template.format(name="esm-infra")
+        else:
+            expected_error = expected_error_template
+
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -182,7 +194,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": [],
             "needs_reboot": False,
@@ -194,7 +211,7 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.INVALID_SERVICE_OP_FAILURE_TMPL),
+            (0, messages.INVALID_SERVICE_OP_FAILURE),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -228,15 +245,15 @@ class TestActionEnable:
                 break_on_hyphens=False,
             )
         )
-        expected_error = expected_error_template.format(
-            operation="enable", name="bogus", service_msg=service_msg
-        )
-        assert (
-            expected_error_template.format(
+
+        if not uid:
+            expected_error = expected_error_template.format(
                 operation="enable", name="bogus", service_msg=service_msg
             )
-            == err.value.msg
-        )
+        else:
+            expected_error = expected_error_template
+
+        assert expected_error.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -250,7 +267,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": ["bogus"] if not uid else [],
             "needs_reboot": False,
@@ -314,7 +336,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -370,7 +392,7 @@ class TestActionEnable:
                 + "."
             ),
         )
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
@@ -402,7 +424,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": ["ent1", "ent2"],
             "needs_reboot": False,
@@ -427,7 +454,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
 
         m_ent1_cls = mock.Mock()
         m_ent1_obj = m_ent1_cls.return_value
@@ -505,7 +532,7 @@ class TestActionEnable:
         expected_error = expected_error_tmpl.format(
             operation="enable", name=not_found_name, service_msg=service_msg
         )
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
 
         for m_ent_cls in mock_ent_list:
@@ -541,7 +568,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": expected_failed_services,
             "needs_reboot": False,
@@ -566,7 +598,8 @@ class TestActionEnable:
         m_entitlement_obj.enable.return_value = (
             False,
             status.CanEnableFailure(
-                status.CanEnableFailureReason.ALREADY_ENABLED, "msg"
+                status.CanEnableFailureReason.ALREADY_ENABLED,
+                message=messages.NamedMessage("test-code", "msg"),
             ),
         )
 
@@ -608,7 +641,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": "msg", "service": "ent1", "type": "service"}
+                {
+                    "message": "msg",
+                    "message_code": "test-code",
+                    "service": "ent1",
+                    "type": "service",
+                }
             ],
             "failed_services": ["ent1"],
             "needs_reboot": False,
@@ -632,7 +670,7 @@ class TestActionEnable:
         FakeConfig,
     ):
         m_getuid.return_value = 0
-        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE_TMPL
+        expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
         expected_msg = "One moment, checking your subscription first\n"
 
         cfg = FakeConfig.for_attached_machine()
@@ -662,7 +700,7 @@ class TestActionEnable:
             name=", ".join(sorted(service)),
             service_msg=service_msg,
         )
-        assert expected_error == err.value.msg
+        assert expected_error.msg == err.value.msg
 
         with pytest.raises(SystemExit):
             with mock.patch.object(
@@ -676,7 +714,12 @@ class TestActionEnable:
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
-                {"message": expected_error, "service": None, "type": "system"}
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
             ],
             "failed_services": service,
             "needs_reboot": False,
@@ -775,12 +818,14 @@ class TestActionEnable:
                 with contextlib.redirect_stdout(fake_stdout):
                     main_error_handler(action_enable)(args_mock, cfg)
 
+        expected_message = messages.JSON_FORMAT_REQUIRE_ASSUME_YES
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
             "result": "failure",
             "errors": [
                 {
-                    "message": messages.JSON_FORMAT_REQUIRE_ASSUME_YES,
+                    "message": expected_message.msg,
+                    "message_code": expected_message.name,
                     "service": None,
                     "type": "system",
                 }

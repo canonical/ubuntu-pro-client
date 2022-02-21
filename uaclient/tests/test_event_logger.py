@@ -22,7 +22,7 @@ class TestEventLogger:
                 event.needs_reboot(reboot_required=True)
                 event.service_processed("test")
                 event.services_failed(["esm"])
-                event.error(error_msg="error1")
+                event.error(error_msg="error1", error_code="error1-code")
                 event.error(error_msg="error2", service="esm")
                 event.error(error_msg="error3", error_type="exception")
                 event.warning(warning_msg="warning1")
@@ -34,18 +34,35 @@ class TestEventLogger:
                 "_schema_version": JSON_SCHEMA_VERSION,
                 "result": "failure",
                 "errors": [
-                    {"message": "error1", "service": None, "type": "system"},
-                    {"message": "error2", "service": "esm", "type": "service"},
+                    {
+                        "message": "error1",
+                        "message_code": "error1-code",
+                        "service": None,
+                        "type": "system",
+                    },
+                    {
+                        "message": "error2",
+                        "message_code": None,
+                        "service": "esm",
+                        "type": "service",
+                    },
                     {
                         "message": "error3",
+                        "message_code": None,
                         "service": None,
                         "type": "exception",
                     },
                 ],
                 "warnings": [
-                    {"message": "warning1", "service": None, "type": "system"},
+                    {
+                        "message": "warning1",
+                        "message_code": None,
+                        "service": None,
+                        "type": "system",
+                    },
                     {
                         "message": "warning2",
+                        "message_code": None,
                         "service": "esm",
                         "type": "service",
                     },
@@ -93,10 +110,20 @@ class TestEventLogger:
                 "services": [],
                 "result": "failure",
                 "errors": [
-                    {"message": "error1", "service": None, "type": "system"}
+                    {
+                        "message": "error1",
+                        "message_code": None,
+                        "service": None,
+                        "type": "system",
+                    }
                 ],
                 "warnings": [
-                    {"message": "warning1", "service": None, "type": "system"}
+                    {
+                        "message": "warning1",
+                        "message_code": None,
+                        "service": None,
+                        "type": "system",
+                    }
                 ],
             }
 

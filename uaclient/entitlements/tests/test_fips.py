@@ -394,7 +394,7 @@ class TestFIPSEntitlementEnable:
         assert apt_pinning_calls == m_add_pinning.call_args_list
         assert subp_calls == m_subp.call_args_list
         assert [
-            ["", messages.FIPS_REBOOT_REQUIRED]
+            ["", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg]
         ] == entitlement.cfg.read_cache("notices")
 
     @pytest.mark.parametrize(
@@ -605,7 +605,7 @@ class TestFIPSEntitlementEnable:
 
         assert not ret
         expected_msg = "Cannot enable FIPS when Livepatch is enabled."
-        assert expected_msg == fail.message
+        assert expected_msg == fail.message.msg
 
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
@@ -640,7 +640,7 @@ class TestFIPSEntitlementEnable:
                 expected_msg = (
                     "Cannot enable FIPS when FIPS Updates is enabled."
                 )
-                assert expected_msg.strip() == reason.message.strip()
+                assert expected_msg.strip() == reason.message.msg.strip()
 
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
@@ -669,7 +669,7 @@ class TestFIPSEntitlementEnable:
             expected_msg = (
                 "Cannot enable FIPS because FIPS Updates was once enabled."
             )
-            assert expected_msg.strip() == reason.message.strip()
+            assert expected_msg.strip() == reason.message.msg.strip()
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.entitlements.fips.get_cloud_type")
@@ -696,7 +696,7 @@ class TestFIPSEntitlementEnable:
             assert not result
             expected_msg = """\
             Ubuntu Xenial does not provide an Azure optimized FIPS kernel"""
-            assert expected_msg.strip() in reason.message.strip()
+            assert expected_msg.strip() in reason.message.msg.strip()
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.is_config_value_true", return_value=False)
@@ -733,7 +733,7 @@ class TestFIPSEntitlementEnable:
             assert not result
             expected_msg = """\
             Ubuntu Test does not provide a GCP optimized FIPS kernel"""
-            assert expected_msg.strip() in reason.message.strip()
+            assert expected_msg.strip() in reason.message.msg.strip()
 
     @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
     @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
@@ -953,8 +953,10 @@ class TestFIPSEntitlementApplicationStatus:
                 return path_exists
             return orig_exists(path)
 
-        msg = "sure is some status here"
-        entitlement.cfg.add_notice("", messages.FIPS_REBOOT_REQUIRED)
+        msg = messages.NamedMessage("test-code", "sure is some status here")
+        entitlement.cfg.add_notice(
+            "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
+        )
 
         if proc_content == "0":
             entitlement.cfg.add_notice(
@@ -969,25 +971,31 @@ class TestFIPSEntitlementApplicationStatus:
                 m_load_file.side_effect = fake_load_file
                 with mock.patch("os.path.exists") as m_path_exists:
                     m_path_exists.side_effect = fake_exists
-                    application_status = entitlement.application_status()
+                    actual_status, actual_msg = (
+                        entitlement.application_status()
+                    )
 
         expected_status = status.ApplicationStatus.ENABLED
         if path_exists and proc_content == "1":
             expected_msg = msg
             assert entitlement.cfg.read_cache("notices") is None
         elif path_exists and proc_content == "0":
-            expected_msg = "/proc/sys/crypto/fips_enabled is not set to 1"
+            expected_msg = messages.FIPS_PROC_FILE_ERROR.format(
+                file_name=entitlement.FIPS_PROC_FILE
+            )
             expected_status = status.ApplicationStatus.DISABLED
             assert [
                 ["", status.NOTICE_FIPS_MANUAL_DISABLE_URL]
             ] == entitlement.cfg.read_cache("notices")
         else:
-            expected_msg = "Reboot to FIPS kernel required"
+            expected_msg = messages.FIPS_REBOOT_REQUIRED
             assert [
-                ["", messages.FIPS_REBOOT_REQUIRED]
+                ["", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg]
             ] == entitlement.cfg.read_cache("notices")
 
-        assert (expected_status, expected_msg) == application_status
+        assert actual_status == expected_status
+        assert expected_msg.msg == actual_msg.msg
+        assert expected_msg.name == actual_msg.name
 
     def test_fips_does_not_show_enabled_when_fips_updates_is(
         self, entitlement
@@ -1019,9 +1027,9 @@ class TestFipsEntitlementInstallPackages:
                 entitlement.install_packages()
 
     @mock.patch(M_PATH + "apt.get_installed_packages")
-    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.run_apt_install_command")
     def test_install_packages_dont_fail_if_conditional_pkgs_not_installed(
-        self, m_run_apt, m_installed_pkgs, fips_entitlement_factory
+        self, m_run_apt_install, m_installed_pkgs, fips_entitlement_factory
     ):
 
         conditional_pkgs = ["b", "c"]
@@ -1029,7 +1037,7 @@ class TestFipsEntitlementInstallPackages:
         packages = ["a"]
         entitlement = fips_entitlement_factory(additional_packages=packages)
 
-        m_run_apt.side_effect = [
+        m_run_apt_install.side_effect = [
             True,
             exceptions.UserFacingError("error"),
             exceptions.UserFacingError("error"),
@@ -1047,16 +1055,13 @@ class TestFipsEntitlementInstallPackages:
         for pkg in all_pkgs:
             install_cmds.append(
                 mock.call(
-                    [
-                        "apt-get",
-                        "install",
-                        "--assume-yes",
+                    packages=[pkg],
+                    apt_options=[
                         "--allow-downgrades",
                         '-o Dpkg::Options::="--force-confdef"',
                         '-o Dpkg::Options::="--force-confold"',
-                        pkg,
                     ],
-                    "Could not enable {}.".format(entitlement.title),
+                    error_msg="Could not enable {}.".format(entitlement.title),
                     env={"DEBIAN_FRONTEND": "noninteractive"},
                 )
             )
@@ -1073,7 +1078,7 @@ class TestFipsEntitlementInstallPackages:
             ]
         )
 
-        assert install_cmds == m_run_apt.call_args_list
+        assert install_cmds == m_run_apt_install.call_args_list
         assert expected_msg.strip() in fake_stdout.getvalue().strip()
 
 
