@@ -52,47 +52,6 @@ Feature: Command behaviour when attached to an UA subscription
            | impish  |
            | jammy   |
 
-    @series.all
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached and detach correctly reach contract endpoint
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I run `ua detach --assume-yes` with sudo
-        Then I verify that running `grep "Found new machine-id. Do not call detach on contract backend" /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | impish  |
-           | jammy   |
-
-    @series.all
-    @uses.config.machine_type.lxd.container
-    Scenario Outline: Attached and detach don't reach contract endpoint if machine-id changes
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I attach `contract_token` with sudo
-        And I update contract to use `machineId` as `new-machine-id`
-        And I run `ua detach --assume-yes` with sudo
-        Then stdout matches regexp:
-            """
-            This machine is now detached.
-            """
-        And I verify that running `grep "Found new machine-id. Do not call detach on contract backend" /var/log/ubuntu-advantage.log` `with sudo` exits `0`
-        When I run `ua status` with sudo
-        Then stdout matches regexp:
-          """
-          This machine is not attached to a UA subscription.
-          """
-
-        Examples: ubuntu release
-           | release |
-           | bionic  |
-           | focal   |
-           | xenial  |
-           | impish  |
-           | jammy   |
 
     @series.all
     @uses.config.machine_type.lxd.container

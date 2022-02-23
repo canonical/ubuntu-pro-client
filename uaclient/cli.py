@@ -1131,10 +1131,6 @@ def _detach(cfg: config.UAConfig, assume_yes: bool) -> int:
     for ent in to_disable:
         _perform_disable(ent, cfg, assume_yes=assume_yes, update_status=False)
 
-    contract_client = contract.UAContractClient(cfg)
-    machine_token = cfg.machine_token["machineToken"]
-    contract_id = cfg.machine_token["machineTokenInfo"]["contractInfo"]["id"]
-    contract_client.detach_machine_from_contract(machine_token, contract_id)
     cfg.delete_cache()
     jobs.enable_license_check_if_applicable(cfg)
     update_apt_and_motd_messages(cfg)
