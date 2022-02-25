@@ -8,7 +8,7 @@ Feature: Build docker images with ua services
     Scenario Outline: Build docker images with ua services
         Given a `focal` machine with ubuntu-advantage-tools installed
         When I have the `<container_release>` debs under test in `/home/ubuntu`
-        When I run `apt-get install -y docker.io` with sudo
+        When I run `apt-get install -y docker.io jq` with sudo
         When I create the file `/home/ubuntu/Dockerfile` with the following:
         """
         FROM ubuntu:<container_release>
