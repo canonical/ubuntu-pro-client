@@ -61,6 +61,15 @@ Feature: Build docker images with ua services
         <test_package_version>
         """
 
+        # Invalid attach config file causes build to fail
+        When I create the file `/home/ubuntu/ua-attach-config.yaml` with the following:
+        """
+        token: <contract_token>
+        enable_services: { fips: true }
+        """
+        When I replace `<contract_token>` in `/home/ubuntu/ua-attach-config.yaml` with token `contract_token`
+        Then I verify that running `DOCKER_BUILDKIT=1 docker build . --no-cache --secret id=ua-attach-config,src=ua-attach-config.yaml -t ua-test` `with sudo` exits `1`
+
         Examples: ubuntu release
            | release | container_release |enable_services | test_package_name | test_package_version |
            | focal   | xenial            | [ esm-infra ]  | curl              | esm                  |
