@@ -944,18 +944,15 @@ def stdout_matches_the_json_schema(context, output_format, schema):
 
 @then("`{file_name}` is not present in any docker image layer")
 def file_is_not_present_in_any_docker_image_layer(context, file_name):
-    when_i_run_command(context, "ls -1R /var/lib/docker/overlay2", "with sudo")
-
-    filename_regex = r"^(.+):\n(.*[^:]\n)*({file_name})".format(
-        file_name=file_name
+    when_i_run_command(
+        context,
+        "find /var/lib/docker/overlay2 -name {}".format(file_name),
+        "with sudo",
     )
-    match = re.search(
-        filename_regex, context.process.stdout, flags=re.MULTILINE
-    )
-
-    if match:
+    results = context.process.stdout.strip()
+    if results:
         raise AssertionError(
-            '"{}" found in "{}"'.format(file_name, match.group(1))
+            'found "{}"'.format(", ".join(results.split("\n")))
         )
 
 
@@ -965,15 +962,14 @@ def file_is_not_present_in_any_docker_image_layer(context, file_name):
 )
 def docker_image_is_not_larger(context, name, series, package):
     base_image_name = "ubuntu:{}".format(series)
-    base_upgraded_image_name = "{}-upgraded".format(series)
+    base_upgraded_image_name = "{}-with-test-package".format(series)
 
-    # We need to commpare against the base image after apt upgrade
+    # We need to compare against the base image after apt upgrade
     # and package install
     dockerfile = """\
     FROM {}
-    RUN apt-get update \
-      && apt-get upgrade -y \
-      && apt-get install -y {} \
+    RUN apt-get update \\
+      && apt-get install -y {} \\
       && rm -rf /var/lib/apt/lists/*
     """.format(
         base_image_name, package
@@ -989,63 +985,26 @@ def docker_image_is_not_larger(context, name, series, package):
     )
 
     # find image sizes
-    when_i_run_command(
+    when_i_run_shell_command(
+        context, "docker inspect {} | jq .[0].Size".format(name), "with sudo"
+    )
+    custom_image_size = int(context.process.stdout.strip())
+    when_i_run_shell_command(
         context,
-        'docker images --format "{{.Repository}}:{{.Tag}} {{.Size}}"',
+        "docker inspect {} | jq .[0].Size".format(base_upgraded_image_name),
         "with sudo",
     )
-    custom_image_line = ""
-    base_image_line = ""
-    for line in context.process.stdout.strip().split("\n"):
-        if line.startswith("{}:latest".format(name)):
-            custom_image_line = line
-        if line.startswith("{}:latest".format(base_upgraded_image_name)):
-            base_image_line = line
-        if custom_image_line and base_image_line:
-            break
-    if not custom_image_line or not base_image_line:
-        raise AssertionError(
-            "Couldn't find the image sizes in output:\n{}".format(
-                context.process.stdout
-            )
-        )
-
-    pattern = r".*:.* ([\d.]+)(\w+)"
-    custom_image_match = re.match(pattern, custom_image_line)
-    base_image_match = re.match(pattern, base_image_line)
-    if not custom_image_match:
-        raise AssertionError(
-            'Image size regex failed for "{}"'.format(custom_image_line)
-        )
-    if not base_image_match:
-        raise AssertionError(
-            'Image size regex failed for "{}"'.format(base_image_line)
-        )
-
-    custom_image_size_unit = custom_image_match.group(2)
-    base_image_size_unit = base_image_match.group(2)
-    # Unlikely that we'll ever want something other than MB here
-    if custom_image_size_unit != "MB":
-        raise AssertionError(
-            "Custom image size is not in MB ({})".format(
-                custom_image_size_unit
-            )
-        )
-    if base_image_size_unit != "MB":
-        raise AssertionError(
-            "Base image size is not in MB ({})".format(base_image_size_unit)
-        )
-
-    custom_image_size = float(custom_image_match.group(1)) * 1024  # MB -> KB
-    base_image_size = float(base_image_match.group(1)) * 1024  # MB -> KB
+    base_image_size = int(context.process.stdout.strip())
 
     # Get ua test deb size
     when_i_run_command(context, "du ubuntu-advantage-tools.deb", "with sudo")
     # Example out: "1234\tubuntu-advantage-tools.deb"
-    ua_test_deb_size = int(context.process.stdout.strip().split("\t")[0])  # KB
+    ua_test_deb_size = (
+        int(context.process.stdout.strip().split("\t")[0]) * 1024
+    )  # KB -> B
 
-    # Give us some space for bloat we don't control
-    extra_space = 2048
+    # Give us some space for bloat we don't control: 2MB -> B
+    extra_space = 2 * 1024 * 1024
 
     if custom_image_size > (base_image_size + ua_test_deb_size + extra_space):
         raise AssertionError(
@@ -1054,6 +1013,13 @@ def docker_image_is_not_larger(context, name, series, package):
                 custom_image_size, base_image_size, ua_test_deb_size
             )
         )
+    logging.debug(
+        "custom image size ({})\n"
+        "base image size ({})\n"
+        "ua test deb size ({})".format(
+            custom_image_size, base_image_size, ua_test_deb_size
+        )
+    )
 
 
 def get_command_prefix_for_user_spec(user_spec):
