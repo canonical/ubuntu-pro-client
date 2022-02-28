@@ -38,7 +38,7 @@ function explanatory_message {
 
 explanatory_message "Starting gcloud instance"
 gcloud compute instances create $INSTANCE_NAME \
-    --image="ubuntu-2004-focal-v20220204" \
+    --image="ubuntu-2004-focal-v20220404" \
     --image-project="ubuntu-os-cloud" \
     --machine-type=$INSTANCE_TYPE \
     --zone=$ZONE
@@ -50,13 +50,6 @@ gcloud compute scp $ua_deb $INSTANCE_NAME:/tmp/ubuntu-advantage-tools.deb
 gcloud compute ssh $INSTANCE_NAME -- "sudo apt update"
 gcloud compute ssh $INSTANCE_NAME -- "sudo apt install ubuntu-advantage-tools jq -y"
 print_and_run_cmd "sudo dpkg -i /tmp/ubuntu-advantage-tools.deb"
-
-explanatory_message "Installing new version of cloud-init with cloud-id file feature and rebooting"
-print_and_run_cmd "sudo add-apt-repository ppa:cloud-init-dev/daily -y"
-print_and_run_cmd "sudo apt install cloud-init -y"
-gcloud compute instances stop $INSTANCE_NAME
-gcloud compute instances start $INSTANCE_NAME
-sleep 30
 
 explanatory_message "Checking the status and logs beforehand"
 print_and_run_cmd "sudo ua status --wait"

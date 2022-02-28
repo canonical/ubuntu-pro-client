@@ -57,6 +57,10 @@ override_dh_systemd_enable:
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.service
 	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage.service
+ifeq (${VERSION_ID},"16.04")
+	# Only enable cloud-id-shim on Xenial
+	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage-cloud-id-shim.service
+endif
 
 override_dh_systemd_start:
 	dh_systemd_start -pubuntu-advantage-tools ua-timer.timer
@@ -69,6 +73,11 @@ override_dh_auto_install:
 	# We want to guarantee that we are not shipping any conftest files
 	find $(CURDIR)/debian/ubuntu-advantage-tools -type f -name conftest.py -delete
 
+ifneq (${VERSION_ID},"16.04")
+	# Only install cloud-id-shim on Xenial
+	rm $(CURDIR)/debian/ubuntu-advantage-tools/lib/systemd/system/ubuntu-advantage-cloud-id-shim.service
+endif
+
 ifeq (${VERSION_ID},"14.04")
 	# Move ua-auto-attach.conf out to ubuntu-advantage-pro
 	mkdir -p debian/ubuntu-advantage-pro/etc/init
@@ -80,6 +89,7 @@ else
 	mv debian/ubuntu-advantage-tools/lib/systemd/system/ua-auto-attach.* debian/ubuntu-advantage-pro/lib/systemd/system
 	cd debian/ubuntu-advantage-tools
 endif
+
 
 override_dh_auto_clean:
 	dh_auto_clean
