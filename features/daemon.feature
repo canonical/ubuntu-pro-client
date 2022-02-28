@@ -1,17 +1,65 @@
 Feature: Pro Upgrade Daemon only runs in environments where necessary
 
+    @series.all
+    @uses.config.contract_token
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
+        Then stderr matches regexp:
+        """
+        Unit ubuntu-advantage-cloud-id-shim.service could not be found.
+        """
+        Examples: version
+            | release |
+            | bionic  |
+            | focal   |
+            | impish  |
+            | jammy   |
+
+    @series.lts
+    @uses.config.contract_token
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: cloud-id-shim should run in postinst and on boot
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        # verify installing ua created the cloud-id file
+        When I run `cat /run/cloud-init/cloud-id` with sudo
+        Then I will see the following on stdout
+        """
+        lxd
+        """
+        When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
+        Then I will see the following on stdout
+        """
+        lxd
+        """
+        # verify the shim service runs on boot and creates the cloud-id file
+        When I reboot the `<release>` machine
+        Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `3`
+        Then stdout matches regexp:
+        """
+        (code=exited, status=0/SUCCESS)
+        """
+        When I run `cat /run/cloud-init/cloud-id` with sudo
+        Then I will see the following on stdout
+        """
+        lxd
+        """
+        When I run `cat /run/cloud-init/cloud-id-lxd` with sudo
+        Then I will see the following on stdout
+        """
+        lxd
+        """
+        Examples: version
+            | release |
+            | xenial  |
+
     @series.lts
     @uses.config.contract_token
     @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon should run when appropriate on gcp generic lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
         # verify its enabled, but stops itself when not configured to poll
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
-        When I run `systemctl restart ubuntu-advantage.service` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
-        When I wait `1` seconds
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
         Then stdout matches regexp:
         """
@@ -75,11 +123,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         Active: inactive \(dead\)
         """
         When I reboot the `<release>` machine
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
-        When I run `systemctl restart ubuntu-advantage.service` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -105,11 +148,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         daemon ending
         """
         When I reboot the `<release>` machine
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
-        When I run `systemctl restart ubuntu-advantage.service` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
@@ -157,11 +195,6 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     @uses.config.machine_type.gcp.generic
     Scenario Outline: daemon does not start on gcp generic non lts
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
-        When I run `systemctl restart ubuntu-advantage.service` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
         When I wait `1` seconds
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
         Then stdout matches regexp:
@@ -264,23 +297,21 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         log_file: /var/log/ubuntu-advantage.log
         """
         When I run `ua auto-attach` with sudo
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
+        When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
-        Active: inactive \(dead\)
+        Active: inactive \(dead\).*
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout does not match regexp:
+        """
+        daemon starting
+        """
         When I reboot the `<release>` machine
-        # TODO-BEGIN: remove this chunk once cloud-init supports this feature
-        When I run `touch /run/cloud-init/cloud-id-gce` with sudo
-        When I run `systemctl restart ubuntu-advantage.service` with sudo
-        # TODO-END: remove this chunk once cloud-init supports this feature
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
         Then stdout matches regexp:
         """
@@ -288,7 +319,11 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
-        Then I verify that running `cat /var/log/ubuntu-advantage-daemon.log` `with sudo` exits `1`
+        When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
+        Then stdout does not match regexp:
+        """
+        daemon starting
+        """
         Examples: version
             | release |
             | xenial  |

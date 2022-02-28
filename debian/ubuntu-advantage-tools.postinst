@@ -453,6 +453,7 @@ case "$1" in
       rm_old_license_check_marker
       disable_new_timer_if_old_timer_already_disabled $PREVIOUS_PKG_VER
       remove_old_systemd_timers
+      /usr/lib/ubuntu-advantage/cloud-id-shim.sh || true
       ;;
 esac
 
