@@ -1,0 +1,13 @@
+[Unit]
+Description=cloud-id shim
+After=cloud-config.service
+Before=ubuntu-advantage.service
+# Only run if cloud-init didn't create the cloud-id file
+ConditionPathExists=!/run/cloud-init/cloud-id
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /usr/lib/ubuntu-advantage/cloud-id-shim.sh
+
+[Install]
+WantedBy=multi-user.target

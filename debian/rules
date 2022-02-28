@@ -57,6 +57,7 @@ override_dh_systemd_enable:
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.timer
 	dh_systemd_enable -pubuntu-advantage-tools ua-timer.service
 	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage.service
+	dh_systemd_enable -pubuntu-advantage-tools ubuntu-advantage-cloud-id-shim.service
 
 override_dh_systemd_start:
 	dh_systemd_start -pubuntu-advantage-tools ua-timer.timer
