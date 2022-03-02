@@ -1,5 +1,6 @@
+from collections import defaultdict
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, DefaultDict, Dict, List  # noqa: F401
 
 from apt import Cache  # type: ignore
 from apt import package as apt_package
@@ -7,15 +8,19 @@ from apt import package as apt_package
 from uaclient.config import UAConfig
 from uaclient.util import get_platform_info
 
-ESM_SERVICES = ("esm-infra", "esm-apps")
-SECURITY_REPO_TEMPLATES = (
-    "{}-security",
-    "{}-apps-security",
-    "{}-infra-security",
-)
+series = get_platform_info()["series"]
 
-ESM_INFRA_ORIGIN = "UbuntuESM"
-ESM_APPS_ORIGIN = "UbuntuESMApps"
+ESM_SERVICES = ("esm-infra", "esm-apps")
+
+SERVICE_TO_ORIGIN_INFORMATION = {
+    "standard-security": ("Ubuntu", "{}-security".format(series)),
+    "esm-apps": ("UbuntuESMApps", "{}-apps-security".format(series)),
+    "esm-infra": ("UbuntuESM", "{}-infra-security".format(series)),
+}
+
+ORIGIN_INFORMATION_TO_SERVICE = {
+    v: k for k, v in SERVICE_TO_ORIGIN_INFORMATION.items()
+}
 
 
 class UpdateStatus(Enum):
@@ -26,20 +31,29 @@ class UpdateStatus(Enum):
     UNAVAILABLE = "upgrade_unavailable"
 
 
+def list_esm_for_package(package: apt_package.Package) -> List[str]:
+    esm_services = []
+    for origin in package.installed.origins:
+        if (origin.origin, origin.archive) == SERVICE_TO_ORIGIN_INFORMATION[
+            "esm-infra"
+        ]:
+            esm_services.append("esm-infra")
+        if (origin.origin, origin.archive) == SERVICE_TO_ORIGIN_INFORMATION[
+            "esm-apps"
+        ]:
+            esm_services.append("esm-apps")
+    return esm_services
+
+
 def get_service_name(origins: List[apt_package.Origin]) -> str:
     "Translates the archive name in the version origin to a UA service name."
     for origin in origins:
-        if (
-            "infra-security" in origin.archive
-            and origin.origin == ESM_INFRA_ORIGIN
-        ):
-            return "esm-infra"
-        if (
-            "apps-security" in origin.archive
-            and origin.origin == ESM_APPS_ORIGIN
-        ):
-            return "esm-apps"
-    return "standard-security"
+        service = ORIGIN_INFORMATION_TO_SERVICE.get(
+            (origin.origin, origin.archive)
+        )
+        if service:
+            return service
+    return ""
 
 
 def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
@@ -67,17 +81,15 @@ def filter_security_updates(
     Checks if the package has a greater version available, and if the origin of
     this version matches any of the series' security repositories.
     """
-    series = get_platform_info()["series"]
-    security_repos = [
-        template.format(series) for template in SECURITY_REPO_TEMPLATES
-    ]
-
     return [
         version
         for package in packages
         for version in package.versions
         if version > package.installed
-        and any(origin.archive in security_repos for origin in version.origins)
+        and any(
+            (origin.origin, origin.archive) in ORIGIN_INFORMATION_TO_SERVICE
+            for origin in version.origins
+        )
     ]
 
 
@@ -120,14 +132,20 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     installed_packages = [package for package in cache if package.is_installed]
     summary["num_installed_packages"] = len(installed_packages)
 
-    security_upgradable_versions = filter_security_updates(installed_packages)
+    package_count = defaultdict(int)  # type: DefaultDict[str, int]
+    update_count = defaultdict(int)  # type: DefaultDict[str, int]
 
-    package_count = {"esm-infra": 0, "esm-apps": 0, "standard-security": 0}
+    for package in installed_packages:
+        esm_services = list_esm_for_package(package)
+        for service in esm_services:
+            package_count[service] += 1
+
+    security_upgradable_versions = filter_security_updates(installed_packages)
 
     for candidate in security_upgradable_versions:
         service_name = get_service_name(candidate.origins)
         status = get_update_status(service_name, ua_info)
-        package_count[service_name] += 1
+        update_count[service_name] += 1
         packages.append(
             {
                 "package": candidate.package.name,
@@ -137,9 +155,11 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
             }
         )
 
-    summary["num_esm_infra_updates"] = package_count["esm-infra"]
-    summary["num_esm_apps_updates"] = package_count["esm-apps"]
-    summary["num_standard_security_updates"] = package_count[
+    summary["num_esm_infra_packages"] = package_count["esm-infra"]
+    summary["num_esm_apps_packages"] = package_count["esm-apps"]
+    summary["num_esm_infra_updates"] = update_count["esm-infra"]
+    summary["num_esm_apps_updates"] = update_count["esm-apps"]
+    summary["num_standard_security_updates"] = update_count[
         "standard-security"
     ]
 
