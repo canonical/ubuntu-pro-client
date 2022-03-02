@@ -13,11 +13,11 @@ from uaclient.security_status import (
 M_PATH = "uaclient.security_status."
 
 
-# Each candidate/installed is a tuple of (version, archive, origin)
+# Each candidate/installed is a tuple of (version, archive, origin, site)
 def mock_package(
     name,
-    installed: Tuple[str, str, str] = None,
-    candidates: List[Tuple[str, str, str]] = [],
+    installed: Tuple[str, str, str, str] = None,
+    candidates: List[Tuple[str, str, str, str]] = [],
 ):
     mock_package = mock.MagicMock()
     mock_package.name = name
@@ -34,6 +34,7 @@ def mock_package(
         mock_origin = mock.MagicMock()
         mock_origin.archive = installed[1]
         mock_origin.origin = installed[2]
+        mock_origin.site = installed[3]
         mock_installed.origins = [mock_origin]
 
         mock_package.installed = mock_installed
@@ -51,6 +52,7 @@ def mock_package(
         mock_origin = mock.MagicMock()
         mock_origin.archive = candidate[1]
         mock_origin.origin = candidate[2]
+        mock_origin.site = candidate[3]
         mock_candidate.origins = [mock_origin]
 
         mock_package.versions.append(mock_candidate)
@@ -137,30 +139,61 @@ class TestSecurityStatus:
             mock_package(name="not_installed"),
             mock_package(
                 name="there_is_no_update",
-                installed=("1.0", "somewhere", "somehow"),
+                installed=("1.0", "somewhere", "somehow", ""),
             ),
             mock_package(
                 name="latest_is_installed",
-                installed=("2.0", "standard-packages", "Ubuntu"),
-                candidates=[("1.0", "example-infra-security", "UbuntuESM")],
+                installed=("2.0", "standard-packages", "Ubuntu", ""),
+                candidates=[
+                    (
+                        "1.0",
+                        "example-infra-security",
+                        "UbuntuESM",
+                        "some.url.for.esm",
+                    )
+                ],
             ),
             mock_package(
                 name="update_available",
                 # this is an ESM-INFRA example for the counters
-                installed=("1.0", "example-infra-security", "UbuntuESM"),
-                candidates=[("2.0", "example-infra-security", "UbuntuESM")],
+                installed=("1.0", "example-infra-security", "UbuntuESM", ""),
+                candidates=[
+                    (
+                        "2.0",
+                        "example-infra-security",
+                        "UbuntuESM",
+                        "some.url.for.esm",
+                    )
+                ],
             ),
             mock_package(
                 name="not_a_security_update",
-                installed=("1.0", "somewhere", "somehow"),
-                candidates=[("2.0", "example-notsecurity", "NotUbuntuESM")],
+                installed=("1.0", "somewhere", "somehow", ""),
+                candidates=[
+                    (
+                        "2.0",
+                        "example-notsecurity",
+                        "NotUbuntuESM",
+                        "some.url.for.esm",
+                    )
+                ],
             ),
             mock_package(
                 name="more_than_one_update_available",
-                installed=("1.0", "somewhere", "somehow"),
+                installed=("1.0", "somewhere", "somehow", ""),
                 candidates=[
-                    ("2.0", "example-security", "Ubuntu"),
-                    ("3.0", "example-infra-security", "UbuntuESM"),
+                    (
+                        "2.0",
+                        "example-security",
+                        "Ubuntu",
+                        "some.url.for.standard",
+                    ),
+                    (
+                        "3.0",
+                        "example-infra-security",
+                        "UbuntuESM",
+                        "some.url.for.esm",
+                    ),
                 ],
             ),
         ]
@@ -184,18 +217,21 @@ class TestSecurityStatus:
                     "version": "2.0",
                     "service_name": "esm-infra",
                     "status": "pending_attach",
+                    "origin": "some.url.for.esm",
                 },
                 {
                     "package": "more_than_one_update_available",
                     "version": "2.0",
                     "service_name": "standard-security",
                     "status": "upgrade_available",
+                    "origin": "some.url.for.standard",
                 },
                 {
                     "package": "more_than_one_update_available",
                     "version": "3.0",
                     "service_name": "esm-infra",
                     "status": "pending_attach",
+                    "origin": "some.url.for.esm",
                 },
             ],
             "summary": {
