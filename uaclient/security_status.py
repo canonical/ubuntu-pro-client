@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Any, DefaultDict, Dict, List  # noqa: F401
+from typing import Any, DefaultDict, Dict, List, Tuple  # noqa: F401
 
 from apt import Cache  # type: ignore
 from apt import package as apt_package
@@ -45,15 +45,15 @@ def list_esm_for_package(package: apt_package.Package) -> List[str]:
     return esm_services
 
 
-def get_service_name(origins: List[apt_package.Origin]) -> str:
+def get_service_name(origins: List[apt_package.Origin]) -> Tuple[str, str]:
     "Translates the archive name in the version origin to a UA service name."
     for origin in origins:
         service = ORIGIN_INFORMATION_TO_SERVICE.get(
             (origin.origin, origin.archive)
         )
         if service:
-            return service
-    return ""
+            return service, origin.site
+    return ("", "")
 
 
 def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
@@ -143,7 +143,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     security_upgradable_versions = filter_security_updates(installed_packages)
 
     for candidate in security_upgradable_versions:
-        service_name = get_service_name(candidate.origins)
+        service_name, origin_site = get_service_name(candidate.origins)
         status = get_update_status(service_name, ua_info)
         update_count[service_name] += 1
         packages.append(
@@ -152,6 +152,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
                 "version": candidate.version,
                 "service_name": service_name,
                 "status": status,
+                "origin": origin_site,
             }
         )
 
