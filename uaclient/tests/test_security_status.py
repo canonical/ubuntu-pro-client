@@ -13,9 +13,11 @@ from uaclient.security_status import (
 M_PATH = "uaclient.security_status."
 
 
-# Each candidate is a tuple of (version, archive, origin)
+# Each candidate/installed is a tuple of (version, archive, origin)
 def mock_package(
-    name, installed=None, candidates: List[Tuple[str, str, str]] = []
+    name,
+    installed: Tuple[str, str, str] = None,
+    candidates: List[Tuple[str, str, str]] = [],
 ):
     mock_package = mock.MagicMock()
     mock_package.name = name
@@ -27,7 +29,12 @@ def mock_package(
         mock_installed.__gt__ = (
             lambda self, other: self.version > other.version
         )
-        mock_installed.version = installed
+        mock_installed.version = installed[0]
+
+        mock_origin = mock.MagicMock()
+        mock_origin.archive = installed[1]
+        mock_origin.origin = installed[2]
+        mock_installed.origins = [mock_origin]
 
         mock_package.installed = mock_installed
         mock_package.versions.append(mock_installed)
@@ -121,41 +128,51 @@ class TestSecurityStatus:
                 "entitled_services": [],
             }
 
-    @mock.patch(
-        M_PATH + "get_platform_info", return_value={"series": "example"}
-    )
     @mock.patch(M_PATH + "UAConfig.status", return_value={"attached": False})
     @mock.patch(M_PATH + "Cache")
     def test_finds_updates_for_installed_packages(
-        self, m_cache, _m_status, _m_platform_info, FakeConfig
+        self, m_cache, _m_status, FakeConfig
     ):
         m_cache.return_value = [
             mock_package(name="not_installed"),
-            mock_package(name="there_is_no_update", installed="1.0"),
+            mock_package(
+                name="there_is_no_update",
+                installed=("1.0", "somewhere", "somehow"),
+            ),
             mock_package(
                 name="latest_is_installed",
-                installed="2.0",
+                installed=("2.0", "standard-packages", "Ubuntu"),
                 candidates=[("1.0", "example-infra-security", "UbuntuESM")],
             ),
             mock_package(
                 name="update_available",
-                installed="1.0",
+                # this is an ESM-INFRA example for the counters
+                installed=("1.0", "example-infra-security", "UbuntuESM"),
                 candidates=[("2.0", "example-infra-security", "UbuntuESM")],
             ),
             mock_package(
                 name="not_a_security_update",
-                installed="1.0",
+                installed=("1.0", "somewhere", "somehow"),
                 candidates=[("2.0", "example-notsecurity", "NotUbuntuESM")],
             ),
             mock_package(
                 name="more_than_one_update_available",
-                installed="1.0",
+                installed=("1.0", "somewhere", "somehow"),
                 candidates=[
                     ("2.0", "example-security", "Ubuntu"),
                     ("3.0", "example-infra-security", "UbuntuESM"),
                 ],
             ),
         ]
+
+        service_to_origin_dict = {
+            "esm-infra": ("UbuntuESM", "example-infra-security"),
+            "standard-security": ("Ubuntu", "example-security"),
+            "esm-apps": ("UbuntuESMApps", "example-apps-security"),
+        }
+        origin_to_service_dict = {
+            v: k for k, v in service_to_origin_dict.items()
+        }
 
         cfg = FakeConfig()
 
@@ -190,9 +207,16 @@ class TestSecurityStatus:
                 "num_installed_packages": 5,
                 "num_esm_infra_updates": 2,
                 "num_esm_apps_updates": 0,
+                "num_esm_infra_packages": 1,
+                "num_esm_apps_packages": 0,
                 "num_standard_security_updates": 1,
             },
         }
 
-        output = security_status(cfg)
+        with mock.patch(
+            M_PATH + "SERVICE_TO_ORIGIN_INFORMATION", service_to_origin_dict
+        ), mock.patch(
+            M_PATH + "ORIGIN_INFORMATION_TO_SERVICE", origin_to_service_dict
+        ):
+            output = security_status(cfg)
         assert output == expected_output
