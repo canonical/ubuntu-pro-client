@@ -62,6 +62,9 @@
           "service_name": {
             "type": "string"
           },
+          "origin": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [

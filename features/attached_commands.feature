@@ -944,6 +944,10 @@ Feature: Command behaviour when attached to an UA subscription
         """
         And stdout matches regexp:
         """
+        "origin": "esm.ubuntu.com"
+        """
+        And stdout matches regexp:
+        """
         "status": "pending_attach"
         """
         When I attach `contract_token` with sudo
