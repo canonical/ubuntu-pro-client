@@ -31,6 +31,12 @@
         "num_installed_packages": {
           "type": "integer"
         },
+        "num_esm_infra_packages": {
+          "type": "integer"
+        },
+        "num_esm_apps_packages": {
+          "type": "integer"
+        },
         "num_esm_infra_updates": {
           "type": "integer"
         },
