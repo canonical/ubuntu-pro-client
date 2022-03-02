@@ -920,7 +920,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout is a json matching the `ua_security_status` schema
         And stdout matches regexp:
         """
-        "_schema_version": "0"
+        "_schema_version": "0.1"
         """
         And stdout matches regexp:
         """
@@ -954,7 +954,7 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `ua security-status --format json` as non-root
         Then stdout matches regexp:
         """
-        "_schema_version": "0"
+        "_schema_version": "0.1"
         """
         And stdout matches regexp:
         """
@@ -976,7 +976,7 @@ Feature: Command behaviour when attached to an UA subscription
         Then stdout is a yaml matching the `ua_security_status` schema
         And stdout matches regexp:
         """
-        _schema_version: '0'
+        _schema_version: '0.1'
         """
         When I verify that running `ua security-status --format unsupported` `as non-root` exits `2`
         Then I will see the following on stderr:
