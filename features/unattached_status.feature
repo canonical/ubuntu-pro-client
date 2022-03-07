@@ -13,7 +13,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
             """
-            {"environment_vars": [], "errors": [{"message": "Failed to connect to authentication server\nCheck your Internet connection and try again.", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+            {"environment_vars": [], "errors": [{"message": "Failed to connect to authentication server\nCheck your Internet connection and try again.", "message_code": "connectivity-error", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         And I verify that running `ua status --format yaml` `as non-root` exits `1`
         Then stdout is a yaml matching the `ua_status` schema
@@ -24,6 +24,7 @@ Feature: Unattached status
             - message: 'Failed to connect to authentication server
 
                 Check your Internet connection and try again.'
+              message_code: connectivity-error
               service: null
               type: system
             result: failure
@@ -182,7 +183,7 @@ Feature: Unattached status
         Then stdout is a json matching the `ua_status` schema
         And I will see the following on stdout:
             """
-            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
+            {"environment_vars": [], "errors": [{"message": "Invalid token. See https://ubuntu.com/advantage", "message_code": "attach-invalid-token", "service": null, "type": "system"}], "result": "failure", "services": [], "warnings": []}
             """
         When I verify that a preflight check for `invalid_token` formatted as yaml exits 1
         Then stdout is a yaml matching the `ua_status` schema
@@ -191,6 +192,7 @@ Feature: Unattached status
             environment_vars: []
             errors:
             - message: Invalid token. See https://ubuntu.com/advantage
+              message_code: attach-invalid-token
               service: null
               type: system
             result: failure
