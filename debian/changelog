@@ -4,6 +4,41 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.7~22.04.1) jammy; urgency=medium
+
+  * d/logrotate:
+    - make new logs world readable
+  * d/tools.postinst:
+    - refactor to catch exception from entitlement_factory
+    - no longer always set log file to only root readable
+    - when creating log file for the first time, make world readable
+  * New upstream release 27.7 (LP: #1964028)
+    - attach: --attach-config option for customizing auto-enabled services
+      and supplying token via a file
+    - auto-attach: fix bug where auto-attach caused a manually attached
+      machine to detach
+    - cli:
+      + support --format=json for attach
+      + support --format=json for detach
+      + support --format=json for enable
+      + support --format=json for disable
+    - contract: include activity info when updating contract
+    - detach: no longer contacts contract server on detach
+    - fips: allow fips on containers
+    - fix: support USNs that don't have related CVEs
+    - logs: make all newly created logs world-readable
+    - security-status:
+      + show already installed esm package counts
+      + include APT origin for each potential update
+      + bump schema version to "0.1"
+      + remove previously required --beta flag
+    - status:
+      + include blocked_by information in service status when format=json
+      + --simulate-with-token now reports expired tokens as errors
+      + --simulate-with-token now returns errors in the specified format
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Mon, 07 Mar 2022 13:14:57 -0500
+
 ubuntu-advantage-tools (27.6~22.04.1) jammy; urgency=medium
 
   * New upstream release 27.6 (LP: #1958556)
