@@ -139,7 +139,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | enabled     | cis        |
-           | bionic  | disabled | disabled | disabled | n/a         | cis        |
+           | bionic  | disabled | disabled | disabled | enabled     | cis        |
            | focal   | disabled | n/a      | disabled | enabled     | usg        |
 
     @series.lts
@@ -211,7 +211,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | livepatch-s | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | n/a         | cis        |
            | bionic  | disabled | disabled | disabled | n/a         | cis        |
-           | focal   | n/a      | n/a      | disabled | enabled     | usg        |
+           | focal   | disabled | n/a      | disabled | enabled     | usg        |
 
     @series.lts
     @uses.config.machine_type.aws.pro
@@ -477,7 +477,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         Examples: ubuntu release
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | enabled   | cis        |
-           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
+           | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | enabled   | cis        |
            | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
 
     @series.lts
@@ -612,4 +612,4 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
            | release | fips-s   | cc-eal-s | cis-s    | infra-pkg | apps-pkg | livepatch | cis_or_usg |
            | xenial  | n/a      | disabled | disabled | libkrad0  | jq       | n/a       | cis        |
            | bionic  | disabled | disabled | disabled | libkrad0  | bundler  | n/a       | cis        |
-           | focal   | n/a      | n/a      | disabled | hello     | ant      | enabled   | usg        |
+           | focal   | disabled | n/a      | disabled | hello     | ant      | enabled   | usg        |
