@@ -397,7 +397,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status | cc_status | cis_or_usg |
            | xenial  | enabled   | n/a         | disabled  | cis        |
-           | bionic  | n/a       | disabled    | disabled  | cis        |
+           | bionic  | enabled   | disabled    | disabled  | cis        |
            | focal   | enabled   | disabled    | n/a       | usg        |
 
     @series.all
