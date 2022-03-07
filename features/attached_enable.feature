@@ -550,7 +550,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         """
         When I run `ua disable livepatch` with sudo
         Then I verify that running `canonical-livepatch status` `with sudo` exits `1`
-        And stdout matches regexp:
+        And stderr matches regexp:
         """
         Machine is not enabled. Please run 'sudo canonical-livepatch enable' with the
         token obtained from https://ubuntu.com/livepatch.

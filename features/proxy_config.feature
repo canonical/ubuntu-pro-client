@@ -150,8 +150,12 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `ua config set http_proxy=http://<ci-proxy-ip>:3128` with sudo
         And I run `ua config set https_proxy=http://<ci-proxy-ip>:3128` with sudo
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I attach `contract_token` with sudo
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT api.snapcraft.io.*
+        """
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
@@ -307,8 +311,12 @@ Feature: Proxy configuration
         And I run `systemctl restart squid.service` `with sudo` on the `proxy` machine
         And I run `ua config set http_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
         And I run `ua config set https_proxy=http://someuser:somepassword@<ci-proxy-ip>:3128` with sudo
-        And I verify `/var/log/squid/access.log` is empty on `proxy` machine
-        And I attach `contract_token` with sudo
+        And I run `cat /var/log/squid/access.log` `with sudo` on the `proxy` machine
+        Then stdout matches regexp:
+        """
+        .*CONNECT api.snapcraft.io:443.*
+        """
+        When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
         Setting snap proxy
