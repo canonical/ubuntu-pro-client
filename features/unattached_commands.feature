@@ -137,46 +137,6 @@ Feature: Command behaviour when unattached
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Unattached command known and unknown services in a ubuntu machine
-        Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua <command> <service>` `as non-root` exits `1`
-        Then I will see the following on stderr:
-            """
-            This command must be run as root (try using sudo).
-            """
-        When I verify that running `ua <command> <service>` `with sudo` exits `1`
-        Then stderr matches regexp:
-            """
-            To use '<service>' you need an Ubuntu Advantage subscription
-            Personal and community subscriptions are available at no charge
-            See https://ubuntu.com/advantage
-            """
-
-        Examples: ua commands
-           | release | command  | service   |
-           | bionic  | enable   | livepatch |
-           | bionic  | disable  | livepatch |
-           | bionic  | enable   | unknown   |
-           | bionic  | disable  | unknown   |
-           | focal   | enable   | livepatch |
-           | focal   | disable  | livepatch |
-           | focal   | enable   | unknown   |
-           | focal   | disable  | unknown   |
-           | xenial  | enable   | livepatch |
-           | xenial  | disable  | livepatch |
-           | xenial  | enable   | unknown   |
-           | xenial  | disable  | unknown   |
-           | impish  | enable   | livepatch |
-           | impish  | disable  | livepatch |
-           | impish  | enable   | unknown   |
-           | impish  | disable  | unknown   |
-           | jammy   | enable   | livepatch |
-           | jammy   | disable  | livepatch |
-           | jammy   | enable   | unknown   |
-           | jammy   | disable  | unknown   |
-
-    @series.all
-    @uses.config.machine_type.lxd.container
     Scenario Outline: Help command on an unattached machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `ua help esm-infra` as non-root
@@ -565,26 +525,73 @@ Feature: Command behaviour when unattached
 
     @series.all
     @uses.config.machine_type.lxd.container
-    Scenario Outline: Unattached enable fails in a ubuntu machine
+    Scenario Outline: Unattached enable/disable fails in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        When I verify that running `ua <command> esm-infra` `as non-root` exits `1`
+        Then I will see the following on stderr:
+          """
+          This command must be run as root (try using sudo).
+          """
+        When I verify that running `ua <command> esm-infra` `with sudo` exits `1`
         Then I will see the following on stderr:
           """
           To use 'esm-infra' you need an Ubuntu Advantage subscription
           Personal and community subscriptions are available at no charge
           See https://ubuntu.com/advantage
           """
-        When I verify that running `ua enable esm-infra --format json --assume-yes` `with sudo` exits `1`
+        When I verify that running `ua <command> esm-infra --format json --assume-yes` `with sudo` exits `1`
         Then stdout is a json matching the `ua_operation` schema
         And I will see the following on stdout:
           """
-          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "message_code": "enable-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          {"_schema_version": "0.1", "errors": [{"message": "To use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "message_code": "valid-service-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          """
+        When I verify that running `ua <command> unknown` `as non-root` exits `1`
+        Then I will see the following on stderr:
+          """
+          This command must be run as root (try using sudo).
+          """
+        When I verify that running `ua <command> unknown` `with sudo` exits `1`
+        Then I will see the following on stderr:
+          """
+          Cannot <command> unknown service 'unknown'.
+          See https://ubuntu.com/advantage
+          """
+        When I verify that running `ua <command> unknown --format json --assume-yes` `with sudo` exits `1`
+        Then stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+          """
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\nSee https://ubuntu.com/advantage", "message_code": "invalid-service-or-failure", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
+          """
+        When I verify that running `ua <command> esm-infra unknown` `as non-root` exits `1`
+        Then I will see the following on stderr:
+            """
+            This command must be run as root (try using sudo).
+            """
+        When I verify that running `ua <command> esm-infra unknown` `with sudo` exits `1`
+        Then I will see the following on stderr:
+          """
+          Cannot <command> unknown service 'unknown'.
+
+          To use 'esm-infra' you need an Ubuntu Advantage subscription
+          Personal and community subscriptions are available at no charge
+          See https://ubuntu.com/advantage
+          """
+        When I verify that running `ua <command> esm-infra unknown --format json --assume-yes` `with sudo` exits `1`
+        Then stdout is a json matching the `ua_operation` schema
+        And I will see the following on stdout:
+          """
+          {"_schema_version": "0.1", "errors": [{"message": "Cannot <command> unknown service 'unknown'.\n\nTo use 'esm-infra' you need an Ubuntu Advantage subscription\nPersonal and community subscriptions are available at no charge\nSee https://ubuntu.com/advantage", "message_code": "mixed-services-failure-unattached", "service": null, "type": "system"}], "failed_services": [], "needs_reboot": false, "processed_services": [], "result": "failure", "warnings": []}
           """
 
         Examples: ubuntu release
-          | release |
-          | xenial  |
-          | bionic  |
-          | focal   |
-          | impish  |
-          | jammy   |
+          | release | command  |
+          | xenial  | enable   |
+          | xenial  | disable  |
+          | bionic  | enable   |
+          | bionic  | disable  |
+          | focal   | enable   |
+          | focal   | disable  |
+          | impish  | enable   |
+          | impish  | disable  |
+          | jammy   | enable   |
+          | jammy   | disable  |

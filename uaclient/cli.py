@@ -204,20 +204,20 @@ def verify_json_format_args(f):
     return new_f
 
 
-def assert_attached(unattached_msg_tmpl=None):
+def assert_attached(msg_function=None):
     """Decorator asserting attached config.
-
-    :param unattached_msg_tmpl: Optional msg template to format if raising an
-        UnattachedError
+    :param msg_function: Optional function to generate a custom message
+    if raising an UnattachedError
     """
 
     def wrapper(f):
         @wraps(f)
         def new_f(args, cfg, **kwargs):
             if not cfg.is_attached:
-                if unattached_msg_tmpl:
-                    names = getattr(args, "service", "None")
-                    msg = unattached_msg_tmpl.format(name=", ".join(names))
+                if msg_function:
+                    command = getattr(args, "command", "")
+                    service_names = getattr(args, "service", "")
+                    msg = msg_function(command, service_names)
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
@@ -908,9 +908,38 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
+def _create_enable_disable_unattached_msg(command, service_names):
+    """Generates a custom message for enable/disable commands when unattached.
+
+    Takes into consideration if the services exist or not, and notify the user
+    accordingly."""
+    (entitlements_found, entitlements_not_found) = get_valid_entitlement_names(
+        service_names
+    )
+    if entitlements_found and entitlements_not_found:
+        msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED
+        msg = msg.format(
+            valid_service=", ".join(entitlements_found),
+            operation=command,
+            invalid_service=", ".join(entitlements_not_found),
+            service_msg="",
+        )
+    elif entitlements_found:
+        msg = messages.VALID_SERVICE_FAILURE_UNATTACHED.format(
+            valid_service=", ".join(entitlements_found)
+        )
+    else:
+        msg = messages.INVALID_SERVICE_OP_FAILURE.format(
+            operation=command,
+            invalid_service=", ".join(entitlements_not_found),
+            service_msg="See https://ubuntu.com/advantage",
+        )
+    return msg
+
+
 @verify_json_format_args
 @assert_root
-@assert_attached(messages.ENABLE_FAILURE_UNATTACHED)
+@assert_attached(_create_enable_disable_unattached_msg)
 @assert_lock_file("ua disable")
 def action_disable(args, *, cfg, **kwargs):
     """Perform the disable action on a list of entitlements.
@@ -945,7 +974,7 @@ def action_disable(args, *, cfg, **kwargs):
         )
         raise exceptions.InvalidServiceToDisableError(
             operation="disable",
-            name=", ".join(entitlements_not_found),
+            invalid_service=", ".join(entitlements_not_found),
             service_msg=service_msg,
         )
 
@@ -973,14 +1002,14 @@ def _create_enable_entitlements_not_found_message(
 
     return messages.INVALID_SERVICE_OP_FAILURE.format(
         operation="enable",
-        name=", ".join(entitlements_not_found),
+        invalid_service=", ".join(entitlements_not_found),
         service_msg=service_msg,
     )
 
 
 @verify_json_format_args
 @assert_root
-@assert_attached(messages.ENABLE_FAILURE_UNATTACHED)
+@assert_attached(_create_enable_disable_unattached_msg)
 @assert_lock_file("ua enable")
 def action_enable(args, *, cfg, **kwargs):
     """Perform the enable action on a named entitlement.

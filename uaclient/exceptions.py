@@ -98,9 +98,13 @@ class ErrorInstallingLivepatch(UserFacingError):
 
 
 class InvalidServiceToDisableError(UserFacingError):
-    def __init__(self, operation: str, name: str, service_msg: str) -> None:
+    def __init__(
+        self, operation: str, invalid_service: str, service_msg: str
+    ) -> None:
         msg = messages.INVALID_SERVICE_OP_FAILURE.format(
-            operation=operation, name=name, service_msg=service_msg
+            operation=operation,
+            invalid_service=invalid_service,
+            service_msg=service_msg,
         )
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
