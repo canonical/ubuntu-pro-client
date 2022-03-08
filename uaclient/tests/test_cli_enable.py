@@ -153,7 +153,7 @@ class TestActionEnable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.ENABLE_FAILURE_UNATTACHED),
+            (0, messages.VALID_SERVICE_FAILURE_UNATTACHED),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -173,10 +173,13 @@ class TestActionEnable:
 
         cfg = FakeConfig()
         args = mock.MagicMock()
+        args.command = "enable"
         args.service = ["esm-infra"]
 
         if not uid:
-            expected_error = expected_error_template.format(name="esm-infra")
+            expected_error = expected_error_template.format(
+                valid_service="esm-infra"
+            )
         else:
             expected_error = expected_error_template
 
@@ -208,6 +211,7 @@ class TestActionEnable:
         }
         assert expected == json.loads(capsys.readouterr()[0])
 
+    @pytest.mark.parametrize("is_attached", (True, False))
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
@@ -221,34 +225,44 @@ class TestActionEnable:
         m_getuid,
         uid,
         expected_error_template,
+        is_attached,
         event,
         FakeConfig,
     ):
         """Check invalid service name results in custom error message."""
 
         m_getuid.return_value = uid
-        cfg = FakeConfig.for_attached_machine()
+        if is_attached:
+            cfg = FakeConfig.for_attached_machine()
+            service_msg = "\n".join(
+                textwrap.wrap(
+                    (
+                        "Try "
+                        + ", ".join(
+                            entitlements.valid_services(allow_beta=True)
+                        )
+                        + "."
+                    ),
+                    width=80,
+                    break_long_words=False,
+                    break_on_hyphens=False,
+                )
+            )
+        else:
+            cfg = FakeConfig()
+            service_msg = "See https://ubuntu.com/advantage"
+
         args = mock.MagicMock()
         args.service = ["bogus"]
+        args.command = "enable"
         with pytest.raises(exceptions.UserFacingError) as err:
             action_enable(args, cfg)
 
-        service_msg = "\n".join(
-            textwrap.wrap(
-                (
-                    "Try "
-                    + ", ".join(entitlements.valid_services(allow_beta=True))
-                    + "."
-                ),
-                width=80,
-                break_long_words=False,
-                break_on_hyphens=False,
-            )
-        )
-
         if not uid:
             expected_error = expected_error_template.format(
-                operation="enable", name="bogus", service_msg=service_msg
+                operation="enable",
+                invalid_service="bogus",
+                service_msg=service_msg,
             )
         else:
             expected_error = expected_error_template
@@ -274,7 +288,72 @@ class TestActionEnable:
                     "type": "system",
                 }
             ],
-            "failed_services": ["bogus"] if not uid else [],
+            "failed_services": ["bogus"] if not uid and is_attached else [],
+            "needs_reboot": False,
+            "processed_services": [],
+            "warnings": [],
+        }
+        assert expected == json.loads(fake_stdout.getvalue())
+
+    @pytest.mark.parametrize(
+        "uid,expected_error_template",
+        [
+            (0, messages.MIXED_SERVICES_FAILURE_UNATTACHED),
+            (1000, messages.NONROOT_USER),
+        ],
+    )
+    def test_unattached_invalid_and_valid_service_error_message(
+        self,
+        _request_updated_contract,
+        m_getuid,
+        uid,
+        expected_error_template,
+        event,
+        FakeConfig,
+    ):
+        """Check invalid service name results in custom error message."""
+
+        m_getuid.return_value = uid
+        cfg = FakeConfig()
+
+        args = mock.MagicMock()
+        args.service = ["bogus", "fips"]
+        args.command = "enable"
+        with pytest.raises(exceptions.UserFacingError) as err:
+            action_enable(args, cfg)
+
+        if not uid:
+            expected_error = expected_error_template.format(
+                operation="enable",
+                valid_service="fips",
+                invalid_service="bogus",
+                service_msg="",
+            )
+        else:
+            expected_error = expected_error_template
+
+        assert expected_error.msg == err.value.msg
+
+        with pytest.raises(SystemExit):
+            with mock.patch.object(
+                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
+            ):
+                fake_stdout = io.StringIO()
+                with contextlib.redirect_stdout(fake_stdout):
+                    main_error_handler(action_enable)(args, cfg)
+
+        expected = {
+            "_schema_version": event_logger.JSON_SCHEMA_VERSION,
+            "result": "failure",
+            "errors": [
+                {
+                    "message": expected_error.msg,
+                    "message_code": expected_error.name,
+                    "service": None,
+                    "type": "system",
+                }
+            ],
+            "failed_services": [],
             "needs_reboot": False,
             "processed_services": [],
             "warnings": [],
@@ -385,7 +464,7 @@ class TestActionEnable:
 
         expected_error = expected_error_tmpl.format(
             operation="enable",
-            name="ent1, ent2",
+            invalid_service="ent1, ent2",
             service_msg=(
                 "Try "
                 + ", ".join(entitlements.valid_services(allow_beta=False))
@@ -530,7 +609,9 @@ class TestActionEnable:
                 action_enable(args_mock, cfg)
 
         expected_error = expected_error_tmpl.format(
-            operation="enable", name=not_found_name, service_msg=service_msg
+            operation="enable",
+            invalid_service=not_found_name,
+            service_msg=service_msg,
         )
         assert expected_error.msg == err.value.msg
         assert expected_msg == fake_stdout.getvalue()
@@ -697,7 +778,7 @@ class TestActionEnable:
         )
         expected_error = expected_error_tmpl.format(
             operation="enable",
-            name=", ".join(sorted(service)),
+            invalid_service=", ".join(sorted(service)),
             service_msg=service_msg,
         )
         assert expected_error.msg == err.value.msg
