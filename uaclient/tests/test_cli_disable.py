@@ -222,7 +222,9 @@ class TestDisable:
 
         assert (
             expected_error_tmpl.format(
-                operation="disable", name="ent1", service_msg="Try ent2, ent3."
+                operation="disable",
+                invalid_service="ent1",
+                service_msg="Try ent2, ent3.",
             ).msg
             == err.value.msg
         )
@@ -296,7 +298,9 @@ class TestDisable:
 
         if not uid:
             expected_error = expected_error_template.format(
-                operation="disable", name="bogus", service_msg=ALL_SERVICE_MSG
+                operation="disable",
+                invalid_service="bogus",
+                service_msg=ALL_SERVICE_MSG,
             )
         else:
             expected_error = expected_error_template
@@ -344,7 +348,7 @@ class TestDisable:
         args = mock.MagicMock()
         expected_error = expected_error_tmpl.format(
             operation="disable",
-            name=", ".join(sorted(service)),
+            invalid_service=", ".join(sorted(service)),
             service_msg=ALL_SERVICE_MSG,
         )
         with pytest.raises(exceptions.UserFacingError) as err:
@@ -385,7 +389,7 @@ class TestDisable:
     @pytest.mark.parametrize(
         "uid,expected_error_template",
         [
-            (0, messages.ENABLE_FAILURE_UNATTACHED),
+            (0, messages.VALID_SERVICE_FAILURE_UNATTACHED),
             (1000, messages.NONROOT_USER),
         ],
     )
@@ -397,8 +401,11 @@ class TestDisable:
 
         cfg = FakeConfig()
         args = mock.MagicMock()
+        args.command = "disable"
         if not uid:
-            expected_error = expected_error_template.format(name="esm-infra")
+            expected_error = expected_error_template.format(
+                valid_service="esm-infra"
+            )
         else:
             expected_error = expected_error_template
 
