@@ -12,8 +12,8 @@ import pytest
 from uaclient import apt, exceptions, messages, util
 from uaclient.apt import (
     APT_AUTH_COMMENT,
-    APT_CONFIG_PROXY_HTTP,
-    APT_CONFIG_PROXY_HTTPS,
+    APT_CONFIG_GLOBAL_PROXY_HTTP,
+    APT_CONFIG_GLOBAL_PROXY_HTTPS,
     APT_KEYS_DIR,
     APT_PROXY_CONF_FILE,
     APT_RETRIES,
@@ -929,12 +929,12 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         messages.APT_PROXY_CONFIG_HEADER
-                        + APT_CONFIG_PROXY_HTTP.format(
+                        + APT_CONFIG_GLOBAL_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         ),
                     )
                 ],
-                messages.SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY_SCOPE.format(scope="global"),
             ),
             (
                 {"https_proxy": "mock_https_proxy"},
@@ -943,12 +943,12 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         messages.APT_PROXY_CONFIG_HEADER
-                        + APT_CONFIG_PROXY_HTTPS.format(
+                        + APT_CONFIG_GLOBAL_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
                     )
                 ],
-                messages.SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY_SCOPE.format(scope="global"),
             ),
             (
                 {
@@ -960,15 +960,15 @@ class TestAptProxyConfig:
                     mock.call(
                         APT_PROXY_CONF_FILE,
                         messages.APT_PROXY_CONFIG_HEADER
-                        + APT_CONFIG_PROXY_HTTP.format(
+                        + APT_CONFIG_GLOBAL_PROXY_HTTP.format(
                             proxy_url="mock_http_proxy"
                         )
-                        + APT_CONFIG_PROXY_HTTPS.format(
+                        + APT_CONFIG_GLOBAL_PROXY_HTTPS.format(
                             proxy_url="mock_https_proxy"
                         ),
                     )
                 ],
-                messages.SETTING_SERVICE_PROXY.format(service="APT"),
+                messages.SETTING_SERVICE_PROXY_SCOPE.format(scope="global"),
             ),
         ],
     )

@@ -15,7 +15,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import List, Optional, Tuple  # noqa
+from typing import Dict, List, Optional, Tuple  # noqa
 
 import yaml
 
@@ -34,6 +34,7 @@ from uaclient import (
 )
 from uaclient import status as ua_status
 from uaclient import util, version
+from uaclient.apt import AptProxyScope, setup_apt_proxy
 from uaclient.clouds import AutoAttachCloudInstance  # noqa: F401
 from uaclient.clouds import identity
 from uaclient.data_types import AttachActionsConfigFile, IncorrectTypeError
@@ -779,14 +780,25 @@ def action_config_show(args, *, cfg, **kwargs):
                 )
             )
         print(
-            "{key} {value}".format(key=args.key, value=getattr(cfg, args.key))
+            "{key} {value}".format(
+                key=args.key, value=getattr(cfg, args.key, None)
+            )
         )
         return 0
 
     col_width = str(max([len(x) for x in config.UA_CONFIGURABLE_KEYS]) + 1)
     row_tmpl = "{key: <" + col_width + "} {value}"
+
     for key in config.UA_CONFIGURABLE_KEYS:
-        print(row_tmpl.format(key=key, value=getattr(cfg, key)))
+        print(row_tmpl.format(key=key, value=getattr(cfg, key, None)))
+
+    if (cfg.global_apt_http_proxy or cfg.global_apt_https_proxy) and (
+        cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy
+    ):
+        print(
+            "\nError: Setting global apt proxy and ua scoped apt proxy at the"
+            " same time is unsupported. No apt proxy is set."
+        )
 
 
 @assert_root
@@ -795,7 +807,6 @@ def action_config_set(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    from uaclient.apt import setup_apt_proxy
     from uaclient.entitlements.livepatch import configure_livepatch_proxy
     from uaclient.snap import configure_snap_proxy
 
@@ -833,21 +844,54 @@ def action_config_set(args, *, cfg, **kwargs):
         livepatch_status, _ = entitlement.application_status()
         if livepatch_status == ua_status.ApplicationStatus.ENABLED:
             configure_livepatch_proxy(**kwargs)
-    elif set_key in ("apt_http_proxy", "apt_https_proxy"):
-        # setup_apt_proxy is destructive for unprovided values. Source complete
-        # current config values from uaclient.conf before applying set_value.
-        protocol_type = set_key.split("_")[1]
+    elif set_key in cfg.ua_scoped_proxy_options:
+        protocol_type = set_key.split("_")[2]
         if protocol_type == "http":
             validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
         else:
             validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
         util.validate_proxy(protocol_type, set_value, validate_url)
-        kwargs = {
-            "http_proxy": cfg.apt_http_proxy,
-            "https_proxy": cfg.apt_https_proxy,
-        }
-        kwargs[set_key[4:]] = set_value
-        setup_apt_proxy(**kwargs)
+        unset_current = bool(
+            cfg.global_apt_http_proxy or cfg.global_apt_https_proxy
+        )
+        if unset_current:
+            print(
+                messages.WARNING_APT_PROXY_OVERWRITE.format(
+                    current_proxy="ua scoped apt", previous_proxy="global apt"
+                )
+            )
+        configure_apt_proxy(cfg, AptProxyScope.UACLIENT, set_key, set_value)
+        cfg.global_apt_http_proxy = None
+        cfg.global_apt_https_proxy = None
+
+    elif set_key in (
+        cfg.deprecated_global_scoped_proxy_options
+        + cfg.global_scoped_proxy_options
+    ):
+        # setup_apt_proxy is destructive for unprovided values. Source complete
+        # current config values from uaclient.conf before applying set_value.
+        if set_key in cfg.deprecated_global_scoped_proxy_options:
+            print(messages.WARNING_APT_PROXY_SETUP)
+            set_key = "global_" + set_key
+        protocol_type = set_key.split("_")[2]
+        if protocol_type == "http":
+            validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
+        else:
+            validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
+        util.validate_proxy(protocol_type, set_value, validate_url)
+
+        unset_current = bool(cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy)
+
+        if unset_current:
+            print(
+                messages.WARNING_APT_PROXY_OVERWRITE.format(
+                    current_proxy="global apt", previous_proxy="ua scoped apt"
+                )
+            )
+        configure_apt_proxy(cfg, AptProxyScope.GLOBAL, set_key, set_value)
+        cfg.ua_apt_http_proxy = None
+        cfg.ua_apt_https_proxy = None
+
     elif set_key in (
         "update_messaging_timer",
         "update_status_timer",
@@ -876,7 +920,7 @@ def action_config_unset(args, *, cfg, **kwargs):
 
     @return: 0 on success, 1 otherwise
     """
-    from uaclient.apt import setup_apt_proxy
+    from uaclient.apt import AptProxyScope
     from uaclient.entitlements.livepatch import unconfigure_livepatch_proxy
     from uaclient.snap import unconfigure_snap_proxy
 
@@ -898,13 +942,17 @@ def action_config_unset(args, *, cfg, **kwargs):
         livepatch_status, _ = entitlement.application_status()
         if livepatch_status == ua_status.ApplicationStatus.ENABLED:
             unconfigure_livepatch_proxy(protocol_type=protocol_type)
-    elif args.key in ("apt_http_proxy", "apt_https_proxy"):
-        kwargs = {
-            "http_proxy": cfg.apt_http_proxy,
-            "https_proxy": cfg.apt_https_proxy,
-        }
-        kwargs[args.key[4:]] = None
-        setup_apt_proxy(**kwargs)
+    elif args.key in cfg.ua_scoped_proxy_options:
+        configure_apt_proxy(cfg, AptProxyScope.UACLIENT, args.key, None)
+    elif args.key in (
+        cfg.deprecated_global_scoped_proxy_options
+        + cfg.global_scoped_proxy_options
+    ):
+        if args.key in cfg.deprecated_global_scoped_proxy_options:
+            event.info(messages.WARNING_APT_PROXY_SETUP)
+            args.key = "global_" + args.key
+        configure_apt_proxy(cfg, AptProxyScope.GLOBAL, args.key, None)
+
     setattr(cfg, args.key, None)
     return 0
 
@@ -1569,6 +1617,28 @@ def action_refresh(args, *, cfg: config.UAConfig):
         _action_refresh_contract(args, cfg)
 
     return 0
+
+
+def configure_apt_proxy(
+    cfg: config.UAConfig, scope: AptProxyScope, set_key: str, set_value: str
+) -> None:
+    """
+    Handles setting part the apt proxies - global and uaclient scoped proxies
+    """
+
+    if scope == AptProxyScope.GLOBAL:
+        http_proxy = cfg.global_apt_http_proxy
+        https_proxy = cfg.global_apt_https_proxy
+    elif scope == AptProxyScope.UACLIENT:
+        http_proxy = cfg.ua_apt_http_proxy
+        https_proxy = cfg.ua_apt_https_proxy
+    if "https" in set_key:
+        https_proxy = set_value
+    else:
+        http_proxy = set_value
+    setup_apt_proxy(
+        http_proxy=http_proxy, https_proxy=https_proxy, proxy_scope=scope
+    )
 
 
 def action_help(args, *, cfg):

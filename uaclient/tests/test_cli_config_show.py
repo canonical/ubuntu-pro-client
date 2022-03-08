@@ -71,8 +71,8 @@ class TestActionConfigShow:
             None,
             "https_proxy",
             "http_proxy",
-            "apt_http_proxy",
-            "apt_https_proxy",
+            "global_apt_http_proxy",
+            "global_apt_https_proxy",
         ),
     )
     @mock.patch("uaclient.config.UAConfig.write_cfg")
@@ -82,8 +82,8 @@ class TestActionConfigShow:
         cfg = FakeConfig()
         cfg.http_proxy = "http://http_proxy"
         cfg.https_proxy = "http://https_proxy"
-        cfg.apt_http_proxy = "http://apt_http_proxy"
-        cfg.apt_https_proxy = "http://apt_https_proxy"
+        cfg.global_apt_http_proxy = "http://global_apt_http_proxy"
+        cfg.global_apt_https_proxy = "http://global_apt_https_proxy"
         args = mock.MagicMock(key=optional_key)
         action_config_show(args, cfg=cfg)
         out, err = capsys.readouterr()
@@ -94,8 +94,12 @@ class TestActionConfigShow:
                 """\
 http_proxy              http://http_proxy
 https_proxy             http://https_proxy
-apt_http_proxy          http://apt_http_proxy
-apt_https_proxy         http://apt_https_proxy
+apt_http_proxy          None
+apt_https_proxy         None
+ua_apt_http_proxy       None
+ua_apt_https_proxy      None
+global_apt_http_proxy   http://global_apt_http_proxy
+global_apt_https_proxy  http://global_apt_https_proxy
 update_messaging_timer  None
 update_status_timer     None
 metering_timer          None

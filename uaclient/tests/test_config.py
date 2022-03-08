@@ -10,7 +10,15 @@ import mock
 import pytest
 import yaml
 
-from uaclient import entitlements, exceptions, messages, status, util, version
+from uaclient import (
+    apt,
+    entitlements,
+    exceptions,
+    messages,
+    status,
+    util,
+    version,
+)
 from uaclient.config import (
     DEFAULT_STATUS,
     PRIVATE_SUBDIR,
@@ -268,6 +276,10 @@ UA_CFG_DICT = {
     "ua_config": {
         "apt_http_proxy": None,
         "apt_https_proxy": None,
+        "global_apt_http_proxy": None,
+        "global_apt_https_proxy": None,
+        "ua_apt_http_proxy": None,
+        "ua_apt_https_proxy": None,
         "http_proxy": None,
         "https_proxy": None,
         "update_messaging_timer": None,
@@ -285,10 +297,12 @@ class TestUAConfigKeys:
     ):
         """Getters and settings are available fo UA_CONFIGURABLE_KEYS."""
         cfg = UAConfig({"data_dir": tmpdir.strpath})
-        assert None is getattr(cfg, attr_name)
-        setattr(cfg, attr_name, attr_name + "value")
-        assert attr_name + "value" == getattr(cfg, attr_name)
-        assert attr_name + "value" == cfg.cfg["ua_config"][attr_name]
+        assert None is getattr(cfg, attr_name, None)
+        cfg_non_members = ("apt_http_proxy", "apt_https_proxy")
+        if attr_name not in cfg_non_members:
+            setattr(cfg, attr_name, attr_name + "value")
+            assert attr_name + "value" == getattr(cfg, attr_name)
+            assert attr_name + "value" == cfg.cfg["ua_config"][attr_name]
 
 
 class TestWriteCfg:
@@ -1386,15 +1400,128 @@ class TestProcessConfig:
     @pytest.mark.parametrize(
         "http_proxy, https_proxy, snap_is_installed, snap_http_val, "
         "snap_https_val, livepatch_enabled, livepatch_http_val, "
-        "livepatch_https_val, snap_livepatch_msg",
+        "livepatch_https_val, snap_livepatch_msg, "
+        "global_https, global_http, ua_https, ua_http, apt_https, apt_http",
         [
-            ("http", "https", False, None, None, False, None, None, ""),
-            ("http", "https", True, None, None, False, None, None, ""),
-            ("http", "https", False, None, None, True, None, None, ""),
-            ("http", "https", True, None, None, True, None, None, ""),
-            (None, None, True, None, None, True, None, None, ""),
-            (None, None, True, "one", None, True, None, None, "snap"),
-            (None, None, True, "one", "two", True, None, None, "snap"),
+            (
+                "http",
+                "https",
+                False,
+                None,
+                None,
+                False,
+                None,
+                None,
+                "",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+            ),
+            (
+                "http",
+                "https",
+                True,
+                None,
+                None,
+                False,
+                None,
+                None,
+                "",
+                None,
+                None,
+                None,
+                None,
+                "apt_https",
+                "apt_http",
+            ),
+            (
+                "http",
+                "https",
+                False,
+                None,
+                None,
+                True,
+                None,
+                None,
+                "",
+                "global_https",
+                "global_http",
+                None,
+                None,
+                None,
+                None,
+            ),
+            (
+                "http",
+                "https",
+                True,
+                None,
+                None,
+                True,
+                None,
+                None,
+                "",
+                None,
+                None,
+                "ua_https",
+                "ua_http",
+                None,
+                None,
+            ),
+            (
+                None,
+                None,
+                True,
+                None,
+                None,
+                True,
+                None,
+                None,
+                "",
+                "global_https",
+                "global_http",
+                None,
+                None,
+                "apt_https",
+                "apt_http",
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                None,
+                True,
+                None,
+                None,
+                "snap",
+                "global_https",
+                "global_http",
+                "ua_https",
+                "ua_http",
+                "apt_https",
+                "apt_http",
+            ),
+            (
+                None,
+                None,
+                True,
+                "one",
+                "two",
+                True,
+                None,
+                None,
+                "snap",
+                None,
+                "global_http",
+                None,
+                None,
+                None,
+                "apt_http",
+            ),
             (
                 None,
                 None,
@@ -1405,6 +1532,12 @@ class TestProcessConfig:
                 "three",
                 None,
                 "snap, livepatch",
+                "global_htttps",
+                None,
+                "ua_https",
+                None,
+                "apt_https",
+                None,
             ),
             (
                 None,
@@ -1416,6 +1549,12 @@ class TestProcessConfig:
                 "three",
                 "four",
                 "snap, livepatch",
+                "global_https",
+                None,
+                None,
+                "ua_http",
+                None,
+                None,
             ),
             (
                 None,
@@ -1427,6 +1566,12 @@ class TestProcessConfig:
                 "three",
                 "four",
                 "livepatch",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
             ),
         ],
     )
@@ -1440,8 +1585,10 @@ class TestProcessConfig:
     @mock.patch("uaclient.snap.configure_snap_proxy")
     @mock.patch("uaclient.snap.is_installed")
     @mock.patch("uaclient.apt.setup_apt_proxy")
+    @mock.patch("uaclient.config.UAConfig.write_cfg")
     def test_process_config(
         self,
+        m_write_cfg,
         m_apt_configure_proxy,
         m_snap_is_installed,
         m_snap_configure_proxy,
@@ -1459,7 +1606,14 @@ class TestProcessConfig:
         livepatch_http_val,
         livepatch_https_val,
         snap_livepatch_msg,
+        global_https,
+        global_http,
+        ua_https,
+        ua_http,
+        apt_https,
+        apt_http,
         capsys,
+        tmpdir,
     ):
         m_snap_is_installed.return_value = snap_is_installed
         m_snap_get_config_option.side_effect = [snap_http_val, snap_https_val]
@@ -1475,53 +1629,107 @@ class TestProcessConfig:
         cfg = UAConfig(
             {
                 "ua_config": {
-                    "apt_http_proxy": "apt_http",
-                    "apt_https_proxy": "apt_https",
+                    "apt_http_proxy": apt_http,
+                    "apt_https_proxy": apt_https,
+                    "global_apt_https_proxy": global_https,
+                    "global_apt_http_proxy": global_http,
+                    "ua_apt_https_proxy": ua_https,
+                    "ua_apt_http_proxy": ua_http,
                     "http_proxy": http_proxy,
                     "https_proxy": https_proxy,
                     "update_messaging_timer": 21600,
                     "update_status_timer": 43200,
                     "metering_timer": 0,
-                }
+                },
+                "data_dir": tmpdir.strpath,
             }
         )
 
-        cfg.process_config()
+        if global_https is None and apt_https is not None:
+            global_https = apt_https
+        if global_http is None and apt_http is not None:
+            global_http = apt_http
 
-        assert [
-            mock.call("http", "apt_http", util.PROXY_VALIDATION_APT_HTTP_URL),
-            mock.call(
-                "https", "apt_https", util.PROXY_VALIDATION_APT_HTTPS_URL
-            ),
-            mock.call("http", http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL),
-            mock.call(
-                "https", https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
-            ),
-        ] == m_validate_proxy.call_args_list
+        exc = False
+        if global_https or global_http:
+            if ua_https or ua_http:
+                exc = True
+                with pytest.raises(
+                    exceptions.UserFacingError,
+                    match=messages.ERROR_PROXY_CONFIGURATION,
+                ):
+                    cfg.process_config()
+        if exc is False:
+            cfg.process_config()
 
-        assert [
-            mock.call("apt_http", "apt_https")
-        ] == m_apt_configure_proxy.call_args_list
-
-        if snap_is_installed:
             assert [
-                mock.call(http_proxy, https_proxy)
-            ] == m_snap_configure_proxy.call_args_list
+                mock.call(
+                    "http", global_http, util.PROXY_VALIDATION_APT_HTTP_URL
+                ),
+                mock.call(
+                    "https", global_https, util.PROXY_VALIDATION_APT_HTTPS_URL
+                ),
+                mock.call("http", ua_http, util.PROXY_VALIDATION_APT_HTTP_URL),
+                mock.call(
+                    "https", ua_https, util.PROXY_VALIDATION_APT_HTTPS_URL
+                ),
+                mock.call(
+                    "http", http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
+                ),
+                mock.call(
+                    "https", https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
+                ),
+            ] == m_validate_proxy.call_args_list
 
-        if livepatch_enabled:
-            assert [
-                mock.call(http_proxy, https_proxy)
-            ] == m_livepatch_configure_proxy.call_args_list
+            if global_http or global_https:
+                assert [
+                    mock.call(
+                        global_http, global_https, apt.AptProxyScope.GLOBAL
+                    )
+                ] == m_apt_configure_proxy.call_args_list
+            elif ua_http or ua_https:
+                assert [
+                    mock.call(ua_http, ua_https, apt.AptProxyScope.UACLIENT)
+                ] == m_apt_configure_proxy.call_args_list
+            else:
+                assert [] == m_apt_configure_proxy.call_args_list
 
-        expected_out = ""
-        if snap_livepatch_msg:
-            expected_out = messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(  # noqa: E501
-                services=snap_livepatch_msg
-            )
+            if snap_is_installed:
+                assert [
+                    mock.call(http_proxy, https_proxy)
+                ] == m_snap_configure_proxy.call_args_list
 
-        out, err = capsys.readouterr()
-        assert expected_out.strip() == out.strip()
-        assert "" == err
+            if livepatch_enabled:
+                assert [
+                    mock.call(http_proxy, https_proxy)
+                ] == m_livepatch_configure_proxy.call_args_list
+
+            expected_out = ""
+            if snap_livepatch_msg:
+                expected_out = messages.PROXY_DETECTED_BUT_NOT_CONFIGURED.format(  # noqa: E501
+                    services=snap_livepatch_msg
+                )
+
+            out, err = capsys.readouterr()
+            expected_out = """
+                Using deprecated "{apt}" config field.
+                Please migrate to using "{global_}"
+            """
+            if apt_http and not global_http:
+                assert (
+                    expected_out.format(
+                        apt=apt_http, global_=global_http
+                    ).strip()
+                    == out.strip()
+                )
+            if apt_https and not global_https:
+                assert (
+                    expected_out.format(
+                        apt=apt_https, global_=global_https
+                    ).strip()
+                    == out.strip()
+                )
+            assert "" == err
 
     def test_process_config_errors_for_wrong_timers(self):
         cfg = UAConfig(
