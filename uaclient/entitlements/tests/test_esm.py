@@ -197,7 +197,7 @@ class TestESMInfraEntitlementEnable:
         entitlement = entitlement_factory(
             esm_cls,
             cfg_extension={
-                "ua_config": {
+                "ua_config": {  # intentionally using apt_*
                     "apt_http_proxy": "apt_http_proxy_value",
                     "apt_https_proxy": "apt_https_proxy_value",
                 }
@@ -286,6 +286,7 @@ class TestESMInfraEntitlementEnable:
             mock.call(
                 http_proxy="apt_http_proxy_value",
                 https_proxy="apt_https_proxy_value",
+                proxy_scope=apt.AptProxyScope.GLOBAL,
             )
         ] == m_setup_apt_proxy.call_args_list
         assert add_apt_calls == m_add_apt.call_args_list

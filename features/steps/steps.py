@@ -584,7 +584,10 @@ def then_stream_does_not_match_regexp(context, stream):
 @then("{stream} matches regexp")
 def then_stream_matches_regexp(context, stream):
     content = getattr(context.process, stream).strip()
-    assert_that(content, matches_regexp(context.text))
+    text = context.text
+    if "<ci-proxy-ip>" in text and "proxy" in context.instances:
+        text = text.replace("<ci-proxy-ip>", context.instances["proxy"].ip)
+    assert_that(content, matches_regexp(text))
 
 
 @then("{stream} contains substring")

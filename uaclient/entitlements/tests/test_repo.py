@@ -858,7 +858,7 @@ class TestSetupAptConfig:
         """Calls apt.setup_apt_proxy()"""
         entitlement.setup_apt_config()
         assert [
-            mock.call(http_proxy=None, https_proxy=None)
+            mock.call(http_proxy=None, https_proxy=None, proxy_scope=None)
         ] == m_setup_apt_proxy.call_args_list
 
     @mock.patch("uaclient.apt.setup_apt_proxy")

@@ -1,3 +1,4 @@
+import enum
 import glob
 import logging
 import os
@@ -13,8 +14,14 @@ APT_AUTH_COMMENT = "  # ubuntu-advantage-tools"
 APT_CONFIG_AUTH_FILE = "Dir::Etc::netrc/"
 APT_CONFIG_AUTH_PARTS_DIR = "Dir::Etc::netrcparts/"
 APT_CONFIG_LISTS_DIR = "Dir::State::lists/"
-APT_CONFIG_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
-APT_CONFIG_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
+APT_CONFIG_GLOBAL_PROXY_HTTP = """Acquire::http::Proxy "{proxy_url}";\n"""
+APT_CONFIG_GLOBAL_PROXY_HTTPS = """Acquire::https::Proxy "{proxy_url}";\n"""
+APT_CONFIG_UA_PROXY_HTTP = (
+    """Acquire::http::Proxy::esm.ubuntu.com "{proxy_url}";\n"""
+)
+APT_CONFIG_UA_PROXY_HTTPS = (
+    """Acquire::https::Proxy::esm.ubuntu.com "{proxy_url}";\n"""
+)
 APT_KEYS_DIR = "/etc/apt/trusted.gpg.d"
 KEYRINGS_DIR = "/usr/share/keyrings"
 APT_METHOD_HTTPS_FILE = "/usr/lib/apt/methods/https"
@@ -28,6 +35,12 @@ APT_PROXY_CONF_FILE = "/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy"
 APT_RETRIES = [1.0, 5.0, 10.0]
 
 event = event_logger.get_event_logger()
+
+
+@enum.unique
+class AptProxyScope(enum.Enum):
+    GLOBAL = object()
+    UACLIENT = object()
 
 
 def assert_valid_apt_credentials(repo_url, username, password):
@@ -442,7 +455,9 @@ def get_installed_packages() -> List[str]:
 
 
 def setup_apt_proxy(
-    http_proxy: Optional[str] = None, https_proxy: Optional[str] = None
+    http_proxy: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    proxy_scope: Optional[AptProxyScope] = AptProxyScope.GLOBAL,
 ) -> None:
     """
     Writes an apt conf file that configures apt to use the proxies provided as
@@ -456,15 +471,36 @@ def setup_apt_proxy(
     :return: None
     """
     if http_proxy or https_proxy:
-        event.info(messages.SETTING_SERVICE_PROXY.format(service="APT"))
+        if proxy_scope:
+            message = ""
+            if proxy_scope == AptProxyScope.UACLIENT:
+                message = "UA-scoped"
+            elif proxy_scope == AptProxyScope.GLOBAL:
+                message = "global"
+            event.info(
+                messages.SETTING_SERVICE_PROXY_SCOPE.format(scope=message)
+            )
 
     apt_proxy_config = ""
     if http_proxy:
-        apt_proxy_config += APT_CONFIG_PROXY_HTTP.format(proxy_url=http_proxy)
+        if proxy_scope == AptProxyScope.UACLIENT:
+            apt_proxy_config += APT_CONFIG_UA_PROXY_HTTP.format(
+                proxy_url=http_proxy
+            )
+        elif proxy_scope == AptProxyScope.GLOBAL:
+            apt_proxy_config += APT_CONFIG_GLOBAL_PROXY_HTTP.format(
+                proxy_url=http_proxy
+            )
     if https_proxy:
-        apt_proxy_config += APT_CONFIG_PROXY_HTTPS.format(
-            proxy_url=https_proxy
-        )
+        if proxy_scope == AptProxyScope.UACLIENT:
+            apt_proxy_config += APT_CONFIG_UA_PROXY_HTTPS.format(
+                proxy_url=https_proxy
+            )
+        elif proxy_scope == AptProxyScope.GLOBAL:
+            apt_proxy_config += APT_CONFIG_GLOBAL_PROXY_HTTPS.format(
+                proxy_url=https_proxy
+            )
+
     if apt_proxy_config != "":
         apt_proxy_config = messages.APT_PROXY_CONFIG_HEADER + apt_proxy_config
 

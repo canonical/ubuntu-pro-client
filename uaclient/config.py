@@ -5,8 +5,8 @@ import os
 import re
 from collections import OrderedDict, namedtuple
 from datetime import datetime, timezone
-from functools import wraps
-from typing import Any, Dict, List, Optional, Tuple, cast
+from functools import lru_cache, wraps
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, cast
 
 import yaml
 
@@ -74,6 +74,10 @@ UA_CONFIGURABLE_KEYS = (
     "https_proxy",
     "apt_http_proxy",
     "apt_https_proxy",
+    "ua_apt_http_proxy",
+    "ua_apt_https_proxy",
+    "global_apt_http_proxy",
+    "global_apt_https_proxy",
     "update_messaging_timer",
     "update_status_timer",
     "metering_timer",
@@ -100,6 +104,14 @@ DataPath = namedtuple("DataPath", ("filename", "private", "permanent"))
 
 event = event_logger.get_event_logger()
 
+# needed for solving mypy errors dealing with _lru_cache_wrapper
+# Found at https://github.com/python/mypy/issues/5858#issuecomment-454144705
+S = TypeVar("S", bound=str)
+
+
+def str_cache(func: Callable[..., S]) -> S:
+    return lru_cache()(func)  # type: ignore
+
 
 class UAConfig:
 
@@ -122,6 +134,15 @@ class UAConfig:
     _entitlements = None  # caching to avoid repetitive file reads
     _machine_token = None  # caching to avoid repetitive file reading
     _contract_expiry_datetime = None
+    ua_scoped_proxy_options = ("ua_apt_http_proxy", "ua_apt_https_proxy")
+    global_scoped_proxy_options = (
+        "global_apt_http_proxy",
+        "global_apt_https_proxy",
+    )
+    deprecated_global_scoped_proxy_options = (
+        "apt_http_proxy",
+        "apt_https_proxy",
+    )
 
     def __init__(self, cfg: Dict[str, Any] = None, series: str = None) -> None:
         """"""
@@ -173,25 +194,71 @@ class UAConfig:
         self.write_cfg()
 
     @property
-    def apt_http_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("apt_http_proxy")
+    def ua_apt_https_proxy(self) -> Optional[str]:
+        return self.cfg.get("ua_config", {}).get("ua_apt_https_proxy")
 
-    @apt_http_proxy.setter
-    def apt_http_proxy(self, value: str):
+    @ua_apt_https_proxy.setter
+    def ua_apt_https_proxy(self, value: str):
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["apt_http_proxy"] = value
+        self.cfg["ua_config"]["ua_apt_https_proxy"] = value
         self.write_cfg()
 
     @property
-    def apt_https_proxy(self) -> Optional[str]:
-        return self.cfg.get("ua_config", {}).get("apt_https_proxy")
+    def ua_apt_http_proxy(self) -> Optional[str]:
+        return self.cfg.get("ua_config", {}).get("ua_apt_http_proxy")
 
-    @apt_https_proxy.setter
-    def apt_https_proxy(self, value: str):
+    @ua_apt_http_proxy.setter
+    def ua_apt_http_proxy(self, value: str):
         if "ua_config" not in self.cfg:
             self.cfg["ua_config"] = {}
-        self.cfg["ua_config"]["apt_https_proxy"] = value
+        self.cfg["ua_config"]["ua_apt_http_proxy"] = value
+        self.write_cfg()
+
+    @property  # type: ignore
+    @str_cache
+    def global_apt_http_proxy(self) -> Optional[str]:
+        global_val = self.cfg.get("ua_config", {}).get("global_apt_http_proxy")
+        if global_val:
+            return global_val
+
+        old_apt_val = self.cfg.get("ua_config", {}).get("apt_http_proxy")
+        if old_apt_val:
+            event.info(messages.WARNING_DEPRECATED_APT_HTTP)
+            return old_apt_val
+        return None
+
+    @global_apt_http_proxy.setter
+    def global_apt_http_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["global_apt_http_proxy"] = value
+        self.cfg["ua_config"]["apt_http_proxy"] = None
+        UAConfig.global_apt_http_proxy.fget.cache_clear()  # type: ignore
+        self.write_cfg()
+
+    @property  # type: ignore
+    @str_cache
+    def global_apt_https_proxy(self) -> Optional[str]:
+        global_val = self.cfg.get("ua_config", {}).get(
+            "global_apt_https_proxy"
+        )
+        if global_val:
+            return global_val
+
+        old_apt_val = self.cfg.get("ua_config", {}).get("apt_https_proxy")
+        if old_apt_val:
+            event.info(messages.WARNING_DEPRECATED_APT_HTTPS)
+            return old_apt_val
+        return None
+
+    @global_apt_https_proxy.setter
+    def global_apt_https_proxy(self, value: str):
+        if "ua_config" not in self.cfg:
+            self.cfg["ua_config"] = {}
+        self.cfg["ua_config"]["global_apt_https_proxy"] = value
+        self.cfg["ua_config"]["apt_https_proxy"] = None
+        UAConfig.global_apt_https_proxy.fget.cache_clear()  # type: ignore
         self.write_cfg()
 
     @property
@@ -1070,11 +1137,31 @@ class UAConfig:
                 ).format(prop)
                 raise exceptions.UserFacingError(error_msg)
 
+        if (self.global_apt_http_proxy or self.global_apt_https_proxy) and (
+            self.ua_apt_http_proxy or self.ua_apt_https_proxy
+        ):
+            # Should we unset the config values?
+            raise exceptions.UserFacingError(
+                messages.ERROR_PROXY_CONFIGURATION
+            )
+
         util.validate_proxy(
-            "http", self.apt_http_proxy, util.PROXY_VALIDATION_APT_HTTP_URL
+            "http",
+            self.global_apt_http_proxy,
+            util.PROXY_VALIDATION_APT_HTTP_URL,
         )
         util.validate_proxy(
-            "https", self.apt_https_proxy, util.PROXY_VALIDATION_APT_HTTPS_URL
+            "https",
+            self.global_apt_https_proxy,
+            util.PROXY_VALIDATION_APT_HTTPS_URL,
+        )
+        util.validate_proxy(
+            "http", self.ua_apt_http_proxy, util.PROXY_VALIDATION_APT_HTTP_URL
+        )
+        util.validate_proxy(
+            "https",
+            self.ua_apt_https_proxy,
+            util.PROXY_VALIDATION_APT_HTTPS_URL,
         )
         util.validate_proxy(
             "http", self.http_proxy, util.PROXY_VALIDATION_SNAP_HTTP_URL
@@ -1083,7 +1170,18 @@ class UAConfig:
             "https", self.https_proxy, util.PROXY_VALIDATION_SNAP_HTTPS_URL
         )
 
-        apt.setup_apt_proxy(self.apt_http_proxy, self.apt_https_proxy)
+        if self.global_apt_http_proxy or self.global_apt_https_proxy:
+            apt.setup_apt_proxy(
+                self.global_apt_http_proxy,
+                self.global_apt_https_proxy,
+                apt.AptProxyScope.GLOBAL,
+            )
+        elif self.ua_apt_http_proxy or self.ua_apt_https_proxy:
+            apt.setup_apt_proxy(
+                self.ua_apt_http_proxy,
+                self.ua_apt_https_proxy,
+                apt.AptProxyScope.UACLIENT,
+            )
 
         services_with_proxies = []
         if snap.is_installed():
@@ -1149,7 +1247,7 @@ class UAConfig:
         # Each UA_CONFIGURABLE_KEY needs to have a property on UAConfig
         # which reads the proper key value or returns a default
         cfg_dict["ua_config"] = {
-            key: getattr(self, key) for key in UA_CONFIGURABLE_KEYS
+            key: getattr(self, key, None) for key in UA_CONFIGURABLE_KEYS
         }
 
         content += yaml.dump(cfg_dict, default_flow_style=False)
