@@ -273,13 +273,27 @@ See """
     + BASE_UA_URL,
 )
 
-ENABLE_FAILURE_UNATTACHED = FormattedNamedMessage(
-    "enable-failure-unattached",
+VALID_SERVICE_FAILURE_UNATTACHED = FormattedNamedMessage(
+    "valid-service-failure-unattached",
     """\
-To use '{name}' you need an Ubuntu Advantage subscription
+To use '{valid_service}' you need an Ubuntu Advantage subscription
 Personal and community subscriptions are available at no charge
 See """
     + BASE_UA_URL,
+)
+
+INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
+    "invalid-service-or-failure",
+    """\
+Cannot {operation} unknown service '{invalid_service}'.
+{service_msg}""",
+)
+
+MIXED_SERVICES_FAILURE_UNATTACHED = FormattedNamedMessage(
+    "mixed-services-failure-unattached",
+    INVALID_SERVICE_OP_FAILURE.tmpl_msg
+    + "\n"
+    + VALID_SERVICE_FAILURE_UNATTACHED.tmpl_msg,
 )
 
 FAILED_DISABLING_DEPENDENT_SERVICE = FormattedNamedMessage(
@@ -579,13 +593,6 @@ Failed to enable default services, check: sudo ua status""",
 INVALID_CONTRACT_DELTAS_SERVICE_TYPE = FormattedNamedMessage(
     "invalid-contract-deltas-service-type",
     "Could not determine contract delta service type {orig} {new}",
-)
-
-INVALID_SERVICE_OP_FAILURE = FormattedNamedMessage(
-    "invalid-service-or-failure",
-    """\
-Cannot {operation} unknown service '{name}'.
-{service_msg}""",
 )
 
 LOCK_HELD = FormattedNamedMessage(
