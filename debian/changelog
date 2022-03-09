@@ -6,6 +6,8 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
 ubuntu-advantage-tools (27.7~22.04.1) jammy; urgency=medium
 
+  * d/changelog:
+    - fix changelog trailer line for 27.4.1
   * d/logrotate:
     - make new logs world readable
   * d/tools.postinst:
@@ -93,7 +95,7 @@ ubuntu-advantage-tools (27.4.1~22.04.1) jammy; urgency=medium
 
   * jobs: do not run the status job for unattached users
 
- -- Lucas Moura <lucas.moura@canonical.com>  Thu, 11 Nov 021 17:53:08 -0300
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 11 Nov 2021 17:53:08 -0300
 
 ubuntu-advantage-tools (27.4~22.04.1) jammy; urgency=medium
 
