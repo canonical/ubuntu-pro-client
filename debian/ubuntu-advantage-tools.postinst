@@ -355,10 +355,8 @@ remove_old_systemd_timers() {
     # Since we actually want to remove this service from now on
     # we have replicated that behavior here
     if [ -L $OLD_MESSAGING_TIMER_MASKED_LOCATION ]; then
-        if [ -x "/usr/bin/deb-systemd-helper" ]; then
-            deb-systemd-helper purge ua-messaging.timer > /dev/null || true
-            deb-systemd-helper unmask ua-messaging.timer > /dev/null || true
-        fi
+        deb-systemd-helper purge ua-messaging.timer > /dev/null || true
+        deb-systemd-helper unmask ua-messaging.timer > /dev/null || true
     fi
 }
 
