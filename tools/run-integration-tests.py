@@ -27,7 +27,7 @@ PLATFORM_SERIES_TESTS = {
     "azurepro": ["xenial", "bionic", "focal"],
     "awsgeneric": ["xenial", "bionic", "focal"],
     "awspro": ["xenial", "bionic", "focal"],
-    "gcpgeneric": ["xenial", "bionic", "focal", "impish"],
+    "gcpgeneric": ["xenial", "bionic", "focal", "impish", "jammy"],
     "gcppro": ["xenial", "bionic", "focal"],
     "vm": ["xenial", "bionic", "focal"],
     "lxd": ["xenial", "bionic", "focal", "impish", "jammy"],
