@@ -38,6 +38,7 @@ Feature: License check timer only runs in environments where necessary
             | xenial  |
             | bionic  |
             | focal   |
+            | jammy   |
 
     @series.impish
     @uses.config.contract_token
