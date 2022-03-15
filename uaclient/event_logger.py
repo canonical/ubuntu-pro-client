@@ -9,11 +9,12 @@ those events in real time or through a machine-readable format.
 import enum
 import json
 import sys
-from typing import Dict, List, Optional, Set  # noqa: F401
+from typing import Dict, List, Optional, Set, Union  # noqa: F401
 
 from uaclient.status import format_machine_readable_output
 
 JSON_SCHEMA_VERSION = "0.1"
+EventFieldErrorType = Optional[Union[str, Dict[str, str]]]
 _event_logger = None
 
 
@@ -42,8 +43,8 @@ class EventLoggerMode(enum.Enum):
 
 class EventLogger:
     def __init__(self):
-        self._error_events = []  # type: List[Dict[str, Optional[str]]]
-        self._warning_events = []  # type: List[Dict[str, Optional[str]]]
+        self._error_events = []  # type: List[Dict[str, EventFieldErrorType]]
+        self._warning_events = []  # type: List[Dict[str, EventFieldErrorType]]
         self._processed_services = set()  # type: Set[str]
         self._failed_services = set()  # type: Set[str]
         self._needs_reboot = False
@@ -102,21 +103,25 @@ class EventLogger:
         self,
         msg: str,
         service: Optional[str],
-        event_dict: List[Dict[str, Optional[str]]],
+        event_dict: List[Dict[str, EventFieldErrorType]],
         code: Optional[str] = None,
         event_type: Optional[str] = None,
+        additional_info: Optional[Dict[str, str]] = None,
     ):
         if event_type is None:
             event_type = "service" if service else "system"
 
-        event_dict.append(
-            {
-                "type": event_type,
-                "service": service,
-                "message": msg,
-                "message_code": code,
-            }
-        )
+        event_entry = {
+            "type": event_type,
+            "service": service,
+            "message": msg,
+            "message_code": code,
+        }  # type: Dict[str, EventFieldErrorType]
+
+        if additional_info:
+            event_entry["additional_info"] = additional_info
+
+        event_dict.append(event_entry)
 
     def error(
         self,
@@ -124,6 +129,7 @@ class EventLogger:
         error_code: Optional[str] = None,
         service: Optional[str] = None,
         error_type: Optional[str] = None,
+        additional_info: Optional[Dict[str, str]] = None,
     ):
         """
         Store an error in the event logger.
@@ -138,6 +144,7 @@ class EventLogger:
                 event_dict=self._error_events,
                 code=error_code,
                 event_type=error_type,
+                additional_info=additional_info,
             )
 
     def warning(self, warning_msg: str, service: Optional[str] = None):

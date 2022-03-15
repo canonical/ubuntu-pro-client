@@ -1272,16 +1272,7 @@ def action_attach(args, *, cfg):
     try:
         actions.attach_with_token(cfg, token=token, allow_enable=allow_enable)
     except exceptions.UrlError:
-        msg = messages.ATTACH_FAILURE
-        event.info(msg.msg)
-        event.error(error_msg=msg.msg, error_code=msg.name)
-        event.process_events()
-        return 1
-    except exceptions.UserFacingError as exc:
-        event.info(exc.msg)
-        event.error(error_msg=exc.msg, error_code=exc.msg_code)
-        event.process_events()
-        return 1
+        raise exceptions.AttachError()
     else:
         ret = 0
         if enable_services_override is not None and args.auto_enable:
@@ -1690,7 +1681,12 @@ def main_error_handler(func):
         except exceptions.UserFacingError as exc:
             with util.disable_log_to_console():
                 logging.error(exc.msg)
-            event.error(error_msg=exc.msg, error_code=exc.msg_code)
+
+            event.error(
+                error_msg=exc.msg,
+                error_code=exc.msg_code,
+                additional_info=exc.additional_info,
+            )
             event.info(info_msg="{}".format(exc.msg), file_type=sys.stderr)
             if not isinstance(exc, exceptions.LockHeldError):
                 # Only clear the lock if it is ours.

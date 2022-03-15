@@ -17,9 +17,15 @@ class UserFacingError(Exception):
 
     exit_code = 1
 
-    def __init__(self, msg: str, msg_code: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        msg: str,
+        msg_code: Optional[str] = None,
+        additional_info: Optional[Dict[str, str]] = None,
+    ) -> None:
         self.msg = msg
         self.msg_code = msg_code
+        self.additional_info = additional_info
 
 
 class APTInstallError(UserFacingError):
@@ -163,6 +169,16 @@ class AlreadyAttachedError(UserFacingError):
         msg = messages.ALREADY_ATTACHED.format(
             account_name=cfg.accounts[0].get("name", "")
         )
+        super().__init__(msg=msg.msg, msg_code=msg.name)
+
+
+class AttachError(UserFacingError):
+    """An exception to be raised when we detect a generic attach error."""
+
+    exit_code = 1
+
+    def __init__(self):
+        msg = messages.ATTACH_FAILURE
         super().__init__(msg=msg.msg, msg_code=msg.name)
 
 

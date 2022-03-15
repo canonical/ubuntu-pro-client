@@ -23,6 +23,9 @@
            },
            "service": {
              "type": ["null", "string"]
+           },
+           "additional_info": {
+             "type": "object"
            }
         },
         "patternProperties": {
