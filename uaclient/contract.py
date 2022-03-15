@@ -391,14 +391,24 @@ def _create_attach_forbidden_message(
 
         if reason == "no-longer-effective":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
+            additional_info = {
+                "contract_expiry_date": info["time"].strftime("%m-%d-%Y"),
+                "contract_id": contract_id,
+            }
             reason_msg = messages.ATTACH_FORBIDDEN_EXPIRED.format(
                 contract_id=contract_id, date=date
             )
+            reason_msg.additional_info = additional_info
         elif reason == "not-effective-yet":
             date = info["time"].strftime(ATTACH_FAIL_DATE_FORMAT)
+            additional_info = {
+                "contract_effective_date": info["time"].strftime("%m-%d-%Y"),
+                "contract_id": contract_id,
+            }
             reason_msg = messages.ATTACH_FORBIDDEN_NOT_YET.format(
                 contract_id=contract_id, date=date
             )
+            reason_msg.additional_info = additional_info
         elif reason == "never-effective":
             reason_msg = messages.ATTACH_FORBIDDEN_NEVER.format(
                 contract_id=contract_id
@@ -407,6 +417,7 @@ def _create_attach_forbidden_message(
         if reason_msg:
             msg = messages.ATTACH_FORBIDDEN.format(reason=reason_msg.msg)
             msg.name = reason_msg.name
+            msg.additional_info = reason_msg.additional_info
 
     return msg
 
@@ -447,7 +458,9 @@ def request_updated_contract(
                     elif e.code == 403:
                         msg = _create_attach_forbidden_message(e)
                         raise exceptions.UserFacingError(
-                            msg=msg.msg, msg_code=msg.name
+                            msg=msg.msg,
+                            msg_code=msg.name,
+                            additional_info=msg.additional_info,
                         )
                 raise e
             with util.disable_log_to_console():

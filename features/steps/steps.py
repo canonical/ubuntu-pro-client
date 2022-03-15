@@ -36,6 +36,8 @@ CONTAINER_PREFIX = "ubuntu-behave-test"
 IMAGE_BUILD_PREFIX = "ubuntu-behave-image-build"
 IMAGE_PREFIX = "ubuntu-behave-image"
 
+ERROR_CODE = "1"
+
 
 def add_test_name_suffix(context, series, prefix):
     pr_number = os.environ.get("UACLIENT_BEHAVE_JENKINS_CHANGE_ID")
@@ -646,6 +648,19 @@ def when_i_verify_attach_with_json_response(context, spec, exit_codes):
     cmd = "ua attach {} --format json".format(context.config.contract_token)
     then_i_verify_that_running_cmd_with_spec_exits_with_codes(
         context=context, cmd_name=cmd, spec=spec, exit_codes=exit_codes
+    )
+
+
+@when(
+    "I verify that running attach `{spec}` using expired token with json response fails"  # noqa
+)
+def when_i_verify_attach_expired_token_with_json_response(context, spec):
+    change_contract_endpoint_to_staging(context, user_spec="with sudo")
+    cmd = "ua attach {} --format json".format(
+        context.config.contract_token_staging_expired
+    )
+    then_i_verify_that_running_cmd_with_spec_exits_with_codes(
+        context=context, cmd_name=cmd, spec=spec, exit_codes=ERROR_CODE
     )
 
 
