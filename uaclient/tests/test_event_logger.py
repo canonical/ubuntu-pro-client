@@ -25,6 +25,7 @@ class TestEventLogger:
                 event.error(error_msg="error1", error_code="error1-code")
                 event.error(error_msg="error2", service="esm")
                 event.error(error_msg="error3", error_type="exception")
+                event.error(error_msg="error4", additional_info={"test": 123})
                 event.warning(warning_msg="warning1")
                 event.warning(warning_msg="warning2", service="esm")
                 event.process_events()
@@ -51,6 +52,13 @@ class TestEventLogger:
                         "message_code": None,
                         "service": None,
                         "type": "exception",
+                    },
+                    {
+                        "message": "error4",
+                        "message_code": None,
+                        "service": None,
+                        "type": "system",
+                        "additional_info": {"test": 123},
                     },
                 ],
                 "warnings": [

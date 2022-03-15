@@ -1,3 +1,5 @@
+from typing import Dict, Optional  # noqa: F401
+
 from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL
 
 
@@ -5,6 +7,10 @@ class NamedMessage:
     def __init__(self, name: str, msg: str):
         self.name = name
         self.msg = msg
+        # we should use this field whenever we want to provide
+        # extra information to the message. This is specially
+        # useful if the message represents an error.
+        self.additional_info = None  # type: Optional[Dict[str, str]]
 
 
 class FormattedNamedMessage(NamedMessage):

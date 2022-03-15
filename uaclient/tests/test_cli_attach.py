@@ -273,8 +273,10 @@ class TestActionAttach:
             raise error_class(error_str)
 
         request_updated_contract.side_effect = fake_request_updated_contract
-        ret = action_attach(args, cfg=cfg)
-        assert 1 == ret
+        with pytest.raises(SystemExit) as excinfo:
+            main_error_handler(action_attach)(args, cfg)
+
+        assert 1 == excinfo.value.code
         assert cfg.is_attached
         # Assert updated status cache is written to disk
         assert orig_unattached_status != cfg.read_cache(
@@ -583,11 +585,14 @@ class TestActionAttach:
         )
 
         fake_stdout = io.StringIO()
-        with contextlib.redirect_stdout(fake_stdout):
-            with mock.patch.object(
-                event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
-            ):
-                main_error_handler(action_attach)(args, cfg)
+        with pytest.raises(SystemExit):
+            with contextlib.redirect_stdout(fake_stdout):
+                with mock.patch.object(
+                    event,
+                    "_event_logger_mode",
+                    event_logger.EventLoggerMode.JSON,
+                ):
+                    main_error_handler(action_attach)(args, cfg)
 
         expected_msg = messages.ATTACH_FAILURE_DEFAULT_SERVICES
         expected = {
