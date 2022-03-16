@@ -617,6 +617,7 @@ class TestLivepatchEntitlementEnable:
     @pytest.mark.parametrize("apt_update_success", (True, False))
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch("uaclient.apt.run_apt_install_command")
     @mock.patch("uaclient.apt.run_apt_update_command")
     @mock.patch("uaclient.util.which", return_value=False)
@@ -631,6 +632,7 @@ class TestLivepatchEntitlementEnable:
         m_which,
         m_run_apt_update,
         m_run_apt_install,
+        _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
         m_livepatch_proxy,
@@ -678,6 +680,7 @@ class TestLivepatchEntitlementEnable:
 
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp", return_value=("snapd", ""))
+    @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch(
         "uaclient.util.which", side_effect=lambda cmd: cmd == "/usr/bin/snap"
     )
@@ -690,6 +693,7 @@ class TestLivepatchEntitlementEnable:
         m_can_enable,
         m_app_status,
         m_which,
+        _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
         m_livepatch_proxy,
@@ -759,6 +763,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -769,6 +774,7 @@ class TestLivepatchEntitlementEnable:
         m_can_enable,
         m_app_status,
         m_which,
+        _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
         _m_get_installed_packages,
@@ -808,6 +814,7 @@ class TestLivepatchEntitlementEnable:
     @mock.patch("uaclient.apt.get_installed_packages", return_value=["snapd"])
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch("uaclient.util.which", side_effect=[True, True])
     @mock.patch(M_PATH + "LivepatchEntitlement.application_status")
     @mock.patch(
@@ -818,6 +825,7 @@ class TestLivepatchEntitlementEnable:
         m_can_enable,
         m_app_status,
         m_which,
+        _m_contract_overrides,
         m_subp,
         _m_get_platform_info,
         _m_get_installed_packages,

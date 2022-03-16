@@ -912,3 +912,88 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release | ros-security-source                                    | ros-updates-source                                            |
            | xenial  | https://esm.ubuntu.com/ros/ubuntu xenial-security/main | https://esm.ubuntu.com/ros-updates/ubuntu xenial-updates/main |
            | bionic  | https://esm.ubuntu.com/ros/ubuntu bionic-security/main | https://esm.ubuntu.com/ros-updates/ubuntu bionic-updates/main |
+
+    # Overall test for overrides; in the future, when many services
+    # have overrides, we can consider removing this
+    # FIPS is a good choice because we expect to have it
+    @series.focal
+    @uses.config.machine_type.aws.generic
+    Scenario: Cloud overrides for a generic aws Focal instance
+       Given a `focal` machine with ubuntu-advantage-tools installed
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+          "machineTokenInfo": {
+            "contractInfo": {
+              "resourceEntitlements": [
+                {
+                  "type": "fips",
+                  "entitled": true,
+                  "affordances": {
+                    "architectures": [
+                      "amd64",
+                      "ppc64el",
+                      "ppc64le",
+                      "s390x",
+                      "x86_64"
+                    ],
+                    "series": [
+                      "xenial",
+                      "bionic",
+                      "focal"
+                    ]
+                  },
+                  "directives": {
+                    "additionalPackages": [
+                      "ubuntu-fips"
+                    ],
+                    "aptKey": "E23341B2A1467EDBF07057D6C1997C40EDE22758",
+                    "aptURL": "https://esm.ubuntu.com/fips",
+                    "suites": [
+                      "xenial",
+                      "bionic",
+                      "focal"
+                    ]
+                  },
+                  "obligations": {
+                    "enableByDefault": false
+                  },
+                  "overrides": [
+                    {
+                      "selector": {
+                        "series": "focal"
+                      },
+                      "directives": {
+                        "additionalPackages": [
+                          "some-package-focal"
+                        ]
+                      }
+                    },
+                    {
+                      "selector": {
+                        "cloud": "aws"
+                      },
+                      "directives": {
+                        "additionalPackages": [
+                          "some-package-aws"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        And I attach `contract_token` with sudo
+        And I verify that running `ua enable fips --assume-yes` `with sudo` exits `1`
+        Then stderr matches regexp:
+        """
+        Stderr: E: Unable to locate package some-package-aws
+        """
