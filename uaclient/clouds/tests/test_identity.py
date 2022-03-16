@@ -40,7 +40,7 @@ class TestGetCloudType:
     @mock.patch(M_PATH + "util.subp", return_value=("somecloud\n", ""))
     def test_use_cloud_id_when_available(self, m_subp, m_which):
         """Use cloud-id utility to discover cloud type."""
-        assert ("somecloud", None) == get_cloud_type()
+        assert ("somecloud", None) == get_cloud_type.__wrapped__()
         assert [mock.call("cloud-id")] == m_which.call_args_list
 
     @mock.patch(M_PATH + "util.which", return_value="/usr/bin/cloud-id")
@@ -49,7 +49,10 @@ class TestGetCloudType:
         side_effect=exceptions.ProcessExecutionError("cloud-id"),
     )
     def test_error_when_cloud_id_fails(self, m_subp, m_which):
-        assert (None, NoCloudTypeReason.CLOUD_ID_ERROR) == get_cloud_type()
+        assert (
+            None,
+            NoCloudTypeReason.CLOUD_ID_ERROR,
+        ) == get_cloud_type.__wrapped__()
 
     @pytest.mark.parametrize(
         "settings_overrides",
@@ -80,7 +83,7 @@ class TestGetCloudType:
             expected_value = "test"
 
         m_load_file.return_value = settings_overrides
-        assert get_cloud_type() == (expected_value, None)
+        assert get_cloud_type.__wrapped__() == (expected_value, None)
 
 
 @mock.patch(M_PATH + "get_cloud_type")
