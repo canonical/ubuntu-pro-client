@@ -44,6 +44,8 @@ PROXY_VALIDATION_APT_HTTPS_URL = "https://esm.ubuntu.com"
 PROXY_VALIDATION_SNAP_HTTP_URL = "http://api.snapcraft.io"
 PROXY_VALIDATION_SNAP_HTTPS_URL = "https://api.snapcraft.io"
 
+OVERRIDE_SELECTOR_WEIGHTS = {"series_overrides": 1, "series": 2, "cloud": 3}
+
 event = event_logger.get_event_logger()
 
 
@@ -100,7 +102,43 @@ class DatetimeAwareJSONDecoder(json.JSONDecoder):
         return o
 
 
-def apply_series_overrides(
+def _get_override_weight(
+    override_selector: Dict[str, str], selector_values: Dict[str, str]
+) -> int:
+    override_weight = 0
+    for selector, value in override_selector.items():
+        if (selector, value) not in selector_values.items():
+            return 0
+        override_weight += OVERRIDE_SELECTOR_WEIGHTS[selector]
+
+    return override_weight
+
+
+def _select_overrides(
+    entitlement: Dict[str, Any], series_name: str, cloud_type: str
+) -> Dict[int, Dict[str, Any]]:
+    overrides = {}
+
+    selector_values = {"series": series_name, "cloud": cloud_type}
+
+    series_overrides = entitlement.pop("series", {}).pop(series_name, {})
+    if series_overrides:
+        overrides[
+            OVERRIDE_SELECTOR_WEIGHTS["series_overrides"]
+        ] = series_overrides
+
+    general_overrides = entitlement.pop("overrides", [])
+    for override in general_overrides:
+        weight = _get_override_weight(
+            override.pop("selector"), selector_values
+        )
+        if weight:
+            overrides[weight] = override
+
+    return overrides
+
+
+def apply_contract_overrides(
     orig_access: Dict[str, Any], series: str = None
 ) -> None:
     """Apply series-specific overrides to an entitlement dict.
@@ -117,23 +155,30 @@ def apply_series_overrides(
 
     :param orig_access: Dict with original entitlement access details
     """
+    from uaclient.clouds.identity import get_cloud_type
+
     if not all([isinstance(orig_access, dict), "entitlement" in orig_access]):
         raise RuntimeError(
             'Expected entitlement access dict. Missing "entitlement" key:'
             " {}".format(orig_access)
         )
+
     series_name = get_platform_info()["series"] if series is None else series
+    cloud_type, _ = get_cloud_type()
     orig_entitlement = orig_access.get("entitlement", {})
-    overrides = orig_entitlement.pop("series", {}).pop(series_name, {})
-    for key, value in overrides.items():
-        current = orig_access["entitlement"].get(key)
-        if isinstance(current, dict):
-            # If the key already exists and is a dict, update that dict using
-            # the override
-            current.update(value)
-        else:
-            # Otherwise, replace it wholesale
-            orig_access["entitlement"][key] = value
+
+    overrides = _select_overrides(orig_entitlement, series_name, cloud_type)
+
+    for _weight, overrides_to_apply in sorted(overrides.items()):
+        for key, value in overrides_to_apply.items():
+            current = orig_access["entitlement"].get(key)
+            if isinstance(current, dict):
+                # If the key already exists and is a dict,
+                # update that dict using the override
+                current.update(value)
+            else:
+                # Otherwise, replace it wholesale
+                orig_access["entitlement"][key] = value
 
 
 def del_file(path: str) -> None:

@@ -734,8 +734,10 @@ class TestRemoveAptConfig:
     @mock.patch(M_PATH + "apt.remove_apt_list_files")
     @mock.patch(M_PATH + "apt.run_apt_command")
     @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "util.apply_contract_overrides")
     def test_repo_pin_priority_int_removes_apt_preferences(
         self,
+        _m_contract_overrides,
         m_get_platform,
         _m_run_apt_command,
         _m_remove_apt_list_files,
@@ -862,8 +864,10 @@ class TestSetupAptConfig:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_install_command")
+    @mock.patch(M_PATH + "util.apply_contract_overrides")
     def test_install_prerequisite_packages(
         self,
+        _m_contract_overrides,
         m_run_apt_install_command,
         m_add_auth_repo,
         _m_setup_apt_proxy,
@@ -908,8 +912,10 @@ class TestSetupAptConfig:
     @mock.patch(M_PATH + "apt.add_auth_apt_repo")
     @mock.patch(M_PATH + "apt.run_apt_command")
     @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "util.apply_contract_overrides")
     def test_setup_with_repo_pin_priority_never_removes_apt_preferences_file(
         self,
+        _m_contract_overrides,
         m_get_platform_info,
         m_run_apt_command,
         m_add_auth_repo,
@@ -940,8 +946,10 @@ class TestSetupAptConfig:
     @mock.patch(M_PATH + "apt.run_apt_update_command")
     @mock.patch(M_PATH + "apt.add_ppa_pinning")
     @mock.patch(M_PATH + "util.get_platform_info")
+    @mock.patch(M_PATH + "util.apply_contract_overrides")
     def test_setup_with_repo_pin_priority_int_adds_a_pins_repo_apt_preference(
         self,
+        _m_apply_overrides,
         m_get_platform_info,
         m_add_ppa_pinning,
         m_run_apt_update_command,
