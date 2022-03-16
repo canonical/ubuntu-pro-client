@@ -1445,13 +1445,18 @@ class TestShouldReboot:
         assert 1 == m_load_file.call_count
 
     @pytest.mark.parametrize(
-        "installed_pkgs,reboot_required_pkgs,expected_ret",
+        "installed_pkgs,installed_pkgs_regex,reboot_required_pkgs,"
+        "expected_ret",
         (
-            (set(["a", "b", "c"]), "", False),
-            (set(["a", "b", "c"]), "a", True),
-            (set(["a", "b", "c"]), "a\ne", True),
-            (set(["a", "b", "c"]), "d\ne", False),
-            (None, "a\ne", True),
+            (set(["a", "b", "c"]), None, "", False),
+            (set(["a", "b", "c"]), None, "a", True),
+            (set(["a", "b", "c"]), None, "a\ne", True),
+            (set(["a", "b", "c"]), None, "d\ne", False),
+            (set(["a", "b", "c"]), set(["t.."]), "a\ne", True),
+            (set(["a", "b", "c"]), set(["t.."]), "one\ntwo", True),
+            (None, set(["^t..$"]), "one\ntwo", True),
+            (None, set(["^t..$"]), "one\nthree", False),
+            (None, None, "a\ne", True),
         ),
     )
     @mock.patch("os.path.exists")
@@ -1461,11 +1466,13 @@ class TestShouldReboot:
         m_load_file,
         m_path,
         installed_pkgs,
+        installed_pkgs_regex,
         reboot_required_pkgs,
         expected_ret,
     ):
         m_path.return_value = True
         m_load_file.return_value = reboot_required_pkgs
         assert expected_ret == util.should_reboot(
-            installed_pkgs=installed_pkgs
+            installed_pkgs=installed_pkgs,
+            installed_pkgs_regex=installed_pkgs_regex,
         )

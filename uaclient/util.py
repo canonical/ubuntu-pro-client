@@ -482,13 +482,16 @@ def prompt_choices(msg: str = "", valid_choices: List[str] = []) -> str:
     return value
 
 
-def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
+def prompt_for_confirmation(
+    msg: str = "", assume_yes: bool = False, default: bool = False
+) -> bool:
     """
     Display a confirmation prompt, returning a bool indicating the response
 
     :param msg: String custom prompt text to emit from input call.
     :param assume_yes: Boolean set True to skip confirmation input and return
         True.
+    :param default: Boolean to return when user doesn't enter any text
 
     This function will only prompt a single time, and defaults to "no" (i.e. it
     returns False).
@@ -497,8 +500,10 @@ def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
         return True
     if not msg:
         msg = status.PROMPT_YES_NO
-    value = input(msg)
-    if value.lower().strip() in ["y", "yes"]:
+    value = input(msg).lower().strip()
+    if value == "":
+        return default
+    if value in ["y", "yes"]:
         return True
     return False
 
@@ -807,14 +812,26 @@ def redact_sensitive_logs(
     return redacted_log
 
 
-def should_reboot(installed_pkgs: Optional[Set[str]] = None) -> bool:
+def should_reboot(
+    installed_pkgs: Optional[Set[str]] = None,
+    installed_pkgs_regex: Optional[Set[str]] = None,
+) -> bool:
     """Check if the system needs to be rebooted.
 
     :param installed_pkgs: If provided, verify if the any packages in
         the list are present on /var/run/reboot-required.pkgs. If that
         param is provided, we will only return true if we have the
         reboot-required marker file and any package in reboot-required.pkgs
-        file.
+        file. When both installed_pkgs and installed_pkgs_regex are
+        provided, they act as an OR, so only one of the two lists must have
+        a match to return True.
+    :param installed_pkgs_regex: If provided, verify if the any regex in
+        the list matches any line in /var/run/reboot-required.pkgs. If that
+        param is provided, we will only return true if we have the
+        reboot-required marker file and any match in reboot-required.pkgs
+        file. When both installed_pkgs and installed_pkgs_regex are
+        provided, they act as an OR, so only one of the two lists must have
+        a match to return True.
     """
 
     # If the reboot marker file doesn't exist, we don't even
@@ -824,7 +841,7 @@ def should_reboot(installed_pkgs: Optional[Set[str]] = None) -> bool:
 
     # If there is no installed_pkgs to check, we will rely only
     # on the existence of the reboot marker file
-    if installed_pkgs is None:
+    if installed_pkgs is None and installed_pkgs_regex is None:
         return True
 
     try:
@@ -835,8 +852,18 @@ def should_reboot(installed_pkgs: Optional[Set[str]] = None) -> bool:
         # If the file doesn't exist, we will default to the
         # reboot  marker file
         return True
-    else:
-        return len(installed_pkgs.intersection(reboot_required_pkgs)) != 0
+
+    if installed_pkgs is not None:
+        if len(installed_pkgs.intersection(reboot_required_pkgs)) != 0:
+            return True
+
+    if installed_pkgs_regex is not None:
+        for pkg_name in reboot_required_pkgs:
+            for pkg_regex in installed_pkgs_regex:
+                if re.search(pkg_regex, pkg_name):
+                    return True
+
+    return False
 
 
 def is_installed(package_name: str) -> bool:

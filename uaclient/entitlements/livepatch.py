@@ -109,10 +109,15 @@ class LivepatchEntitlement(UAEntitlement):
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
         from uaclient.entitlements.fips import FIPSEntitlement
+        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
             IncompatibleService(
                 FIPSEntitlement, messages.LIVEPATCH_INVALIDATES_FIPS
+            ),
+            IncompatibleService(
+                RealtimeKernelEntitlement,
+                messages.REALTIME_LIVEPATCH_INCOMPATIBLE,
             ),
         )
 

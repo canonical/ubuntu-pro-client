@@ -209,7 +209,8 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 populated CanEnableFailure reason. This may expand to
                 include other types of reasons in the future.
         """
-        msg_ops = self.messaging.get("pre_enable", [])
+
+        msg_ops = self.messaging.get("pre_can_enable", [])
         if not util.handle_message_operations(msg_ops):
             return False, None
 
@@ -236,6 +237,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             else:
                 # every other reason means we can't continue
                 return False, fail
+
+        msg_ops = self.messaging.get("pre_enable", [])
+        if not util.handle_message_operations(msg_ops):
+            return False, None
 
         ret = self._perform_enable(silent=silent)
         if not ret:
