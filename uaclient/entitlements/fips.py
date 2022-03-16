@@ -180,7 +180,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     ) -> bool:
         """Return False when FIPS is allowed on this cloud and series.
 
-        On Xenial Azure and GCP there will be no cloud-optimized kernel so
+        On Xenial GCP there will be no cloud-optimized kernel so
         block default ubuntu-fips enable. This can be overridden in
         config with features.allow_xenial_fips_on_cloud.
 
@@ -191,9 +191,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         :return: False when this cloud, series or config override allows FIPS.
         """
-        if cloud_id not in ("azure", "gce"):
-            return True
-
         if cloud_id == "gce":
             if util.is_config_value_true(
                 config=self.cfg.cfg,
@@ -206,16 +203,6 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                 return True
 
             return bool("ubuntu-gcp-fips" in super().packages)
-
-        # Azure FIPS cloud support
-        if series == "xenial":
-            if util.is_config_value_true(
-                config=self.cfg.cfg,
-                path_to_value="features.allow_xenial_fips_on_cloud",
-            ):
-                return True
-            else:
-                return False
 
         return True
 
