@@ -28,6 +28,7 @@ ESM_APPS_KEY_ID="E8A443CE358113D187BEE0E6AB01A101DB53907B"
 FIPS_KEY_ID="E23341B2A1467EDBF07057D6C1997C40EDE22758"
 CIS_KEY_ID="81CF06E53F2C513A"
 ROS_KEY_ID="853874C8B0F10896"
+REALTIME_KEY_ID="F6D1E58F4DCD9F91"
 
 generate_keyrings() {
     KEYRING_DIR="$1"
@@ -50,6 +51,8 @@ generate_keyrings() {
                 service_name="cis";;
             $ROS_KEY_ID)
                 service_name="ros";;
+            $REALTIME_KEY_ID)
+                service_name="realtime-kernel";;
             *)
                 echo "Unhandled key id provided: " $key
                 exit 1;
@@ -70,6 +73,6 @@ generate_keyrings() {
 }
 
 
-generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_INFRA_KEY_ID $ESM_APPS_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID $ROS_KEY_ID
+generate_keyrings $TARGET_DIR $EAL_KEY_ID $ESM_INFRA_KEY_ID $ESM_APPS_KEY_ID $FIPS_KEY_ID $CIS_KEY_ID $ROS_KEY_ID $REALTIME_KEY_ID
 
 rm -rf $tmp_dir

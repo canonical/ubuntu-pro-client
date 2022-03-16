@@ -9,7 +9,7 @@ Feature: Enable command behaviour when attached to an UA staging subscription
         And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
         """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt-cache policy` as non-root
