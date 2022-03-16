@@ -155,19 +155,23 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     )
                 )
 
-    def _check_for_reboot_msg(self, operation: str) -> None:
+    def _check_for_reboot_msg(
+        self, operation: str, silent: bool = False
+    ) -> None:
         """Check if user should be alerted that a reboot must be performed.
 
         @param operation: The operation being executed.
+        @param silent: Boolean set True to silence print/log of messages
         """
         reboot_required = util.should_reboot()
         event.needs_reboot(reboot_required)
         if reboot_required:
-            event.info(
-                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
-                    operation=operation
+            if not silent:
+                event.info(
+                    messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                        operation=operation
+                    )
                 )
-            )
             if operation == "install":
                 self.cfg.add_notice(
                     "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
@@ -505,6 +509,14 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     title = "FIPS Updates"
     origin = "UbuntuFIPSUpdates"
     description = "NIST-certified core packages with priority security updates"
+
+    @property
+    def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        return (
+            IncompatibleService(
+                FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
+            ),
+        )
 
     @property
     def messaging(self,) -> MessagingOperationsDict:
