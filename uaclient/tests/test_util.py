@@ -474,57 +474,244 @@ class TestGetPlatformInfo:
                     assert expected == util.get_platform_info.__wrapped__()
 
 
-class TestApplySeriesOverrides:
+class TestApplyContractOverrides:
+    @pytest.mark.parametrize(
+        "override_selector,expected_weight",
+        (
+            ({"selector1": "valueX", "selector2": "valueZ"}, 0),
+            ({"selector1": "valueA", "selector2": "valueZ"}, 0),
+            ({"selector1": "valueX", "selector2": "valueB"}, 0),
+            ({"selector1": "valueA"}, 1),
+            ({"selector2": "valueB"}, 2),
+            ({"selector1": "valueA", "selector2": "valueB"}, 3),
+        ),
+    )
+    def test_get_override_weight(self, override_selector, expected_weight):
+        selector_values = {"selector1": "valueA", "selector2": "valueB"}
+        selector_weights = {"selector1": 1, "selector2": 2}
+        with mock.patch(
+            "uaclient.util.OVERRIDE_SELECTOR_WEIGHTS", selector_weights
+        ):
+            assert expected_weight == util._get_override_weight(
+                override_selector, selector_values
+            )
+
     def test_error_on_non_entitlement_dict(self):
         """Raise a runtime error when seeing invalid dict type."""
         with pytest.raises(RuntimeError) as exc:
-            util.apply_series_overrides({"some": "dict"})
+            util.apply_contract_overrides({"some": "dict"})
         error = (
             'Expected entitlement access dict. Missing "entitlement" key:'
             " {'some': 'dict'}"
         )
         assert error == str(exc.value)
 
+    @pytest.mark.parametrize("include_overrides", (True, False))
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.util.get_platform_info", return_value={"series": "ubuntuX"}
     )
-    def test_mutates_orig_access_dict(self, _):
-        """Mutate orig_access dict when called."""
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type", return_value=(None, "")
+    )
+    def test_return_same_dict_when_no_overrides_match(
+        self, _m_cloud_type, _m_platform_info, include_overrides
+    ):
         orig_access = {
             "entitlement": {
-                "a": {"a1": "av1", "a2": {"aa2": "aav2"}},
-                "b": "b1",
-                "c": "c1",
-                "series": {
-                    "trusty": {"a": "t1"},
-                    "xenial": {"a": {"a2": {"aa2": "xxv2"}}, "b": "bx1"},
-                },
+                "affordances": {"some_affordance": ["ubuntuX"]},
+                "directives": {"some_directive": ["ubuntuX"]},
+                "obligations": {"some_obligation": False},
             }
         }
+        # exactly the same
         expected = {
             "entitlement": {
-                "a": {"a1": "av1", "a2": {"aa2": "xxv2"}},
-                "b": "bx1",
-                "c": "c1",
+                "affordances": {"some_affordance": ["ubuntuX"]},
+                "directives": {"some_directive": ["ubuntuX"]},
+                "obligations": {"some_obligation": False},
             }
         }
-        util.apply_series_overrides(orig_access)
+        if include_overrides:
+            orig_access["entitlement"].update(
+                {
+                    "series": {
+                        "dontMatch": {
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-series-overriden"]
+                            }
+                        }
+                    },
+                    "overrides": [
+                        {
+                            "selector": {"series": "dontMatch"},
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-series-overriden"]
+                            },
+                        },
+                        {
+                            "selector": {"cloud": "dontMatch"},
+                            "affordances": {
+                                "some_affordance": ["ubuntuX-cloud-overriden"]
+                            },
+                        },
+                    ],
+                }
+            )
+
+        util.apply_contract_overrides(orig_access)
+        assert expected == orig_access
+
+    @mock.patch(
+        "uaclient.util.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    def test_missing_keys_are_included(self, _m_platform_info):
+        orig_access = {
+            "entitlement": {
+                "series": {"ubuntuX": {"directives": {"suites": ["ubuntuX"]}}}
+            }
+        }
+        expected = {"entitlement": {"directives": {"suites": ["ubuntuX"]}}}
+
+        util.apply_contract_overrides(orig_access)
+
+        assert expected == orig_access
+
+    @pytest.mark.parametrize(
+        "series_selector,cloud_selector,series_cloud_selector,expected_value",
+        (
+            # apply_overrides_when_only_series_match
+            ("no-match", "no-match", "no-match", "old_series_overriden"),
+            # series selector is applied over old series override
+            ("ubuntuX", "no-match", "no-match", "series_overriden"),
+            # cloud selector is applied over series override
+            ("no-match", "cloudX", "no-match", "cloud_overriden"),
+            # cloud selector is applied over series selector
+            ("ubuntuX", "cloudX", "no-match", "cloud_overriden"),
+            # cloud and series together are applied over others
+            ("ubuntuX", "cloudX", "cloudX", "both_overriden"),
+        ),
+    )
+    @mock.patch(
+        "uaclient.util.get_platform_info", return_value={"series": "ubuntuX"}
+    )
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("cloudX", None),
+    )
+    def test_applies_contract_overrides_respecting_weight(
+        self,
+        _m_cloud_type,
+        _m_platform_info,
+        series_selector,
+        cloud_selector,
+        series_cloud_selector,
+        expected_value,
+    ):
+        """Apply the expected overrides to orig_access dict when called."""
+        orig_access = {
+            "entitlement": {
+                "affordances": {"some_affordance": ["original_affordance"]},
+                "series": {
+                    "ubuntuX": {
+                        "affordances": {
+                            "some_affordance": ["old_series_overriden"]
+                        }
+                    }
+                },
+                "overrides": [
+                    {
+                        "selector": {"series": series_selector},
+                        "affordances": {
+                            "some_affordance": ["series_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {"cloud": cloud_selector},
+                        "affordances": {
+                            "some_affordance": ["cloud_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {
+                            "series": series_selector,
+                            "cloud": series_cloud_selector,
+                        },
+                        "affordances": {"some_affordance": ["both_overriden"]},
+                    },
+                ],
+            }
+        }
+
+        expected = {
+            "entitlement": {
+                "affordances": {"some_affordance": [expected_value]}
+            }
+        }
+
+        util.apply_contract_overrides(orig_access)
         assert orig_access == expected
 
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
+        "uaclient.util.get_platform_info", return_value={"series": "ubuntuX"}
     )
-    def test_missing_keys_are_handled(self, _):
+    @mock.patch(
+        "uaclient.clouds.identity.get_cloud_type",
+        return_value=("cloudX", None),
+    )
+    def test_different_overrides_applied_together(
+        self, _m_cloud_type, _m_platform_info
+    ):
+        """Apply different overrides from different matching selectors."""
         orig_access = {
             "entitlement": {
-                "series": {"xenial": {"directives": {"suites": ["xenial"]}}}
+                "affordances": {"some_affordance": ["original_affordance"]},
+                "directives": {"some_directive": ["original_directive"]},
+                "obligations": {"some_obligation": False},
+                "series": {
+                    "ubuntuX": {
+                        "affordances": {
+                            "new_affordance": ["new_affordance_value"]
+                        }
+                    }
+                },
+                "overrides": [
+                    {
+                        "selector": {"series": "ubuntuX"},
+                        "affordances": {
+                            "some_affordance": ["series_overriden"]
+                        },
+                    },
+                    {
+                        "selector": {"cloud": "cloudX"},
+                        "directives": {"some_directive": ["cloud_overriden"]},
+                    },
+                    {
+                        "selector": {"series": "ubuntuX", "cloud": "cloudX"},
+                        "obligations": {
+                            "new_obligation": True,
+                            "some_obligation": True,
+                        },
+                    },
+                ],
             }
         }
-        expected = {"entitlement": {"directives": {"suites": ["xenial"]}}}
 
-        util.apply_series_overrides(orig_access)
+        expected = {
+            "entitlement": {
+                "affordances": {
+                    "new_affordance": ["new_affordance_value"],
+                    "some_affordance": ["series_overriden"],
+                },
+                "directives": {"some_directive": ["cloud_overriden"]},
+                "obligations": {
+                    "new_obligation": True,
+                    "some_obligation": True,
+                },
+            }
+        }
 
-        assert expected == orig_access
+        util.apply_contract_overrides(orig_access)
+        assert orig_access == expected
 
 
 class TestGetMachineId:

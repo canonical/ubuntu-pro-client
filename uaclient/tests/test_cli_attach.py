@@ -532,14 +532,14 @@ class TestActionAttach:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @mock.patch("uaclient.contract.process_entitlement_delta")
-    @mock.patch("uaclient.util.apply_series_overrides")
+    @mock.patch("uaclient.util.apply_contract_overrides")
     @mock.patch("uaclient.contract.UAContractClient.request_url")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_attach_when_one_service_fails_to_enable(
         self,
         _m_update_messages,
         m_request_url,
-        _m_apply_series_overrides,
+        _m_apply_contract_overrides,
         m_process_entitlement_delta,
         _m_getuid,
         FakeConfig,
