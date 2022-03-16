@@ -418,6 +418,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
         from uaclient.entitlements.livepatch import LivepatchEntitlement
+        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 
         return (
             IncompatibleService(
@@ -425,6 +426,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
             ),
             IncompatibleService(
                 FIPSUpdatesEntitlement, messages.FIPS_UPDATES_INVALIDATES_FIPS
+            ),
+            IncompatibleService(
+                RealtimeKernelEntitlement, messages.REALTIME_FIPS_INCOMPATIBLE
             ),
         )
 
@@ -515,9 +519,15 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
+        from uaclient.entitlements.realtime import RealtimeKernelEntitlement
+
         return (
             IncompatibleService(
                 FIPSEntitlement, messages.FIPS_INVALIDATES_FIPS_UPDATES
+            ),
+            IncompatibleService(
+                RealtimeKernelEntitlement,
+                messages.REALTIME_FIPS_UPDATES_INCOMPATIBLE,
             ),
         )
 

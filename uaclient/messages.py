@@ -22,6 +22,7 @@ class TxtColor:
     OKGREEN = "\033[92m"
     DISABLEGREY = "\033[37m"
     FAIL = "\033[91m"
+    BOLD = "\033[1m"
     ENDC = "\033[0m"
 
 
@@ -674,6 +675,46 @@ LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
     " with additional bug fixes and security updates, you can use"
     " the FIPS Updates service with Livepatch.",
 )
+REALTIME_FIPS_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-incompatible",
+    "Realtime and FIPS require different kernels, so you cannot enable"
+    " both at the same time.",
+)
+REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-updates-incompatible",
+    "Realtime and FIPS Updates require different kernels, so you cannot enable"
+    " both at the same time.",
+)
+REALTIME_LIVEPATCH_INCOMPATIBLE = NamedMessage(
+    "realtime-livepatch-incompatible",
+    "Livepatch is not currently supported for the real-time kernel.",
+)
+REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
+    "beta-flag-required",
+    "Use `ua enable realtime-kernel --beta` to acknowledge the real-time"
+    " kernel is currently in beta and comes with no support.",
+)
+REALTIME_BETA_PROMPT = """\
+The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
+PREEMPT_RT patchset integrated for x86_64 and ARM64. If you haven’t already,
+please register for this free beta program at {{url}}.
+
+{bold}You will not be able to revert to your original kernel after enabling\
+ real-time.{end_bold}
+
+Do you want to continue? [ default = Yes ]: (Y/n) """.format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+REALTIME_PRE_DISABLE_PROMPT = """\
+This will disable the Real-Time Kernel entitlement but the Real-Time Kernel\
+ will remain installed.
+Are you sure? (y/N) """
+
+REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
+    "realtime-error-install-on-container",
+    "Cannot install Real-Time Kernel on a container.",
+)
+
 
 LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (

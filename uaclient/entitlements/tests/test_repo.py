@@ -385,23 +385,25 @@ class TestProcessContractDeltas:
 
 class TestRepoEnable:
     @pytest.mark.parametrize(
-        "pre_enable_msg, output, can_enable_call_count",
+        "pre_enable_msg, output, perform_enable_call_count",
         (
             (["msg1", (lambda: False, {}), "msg2"], "msg1\n", 0),
             (["msg1", (lambda: True, {}), "msg2"], "msg1\nmsg2\n", 1),
         ),
     )
     @mock.patch.object(
-        RepoTestEntitlement,
-        "can_enable",
-        return_value=(False, status.CanEnableFailure(None)),
+        RepoTestEntitlement, "_perform_enable", return_value=False
+    )
+    @mock.patch.object(
+        RepoTestEntitlement, "can_enable", return_value=(True, None)
     )
     def test_enable_can_exit_on_pre_enable_messaging_hooks(
         self,
-        m_can_enable,
+        _m_can_enable,
+        m_perform_enable,
         pre_enable_msg,
         output,
-        can_enable_call_count,
+        perform_enable_call_count,
         entitlement,
         capsys,
     ):
@@ -414,7 +416,7 @@ class TestRepoEnable:
                 entitlement.enable()
         stdout, _ = capsys.readouterr()
         assert output == stdout
-        assert can_enable_call_count == m_can_enable.call_count
+        assert perform_enable_call_count == m_perform_enable.call_count
 
     @pytest.mark.parametrize(
         "pre_disable_msg,post_disable_msg,output,retval",

@@ -124,8 +124,8 @@ class TestActionCollectLogs:
             ),
         ]
 
-        assert m_copy.call_count == 14
-        assert redact.call_count == 14
+        assert m_copy.call_count == 15
+        assert redact.call_count == 15
 
 
 class TestParser:

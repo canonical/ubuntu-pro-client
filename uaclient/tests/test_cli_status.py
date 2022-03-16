@@ -24,6 +24,7 @@ RESPONSE_AVAILABLE_SERVICES = [
     {"name": "esm-infra", "available": False},
     {"name": "esm-apps", "available": True},
     {"name": "fips-updates", "available": False},
+    {"name": "realtime-kernel", "available": False},
     {"name": "ros", "available": False},
     {"name": "ros-updates", "available": False},
 ]
@@ -68,41 +69,34 @@ RESPONSE_CONTRACT_INFO = {
 }
 
 SIMULATED_STATUS = """\
-SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-esm-infra     no         yes        yes           UA Infra: Extended Security\
- Maintenance (ESM)
-fips          no         no         no            NIST-certified core packages
-fips-updates  no         no         no            NIST-certified core packages\
- with priority security updates
-livepatch     yes        yes        no            Canonical Livepatch service
-"""
+SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+esm-infra        no         yes        yes           UA Infra: Extended Security Maintenance (ESM)
+fips             no         no         no            NIST-certified core packages
+fips-updates     no         no         no            NIST-certified core packages with priority security updates
+livepatch        yes        yes        no            Canonical Livepatch service
+"""  # noqa: E501
 
 UNATTACHED_STATUS = """\
-SERVICE       AVAILABLE  DESCRIPTION
-esm-infra     no         UA Infra: Extended Security Maintenance (ESM)
-fips          no         NIST-certified core packages
-fips-updates  no         NIST-certified core packages with priority\
- security updates
-livepatch     yes        Canonical Livepatch service
+SERVICE          AVAILABLE  DESCRIPTION
+esm-infra        no         UA Infra: Extended Security Maintenance (ESM)
+fips             no         NIST-certified core packages
+fips-updates     no         NIST-certified core packages with priority security updates
+livepatch        yes        Canonical Livepatch service
 
 This machine is not attached to a UA subscription.
 See https://ubuntu.com/advantage
-"""
+"""  # noqa: E501
 
 ATTACHED_STATUS = """\
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-esm-apps      no        {dash}         UA Apps: Extended Security Maintenance\
- (ESM)
-esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
- (ESM)
-fips          no        {dash}         NIST-certified core packages
-fips-updates  no        {dash}         NIST-certified core packages with\
- priority security updates
-livepatch     no        {dash}         Canonical Livepatch service
-ros           no        {dash}         Security Updates for the Robot\
- Operating System
-ros-updates   no        {dash}         All Updates for the Robot Operating\
- System
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-apps         no        {dash}         UA Apps: Extended Security Maintenance (ESM)
+esm-infra        no        {dash}         UA Infra: Extended Security Maintenance (ESM)
+fips             no        {dash}         NIST-certified core packages
+fips-updates     no        {dash}         NIST-certified core packages with priority security updates
+livepatch        no        {dash}         Canonical Livepatch service
+realtime-kernel  no        {dash}         Beta-version Ubuntu Kernel with PREEMPT_RT patches
+ros              no        {dash}         Security Updates for the Robot Operating System
+ros-updates      no        {dash}         All Updates for the Robot Operating System
 {notices}
 Enable services with: ua enable <service>
 
@@ -110,17 +104,15 @@ Enable services with: ua enable <service>
            Subscription: test_contract
             Valid until: 2040-05-08 19:02:26+00:00
 Technical support level: n/a
-"""
+"""  # noqa: E501
 
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
-SERVICE       ENTITLED  STATUS    DESCRIPTION
-esm-infra     no        {dash}         UA Infra: Extended Security Maintenance\
- (ESM)
-fips          no        {dash}         NIST-certified core packages
-fips-updates  no        {dash}         NIST-certified core packages with\
- priority security updates
-livepatch     no        {dash}         Canonical Livepatch service
+SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-infra        no        {dash}         UA Infra: Extended Security Maintenance (ESM)
+fips             no        {dash}         NIST-certified core packages
+fips-updates     no        {dash}         NIST-certified core packages with priority security updates
+livepatch        no        {dash}         Canonical Livepatch service
 {notices}
 Enable services with: ua enable <service>
 
@@ -128,9 +120,9 @@ Enable services with: ua enable <service>
            Subscription: test_contract
             Valid until: 2040-05-08 19:02:26+00:00
 Technical support level: n/a
-"""
+"""  # noqa: E501
 
-BETA_SVC_NAMES = ["esm-apps", "ros", "ros-updates"]
+BETA_SVC_NAMES = ["esm-apps", "realtime-kernel", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {
@@ -180,6 +172,16 @@ SERVICES_JSON_ALL = [
         "description_override": None,
         "entitled": "no",
         "name": "livepatch",
+        "status": "—",
+        "status_details": "",
+        "available": "yes",
+        "blocked_by": [],
+    },
+    {
+        "description": "TODO",
+        "description_override": None,
+        "entitled": "no",
+        "name": "realtime-kernel",
         "status": "—",
         "status_details": "",
         "available": "yes",
@@ -739,6 +741,14 @@ class TestActionStatus:
             {
                 "auto_enabled": "no",
                 "available": "no",
+                "description": "Beta-version Ubuntu Kernel with PREEMPT_RT"
+                " patches",
+                "entitled": "no",
+                "name": "realtime-kernel",
+            },
+            {
+                "auto_enabled": "no",
+                "available": "no",
                 "description": "Security Updates for the Robot Operating"
                 " System",
                 "entitled": "no",
@@ -754,7 +764,7 @@ class TestActionStatus:
         ]
 
         if not use_all:
-            expected_services = expected_services[1:-2]
+            expected_services = expected_services[1:-3]
 
         expected = {
             "_doc": "Content provided in json response is currently considered"

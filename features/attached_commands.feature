@@ -129,9 +129,9 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release | valid_services                                                                      |
-           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
-           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates. |
-           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,\nros-updates, usg. |
+           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
+           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
 
     @series.xenial
     @series.bionic
@@ -148,8 +148,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-            ros-updates.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,
+            realtime-kernel, ros, ros-updates.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -187,8 +187,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-            ros-updates, usg.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
+            ros, ros-updates, usg.
             """
         And I verify that running `ua disable esm-infra` `as non-root` exits `1`
         And stderr matches regexp:
@@ -231,7 +231,7 @@ Feature: Command behaviour when attached to an UA subscription
        When I run `ua status --all` as non-root
        Then stdout matches regexp:
           """
-          SERVICE       AVAILABLE  DESCRIPTION
+          SERVICE       +AVAILABLE  DESCRIPTION
           cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
           """
        Then stdout matches regexp:
@@ -241,6 +241,7 @@ Feature: Command behaviour when attached to an UA subscription
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
           livepatch     +yes        +Canonical Livepatch service
+          realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System
           """
@@ -280,10 +281,10 @@ Feature: Command behaviour when attached to an UA subscription
            """
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg |
-           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        |
-           | bionic  | yes      | yes     | yes | yes  | yes         | yes | cis        |
-           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        |
+           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
+           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -361,8 +362,8 @@ Feature: Command behaviour when attached to an UA subscription
         And I run `ua status --all` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
-            cc-eal        no
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
+            cc-eal        +no
             """
         When I run `ua --version` as non-root
         Then I will see the uaclient version on stdout with features ` +disable_auto_attach +machine_token_overlay -other`
@@ -403,8 +404,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-            ros-updates.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,
+            realtime-kernel, ros, ros-updates.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -449,8 +450,8 @@ Feature: Command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot disable unknown service 'foobar'.
-            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, ros,
-            ros-updates, usg.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,
+            ros, ros-updates, usg.
             """
         When I run `ua status` with sudo
         Then stdout matches regexp:
@@ -558,6 +559,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Beta-version Ubuntu Kernel with PREEMPT_RT patches
+           \(https://ubuntu.com/realtime-kernel\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)
          - ros: Security Updates for the Robot Operating System
@@ -657,6 +660,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Beta-version Ubuntu Kernel with PREEMPT_RT patches
+           \(https://ubuntu.com/realtime-kernel\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)
          - ros: Security Updates for the Robot Operating System
