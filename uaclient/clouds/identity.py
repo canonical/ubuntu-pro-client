@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from functools import lru_cache
 from typing import Dict, Optional, Tuple, Type  # noqa: F401
 
 from uaclient import clouds, exceptions, util
@@ -36,6 +37,7 @@ def get_instance_id() -> Optional[str]:
     return None
 
 
+@lru_cache(maxsize=None)
 @apply_config_settings_override("cloud_type")
 def get_cloud_type() -> Tuple[Optional[str], Optional[NoCloudTypeReason]]:
     if util.which("cloud-id"):
