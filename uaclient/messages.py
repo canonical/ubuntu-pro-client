@@ -668,6 +668,12 @@ FIPS_UPDATES_INVALIDATES_FIPS = NamedMessage(
     " FIPS Updates installs security patches that aren't officially"
     " certified.",
 )
+FIPS_INVALIDATES_FIPS_UPDATES = NamedMessage(
+    "fips-invalidates-fips-updates",
+    "FIPS Updates cannot be enabled if FIPS is enabled."
+    " FIPS Updates installs security patches that aren't officially"
+    " certified.",
+)
 LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
     "livepatch-invalidates-fips",
     "Livepatch cannot be enabled while running the official FIPS"

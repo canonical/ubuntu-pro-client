@@ -21,6 +21,7 @@ from uaclient.entitlements.fips import (
     FIPSEntitlement,
     FIPSUpdatesEntitlement,
 )
+from uaclient.status import CanEnableFailureReason
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
@@ -1291,3 +1292,35 @@ class TestFIPSUpdatesEntitlementEnable:
         else:
             assert not m_read_cache.call_count
             assert not m_write_cache.call_count
+
+
+class TestFIPSUpdatesEntitlementCanEnable:
+    @mock.patch("uaclient.util.is_config_value_true", return_value=False)
+    def test_can_enable_false_if_fips_enabled(
+        self, m_is_config_value_true, capsys, entitlement_factory
+    ):
+        """When entitlement is disabled, can_enable returns True."""
+        entitlement = entitlement_factory(FIPSUpdatesEntitlement)
+        with mock.patch.object(
+            entitlement,
+            "applicability_status",
+            return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
+        ):
+            with mock.patch.object(
+                entitlement,
+                "application_status",
+                return_value=(status.ApplicationStatus.DISABLED, ""),
+            ):
+                with mock.patch(
+                    M_PATH + "FIPSEntitlement.application_status"
+                ) as m_fips_status:
+                    m_fips_status.return_value = (
+                        status.ApplicationStatus.ENABLED,
+                        None,
+                    )
+                    actual_ret, reason = entitlement.can_enable()
+                    assert actual_ret is False
+                    assert (
+                        reason.reason
+                        == CanEnableFailureReason.INCOMPATIBLE_SERVICE
+                    )

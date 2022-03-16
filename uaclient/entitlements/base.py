@@ -449,7 +449,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             path_to_value="features.block_disable_on_enable",
         )
         for service in self.blocking_incompatible_services():
-            ent = service.entitlement(self.cfg)
+            ent = service.entitlement(self.cfg, assume_yes=True)
 
             user_msg = messages.INCOMPATIBLE_SERVICE.format(
                 service_being_enabled=self.title,
@@ -474,7 +474,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
             event.info(disable_msg)
 
-            ret = ent.disable()
+            ret = ent.disable(silent=True)
             if not ret:
                 return ret, None
 
@@ -664,7 +664,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 event.info(info_msg=msg.msg, file_type=sys.stderr)
                 return False, msg
 
-            ent = ent_cls(self.cfg)
+            ent = ent_cls(cfg=self.cfg, assume_yes=True)
 
             is_service_enabled = (
                 ent.application_status()[0] == status.ApplicationStatus.ENABLED
@@ -710,13 +710,16 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """Check if system needs to be rebooted."""
         return util.should_reboot()
 
-    def _check_for_reboot_msg(self, operation: str) -> None:
+    def _check_for_reboot_msg(
+        self, operation: str, silent: bool = False
+    ) -> None:
         """Check if user should be alerted that a reboot must be performed.
 
         @param operation: The operation being executed.
+        @param silent: Boolean set True to silence print/log of messages
         """
-        if self._check_for_reboot():
-            print(
+        if self._check_for_reboot() and not silent:
+            event.info(
                 messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
                     operation=operation
                 )
@@ -763,7 +766,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         if not util.handle_message_operations(msg_ops):
             return False, None
 
-        self._check_for_reboot_msg(operation="disable operation")
+        self._check_for_reboot_msg(
+            operation="disable operation", silent=silent
+        )
         return True, None
 
     def contract_status(self) -> ContractStatus:
