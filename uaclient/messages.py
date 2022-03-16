@@ -667,6 +667,16 @@ LIVEPATCH_INVALIDATES_FIPS = NamedMessage(
     " with additional bug fixes and security updates, you can use"
     " the FIPS Updates service with Livepatch.",
 )
+REALTIME_FIPS_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-incompatible",
+    "Realtime and FIPS require different kernels, so you cannot enable"
+    " both at the same time.",
+)
+REALTIME_FIPS_UPDATES_INCOMPATIBLE = NamedMessage(
+    "realtime-fips-updates-incompatible",
+    "Realtime and FIPS Updates require different kernels, so you cannot enable"
+    " both at the same time.",
+)
 
 LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (

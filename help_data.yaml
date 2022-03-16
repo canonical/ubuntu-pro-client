@@ -61,6 +61,10 @@ livepatch:
       more about Ubuntu Kernel Livepatch service at
       https://ubuntu.com/security/livepatch
 
+realtime-kernel:
+  help: |
+    Ubuntu's Realtime Kernel is useful for ... TODO
+
 ros:
   help: |
     ros provides access to a private PPA which includes security-related
