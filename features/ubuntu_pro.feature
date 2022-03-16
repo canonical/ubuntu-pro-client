@@ -25,7 +25,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua auto-attach` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -96,7 +96,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua auto-attach` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -167,7 +167,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua auto-attach` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -228,7 +228,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua status --wait` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -246,7 +246,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -362,7 +362,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua status` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -380,7 +380,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -496,7 +496,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         And I run `ua status` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:
@@ -514,7 +514,7 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO image
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes +<cc-eal-s>  +Common Criteria EAL2 Provisioning Packages
             """
         Then stdout matches regexp:

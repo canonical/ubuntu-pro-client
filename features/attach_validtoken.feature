@@ -11,7 +11,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         And I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       ENTITLED  STATUS    DESCRIPTION
+            SERVICE       +ENTITLED  STATUS    DESCRIPTION
             cc-eal        +yes      +n/a      +Common Criteria EAL2 Provisioning Packages
             cis           +yes      +n/a      +Security compliance and audit tools
             esm-apps      +yes      +n/a      +UA Apps: Extended Security Maintenance \(ESM\)
@@ -58,7 +58,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         """
         And stdout matches regexp:
@@ -315,7 +315,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         """
         And stdout matches regexp:
@@ -375,7 +375,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         """
         And stdout matches regexp:
@@ -435,7 +435,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
         cc-eal       +yes      +<cc_status>     +Common Criteria EAL2 Provisioning Packages
         """
         And stdout matches regexp:
@@ -477,7 +477,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        SERVICE       ENTITLED  STATUS    DESCRIPTION
+        SERVICE      +ENTITLED  STATUS    DESCRIPTION
         cc-eal        +yes +<cc-eal>  +Common Criteria EAL2 Provisioning Packages
         """
         And stdout matches regexp:

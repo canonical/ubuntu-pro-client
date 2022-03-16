@@ -761,21 +761,21 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros           yes                disabled           Security Updates for the Robot Operating System
+        ros           +yes                disabled           Security Updates for the Robot Operating System
         """
         When I run `ua enable ros --assume-yes --beta` with sudo
         And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros           yes                enabled            Security Updates for the Robot Operating System
+        ros           +yes                enabled            Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
         """
         And stdout matches regexp
         """
-        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I verify that running `ua disable esm-apps` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -793,11 +793,11 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros           yes                disabled           Security Updates for the Robot Operating System
+        ros           +yes                disabled           Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      yes                disabled           UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                disabled           UA Apps: Extended Security Maintenance \(ESM\)
         """
         When I verify that running `ua enable ros --beta` `with sudo` and stdin `N` exits `1`
         Then stdout matches regexp
@@ -818,15 +818,15 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros           yes                enabled            Security Updates for the Robot Operating System
+        ros           +yes                enabled            Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
         """
         And stdout matches regexp
         """
-        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has permission `500`
@@ -840,7 +840,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   yes                enabled            All Updates for the Robot Operating System
+        ros-updates   +yes                enabled            All Updates for the Robot Operating System
         """
         When I run `apt-cache policy` as non-root
         Then apt-cache policy for the following url has permission `500`
@@ -869,11 +869,11 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   yes                enabled            All Updates for the Robot Operating System
+        ros-updates   +yes                enabled            All Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        ros           yes                enabled            Security Updates for the Robot Operating System
+        ros           +yes                enabled            Security Updates for the Robot Operating System
         """
         When I run `ua disable ros-updates --assume-yes` with sudo
         When I run `ua disable ros --assume-yes` with sudo
@@ -883,19 +883,19 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status --all` as non-root
         Then stdout matches regexp
         """
-        ros-updates   yes                enabled            All Updates for the Robot Operating System
+        ros-updates   +yes                enabled            All Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        ros           yes                enabled            Security Updates for the Robot Operating System
+        ros           +yes                enabled            Security Updates for the Robot Operating System
         """
         And stdout matches regexp
         """
-        esm-apps      yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
+        esm-apps      +yes                enabled            UA Apps: Extended Security Maintenance \(ESM\)
         """
         And stdout matches regexp
         """
-        esm-infra     yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra     +yes                enabled            UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I run `ua detach` `with sudo` and stdin `y`
         Then stdout matches regexp:

@@ -7,6 +7,7 @@ from uaclient.entitlements.cc import CommonCriteriaEntitlement
 from uaclient.entitlements.cis import CISEntitlement
 from uaclient.entitlements.esm import ESMAppsEntitlement, ESMInfraEntitlement
 from uaclient.entitlements.livepatch import LivepatchEntitlement
+from uaclient.entitlements.realtime import RealtimeKernelEntitlement
 from uaclient.entitlements.ros import ROSEntitlement, ROSUpdatesEntitlement
 from uaclient.exceptions import EntitlementNotFoundError
 from uaclient.util import is_config_value_true
@@ -19,6 +20,7 @@ ENTITLEMENT_CLASSES = [
     fips.FIPSEntitlement,
     fips.FIPSUpdatesEntitlement,
     LivepatchEntitlement,
+    RealtimeKernelEntitlement,
     ROSEntitlement,
     ROSUpdatesEntitlement,
 ]  # type: List[Type[UAEntitlement]]
