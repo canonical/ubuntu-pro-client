@@ -680,7 +680,7 @@ class TestFIPSEntitlementEnable:
         entitlement,
     ):
         m_handle_message_op.return_value = True
-        m_cloud_type.return_value = ("azure", None)
+        m_cloud_type.return_value = ("gce", None)
         m_platform_info.return_value = {"series": "xenial"}
         base_path = "uaclient.entitlements.livepatch.LivepatchEntitlement"
 
@@ -691,7 +691,7 @@ class TestFIPSEntitlementEnable:
             result, reason = entitlement.enable()
             assert not result
             expected_msg = """\
-            Ubuntu Xenial does not provide an Azure optimized FIPS kernel"""
+            Ubuntu Xenial does not provide a GCP optimized FIPS kernel"""
             assert expected_msg.strip() in reason.message.msg.strip()
 
     @mock.patch("uaclient.util.get_platform_info")
@@ -731,7 +731,9 @@ class TestFIPSEntitlementEnable:
             Ubuntu Test does not provide a GCP optimized FIPS kernel"""
             assert expected_msg.strip() in reason.message.msg.strip()
 
-    @pytest.mark.parametrize("allow_xenial_fips_on_cloud", ((True), (False)))
+    @pytest.mark.parametrize(
+        "allow_default_fips_metapackage_on_gcp", ((True), (False))
+    )
     @pytest.mark.parametrize("cloud_id", (("aws"), ("gce"), ("azure"), (None)))
     @pytest.mark.parametrize("series", (("xenial"), ("bionic")))
     @mock.patch("uaclient.util.is_config_value_true")
@@ -740,12 +742,12 @@ class TestFIPSEntitlementEnable:
         m_is_config_value_true,
         series,
         cloud_id,
-        allow_xenial_fips_on_cloud,
+        allow_default_fips_metapackage_on_gcp,
         entitlement,
     ):
         def mock_config_value(config, path_to_value):
-            if "allow_xenial_fips_on_cloud" in path_to_value:
-                return allow_xenial_fips_on_cloud
+            if "allow_default_fips_metapackage_on_gcp" in path_to_value:
+                return allow_default_fips_metapackage_on_gcp
 
             return False
 
@@ -754,17 +756,19 @@ class TestFIPSEntitlementEnable:
             cloud_id=cloud_id, series=series
         )
 
-        if cloud_id == "aws" or cloud_id is None:
+        if cloud_id in ("azure", "aws") or cloud_id is None:
             assert actual_value
-        elif cloud_id == "gce" and series != "bionic":
+        elif all([cloud_id == "gce", allow_default_fips_metapackage_on_gcp]):
+            assert actual_value
+        elif all(
+            [
+                cloud_id == "gce",
+                not allow_default_fips_metapackage_on_gcp,
+                series == "xenial",
+            ]
+        ):
             assert not actual_value
         elif cloud_id == "gce":
-            assert actual_value
-        elif all([allow_xenial_fips_on_cloud, series == "xenial"]):
-            assert actual_value
-        elif series == "xenial":
-            assert not actual_value
-        else:
             assert actual_value
 
     @pytest.mark.parametrize(
