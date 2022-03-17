@@ -47,13 +47,13 @@ Feature: Unattached status
         When I run `ua status` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  DESCRIPTION
+            cc-eal           <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified core packages
-            fips-updates  <fips>      +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +Canonical Livepatch service
+            ?esm-infra        <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +NIST-certified core packages
+            fips-updates     <fips>      +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +Canonical Livepatch service
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
@@ -62,16 +62,17 @@ Feature: Unattached status
         When I run `ua status --all` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  DESCRIPTION
+            cc-eal           <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified core packages
-            fips-updates  <fips>      +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
+            ?esm-apps        <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra        <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +NIST-certified core packages
+            fips-updates     <fips>      +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +Canonical Livepatch service
+            realtime-kernel  <realtime-kernel> +Realtime Kernel
+            ros              <ros>       +Security Updates for the Robot Operating System
+            ros-updates      <ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
@@ -80,13 +81,13 @@ Feature: Unattached status
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  DESCRIPTION
+            cc-eal           <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified core packages
-            fips-updates  <fips>      +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +Canonical Livepatch service
+            ?esm-infra        <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +NIST-certified core packages
+            fips-updates     <fips>      +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +Canonical Livepatch service
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
@@ -95,16 +96,17 @@ Feature: Unattached status
         When I run `ua status --all` with sudo
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  DESCRIPTION
+            cc-eal           <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified core packages
-            fips-updates  <fips>      +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
+            ?esm-apps         <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra        <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +NIST-certified core packages
+            fips-updates     <fips>      +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +Canonical Livepatch service
+            realtime-kernel  <realtime-kernel> +Realtime Kernel
+            ros              <ros>       +Security Updates for the Robot Operating System
+            ros-updates      <ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
@@ -118,16 +120,17 @@ Feature: Unattached status
         And I run `ua status` as non-root
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  DESCRIPTION
-            cc-eal        <cc-eal>    +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  DESCRIPTION
+            cc-eal           <cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-apps      <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +NIST-certified core packages
-            fips-updates  <fips>      +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +Canonical Livepatch service
-            ros           <ros>       +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +All Updates for the Robot Operating System
+            ?esm-apps         <esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra        <esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +NIST-certified core packages
+            fips-updates     <fips>      +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +Canonical Livepatch service
+            realtime-kernel  <realtime-kernel> +Realtime Kernel
+            ros              <ros>       +Security Updates for the Robot Operating System
+            ros-updates      <ros>       +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +Security compliance and audit tools)?
 
             This machine is not attached to a UA subscription.
@@ -135,12 +138,12 @@ Feature: Unattached status
             """ 
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg |
-           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
-           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg | realtime-kernel |
+           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
+           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
+           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
+           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
+           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -151,28 +154,29 @@ Feature: Unattached status
         When I do a preflight check for `contract_token` without the all flag
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+            cc-eal           <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
+            ?esm-infra        <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +yes  +no   +NIST-certified core packages
+            fips-updates     <fips>      +yes  +no   +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +yes  +yes  +Canonical Livepatch service
             ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
             """
         When I do a preflight check for `contract_token` with the all flag
         Then stdout matches regexp:
             """
-            SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+            cc-eal           <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-apps      <esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
-            esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
-            ros           <ros>       +yes  +no   +Security Updates for the Robot Operating System
-            ros-updates   <ros>       +yes  +no   +All Updates for the Robot Operating System
+            ?esm-apps         <esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra        <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +yes  +no   +NIST-certified core packages
+            fips-updates     <fips>      +yes  +no   +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +yes  +yes  +Canonical Livepatch service
+            realtime-kernel  <realtime-kernel> +yes  +no  +Realtime Kernel
+            ros              <ros>       +yes  +no   +Security Updates for the Robot Operating System
+            ros-updates      <ros>       +yes  +no   +All Updates for the Robot Operating System
             ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
             """
         When I do a preflight check for `contract_token` formatted as json
@@ -223,20 +227,20 @@ Feature: Unattached status
             This token is not valid.
             Contract \".*\" expired on .*
 
-            SERVICE       AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
-            cc-eal        <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
+            SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+            cc-eal           <cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-infra     <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
-            fips          <fips>      +yes  +no   +NIST-certified core packages
-            fips-updates  <fips>      +yes  +no   +NIST-certified core packages with priority security updates
-            livepatch     <livepatch> +yes  +yes  +Canonical Livepatch service
+            ?esm-infra        <esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+            fips             <fips>      +yes  +no   +NIST-certified core packages
+            fips-updates     <fips>      +yes  +no   +NIST-certified core packages with priority security updates
+            livepatch        <livepatch> +yes  +yes  +Canonical Livepatch service
             ?<usg>( +<cis-available> +yes +no +Security compliance and audit tools)?
             """
 
         Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg |
-           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
-           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
-           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
-           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg | realtime-kernel |
+           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
+           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     | no              |
+           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
+           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
+           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     | yes             |

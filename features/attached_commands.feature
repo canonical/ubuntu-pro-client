@@ -231,8 +231,8 @@ Feature: Command behaviour when attached to an UA subscription
        When I run `ua status --all` as non-root
        Then stdout matches regexp:
           """
-          SERVICE       AVAILABLE  DESCRIPTION
-          cc-eal        +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
+          SERVICE          AVAILABLE  DESCRIPTION
+          cc-eal           +<cc-eal>   +Common Criteria EAL2 Provisioning Packages
           """
        Then stdout matches regexp:
           """
@@ -241,6 +241,7 @@ Feature: Command behaviour when attached to an UA subscription
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
           livepatch     +yes        +Canonical Livepatch service
+          realtime-kernel +<realtime-kernel>        +Canonical Livepatch service
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System
           """
@@ -280,10 +281,11 @@ Feature: Command behaviour when attached to an UA subscription
            """
 
        Examples: ubuntu release
-           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg |
-           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        |
-           | bionic  | yes      | yes     | yes | yes  | yes         | yes | cis        |
-           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        |
+           | release | esm-apps | cc-eal | cis | fips | fips-update | ros | cis_or_usg | realtime-kernel |
+           | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
+           | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
+           | jammy   | yes      | no     | no  | no   | no          | no  | usg        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -558,6 +560,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Realtime Kernel
+           \(https://ubuntu.com/realtime\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)
          - ros: Security Updates for the Robot Operating System
@@ -657,6 +661,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/security/certifications#fips\)
          - livepatch: Canonical Livepatch service
            \(https://ubuntu.com/security/livepatch\)
+         - realtime-kernel: Realtime Kernel
+           \(https://ubuntu.com/realtime\)
          - ros-updates: All Updates for the Robot Operating System
            \(https://ubuntu.com/robotics/ros-esm\)
          - ros: Security Updates for the Robot Operating System

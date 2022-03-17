@@ -35,10 +35,12 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
 
     @property
     def messaging(self,) -> MessagingOperationsDict:
+        # TODO
         return {
             "post_enable": [
-                "Visit {} for more informatino on Ubuntu's Realtime Kernel".format(
-                    REALTIME_KERNEL_DOCS_URL
-                )
+                (
+                    "Visit {} for more information on Ubuntu's"
+                    " Realtime Kernel"
+                ).format(REALTIME_KERNEL_DOCS_URL)
             ]
         }
