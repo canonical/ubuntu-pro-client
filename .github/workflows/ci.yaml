@@ -117,6 +117,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: 'ci-debs-${{ matrix.release }}'
-          path: '${{ runner.temp }}/artifacts'
+          name: 'ci-behave-${{ matrix.release }}'
+          path: '${{ runner.temp }}/artifacts/behave*'
           retention-days: 7
