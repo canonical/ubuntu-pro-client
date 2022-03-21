@@ -6,12 +6,23 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages, status
+from uaclient import (
+    config,
+    entitlements,
+    event_logger,
+    exceptions,
+    messages,
+    status,
+)
 from uaclient.cli import action_disable, main, main_error_handler
 
 ALL_SERVICE_MSG = "\n".join(
     textwrap.wrap(
-        "Try " + ", ".join(entitlements.valid_services(allow_beta=True)) + ".",
+        "Try "
+        + ", ".join(
+            entitlements.valid_services(cfg=config.UAConfig(), allow_beta=True)
+        )
+        + ".",
         width=80,
         break_long_words=False,
         break_on_hyphens=False,
@@ -95,7 +106,7 @@ class TestDisable:
                 return_value=entitlement_name
             )
 
-        def factory_side_effect(name, ent_dict=ent_dict):
+        def factory_side_effect(cfg, name, ent_dict=ent_dict):
             return ent_dict.get(name)
 
         m_entitlement_factory.side_effect = factory_side_effect
@@ -200,7 +211,7 @@ class TestDisable:
         m_ent3_obj.disable.return_value = (True, None)
         type(m_ent3_obj).name = mock.PropertyMock(return_value="ent3")
 
-        def factory_side_effect(name):
+        def factory_side_effect(cfg, name):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":

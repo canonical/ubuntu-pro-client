@@ -2,7 +2,9 @@
 
 SERVICES=$(python3 -c "
 from uaclient.entitlements import valid_services
-print(*valid_services(), sep=' ')
+from uaclient.config import UAConfig
+cfg = UAConfig()
+print(*valid_services(cfg=cfg), sep=' ')
 ")
 
 _ua_complete()

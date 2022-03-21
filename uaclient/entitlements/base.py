@@ -363,7 +363,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         for service in services:
             try:
-                ent_cls = entitlement_factory(service)
+                ent_cls = entitlement_factory(cfg=self.cfg, name=service)
             except EntitlementNotFoundError:
                 continue
             ent_status, _ = ent_cls(self.cfg).application_status()
@@ -396,7 +396,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         for required_service in self.required_services:
             try:
-                ent_cls = entitlement_factory(required_service)
+                ent_cls = entitlement_factory(
+                    cfg=self.cfg, name=required_service
+                )
                 ent_status, _ = ent_cls(self.cfg).application_status()
                 if ent_status != status.ApplicationStatus.ENABLED:
                     return False
@@ -494,7 +496,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         for required_service in self.required_services:
             try:
-                ent_cls = entitlement_factory(required_service)
+                ent_cls = entitlement_factory(
+                    cfg=self.cfg, name=required_service
+                )
             except exceptions.EntitlementNotFoundError:
                 msg = messages.REQUIRED_SERVICE_NOT_FOUND.format(
                     service=required_service
@@ -656,7 +660,9 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         for dependent_service in self.dependent_services:
             try:
-                ent_cls = entitlement_factory(dependent_service)
+                ent_cls = entitlement_factory(
+                    cfg=self.cfg, name=dependent_service
+                )
             except exceptions.EntitlementNotFoundError:
                 msg = messages.DEPENDENT_SERVICE_NOT_FOUND.format(
                     service=dependent_service

@@ -59,19 +59,19 @@ DEFAULT_CFG_STATUS = {
 
 ALL_RESOURCES_AVAILABLE = [
     {"name": name, "available": True}
-    for name in valid_services(allow_beta=True)
+    for name in valid_services(cfg=UAConfig(), allow_beta=True)
 ]
 ALL_RESOURCES_ENTITLED = [
     {"type": name, "entitled": True}
-    for name in valid_services(allow_beta=True)
+    for name in valid_services(cfg=UAConfig(), allow_beta=True)
 ]
 NO_RESOURCES_ENTITLED = [
     {"type": name, "entitled": False}
-    for name in valid_services(allow_beta=True)
+    for name in valid_services(cfg=UAConfig(), allow_beta=True)
 ]
 RESP_ONLY_FIPS_RESOURCE_AVAILABLE = [
     {"name": name, "available": name == "fips"}
-    for name in valid_services(allow_beta=True)
+    for name in valid_services(cfg=UAConfig(), allow_beta=True)
 ]
 
 
@@ -719,8 +719,10 @@ class TestDeleteCache:
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 class TestStatus:
-    esm_desc = entitlement_factory("esm-infra").description
-    ros_desc = entitlement_factory("ros").description
+    esm_desc = entitlement_factory(
+        cfg=UAConfig(), name="esm-infra"
+    ).description
+    ros_desc = entitlement_factory(cfg=UAConfig(), name="ros").description
 
     def check_beta(self, cls, show_beta, uacfg=None, status=""):
         if not show_beta:

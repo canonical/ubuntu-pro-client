@@ -801,7 +801,7 @@ def _get_service_for_pocket(pocket: str, cfg: UAConfig):
     elif pocket == UA_APPS_POCKET:
         service_to_check = "esm-apps"
 
-    ent_cls = entitlement_factory(service_to_check)
+    ent_cls = entitlement_factory(cfg=cfg, name=service_to_check)
     return ent_cls(cfg) if ent_cls else None
 
 
