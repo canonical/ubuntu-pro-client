@@ -6,14 +6,14 @@ on:
   push:
   pull_request:
 
-defaults:
-  run:
-    shell: sh -ex {0}
-
 # Cancel any in-progress job or run
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    shell: sh -ex {0}
 
 jobs:
   lint-and-style:
@@ -52,12 +52,11 @@ jobs:
     steps:
       - name: Prepare build tools
         env:
-          DEBIAN_FRONTEND: noninteractive
           DEBFULLNAME: GitHub CI Auto Builder
           DEBEMAIL: nobody@nowhere.invalid
         run: |
-          sudo apt-get -qy update
-          sudo apt-get -qy install --no-install-recommends sbuild schroot ubuntu-dev-tools debootstrap git-buildpackage
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install --no-install-recommends sbuild schroot ubuntu-dev-tools debootstrap git-buildpackage
           sudo sbuild-adduser $USER
           cp /usr/share/doc/sbuild/examples/example.sbuildrc /home/$USER/.sbuildrc
       - name: Git checkout
@@ -86,8 +85,8 @@ jobs:
     steps:
       - name: Prepare test tools
         run: |
-          sudo apt-get -qy update
-          sudo apt-get -qy install tox distro-info
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox distro-info
           sudo adduser $USER lxd
       - name: Initialize LXD
         if: matrix.platform == 'lxd' || matrix.platform == 'vm'
