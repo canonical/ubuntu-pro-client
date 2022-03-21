@@ -1,6 +1,6 @@
 ---
 
-name: continuous-integration
+name: CI
 
 on:
   push:
