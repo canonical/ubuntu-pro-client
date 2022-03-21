@@ -259,6 +259,7 @@ class UAContractClient(serviceclient.UAServiceClient):
 
 
 def process_entitlements_delta(
+    cfg: UAConfig,
     past_entitlements: Dict[str, Any],
     new_entitlements: Dict[str, Any],
     allow_enable: bool,
@@ -267,6 +268,7 @@ def process_entitlements_delta(
     """Iterate over all entitlements in new_entitlement and apply any delta
     found according to past_entitlements.
 
+    :param cfg: UAConfig instance
     :param past_entitlements: dict containing the last valid information
         regarding service entitlements.
     :param new_entitlements: dict containing the current information regarding
@@ -282,8 +284,9 @@ def process_entitlements_delta(
     for name, new_entitlement in sorted(new_entitlements.items()):
         try:
             deltas, service_enabled = process_entitlement_delta(
-                past_entitlements.get(name, {}),
-                new_entitlement,
+                cfg=cfg,
+                orig_access=past_entitlements.get(name, {}),
+                new_access=new_entitlement,
                 allow_enable=allow_enable,
                 series_overrides=series_overrides,
             )
@@ -323,6 +326,7 @@ def process_entitlements_delta(
 
 
 def process_entitlement_delta(
+    cfg: UAConfig,
     orig_access: Dict[str, Any],
     new_access: Dict[str, Any],
     allow_enable: bool = False,
@@ -330,6 +334,7 @@ def process_entitlement_delta(
 ) -> Tuple[Dict, bool]:
     """Process a entitlement access dictionary deltas if they exist.
 
+    :param cfg: UAConfig instance
     :param orig_access: Dict with original entitlement access details before
         contract refresh deltas
     :param new_access: Dict with updated entitlement access details after
@@ -361,14 +366,14 @@ def process_entitlement_delta(
             )
             raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
         try:
-            ent_cls = entitlement_factory(name)
+            ent_cls = entitlement_factory(cfg=cfg, name=name)
         except exceptions.EntitlementNotFoundError as exc:
             logging.debug(
                 'Skipping entitlement deltas for "%s". No such class', name
             )
             raise exc
 
-        entitlement = ent_cls(assume_yes=allow_enable)
+        entitlement = ent_cls(cfg=cfg, assume_yes=allow_enable)
         ret = entitlement.process_contract_deltas(
             orig_access, deltas, allow_enable=allow_enable
         )
@@ -477,7 +482,7 @@ def request_updated_contract(
         )
 
     process_entitlements_delta(
-        orig_entitlements, cfg.entitlements, allow_enable
+        cfg, orig_entitlements, cfg.entitlements, allow_enable
     )
 
 

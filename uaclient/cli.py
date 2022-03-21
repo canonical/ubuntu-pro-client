@@ -126,6 +126,8 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     @staticmethod
     def _get_service_descriptions() -> Tuple[List[str], List[str]]:
+        cfg = config.UAConfig()
+
         service_info_tmpl = " - {name}: {description}{url}"
         non_beta_services_desc = []
         beta_services_desc = []
@@ -133,7 +135,9 @@ class UAArgumentParser(argparse.ArgumentParser):
         resources = contract.get_available_resources(config.UAConfig())
         for resource in resources:
             try:
-                ent_cls = entitlements.entitlement_factory(resource["name"])
+                ent_cls = entitlements.entitlement_factory(
+                    cfg=cfg, name=resource["name"]
+                )
             except exceptions.EntitlementNotFoundError:
                 continue
             # Because we don't know the presentation name if unattached
@@ -219,7 +223,9 @@ def assert_attached(msg_function=None):
                 if msg_function:
                     command = getattr(args, "command", "")
                     service_names = getattr(args, "service", "")
-                    msg = msg_function(command, service_names)
+                    msg = msg_function(
+                        command=command, service_names=service_names, cfg=cfg
+                    )
                     exception = exceptions.UnattachedError(msg)
                 else:
                     exception = exceptions.UnattachedError()
@@ -503,7 +509,7 @@ def detach_parser(parser):
     return parser
 
 
-def help_parser(parser):
+def help_parser(parser, cfg: config.UAConfig):
     """Build or extend an arg parser for help subcommand."""
     usage = USAGE_TMPL.format(name=NAME, command="help [service]")
     parser.usage = usage
@@ -517,7 +523,7 @@ def help_parser(parser):
         action="store",
         nargs="?",
         help="a service to view help output for. One of: {}".format(
-            ", ".join(entitlements.valid_services())
+            ", ".join(entitlements.valid_services(cfg=cfg))
         ),
     )
 
@@ -542,7 +548,7 @@ def help_parser(parser):
     return parser
 
 
-def enable_parser(parser):
+def enable_parser(parser, cfg: config.UAConfig):
     """Build or extend an arg parser for enable subcommand."""
     usage = USAGE_TMPL.format(
         name=NAME, command="enable <service> [<service>]"
@@ -558,7 +564,9 @@ def enable_parser(parser):
         nargs="+",
         help=(
             "the name(s) of the Ubuntu Advantage services to enable."
-            " One of: {}".format(", ".join(entitlements.valid_services()))
+            " One of: {}".format(
+                ", ".join(entitlements.valid_services(cfg=cfg))
+            )
         ),
     )
     parser.add_argument(
@@ -579,7 +587,7 @@ def enable_parser(parser):
     return parser
 
 
-def disable_parser(parser):
+def disable_parser(parser, cfg: config.UAConfig):
     """Build or extend an arg parser for disable subcommand."""
     usage = USAGE_TMPL.format(
         name=NAME, command="disable <service> [<service>]"
@@ -595,7 +603,9 @@ def disable_parser(parser):
         nargs="+",
         help=(
             "the name(s) of the Ubuntu Advantage services to disable"
-            " One of: {}".format(", ".join(entitlements.valid_services()))
+            " One of: {}".format(
+                ", ".join(entitlements.valid_services(cfg=cfg))
+            )
         ),
     )
     parser.add_argument(
@@ -726,7 +736,7 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     return ret
 
 
-def get_valid_entitlement_names(names: List[str]):
+def get_valid_entitlement_names(names: List[str], cfg: config.UAConfig):
     """Return a list of valid entitlement names.
 
     :param names: List of entitlements to validate
@@ -736,7 +746,7 @@ def get_valid_entitlement_names(names: List[str]):
 
     for ent_name in names:
         if ent_name in entitlements.valid_services(
-            allow_beta=True, all_names=True
+            cfg=cfg, allow_beta=True, all_names=True
         ):
             entitlements_found.append(ent_name)
 
@@ -750,7 +760,7 @@ def action_config(args, *, cfg, **kwargs):
 
     :return: 0 on success, 1 otherwise
     """
-    parser = get_parser()
+    parser = get_parser(cfg=cfg)
     subparser = parser._get_positional_actions()[0].choices["config"]
     valid_choices = subparser._get_positional_actions()[0].choices.keys()
     if args.command not in valid_choices:
@@ -810,7 +820,7 @@ def action_config_set(args, *, cfg, **kwargs):
     from uaclient.entitlements.livepatch import configure_livepatch_proxy
     from uaclient.snap import configure_snap_proxy
 
-    parser = get_parser()
+    parser = get_parser(cfg=cfg)
     config_parser = parser._get_positional_actions()[0].choices["config"]
     subparser = config_parser._get_positional_actions()[0].choices["set"]
     try:
@@ -925,7 +935,7 @@ def action_config_unset(args, *, cfg, **kwargs):
     from uaclient.snap import unconfigure_snap_proxy
 
     if args.key not in config.UA_CONFIGURABLE_KEYS:
-        parser = get_parser()
+        parser = get_parser(cfg=cfg)
         config_parser = parser._get_positional_actions()[0].choices["config"]
         subparser = config_parser._get_positional_actions()[0].choices["unset"]
         subparser.print_help()
@@ -957,13 +967,13 @@ def action_config_unset(args, *, cfg, **kwargs):
     return 0
 
 
-def _create_enable_disable_unattached_msg(command, service_names):
+def _create_enable_disable_unattached_msg(command, service_names, cfg):
     """Generates a custom message for enable/disable commands when unattached.
 
     Takes into consideration if the services exist or not, and notify the user
     accordingly."""
     (entitlements_found, entitlements_not_found) = get_valid_entitlement_names(
-        service_names
+        names=service_names, cfg=cfg
     )
     if entitlements_found and entitlements_not_found:
         msg = messages.MIXED_SERVICES_FAILURE_UNATTACHED
@@ -997,12 +1007,12 @@ def action_disable(args, *, cfg, **kwargs):
     """
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
-        names
+        names, cfg
     )
     ret = True
 
     for ent_name in entitlements_found:
-        ent_cls = entitlements.entitlement_factory(ent_name)
+        ent_cls = entitlements.entitlement_factory(cfg=cfg, name=ent_name)
         ent = ent_cls(cfg, assume_yes=args.assume_yes)
 
         ret &= _perform_disable(ent, cfg, assume_yes=args.assume_yes)
@@ -1010,7 +1020,7 @@ def action_disable(args, *, cfg, **kwargs):
     if entitlements_not_found:
         valid_names = (
             "Try "
-            + ", ".join(entitlements.valid_services(allow_beta=True))
+            + ", ".join(entitlements.valid_services(cfg=cfg, allow_beta=True))
             + "."
         )
         service_msg = "\n".join(
@@ -1032,13 +1042,15 @@ def action_disable(args, *, cfg, **kwargs):
 
 
 def _create_enable_entitlements_not_found_message(
-    entitlements_not_found, *, allow_beta: bool
+    entitlements_not_found, cfg: config.UAConfig, *, allow_beta: bool
 ) -> messages.NamedMessage:
     """
     Constructs the MESSAGE_INVALID_SERVICE_OP_FAILURE message
     based on the attempted services and valid services.
     """
-    valid_services_names = entitlements.valid_services(allow_beta=allow_beta)
+    valid_services_names = entitlements.valid_services(
+        cfg=cfg, allow_beta=allow_beta
+    )
     valid_names = ", ".join(valid_services_names)
     service_msg = "\n".join(
         textwrap.wrap(
@@ -1075,7 +1087,7 @@ def action_enable(args, *, cfg, **kwargs):
 
     names = getattr(args, "service", [])
     entitlements_found, entitlements_not_found = get_valid_entitlement_names(
-        names
+        names, cfg
     )
     ret = True
     for ent_name in entitlements_found:
@@ -1116,7 +1128,7 @@ def action_enable(args, *, cfg, **kwargs):
 
     if entitlements_not_found:
         msg = _create_enable_entitlements_not_found_message(
-            entitlements_not_found, allow_beta=args.beta
+            entitlements_not_found, cfg=cfg, allow_beta=args.beta
         )
         event.services_failed(entitlements_not_found)
         raise exceptions.UserFacingError(msg=msg.msg, msg_code=msg.name)
@@ -1325,7 +1337,7 @@ def action_attach(args, *, cfg):
         ret = 0
         if enable_services_override is not None and args.auto_enable:
             found, not_found = get_valid_entitlement_names(
-                enable_services_override
+                enable_services_override, cfg
             )
             for name in found:
                 ent_ret, reason = actions.enable_entitlement_by_name(
@@ -1349,7 +1361,7 @@ def action_attach(args, *, cfg):
 
             if not_found:
                 msg = _create_enable_entitlements_not_found_message(
-                    not_found, allow_beta=True
+                    not_found, cfg=cfg, allow_beta=True
                 )
                 event.info(msg.msg, file_type=sys.stderr)
                 event.error(error_msg=msg.msg, error_code=msg.name)
@@ -1437,7 +1449,7 @@ def action_collect_logs(args, *, cfg: config.UAConfig):
             results.add(output_dir, arcname="logs/")
 
 
-def get_parser():
+def get_parser(cfg: config.UAConfig):
     base_desc = __doc__
     parser = UAArgumentParser(
         prog=NAME,
@@ -1497,14 +1509,14 @@ def get_parser():
         "disable",
         help="disable a specific Ubuntu Advantage service on this machine",
     )
-    disable_parser(parser_disable)
+    disable_parser(parser_disable, cfg=cfg)
     parser_disable.set_defaults(action=action_disable)
 
     parser_enable = subparsers.add_parser(
         "enable",
         help="enable a specific Ubuntu Advantage service on this machine",
     )
-    enable_parser(parser_enable)
+    enable_parser(parser_enable, cfg=cfg)
     parser_enable.set_defaults(action=action_enable)
 
     parser_fix = subparsers.add_parser(
@@ -1525,7 +1537,7 @@ def get_parser():
         "help",
         help="show detailed information about Ubuntu Advantage services",
     )
-    help_parser(parser_help)
+    help_parser(parser_help, cfg=cfg)
     parser_help.set_defaults(action=action_help)
 
     parser_refresh = subparsers.add_parser(
@@ -1646,7 +1658,7 @@ def action_help(args, *, cfg):
     show_all = args.all
 
     if not service:
-        get_parser().print_help(show_all=show_all)
+        get_parser(cfg=cfg).print_help(show_all=show_all)
         return 0
 
     if not cfg:
@@ -1783,7 +1795,8 @@ def main_error_handler(func):
 def main(sys_argv=None):
     if not sys_argv:
         sys_argv = sys.argv
-    parser = get_parser()
+    cfg = config.UAConfig()
+    parser = get_parser(cfg=cfg)
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
@@ -1791,7 +1804,6 @@ def main(sys_argv=None):
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     set_event_mode(args)
-    cfg = config.UAConfig()
 
     http_proxy = cfg.http_proxy
     https_proxy = cfg.https_proxy
