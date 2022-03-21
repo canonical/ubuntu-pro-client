@@ -90,11 +90,12 @@ Client to manage Ubuntu Advantage services on a machine.
 
 
 @pytest.fixture(params=["direct", "--help", "ua help", "ua help --all"])
-def get_help(request, capsys):
+def get_help(request, capsys, FakeConfig):
+    cfg = FakeConfig()
     if request.param == "direct":
 
         def _get_help_output():
-            parser = get_parser()
+            parser = get_parser(cfg)
             help_file = io.StringIO()
             parser.print_help(file=help_file)
             return (help_file.getvalue(), "base")
@@ -102,7 +103,7 @@ def get_help(request, capsys):
     elif request.param == "--help":
 
         def _get_help_output():
-            parser = get_parser()
+            parser = get_parser(cfg)
             with mock.patch("sys.argv", ["ua", "--help"]):
                 with pytest.raises(SystemExit):
                     parser.parse_args()
@@ -668,8 +669,11 @@ class TestMain:
         assert "NOT_UA_ENV=YES" not in log
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_argparse_errors_well_formatted(self, _m_resources, capsys):
-        parser = get_parser()
+    def test_argparse_errors_well_formatted(
+        self, _m_resources, capsys, FakeConfig
+    ):
+        cfg = FakeConfig()
+        parser = get_parser(cfg)
         with mock.patch("sys.argv", ["ua", "enable"]):
             with pytest.raises(SystemExit) as excinfo:
                 parser.parse_args()
@@ -855,13 +859,13 @@ class TestGetValidEntitlementNames:
         "uaclient.cli.entitlements.valid_services",
         return_value=["ent1", "ent2", "ent3"],
     )
-    def test_get_valid_entitlements(self, _m_valid_services):
+    def test_get_valid_entitlements(self, _m_valid_services, FakeConfig):
         service = ["ent1", "ent3", "ent4"]
         expected_ents_found = ["ent1", "ent3"]
         expected_ents_not_found = ["ent4"]
 
         actual_ents_found, actual_ents_not_found = get_valid_entitlement_names(
-            service
+            service, cfg=FakeConfig()
         )
 
         assert expected_ents_found == actual_ents_found

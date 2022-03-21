@@ -680,7 +680,7 @@ class UAConfig:
         for resource in new_response.get("services", {}):
             resource_name = resource["name"]
             try:
-                ent_cls = entitlement_factory(resource_name)
+                ent_cls = entitlement_factory(cfg=self, name=resource_name)
             except exceptions.EntitlementNotFoundError:
                 """
                 Here we cannot know the status of a service,
@@ -755,7 +755,9 @@ class UAConfig:
             else:
                 available = status.UserFacingAvailability.UNAVAILABLE.value
             try:
-                ent_cls = entitlement_factory(resource.get("name", ""))
+                ent_cls = entitlement_factory(
+                    cfg=self, name=resource.get("name", "")
+                )
             except exceptions.EntitlementNotFoundError:
                 LOG.debug(
                     "Ignoring availability of unknown service %s"
@@ -870,10 +872,12 @@ class UAConfig:
 
         for resource in resources:
             try:
-                ent_cls = entitlement_factory(resource.get("name", ""))
+                ent_cls = entitlement_factory(
+                    cfg=self, name=resource.get("name", "")
+                )
             except exceptions.EntitlementNotFoundError:
                 continue
-            ent = ent_cls(self)
+            ent = ent_cls(cfg=self)
             response["services"].append(
                 self._attached_service_status(ent, inapplicable_resources)
             )
@@ -997,7 +1001,7 @@ class UAConfig:
         for resource in resources:
             entitlement_name = resource.get("name", "")
             try:
-                ent_cls = entitlement_factory(entitlement_name)
+                ent_cls = entitlement_factory(cfg=self, name=entitlement_name)
             except exceptions.EntitlementNotFoundError:
                 continue
             ent = ent_cls(self)
@@ -1086,7 +1090,9 @@ class UAConfig:
         for resource in resources:
             if resource["name"] == name or resource.get("presentedAs") == name:
                 try:
-                    help_ent_cls = entitlement_factory(resource["name"])
+                    help_ent_cls = entitlement_factory(
+                        cfg=self, name=resource["name"]
+                    )
                 except exceptions.EntitlementNotFoundError:
                     continue
                 help_resource = resource

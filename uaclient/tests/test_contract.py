@@ -293,7 +293,7 @@ class TestUAContractClient:
 
 
 class TestProcessEntitlementDeltas:
-    def test_error_on_missing_entitlement_type(self):
+    def test_error_on_missing_entitlement_type(self, FakeConfig):
         """Raise an error when neither dict contains entitlement type."""
         new_access = {"entitlement": {"something": "non-empty"}}
         error_msg = (
@@ -301,18 +301,22 @@ class TestProcessEntitlementDeltas:
             " {{}} {}".format(new_access)
         )
         with pytest.raises(exceptions.UserFacingError) as exc:
-            process_entitlement_delta({}, new_access)
+            process_entitlement_delta(
+                cfg=FakeConfig(), orig_access={}, new_access=new_access
+            )
         assert error_msg == str(exc.value.msg)
 
-    def test_no_delta_on_equal_dicts(self):
+    def test_no_delta_on_equal_dicts(self, FakeConfig):
         """No deltas are reported or processed when dicts are equal."""
         assert ({}, False) == process_entitlement_delta(
-            {"entitlement": {"no": "diff"}}, {"entitlement": {"no": "diff"}}
+            cfg=FakeConfig(),
+            orig_access={"entitlement": {"no": "diff"}},
+            new_access={"entitlement": {"no": "diff"}},
         )
 
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
     def test_deltas_handled_by_entitlement_process_contract_deltas(
-        self, m_process_contract_deltas
+        self, m_process_contract_deltas, FakeConfig
     ):
         """Call entitlement.process_contract_deltas to handle any deltas."""
         m_process_contract_deltas.return_value = True
@@ -321,7 +325,9 @@ class TestProcessEntitlementDeltas:
         new_access["entitlement"]["newkey"] = "newvalue"
         expected = {"entitlement": {"newkey": "newvalue"}}
         assert (expected, True) == process_entitlement_delta(
-            original_access, new_access
+            cfg=FakeConfig(),
+            orig_access=original_access,
+            new_access=new_access,
         )
         expected_calls = [
             mock.call(original_access, expected, allow_enable=False)
@@ -329,12 +335,16 @@ class TestProcessEntitlementDeltas:
         assert expected_calls == m_process_contract_deltas.call_args_list
 
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
-    def test_full_delta_on_empty_orig_dict(self, m_process_contract_deltas):
+    def test_full_delta_on_empty_orig_dict(
+        self, m_process_contract_deltas, FakeConfig
+    ):
         """Process and report full deltas on empty original access dict."""
         # Limit delta processing logic to handle attached state-A to state-B
         # Fresh installs will have empty/unset
         new_access = {"entitlement": {"type": "esm-infra", "other": "val2"}}
-        actual, _ = process_entitlement_delta({}, new_access)
+        actual, _ = process_entitlement_delta(
+            cfg=FakeConfig(), orig_access={}, new_access=new_access
+        )
         assert new_access == actual
         expected_calls = [mock.call({}, new_access, allow_enable=False)]
         assert expected_calls == m_process_contract_deltas.call_args_list
@@ -345,7 +355,7 @@ class TestProcessEntitlementDeltas:
     )
     @mock.patch(M_REPO_PATH + "process_contract_deltas")
     def test_overrides_applied_before_comparison(
-        self, m_process_contract_deltas, _
+        self, m_process_contract_deltas, _, FakeConfig
     ):
         old_access = {"entitlement": {"type": "esm", "some_key": "some_value"}}
         new_access = {
@@ -356,7 +366,9 @@ class TestProcessEntitlementDeltas:
             }
         }
 
-        process_entitlement_delta(old_access, new_access)
+        process_entitlement_delta(
+            cfg=FakeConfig(), orig_access=old_access, new_access=new_access
+        )
 
         assert 0 == m_process_contract_deltas.call_count
 
@@ -738,8 +750,11 @@ class TestRequestUpdatedContract:
         # of dict key ordering.
         process_calls = [
             mock.call(
-                {"entitlement": {"entitled": True, "type": "ent1"}},
-                {
+                cfg=cfg,
+                orig_access={
+                    "entitlement": {"entitled": True, "type": "ent1"}
+                },
+                new_access={
                     "entitlement": {
                         "entitled": True,
                         "type": "ent1",
@@ -750,8 +765,13 @@ class TestRequestUpdatedContract:
                 series_overrides=True,
             ),
             mock.call(
-                {"entitlement": {"entitled": False, "type": "ent2"}},
-                {"entitlement": {"entitled": False, "type": "ent2"}},
+                cfg=cfg,
+                orig_access={
+                    "entitlement": {"entitled": False, "type": "ent2"}
+                },
+                new_access={
+                    "entitlement": {"entitled": False, "type": "ent2"}
+                },
                 allow_enable=False,
                 series_overrides=True,
             ),

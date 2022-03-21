@@ -102,7 +102,7 @@ class TestWriteAPTAndMOTDTemplates:
         infra_obj.application_status.return_value = (infra_status, "")
         infra_obj.name = "esm-infra"
 
-        def factory_side_effect(name):
+        def factory_side_effect(cfg, name):
             if name == "esm-infra":
                 return infra_cls
             if name == "esm-apps":
@@ -192,7 +192,7 @@ class TestWriteAPTAndMOTDTemplates:
         apps_obj = apps_cls.return_value
         apps_obj.name = "esm-apps"
 
-        def factory_side_effect(name):
+        def factory_side_effect(cfg, name):
             if name == "esm-infra":
                 return infra_cls
             if name == "esm-apps":
