@@ -426,24 +426,28 @@ class TestParser:
         assert "Flags" == parser._optionals.title
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_accepts_and_stores_assume_yes(self, _m_resources):
-        full_parser = get_parser()
+    def test_detach_parser_accepts_and_stores_assume_yes(
+        self, _m_resources, FakeConfig
+    ):
+        full_parser = get_parser(FakeConfig())
         with mock.patch("sys.argv", ["ua", "detach", "--assume-yes"]):
             args = full_parser.parse_args()
 
         assert args.assume_yes
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_defaults_to_not_assume_yes(self, _m_resources):
-        full_parser = get_parser()
+    def test_detach_parser_defaults_to_not_assume_yes(
+        self, _m_resources, FakeConfig
+    ):
+        full_parser = get_parser(FakeConfig())
         with mock.patch("sys.argv", ["ua", "detach"]):
             args = full_parser.parse_args()
 
         assert not args.assume_yes
 
     @mock.patch("uaclient.cli.contract.get_available_resources")
-    def test_detach_parser_with_json_format(self, _m_resources):
-        full_parser = get_parser()
+    def test_detach_parser_with_json_format(self, _m_resources, FakeConfig):
+        full_parser = get_parser(FakeConfig())
         with mock.patch("sys.argv", ["ua", "detach", "--format", "json"]):
             args = full_parser.parse_args()
 
