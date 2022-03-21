@@ -239,7 +239,9 @@ class TestActionEnable:
                     (
                         "Try "
                         + ", ".join(
-                            entitlements.valid_services(allow_beta=True)
+                            entitlements.valid_services(
+                                cfg=cfg, allow_beta=True
+                            )
                         )
                         + "."
                     ),
@@ -438,7 +440,7 @@ class TestActionEnable:
         m_ent3_obj = m_ent3_cls.return_value
         m_ent3_obj.enable.return_value = (True, None)
 
-        def factory_side_effect(name, not_found_okay=True):
+        def factory_side_effect(cfg, name, not_found_okay=True):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -566,7 +568,7 @@ class TestActionEnable:
         args_mock.assume_yes = assume_yes
         args_mock.beta = beta_flag
 
-        def factory_side_effect(name, not_found_okay=True):
+        def factory_side_effect(cfg, name, not_found_okay=True):
             if name == "ent2":
                 return m_ent2_cls
             if name == "ent3":
@@ -575,7 +577,7 @@ class TestActionEnable:
 
         m_entitlement_factory.side_effect = factory_side_effect
 
-        def valid_services_side_effect(allow_beta, all_names=False):
+        def valid_services_side_effect(cfg, allow_beta, all_names=False):
             if allow_beta:
                 return ["ent2", "ent3"]
             return ["ent2"]
@@ -587,7 +589,7 @@ class TestActionEnable:
         mock_ent_list = [m_ent3_cls]
         mock_obj_list = [m_ent3_obj]
 
-        service_names = entitlements.valid_services(allow_beta=beta_flag)
+        service_names = entitlements.valid_services(cfg, allow_beta=beta_flag)
         ent_str = "Try " + ", ".join(service_names) + "."
         if not beta_flag:
             not_found_name += ", ent2"
@@ -766,7 +768,7 @@ class TestActionEnable:
 
         assert expected_msg == fake_stdout.getvalue()
 
-        service_names = entitlements.valid_services(allow_beta=beta)
+        service_names = entitlements.valid_services(cfg=cfg, allow_beta=beta)
         ent_str = "Try " + ", ".join(service_names) + "."
         service_msg = "\n".join(
             textwrap.wrap(

@@ -11,7 +11,12 @@ class TestValidServices:
     @pytest.mark.parametrize("is_beta", ((True), (False)))
     @mock.patch("uaclient.entitlements.is_config_value_true")
     def test_valid_services(
-        self, m_is_config_value, show_all_names, allow_beta, is_beta
+        self,
+        m_is_config_value,
+        show_all_names,
+        allow_beta,
+        is_beta,
+        FakeConfig,
     ):
         m_is_config_value.return_value = allow_beta
 
@@ -39,12 +44,12 @@ class TestValidServices:
                 expected_services.append("othername")
 
             assert expected_services == entitlements.valid_services(
-                all_names=show_all_names
+                cfg=FakeConfig(), all_names=show_all_names
             )
 
 
 class TestEntitlementFactory:
-    def test_entitlement_factory(self):
+    def test_entitlement_factory(self, FakeConfig):
         m_cls_1 = mock.MagicMock()
         m_cls_1.return_value.valid_names = ["ent1", "othername"]
 
@@ -52,9 +57,14 @@ class TestEntitlementFactory:
         m_cls_2.return_value.valid_names = ["ent2"]
 
         ents = {m_cls_1, m_cls_2}
+        cfg = FakeConfig()
 
         with mock.patch.object(entitlements, "ENTITLEMENT_CLASSES", ents):
-            assert m_cls_1 == entitlements.entitlement_factory("othername")
-            assert m_cls_2 == entitlements.entitlement_factory("ent2")
+            assert m_cls_1 == entitlements.entitlement_factory(
+                cfg=cfg, name="othername"
+            )
+            assert m_cls_2 == entitlements.entitlement_factory(
+                cfg=cfg, name="ent2"
+            )
         with pytest.raises(exceptions.EntitlementNotFoundError):
-            entitlements.entitlement_factory("nonexistent")
+            entitlements.entitlement_factory(cfg=cfg, name="nonexistent")

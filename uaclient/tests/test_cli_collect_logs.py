@@ -124,13 +124,15 @@ class TestActionCollectLogs:
 
 class TestParser:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_collect_logs_parser_updates_parser_config(self, _m_resources):
+    def test_collect_logs_parser_updates_parser_config(
+        self, _m_resources, FakeConfig
+    ):
         """Update the parser configuration for 'collect-logs'."""
         m_parser = collect_logs_parser(mock.Mock())
         assert "ua collect-logs [flags]" == m_parser.usage
         assert "collect-logs" == m_parser.prog
 
-        full_parser = get_parser()
+        full_parser = get_parser(FakeConfig())
         with mock.patch("sys.argv", ["ua", "collect-logs"]):
             args = full_parser.parse_args()
         assert "collect-logs" == args.command

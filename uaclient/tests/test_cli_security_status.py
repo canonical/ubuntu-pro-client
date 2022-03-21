@@ -105,12 +105,14 @@ class TestActionSecurityStatus:
 
 class TestParser:
     @mock.patch(M_PATH + "contract.get_available_resources")
-    def test_security_status_parser_updates_parser_config(self, _m_resources):
+    def test_security_status_parser_updates_parser_config(
+        self, _m_resources, FakeConfig
+    ):
         """Update the parser configuration for 'security-status'."""
         m_parser = security_status_parser(mock.Mock())
         assert "security-status" == m_parser.prog
 
-        full_parser = get_parser()
+        full_parser = get_parser(FakeConfig())
         with mock.patch(
             "sys.argv", ["ua", "security-status", "--format", "json"]
         ):
