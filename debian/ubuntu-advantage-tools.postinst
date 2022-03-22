@@ -250,16 +250,17 @@ configure_esm() {
 mark_reboot_for_fips_pro() {
     FIPS_HOLDS=$(apt-mark showholds | grep -E 'fips|libssl1|openssh-client|openssh-server|linux-fips|openssl|strongswan' || exit 0)
     if [ "$FIPS_HOLDS" ]; then
-       mark_reboot_cmds_as_needed MESSAGE_FIPS_REBOOT_REQUIRED
+       mark_reboot_cmds_as_needed FIPS_REBOOT_REQUIRED_MSG
     fi
 }
 
 
 add_notice() {
-    msg_name=$1
+    module=$1
+    msg_name=$2
     /usr/bin/python3 -c "
 from uaclient.config import UAConfig
-from uaclient.status import ${msg_name}
+from uaclient.${module} import ${msg_name}
 cfg = UAConfig()
 cfg.add_notice(label='', description=${msg_name})
 "
@@ -270,7 +271,7 @@ mark_reboot_cmds_as_needed() {
     if [ ! -f "$REBOOT_CMD_MARKER_FILE" ]; then
       touch $REBOOT_CMD_MARKER_FILE
     fi
-    add_notice "$msg_name"
+    add_notice messages "$msg_name"
 }
 
 patch_status_json_0_1_for_non_root() {
@@ -305,7 +306,7 @@ notify_wrong_fips_metapackage_on_cloud() {
 
     if echo "$cloud_id" | grep -E -q "^(azure|aws)"; then
       if echo "$fips_installed" | grep -E -q "installed"; then
-        add_notice NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+        add_notice status NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
       fi
     fi
 }
@@ -410,7 +411,7 @@ case "$1" in
       # Repo for FIPS packages changed from old client
       if [ -f $FIPS_APT_SOURCE_FILE ]; then
         if grep -q $OLD_CLIENT_FIPS_PPA $FIPS_APT_SOURCE_FILE; then
-            add_notice MESSAGE_FIPS_INSTALL_OUT_OF_DATE
+            add_notice messages FIPS_INSTALL_OUT_OF_DATE
         fi
       fi
 
@@ -445,7 +446,7 @@ case "$1" in
 
       if [ "$VERSION_ID" = "16.04" ]; then
         if echo "$PREVIOUS_PKG_VER" | grep -q "14.04"; then
-          mark_reboot_cmds_as_needed MESSAGE_LIVEPATCH_LTS_REBOOT_REQUIRED
+          mark_reboot_cmds_as_needed LIVEPATCH_LTS_REBOOT_REQUIRED
         fi
       fi
       mark_reboot_for_fips_pro

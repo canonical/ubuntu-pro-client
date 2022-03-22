@@ -102,6 +102,7 @@ REBOOT_SCRIPT_FAILED = (
 LIVEPATCH_LTS_REBOOT_REQUIRED = (
     "Livepatch support requires a system reboot across LTS upgrade."
 )
+FIPS_REBOOT_REQUIRED_MSG = "Reboot to FIPS kernel required"
 SNAPD_DOES_NOT_HAVE_WAIT_CMD = (
     "snapd does not have wait command.\n"
     "Enabling Livepatch can fail under this scenario\n"
