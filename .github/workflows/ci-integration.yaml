@@ -1,14 +1,13 @@
 ---
 
-name: CI
+name: CI (integration)
 
 on:
-  push:
   pull_request:
 
 # Cancel any in-progress job or run
 concurrency:
-  group: ci-${{ github.ref }}
+  group: 'ci-${{ github.workflow }}-${{ github.ref }}'
   cancel-in-progress: true
 
 defaults:
@@ -16,34 +15,6 @@ defaults:
     shell: sh -ex {0}
 
 jobs:
-  lint-and-style:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
-      - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Linting and style
-        run: tox -e flake8 -e black -e isort
-      - name: mypy
-        run: tox -e mypy
-  unit-tests:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install python3-venv
-      - name: Git checkout
-        uses: actions/checkout@v2
-      - name: Linting and style
-        run: |
-          python3 -m venv unit-test-venv
-          . unit-test-venv/bin/activate
-          pip install tox tox-pip-version
-          tox -e py3 -e py3-bionic -e py3-xenial
   package-builds:
     runs-on: ubuntu-20.04
     strategy:
