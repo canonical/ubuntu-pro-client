@@ -3,3 +3,4 @@ bionic-fips: ami-03b75f613f80bcff1
 focal: ami-0489b8bdbbf3a3b32
 xenial: ami-011bcfe2bea365b6a
 xenial-fips: ami-077e4c339a098fc9f
+focal-fips: ami-02782bf2569bf457c
