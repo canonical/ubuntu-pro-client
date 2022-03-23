@@ -295,22 +295,17 @@ class TestSubp:
             with pytest.raises(exceptions.ProcessExecutionError) as excinfo:
                 util.subp(["ls", "--bogus"])
 
-        expected_errors = [
-            "Failed running command 'ls --bogus' [exit(2)].",
-            "ls: unrecognized option '--bogus'",
-        ]
-        for msg in expected_errors:
-            assert msg in str(excinfo.value)
+        assert 2 == excinfo.value.exit_code
+        assert "" == excinfo.value.stdout
         assert 0 == m_sleep.call_count  # no retries
 
     @mock.patch("uaclient.util.time.sleep")
     def test_no_error_on_accepted_return_codes(self, m_sleep, _subp):
         """When rcs list includes the exit code, do not raise an error."""
         with mock.patch("uaclient.util._subp", side_effect=_subp):
-            out, err = util.subp(["ls", "--bogus"], rcs=[2])
+            out, _ = util.subp(["ls", "--bogus"], rcs=[2])
 
         assert "" == out
-        assert "ls: unrecognized option '--bogus'" in err
         assert 0 == m_sleep.call_count  # no retries
 
     @mock.patch("uaclient.util.time.sleep")
