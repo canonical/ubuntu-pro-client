@@ -26,12 +26,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
             """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -79,6 +73,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        And apt-cache policy for the following url has permission `1001`
+        """
+        <fips-apt-source> amd64 Packages
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
         And I run `apt-cache policy <infra-pkg>` as non-root
@@ -104,6 +102,81 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release | infra-pkg | apps-pkg | fips-apt-source                                | fips-kernel-version |
            | xenial  | libkrad0  | jq       | https://esm.ubuntu.com/fips/ubuntu xenial/main | fips                |
            | bionic  | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | azure-fips          |
+           | focal   | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | azure-fips          |
+
+    @series.focal
+    @uses.config.machine_type.azure.pro.fips
+    Scenario Outline: Check fips packages are correctly installed on Azure Focal machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        features:
+          allow_xenial_fips_on_cloud: true
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +enabled +NIST-certified core packages
+            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            livepatch     +yes +n/a  +Canonical Livepatch service
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+
+        Examples: ubuntu release
+           | release | fips-apt-source                                |
+           | focal   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.azure.pro.fips
+    Scenario Outline: Check fips packages are correctly installed on Azure Bionic & Xenial machines
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        features:
+          allow_xenial_fips_on_cloud: true
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +enabled +NIST-certified core packages
+            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            livepatch     +yes +n/a  +Canonical Livepatch service
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+
+        Examples: ubuntu release
+           | release  | fips-apt-source                                 |
+           | xenial   | https://esm.ubuntu.com/fips/ubuntu xenial/main  |
+           | bionic   | https://esm.ubuntu.com/fips/ubuntu bionic/main  |
 
     @series.lts
     @uses.config.machine_type.aws.pro.fips
@@ -129,12 +202,6 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
             """
         And I verify that running `apt update` `with sudo` exits `0`
         And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
-        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
-        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
         When I run `uname -r` as non-root
         Then stdout matches regexp:
             """
@@ -182,6 +249,10 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         """
         https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        And apt-cache policy for the following url has permission `1001`
+        """
+        <fips-apt-source> amd64 Packages
+        """
         And I verify that running `apt update` `with sudo` exits `0`
         When I run `apt install -y <infra-pkg>/<release>-infra-security` with sudo, retrying exit [100]
         And I run `apt-cache policy <infra-pkg>` as non-root
@@ -207,4 +278,78 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release | infra-pkg | apps-pkg | fips-apt-source                                | fips-kernel-version |
            | xenial  | libkrad0  | jq       | https://esm.ubuntu.com/fips/ubuntu xenial/main | fips                |
            | bionic  | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | aws-fips            |
+           | focal   | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | aws-fips          |
 
+    @series.focal
+    @uses.config.machine_type.aws.pro.fips
+    Scenario Outline: Check fips packages are correctly installed on AWS Focal machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        features:
+          allow_xenial_fips_on_cloud: true
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +enabled +NIST-certified core packages
+            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            livepatch     +yes +n/a  +Canonical Livepatch service
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+
+        Examples: ubuntu release
+           | release | fips-apt-source                                |
+           | focal   | https://esm.ubuntu.com/fips/ubuntu focal/main  |
+
+    @series.xenial
+    @series.bionic
+    @uses.config.machine_type.aws.pro.fips
+    Scenario Outline: Check fips packages are correctly installed on AWS Bionic & Xenial machines
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        features:
+          allow_xenial_fips_on_cloud: true
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+            """
+            esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
+            fips          +yes +enabled +NIST-certified core packages
+            fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+            livepatch     +yes +n/a  +Canonical Livepatch service
+            """
+        And I verify that running `apt update` `with sudo` exits `0`
+        And I verify that running `grep Traceback /var/log/ubuntu-advantage.log` `with sudo` exits `1`
+        And I verify that `openssh-server` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-server-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `openssh-client-hmac` is installed from apt source `<fips-apt-source>`
+        And I verify that `strongswan-hmac` is installed from apt source `<fips-apt-source>`
+
+        Examples: ubuntu release
+           | release  | fips-apt-source                                 |
+           | xenial   | https://esm.ubuntu.com/fips/ubuntu xenial/main  |
+           | bionic   | https://esm.ubuntu.com/fips/ubuntu bionic/main  |
