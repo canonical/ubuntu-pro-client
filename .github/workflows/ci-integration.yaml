@@ -82,7 +82,7 @@ jobs:
           UACLIENT_BEHAVE_BUILD_PR: '1'
         run: |
           uversion=$(ubuntu-distro-info --series='${{ matrix.release }}' --release | cut -d' ' -f1)
-          sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow --tags=-uses.config.contract_token"
+          sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow"
       - name: Archive test artifacts
         if: always()
         uses: actions/upload-artifact@v3
