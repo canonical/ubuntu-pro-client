@@ -80,6 +80,9 @@ jobs:
           UACLIENT_BEHAVE_ARTIFACT_DIR: '${{ runner.temp }}/artifacts/behave-${{ matrix.platform }}-${{ matrix.release }}'
           UACLIENT_BEHAVE_SNAPSHOT_STRATEGY: '1'
           UACLIENT_BEHAVE_BUILD_PR: '1'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN }}'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING }}'
+          UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
         run: |
           uversion=$(ubuntu-distro-info --series='${{ matrix.release }}' --release | cut -d' ' -f1)
           sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow"
