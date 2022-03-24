@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         release: ['xenial', 'bionic', 'focal', 'jammy']
-        platform: ['lxd', 'vm']
+        platform: ['lxd']
     steps:
       - name: Prepare test tools
         run: |
