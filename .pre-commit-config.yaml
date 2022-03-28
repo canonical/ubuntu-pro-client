@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/ambv/black
-    rev: 19.3b0  # Also stored in dev-requirements.txt; update both together!
+    rev: 22.3.0  # Also stored in dev-requirements.txt; update both together!
     hooks:
     - id: black
   - repo: https://github.com/pycqa/isort

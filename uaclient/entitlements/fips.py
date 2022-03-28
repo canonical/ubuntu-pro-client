@@ -299,7 +299,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         return self._replace_metapackage_on_cloud_instance(packages)
 
     def application_status(
-        self
+        self,
     ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
         super_status, super_msg = super().application_status()
 
@@ -454,7 +454,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         )
 
     @property
-    def messaging(self,) -> MessagingOperationsDict:
+    def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if util.is_container():
             pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
@@ -519,7 +519,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
         )
 
     @property
-    def messaging(self,) -> MessagingOperationsDict:
+    def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if util.is_container():
             pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
