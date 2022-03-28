@@ -109,9 +109,10 @@ class UAArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None, show_all=False):
         if self.base_desc:
-            non_beta_services_desc, beta_services_desc = (
-                UAArgumentParser._get_service_descriptions()
-            )
+            (
+                non_beta_services_desc,
+                beta_services_desc,
+            ) = UAArgumentParser._get_service_descriptions()
             service_descriptions = sorted(non_beta_services_desc)
             if show_all:
                 service_descriptions = sorted(

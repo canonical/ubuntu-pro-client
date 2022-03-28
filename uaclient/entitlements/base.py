@@ -162,7 +162,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
     # Any custom messages to emit to the console or callables which are
     # handled at pre_enable, pre_disable, pre_install or post_enable stages
     @property
-    def messaging(self,) -> MessagingOperationsDict:
+    def messaging(self) -> MessagingOperationsDict:
         return {}
 
     def __init__(
@@ -428,7 +428,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return len(self.blocking_incompatible_services()) > 0
 
     def handle_incompatible_services(
-        self
+        self,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when incompatible services are found during enable.
@@ -481,7 +481,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True, None
 
     def _enable_required_services(
-        self
+        self,
     ) -> Tuple[bool, Optional[messages.NamedMessage]]:
         """
         Prompt user when required services are found during enable.
@@ -539,7 +539,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return True, None
 
     def applicability_status(
-        self
+        self,
     ) -> Tuple[ApplicabilityStatus, Optional[messages.NamedMessage]]:
         """Check all contract affordances to vet current platform
 
@@ -902,7 +902,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         return False
 
     def user_facing_status(
-        self
+        self,
     ) -> Tuple[UserFacingStatus, Optional[messages.NamedMessage]]:
         """Return (user-facing status, details) for entitlement"""
         applicability, details = self.applicability_status()
@@ -929,7 +929,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def application_status(
-        self
+        self,
     ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
         """
         The current status of application of this entitlement

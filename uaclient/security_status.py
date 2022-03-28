@@ -74,7 +74,7 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
 
 
 def filter_security_updates(
-    packages: List[apt_package.Package]
+    packages: List[apt_package.Package],
 ) -> List[apt_package.Package]:
     """Filters a list of packages looking for available security updates.
 
