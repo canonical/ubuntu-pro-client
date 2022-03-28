@@ -83,7 +83,7 @@ def assert_valid_apt_credentials(repo_url, username, password):
 
 
 def _parse_apt_update_for_invalid_apt_config(
-    apt_error: str
+    apt_error: str,
 ) -> Optional[messages.NamedMessage]:
     """Parse apt update errors for invalid apt config in user machine.
 

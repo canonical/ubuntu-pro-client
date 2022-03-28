@@ -98,7 +98,7 @@ class RepoEntitlement(base.UAEntitlement):
         self.remove_apt_config(silent=silent)
 
     def application_status(
-        self
+        self,
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         entitlement_cfg = self.cfg.entitlements.get(self.name, {})
         directives = entitlement_cfg.get("entitlement", {}).get(

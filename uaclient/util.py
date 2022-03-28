@@ -874,7 +874,9 @@ def is_installed(package_name: str) -> bool:
         return False
 
 
-def handle_message_operations(msg_ops: Optional[MessagingOperations],) -> bool:
+def handle_message_operations(
+    msg_ops: Optional[MessagingOperations],
+) -> bool:
     """Emit messages to the console for user interaction
 
     :param msg_op: A list of strings or tuples. Any string items are printed.

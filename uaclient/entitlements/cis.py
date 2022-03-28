@@ -16,7 +16,7 @@ class CISEntitlement(repo.RepoEntitlement):
     apt_noninteractive = True
 
     @property
-    def messaging(self,) -> MessagingOperationsDict:
+    def messaging(self) -> MessagingOperationsDict:
         if self._called_name == "usg":
             return {
                 "post_enable": [

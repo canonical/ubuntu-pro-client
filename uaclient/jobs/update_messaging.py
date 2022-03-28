@@ -53,7 +53,7 @@ class ExternalMessage(enum.Enum):
 
 
 def get_contract_expiry_status(
-    cfg: config.UAConfig
+    cfg: config.UAConfig,
 ) -> Tuple[ContractExpiryStatus, int]:
     """Return a tuple [ContractExpiryStatus, num_days]"""
     if not cfg.is_attached:

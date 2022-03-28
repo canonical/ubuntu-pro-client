@@ -363,7 +363,7 @@ class TestLivepatchEntitlementCanEnable:
     def test_can_enable_false_on_unsupported_kernel_min_version(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
-        """"False when on a kernel less or equal to minKernelVersion."""
+        """False when on a kernel less or equal to minKernelVersion."""
         unsupported_min_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_min_kernel["kernel"] = "4.2.9-00-generic"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
@@ -381,7 +381,7 @@ class TestLivepatchEntitlementCanEnable:
     def test_can_enable_false_on_unsupported_kernel_flavor(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
-        """"When on an unsupported kernel, can_enable returns False."""
+        """When on an unsupported kernel, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_kernel["kernel"] = "4.4.0-140-notgeneric"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
@@ -415,7 +415,7 @@ class TestLivepatchEntitlementCanEnable:
         meets_min_version,
         entitlement,
     ):
-        """"When on an unsupported kernel version, can_enable returns False."""
+        """When on an unsupported kernel version, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_kernel["kernel"] = kernel_version
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
@@ -440,7 +440,7 @@ class TestLivepatchEntitlementCanEnable:
     def test_can_enable_false_on_unsupported_architecture(
         self, _m_is_container, _m_livepatch_status, _m_fips_status, entitlement
     ):
-        """"When on an unsupported architecture, can_enable returns False."""
+        """When on an unsupported architecture, can_enable returns False."""
         unsupported_kernel = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
         unsupported_kernel["arch"] = "ppc64le"
         with mock.patch("uaclient.util.get_platform_info") as m_platform:
