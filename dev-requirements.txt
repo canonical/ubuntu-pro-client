@@ -1,5 +1,8 @@
 # The black and isort versions are also in .pre-commit-config.yaml; make sure
 # to update both together
 black==19.3b0
+# see https://github.com/psf/black/issues/2964
+# we can remove this when updating to black >= 22.3.0
+click==8.0.4
 isort==5.8.0
 pre-commit
