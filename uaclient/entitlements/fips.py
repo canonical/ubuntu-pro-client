@@ -389,6 +389,9 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         "openssl",
         "strongswan",
         "strongswan-hmac",
+        "libgcrypt20",
+        "libgcrypt20-hmac",
+        "fips-initramfs-generic",
     ]
 
     @property
