@@ -1097,6 +1097,10 @@ class TestFipsSetupAPTConfig:
                 "openssh-server\nlibssl1.1-hmac\nasdf\n",
                 ["openssh-server", "libssl1.1-hmac"],
             ),
+            (
+                "libgcrypt20\nlibgcrypt20-hmac\nwow\n",
+                ["libgcrypt20", "libgcrypt20-hmac"],
+            ),
         ),
     )
     @mock.patch(M_REPOPATH + "RepoEntitlement.setup_apt_config")

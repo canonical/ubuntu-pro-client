@@ -97,6 +97,38 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        When I run `ua enable fips-updates --assume-yes` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Disabling incompatible service: FIPS
+            Updating package lists
+            Installing FIPS Updates packages
+            FIPS Updates enabled
+            A reboot is required to complete install.
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            fips          +yes +n/a +NIST-certified core packages
+            fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+            """
+        When I reboot the `<release>` machine
+        And I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            <fips-kernel-version>
+            """
+        When I run `apt-cache policy ubuntu-azure-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
 
         Examples: ubuntu release
            | release | infra-pkg | apps-pkg | fips-apt-source                                | fips-kernel-version |
@@ -273,12 +305,44 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
         \s*\*\*\* .* 500
         \s*500 https://esm.ubuntu.com/apps/ubuntu <release>-apps-security/main amd64 Packages
         """
+        When I run `ua enable fips-updates --assume-yes` with sudo
+        Then I will see the following on stdout:
+            """
+            One moment, checking your subscription first
+            Disabling incompatible service: FIPS
+            Updating package lists
+            Installing FIPS Updates packages
+            FIPS Updates enabled
+            A reboot is required to complete install.
+            """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+            """
+            fips          +yes +n/a +NIST-certified core packages
+            fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+            """
+        When I reboot the `<release>` machine
+        And I run `uname -r` as non-root
+        Then stdout matches regexp:
+            """
+            <fips-kernel-version>
+            """
+        When I run `apt-cache policy ubuntu-aws-fips` as non-root
+        Then stdout does not match regexp:
+        """
+        .*Installed: \(none\)
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
 
         Examples: ubuntu release
            | release | infra-pkg | apps-pkg | fips-apt-source                                | fips-kernel-version |
            | xenial  | libkrad0  | jq       | https://esm.ubuntu.com/fips/ubuntu xenial/main | fips                |
            | bionic  | libkrad0  | bundler  | https://esm.ubuntu.com/fips/ubuntu bionic/main | aws-fips            |
-           | focal   | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | aws-fips          |
+           | focal   | hello     | 389-ds   | https://esm.ubuntu.com/fips/ubuntu focal/main  | aws-fips            |
 
     @series.focal
     @uses.config.machine_type.aws.pro.fips
