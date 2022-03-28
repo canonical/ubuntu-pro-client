@@ -376,7 +376,7 @@ def process_entitlement_delta(
 
 
 def _create_attach_forbidden_message(
-    e: exceptions.ContractAPIError
+    e: exceptions.ContractAPIError,
 ) -> messages.NamedMessage:
     msg = messages.ATTACH_EXPIRED_TOKEN
     if (

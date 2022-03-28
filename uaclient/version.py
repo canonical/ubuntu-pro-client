@@ -16,13 +16,13 @@ VERSION_TMPL = "{version}{feature_suffix}"
 def get_version(_args=None, features={}):
     """Return the packaged version as a string
 
-         Prefer the binary PACKAGED_VESION set by debian/rules to DEB_VERSION.
-         If unavailable, check for a .git development environments:
-           a. If run in our upstream repo `git describe` will gives a leading
-              XX.Y so return the --long version to allow daily build recipes
-              to count commit offset from upstream's XX.Y signed tag.
-           b. If run in a git-ubuntu pkg repo, upstream tags aren't visible,
-              parse the debian/changelog in that case
+    Prefer the binary PACKAGED_VESION set by debian/rules to DEB_VERSION.
+    If unavailable, check for a .git development environments:
+      a. If run in our upstream repo `git describe` will gives a leading
+         XX.Y so return the --long version to allow daily build recipes
+         to count commit offset from upstream's XX.Y signed tag.
+      b. If run in a git-ubuntu pkg repo, upstream tags aren't visible,
+         parse the debian/changelog in that case
     """
     feature_suffix = ""
     for key, value in sorted(features.items()):

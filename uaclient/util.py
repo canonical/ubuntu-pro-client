@@ -810,11 +810,11 @@ def redact_sensitive_logs(
 def should_reboot(installed_pkgs: Optional[Set[str]] = None) -> bool:
     """Check if the system needs to be rebooted.
 
-       :param installed_pkgs: If provided, verify if the any packages in
-           the list are present on /var/run/reboot-required.pkgs. If that
-           param is provided, we will only return true if we have the
-           reboot-required marker file and any package in reboot-required.pkgs
-           file.
+    :param installed_pkgs: If provided, verify if the any packages in
+        the list are present on /var/run/reboot-required.pkgs. If that
+        param is provided, we will only return true if we have the
+        reboot-required marker file and any package in reboot-required.pkgs
+        file.
     """
 
     # If the reboot marker file doesn't exist, we don't even
@@ -847,7 +847,9 @@ def is_installed(package_name: str) -> bool:
         return False
 
 
-def handle_message_operations(msg_ops: Optional[MessagingOperations],) -> bool:
+def handle_message_operations(
+    msg_ops: Optional[MessagingOperations],
+) -> bool:
     """Emit messages to the console for user interaction
 
     :param msg_op: A list of strings or tuples. Any string items are printed.

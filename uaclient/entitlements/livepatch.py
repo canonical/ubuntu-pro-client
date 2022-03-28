@@ -272,7 +272,7 @@ class LivepatchEntitlement(UAEntitlement):
         return True
 
     def application_status(
-        self
+        self,
     ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         status = (ApplicationStatus.ENABLED, None)
 

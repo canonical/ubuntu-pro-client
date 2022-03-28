@@ -976,9 +976,10 @@ class TestFIPSEntitlementApplicationStatus:
                 m_load_file.side_effect = fake_load_file
                 with mock.patch("os.path.exists") as m_path_exists:
                     m_path_exists.side_effect = fake_exists
-                    actual_status, actual_msg = (
-                        entitlement.application_status()
-                    )
+                    (
+                        actual_status,
+                        actual_msg,
+                    ) = entitlement.application_status()
 
         expected_status = status.ApplicationStatus.ENABLED
         if path_exists and proc_content == "1":
