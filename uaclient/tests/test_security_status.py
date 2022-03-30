@@ -198,13 +198,10 @@ class TestSecurityStatus:
             ),
         ]
 
-        service_to_origin_dict = {
-            "esm-infra": ("UbuntuESM", "example-infra-security"),
-            "standard-security": ("Ubuntu", "example-security"),
-            "esm-apps": ("UbuntuESMApps", "example-apps-security"),
-        }
         origin_to_service_dict = {
-            v: k for k, v in service_to_origin_dict.items()
+            ("UbuntuESM", "example-infra-security"): "esm-infra",
+            ("Ubuntu", "example-security"): "standard-security",
+            ("UbuntuESMApps", "example-apps-security"): "esm-apps",
         }
 
         cfg = FakeConfig()
@@ -250,8 +247,6 @@ class TestSecurityStatus:
         }
 
         with mock.patch(
-            M_PATH + "SERVICE_TO_ORIGIN_INFORMATION", service_to_origin_dict
-        ), mock.patch(
             M_PATH + "ORIGIN_INFORMATION_TO_SERVICE", origin_to_service_dict
         ):
             output = security_status(cfg)

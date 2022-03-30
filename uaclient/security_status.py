@@ -12,14 +12,11 @@ series = get_platform_info()["series"]
 
 ESM_SERVICES = ("esm-infra", "esm-apps")
 
-SERVICE_TO_ORIGIN_INFORMATION = {
-    "standard-security": ("Ubuntu", "{}-security".format(series)),
-    "esm-apps": ("UbuntuESMApps", "{}-apps-security".format(series)),
-    "esm-infra": ("UbuntuESM", "{}-infra-security".format(series)),
-}
 
 ORIGIN_INFORMATION_TO_SERVICE = {
-    v: k for k, v in SERVICE_TO_ORIGIN_INFORMATION.items()
+    ("Ubuntu", "{}-security".format(series)): "standard-security",
+    ("UbuntuESMApps", "{}-apps-security".format(series)): "esm-apps",
+    ("UbuntuESM", "{}-infra-security".format(series)): "esm-infra",
 }
 
 
@@ -34,14 +31,11 @@ class UpdateStatus(Enum):
 def list_esm_for_package(package: apt_package.Package) -> List[str]:
     esm_services = []
     for origin in package.installed.origins:
-        if (origin.origin, origin.archive) == SERVICE_TO_ORIGIN_INFORMATION[
-            "esm-infra"
-        ]:
-            esm_services.append("esm-infra")
-        if (origin.origin, origin.archive) == SERVICE_TO_ORIGIN_INFORMATION[
-            "esm-apps"
-        ]:
-            esm_services.append("esm-apps")
+        service = ORIGIN_INFORMATION_TO_SERVICE.get(
+            (origin.origin, origin.archive), ""
+        )
+        if service in ESM_SERVICES:
+            esm_services.append(service)
     return esm_services
 
 
