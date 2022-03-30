@@ -1,0 +1,28 @@
+---
+
+name: Cloud Cleanup
+
+on:
+  schedule:
+    - cron: '42 2 * * *'
+
+defaults:
+  run:
+    shell: sh -ex {0}
+
+jobs:
+  cleanup-ec2:
+    name: Cleanup EC2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Delete stale CI instances
+        run: |
+          yesterday=$(date --utc --iso-8601=seconds --date=yesterday)
+          stale_instances=$(aws ec2 describe-instances --query "Reservations[].Instances[?LaunchTime<=\`$yesterday\`][].{id: InstanceId, launched: LaunchTime}" --filters 'Name=tag:Name,Values=uaclient-ci-*' --output text)
+          [ -n "$stale_instances" ] && aws ec2 terminate-instances --instance-ids $stale_instances
