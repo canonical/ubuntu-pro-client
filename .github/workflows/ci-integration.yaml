@@ -47,6 +47,7 @@ jobs:
           path: '${{ runner.temp }}/*.deb'
           retention-days: 3
   integration-tests:
+    if: ${{ github.repository == 'canonical/ubuntu-advantage-client' }}
     needs: package-builds
     runs-on: ubuntu-20.04
     strategy:
