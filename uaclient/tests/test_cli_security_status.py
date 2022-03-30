@@ -17,8 +17,19 @@ HELP_OUTPUT = textwrap.dedent(
     """\
 usage: security-status \[-h\] --format {json,yaml}
 
-Show security updates for packages in the system, including all available ESM
-related content.
+Show security updates for packages in the system, including all
+available ESM related content.
+
+Besides the list of security updates, it also shows a summary of the
+installed packages based on the origin.
+- main/restricted/universe/multiverse: packages from the Ubuntu archive
+- ESM Infra/Apps: packages from ESM
+- third-party: packages installed from non-Ubuntu sources
+- unknown: packages which don't have an installation source \(like local
+  deb packages or packages for which the source was removed\)
+
+The summary contains basic information about UA and ESM. For a complete
+status on UA services, run 'ua status'
 
 (optional arguments|options):
   -h, --help            show this help message and exit

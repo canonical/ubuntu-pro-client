@@ -31,6 +31,24 @@
         "num_installed_packages": {
           "type": "integer"
         },
+        "num_installed_packages_main": {
+          "type": "integer"
+        },
+        "num_installed_packages_multiverse": {
+          "type": "integer"
+        },
+        "num_installed_packages_restricted": {
+          "type": "integer"
+        },
+        "num_installed_packages_universe": {
+          "type": "integer"
+        },
+        "num_installed_packages_third_party": {
+          "type": "integer"
+        },
+        "num_installed_packages_unavailable": {
+          "type": "integer"
+        },
         "num_esm_infra_packages": {
           "type": "integer"
         },
