@@ -51,6 +51,9 @@ jobs:
     needs: package-builds
     runs-on: ubuntu-20.04
     strategy:
+      # Disable fail-fast as these jobs are slow, so we want to extract
+      # as much information as possible from them.
+      fail-fast: false
       matrix:
         release: ['xenial', 'bionic', 'focal', 'jammy']
         platform: ['lxd']
