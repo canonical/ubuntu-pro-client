@@ -85,6 +85,12 @@ jobs:
           UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING }}'
           UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
         run: |
+          PYCLOUDLIB_CONFIG="$(mktemp --tmpdir="${{ runner.temp }}" pycloudlib.toml.XXXXXXXXXX)"
+          export PYCLOUDLIB_CONFIG
+
+          # Dump secrets using a subshell to avoid leaks due to xtrace
+          sh -c 'echo "[lxd]" > "$PYCLOUDLIB_CONFIG"'
+
           uversion=$(ubuntu-distro-info --series='${{ matrix.release }}' --release | cut -d' ' -f1)
           sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow"
       - name: Archive test artifacts
