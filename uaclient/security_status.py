@@ -29,15 +29,25 @@ class UpdateStatus(Enum):
     UNAVAILABLE = "upgrade_unavailable"
 
 
-def list_esm_for_package(package: apt_package.Package) -> List[str]:
-    esm_services = []
-    for origin in package.installed.origins:
+def get_origin_for_package(package: apt_package.Package) -> str:
+    available_origins = package.installed.origins
+
+    # TODO: @Renan explain this
+    if len(available_origins) == 1:
+        if package.installed == package.candidate:
+            return "unknown"
+        available_origins = package.candidate.origins
+
+    for origin in available_origins:
         service = ORIGIN_INFORMATION_TO_SERVICE.get(
             (origin.origin, origin.archive), ""
         )
         if service in ESM_SERVICES:
-            esm_services.append(service)
-    return esm_services
+            return service
+        if origin.origin == "Ubuntu":
+            return origin.component
+
+    return "third-party"
 
 
 def get_service_name(origins: List[apt_package.Origin]) -> Tuple[str, str]:
@@ -70,7 +80,7 @@ def get_update_status(service_name: str, ua_info: Dict[str, Any]) -> str:
 
 def filter_security_updates(
     packages: List[apt_package.Package],
-) -> List[apt_package.Package]:
+) -> List[apt_package.Version]:
     """Filters a list of packages looking for available security updates.
 
     Checks if the package has a greater version available, and if the origin of
@@ -131,9 +141,8 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     update_count = defaultdict(int)  # type: DefaultDict[str, int]
 
     for package in installed_packages:
-        esm_services = list_esm_for_package(package)
-        for service in esm_services:
-            package_count[service] += 1
+        package_origin = get_origin_for_package(package)
+        package_count[package_origin] += 1
 
     security_upgradable_versions = filter_security_updates(installed_packages)
 
@@ -151,8 +160,15 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
             }
         )
 
+    summary["num_main_packages"] = package_count["main"]
+    summary["num_restricted_packages"] = package_count["restricted"]
+    summary["num_universe_packages"] = package_count["universe"]
+    summary["num_multiverse_packages"] = package_count["multiverse"]
+    summary["num_third_party_packages"] = package_count["third-party"]
+    summary["num_unknown_packages"] = package_count["unknown"]
     summary["num_esm_infra_packages"] = package_count["esm-infra"]
     summary["num_esm_apps_packages"] = package_count["esm-apps"]
+
     summary["num_esm_infra_updates"] = update_count["esm-infra"]
     summary["num_esm_apps_updates"] = update_count["esm-apps"]
     summary["num_standard_security_updates"] = update_count[
