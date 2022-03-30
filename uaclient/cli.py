@@ -422,10 +422,25 @@ def fix_parser(parser):
 def security_status_parser(parser):
     """Build or extend an arg parser for security-status subcommand."""
     parser.prog = "security-status"
-    parser.description = (
-        "Show security updates for packages in the system, including all"
-        " available ESM related content."
+    parser.formatter_class = argparse.RawDescriptionHelpFormatter
+    parser.description = textwrap.dedent(
+        """\
+        Show security updates for packages in the system, including all
+        available ESM related content.
+
+        Besides the list of security updates, it also shows a summary of the
+        installed packages based on the origin.
+        - main/restricted/universe/multiverse: packages from the Ubuntu archive
+        - ESM Infra/Apps: packages from ESM
+        - third-party: packages installed from non-Ubuntu sources
+        - unknown: packages which don't have an installation source (like local
+          deb packages or packages for which the source was removed)
+
+        The summary contains basic information about UA and ESM. For a complete
+        status on UA services, run 'ua status'
+        """
     )
+
     parser.add_argument(
         "--format",
         help=("Format for the output (json or yaml)"),
