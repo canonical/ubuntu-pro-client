@@ -722,3 +722,72 @@ Error: Setting global apt proxy and ua scoped apt proxy
 at the same time is unsupported.
 Cancelling config process operation.
 """
+
+NOTICE_FIPS_MANUAL_DISABLE_URL = """\
+FIPS kernel is running in a disabled state.
+  To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
+"""
+NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
+Warning: FIPS kernel is not optimized for your specific cloud.
+To fix it, run the following commands:
+
+    1. sudo ua disable fips
+    2. sudo apt-get remove ubuntu-fips
+    3. sudo ua enable fips --assume-yes
+    4. sudo reboot
+"""
+NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD = """\
+Detected an Ubuntu Pro license but failed to auto attach because
+"{operation}" was in progress.
+Please run `ua auto-attach` to upgrade to Pro.
+"""
+NOTICE_DAEMON_AUTO_ATTACH_FAILED = """\
+Detected an Ubuntu Pro license but failed to auto attach.
+Please run `ua auto-attach` to upgrade to Pro.
+If that fails then please contact support.
+"""
+
+PROMPT_YES_NO = """Are you sure? (y/N) """
+PROMPT_FIPS_PRE_ENABLE = (
+    """\
+This will install the FIPS packages. The Livepatch service will be unavailable.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_UPDATES_PRE_ENABLE = (
+    """\
+This will install the FIPS packages including security updates.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+PROMPT_FIPS_CONTAINER_PRE_ENABLE = (
+    """\
+Warning: Enabling {title} in a container.
+         This will install the FIPS packages but not the kernel.
+         This container must run on a host with {title} enabled to be
+         compliant.
+Warning: This action can take some time and cannot be undone.
+"""
+    + PROMPT_YES_NO
+)
+
+PROMPT_FIPS_PRE_DISABLE = (
+    """\
+This will disable the FIPS entitlement but the FIPS packages will remain installed.
+"""  # noqa
+    + PROMPT_YES_NO
+)
+
+PROMPT_ENTER_TOKEN = """\
+Enter your token (from {}) to attach this system:""".format(
+    BASE_UA_URL
+)
+PROMPT_EXPIRED_ENTER_TOKEN = """\
+Enter your new token to renew UA subscription on this system:"""
+PROMPT_UA_SUBSCRIPTION_URL = """\
+Open a browser to: {}/subscribe""".format(
+    BASE_UA_URL
+)
+>>>>>>> 28504bdc (Move notices and prompt to messages module)
