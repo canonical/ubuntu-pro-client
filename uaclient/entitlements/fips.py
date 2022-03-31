@@ -315,14 +315,16 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             )
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
-                    "", status.NOTICE_FIPS_MANUAL_DISABLE_URL
+                    "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return super_status, super_msg
             else:
                 self.cfg.remove_notice(
                     "", messages.FIPS_DISABLE_REBOOT_REQUIRED
                 )
-                self.cfg.add_notice("", status.NOTICE_FIPS_MANUAL_DISABLE_URL)
+                self.cfg.add_notice(
+                    "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
+                )
                 return (
                     status.ApplicationStatus.DISABLED,
                     messages.FIPS_PROC_FILE_ERROR.format(
@@ -367,7 +369,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
     def _perform_enable(self, silent: bool = False) -> bool:
         if super()._perform_enable(silent=silent):
             self.cfg.remove_notice(
-                "", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+                "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
             return True
 
@@ -457,12 +459,14 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if util.is_container():
-            pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
-                title=self.title
+            pre_enable_prompt = (
+                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                    title=self.title
+                )
             )
             post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
-            pre_enable_prompt = status.PROMPT_FIPS_PRE_ENABLE
+            pre_enable_prompt = messages.PROMPT_FIPS_PRE_ENABLE
 
         return {
             "pre_enable": [
@@ -476,7 +480,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         "assume_yes": self.assume_yes,
                     },
                 )
@@ -522,12 +526,14 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
     def messaging(self) -> MessagingOperationsDict:
         post_enable = None  # type: Optional[MessagingOperations]
         if util.is_container():
-            pre_enable_prompt = status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
-                title=self.title
+            pre_enable_prompt = (
+                messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(
+                    title=self.title
+                )
             )
             post_enable = [messages.FIPS_RUN_APT_UPGRADE]
         else:
-            pre_enable_prompt = status.PROMPT_FIPS_UPDATES_PRE_ENABLE
+            pre_enable_prompt = messages.PROMPT_FIPS_UPDATES_PRE_ENABLE
 
         return {
             "pre_enable": [
@@ -541,7 +547,7 @@ class FIPSUpdatesEntitlement(FIPSCommonEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                        "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         "assume_yes": self.assume_yes,
                     },
                 )
