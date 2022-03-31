@@ -1,3 +1,11 @@
+ubuntu-advantage-tools (27.7.1~22.04.1) jammy; urgency=medium
+
+  * fips:
+    - make fips service incompatible with fips-updates
+    - unhold more packages when enabling fips
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Thu, 31 Mar 2022 16:18:36 -0300
+
 ubuntu-advantage-tools (27.7~22.04.1) jammy; urgency=medium
 
   * d/changelog:
