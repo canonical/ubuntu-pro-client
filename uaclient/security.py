@@ -1083,11 +1083,11 @@ def _prompt_for_attach(cfg: UAConfig) -> bool:
     if choice == "c":
         return False
     if choice == "s":
-        print(status.PROMPT_UA_SUBSCRIPTION_URL)
+        print(messages.PROMPT_UA_SUBSCRIPTION_URL)
         # TODO(GH: #1413: magic subscription attach)
         input("Hit [Enter] when subscription is complete.")
     if choice in ("a", "s"):
-        print(status.PROMPT_ENTER_TOKEN)
+        print(messages.PROMPT_ENTER_TOKEN)
         token = input("> ")
         return _run_ua_attach(cfg, token)
 
@@ -1174,7 +1174,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
         valid_choices=["r", "c"],
     )
     if choice == "r":
-        print(status.PROMPT_EXPIRED_ENTER_TOKEN)
+        print(messages.PROMPT_EXPIRED_ENTER_TOKEN)
         token = input("> ")
         print(status.colorize_commands([["ua", "detach"]]))
         cli.action_detach(argparse.Namespace(assume_yes=True), cfg)
