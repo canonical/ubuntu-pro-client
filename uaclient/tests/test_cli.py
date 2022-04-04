@@ -178,7 +178,7 @@ class TestCLIParser:
             ("json", {"name": "test", "available": "yes", "help": "Test"}),
         ),
     )
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("uaclient.status.get_available_resources")
     @mock.patch(
         "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
     )
@@ -207,7 +207,7 @@ class TestCLIParser:
 
         fake_stdout = io.StringIO()
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "uaclient.status.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
@@ -232,7 +232,7 @@ class TestCLIParser:
         ),
     )
     @pytest.mark.parametrize("is_beta", (True, False))
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("uaclient.status.get_available_resources")
     @mock.patch(
         "uaclient.config.UAConfig.is_attached", new_callable=mock.PropertyMock
     )
@@ -292,7 +292,7 @@ class TestCLIParser:
 
         fake_stdout = io.StringIO()
         with mock.patch(
-            "uaclient.entitlements.entitlement_factory",
+            "uaclient.status.entitlement_factory",
             return_value=m_entitlement_cls,
         ):
             with contextlib.redirect_stdout(fake_stdout):
@@ -311,7 +311,7 @@ class TestCLIParser:
             ufs_call_count == m_entitlement_obj.user_facing_status.call_count
         )
 
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("uaclient.status.get_available_resources")
     def test_help_command_for_invalid_service(self, m_available_resources):
         """Test help command when an invalid service is provided."""
         m_args = mock.MagicMock()

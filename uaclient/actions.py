@@ -11,6 +11,7 @@ from uaclient import (
     exceptions,
     messages,
 )
+from uaclient import status as ua_status
 from uaclient.clouds import identity
 
 LOG = logging.getLogger("ua.actions")
@@ -34,12 +35,14 @@ def attach_with_token(
             cfg, token, allow_enable=allow_enable
         )
     except exceptions.UrlError as exc:
-        cfg.status()  # Persist updated status in the event of partial attach
+        # Persist updated status in the event of partial attach
+        ua_status.status(cfg=cfg)
         update_apt_and_motd_messages(cfg)
         raise exc
     except exceptions.UserFacingError as exc:
         event.info(exc.msg, file_type=sys.stderr)
-        cfg.status()  # Persist updated status in the event of partial attach
+        # Persist updated status in the event of partial attach
+        ua_status.status(cfg=cfg)
         update_apt_and_motd_messages(cfg)
         raise exc
 
@@ -108,11 +111,11 @@ def status(
     Construct the current UA status dictionary.
     """
     if simulate_with_token:
-        status, ret = cfg.simulate_status(
-            token=simulate_with_token, show_beta=show_beta
+        status, ret = ua_status.simulate_status(
+            cfg=cfg, token=simulate_with_token, show_beta=show_beta
         )
     else:
-        status = cfg.status(show_beta=show_beta)
+        status = ua_status.status(cfg=cfg, show_beta=show_beta)
         ret = 0
 
     return status, ret

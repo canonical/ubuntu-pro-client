@@ -1,8 +1,8 @@
 import mock
 import pytest
 
-from uaclient import status
 from uaclient.cli import action_config_unset, main
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError
 
 HELP_OUTPUT = """\
@@ -103,12 +103,12 @@ class TestActionConfigUnSet:
         """
         if livepatch_enabled:
             livepatch_status.return_value = (
-                status.ApplicationStatus.ENABLED,
+                ApplicationStatus.ENABLED,
                 "",
             )
         else:
             livepatch_status.return_value = (
-                status.ApplicationStatus.DISABLED,
+                ApplicationStatus.DISABLED,
                 "",
             )
         args = mock.MagicMock(key=key)

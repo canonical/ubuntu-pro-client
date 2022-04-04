@@ -25,7 +25,7 @@ class TestAttachWithToken:
     )
     @mock.patch(M_PATH + "identity.get_instance_id", return_value="my-iid")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
-    @mock.patch(M_PATH + "config.UAConfig.status")
+    @mock.patch("uaclient.status.status")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     @mock.patch(M_PATH + "config.UAConfig.write_cache")
     def test_attach_with_token(
@@ -50,7 +50,7 @@ class TestAttachWithToken:
         else:
             attach_with_token(cfg, "token", False)
         if expect_status_call:
-            assert [mock.call()] == m_status.call_args_list
+            assert [mock.call(cfg=cfg)] == m_status.call_args_list
         if not expect_status_call:
             assert [
                 mock.call("instance-id", "my-iid")
