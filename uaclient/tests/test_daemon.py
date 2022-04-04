@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import exceptions, status
+from uaclient import exceptions, messages
 from uaclient.clouds.aws import UAAutoAttachAWSInstance
 from uaclient.clouds.gcp import UAAutoAttachGCPInstance
 from uaclient.daemon import (
@@ -103,7 +103,7 @@ class TestAttemptAutoAttach:
         assert [
             mock.call(
                 "",
-                status.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
+                messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(
                     operation="test_holder"
                 ),
             )
@@ -137,7 +137,7 @@ class TestAttemptAutoAttach:
         assert [mock.call(cfg, cloud)] == m_auto_attach.call_args_list
         assert [mock.call(err)] == m_log_exception.call_args_list
         assert [
-            mock.call("", status.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+            mock.call("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
         ] == cfg.add_notice.call_args_list
         assert [mock.call()] == m_clear_lock.call_args_list
         assert [

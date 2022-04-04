@@ -5,17 +5,9 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from uaclient import (
-    apt,
-    contract,
-    event_logger,
-    exceptions,
-    messages,
-    status,
-    util,
-)
+from uaclient import apt, contract, event_logger, exceptions, messages, util
 from uaclient.entitlements import base
-from uaclient.status import ApplicationStatus
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 APT_DISABLED_PIN = "-32768"
 
@@ -185,7 +177,7 @@ class RepoEntitlement(base.UAEntitlement):
         else:
             application_status, _ = self.application_status()
 
-        if application_status == status.ApplicationStatus.DISABLED:
+        if application_status == ApplicationStatus.DISABLED:
             return False
 
         if not self._check_apt_url_is_applied(delta_apt_url):

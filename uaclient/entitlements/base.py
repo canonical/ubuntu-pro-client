@@ -8,18 +8,11 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import yaml
 
-from uaclient import (
-    config,
-    contract,
-    event_logger,
-    exceptions,
-    messages,
-    status,
-    util,
-)
+from uaclient import config, contract, event_logger, exceptions, messages, util
 from uaclient.defaults import DEFAULT_HELP_FILE
-from uaclient.status import (
+from uaclient.entitlements.entitlement_status import (
     ApplicabilityStatus,
+    ApplicationStatus,
     CanDisableFailure,
     CanDisableFailureReason,
     CanEnableFailure,
@@ -274,7 +267,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         """
         application_status, _ = self.application_status()
 
-        if application_status == status.ApplicationStatus.DISABLED:
+        if application_status == ApplicationStatus.DISABLED:
             return (
                 False,
                 CanDisableFailure(
@@ -319,7 +312,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             )
 
         application_status, _ = self.application_status()
-        if application_status != status.ApplicationStatus.DISABLED:
+        if application_status != ApplicationStatus.DISABLED:
             return (
                 False,
                 CanEnableFailure(
@@ -332,7 +325,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return (False, CanEnableFailure(CanEnableFailureReason.IS_BETA))
 
         applicability_status, details = self.applicability_status()
-        if applicability_status == status.ApplicabilityStatus.INAPPLICABLE:
+        if applicability_status == ApplicabilityStatus.INAPPLICABLE:
             return (
                 False,
                 CanEnableFailure(
@@ -372,7 +365,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             except EntitlementNotFoundError:
                 continue
             ent_status, _ = ent_cls(self.cfg).application_status()
-            if ent_status == status.ApplicationStatus.ENABLED:
+            if ent_status == ApplicationStatus.ENABLED:
                 return True
 
         return False
@@ -405,7 +398,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     cfg=self.cfg, name=required_service
                 )
                 ent_status, _ = ent_cls(self.cfg).application_status()
-                if ent_status != status.ApplicationStatus.ENABLED:
+                if ent_status != ApplicationStatus.ENABLED:
                     return False
             except exceptions.EntitlementNotFoundError:
                 pass
@@ -419,7 +412,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
         ret = []
         for service in self.incompatible_services:
             ent_status, _ = service.entitlement(self.cfg).application_status()
-            if ent_status == status.ApplicationStatus.ENABLED:
+            if ent_status == ApplicationStatus.ENABLED:
                 ret.append(service)
 
         return ret
@@ -513,8 +506,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             ent = ent_cls(self.cfg, allow_beta=True)
 
             is_service_disabled = (
-                ent.application_status()[0]
-                == status.ApplicationStatus.DISABLED
+                ent.application_status()[0] == ApplicationStatus.DISABLED
             )
 
             if is_service_disabled:
@@ -678,7 +670,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             ent = ent_cls(cfg=self.cfg, assume_yes=True)
 
             is_service_enabled = (
-                ent.application_status()[0] == status.ApplicationStatus.ENABLED
+                ent.application_status()[0] == ApplicationStatus.ENABLED
             )
 
             if is_service_enabled:
@@ -803,12 +795,12 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             return False
         return True
 
-    def _check_application_status_on_cache(self) -> status.ApplicationStatus:
+    def _check_application_status_on_cache(self) -> ApplicationStatus:
         """Check on the state of application on the status cache."""
         status_cache = self.cfg.read_cache("status-cache")
 
         if status_cache is None:
-            return status.ApplicationStatus.DISABLED
+            return ApplicationStatus.DISABLED
 
         services_status_list = status_cache.get("services", [])
 
@@ -817,11 +809,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 service_status = service.get("status")
 
                 if service_status == "enabled":
-                    return status.ApplicationStatus.ENABLED
+                    return ApplicationStatus.ENABLED
                 else:
-                    return status.ApplicationStatus.DISABLED
+                    return ApplicationStatus.DISABLED
 
-        return status.ApplicationStatus.DISABLED
+        return ApplicationStatus.DISABLED
 
     def process_contract_deltas(
         self,
@@ -865,7 +857,7 @@ class UAEntitlement(metaclass=abc.ABCMeta):
             else:
                 application_status, _ = self.application_status()
 
-            if application_status != status.ApplicationStatus.DISABLED:
+            if application_status != ApplicationStatus.DISABLED:
                 if self.can_disable():
                     self.disable()
                     logging.info(
@@ -933,15 +925,15 @@ class UAEntitlement(metaclass=abc.ABCMeta):
 
         application_status, explanation = self.application_status()
         user_facing_status = {
-            status.ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
-            status.ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
+            ApplicationStatus.ENABLED: UserFacingStatus.ACTIVE,
+            ApplicationStatus.DISABLED: UserFacingStatus.INACTIVE,
         }[application_status]
         return user_facing_status, explanation
 
     @abc.abstractmethod
     def application_status(
         self,
-    ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
+    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         """
         The current status of application of this entitlement
 

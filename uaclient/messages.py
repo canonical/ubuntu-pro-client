@@ -763,6 +763,10 @@ at the same time is unsupported.
 Cancelling config process operation.
 """
 
+AVAILABILITY_FROM_UNKNOWN_SERVICE = """\
+Ignoring availability of unknown service {service} from contract server
+"""
+
 NOTICE_FIPS_MANUAL_DISABLE_URL = """\
 FIPS kernel is running in a disabled state.
   To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
@@ -830,4 +834,3 @@ PROMPT_UA_SUBSCRIPTION_URL = """\
 Open a browser to: {}/subscribe""".format(
     BASE_UA_URL
 )
->>>>>>> 28504bdc (Move notices and prompt to messages module)
