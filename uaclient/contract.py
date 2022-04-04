@@ -11,7 +11,7 @@ from uaclient import (
 )
 from uaclient.config import UAConfig
 from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT
-from uaclient.status import UserFacingStatus
+from uaclient.entitlements.entitlement_status import UserFacingStatus
 
 API_V1_CONTEXT_MACHINE_TOKEN = "/v1/context/machines/token"
 API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE = (

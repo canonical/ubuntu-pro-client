@@ -1,8 +1,9 @@
 import mock
 import pytest
 
-from uaclient import apt, status, util
+from uaclient import apt, util
 from uaclient.cli import action_config_set, configure_apt_proxy, main
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError, UserFacingError
 
 HELP_OUTPUT = """\
@@ -130,12 +131,12 @@ class TestActionConfigSet:
         """
         if livepatch_enabled:
             livepatch_status.return_value = (
-                status.ApplicationStatus.ENABLED,
+                ApplicationStatus.ENABLED,
                 "",
             )
         else:
             livepatch_status.return_value = (
-                status.ApplicationStatus.DISABLED,
+                ApplicationStatus.DISABLED,
                 "",
             )
         args = mock.MagicMock(key_value_pair="{}={}".format(key, value))

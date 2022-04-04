@@ -4,7 +4,12 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, status, util
+from uaclient import apt, exceptions, messages, util
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+    UserFacingStatus,
+)
 from uaclient.entitlements.repo import RepoEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -64,14 +69,14 @@ class TestUserFacingStatus:
         platform_unsupported["version"] = "14.04 LTS (Trusty Tahr)"
         m_platform_info.return_value = platform_unsupported
         applicability, details = entitlement.applicability_status()
-        assert status.ApplicabilityStatus.INAPPLICABLE == applicability
+        assert ApplicabilityStatus.INAPPLICABLE == applicability
         expected_details = (
             "Repo Test Class is not available for Ubuntu 14.04"
             " LTS (Trusty Tahr)."
         )
         assert expected_details == details.msg
         uf_status, _ = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == uf_status
+        assert UserFacingStatus.INAPPLICABLE == uf_status
 
     @mock.patch(M_PATH + "util.get_platform_info")
     def test_unavailable_on_unentitled(self, m_platform_info, entitlement):
@@ -84,9 +89,9 @@ class TestUserFacingStatus:
         entitlement.cfg.write_cache("machine-token", no_entitlements)
         m_platform_info.return_value = dict(PLATFORM_INFO_SUPPORTED)
         applicability, _details = entitlement.applicability_status()
-        assert status.ApplicabilityStatus.APPLICABLE == applicability
+        assert ApplicabilityStatus.APPLICABLE == applicability
         uf_status, uf_details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.UNAVAILABLE == uf_status
+        assert UserFacingStatus.UNAVAILABLE == uf_status
         assert "Repo Test Class is not entitled" == uf_details.msg
 
 
@@ -118,7 +123,7 @@ class TestProcessContractDeltas:
         entitled,
     ):
         """Disable the service on contract transitions to unentitled."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         assert entitlement.process_contract_deltas(
             {"entitlement": {"entitled": True}},
@@ -138,11 +143,11 @@ class TestProcessContractDeltas:
     ):
         """Noop when service is inactive and not enableByDefault."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE,
+            ApplicabilityStatus.APPLICABLE,
             "",
         )
         assert not entitlement.process_contract_deltas(
@@ -166,11 +171,11 @@ class TestProcessContractDeltas:
     ):
         """Update apt when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE,
+            ApplicabilityStatus.APPLICABLE,
             "",
         )
         assert entitlement.process_contract_deltas(
@@ -196,11 +201,11 @@ class TestProcessContractDeltas:
     ):
         """Log a message when inactive, enableByDefault and allow_enable."""
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         )
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE,
+            ApplicabilityStatus.APPLICABLE,
             "",
         )
         assert entitlement.process_contract_deltas(
@@ -237,7 +242,7 @@ class TestProcessContractDeltas:
     ):
         """Update_apt_config and packages if active and not enableByDefault."""
         m_check_apt_url_applied.return_value = False
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         deltas = {
             "entitlement": {"obligations": {"enableByDefault": False}},
@@ -1023,7 +1028,7 @@ class TestApplicationStatus:
 
         application_status, explanation = entitlement.application_status()
 
-        assert status.ApplicationStatus.DISABLED == application_status
+        assert ApplicationStatus.DISABLED == application_status
         assert (
             "Repo Test Class does not have an aptURL directive"
             == explanation.msg
@@ -1059,10 +1064,10 @@ class TestApplicationStatus:
         application_status, explanation = entitlement.application_status()
 
         if enabled:
-            expected_status = status.ApplicationStatus.ENABLED
+            expected_status = ApplicationStatus.ENABLED
             expected_explanation = "Repo Test Class is active"
         else:
-            expected_status = status.ApplicationStatus.DISABLED
+            expected_status = ApplicationStatus.DISABLED
             expected_explanation = "Repo Test Class is not configured"
         assert expected_status == application_status
         assert expected_explanation == explanation.msg

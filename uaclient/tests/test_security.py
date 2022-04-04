@@ -7,10 +7,16 @@ import pytest
 
 from uaclient import exceptions
 from uaclient.clouds.identity import NoCloudTypeReason
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    UserFacingStatus,
+)
 from uaclient.messages import (
     ENABLE_REBOOT_REQUIRED_TMPL,
     FAIL_X,
     OKGREEN_CHECK,
+    PROMPT_ENTER_TOKEN,
+    PROMPT_EXPIRED_ENTER_TOKEN,
     SECURITY_APT_NON_ROOT,
     SECURITY_ISSUE_NOT_RESOLVED,
     SECURITY_SERVICE_DISABLED,
@@ -41,13 +47,7 @@ from uaclient.security import (
     upgrade_packages_and_attach,
     version_cmp_le,
 )
-from uaclient.status import (
-    PROMPT_ENTER_TOKEN,
-    PROMPT_EXPIRED_ENTER_TOKEN,
-    ApplicabilityStatus,
-    UserFacingStatus,
-    colorize_commands,
-)
+from uaclient.status import colorize_commands
 
 M_PATH = "uaclient.contract."
 M_REPO_PATH = "uaclient.entitlements.repo.RepoEntitlement."

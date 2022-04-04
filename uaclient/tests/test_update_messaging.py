@@ -10,6 +10,7 @@ from uaclient.defaults import (
     BASE_UA_URL,
     CONTRACT_EXPIRY_GRACE_PERIOD_DAYS,
 )
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.jobs.update_messaging import (
     ContractExpiryStatus,
     ExternalMessage,
@@ -29,7 +30,6 @@ from uaclient.messages import (
     DISABLED_MOTD_NO_PKGS_TMPL,
     UBUNTU_NO_WARRANTY,
 )
-from uaclient.status import ApplicationStatus
 
 M_PATH = "uaclient.jobs.update_messaging."
 
