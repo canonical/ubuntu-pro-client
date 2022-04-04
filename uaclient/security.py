@@ -1056,15 +1056,17 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
     from uaclient import cli
 
     print(status.colorize_commands([["ua", "attach", token]]))
-    return bool(
-        0
-        == cli.action_attach(
+    try:
+        ret_code = cli.action_attach(
             argparse.Namespace(
                 token=token, auto_enable=True, format="cli", attach_config=None
             ),
             cfg,
         )
-    )
+        return ret_code == 0
+    except exceptions.UserFacingError as err:
+        print(err.msg)
+        return False
 
 
 def _prompt_for_attach(cfg: UAConfig) -> bool:
