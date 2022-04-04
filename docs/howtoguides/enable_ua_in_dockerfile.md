@@ -1,5 +1,7 @@
 # How to Enable Ubuntu Advantage Services in a Dockerfile
 
+> Requires UA Client version 27.7
+
 Ubuntu Advantage (UA) comes with several services, some of which can be useful in docker. For example, Extended Security Maintenance of packages and FIPS certified packages may be desirable in a docker image. In this how-to-guide, we show how you can use the `ua` tool to take advantage of these services in your Dockerfile.
 
 

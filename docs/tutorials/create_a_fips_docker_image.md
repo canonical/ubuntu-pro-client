@@ -1,5 +1,7 @@
 # Create an Ubuntu FIPS Docker image
 
+> Requires UA Client version 27.7
+
 ## Step 1: Acquire your Ubuntu Advantage (UA) token
 
 Your UA token can be found on your Ubuntu Advantage dashboard. To access your dashboard, you need an [Ubuntu One](https://login.ubuntu.com/) account. If you purchased a UA subscription and don't yet have an Ubuntu One account, be sure to use the same email address used to purchase your subscription. If you haven't purchased a UA subscription, don't worry! You get a free token for personal use with your Ubuntu One account, no purchase necessary.
