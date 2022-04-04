@@ -9,9 +9,8 @@ The package `ubuntu-advantage-tools` also provides a C++ APT hook which helps
 advertise ESM service and available packages in MOTD and during various apt
 commands.
 
-The `ubuntu-advantage-pro` package delivers auto-attach auto-enable
-functionality via init scripts and systemd services for various cloud
-platforms.
+The `ubuntu-advantage-pro` package delivers auto-attach functionality via init
+scripts and systemd services for various cloud platforms.
 
 By default, Ubuntu machines are deployed in an unattached state. A machine can
 get manually or automatically attached to a specific contract by interacting
@@ -23,8 +22,7 @@ validate such operations.
 Each Ubuntu SSO account holder has access to one or more contracts. To attach
 a machine to an Ubuntu Advantage contract:
 
-* An Ubuntu SSO account holder must obtain a contract token from
-https://ubuntu.com/advantage.
+* Obtain a contract token from your Ubuntu SSO account at https://ubuntu.com/advantage.
 * Run `sudo ua attach <contractToken>` on the machine
   - Ubuntu Pro images for AWS, Azure and GCP perform an auto-attach without tokens
 * UA Client reads config from /etc/ubuntu-advantage/uaclient.conf to obtain
@@ -42,7 +40,7 @@ https://ubuntu.com/advantage.
 #### Attaching with --attach-config
 Running `ua attach` with the `--attach-config` may be better suited to certain scenarios.
 
-When using `--attach-config` the token must be passed in the file rather than on the command line. This is useful in situations where it is preffered to keep the secret token in a file.
+When using `--attach-config` the token must be passed in the file rather than on the command line. This is useful in situations where it is preferred to keep the secret token in a file.
 
 Optionally, the attach config file can be used to override the services that are automatically enabled as a part of the attach process.
 
@@ -100,6 +98,7 @@ Current jobs being checked and executed are:
 | --- | ----------- | -------- |
 | update_messaging | Update MOTD and APT messages | 6 hours |
 | update_status | Update UA status | 12 hours |
+| metering | (Only when attached to UA services) Pings Canonical servers for contract metering | 4 hours |
 
 - The `update_messaging` job makes sure that the MOTD and APT messages match the
 available/enabled services on the system, showing information about available
@@ -149,7 +148,7 @@ The `ua collect-logs` command creates a tarball with all relevant data for debug
 - Status of the timer jobs, `canonical-livepatch`, and the systemd timers
 - Output of `cloud-id`, `dmesg` and `journalctl`
 
-Files with sensitive data are not included in the tarball. As of now, the command must be run as root.
+Sensitive data is redacted from all files included in the tarball. As of now, the command must be run as root.
 
 Running the command creates a `ua_logs.tar.gz` file in the current directory.
 The output file path/name can be changed using the `-o` option.
@@ -190,9 +189,7 @@ By default, integration tests will do the folowing on a given cloud platform:
  * Launch an instance running latest daily image of the target Ubuntu release
  * Add the Ubuntu advantage client daily build PPA: [ppa:ua-client/daily](https://code.launchpad.net/~ua-client/+archive/ubuntu/daily)
  * Install the appropriate ubuntu-advantage-tools and ubuntu-advantage-pro deb
- * Stop the instance and snapshot it creating an updated bootable image for
-   test runs
- * Launch a fresh instance based on the boot-image created and exercise tests
+ * Run the integration tests on that instance.
 
 The testing can be overridden to run using a local copy of the ubuntu-advantage-client source code instead of the daily PPA by providing the following environment variable to the behave test runner:
 ```UACLIENT_BEHAVE_BUILD_PR=1```
@@ -202,23 +199,24 @@ The testing can be overridden to run using a local copy of the ubuntu-advantage-
 To run the tests, you can use `tox`:
 
 ```shell
-tox -e behave-20.04
+tox -e behave-lxd-20.04
 ```
 
 or, if you just want to run a specific file, or a test within a file:
 
 ```shell
-tox -e behave-20.04 features/unattached_commands.feature
-tox -e behave-20.04 features/unattached_commands.feature:55
+tox -e behave-lxd-20.04 features/unattached_commands.feature
+tox -e behave-lxd-20.04 features/unattached_commands.feature:55
 ```
 
 As can be seen, this will run behave tests only for release 20.04 (Focal Fossa). We are currently
-supporting 4 distinct releases:
+supporting 5 distinct releases:
 
+* 22.04 (Jammy Jellyfish)
+* 21.10 (Impish Indri)
 * 20.04 (Focal Fossa)
 * 18.04 (Bionic Beaver)
 * 16.04 (Xenial Xerus)
-* 14.04 (Trusty Tahr)
 
 Therefore, to change which release to run the behave tests against, just change the release version
 on the behave command.
@@ -226,7 +224,7 @@ on the behave command.
 Furthermore, when developing/debugging a new scenario:
 
  1. Add a `@wip` tag decorator on the scenario
- 2. To only run @wip scenarios run: `tox -e behave-20.04 -- -w`
+ 2. To only run @wip scenarios run: `tox -e behave-lxd-20.04 -- -w`
  3. If you want to use a debugger:
     1. Add ipdb to integration-requirements.txt
     2. Add ipdb.set_trace() in the code block you wish to debug
@@ -459,8 +457,8 @@ sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "
 
 ### Setting up an lxc development container
 ```shell
-lxc launch ubuntu-daily:trusty dev-t -c user.user-data="$(cat tools/ua-dev-cloud-config.yaml)"
-lxc exec dev-t bash
+lxc launch ubuntu-daily:xenial dev-x -c user.user-data="$(cat tools/ua-dev-cloud-config.yaml)"
+lxc exec dev-x bash
 ```
 
 ### Setting up a kvm development environment with multipass
