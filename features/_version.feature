@@ -15,7 +15,7 @@ Feature: UA is expected version
     Scenario Outline: Check ua version
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
-        Then stdout matches regexp:
+        Then I will see the following on stdout
         """
         {UACLIENT_BEHAVE_CHECK_VERSION}
         """
