@@ -14,6 +14,7 @@ import yaml
 from uaclient import exceptions, messages, status, version
 from uaclient.cli import action_status, get_parser, main, status_parser
 from uaclient.event_logger import EventLoggerMode
+from uaclient.tests.test_cli import M_PATH_UACONFIG
 
 M_PATH = "uaclient.cli."
 
@@ -259,6 +260,7 @@ Flags:
 )
 
 
+@mock.patch("uaclient.cli.contract.is_contract_changed", return_value=False)
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 @mock.patch(
@@ -278,6 +280,7 @@ class TestActionStatus:
         _m_get_available_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         capsys,
     ):
         with pytest.raises(SystemExit):
@@ -304,6 +307,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         notices,
         notice_status,
         use_all,
@@ -342,6 +346,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         capsys,
         FakeConfig,
     ):
@@ -360,6 +365,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         capsys,
         FakeConfig,
     ):
@@ -385,6 +391,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         capsys,
         FakeConfig,
     ):
@@ -429,6 +436,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         use_all,
         environ,
         format_type,
@@ -538,6 +546,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         use_all,
         environ,
         format_type,
@@ -682,6 +691,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         use_all,
         format_type,
         event_logger_mode,
@@ -813,6 +823,7 @@ class TestActionStatus:
         m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         FakeConfig,
     ):
         """Raise UrlError on connectivity issues"""
@@ -838,6 +849,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         encoding,
         expected_dash,
         FakeConfig,
@@ -888,6 +900,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         exception_to_throw,
         exception_type,
         exception_message,
@@ -938,6 +951,7 @@ class TestActionStatus:
         _m_get_avail_resources,
         _m_should_reboot,
         _m_remove_notice,
+        _m_contract_changed,
         format_type,
         event_logger_mode,
         token_to_use,
@@ -974,6 +988,45 @@ class TestActionStatus:
             output = yaml.safe_load(capsys.readouterr()[0])
 
         assert output["errors"][0]["message"] == warning_message
+
+    @pytest.mark.parametrize(
+        "contract_changed,is_attached",
+        (
+            (False, True),
+            (True, False),
+            (True, True),
+            (False, False),
+        ),
+    )
+    @mock.patch(M_PATH_UACONFIG + "add_notice")
+    def test_is_contract_changed(
+        self,
+        m_add_notice,
+        _m_getuid,
+        _m_get_contract_information,
+        _m_get_available_resources,
+        _m_should_reboot,
+        _m_remove_notice,
+        _m_contract_changed,
+        contract_changed,
+        is_attached,
+        capsys,
+        FakeConfig,
+    ):
+        _m_contract_changed.return_value = contract_changed
+        cfg = FakeConfig().for_attached_machine()
+        action_status(
+            mock.MagicMock(all=False, simulate_with_token=None), cfg=cfg
+        )
+        if contract_changed:
+            if is_attached:
+                assert [
+                    mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+                ] == m_add_notice.call_args_list
+        else:
+            assert [
+                mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+            ] != m_add_notice.call_args_list
 
 
 class TestStatusParser:

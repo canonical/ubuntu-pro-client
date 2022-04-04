@@ -139,7 +139,7 @@ def _select_overrides(
 
 
 def apply_contract_overrides(
-    orig_access: Dict[str, Any], series: str = None
+    orig_access: Dict[str, Any], series: Optional[str] = None
 ) -> None:
     """Apply series-specific overrides to an entitlement dict.
 

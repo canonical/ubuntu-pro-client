@@ -494,3 +494,65 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           | xenial  | disabled |
           | bionic  | disabled |
           | focal   | n/a      |
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    Scenario Outline: Attach and Check for contract change in status checking
+       Given a `<release>` machine with ubuntu-advantage-tools installed
+       When I attach `contract_token` with sudo
+       Then stdout matches regexp:
+       """
+       UA Infra: ESM enabled
+       """
+       And stdout matches regexp:
+       """
+       This machine is now attached to
+       """
+       And stdout matches regexp:
+       """
+       esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
+       """
+       When I create the file `/tmp/machine-token-overlay.json` with the following:
+       """
+       {
+           "machineTokenInfo": {
+               "contractInfo": {
+                   "resourceEntitlements": [
+                       {
+                           "type": "esm-apps",
+                           "entitled": false
+                       }
+                   ]
+               }
+           }
+       }
+       """
+       And I append the following on uaclient config:
+       """
+       features:
+         machine_token_overlay: "/tmp/machine-token-overlay.json"
+       """
+       When I run `ua status` with sudo
+       Then stdout matches regexp:
+       """
+       A change has been detected in your contract.
+       Please run `sudo ua refresh` to update your contract.
+       """
+       When I run `ua refresh contract` with sudo
+       Then stdout matches regexp:
+       """
+       Successfully refreshed your subscription.
+       """
+       When I run `sed -i '/^.*machine_token_overlay:/d' /etc/ubuntu-advantage/uaclient.conf` with sudo
+       And I run `ua status` with sudo
+       Then stdout does not match regexp:
+       """
+       A change has been detected in your contract.
+       Please run `sudo ua refresh` to update your contract.
+       """
+
+        Examples: ubuntu release livepatch status
+           | release |
+           | xenial  |
+           | bionic  |
+           | focal   |

@@ -77,8 +77,14 @@ class TestActionRefresh:
 
     @mock.patch("logging.exception")
     @mock.patch("uaclient.contract.request_updated_contract")
+    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
     def test_refresh_contract_error_on_failure_to_update_contract(
-        self, request_updated_contract, logging_error, getuid, FakeConfig
+        self,
+        m_remove_notice,
+        request_updated_contract,
+        logging_error,
+        getuid,
+        FakeConfig,
     ):
         """On failure in request_updates_contract emit an error."""
         request_updated_contract.side_effect = exceptions.UrlError(
@@ -91,10 +97,19 @@ class TestActionRefresh:
             action_refresh(mock.MagicMock(target="contract"), cfg=cfg)
 
         assert messages.REFRESH_CONTRACT_FAILURE == excinfo.value.msg
+        assert [
+            mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+        ] != m_remove_notice.call_args_list
 
     @mock.patch("uaclient.contract.request_updated_contract")
+    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
     def test_refresh_contract_happy_path(
-        self, request_updated_contract, getuid, capsys, FakeConfig
+        self,
+        m_remove_notice,
+        request_updated_contract,
+        getuid,
+        capsys,
+        FakeConfig,
     ):
         """On success from request_updates_contract root user can refresh."""
         request_updated_contract.return_value = True
@@ -105,6 +120,10 @@ class TestActionRefresh:
         assert 0 == ret
         assert messages.REFRESH_CONTRACT_SUCCESS in capsys.readouterr()[0]
         assert [mock.call(cfg)] == request_updated_contract.call_args_list
+        assert [
+            mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING),
+            mock.call("", "Operation in progress.*"),
+        ] == m_remove_notice.call_args_list
 
     @mock.patch("logging.exception")
     @mock.patch(
@@ -137,8 +156,10 @@ class TestActionRefresh:
 
     @mock.patch("uaclient.contract.request_updated_contract")
     @mock.patch("uaclient.config.UAConfig.process_config")
+    @mock.patch("uaclient.cli.config.UAConfig.remove_notice")
     def test_refresh_all_happy_path(
         self,
+        m_remove_notice,
         m_process_config,
         m_request_updated_contract,
         getuid,
@@ -156,3 +177,7 @@ class TestActionRefresh:
         assert messages.REFRESH_CONTRACT_SUCCESS in out
         assert [mock.call()] == m_process_config.call_args_list
         assert [mock.call(cfg)] == m_request_updated_contract.call_args_list
+        assert [
+            mock.call("", messages.NOTICE_REFRESH_CONTRACT_WARNING),
+            mock.call("", "Operation in progress.*"),
+        ] == m_remove_notice.call_args_list
