@@ -95,7 +95,7 @@ class TestSecurityStatus:
         assert get_update_status(service_name, ua_info) == expected_result
 
     @pytest.mark.parametrize("is_attached", (True, False))
-    @mock.patch(M_PATH + "UAConfig.status")
+    @mock.patch("uaclient.security_status.status")
     def test_get_ua_info(self, m_status, is_attached, FakeConfig):
         if is_attached:
             cfg = FakeConfig().for_attached_machine()
@@ -130,7 +130,9 @@ class TestSecurityStatus:
                 "entitled_services": [],
             }
 
-    @mock.patch(M_PATH + "UAConfig.status", return_value={"attached": False})
+    @mock.patch(
+        "uaclient.security_status.status", return_value={"attached": False}
+    )
     @mock.patch(M_PATH + "Cache")
     def test_finds_updates_for_installed_packages(
         self, m_cache, _m_status, FakeConfig

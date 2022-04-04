@@ -8,10 +8,11 @@ those events in real time or through a machine-readable format.
 
 import enum
 import json
+import os
 import sys
-from typing import Dict, List, Optional, Set, Union  # noqa: F401
+from typing import Any, Dict, List, Optional, Set, Union  # noqa: F401
 
-from uaclient.status import format_machine_readable_output
+from uaclient.defaults import CONFIG_FIELD_ENVVAR_ALLOWLIST
 
 JSON_SCHEMA_VERSION = "0.1"
 EventFieldErrorType = Optional[Union[str, Dict[str, str]]]
@@ -39,6 +40,29 @@ class EventLoggerMode(enum.Enum):
     CLI = object()
     JSON = object()
     YAML = object()
+
+
+def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
+    status["environment_vars"] = [
+        {"name": name, "value": value}
+        for name, value in sorted(os.environ.items())
+        if name.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
+        or name.startswith("UA_FEATURES")
+        or name == "UA_CONFIG_FILE"
+    ]
+
+    if not status.get("simulated"):
+        available_services = [
+            service
+            for service in status.get("services", [])
+            if service.get("available", "yes") == "yes"
+        ]
+        status["services"] = available_services
+
+    # We don't need the origin info in the json output
+    status.pop("origin", "")
+
+    return status
 
 
 class EventLogger:

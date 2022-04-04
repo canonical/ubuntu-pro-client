@@ -5,8 +5,17 @@ from typing import Dict, Optional, Tuple
 import mock
 import pytest
 
-from uaclient import config, messages, status, util
+from uaclient import config, messages, util
 from uaclient.entitlements import EntitlementNotFoundError, base
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+    CanDisableFailure,
+    CanDisableFailureReason,
+    CanEnableFailure,
+    CanEnableFailureReason,
+    UserFacingStatus,
+)
 from uaclient.status import ContractStatus
 
 
@@ -38,7 +47,7 @@ class ConcreteTestEntitlement(base.UAEntitlement):
 
     def _perform_disable(self, **kwargs):
         self._application_status = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "disable() called",
         )
         return self._disable
@@ -64,8 +73,8 @@ def concrete_entitlement_factory(tmpdir):
     def factory(
         *,
         entitled: bool,
-        applicability_status: Tuple[status.ApplicabilityStatus, str] = None,
-        application_status: Tuple[status.ApplicationStatus, str] = None,
+        applicability_status: Tuple[ApplicabilityStatus, str] = None,
+        application_status: Tuple[ApplicationStatus, str] = None,
         feature_overrides: Optional[Dict[str, str]] = None,
         allow_beta: bool = False,
         enable: bool = False,
@@ -133,7 +142,7 @@ class TestUaEntitlement:
         """When  status is INACTIVE, can_disable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
 
         ret, fail = entitlement.can_disable()
@@ -152,24 +161,21 @@ class TestUaEntitlement:
         """When  status is INACTIVE, can_disable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ""),
+            application_status=(ApplicationStatus.ENABLED, ""),
             dependent_services=("test",),
         )
 
         m_ent_cls = mock.Mock()
         m_ent_obj = m_ent_cls.return_value
         m_ent_obj.application_status.return_value = (
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             None,
         )
         m_ent_factory.return_value = m_ent_cls
 
         ret, fail = entitlement.can_disable()
         assert not ret
-        assert (
-            fail.reason
-            == status.CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
-        )
+        assert fail.reason == CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
         assert fail.message is None
 
     @mock.patch("uaclient.entitlements.entitlement_factory")
@@ -179,14 +185,14 @@ class TestUaEntitlement:
         """When  status is INACTIVE, can_disable returns False."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ""),
+            application_status=(ApplicationStatus.ENABLED, ""),
             dependent_services=("test",),
         )
 
         m_ent_cls = mock.Mock()
         m_ent_obj = m_ent_cls.return_value
         m_ent_obj.application_status.return_value = (
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             None,
         )
         m_ent_factory.return_value = m_ent_cls
@@ -201,7 +207,7 @@ class TestUaEntitlement:
         """When entitlement is ENABLED, can_disable returns True."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ""),
+            application_status=(ApplicationStatus.ENABLED, ""),
         )
 
         assert entitlement.can_disable()
@@ -217,7 +223,7 @@ class TestUaEntitlement:
 
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason.reason == status.CanEnableFailureReason.NOT_ENTITLED
+        assert reason.reason == CanEnableFailureReason.NOT_ENTITLED
         assert (
             reason.message.msg
             == messages.UNENTITLED.format(
@@ -252,14 +258,14 @@ class TestUaEntitlement:
         self, concrete_entitlement_factory
     ):
         """When entitlement is ENABLED, can_enable returns False."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         entitlement = concrete_entitlement_factory(
             entitled=True, application_status=(application_status, "")
         )
 
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason.reason == status.CanEnableFailureReason.ALREADY_ENABLED
+        assert reason.reason == CanEnableFailureReason.ALREADY_ENABLED
         assert (
             reason.message.msg
             == messages.ALREADY_ENABLED.format(
@@ -274,15 +280,15 @@ class TestUaEntitlement:
         entitlement = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(
-                status.ApplicabilityStatus.INAPPLICABLE,
+                ApplicabilityStatus.INAPPLICABLE,
                 "msg",
             ),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
 
         can_enable, reason = entitlement.can_enable()
         assert not can_enable
-        assert reason.reason == status.CanEnableFailureReason.INAPPLICABLE
+        assert reason.reason == CanEnableFailureReason.INAPPLICABLE
         assert reason.message == "msg"
 
     def test_can_enable_true_on_entitlement_inactive(
@@ -291,8 +297,8 @@ class TestUaEntitlement:
         """When an entitlement is applicable and disabled, we can_enable"""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
 
         can_enable, reason = entitlement.can_enable()
@@ -309,8 +315,8 @@ class TestUaEntitlement:
         feature_overrides = {"allow_beta": allow_beta_cfg}
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
             feature_overrides=feature_overrides,
             allow_beta=allow_beta,
         )
@@ -322,7 +328,7 @@ class TestUaEntitlement:
             assert reason is None
         else:
             assert not can_enable
-            assert reason.reason == status.CanEnableFailureReason.IS_BETA
+            assert reason.reason == CanEnableFailureReason.IS_BETA
             assert reason.message is None
 
     def test_contract_status_entitled(self, concrete_entitlement_factory):
@@ -345,8 +351,8 @@ class TestUaEntitlement:
         """When orig_acccess dict is empty perform no work."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         with mock.patch.object(entitlement, "can_disable") as m_can_disable:
             entitlement.process_contract_deltas(orig_access, delta)
@@ -357,14 +363,14 @@ class TestUaEntitlement:
     ):
         base_ent = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.application_status.return_value = [
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             "",
         ]
         base_ent._incompatible_services = (
@@ -376,9 +382,7 @@ class TestUaEntitlement:
         ret, reason = base_ent.can_enable()
 
         assert ret is False
-        assert (
-            reason.reason == status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
-        )
+        assert reason.reason == CanEnableFailureReason.INCOMPATIBLE_SERVICE
         assert reason.message is None
 
     def test_can_enable_when_required_service_found(
@@ -386,15 +390,15 @@ class TestUaEntitlement:
     ):
         base_ent = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         base_ent._required_services = ["test"]
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.application_status.return_value = [
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         ]
         type(m_entitlement_obj).title = mock.PropertyMock(return_value="test")
@@ -407,8 +411,7 @@ class TestUaEntitlement:
 
         assert ret is False
         assert (
-            reason.reason
-            == status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+            reason.reason == CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
         )
         assert reason.message is None
 
@@ -431,14 +434,14 @@ class TestUaEntitlement:
         base_ent = concrete_entitlement_factory(
             entitled=True,
             enable=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.application_status.return_value = [
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             "",
         ]
         base_ent._incompatible_services = (
@@ -454,7 +457,7 @@ class TestUaEntitlement:
             expected_prompt_call = 0
 
         expected_ret = False
-        expected_reason = status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
+        expected_reason = CanEnableFailureReason.INCOMPATIBLE_SERVICE
         if assume_yes and not block_disable_on_enable:
             expected_ret = True
             expected_reason = None
@@ -478,15 +481,15 @@ class TestUaEntitlement:
         base_ent = concrete_entitlement_factory(
             entitled=True,
             enable=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         base_ent._required_services = ("test",)
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.application_status.return_value = [
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         ]
         m_entitlement_obj.enable.return_value = (True, "")
@@ -501,9 +504,7 @@ class TestUaEntitlement:
         expected_prompt_call = 1
 
         expected_ret = False
-        expected_reason = (
-            status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
-        )
+        expected_reason = CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
         if assume_yes:
             expected_ret = True
             expected_reason = None
@@ -521,42 +522,38 @@ class TestUaEntitlement:
         "can_enable_fail,handle_incompat_calls,enable_req_calls",
         [
             (
-                status.CanEnableFailure(
-                    status.CanEnableFailureReason.NOT_ENTITLED, message="msg"
+                CanEnableFailure(
+                    CanEnableFailureReason.NOT_ENTITLED, message="msg"
                 ),
                 0,
                 0,
             ),
             (
-                status.CanEnableFailure(
-                    status.CanEnableFailureReason.ALREADY_ENABLED,
+                CanEnableFailure(
+                    CanEnableFailureReason.ALREADY_ENABLED,
                     message="msg",
                 ),
                 0,
                 0,
             ),
             (
-                status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
+                CanEnableFailure(CanEnableFailureReason.IS_BETA),
                 0,
                 0,
             ),
             (
-                status.CanEnableFailure(
-                    status.CanEnableFailureReason.INAPPLICABLE, "msg"
-                ),
+                CanEnableFailure(CanEnableFailureReason.INAPPLICABLE, "msg"),
                 0,
                 0,
             ),
             (
-                status.CanEnableFailure(
-                    status.CanEnableFailureReason.INCOMPATIBLE_SERVICE
-                ),
+                CanEnableFailure(CanEnableFailureReason.INCOMPATIBLE_SERVICE),
                 1,
                 0,
             ),
             (
-                status.CanEnableFailure(
-                    status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+                CanEnableFailure(
+                    CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
                 ),
                 0,
                 1,
@@ -612,8 +609,8 @@ class TestUaEntitlement:
     ):
         m_handle_msg.return_value = True
 
-        fail_reason = status.CanEnableFailure(
-            status.CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
+        fail_reason = CanEnableFailure(
+            CanEnableFailureReason.INACTIVE_REQUIRED_SERVICES
         )
 
         if enable_fail_message:
@@ -621,15 +618,15 @@ class TestUaEntitlement:
         else:
             msg = None
 
-        enable_fail_reason = status.CanEnableFailure(
-            status.CanEnableFailureReason.NOT_ENTITLED, message=msg
+        enable_fail_reason = CanEnableFailure(
+            CanEnableFailureReason.NOT_ENTITLED, message=msg
         )
 
         m_ent_cls = mock.Mock()
         m_ent_obj = m_ent_cls.return_value
         m_ent_obj.enable.return_value = (False, enable_fail_reason)
         m_ent_obj.application_status.return_value = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             None,
         )
         type(m_ent_obj).title = mock.PropertyMock(return_value="Test")
@@ -639,7 +636,7 @@ class TestUaEntitlement:
 
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         entitlement._required_services = "test"
 
@@ -683,12 +680,12 @@ class TestUaEntitlement:
         """If deltas do not represent transition to unentitled, do nothing."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         entitlement.process_contract_deltas(orig_access, delta)
         assert (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             mock.ANY,
         ) == entitlement.application_status()
 
@@ -713,7 +710,7 @@ class TestUaEntitlement:
         """Only clear cache when deltas transition inactive to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         entitlement.process_contract_deltas(orig_access, delta)
         # If an entitlement is disabled, we don't need to tell the user
@@ -745,11 +742,11 @@ class TestUaEntitlement:
         """Disable when deltas transition from active to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.ENABLED, ""),
+            application_status=(ApplicationStatus.ENABLED, ""),
         )
         entitlement.process_contract_deltas(orig_access, delta)
         assert (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             mock.ANY,
         ) == entitlement.application_status()
 
@@ -779,8 +776,8 @@ class TestUaEntitlement:
         """Disable when deltas transition from active to unentitled."""
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
         )
         entitlement.is_beta = True
         assert not entitlement.allow_beta
@@ -800,14 +797,14 @@ class TestUaEntitlement:
         base_ent = concrete_entitlement_factory(
             entitled=True,
             disable=True,
-            application_status=(status.ApplicationStatus.ENABLED, ""),
+            application_status=(ApplicationStatus.ENABLED, ""),
             dependent_services=("test",),
         )
 
         m_entitlement_cls = mock.MagicMock()
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.application_status.return_value = [
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             "",
         ]
         m_entitlement_obj.disable.return_value = (True, None)
@@ -842,23 +839,23 @@ class TestUaEntitlement:
     ):
         m_handle_msg.return_value = True
 
-        fail_reason = status.CanDisableFailure(
-            status.CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+        fail_reason = CanDisableFailure(
+            CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
         )
         if disable_fail_message:
             msg = messages.NamedMessage("test-code", disable_fail_message)
         else:
             msg = None
 
-        disable_fail_reason = status.CanDisableFailure(
-            status.CanDisableFailureReason.ALREADY_DISABLED, message=msg
+        disable_fail_reason = CanDisableFailure(
+            CanDisableFailureReason.ALREADY_DISABLED, message=msg
         )
 
         m_ent_cls = mock.Mock()
         m_ent_obj = m_ent_cls.return_value
         m_ent_obj.disable.return_value = (False, disable_fail_reason)
         m_ent_obj.application_status.return_value = (
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             None,
         )
         type(m_ent_obj).title = mock.PropertyMock(return_value="Test")
@@ -868,7 +865,7 @@ class TestUaEntitlement:
 
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
             dependent_services=("test"),
         )
 
@@ -891,15 +888,15 @@ class TestUaEntitlement:
     ):
         m_handle_msg.return_value = True
 
-        fail_reason = status.CanDisableFailure(
-            status.CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
+        fail_reason = CanDisableFailure(
+            CanDisableFailureReason.ACTIVE_DEPENDENT_SERVICES
         )
 
         m_ent_factory.side_effect = EntitlementNotFoundError()
 
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            application_status=(status.ApplicationStatus.DISABLED, ""),
+            application_status=(ApplicationStatus.DISABLED, ""),
             dependent_services=("test"),
         )
 
@@ -955,13 +952,13 @@ class TestUaEntitlementUserFacingStatus:
         entitlement = concrete_entitlement_factory(
             entitled=True,
             applicability_status=(
-                status.ApplicabilityStatus.INAPPLICABLE,
+                ApplicabilityStatus.INAPPLICABLE,
                 msg,
             ),
         )
 
         user_facing_status, details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.INAPPLICABLE == user_facing_status
+        assert UserFacingStatus.INAPPLICABLE == user_facing_status
         assert msg == details
 
     def test_unavailable_when_applicable_but_not_entitled(
@@ -970,11 +967,11 @@ class TestUaEntitlementUserFacingStatus:
 
         entitlement = concrete_entitlement_factory(
             entitled=False,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
         )
 
         user_facing_status, details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
+        assert UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
         assert expected_details == details.msg
 
@@ -984,22 +981,22 @@ class TestUaEntitlementUserFacingStatus:
 
         entitlement = concrete_entitlement_factory(
             entitled=False,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
         )
         entitlement.cfg._entitlements = {}
 
         user_facing_status, details = entitlement.user_facing_status()
-        assert status.UserFacingStatus.UNAVAILABLE == user_facing_status
+        assert UserFacingStatus.UNAVAILABLE == user_facing_status
         expected_details = "{} is not entitled".format(entitlement.title)
         assert expected_details == details.msg
 
     @pytest.mark.parametrize(
         "application_status,expected_uf_status",
         (
-            (status.ApplicationStatus.ENABLED, status.UserFacingStatus.ACTIVE),
+            (ApplicationStatus.ENABLED, UserFacingStatus.ACTIVE),
             (
-                status.ApplicationStatus.DISABLED,
-                status.UserFacingStatus.INACTIVE,
+                ApplicationStatus.DISABLED,
+                UserFacingStatus.INACTIVE,
             ),
         ),
     )
@@ -1012,7 +1009,7 @@ class TestUaEntitlementUserFacingStatus:
         msg = "application status details"
         entitlement = concrete_entitlement_factory(
             entitled=True,
-            applicability_status=(status.ApplicabilityStatus.APPLICABLE, ""),
+            applicability_status=(ApplicabilityStatus.APPLICABLE, ""),
             application_status=(application_status, msg),
         )
 
