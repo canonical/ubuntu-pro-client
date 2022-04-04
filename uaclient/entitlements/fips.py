@@ -4,10 +4,11 @@ import re
 from itertools import groupby
 from typing import List, Optional, Tuple  # noqa: F401
 
-from uaclient import apt, event_logger, exceptions, messages, status, util
+from uaclient import apt, event_logger, exceptions, messages, util
 from uaclient.clouds.identity import NoCloudTypeReason, get_cloud_type
 from uaclient.entitlements import repo
 from uaclient.entitlements.base import IncompatibleService
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import (  # noqa: F401
     MessagingOperations,
     MessagingOperationsDict,
@@ -279,7 +280,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     def application_status(
         self,
-    ) -> Tuple[status.ApplicationStatus, Optional[messages.NamedMessage]]:
+    ) -> Tuple[ApplicationStatus, Optional[messages.NamedMessage]]:
         super_status, super_msg = super().application_status()
 
         if util.is_container() and not util.should_reboot():
@@ -305,7 +306,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
                 )
                 return (
-                    status.ApplicationStatus.DISABLED,
+                    ApplicationStatus.DISABLED,
                     messages.FIPS_PROC_FILE_ERROR.format(
                         file_name=self.FIPS_PROC_FILE
                     ),
@@ -313,10 +314,10 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
         else:
             self.cfg.remove_notice("", messages.FIPS_DISABLE_REBOOT_REQUIRED)
 
-        if super_status != status.ApplicationStatus.ENABLED:
+        if super_status != ApplicationStatus.ENABLED:
             return super_status, super_msg
         return (
-            status.ApplicationStatus.ENABLED,
+            ApplicationStatus.ENABLED,
             messages.FIPS_REBOOT_REQUIRED,
         )
 
@@ -401,7 +402,7 @@ class FIPSEntitlement(FIPSCommonEntitlement):
         static_affordances = super().static_affordances
 
         fips_update = FIPSUpdatesEntitlement(self.cfg)
-        enabled_status = status.ApplicationStatus.ENABLED
+        enabled_status = ApplicationStatus.ENABLED
         is_fips_update_enabled = bool(
             fips_update.application_status()[0] == enabled_status
         )

@@ -12,6 +12,7 @@ import os
 from typing import List, Tuple
 
 from uaclient import config, defaults, entitlements, util
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.messages import (
     ANNOUNCE_ESM_TMPL,
     CONTRACT_EXPIRED_APT_NO_PKGS_TMPL,
@@ -23,7 +24,6 @@ from uaclient.messages import (
     DISABLED_MOTD_NO_PKGS_TMPL,
     UBUNTU_NO_WARRANTY,
 )
-from uaclient.status import ApplicationStatus
 
 
 @enum.unique

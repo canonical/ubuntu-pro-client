@@ -3,8 +3,9 @@
 import mock
 import pytest
 
-from uaclient import apt, status
+from uaclient import apt
 from uaclient.entitlements.cis import CIS_DOCS_URL, CISEntitlement
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 
 M_REPOPATH = "uaclient.entitlements.repo."
 
@@ -28,7 +29,7 @@ class TestCISEntitlementCanEnable:
         with mock.patch.object(
             entitlement,
             "application_status",
-            return_value=(status.ApplicationStatus.DISABLED, ""),
+            return_value=(ApplicationStatus.DISABLED, ""),
         ):
             assert entitlement.can_enable()
         assert ("", "") == capsys.readouterr()

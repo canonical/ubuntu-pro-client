@@ -1,138 +1,27 @@
-import enum
+import copy
+import logging
 import os
 import sys
 import textwrap
-from typing import Any, Dict, List, Optional, Tuple
+from collections import OrderedDict
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from uaclient.defaults import (
-    BASE_UA_URL,
-    CONFIG_FIELD_ENVVAR_ALLOWLIST,
-    PRINT_WRAP_WIDTH,
+from uaclient import event_logger, exceptions, messages, util, version
+from uaclient.config import UAConfig
+from uaclient.contract import get_available_resources, get_contract_information
+from uaclient.defaults import ATTACH_FAIL_DATE_FORMAT, PRINT_WRAP_WIDTH
+from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements.entitlement_status import (
+    ContractStatus,
+    UserFacingAvailability,
+    UserFacingConfigStatus,
+    UserFacingStatus,
 )
-from uaclient.messages import UNATTACHED, NamedMessage, TxtColor
+from uaclient.messages import TxtColor
 
-
-@enum.unique
-class ApplicationStatus(enum.Enum):
-    """
-    An enum to represent the current application status of an entitlement
-    """
-
-    ENABLED = object()
-    DISABLED = object()
-
-
-@enum.unique
-class ContractStatus(enum.Enum):
-    """
-    An enum to represent whether a user is entitled to an entitlement
-
-    (The value of each member is the string that will be used in status
-    output.)
-    """
-
-    ENTITLED = "yes"
-    UNENTITLED = "no"
-
-
-@enum.unique
-class ApplicabilityStatus(enum.Enum):
-    """
-    An enum to represent whether an entitlement could apply to this machine
-    """
-
-    APPLICABLE = object()
-    INAPPLICABLE = object()
-
-
-@enum.unique
-class UserFacingAvailability(enum.Enum):
-    """
-    An enum representing whether a service could be available for a machine.
-
-    'Availability' means whether a service is available to machines with this
-    architecture, series and kernel. Whether a contract is entitled to use
-    the specific service is determined by the contract level.
-
-    This enum should only be used in display code, it should not be used in
-    business logic.
-    """
-
-    AVAILABLE = "yes"
-    UNAVAILABLE = "no"
-
-
-@enum.unique
-class UserFacingConfigStatus(enum.Enum):
-    """
-    An enum representing the user-visible config status of UA system.
-
-    This enum will be used in display code and will be written to status.json
-    """
-
-    INACTIVE = "inactive"  # No UA config commands/daemons
-    ACTIVE = "active"  # UA command is running
-    REBOOTREQUIRED = "reboot-required"  # System Reboot required
-
-
-@enum.unique
-class UserFacingStatus(enum.Enum):
-    """
-    An enum representing the states we will display in status output.
-
-    This enum should only be used in display code, it should not be used in
-    business logic.
-    """
-
-    ACTIVE = "enabled"
-    INACTIVE = "disabled"
-    INAPPLICABLE = "n/a"
-    UNAVAILABLE = "—"
-
-
-@enum.unique
-class CanEnableFailureReason(enum.Enum):
-    """
-    An enum representing the reasons an entitlement can't be enabled.
-    """
-
-    NOT_ENTITLED = object()
-    ALREADY_ENABLED = object()
-    INAPPLICABLE = object()
-    IS_BETA = object()
-    INCOMPATIBLE_SERVICE = object()
-    INACTIVE_REQUIRED_SERVICES = object()
-
-
-class CanEnableFailure:
-    def __init__(
-        self,
-        reason: CanEnableFailureReason,
-        message: Optional[NamedMessage] = None,
-    ) -> None:
-        self.reason = reason
-        self.message = message
-
-
-@enum.unique
-class CanDisableFailureReason(enum.Enum):
-    """
-    An enum representing the reasons an entitlement can't be disabled.
-    """
-
-    ALREADY_DISABLED = object()
-    ACTIVE_DEPENDENT_SERVICES = object()
-    NOT_FOUND_DEPENDENT_SERVICE = object()
-
-
-class CanDisableFailure:
-    def __init__(
-        self,
-        reason: CanDisableFailureReason,
-        message: Optional[NamedMessage] = None,
-    ) -> None:
-        self.reason = reason
-        self.message = message
+event = event_logger.get_event_logger()
+LOG = logging.getLogger(__name__)
 
 
 ESSENTIAL = "essential"
@@ -168,73 +57,6 @@ STATUS_COLOR = {
     ADVANCED: TxtColor.OKGREEN + ADVANCED + TxtColor.ENDC,
 }
 
-NOTICE_FIPS_MANUAL_DISABLE_URL = """\
-FIPS kernel is running in a disabled state.
-  To manually remove fips kernel: https://discourse.ubuntu.com/t/20738
-"""
-NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD = """\
-Warning: FIPS kernel is not optimized for your specific cloud.
-To fix it, run the following commands:
-
-    1. sudo ua disable fips
-    2. sudo apt-get remove ubuntu-fips
-    3. sudo ua enable fips --assume-yes
-    4. sudo reboot
-"""
-NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD = """\
-Detected an Ubuntu Pro license but failed to auto attach because
-"{operation}" was in progress.
-Please run `ua auto-attach` to upgrade to Pro.
-"""
-NOTICE_DAEMON_AUTO_ATTACH_FAILED = """\
-Detected an Ubuntu Pro license but failed to auto attach.
-Please run `ua auto-attach` to upgrade to Pro.
-If that fails then please contact support.
-"""
-
-PROMPT_YES_NO = """Are you sure? (y/N) """
-PROMPT_FIPS_PRE_ENABLE = (
-    """\
-This will install the FIPS packages. The Livepatch service will be unavailable.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
-PROMPT_FIPS_UPDATES_PRE_ENABLE = (
-    """\
-This will install the FIPS packages including security updates.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
-PROMPT_FIPS_CONTAINER_PRE_ENABLE = (
-    """\
-Warning: Enabling {title} in a container.
-         This will install the FIPS packages but not the kernel.
-         This container must run on a host with {title} enabled to be
-         compliant.
-Warning: This action can take some time and cannot be undone.
-"""
-    + PROMPT_YES_NO
-)
-
-PROMPT_FIPS_PRE_DISABLE = (
-    """\
-This will disable the FIPS entitlement but the FIPS packages will remain installed.
-"""  # noqa
-    + PROMPT_YES_NO
-)
-
-PROMPT_ENTER_TOKEN = """\
-Enter your token (from {}) to attach this system:""".format(
-    BASE_UA_URL
-)
-PROMPT_EXPIRED_ENTER_TOKEN = """\
-Enter your new token to renew UA subscription on this system:"""
-PROMPT_UA_SUBSCRIPTION_URL = """\
-Open a browser to: {}/subscribe""".format(
-    BASE_UA_URL
-)
 
 STATUS_UNATTACHED_TMPL = "{name: <14}{available: <11}{description}"
 
@@ -247,6 +69,424 @@ STATUS_HEADER = "SERVICE       ENTITLED  STATUS    DESCRIPTION"
 # columns. Colorizing has an opening and closing set of unprintable characters
 # that factor into formats len() calculations
 STATUS_TMPL = "{name: <14}{entitled: <19}{status: <19}{description}"
+
+DEFAULT_STATUS = {
+    "_doc": "Content provided in json response is currently considered"
+    " Experimental and may change",
+    "_schema_version": "0.1",
+    "version": version.get_version(),
+    "machine_id": None,
+    "attached": False,
+    "effective": None,
+    "expires": None,  # TODO Will this break something?
+    "origin": None,
+    "services": [],
+    "execution_status": UserFacingConfigStatus.INACTIVE.value,
+    "execution_details": messages.NO_ACTIVE_OPERATIONS,
+    "notices": [],
+    "contract": {
+        "id": "",
+        "name": "",
+        "created_at": "",
+        "products": [],
+        "tech_support_level": UserFacingStatus.INAPPLICABLE.value,
+    },
+    "account": {
+        "name": "",
+        "id": "",
+        "created_at": "",
+        "external_account_ids": [],
+    },
+    "simulated": False,
+}  # type: Dict[str, Any]
+
+
+def _attached_service_status(ent, inapplicable_resources) -> Dict[str, Any]:
+    status_details = ""
+    description_override = None
+    contract_status = ent.contract_status()
+    if contract_status == ContractStatus.UNENTITLED:
+        ent_status = UserFacingStatus.UNAVAILABLE
+    else:
+        if ent.name in inapplicable_resources:
+            ent_status = UserFacingStatus.INAPPLICABLE
+            description_override = inapplicable_resources[ent.name]
+        else:
+            ent_status, details = ent.user_facing_status()
+            if details:
+                status_details = details.msg
+
+    blocked_by = [
+        {
+            "name": service.entitlement.name,
+            "reason_code": service.named_msg.name,
+            "reason": service.named_msg.msg,
+        }
+        for service in ent.blocking_incompatible_services()
+    ]
+
+    return {
+        "name": ent.presentation_name,
+        "description": ent.description,
+        "entitled": contract_status.value,
+        "status": ent_status.value,
+        "status_details": status_details,
+        "description_override": description_override,
+        "available": "yes" if ent.name not in inapplicable_resources else "no",
+        "blocked_by": blocked_by,
+    }
+
+
+def _attached_status(cfg) -> Dict[str, Any]:
+    """Return configuration of attached status as a dictionary."""
+
+    cfg.remove_notice(
+        "",
+        messages.NOTICE_DAEMON_AUTO_ATTACH_LOCK_HELD.format(operation=".*"),
+    )
+    cfg.remove_notice("", messages.NOTICE_DAEMON_AUTO_ATTACH_FAILED)
+
+    response = copy.deepcopy(DEFAULT_STATUS)
+    machineTokenInfo = cfg.machine_token["machineTokenInfo"]
+    contractInfo = machineTokenInfo["contractInfo"]
+    tech_support_level = UserFacingStatus.INAPPLICABLE.value
+    response.update(
+        {
+            "version": version.get_version(features=cfg.features),
+            "machine_id": machineTokenInfo["machineId"],
+            "attached": True,
+            "origin": contractInfo.get("origin"),
+            "notices": cfg.read_cache("notices") or [],
+            "contract": {
+                "id": contractInfo["id"],
+                "name": contractInfo["name"],
+                "created_at": contractInfo.get("createdAt", ""),
+                "products": contractInfo.get("products", []),
+                "tech_support_level": tech_support_level,
+            },
+            "account": {
+                "name": cfg.accounts[0]["name"],
+                "id": cfg.accounts[0]["id"],
+                "created_at": cfg.accounts[0].get("createdAt", ""),
+                "external_account_ids": cfg.accounts[0].get(
+                    "externalAccountIDs", []
+                ),
+            },
+        }
+    )
+    if contractInfo.get("effectiveTo"):
+        response["expires"] = cfg.contract_expiry_datetime
+    if contractInfo.get("effectiveFrom"):
+        response["effective"] = contractInfo["effectiveFrom"]
+
+    resources = cfg.machine_token.get("availableResources")
+    if not resources:
+        resources = get_available_resources(cfg)
+
+    inapplicable_resources = {
+        resource["name"]: resource.get("description")
+        for resource in sorted(resources, key=lambda x: x.get("name", ""))
+        if not resource.get("available")
+    }
+
+    for resource in resources:
+        try:
+            ent_cls = entitlement_factory(resource.get("name", ""))
+        except exceptions.EntitlementNotFoundError:
+            continue
+        ent = ent_cls(cfg)
+        response["services"].append(
+            _attached_service_status(ent, inapplicable_resources)
+        )
+    response["services"].sort(key=lambda x: x.get("name", ""))
+
+    support = cfg.entitlements.get("support", {}).get("entitlement")
+    if support:
+        supportLevel = support.get("affordances", {}).get("supportLevel")
+        if supportLevel:
+            response["contract"]["tech_support_level"] = supportLevel
+    return response
+
+
+def _unattached_status(cfg: UAConfig) -> Dict[str, Any]:
+    """Return unattached status as a dict."""
+
+    response = copy.deepcopy(DEFAULT_STATUS)
+    response["version"] = version.get_version(features=cfg.features)
+
+    resources = get_available_resources(cfg)
+    for resource in resources:
+        if resource.get("available"):
+            available = UserFacingAvailability.AVAILABLE.value
+        else:
+            available = UserFacingAvailability.UNAVAILABLE.value
+        try:
+            ent_cls = entitlement_factory(resource.get("name", ""))
+        except exceptions.EntitlementNotFoundError:
+            LOG.debug(
+                messages.AVAILABILITY_FROM_UNKNOWN_SERVICE.format(
+                    service=resource.get("name", "without a 'name' key")
+                )
+            )
+            continue
+
+        response["services"].append(
+            {
+                "name": resource.get("presentedAs", resource["name"]),
+                "description": ent_cls.description,
+                "available": available,
+            }
+        )
+    response["services"].sort(key=lambda x: x.get("name", ""))
+
+    return response
+
+
+def _handle_beta_resources(cfg, show_beta, response) -> Dict[str, Any]:
+    """Remove beta services from response dict if needed"""
+    config_allow_beta = util.is_config_value_true(
+        config=cfg.cfg, path_to_value="features.allow_beta"
+    )
+    show_beta |= config_allow_beta
+    if show_beta:
+        return response
+
+    new_response = copy.deepcopy(response)
+
+    released_resources = []
+    for resource in new_response.get("services", {}):
+        resource_name = resource["name"]
+        try:
+            ent_cls = entitlement_factory(resource_name)
+        except exceptions.EntitlementNotFoundError:
+            """
+            Here we cannot know the status of a service,
+            since it is not listed as a valid entitlement.
+            Therefore, we keep this service in the list, since
+            we cannot validate if it is a beta service or not.
+            """
+            released_resources.append(resource)
+            continue
+
+        enabled_status = UserFacingStatus.ACTIVE.value
+        if not ent_cls.is_beta or resource.get("status", "") == enabled_status:
+            released_resources.append(resource)
+
+    if released_resources:
+        new_response["services"] = released_resources
+
+    return new_response
+
+
+def _get_config_status(cfg) -> Dict[str, Any]:
+    """Return a dict with execution_status, execution_details and notices.
+
+    Values for execution_status will be one of UserFacingConfigStatus
+    enum:
+        inactive, active, reboot-required
+    execution_details will provide more details about that state.
+    notices is a list of tuples with label and description items.
+    """
+    userStatus = UserFacingConfigStatus
+    status_val = userStatus.INACTIVE.value
+    status_desc = messages.NO_ACTIVE_OPERATIONS
+    (lock_pid, lock_holder) = cfg.check_lock_info()
+    notices = cfg.read_cache("notices") or []
+    if lock_pid > 0:
+        status_val = userStatus.ACTIVE.value
+        status_desc = messages.LOCK_HELD.format(
+            pid=lock_pid, lock_holder=lock_holder
+        ).msg
+    elif os.path.exists(cfg.data_path("marker-reboot-cmds")):
+        status_val = userStatus.REBOOTREQUIRED.value
+        operation = "configuration changes"
+        for label, description in notices:
+            if label == "Reboot required":
+                operation = description
+                break
+        status_desc = messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+            operation=operation
+        )
+    return {
+        "execution_status": status_val,
+        "execution_details": status_desc,
+        "notices": notices,
+        "config_path": cfg.cfg_path,
+        "config": cfg.cfg,
+    }
+
+
+def status(cfg: UAConfig, show_beta: bool = False) -> Dict[str, Any]:
+    """Return status as a dict, using a cache for non-root users
+
+    When unattached, get available resources from the contract service
+    to report detailed availability of different resources for this
+    machine.
+
+    Write the status-cache when called by root.
+    """
+    if os.getuid() != 0:
+        response = cast("Dict[str, Any]", cfg.read_cache("status-cache"))
+        if not response:
+            response = _unattached_status(cfg)
+    elif not cfg.is_attached:
+        response = _unattached_status(cfg)
+    else:
+        response = _attached_status(cfg)
+
+    response.update(_get_config_status(cfg))
+
+    if os.getuid() == 0:
+        cfg.write_cache("status-cache", response)
+
+        # Try to remove fix reboot notices if not applicable
+        if not util.should_reboot():
+            cfg.remove_notice(
+                "",
+                messages.ENABLE_REBOOT_REQUIRED_TMPL.format(
+                    operation="fix operation"
+                ),
+            )
+
+    response = _handle_beta_resources(cfg, show_beta, response)
+
+    return response
+
+
+def _get_entitlement_information(
+    entitlements: List[Dict[str, Any]], entitlement_name: str
+) -> Dict[str, Any]:
+    """Extract information from the entitlements array."""
+    for entitlement in entitlements:
+        if entitlement.get("type") == entitlement_name:
+            return {
+                "entitled": "yes" if entitlement.get("entitled") else "no",
+                "auto_enabled": "yes"
+                if entitlement.get("obligations", {}).get("enableByDefault")
+                else "no",
+                "affordances": entitlement.get("affordances", {}),
+            }
+    return {"entitled": "no", "auto_enabled": "no", "affordances": {}}
+
+
+def simulate_status(
+    cfg, token: str, show_beta: bool = False
+) -> Tuple[Dict[str, Any], int]:
+    """Get a status dictionary based on a token.
+
+    Returns a tuple with the status dictionary and an integer value - 0 for
+    success, 1 for failure
+    """
+    ret = 0
+    response = copy.deepcopy(DEFAULT_STATUS)
+
+    try:
+        contract_information = get_contract_information(cfg, token)
+    except exceptions.ContractAPIError as e:
+        if hasattr(e, "code") and e.code == 401:
+            raise exceptions.UserFacingError(
+                msg=messages.ATTACH_INVALID_TOKEN.msg,
+                msg_code=messages.ATTACH_INVALID_TOKEN.name,
+            )
+        raise e
+
+    contract_info = contract_information.get("contractInfo", {})
+    account_info = contract_information.get("accountInfo", {})
+
+    response.update(
+        {
+            "version": version.get_version(features=cfg.features),
+            "contract": {
+                "id": contract_info.get("id", ""),
+                "name": contract_info.get("name", ""),
+                "created_at": contract_info.get("createdAt", ""),
+                "products": contract_info.get("products", []),
+            },
+            "account": {
+                "name": account_info.get("name", ""),
+                "id": account_info.get("id"),
+                "created_at": account_info.get("createdAt", ""),
+                "external_account_ids": account_info.get(
+                    "externalAccountIDs", []
+                ),
+            },
+            "simulated": True,
+        }
+    )
+
+    now = datetime.now(timezone.utc)
+    if contract_info.get("effectiveTo"):
+        response["expires"] = contract_info.get("effectiveTo")
+        expiration_datetime = util.parse_rfc3339_date(response["expires"])
+        delta = expiration_datetime - now
+        if delta.total_seconds() <= 0:
+            message = messages.ATTACH_FORBIDDEN_EXPIRED.format(
+                contract_id=response["contract"]["id"],
+                date=expiration_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
+            )
+            event.error(error_msg=message.msg, error_code=message.name)
+            event.info("This token is not valid.\n" + message.msg + "\n")
+            ret = 1
+    if contract_info.get("effectiveFrom"):
+        response["effective"] = contract_info.get("effectiveFrom")
+        effective_datetime = util.parse_rfc3339_date(response["effective"])
+        delta = now - effective_datetime
+        if delta.total_seconds() <= 0:
+            message = messages.ATTACH_FORBIDDEN_NOT_YET.format(
+                contract_id=response["contract"]["id"],
+                date=effective_datetime.strftime(ATTACH_FAIL_DATE_FORMAT),
+            )
+            event.error(error_msg=message.msg, error_code=message.name)
+            event.info("This token is not valid.\n" + message.msg + "\n")
+            ret = 1
+
+    status_cache = cfg.read_cache("status-cache")
+    if status_cache:
+        resources = status_cache.get("services")
+    else:
+        resources = get_available_resources(cfg)
+
+    entitlements = contract_info.get("resourceEntitlements", [])
+
+    inapplicable_resources = [
+        resource["name"]
+        for resource in sorted(resources, key=lambda x: x["name"])
+        if not resource["available"]
+    ]
+
+    for resource in resources:
+        entitlement_name = resource.get("name", "")
+        try:
+            ent_cls = entitlement_factory(entitlement_name)
+        except exceptions.EntitlementNotFoundError:
+            continue
+        ent = ent_cls(cfg)
+        entitlement_information = _get_entitlement_information(
+            entitlements, entitlement_name
+        )
+        response["services"].append(
+            {
+                "name": resource.get("presentedAs", ent.name),
+                "description": ent.description,
+                "entitled": entitlement_information["entitled"],
+                "auto_enabled": entitlement_information["auto_enabled"],
+                "available": "yes"
+                if ent.name not in inapplicable_resources
+                else "no",
+            }
+        )
+    response["services"].sort(key=lambda x: x.get("name", ""))
+
+    support = _get_entitlement_information(entitlements, "support")
+    if support["entitled"]:
+        supportLevel = support["affordances"].get("supportLevel")
+        if supportLevel:
+            response["contract"]["tech_support_level"] = supportLevel
+
+    response.update(_get_config_status(cfg))
+    response = _handle_beta_resources(cfg, show_beta, response)
+
+    return response, ret
 
 
 def colorize(string: str) -> str:
@@ -329,7 +569,7 @@ def format_tabular(status: Dict[str, Any]) -> str:
         ]
         for service in status["services"]:
             content.append(STATUS_UNATTACHED_TMPL.format(**service))
-        content.extend(["", UNATTACHED.msg])
+        content.extend(["", messages.UNATTACHED.msg])
         return "\n".join(content)
 
     content = [STATUS_HEADER]
@@ -375,24 +615,54 @@ def format_tabular(status: Dict[str, Any]) -> str:
     return "\n".join(content)
 
 
-def format_machine_readable_output(status: Dict[str, Any]) -> Dict[str, Any]:
-    status["environment_vars"] = [
-        {"name": name, "value": value}
-        for name, value in sorted(os.environ.items())
-        if name.lower() in CONFIG_FIELD_ENVVAR_ALLOWLIST
-        or name.startswith("UA_FEATURES")
-        or name == "UA_CONFIG_FILE"
-    ]
+def help(cfg, name):
+    """Return help information from an uaclient service as a dict
 
-    if not status.get("simulated"):
-        available_services = [
-            service
-            for service in status.get("services", [])
-            if service.get("available", "yes") == "yes"
-        ]
-        status["services"] = available_services
+    :param name: Name of the service for which to return help data.
 
-    # We don't need the origin info in the json output
-    status.pop("origin", "")
+    :raises: UserFacingError when no help is available.
+    """
+    resources = get_available_resources(cfg)
+    help_resource = None
 
-    return status
+    # We are using an OrderedDict here to guarantee
+    # that if we need to print the result of this
+    # dict, the order of insertion will always be respected
+    response_dict = OrderedDict()
+    response_dict["name"] = name
+
+    for resource in resources:
+        if resource["name"] == name or resource.get("presentedAs") == name:
+            try:
+                help_ent_cls = entitlement_factory(resource["name"])
+            except exceptions.EntitlementNotFoundError:
+                continue
+            help_resource = resource
+            help_ent = help_ent_cls(cfg)
+            break
+
+    if help_resource is None:
+        raise exceptions.UserFacingError(
+            "No help available for '{}'".format(name)
+        )
+
+    if cfg.is_attached:
+        service_status = _attached_service_status(help_ent, {})
+        status_msg = service_status["status"]
+
+        response_dict["entitled"] = service_status["entitled"]
+        response_dict["status"] = status_msg
+
+        if status_msg == "enabled" and help_ent_cls.is_beta:
+            response_dict["beta"] = True
+
+    else:
+        if help_resource["available"]:
+            available = UserFacingAvailability.AVAILABLE.value
+        else:
+            available = UserFacingAvailability.UNAVAILABLE.value
+
+        response_dict["available"] = available
+
+    response_dict["help"] = help_ent.help_info
+    return response_dict

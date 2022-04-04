@@ -10,7 +10,14 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, exceptions, messages, status
+from uaclient import apt, exceptions, messages
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+    CanEnableFailureReason,
+    ContractStatus,
+    UserFacingStatus,
+)
 from uaclient.entitlements.livepatch import (
     LIVEPATCH_CMD,
     LivepatchEntitlement,
@@ -21,7 +28,6 @@ from uaclient.entitlements.livepatch import (
 )
 from uaclient.entitlements.tests.conftest import machine_token
 from uaclient.snap import SNAP_CMD
-from uaclient.status import ApplicationStatus, ContractStatus
 
 PLATFORM_INFO_SUPPORTED = MappingProxyType(
     {
@@ -34,7 +40,7 @@ PLATFORM_INFO_SUPPORTED = MappingProxyType(
 
 M_PATH = "uaclient.entitlements.livepatch."  # mock path
 M_LIVEPATCH_STATUS = M_PATH + "LivepatchEntitlement.application_status"
-DISABLED_APP_STATUS = (status.ApplicationStatus.DISABLED, "")
+DISABLED_APP_STATUS = (ApplicationStatus.DISABLED, "")
 
 M_BASE_PATH = "uaclient.entitlements.base.UAEntitlement."
 
@@ -249,7 +255,7 @@ class TestLivepatchUserFacingStatus:
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
-        assert uf_status == status.UserFacingStatus.INAPPLICABLE
+        assert uf_status == UserFacingStatus.INAPPLICABLE
         expected_details = (
             "Livepatch is not available for Ubuntu 16.04 LTS"
             " (Xenial Xerus)."
@@ -268,7 +274,7 @@ class TestLivepatchUserFacingStatus:
         with mock.patch("uaclient.util.get_platform_info") as m_platform_info:
             m_platform_info.return_value = PLATFORM_INFO_SUPPORTED
             uf_status, details = entitlement.user_facing_status()
-        assert uf_status == status.UserFacingStatus.UNAVAILABLE
+        assert uf_status == UserFacingStatus.UNAVAILABLE
         assert "Livepatch is not entitled" == details.msg
 
 
@@ -371,7 +377,7 @@ class TestLivepatchEntitlementCanEnable:
             entitlement = LivepatchEntitlement(entitlement.cfg)
             result, reason = entitlement.can_enable()
             assert False is result
-            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = (
                 "Livepatch is not available for kernel 4.2.9-00-generic.\n"
                 "Minimum kernel version required: 4.4."
@@ -389,7 +395,7 @@ class TestLivepatchEntitlementCanEnable:
             entitlement = LivepatchEntitlement(entitlement.cfg)
             result, reason = entitlement.can_enable()
             assert False is result
-            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = (
                 "Livepatch is not available for kernel 4.4.0-140-notgeneric.\n"
                 "Supported flavors are: generic, lowlatency."
@@ -426,9 +432,7 @@ class TestLivepatchEntitlementCanEnable:
             else:
                 result, reason = entitlement.can_enable()
                 assert False is result
-                assert (
-                    status.CanEnableFailureReason.INAPPLICABLE == reason.reason
-                )
+                assert CanEnableFailureReason.INAPPLICABLE == reason.reason
                 msg = (
                     "Livepatch is not available for kernel {}.\n"
                     "Minimum kernel version required: 4.4.".format(
@@ -447,7 +451,7 @@ class TestLivepatchEntitlementCanEnable:
             m_platform.return_value = unsupported_kernel
             result, reason = entitlement.can_enable()
             assert False is result
-            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = (
                 "Livepatch is not available for platform ppc64le.\n"
                 "Supported platforms are: x86_64."
@@ -466,7 +470,7 @@ class TestLivepatchEntitlementCanEnable:
             entitlement = LivepatchEntitlement(entitlement.cfg)
             result, reason = entitlement.can_enable()
             assert False is result
-            assert status.CanEnableFailureReason.INAPPLICABLE == reason.reason
+            assert CanEnableFailureReason.INAPPLICABLE == reason.reason
             msg = "Cannot install Livepatch on a container."
             assert msg == reason.message.msg
 
@@ -492,11 +496,11 @@ class TestLivepatchProcessContractDeltas:
     ):
         """When livepatch is INACTIVE return False and do no setup."""
         m_applicability_status.return_value = (
-            status.ApplicabilityStatus.APPLICABLE,
+            ApplicabilityStatus.APPLICABLE,
             "",
         )
         m_application_status.return_value = (
-            status.ApplicationStatus.DISABLED,
+            ApplicationStatus.DISABLED,
             "",
         )
         deltas = {"entitlement": {"directives": {"caCerts": "new"}}}
@@ -523,7 +527,7 @@ class TestLivepatchProcessContractDeltas:
         process_token,
     ):
         """Run setup when livepatch ACTIVE and deltas are supported keys."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         deltas = {"entitlement": {"directives": directives}}
         assert entitlement.process_contract_deltas({}, deltas, False)
@@ -557,7 +561,7 @@ class TestLivepatchProcessContractDeltas:
         process_token,
     ):
         """Run livepatch calls setup when resourceToken changes."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_application_status.return_value = (application_status, "")
         entitlement.process_contract_deltas({}, deltas, False)
         if any([process_directives, process_token]):
@@ -644,7 +648,7 @@ class TestLivepatchEntitlementEnable:
         apt_update_success,
     ):
         """Install snapd and canonical-livepatch snap when not on system."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
 
         def fake_run_apt_update():
@@ -703,7 +707,7 @@ class TestLivepatchEntitlementEnable:
         entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         assert (
@@ -744,7 +748,7 @@ class TestLivepatchEntitlementEnable:
         entitlement,
     ):
         """Install canonical-livepatch snap when not present on the system."""
-        m_app_status.return_value = status.ApplicationStatus.ENABLED, "enabled"
+        m_app_status.return_value = ApplicationStatus.ENABLED, "enabled"
         with mock.patch(
             M_PATH + "apt.get_installed_packages", return_value=[]
         ):
@@ -785,7 +789,7 @@ class TestLivepatchEntitlementEnable:
         entitlement,
     ):
         """Do not attempt to install livepatch snap when it is present."""
-        application_status = status.ApplicationStatus.ENABLED
+        application_status = ApplicationStatus.ENABLED
         m_app_status.return_value = application_status, "enabled"
         assert entitlement.enable()
         subp_calls = [
@@ -837,7 +841,7 @@ class TestLivepatchEntitlementEnable:
     ):
         """Do not attempt to disable livepatch snap when it is inactive."""
 
-        m_app_status.return_value = status.ApplicationStatus.DISABLED, "nope"
+        m_app_status.return_value = ApplicationStatus.DISABLED, "nope"
         assert entitlement.enable()
         subp_no_livepatch_disable = [
             mock.call(
@@ -885,7 +889,7 @@ class TestLivepatchEntitlementEnable:
                     cls_name
                 )
             ) as m_fips:
-                m_fips.return_value = (status.ApplicationStatus.ENABLED, "")
+                m_fips.return_value = (ApplicationStatus.ENABLED, "")
                 result, reason = entitlement.enable()
                 assert not result
 

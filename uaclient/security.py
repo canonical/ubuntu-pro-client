@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
-from uaclient import apt, exceptions, messages, serviceclient, status, util
+from uaclient import apt, exceptions, messages, serviceclient, util
 from uaclient.clouds.identity import (
     CLOUD_TYPE_TO_TITLE,
     PRO_CLOUDS,
@@ -16,6 +16,11 @@ from uaclient.clouds.identity import (
 from uaclient.config import UAConfig
 from uaclient.defaults import BASE_UA_URL, PRINT_WRAP_WIDTH
 from uaclient.entitlements import entitlement_factory
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    UserFacingStatus,
+)
+from uaclient.status import colorize_commands
 
 CVE_OR_USN_REGEX = (
     r"((CVE|cve)-\d{4}-\d{4,7}$|(USN|usn|LSN|lsn)-\d{1,5}-\d{1,2}$)"
@@ -813,7 +818,7 @@ def _is_pocket_used_by_beta_service(pocket: str, cfg: UAConfig) -> bool:
 
         # If the service is already enabled, we proceed with the fix
         # even if the service is a beta stage.
-        if ent_status == status.UserFacingStatus.ACTIVE:
+        if ent_status == UserFacingStatus.ACTIVE:
             return False
 
         return not ent.valid_service
@@ -1055,7 +1060,7 @@ def _run_ua_attach(cfg: UAConfig, token: str) -> bool:
 
     from uaclient import cli
 
-    print(status.colorize_commands([["ua", "attach", token]]))
+    print(colorize_commands([["ua", "attach", token]]))
     try:
         ret_code = cli.action_attach(
             argparse.Namespace(
@@ -1110,7 +1115,7 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     )
 
     if choice == "e":
-        print(status.colorize_commands([["ua", "enable", service]]))
+        print(colorize_commands([["ua", "enable", service]]))
         return bool(
             0
             == cli.action_enable(
@@ -1133,11 +1138,11 @@ def _check_subscription_for_required_service(
     if ent:
         ent_status, _ = ent.user_facing_status()
 
-        if ent_status == status.UserFacingStatus.ACTIVE:
+        if ent_status == UserFacingStatus.ACTIVE:
             return True
 
         applicability_status, _ = ent.applicability_status()
-        if applicability_status == status.ApplicabilityStatus.APPLICABLE:
+        if applicability_status == ApplicabilityStatus.APPLICABLE:
             if _prompt_for_enable(cfg, ent.name):
                 return True
             else:
@@ -1176,7 +1181,7 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     if choice == "r":
         print(messages.PROMPT_EXPIRED_ENTER_TOKEN)
         token = input("> ")
-        print(status.colorize_commands([["ua", "detach"]]))
+        print(colorize_commands([["ua", "detach"]]))
         cli.action_detach(argparse.Namespace(assume_yes=True), cfg)
         return _run_ua_attach(cfg, token)
 
@@ -1227,7 +1232,7 @@ def upgrade_packages_and_attach(
             return False
 
     print(
-        status.colorize_commands(
+        colorize_commands(
             [
                 ["apt", "update", "&&"]
                 + ["apt", "install", "--only-upgrade", "-y"]

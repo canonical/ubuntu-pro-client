@@ -26,7 +26,7 @@ from typing import (
 from urllib import error, request
 from urllib.parse import urlparse
 
-from uaclient import event_logger, exceptions, messages, status
+from uaclient import event_logger, exceptions, messages
 from uaclient.types import MessagingOperations
 
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
@@ -496,7 +496,7 @@ def prompt_for_confirmation(msg: str = "", assume_yes: bool = False) -> bool:
     if assume_yes:
         return True
     if not msg:
-        msg = status.PROMPT_YES_NO
+        msg = messages.PROMPT_YES_NO
     value = input(msg)
     if value.lower().strip() in ["y", "yes"]:
         return True

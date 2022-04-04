@@ -6,8 +6,12 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages, status
+from uaclient import entitlements, event_logger, exceptions, messages
 from uaclient.cli import action_disable, main, main_error_handler
+from uaclient.entitlements.entitlement_status import (
+    CanDisableFailure,
+    CanDisableFailureReason,
+)
 
 ALL_SERVICE_MSG = "\n".join(
     textwrap.wrap(
@@ -55,8 +59,10 @@ class TestDisable:
     )
     @mock.patch("uaclient.cli.entitlements.entitlement_factory")
     @mock.patch("uaclient.cli.entitlements.valid_services")
+    @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_disabled(
         self,
+        m_status,
         m_valid_services,
         m_entitlement_factory,
         _m_getuid,
@@ -67,6 +73,7 @@ class TestDisable:
         tmpdir,
         capsys,
         event,
+        FakeConfig,
     ):
         entitlements_cls = []
         entitlements_obj = []
@@ -74,8 +81,8 @@ class TestDisable:
         m_valid_services.return_value = []
 
         if not disable_return:
-            fail = status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED,
+            fail = CanDisableFailure(
+                CanDisableFailureReason.ALREADY_DISABLED,
                 message=messages.NamedMessage("test-code", "test"),
             )
         else:
@@ -100,19 +107,17 @@ class TestDisable:
 
         m_entitlement_factory.side_effect = factory_side_effect
 
-        m_cfg = mock.Mock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
-
+        cfg = FakeConfig.for_attached_machine()
         args_mock = mock.Mock()
         args_mock.service = service
         args_mock.assume_yes = assume_yes
 
-        ret = action_disable(args_mock, cfg=m_cfg)
+        with mock.patch.object(cfg, "check_lock_info", return_value=(-1, "")):
+            ret = action_disable(args_mock, cfg=cfg)
 
         for m_entitlement_cls in entitlements_cls:
             assert [
-                mock.call(m_cfg, assume_yes=assume_yes)
+                mock.call(cfg, assume_yes=assume_yes)
             ] == m_entitlement_cls.call_args_list
 
         expected_disable_call = mock.call()
@@ -122,17 +127,21 @@ class TestDisable:
             ] == m_entitlement.disable.call_args_list
 
         assert return_code == ret
-        assert len(entitlements_cls) == m_cfg.status.call_count
+        assert len(entitlements_cls) == m_status.call_count
 
+        cfg = FakeConfig.for_attached_machine()
         args_mock.assume_yes = True
         args_mock.format = "json"
         with mock.patch.object(
             event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
         ):
             with mock.patch.object(event, "set_event_mode"):
-                fake_stdout = io.StringIO()
-                with contextlib.redirect_stdout(fake_stdout):
-                    ret = action_disable(args_mock, cfg=m_cfg)
+                with mock.patch.object(
+                    cfg, "check_lock_info", return_value=(-1, "")
+                ):
+                    fake_stdout = io.StringIO()
+                    with contextlib.redirect_stdout(fake_stdout):
+                        ret = action_disable(args_mock, cfg=cfg)
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,
@@ -161,14 +170,17 @@ class TestDisable:
     @pytest.mark.parametrize("assume_yes", (True, False))
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
+    @mock.patch("uaclient.status.status")
     def test_entitlements_not_found_disabled_and_enabled(
         self,
+        m_status,
         m_valid_services,
         m_entitlement_factory,
         _m_getuid,
         assume_yes,
         tmpdir,
         event,
+        FakeConfig,
     ):
         expected_error_tmpl = messages.INVALID_SERVICE_OP_FAILURE
         num_calls = 2
@@ -177,8 +189,8 @@ class TestDisable:
         m_ent1_obj = m_ent1_cls.return_value
         m_ent1_obj.disable.return_value = (
             False,
-            status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED,
+            CanDisableFailure(
+                CanDisableFailureReason.ALREADY_DISABLED,
                 message=messages.NamedMessage("test-code", "test"),
             ),
         )
@@ -188,8 +200,8 @@ class TestDisable:
         m_ent2_obj = m_ent2_cls.return_value
         m_ent2_obj.disable.return_value = (
             False,
-            status.CanDisableFailure(
-                status.CanDisableFailureReason.ALREADY_DISABLED,
+            CanDisableFailure(
+                CanDisableFailureReason.ALREADY_DISABLED,
                 message=messages.NamedMessage("test-code2", "test2"),
             ),
         )
@@ -210,15 +222,16 @@ class TestDisable:
         m_entitlement_factory.side_effect = factory_side_effect
         m_valid_services.return_value = ["ent2", "ent3"]
 
-        m_cfg = mock.Mock()
-        m_cfg.check_lock_info.return_value = (-1, "")
-        m_cfg.data_path.return_value = tmpdir.join("lock").strpath
+        cfg = FakeConfig.for_attached_machine()
         args_mock = mock.Mock()
         args_mock.service = ["ent1", "ent2", "ent3"]
         args_mock.assume_yes = assume_yes
 
         with pytest.raises(exceptions.UserFacingError) as err:
-            action_disable(args_mock, cfg=m_cfg)
+            with mock.patch.object(
+                cfg, "check_lock_info", return_value=(-1, "")
+            ):
+                action_disable(args_mock, cfg=cfg)
 
         assert (
             expected_error_tmpl.format(
@@ -231,7 +244,7 @@ class TestDisable:
 
         for m_ent_cls in [m_ent2_cls, m_ent3_cls]:
             assert [
-                mock.call(m_cfg, assume_yes=assume_yes)
+                mock.call(cfg, assume_yes=assume_yes)
             ] == m_ent_cls.call_args_list
 
         expected_disable_call = mock.call()
@@ -239,8 +252,9 @@ class TestDisable:
             assert [expected_disable_call] == m_ent.disable.call_args_list
 
         assert 0 == m_ent1_obj.call_count
-        assert num_calls == m_cfg.status.call_count
+        assert num_calls == m_status.call_count
 
+        cfg = FakeConfig.for_attached_machine()
         args_mock.assume_yes = True
         args_mock.format = "json"
         with pytest.raises(SystemExit):
@@ -248,9 +262,14 @@ class TestDisable:
                 event, "_event_logger_mode", event_logger.EventLoggerMode.JSON
             ):
                 with mock.patch.object(event, "set_event_mode"):
-                    fake_stdout = io.StringIO()
-                    with contextlib.redirect_stdout(fake_stdout):
-                        main_error_handler(action_disable)(args_mock, m_cfg)
+                    with mock.patch.object(
+                        cfg, "check_lock_info", return_value=(-1, "")
+                    ):
+                        fake_stdout = io.StringIO()
+                        with contextlib.redirect_stdout(fake_stdout):
+                            main_error_handler(action_disable)(
+                                args_mock, cfg=cfg
+                            )
 
         expected = {
             "_schema_version": event_logger.JSON_SCHEMA_VERSION,

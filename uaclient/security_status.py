@@ -6,6 +6,7 @@ from apt import Cache  # type: ignore
 from apt import package as apt_package
 
 from uaclient.config import UAConfig
+from uaclient.status import status
 from uaclient.util import get_platform_info
 
 series = get_platform_info()["series"]
@@ -101,10 +102,10 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
         "entitled_services": [],
     }  # type: Dict[str, Any]
 
-    status = cfg.status(show_beta=True)
-    if status["attached"]:
+    status_dict = status(cfg=cfg, show_beta=True)
+    if status_dict["attached"]:
         ua_info["attached"] = True
-        for service in status["services"]:
+        for service in status_dict["services"]:
             if service["name"] in ESM_SERVICES:
                 if service["entitled"] == "yes":
                     ua_info["entitled_services"].append(service["name"])

@@ -10,8 +10,13 @@ from functools import partial
 import mock
 import pytest
 
-from uaclient import apt, defaults, exceptions, messages, status, util
+from uaclient import apt, defaults, exceptions, messages, util
 from uaclient.clouds.identity import NoCloudTypeReason
+from uaclient.entitlements.entitlement_status import (
+    ApplicabilityStatus,
+    ApplicationStatus,
+    CanEnableFailureReason,
+)
 from uaclient.entitlements.fips import (
     CONDITIONAL_PACKAGES_EVERYWHERE,
     CONDITIONAL_PACKAGES_OPENSSH_HMAC,
@@ -21,7 +26,6 @@ from uaclient.entitlements.fips import (
     FIPSEntitlement,
     FIPSUpdatesEntitlement,
 )
-from uaclient.status import CanEnableFailureReason
 
 M_PATH = "uaclient.entitlements.fips."
 M_LIVEPATCH_PATH = "uaclient.entitlements.livepatch.LivepatchEntitlement."
@@ -126,7 +130,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
-                            "msg": status.PROMPT_FIPS_PRE_ENABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_ENABLE,
                         },
                     )
                 ],
@@ -136,7 +140,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
-                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         },
                     )
                 ],
@@ -146,7 +150,7 @@ class TestFIPSEntitlementDefaults:
                     (
                         util.prompt_for_confirmation,
                         {
-                            "msg": status.PROMPT_FIPS_UPDATES_PRE_ENABLE,
+                            "msg": messages.PROMPT_FIPS_UPDATES_PRE_ENABLE,
                             "assume_yes": assume_yes,
                         },
                     )
@@ -157,7 +161,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": assume_yes,
-                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         },
                     )
                 ],
@@ -183,7 +187,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": False,
-                            "msg": status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
+                            "msg": messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
                                 title="FIPS"
                             ),
                         },
@@ -195,7 +199,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": False,
-                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         },
                     )
                 ],
@@ -205,7 +209,7 @@ class TestFIPSEntitlementDefaults:
                     (
                         util.prompt_for_confirmation,
                         {
-                            "msg": status.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
+                            "msg": messages.PROMPT_FIPS_CONTAINER_PRE_ENABLE.format(  # noqa: E501
                                 title="FIPS Updates"
                             ),
                             "assume_yes": False,
@@ -218,7 +222,7 @@ class TestFIPSEntitlementDefaults:
                         util.prompt_for_confirmation,
                         {
                             "assume_yes": False,
-                            "msg": status.PROMPT_FIPS_PRE_DISABLE,
+                            "msg": messages.PROMPT_FIPS_PRE_DISABLE,
                         },
                     )
                 ],
@@ -240,12 +244,12 @@ class TestFIPSEntitlementCanEnable:
         with mock.patch.object(
             entitlement,
             "applicability_status",
-            return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
+            return_value=(ApplicabilityStatus.APPLICABLE, ""),
         ):
             with mock.patch.object(
                 entitlement,
                 "application_status",
-                return_value=(status.ApplicationStatus.DISABLED, ""),
+                return_value=(ApplicationStatus.DISABLED, ""),
             ):
                 with mock.patch.object(
                     entitlement,
@@ -430,7 +434,11 @@ class TestFIPSEntitlementEnable:
         [
             (
                 True,
-                [mock.call("", status.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD)],
+                [
+                    mock.call(
+                        "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
+                    )
+                ],
             ),
             (False, []),
         ],
@@ -596,10 +604,10 @@ class TestFIPSEntitlementEnable:
             with mock.patch.object(
                 fips_ent,
                 "applicability_status",
-                return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
+                return_value=(ApplicabilityStatus.APPLICABLE, ""),
             ):
                 m_livepatch.return_value = (
-                    status.ApplicationStatus.ENABLED,
+                    ApplicationStatus.ENABLED,
                     "",
                 )
                 ret, fail = fips_ent.enable()
@@ -611,7 +619,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
         M_LIVEPATCH_PATH + "application_status",
-        return_value=((status.ApplicationStatus.DISABLED, "")),
+        return_value=((ApplicationStatus.DISABLED, "")),
     )
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_fips_update_service_is_enabled(
@@ -633,7 +641,7 @@ class TestFIPSEntitlementEnable:
             ) as m_allow_fips_on_cloud:
                 m_allow_fips_on_cloud.return_value = True
                 m_fips_update.return_value = (
-                    status.ApplicationStatus.ENABLED,
+                    ApplicationStatus.ENABLED,
                     "",
                 )
                 result, reason = fips_entitlement.enable()
@@ -646,7 +654,7 @@ class TestFIPSEntitlementEnable:
     @mock.patch("uaclient.util.handle_message_operations")
     @mock.patch(
         M_LIVEPATCH_PATH + "application_status",
-        return_value=((status.ApplicationStatus.DISABLED, "")),
+        return_value=((ApplicationStatus.DISABLED, "")),
     )
     @mock.patch("uaclient.util.is_container", return_value=False)
     def test_enable_fails_when_fips_updates_service_once_enabled(
@@ -692,7 +700,7 @@ class TestFIPSEntitlementEnable:
         with mock.patch(
             "{}.application_status".format(base_path)
         ) as m_livepatch:
-            m_livepatch.return_value = (status.ApplicationStatus.DISABLED, "")
+            m_livepatch.return_value = (ApplicationStatus.DISABLED, "")
             result, reason = entitlement.enable()
             assert not result
             expected_msg = """\
@@ -727,7 +735,7 @@ class TestFIPSEntitlementEnable:
             "{}.application_status".format(base_path)
         ) as m_fips_status:
             m_fips_status.return_value = (
-                status.ApplicationStatus.DISABLED,
+                ApplicationStatus.DISABLED,
                 "",
             )
             result, reason = entitlement.enable()
@@ -921,11 +929,7 @@ class TestFIPSEntitlementDisable:
 class TestFIPSEntitlementApplicationStatus:
     @pytest.mark.parametrize(
         "super_application_status",
-        [
-            s
-            for s in status.ApplicationStatus
-            if s is not status.ApplicationStatus.ENABLED
-        ],
+        [s for s in ApplicationStatus if s is not ApplicationStatus.ENABLED],
     )
     def test_non_enabled_passed_through(
         self, entitlement, super_application_status
@@ -970,7 +974,7 @@ class TestFIPSEntitlementApplicationStatus:
 
         with mock.patch(
             M_PATH + "repo.RepoEntitlement.application_status",
-            return_value=(status.ApplicationStatus.ENABLED, msg),
+            return_value=(ApplicationStatus.ENABLED, msg),
         ):
             with mock.patch("uaclient.util.load_file") as m_load_file:
                 m_load_file.side_effect = fake_load_file
@@ -981,7 +985,7 @@ class TestFIPSEntitlementApplicationStatus:
                         actual_msg,
                     ) = entitlement.application_status()
 
-        expected_status = status.ApplicationStatus.ENABLED
+        expected_status = ApplicationStatus.ENABLED
         if path_exists and proc_content == "1":
             expected_msg = msg
             assert entitlement.cfg.read_cache("notices") is None
@@ -989,9 +993,9 @@ class TestFIPSEntitlementApplicationStatus:
             expected_msg = messages.FIPS_PROC_FILE_ERROR.format(
                 file_name=entitlement.FIPS_PROC_FILE
             )
-            expected_status = status.ApplicationStatus.DISABLED
+            expected_status = ApplicationStatus.DISABLED
             assert [
-                ["", status.NOTICE_FIPS_MANUAL_DISABLE_URL]
+                ["", messages.NOTICE_FIPS_MANUAL_DISABLE_URL]
             ] == entitlement.cfg.read_cache("notices")
         else:
             expected_msg = messages.FIPS_REBOOT_REQUIRED
@@ -1015,9 +1019,9 @@ class TestFIPSEntitlementApplicationStatus:
 
             application_status, _ = entitlement.application_status()
 
-        expected_status = status.ApplicationStatus.DISABLED
+        expected_status = ApplicationStatus.DISABLED
         if isinstance(entitlement, FIPSUpdatesEntitlement):
-            expected_status = status.ApplicationStatus.ENABLED
+            expected_status = ApplicationStatus.ENABLED
 
         assert expected_status == application_status
 
@@ -1309,18 +1313,18 @@ class TestFIPSUpdatesEntitlementCanEnable:
         with mock.patch.object(
             entitlement,
             "applicability_status",
-            return_value=(status.ApplicabilityStatus.APPLICABLE, ""),
+            return_value=(ApplicabilityStatus.APPLICABLE, ""),
         ):
             with mock.patch.object(
                 entitlement,
                 "application_status",
-                return_value=(status.ApplicationStatus.DISABLED, ""),
+                return_value=(ApplicationStatus.DISABLED, ""),
             ):
                 with mock.patch(
                     M_PATH + "FIPSEntitlement.application_status"
                 ) as m_fips_status:
                     m_fips_status.return_value = (
-                        status.ApplicationStatus.ENABLED,
+                        ApplicationStatus.ENABLED,
                         None,
                     )
                     actual_ret, reason = entitlement.can_enable()

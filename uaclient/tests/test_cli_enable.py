@@ -6,8 +6,12 @@ import textwrap
 import mock
 import pytest
 
-from uaclient import entitlements, event_logger, exceptions, messages, status
+from uaclient import entitlements, event_logger, exceptions, messages
 from uaclient.cli import action_enable, main, main_error_handler
+from uaclient.entitlements.entitlement_status import (
+    CanEnableFailure,
+    CanEnableFailureReason,
+)
 
 HELP_OUTPUT = textwrap.dedent(
     """\
@@ -361,7 +365,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("assume_yes", (True, False))
-    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.valid_services")
     def test_assume_yes_passed_to_service_init(
         self,
@@ -401,7 +405,7 @@ class TestActionEnable:
             )
         ] == m_entitlement_cls.call_args_list
 
-    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
     def test_entitlements_not_found_disabled_and_enabled(
@@ -428,7 +432,7 @@ class TestActionEnable:
         m_ent2_obj = m_ent2_cls.return_value
         m_ent2_obj.enable.return_value = (
             False,
-            status.CanEnableFailure(status.CanEnableFailureReason.IS_BETA),
+            CanEnableFailure(CanEnableFailureReason.IS_BETA),
         )
 
         m_ent3_cls = mock.Mock()
@@ -518,7 +522,7 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("beta_flag", ((False), (True)))
-    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
     @mock.patch("uaclient.entitlements.entitlement_factory")
     @mock.patch("uaclient.entitlements.valid_services")
     def test_entitlements_not_found_and_beta(
@@ -544,9 +548,7 @@ class TestActionEnable:
         m_ent2_is_beta = mock.PropertyMock(return_value=True)
         type(m_ent2_cls)._is_beta = m_ent2_is_beta
         m_ent2_obj = m_ent2_cls.return_value
-        failure_reason = status.CanEnableFailure(
-            status.CanEnableFailureReason.IS_BETA
-        )
+        failure_reason = CanEnableFailure(CanEnableFailureReason.IS_BETA)
         if beta_flag:
             m_ent2_obj.enable.return_value = (True, None)
         else:
@@ -663,7 +665,7 @@ class TestActionEnable:
         }
         assert expected == json.loads(fake_stdout.getvalue())
 
-    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
     def test_print_message_when_can_enable_fails(
         self,
         _m_get_available_resources,
@@ -678,8 +680,8 @@ class TestActionEnable:
         m_entitlement_obj = m_entitlement_cls.return_value
         m_entitlement_obj.enable.return_value = (
             False,
-            status.CanEnableFailure(
-                status.CanEnableFailureReason.ALREADY_ENABLED,
+            CanEnableFailure(
+                CanEnableFailureReason.ALREADY_ENABLED,
                 message=messages.NamedMessage("test-code", "msg"),
             ),
         )
@@ -810,9 +812,11 @@ class TestActionEnable:
         assert expected == json.loads(fake_stdout.getvalue())
 
     @pytest.mark.parametrize("allow_beta", ((True), (False)))
-    @mock.patch("uaclient.contract.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.get_available_resources", return_value={})
+    @mock.patch("uaclient.status.status")
     def test_entitlement_instantiated_and_enabled(
         self,
+        m_status,
         _m_get_available_resources,
         _m_request_updated_contract,
         m_getuid,
@@ -826,7 +830,6 @@ class TestActionEnable:
         m_entitlement_obj.enable.return_value = (True, None)
 
         cfg = FakeConfig.for_attached_machine()
-        cfg.status = mock.Mock()
 
         args_mock = mock.MagicMock()
         args_mock.assume_yes = False
@@ -856,7 +859,7 @@ class TestActionEnable:
         expected_ret = 0
         assert [expected_enable_call] == m_entitlement.enable.call_args_list
         assert expected_ret == ret
-        assert 1 == cfg.status.call_count
+        assert 1 == m_status.call_count
 
         with mock.patch(
             "uaclient.entitlements.entitlement_factory",

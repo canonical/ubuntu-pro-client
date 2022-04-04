@@ -2,17 +2,9 @@ import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from uaclient import (
-    apt,
-    event_logger,
-    exceptions,
-    messages,
-    snap,
-    status,
-    util,
-)
+from uaclient import apt, event_logger, exceptions, messages, snap, util
 from uaclient.entitlements.base import IncompatibleService, UAEntitlement
-from uaclient.status import ApplicationStatus
+from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.types import StaticAffordance
 
 LIVEPATCH_RETRIES = [0.5, 1.0]
@@ -234,7 +226,7 @@ class LivepatchEntitlement(UAEntitlement):
                 )
                 livepatch_token = self.cfg.machine_token["machineToken"]
             application_status, _details = self.application_status()
-            if application_status != status.ApplicationStatus.DISABLED:
+            if application_status != ApplicationStatus.DISABLED:
                 logging.info(
                     "Disabling %s prior to re-attach with new token",
                     self.title,
@@ -323,7 +315,7 @@ class LivepatchEntitlement(UAEntitlement):
             return enable_success
 
         application_status, _ = self.application_status()
-        if application_status == status.ApplicationStatus.DISABLED:
+        if application_status == ApplicationStatus.DISABLED:
             return False  # only operate on changed directives when ACTIVE
         delta_directives = delta_entitlement.get("directives", {})
         supported_deltas = set(["caCerts", "remoteServer"])

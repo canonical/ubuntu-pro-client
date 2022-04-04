@@ -2,8 +2,8 @@ from typing import Optional, Tuple, Union  # noqa: F401
 
 from uaclient import util
 from uaclient.entitlements import repo
+from uaclient.entitlements.entitlement_status import CanDisableFailure
 from uaclient.jobs.update_messaging import update_apt_and_motd_messages
-from uaclient.status import CanDisableFailure
 
 
 class ESMBaseEntitlement(repo.RepoEntitlement):

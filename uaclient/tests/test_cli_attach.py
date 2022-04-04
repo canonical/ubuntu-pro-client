@@ -7,7 +7,7 @@ import mock
 import pytest
 import yaml
 
-from uaclient import event_logger, messages
+from uaclient import event_logger, messages, status
 from uaclient.cli import (
     UA_AUTH_TOKEN_URL,
     action_attach,
@@ -244,7 +244,7 @@ class TestActionAttach:
     )
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     @mock.patch(M_PATH + "contract.request_updated_contract")
     def test_status_updated_when_auto_enable_fails(
@@ -264,7 +264,7 @@ class TestActionAttach:
         token = "contract-token"
         args = mock.MagicMock(token=token, attach_config=None)
         cfg = FakeConfig()
-        cfg.status()  # persist unattached status
+        status.status(cfg=cfg)  # persist unattached status
         # read persisted status cache from disk
         orig_unattached_status = cfg.read_cache("status-cache")
 
@@ -360,7 +360,7 @@ class TestActionAttach:
     @pytest.mark.parametrize("auto_enable", (True, False))
     @mock.patch("uaclient.util.should_reboot", return_value=False)
     @mock.patch("uaclient.config.UAConfig.remove_notice")
-    @mock.patch("uaclient.contract.get_available_resources")
+    @mock.patch("uaclient.status.get_available_resources")
     @mock.patch("uaclient.jobs.update_messaging.update_apt_and_motd_messages")
     def test_auto_enable_passed_through_to_request_updated_contract(
         self,

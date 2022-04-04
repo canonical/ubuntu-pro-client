@@ -44,6 +44,12 @@ from uaclient.defaults import (
     DEFAULT_CONFIG_FILE,
     PRINT_WRAP_WIDTH,
 )
+from uaclient.entitlements.entitlement_status import (
+    ApplicationStatus,
+    CanDisableFailure,
+    CanEnableFailure,
+    CanEnableFailureReason,
+)
 
 # TODO: Better address service commands running on cli
 # It is not ideal for us to import an entitlement directly on the cli module.
@@ -707,9 +713,7 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
     if not ret:
         event.service_failed(entitlement.name)
 
-        if reason is not None and isinstance(
-            reason, ua_status.CanDisableFailure
-        ):
+        if reason is not None and isinstance(reason, CanDisableFailure):
             if reason.message is not None:
                 event.info(reason.message.msg)
                 event.error(
@@ -721,7 +725,7 @@ def _perform_disable(entitlement, cfg, *, assume_yes, update_status=True):
         event.service_processed(entitlement.name)
 
     if update_status:
-        cfg.status()  # Update the status cache
+        ua_status.status(cfg=cfg)  # Update the status cache
 
     return ret
 
@@ -842,7 +846,7 @@ def action_config_set(args, *, cfg, **kwargs):
         # Only set livepatch proxy if livepatch is enabled
         entitlement = entitlements.livepatch.LivepatchEntitlement(cfg)
         livepatch_status, _ = entitlement.application_status()
-        if livepatch_status == ua_status.ApplicationStatus.ENABLED:
+        if livepatch_status == ApplicationStatus.ENABLED:
             configure_livepatch_proxy(**kwargs)
     elif set_key in cfg.ua_scoped_proxy_options:
         protocol_type = set_key.split("_")[2]
@@ -940,7 +944,7 @@ def action_config_unset(args, *, cfg, **kwargs):
         # Only unset livepatch proxy if livepatch is enabled
         entitlement = entitlements.livepatch.LivepatchEntitlement(cfg)
         livepatch_status, _ = entitlement.application_status()
-        if livepatch_status == ua_status.ApplicationStatus.ENABLED:
+        if livepatch_status == ApplicationStatus.ENABLED:
             unconfigure_livepatch_proxy(protocol_type=protocol_type)
     elif args.key in cfg.ua_scoped_proxy_options:
         configure_apt_proxy(cfg, AptProxyScope.UACLIENT, args.key, None)
@@ -1083,12 +1087,12 @@ def action_enable(args, *, cfg, **kwargs):
             ent_ret, reason = actions.enable_entitlement_by_name(
                 cfg, ent_name, assume_yes=args.assume_yes, allow_beta=args.beta
             )
-            cfg.status()  # Update the status cache
+            ua_status.status(cfg=cfg)  # Update the status cache
 
             if (
                 not ent_ret
                 and reason is not None
-                and isinstance(reason, ua_status.CanEnableFailure)
+                and isinstance(reason, CanEnableFailure)
             ):
                 if reason.message is not None:
                     event.info(reason.message.msg)
@@ -1097,7 +1101,7 @@ def action_enable(args, *, cfg, **kwargs):
                         error_code=reason.message.name,
                         service=ent_name,
                     )
-                if reason.reason == ua_status.CanEnableFailureReason.IS_BETA:
+                if reason.reason == CanEnableFailureReason.IS_BETA:
                     # if we failed because ent is in beta and there was no
                     # allow_beta flag/config, pretend it doesn't exist
                     entitlements_not_found.append(ent_name)
@@ -1652,7 +1656,7 @@ def action_help(args, *, cfg):
     if not cfg:
         cfg = config.UAConfig()
 
-    help_response = cfg.help(service)
+    help_response = ua_status.help(cfg, service)
 
     if args.format == "json":
         print(json.dumps(help_response))

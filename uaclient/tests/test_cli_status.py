@@ -260,11 +260,11 @@ Flags:
 @mock.patch("uaclient.config.UAConfig.remove_notice")
 @mock.patch("uaclient.util.should_reboot", return_value=False)
 @mock.patch(
-    M_PATH + "contract.get_available_resources",
+    "uaclient.status.get_available_resources",
     return_value=RESPONSE_AVAILABLE_SERVICES,
 )
 @mock.patch(
-    M_PATH + "contract.get_contract_information",
+    "uaclient.status.get_contract_information",
     return_value=RESPONSE_CONTRACT_INFO,
 )
 @mock.patch(M_PATH + "os.getuid", return_value=0)
