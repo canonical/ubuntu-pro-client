@@ -38,7 +38,7 @@ function explanatory_message {
 
 explanatory_message "Starting gcloud instance"
 gcloud compute instances create $INSTANCE_NAME \
-    --image="ubuntu-2004-focal-v20220204" \
+    --image="ubuntu-2004-focal-v20220404" \
     --image-project="ubuntu-os-cloud" \
     --machine-type=$INSTANCE_TYPE \
     --zone=$ZONE
@@ -58,13 +58,6 @@ print_and_run_cmd "sudo sh -c \\\"printf \\\\\\\"  poll_for_pro_license: true\\\
 
 explanatory_message "change won't happen while daemon is running, so set short timeout to simulate the long poll returning"
 print_and_run_cmd "sudo sed -i \\\"s/wait_for_change=true/wait_for_change=true\&timeout_sec=5/\\\" /usr/lib/python3/dist-packages/uaclient/clouds/gcp.py"
-
-explanatory_message "Installing new version of cloud-init with cloud-id file feature and rebooting"
-print_and_run_cmd "sudo add-apt-repository ppa:cloud-init-dev/daily -y"
-print_and_run_cmd "sudo apt install cloud-init -y"
-gcloud compute instances stop $INSTANCE_NAME
-gcloud compute instances start $INSTANCE_NAME
-sleep 30
 
 explanatory_message "Checking the status and logs beforehand"
 print_and_run_cmd "sudo ua status --wait"

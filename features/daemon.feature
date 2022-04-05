@@ -3,17 +3,12 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
     @series.all
     @uses.config.contract_token
     @uses.config.machine_type.lxd.container
-    Scenario Outline: cloud-id-shim does not run with newer version of cloud-init
+    Scenario Outline: cloud-id-shim service is not installed on anything other than xenial
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I run `sudo add-apt-repository ppa:cloud-init-dev/daily -y` with sudo
-        When I run `sudo apt install cloud-init -y` with sudo
-        When I reboot the `<release>` machine
-        Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `3`
-        Then stdout matches regexp:
+        Then I verify that running `systemctl status ubuntu-advantage-cloud-id-shim.service` `with sudo` exits `4`
+        Then stderr matches regexp:
         """
-        Active: inactive \(dead\)
-        \s*Condition: start condition failed.*
-        .*ConditionPathExists=!/run/cloud-init/cloud-id was not met
+        Unit ubuntu-advantage-cloud-id-shim.service could not be found.
         """
         Examples: version
             | release |
