@@ -299,8 +299,6 @@ def get_dict_deltas(
 def get_machine_id(cfg) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     # Generate, cache our own uuid if not present in config or on the system
-    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
-    # per Issue: #489
 
     if cfg.machine_token:
         cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
@@ -336,10 +334,7 @@ def get_platform_info() -> Dict[str, str]:
     }
 
     version = os_release["VERSION"]
-    if ", " in version:
-        # Fix up trusty's version formatting
-        version = "{} ({})".format(*version.split(", "))
-    # Strip off an LTS point release (14.04.1 LTS -> 14.04 LTS)
+    # Strip off an LTS point release (20.04.1 LTS -> 20.04 LTS)
     version = re.sub(r"\.\d LTS", " LTS", version)
     platform_info["version"] = version
 
@@ -382,8 +377,6 @@ def is_active_esm(series: str) -> bool:
     """Return True when Ubuntu series supports ESM and is actively in ESM."""
     if not is_lts(series):
         return False
-    if series == "trusty":
-        return True  # Trusty doesn't have a --series param
     out, _err = subp(
         ["/usr/bin/ubuntu-distro-info", "--series", series, "-yeol"]
     )

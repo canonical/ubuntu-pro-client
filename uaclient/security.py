@@ -449,11 +449,7 @@ def query_installed_source_pkg_versions() -> Dict[str, Dict[str, str]]:
     The dict keys will be source package name: "krb5". The value will be a dict
     with keys binary_pkg and version.
     """
-    series = util.get_platform_info()["series"]
-    if series == "trusty":
-        status_field = "${Status}"
-    else:
-        status_field = "${db:Status-Status}"
+    status_field = "${db:Status-Status}"
     out, _err = util.subp(
         [
             "dpkg-query",

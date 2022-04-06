@@ -146,7 +146,6 @@ class TestIsActiveESM:
     @pytest.mark.parametrize(
         "series, is_lts, days_until_esm,expected",
         (
-            ("trusty", True, 0, True),
             ("xenial", True, 1, False),
             ("xenial", True, 0, True),
             ("bionic", True, 1, False),
@@ -167,7 +166,7 @@ class TestIsActiveESM:
 
         # Use __wrapped__ to avoid hitting the lru_cached value across tests
         calls = []
-        if is_lts and series != "trusty":
+        if is_lts:
             calls.append(
                 mock.call(
                     [
@@ -427,7 +426,6 @@ class TestGetPlatformInfo:
     @pytest.mark.parametrize(
         "series,release,version,os_release_content",
         [
-            ("trusty", "14.04", "14.04 LTS (Trusty Tahr)", OS_RELEASE_TRUSTY),
             ("xenial", "16.04", "16.04 LTS (Xenial Xerus)", OS_RELEASE_XENIAL),
             (
                 "bionic",
@@ -734,7 +732,7 @@ class TestGetMachineId:
     def test_get_machine_id_from_var_lib_dbus_machine_id(
         self, FakeConfig, tmpdir
     ):
-        """On trusty, machine id lives in of /var/lib/dbus/machine-id."""
+        """fallback to /var/lib/dbus/machine-id"""
         etc_machine_id = tmpdir.join("etc-machine-id")
         dbus_machine_id = tmpdir.join("dbus-machine-id")
         assert "/var/lib/dbus/machine-id" == util.DBUS_MACHINE_ID

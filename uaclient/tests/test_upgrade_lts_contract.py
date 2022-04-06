@@ -35,38 +35,6 @@ class TestUpgradeLTSContract:
     )
     @mock.patch("lib.upgrade_lts_contract.parse_os_release")
     @mock.patch("lib.upgrade_lts_contract.subp")
-    def test_upgrade_cancel_when_upgrading_to_trusty(
-        self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
-    ):
-        m_parse_os.return_value = {"VERSION_ID": "14.04"}
-
-        m_subp.return_value = ("", "")
-
-        expected_msgs = [
-            "Starting upgrade-lts-contract.",
-            "Unable to execute upgrade-lts-contract.py on trusty",
-        ]
-        expected_logs = ["Check whether to upgrade-lts-contract"]
-        with pytest.raises(SystemExit) as execinfo:
-            process_contract_delta_after_apt_lock()
-
-        assert 1 == execinfo.value.code
-        assert 1 == m_is_attached.call_count
-        assert 1 == m_parse_os.call_count
-        assert 1 == m_subp.call_count
-        out, _err = capsys.readouterr()
-        assert out == "\n".join(expected_msgs) + "\n"
-        debug_logs = caplog_text()
-        for log in expected_msgs + expected_logs:
-            assert log in debug_logs
-
-    @mock.patch(
-        "uaclient.config.UAConfig.is_attached",
-        new_callable=mock.PropertyMock,
-        return_value=True,
-    )
-    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
-    @mock.patch("lib.upgrade_lts_contract.subp")
     def test_upgrade_cancel_when_current_version_not_supported(
         self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
     ):
