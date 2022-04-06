@@ -417,3 +417,55 @@ Feature: Command behaviour when auto-attached in an ubuntu PRO fips image
            | release  | fips-apt-source                                 |
            | xenial   | https://esm.ubuntu.com/fips/ubuntu xenial/main  |
            | bionic   | https://esm.ubuntu.com/fips/ubuntu bionic/main  |
+
+    @series.focal
+    @uses.config.machine_type.azure.pro.fips
+    @uses.config.machine_type.aws.pro.fips
+    Scenario Outline: Check fips-updates can be enable in a focal PRO FIPS machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
+        """
+        contract_url: 'https://contracts.canonical.com'
+        data_dir: /var/lib/ubuntu-advantage
+        log_level: debug
+        log_file: /var/log/ubuntu-advantage.log
+        """
+        And I run `ua auto-attach` with sudo
+        And I run `ua status --wait` as non-root
+        And I run `ua status` as non-root
+        Then stdout matches regexp:
+        """
+        fips          +yes +enabled +NIST-certified core packages
+        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
+        """
+        When I run `ua enable fips-updates --assume-yes` with sudo
+        Then stdout matches regexp:
+        """
+        One moment, checking your subscription first
+        Disabling incompatible service: FIPS
+        Updating package lists
+        Installing FIPS Updates packages
+        FIPS Updates enabled
+        A reboot is required to complete install.
+        """
+        When I run `ua status` with sudo
+        Then stdout matches regexp:
+        """
+        fips          +yes +n/a +NIST-certified core packages
+        fips-updates  +yes +enabled +NIST-certified core packages with priority security updates
+        """
+        When I reboot the `<release>` machine
+        And  I run `uname -r` as non-root
+        Then stdout matches regexp:
+        """
+        fips
+        """
+        When I run `cat /proc/sys/crypto/fips_enabled` with sudo
+        Then I will see the following on stdout:
+        """
+        1
+        """
+
+        Examples: ubuntu release
+           | release  |
+           | focal    |

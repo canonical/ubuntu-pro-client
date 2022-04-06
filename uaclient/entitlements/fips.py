@@ -87,6 +87,27 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
     help_doc_url = "https://ubuntu.com/security/certifications#fips"
 
+    fips_pro_package_holds = [
+        "fips-initramfs",
+        "libssl1.1",
+        "libssl1.1-hmac",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "libssl1.0.0",
+        "libssl1.0.0-hmac",
+        "linux-fips",
+        "openssh-client",
+        "openssh-client-hmac",
+        "openssh-server",
+        "openssh-server-hmac",
+        "openssl",
+        "strongswan",
+        "strongswan-hmac",
+        "libgcrypt20",
+        "libgcrypt20-hmac",
+        "fips-initramfs-generic",
+    ]
+
     @property
     def conditional_packages(self):
         """
@@ -352,6 +373,27 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
 
         return False
 
+    def setup_apt_config(self, silent: bool = False) -> None:
+        """Setup apt config based on the resourceToken and directives.
+
+        FIPS-specifically handle apt-mark unhold
+
+        :raise UserFacingError: on failure to setup any aspect of this apt
+           configuration
+        """
+        cmd = ["apt-mark", "showholds"]
+        holds = apt.run_apt_command(cmd, " ".join(cmd) + " failed.")
+        unholds = []
+        for hold in holds.splitlines():
+            if hold in self.fips_pro_package_holds:
+                unholds.append(hold)
+        if unholds:
+            unhold_cmd = ["apt-mark", "unhold"] + unholds
+            holds = apt.run_apt_command(
+                unhold_cmd, " ".join(unhold_cmd) + " failed."
+            )
+        super().setup_apt_config(silent=silent)
+
 
 class FIPSEntitlement(FIPSCommonEntitlement):
 
@@ -359,27 +401,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
     title = "FIPS"
     description = "NIST-certified core packages"
     origin = "UbuntuFIPS"
-
-    fips_pro_package_holds = [
-        "fips-initramfs",
-        "libssl1.1",
-        "libssl1.1-hmac",
-        "libssl1.0.0",
-        "libssl1.0.0-hmac",
-        "libssl1.0.0",
-        "libssl1.0.0-hmac",
-        "linux-fips",
-        "openssh-client",
-        "openssh-client-hmac",
-        "openssh-server",
-        "openssh-server-hmac",
-        "openssl",
-        "strongswan",
-        "strongswan-hmac",
-        "libgcrypt20",
-        "libgcrypt20-hmac",
-        "fips-initramfs-generic",
-    ]
 
     @property
     def incompatible_services(self) -> Tuple[IncompatibleService, ...]:
@@ -457,27 +478,6 @@ class FIPSEntitlement(FIPSCommonEntitlement):
                 )
             ],
         }
-
-    def setup_apt_config(self, silent: bool = False) -> None:
-        """Setup apt config based on the resourceToken and directives.
-
-        FIPS-specifically handle apt-mark unhold
-
-        :raise UserFacingError: on failure to setup any aspect of this apt
-           configuration
-        """
-        cmd = ["apt-mark", "showholds"]
-        holds = apt.run_apt_command(cmd, " ".join(cmd) + " failed.")
-        unholds = []
-        for hold in holds.splitlines():
-            if hold in self.fips_pro_package_holds:
-                unholds.append(hold)
-        if unholds:
-            unhold_cmd = ["apt-mark", "unhold"] + unholds
-            holds = apt.run_apt_command(
-                unhold_cmd, " ".join(unhold_cmd) + " failed."
-            )
-        super().setup_apt_config(silent=silent)
 
     def _perform_enable(self, silent: bool = False) -> bool:
         cloud_type, error = get_cloud_type()
