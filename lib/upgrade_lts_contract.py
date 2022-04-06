@@ -34,7 +34,8 @@ version_to_codename = {
     "16.04": "xenial",
     "18.04": "bionic",
     "20.04": "focal",
-    "20.10": "groovy",
+    "21.10": "impish",
+    "22.04": "jammy",
 }
 
 current_codename_to_past_codename = {
@@ -42,6 +43,8 @@ current_codename_to_past_codename = {
     "bionic": "xenial",
     "focal": "bionic",
     "groovy": "focal",
+    "impish": "focal",
+    "jammy": "focal",
 }
 
 
@@ -58,7 +61,15 @@ def process_contract_delta_after_apt_lock() -> None:
     logging.debug(msg)
 
     current_version = parse_os_release()["VERSION_ID"]
-    current_release = version_to_codename[current_version]
+    current_release = version_to_codename.get(current_version)
+
+    if current_release is None:
+        msg = "Unable to get release codename for version: {}".format(
+            current_version
+        )
+        print(msg)
+        logging.warning(msg)
+        sys.exit(1)
 
     if current_release == "trusty":
         msg = "Unable to execute upgrade-lts-contract.py on trusty"
