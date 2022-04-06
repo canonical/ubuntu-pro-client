@@ -67,6 +67,8 @@ jobs:
         include:
           - release: bionic
             platform: awspro
+          - release: bionic
+            platform: gcppro
     steps:
       - name: Prepare test tools
         run: |
@@ -91,6 +93,7 @@ jobs:
       - name: Behave
         env:
           PYCLOUDLIB_CONFIG_CONTENTS: '${{ secrets.PYCLOUDLIB_CONFIG_CONTENTS }}'
+          GOOGLE_APPLICATION_CREDENTIALS_CONTENTS: '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_CONTENTS }}'
           SSH_PRIVATE_KEY: '${{ secrets.SSH_PRIVATE_KEY }}'
           SSH_PUBLIC_KEY: '${{ secrets.SSH_PUBLIC_KEY }}'
           UACLIENT_BEHAVE_DEBS_PATH: '${{ runner.temp }}'
@@ -102,17 +105,21 @@ jobs:
           UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
         run: |
           PYCLOUDLIB_CONFIG="$(mktemp --tmpdir="${{ runner.temp }}" pycloudlib.toml.XXXXXXXXXX)"
+          GOOGLE_APPLICATION_CREDENTIALS="$(mktemp --tmpdir="${{ runner.temp }}" gcloud.json.XXXXXXXXXX)"
           export PYCLOUDLIB_CONFIG
+          export GOOGLE_APPLICATION_CREDENTIALS
 
-          # Dump secrets using a subshell to avoid leaks due to xtrace
-          sh -c 'echo "$PYCLOUDLIB_CONFIG_CONTENTS" > "$PYCLOUDLIB_CONFIG"'
+          # Dump secrets using a subshell to avoid leaks due to xtrace.
+          # Use printf as dash's echo always interpretes control sequences (e.g. \n).
+          sh -c 'printf "%s\n" "$PYCLOUDLIB_CONFIG_CONTENTS" > "$PYCLOUDLIB_CONFIG"'
+          sh -c 'printf "%s\n" "$GOOGLE_APPLICATION_CREDENTIALS_CONTENTS" > "$GOOGLE_APPLICATION_CREDENTIALS"'
 
           # SSH keys (should match what specified in pycloudlib.toml)
           mkdir ~/.ssh
           touch ~/.ssh/cloudinit_id_rsa
           chmod 600 ~/.ssh/cloudinit_id_rsa
-          sh -c 'echo "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
-          sh -c 'echo "$SSH_PUBLIC_KEY" > ~/.ssh/cloudinit_id_rsa.pub'
+          sh -c 'printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/cloudinit_id_rsa'
+          sh -c 'printf "%s\n" "$SSH_PUBLIC_KEY" > ~/.ssh/cloudinit_id_rsa.pub'
 
           uversion=$(ubuntu-distro-info --series='${{ matrix.release }}' --release | cut -d' ' -f1)
           sg lxd -c "tox -e 'behave-${{ matrix.platform }}-$uversion' -- --tags=-slow"
