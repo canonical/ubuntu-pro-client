@@ -2,14 +2,10 @@
 
 set -e
 
-. /etc/os-release  # For VERSION_ID
+. /etc/os-release  # For VERSION_ID and UBUNTU_CODENAME
 
-# Since UBUNTU_CODENAME isn't on trusty set it set a default if unknown
 if [ "" = "${UBUNTU_CODENAME}" ]; then
-   case "$VERSION_ID" in
-       14.04) UBUNTU_CODENAME="trusty";;
-       *) UBUNTU_CODENAME="NO-UBUNTU_CODENAME-$VERSION_ID";;
-   esac
+    UBUNTU_CODENAME="NO-UBUNTU_CODENAME-$VERSION_ID"
 fi
 
 # Needed even if this script doesn't call debconf, see:
@@ -24,8 +20,6 @@ ESM_APPS_KEY="ubuntu-advantage-esm-apps.gpg"
 
 APT_SRC_DIR="/etc/apt/sources.list.d"
 APT_PREFERENCES_DIR="/etc/apt/preferences.d"
-ESM_APT_SOURCE_FILE_PRECISE="$APT_SRC_DIR/ubuntu-esm-precise.list"
-ESM_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-trusty.list"
 ESM_INFRA_OLD_APT_SOURCE_FILE_TRUSTY="$APT_SRC_DIR/ubuntu-esm-infra-trusty.list"
 ESM_INFRA_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-infra.list"
 ESM_APPS_APT_SOURCE_FILE="$APT_SRC_DIR/ubuntu-esm-apps.list"
@@ -105,15 +99,12 @@ check_is_lts() {
 # Check whether this series is under active ESM
 check_is_active_esm() {
     release_name=$1
-    # Trusty doesn't support --series param
-    if [ "${release_name}" = "trusty" ]; then
+
+    _DAYS_UNTIL_ESM=$(ubuntu-distro-info --series "${release_name}" -yeol)
+    if [ "${_DAYS_UNTIL_ESM}" -lt "1" ]; then
         return 0
-    else
-        _DAYS_UNTIL_ESM=$(ubuntu-distro-info --series "${release_name}" -yeol)
-        if [ "${_DAYS_UNTIL_ESM}" -lt "1" ]; then
-            return 0
-        fi
     fi
+
     return 1
 }
 
@@ -203,15 +194,6 @@ install_esm_apt_key_and_source() {
         cp $UA_KEYRING_DIR/$apt_key $APT_TRUSTED_KEY_DIR
     fi
 
-    # Migrate trusty legacy source list and preference file names
-    if [ "14.04" = "$VERSION_ID" ]; then
-        if [ -e "$ESM_APT_SOURCE_FILE_TRUSTY" ]; then
-            mv $ESM_APT_SOURCE_FILE_TRUSTY $ESM_INFRA_APT_SOURCE_FILE
-        fi
-        if [ -e "$ESM_APT_PREF_FILE_TRUSTY" ]; then
-            mv "$ESM_APT_PREF_FILE_TRUSTY" "$ESM_INFRA_APT_PREF_FILE"
-        fi
-    fi
     # If preference file doesn't already exist, we aren't attached.
     # Setup unauthenticated apt source list file and never-pin preference
     if [ ! -e "${apt_source_file}" ]; then
@@ -241,9 +223,7 @@ configure_esm() {
         install_esm_apt_key_and_source "infra" "$UBUNTU_CODENAME"
     fi
     if ! check_service_is_beta esm-apps; then
-        if [ "${UBUNTU_CODENAME}" != "trusty" ]; then
-            install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
-        fi
+        install_esm_apt_key_and_source "apps" "$UBUNTU_CODENAME"
     fi
 }
 
@@ -376,15 +356,6 @@ remove_old_systemd_timers() {
 case "$1" in
     configure)
       PREVIOUS_PKG_VER=$2
-      # Special case: legacy precise creds allowed for trusty esm
-      # do-release-upgrade substitutes s/precise/trusty/ in all apt sources.
-      # So all we need to do is rename the precise sources file to trusty.
-      # https://github.com/CanonicalLtd/ubuntu-advantage-client/issues/693
-      if [ -e "$ESM_APT_SOURCE_FILE_PRECISE" ]; then
-          mv $ESM_APT_SOURCE_FILE_PRECISE \
-              $ESM_INFRA_APT_SOURCE_FILE
-      fi
-
       # We changed the way we store public files in 19.5
       if dpkg --compare-versions "$PREVIOUS_PKG_VER" lt-nl "19.5~"; then
           # Remove all publicly-readable files
