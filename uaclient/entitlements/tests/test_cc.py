@@ -54,10 +54,10 @@ class TestCommonCriteriaEntitlementUserFacingStatus:
             ),
             (
                 "s390x",
-                "trusty",
-                "14.04 LTS (Trusty Tahr)",
-                "CC EAL2 is not available for Ubuntu 14.04 LTS"
-                " (Trusty Tahr).",
+                "bionic",
+                "18.04 LTS (Bionic Beaver)",
+                "CC EAL2 is not available for Ubuntu 18.04 LTS"
+                " (Bionic Beaver).",
             ),
         ),
     )

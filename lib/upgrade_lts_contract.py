@@ -75,12 +75,6 @@ def process_contract_delta_after_apt_lock() -> None:
         logging.warning(msg)
         sys.exit(1)
 
-    if current_release == "trusty":
-        msg = "Unable to execute upgrade-lts-contract.py on trusty"
-        print(msg)
-        logging.warning(msg)
-        sys.exit(1)
-
     past_release = current_codename_to_past_codename.get(current_release)
     if past_release is None:
         msg = "Could not find past release for: {}".format(current_release)
