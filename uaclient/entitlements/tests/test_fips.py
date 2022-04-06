@@ -303,9 +303,11 @@ class TestFIPSEntitlementEnable:
             stack.enter_context(
                 mock.patch.object(type(entitlement), "packages", m_packages)
             )
+            stack.enter_context(
+                mock.patch("uaclient.util.is_container", return_value=False)
+            )
 
             m_can_enable.return_value = (True, None)
-
             assert (True, None) == entitlement.enable()
 
         repo_url = "http://{}".format(entitlement.name.upper())
@@ -365,27 +367,20 @@ class TestFIPSEntitlementEnable:
                 )
             )
 
-        if isinstance(entitlement, FIPSEntitlement):
-            subp_calls = [
-                mock.call(
-                    ["apt-mark", "showholds"],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                    env={},
-                )
-            ]
-        else:
-            subp_calls = []
-        subp_calls.extend(
-            [
-                mock.call(
-                    ["apt-get", "update"],
-                    capture=True,
-                    retry_sleeps=apt.APT_RETRIES,
-                    env={},
-                )
-            ]
-        )
+        subp_calls = [
+            mock.call(
+                ["apt-mark", "showholds"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+                env={},
+            ),
+            mock.call(
+                ["apt-get", "update"],
+                capture=True,
+                retry_sleeps=apt.APT_RETRIES,
+                env={},
+            ),
+        ]
         subp_calls += install_cmd
 
         assert [mock.call()] == m_can_enable.call_args_list
@@ -1112,19 +1107,12 @@ class TestFipsSetupAPTConfig:
         """Unmark only fips-specific package holds if present."""
         run_apt_command.return_value = held_packages
         entitlement.setup_apt_config(silent=False)
-        if isinstance(entitlement, FIPSUpdatesEntitlement):
-            expected_calls = []
-        else:
-            expected_calls = [
-                mock.call(
-                    ["apt-mark", "showholds"], "apt-mark showholds failed."
-                )
-            ]
-            if unhold_packages:
-                cmd = ["apt-mark", "unhold"] + unhold_packages
-                expected_calls.append(
-                    mock.call(cmd, " ".join(cmd) + " failed.")
-                )
+        expected_calls = [
+            mock.call(["apt-mark", "showholds"], "apt-mark showholds failed.")
+        ]
+        if unhold_packages:
+            cmd = ["apt-mark", "unhold"] + unhold_packages
+            expected_calls.append(mock.call(cmd, " ".join(cmd) + " failed."))
         assert expected_calls == run_apt_command.call_args_list
         assert [mock.call(silent=False)] == setup_apt_config.call_args_list
 
