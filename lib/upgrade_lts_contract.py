@@ -21,7 +21,6 @@ to reflect them.
 """
 
 import logging
-import sys
 import time
 
 from uaclient.cli import setup_logging
@@ -59,12 +58,6 @@ def process_contract_delta_after_apt_lock() -> None:
 
     current_version = parse_os_release()["VERSION_ID"]
     current_release = version_to_codename[current_version]
-
-    if current_release == "trusty":
-        msg = "Unable to execute upgrade-lts-contract.py on trusty"
-        print(msg)
-        logging.warning(msg)
-        sys.exit(1)
 
     past_release = current_codename_to_past_codename[current_release]
     past_entitlements = UAConfig(series=past_release).entitlements

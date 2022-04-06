@@ -52,32 +52,28 @@ class TestESMRepoPinPriority:
         assert [mock.call(series)] == m_is_active_esm.call_args_list
 
     @pytest.mark.parametrize(
-        "series, is_lts, is_beta, cfg_allow_beta, repo_pin_priority",
+        "series, is_beta, repo_pin_priority",
         (
-            # When esm non-beta pin it on non-trusty
-            ("trusty", True, False, None, None),
-            ("xenial", True, False, None, "never"),
-            ("bionic", True, False, None, "never"),
-            ("focal", True, False, None, "never"),
+            # When esm non-beta pin it
+            ("xenial", False, "never"),
+            ("bionic", False, "never"),
+            ("focal", False, "never"),
             # when ESM beta don't pin
-            ("trusty", True, True, None, None),
-            ("xenial", True, True, None, None),
-            ("bionic", True, True, None, None),
-            ("focal", True, True, None, None),
+            ("xenial", True, None),
+            ("bionic", True, None),
+            ("focal", True, None),
         ),
     )
     @mock.patch("uaclient.util.is_lts")
     @mock.patch("uaclient.entitlements.esm.util.get_platform_info")
     @mock.patch("uaclient.entitlements.UAConfig")
-    def test_esm_apps_repo_pin_priority_never_on_on_lts(
+    def test_esm_apps_repo_pin_priority_never_on_lts(
         self,
         m_cfg,
         m_get_platform_info,
         m_is_lts,
         series,
-        is_lts,
         is_beta,
-        cfg_allow_beta,
         repo_pin_priority,
         FakeConfig,
     ):
@@ -89,11 +85,9 @@ class TestESMRepoPinPriority:
         when the release is an Ubuntu LTS release. We won't want/need to
         advertize ESM Apps packages on non-LTS releases or if ESM Apps is beta.
         """
-        m_is_lts.return_value = is_lts
+        m_is_lts.return_value = True
         m_get_platform_info.return_value = {"series": series}
         cfg = FakeConfig.for_attached_machine()
-        if cfg_allow_beta:
-            cfg.override_features({"allow_beta": cfg_allow_beta})
         m_cfg.return_value = cfg
 
         inst = ESMAppsEntitlement(cfg)
@@ -101,9 +95,9 @@ class TestESMRepoPinPriority:
             assert repo_pin_priority == inst.repo_pin_priority
 
         is_lts_calls = []
-        if series != "trusty":
-            if cfg_allow_beta or not is_beta:
-                is_lts_calls = [mock.call(series)]
+        if not is_beta:
+            is_lts_calls = [mock.call(series)]
+
         assert is_lts_calls == m_is_lts.call_args_list
 
 
@@ -136,8 +130,6 @@ class TestESMDisableAptAuthOnly:
     @pytest.mark.parametrize(
         "series, is_lts, is_beta, cfg_allow_beta, disable_apt_auth_only",
         (
-            ("trusty", True, True, None, False),
-            ("trusty", True, False, True, False),  # trusty always false
             ("xenial", True, True, None, False),  # is_beta disables
             ("xenial", True, False, False, True),  # not beta service succeeds
             ("xenial", True, True, True, True),  # cfg allow_true overrides
@@ -171,10 +163,11 @@ class TestESMDisableAptAuthOnly:
         inst = ESMAppsEntitlement(cfg)
         with mock.patch.object(ESMAppsEntitlement, "is_beta", is_beta):
             assert disable_apt_auth_only is inst.disable_apt_auth_only
+
         is_lts_calls = []
-        if series != "trusty":
-            if cfg_allow_beta or not is_beta:
-                is_lts_calls = [mock.call(series)]
+        if cfg_allow_beta or not is_beta:
+            is_lts_calls = [mock.call(series)]
+
         assert is_lts_calls == m_is_lts.call_args_list
 
 
