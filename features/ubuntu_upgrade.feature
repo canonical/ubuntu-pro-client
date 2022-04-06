@@ -17,7 +17,6 @@ Feature: Upgrade between releases when uaclient is attached
         [Sources]
         AllowThirdParty=yes
         """
-        And I run `sed -i 's/Prompt=lts/Prompt=normal/' /etc/update-manager/release-upgrades` with sudo
         And I run `do-release-upgrade <devel_release> --frontend DistUpgradeViewNonInteractive` `with sudo` and stdin `y\n`
         And I reboot the `<release>` machine
         And I run `lsb_release -cs` as non-root
@@ -42,7 +41,7 @@ Feature: Upgrade between releases when uaclient is attached
 
         Examples: ubuntu release
         | release | next_release | devel_release   |
-        | focal   | impish       |                 |
+        | focal   | jammy        | --devel-release |
         | impish  | jammy        | --devel-release |
 
     @slow
