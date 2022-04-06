@@ -28,10 +28,6 @@ test:
 	@tox
 
 testdeps:
-ifneq (,$(findstring trusty,$(TOXENV)))
-	@echo Pinning virtualenv to 20.0.31 on trusty because 32 breaks py3.4
-	pip install virtualenv==20.0.31
-endif
 	pip install tox
 	pip install tox-pip-version
 	pip install tox-setuptools-version
