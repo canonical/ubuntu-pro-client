@@ -32,7 +32,7 @@ def get_origin_for_package(package: apt_package.Package) -> str:
     available_origins = package.installed.origins
     if len(package.installed.origins) == 1:
         if package.installed == package.candidate:
-            return "unavailable"
+            return "unknown"
         available_origins = package.candidate.origins
 
     for origin in available_origins:
@@ -128,7 +128,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     ua_info = get_ua_info(cfg)
 
     summary = {"ua": ua_info}  # type: Dict[str, Any]
-    packages = []
+    updates = []
     cache = Cache()
 
     installed_packages = [package for package in cache if package.is_installed]
@@ -147,7 +147,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         service_name, origin_site = get_service_name(candidate.origins)
         status = get_update_status(service_name, ua_info)
         update_count[service_name] += 1
-        packages.append(
+        updates.append(
             {
                 "package": candidate.package.name,
                 "version": candidate.version,
@@ -164,9 +164,7 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
     summary["num_installed_packages_third_party"] = package_count[
         "third-party"
     ]
-    summary["num_installed_packages_unavailable"] = package_count[
-        "unavailable"
-    ]
+    summary["num_installed_packages_unknown"] = package_count["unknown"]
     summary["num_esm_infra_packages"] = package_count["esm-infra"]
     summary["num_esm_apps_packages"] = package_count["esm-apps"]
     summary["num_esm_infra_updates"] = update_count["esm-infra"]
@@ -175,4 +173,4 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         "standard-security"
     ]
 
-    return {"_schema_version": "0.1", "summary": summary, "packages": packages}
+    return {"_schema_version": "0.1", "summary": summary, "updates": updates}
