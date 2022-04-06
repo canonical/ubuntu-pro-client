@@ -12,6 +12,7 @@ defaults:
 
 jobs:
   lint-and-style:
+    name: Static Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -25,6 +26,7 @@ jobs:
       - name: mypy
         run: tox -e mypy
   unit-tests:
+    name: Unit
     runs-on: ubuntu-18.04
     steps:
       - name: Install dependencies
