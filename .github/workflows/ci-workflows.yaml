@@ -1,0 +1,26 @@
+---
+
+name: CI (workflows)
+
+on:
+  push:
+  pull_request:
+
+defaults:
+  run:
+    shell: sh -ex {0}
+
+jobs:
+  lint-and-style:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install yamllint
+      - name: Git checkout
+        uses: actions/checkout@v2
+      - name: Linting and style
+        working-directory: .github/workflows
+        run: yamllint --strict .
