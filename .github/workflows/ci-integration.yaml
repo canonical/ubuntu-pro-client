@@ -35,7 +35,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Build package
         run: |
-          echo 'mr: ${{ matrix.release }}'
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
           sg sbuild -c "mk-sbuild ${{ matrix.release }}"
