@@ -162,11 +162,11 @@ class TestSecurityStatus:
     @pytest.mark.parametrize(
         "installed_version,other_versions,expected_output",
         (
-            (mock_version("1.0", [MOCK_ORIGINS["now"]]), [], "unavailable"),
+            (mock_version("1.0", [MOCK_ORIGINS["now"]]), [], "unknown"),
             (
                 mock_version("2.0", [MOCK_ORIGINS["now"]]),
                 [mock_version("1.0", [MOCK_ORIGINS["archive_main"]])],
-                "unavailable",
+                "unknown",
             ),
             (
                 mock_version("2.0", [MOCK_ORIGINS["now"]]),
@@ -334,7 +334,7 @@ class TestSecurityStatus:
 
         expected_output = {
             "_schema_version": "0.1",
-            "packages": [
+            "updates": [
                 {
                     "package": "example_package",
                     "version": "1.0",
@@ -362,7 +362,7 @@ class TestSecurityStatus:
                 "num_installed_packages_universe": 0,
                 "num_installed_packages_multiverse": 0,
                 "num_installed_packages_third_party": 0,
-                "num_installed_packages_unavailable": 0,
+                "num_installed_packages_unknown": 0,
                 "num_esm_infra_updates": 2,
                 "num_esm_apps_updates": 0,
                 "num_esm_infra_packages": 0,
