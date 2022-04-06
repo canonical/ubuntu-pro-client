@@ -2,7 +2,6 @@
 export DH_VERBOSE=1
 
 include /usr/share/dpkg/pkg-info.mk
-FLAKE8 := $(shell flake8 --version 2> /dev/null)
 
 include /etc/os-release
 # see https://bugs.launchpad.net/ubuntu/+source/ubuntu-advantage-tools/+bug/1840091/comments/3
@@ -13,10 +12,7 @@ include /etc/os-release
 # versus Xenial to make those contraints applicable on each series.
 DISTRO_INFO_DEPS="distro-info (>= 0.18ubuntu0.18.04.1),"
 
-ifeq (${VERSION_ID},"14.04")
-APT_PKG_DEPS="apt (>= 1.0.1ubuntu2.23), apt-transport-https (>= 1.0.1ubuntu2.23), apt-utils (>= 1.0.1ubuntu2.23), libapt-inst1.5 (>= 1.0.1ubuntu2.23), libapt-pkg4.12 (>= 1.0.1ubuntu2.23),"
-DISTRO_INFO_DEPS=""  # Don't set on trusty as we aren't releasing anymore
-else ifeq (${VERSION_ID},"16.04")
+ifeq (${VERSION_ID},"16.04")
 APT_PKG_DEPS="apt (>= 1.2.32), apt-transport-https (>= 1.2.32), apt-utils (>= 1.2.32), libapt-inst2.0 (>= 1.2.32), libapt-pkg5.0 (>= 1.2.32),"
 DISTRO_INFO_DEPS="distro-info (>= 0.14ubuntu0.2),"
 else ifeq (${VERSION_ID},"18.04")
@@ -38,13 +34,7 @@ override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	make -C apt-hook test
 	python3 -m pytest
-ifdef FLAKE8
-	# required for Trusty: flake8 does not install a __main__  for -m
-	# invocation
-	python3 $(shell which flake8) uaclient
-else
 	python3 -m flake8 uaclient
-endif
 endif
 
 override_dh_gencontrol:
