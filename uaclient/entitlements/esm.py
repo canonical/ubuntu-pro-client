@@ -35,10 +35,8 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
 
     @property
     def repo_pin_priority(self) -> Optional[str]:
-        """All LTS with the exception of Trusty should pin esm-apps."""
+        """All LTS should pin esm-apps."""
         series = util.get_platform_info()["series"]
-        if series == "trusty":
-            return None
 
         if self.valid_service:
             if util.is_lts(series):
@@ -47,10 +45,8 @@ class ESMAppsEntitlement(ESMBaseEntitlement):
 
     @property
     def disable_apt_auth_only(self) -> bool:
-        """All LTSexcept Trusty remove APT auth files upon disable"""
+        """All LTS remove APT auth files upon disable"""
         series = util.get_platform_info()["series"]
-        if series == "trusty":
-            return False
 
         if self.valid_service:
             return util.is_lts(series)
