@@ -16,7 +16,7 @@ class TestUpgradeLTSContract:
     def test_unattached_noops(self, m_is_attached, capsys, caplog_text):
         expected_logs = [
             "Check whether to upgrade-lts-contract",
-            "Skiping upgrade-lts-contract. Machine is unattached",
+            "Skipping upgrade-lts-contract. Machine is unattached",
         ]
 
         process_contract_delta_after_apt_lock()
@@ -49,6 +49,72 @@ class TestUpgradeLTSContract:
         expected_logs = ["Check whether to upgrade-lts-contract"]
         with pytest.raises(SystemExit) as execinfo:
             process_contract_delta_after_apt_lock()
+
+        assert 1 == execinfo.value.code
+        assert 1 == m_is_attached.call_count
+        assert 1 == m_parse_os.call_count
+        assert 1 == m_subp.call_count
+        out, _err = capsys.readouterr()
+        assert out == "\n".join(expected_msgs) + "\n"
+        debug_logs = caplog_text()
+        for log in expected_msgs + expected_logs:
+            assert log in debug_logs
+
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached",
+        new_callable=mock.PropertyMock,
+        return_value=True,
+    )
+    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
+    @mock.patch("lib.upgrade_lts_contract.subp")
+    def test_upgrade_cancel_when_current_version_not_supported(
+        self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
+    ):
+        m_parse_os.return_value = {"VERSION_ID": "NOT-SUPPORTED"}
+        m_subp.return_value = ("", "")
+
+        expected_msgs = [
+            "Starting upgrade-lts-contract.",
+            "Unable to get release codename for version: NOT-SUPPORTED",
+        ]
+        expected_logs = ["Check whether to upgrade-lts-contract"]
+        with pytest.raises(SystemExit) as execinfo:
+            process_contract_delta_after_apt_lock()
+
+        assert 1 == execinfo.value.code
+        assert 1 == m_is_attached.call_count
+        assert 1 == m_parse_os.call_count
+        assert 1 == m_subp.call_count
+        out, _err = capsys.readouterr()
+        assert out == "\n".join(expected_msgs) + "\n"
+        debug_logs = caplog_text()
+        for log in expected_msgs + expected_logs:
+            assert log in debug_logs
+
+    @mock.patch(
+        "uaclient.config.UAConfig.is_attached",
+        new_callable=mock.PropertyMock,
+        return_value=True,
+    )
+    @mock.patch("lib.upgrade_lts_contract.parse_os_release")
+    @mock.patch("lib.upgrade_lts_contract.subp")
+    def test_upgrade_cancel_when_past_version_not_supported(
+        self, m_subp, m_parse_os, m_is_attached, capsys, caplog_text
+    ):
+        m_parse_os.return_value = {"VERSION_ID": "20.10"}
+        m_subp.return_value = ("", "")
+
+        expected_msgs = [
+            "Starting upgrade-lts-contract.",
+            "Could not find past release for: groovy",
+        ]
+        expected_logs = ["Check whether to upgrade-lts-contract"]
+        with pytest.raises(SystemExit) as execinfo:
+            with mock.patch(
+                "lib.upgrade_lts_contract.version_to_codename",
+                {"20.10": "groovy"},
+            ):
+                process_contract_delta_after_apt_lock()
 
         assert 1 == execinfo.value.code
         assert 1 == m_is_attached.call_count

@@ -34,21 +34,27 @@ version_to_codename = {
     "16.04": "xenial",
     "18.04": "bionic",
     "20.04": "focal",
-    "20.10": "groovy",
+    "21.10": "impish",
+    "22.04": "jammy",
 }
 
 current_codename_to_past_codename = {
     "xenial": "trusty",
     "bionic": "xenial",
     "focal": "bionic",
-    "groovy": "focal",
+    "impish": "focal",
+    # We are considering the past release for Jammy to be Focal
+    # because we don't have any services available on Impish.
+    # Therefore, it is safer for us to try to process contract deltas
+    # using Focal
+    "jammy": "focal",
 }
 
 
 def process_contract_delta_after_apt_lock() -> None:
     logging.debug("Check whether to upgrade-lts-contract")
     if not UAConfig().is_attached:
-        logging.debug("Skiping upgrade-lts-contract. Machine is unattached")
+        logging.debug("Skipping upgrade-lts-contract. Machine is unattached")
         return
     out, _err = subp(["lsof", "/var/lib/apt/lists/lock"], rcs=[0, 1])
     msg = "Starting upgrade-lts-contract."
@@ -58,7 +64,15 @@ def process_contract_delta_after_apt_lock() -> None:
     logging.debug(msg)
 
     current_version = parse_os_release()["VERSION_ID"]
-    current_release = version_to_codename[current_version]
+    current_release = version_to_codename.get(current_version)
+
+    if current_release is None:
+        msg = "Unable to get release codename for version: {}".format(
+            current_version
+        )
+        print(msg)
+        logging.warning(msg)
+        sys.exit(1)
 
     if current_release == "trusty":
         msg = "Unable to execute upgrade-lts-contract.py on trusty"
@@ -66,7 +80,13 @@ def process_contract_delta_after_apt_lock() -> None:
         logging.warning(msg)
         sys.exit(1)
 
-    past_release = current_codename_to_past_codename[current_release]
+    past_release = current_codename_to_past_codename.get(current_release)
+    if past_release is None:
+        msg = "Could not find past release for: {}".format(current_release)
+        print(msg)
+        logging.warning(msg)
+        sys.exit(1)
+
     past_entitlements = UAConfig(series=past_release).entitlements
     new_entitlements = UAConfig(series=current_release).entitlements
 
