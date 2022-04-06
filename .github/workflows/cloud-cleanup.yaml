@@ -13,6 +13,7 @@ defaults:
 jobs:
   cleanup-ec2:
     name: Cleanup EC2
+    if: ${{ github.repository == 'canonical/ubuntu-advantage-client' }}
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials
