@@ -11,9 +11,15 @@ defaults:
     shell: sh -ex {0}
 
 jobs:
+  check-secrets:
+    uses: ./.github/workflows/check-secrets-available.yaml
+    secrets:
+      # Use PYCLOUDLIB_CONFIG_CONTENTS as a flag for "secrets present".
+      SECRET_TO_CHECK: '${{ secrets.PYCLOUDLIB_CONFIG_CONTENTS }}'
   cleanup-ec2:
     name: Cleanup EC2
-    if: ${{ github.repository == 'canonical/ubuntu-advantage-client' }}
+    needs: check-secrets
+    if: ${{ needs.check-secrets.outputs.has-secrets == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Configure AWS credentials
