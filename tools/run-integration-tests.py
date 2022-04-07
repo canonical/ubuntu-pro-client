@@ -25,12 +25,15 @@ TOKEN_TO_ENVVAR = {
 PLATFORM_SERIES_TESTS = {
     "azuregeneric": ["xenial", "bionic", "focal"],
     "azurepro": ["xenial", "bionic", "focal"],
+    "azurepro-fips": ["xenial", "bionic", "focal"],
     "awsgeneric": ["xenial", "bionic", "focal"],
     "awspro": ["xenial", "bionic", "focal"],
+    "awspro-fips": ["xenial", "bionic", "focal"],
+    "docker": ["focal"],
     "gcpgeneric": ["xenial", "bionic", "focal", "impish", "jammy"],
     "gcppro": ["xenial", "bionic", "focal"],
-    "vm": ["xenial", "bionic", "focal"],
     "lxd": ["xenial", "bionic", "focal", "impish", "jammy"],
+    "vm": ["xenial", "bionic", "focal"],
     "upgrade": ["xenial", "bionic", "focal", "impish"],
 }
 
@@ -68,12 +71,6 @@ def build_commands(
                 for t in token:
                     envvar = TOKEN_TO_ENVVAR[t]
                     env[envvar] = credentials["token"].get(envvar)
-
-                # Inject cloud-specific variables from credentials
-                for cloud in ("azure", "aws", "gcp"):
-                    if cloud in p:
-                        for envvar in credentials[cloud]:
-                            env[envvar] = credentials[cloud].get(envvar)
 
                 # Until we don't get sbuild to run just once per run,
                 env["UACLIENT_BEHAVE_SNAPSHOT_STRATEGY"] = "1"
