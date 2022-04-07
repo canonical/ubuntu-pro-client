@@ -15,9 +15,23 @@ defaults:
     shell: sh -ex {0}
 
 jobs:
+  # https://github.com/actions/runner/issues/520#issuecomment-907427748
+  check-env:
+    name: Check that secrets are available
+    runs-on: ubuntu-latest
+    outputs:
+      has-secrets: ${{ steps.has-secrets-check.outputs.secrets-defined }}
+    steps:
+      - id: has-secrets-check
+        env:
+          SOME_SECRET: '${{ secrets.PYCLOUDLIB_CONFIG_CONTENTS }}'
+        if: ${{ env.SOME_SECRET != '' }}
+        run: echo "::set-output name=secrets-defined::true"
   package-builds:
     name: Packaging
     runs-on: ubuntu-20.04
+    needs: check-env
+    if: needs.check-env.outputs.has-secrets == 'true'
     strategy:
       matrix:
         release: ['xenial', 'bionic', 'focal', 'jammy']
