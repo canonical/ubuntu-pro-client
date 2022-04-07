@@ -1,5 +1,15 @@
-<h1 align="center"><a href="https://ubuntu.com/advantage" target="_blank">Ubuntu Advantage Client</a></h1>
-<h4 align="center">Clean and Consistent CLI for your Ubuntu Advantage Systems</h4>
+<h1>
+  <a href="https://ubuntu.com/advantage" target="_blank">
+    <img src="./.assets/circle_of_friends.png" width="33"/>
+  </a>
+  <br>
+  Ubuntu Advantage Client
+</h1>
+
+###### Clean and Consistent CLI for your Ubuntu Advantage Systems
+
+![Latest Version](https://img.shields.io/github/v/tag/canonical/ubuntu-advantage-client.svg?label=Latest%20Version)
+![CI](https://github.com/canonical/ubuntu-advantage-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)
 
 The Ubuntu Advantage (UA) Client provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. The
