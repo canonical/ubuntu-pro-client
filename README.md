@@ -62,6 +62,10 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 * [Ubuntu Release and Architecture Support Matrix](./docs/reference/support_matrix.md)
 
+### Explanation
+
+* [What is the daemon for? (And how to disable it)](./docs/explanations/what_is_the_daemon.md)
+
 ## Terminology
  The following vocabulary is used to describe different aspects of the work
 Ubuntu Advantage Client performs:
@@ -74,19 +78,6 @@ Ubuntu Advantage Client performs:
 | Affordance | Service-specific list of applicable architectures and Ubuntu series on which a service can run |
 | Directives | Service-specific configuration values which are applied to a service when enabling that service |
 | Obligations | Service-specific policies that must be instrumented for support of a service. Example: `enableByDefault: true` means that any attached machine **MUST** enable a service on attach |
-
-### Pro Upgrade Daemon
-UA client sets up a daemon on supported platforms (currently GCP only) to
-detect if an Ubuntu Pro license is purchased for the machine. If a Pro license
-is detected, then the machine is automatically attached.
-
-If you are uninterested in UA services, you can safely stop and disable the
-daemon using systemctl:
-
-```
-sudo systemctl stop ubuntu-advantage.service
-sudo systemctl disable ubuntu-advantage.service
-```
 
 ## Contributing to ubuntu-advantage-tools
 See [CONTRIBUTING.md](CONTRIBUTING.md)
