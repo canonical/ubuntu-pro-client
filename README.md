@@ -54,8 +54,9 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 ### How To Guides
 
-* [Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
-* [Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
+* [How to Configure Proxies](./docs/howtoguides/configure_proxies.md)
+* [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
+* [How to Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
 
 ### Reference
 
@@ -73,19 +74,6 @@ Ubuntu Advantage Client performs:
 | Affordance | Service-specific list of applicable architectures and Ubuntu series on which a service can run |
 | Directives | Service-specific configuration values which are applied to a service when enabling that service |
 | Obligations | Service-specific policies that must be instrumented for support of a service. Example: `enableByDefault: true` means that any attached machine **MUST** enable a service on attach |
-
-
-### Using a proxy
-The UA Client can be configured to use an http/https proxy as needed for network requests.
-In addition, the UA Client will automatically set up proxies for all programs required for
-enabling Ubuntu Advantage services. This includes APT, Snaps, and Livepatch.
-
-The proxy can be set using the `ua config set` command. HTTP/HTTPS proxies are
-set using `http_proxy` and `https_proxy`, respectively. APT proxies are defined
-separately, using `apt_http_proxy` and `apt_https_proxy`. The proxy is identified
-by a string formatted as:
-
-`<protocol>://[<username>:<password>@]<fqdn>:<port>`
 
 ### Pro Upgrade Daemon
 UA client sets up a daemon on supported platforms (currently GCP only) to
