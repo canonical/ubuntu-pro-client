@@ -1,5 +1,11 @@
 # Contributing to Ubuntu Advantage Client
 
+## Developer Documentation
+
+### Reference
+
+* [Terminology](./contributing-docs/references/terminology.md)
+
 ## Architecture
 Ubuntu Advantage client, hereafter "UA client", is a python3-based command line
 utility. It provides a CLI to attach, detach, enable,
