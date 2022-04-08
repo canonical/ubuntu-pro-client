@@ -41,8 +41,7 @@ def caplog_text(request):
     Specifically, bionic is the first Ubuntu release to contain a version of
     pytest new enough for the caplog fixture to be present. In xenial, the
     python3-pytest-catchlog package provides the same functionality (this is
-    the code that was later integrated in to pytest). For trusty, there is no
-    packaged alternative to this shim.
+    the code that was later integrated in to pytest).
 
     (It returns a function so that the requester can decide when to examine the
     logs; if it returned caplog.text directly, that would always be empty.)

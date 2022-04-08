@@ -510,8 +510,6 @@ class TestWriteESMAnnouncementMessage:
         "series,release,is_active_esm,is_beta,cfg_allow_beta,"
         "apps_enabled,expected",
         (
-            # No ESM announcement when trusty
-            ("trusty", "14.04", True, False, True, False, None),
             # ESMApps.is_beta == True no Announcement
             ("xenial", "16.04", True, True, None, False, None),
             # Once release begins ESM and ESMApps.is_beta is false announce

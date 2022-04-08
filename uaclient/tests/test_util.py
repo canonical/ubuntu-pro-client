@@ -65,18 +65,6 @@ VERSION_CODENAME=xenial
 UBUNTU_CODENAME=xenial
 """
 
-OS_RELEASE_TRUSTY = """\
-NAME="Ubuntu"
-VERSION="14.04.5 LTS, Trusty Tahr"
-ID=ubuntu
-ID_LIKE=debian
-PRETTY_NAME="Ubuntu 14.04.5 LTS"
-VERSION_ID="14.04"
-HOME_URL="http://www.ubuntu.com/"
-SUPPORT_URL="http://help.ubuntu.com/"
-BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"
-"""
-
 
 class TestGetDictDeltas:
     @pytest.mark.parametrize(
@@ -125,9 +113,8 @@ class TestIsLTS:
     @pytest.mark.parametrize(
         "series, supported_esm, expected",
         (
-            ("trusty", "trusty\nxenial\nbionic\nfocal", True),
-            ("xenial", "trusty\nxenial\nbionic\nfocal", True),
-            ("groovy", "trusty\nxenial\nbionic\nfocal", False),
+            ("xenial", "xenial\nbionic\nfocal", True),
+            ("groovy", "xenial\nbionic\nfocal", False),
         ),
     )
     @mock.patch("uaclient.util.subp")
@@ -380,17 +367,19 @@ class TestParseOSRelease:
     def test_parse_os_release(self, caplog_text, tmpdir):
         """parse_os_release returns a dict of values from /etc/os-release."""
         release_file = tmpdir.join("os-release")
-        release_file.write(OS_RELEASE_TRUSTY)
+        release_file.write(OS_RELEASE_XENIAL)
         expected = {
             "BUG_REPORT_URL": "http://bugs.launchpad.net/ubuntu/",
             "HOME_URL": "http://www.ubuntu.com/",
             "ID": "ubuntu",
             "ID_LIKE": "debian",
             "NAME": "Ubuntu",
-            "PRETTY_NAME": "Ubuntu 14.04.5 LTS",
+            "PRETTY_NAME": "Ubuntu 16.04.5 LTS",
             "SUPPORT_URL": "http://help.ubuntu.com/",
-            "VERSION": "14.04.5 LTS, Trusty Tahr",
-            "VERSION_ID": "14.04",
+            "UBUNTU_CODENAME": "xenial",
+            "VERSION": "16.04.5 LTS (Xenial Xerus)",
+            "VERSION_CODENAME": "xenial",
+            "VERSION_ID": "16.04",
         }
         assert expected == util.parse_os_release(release_file.strpath)
         # Add a 2nd call for lru_cache test

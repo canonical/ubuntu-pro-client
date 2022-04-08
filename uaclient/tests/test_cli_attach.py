@@ -43,7 +43,7 @@ BASIC_MACHINE_TOKEN = {
     },
 }
 
-ENTITLED_TRUSTY_ESM_RESOURCE = {
+ENTITLED_EXAMPLE_ESM_RESOURCE = {
     "obligations": {"enableByDefault": True},
     "type": "esm-infra",
     "directives": {
@@ -59,12 +59,12 @@ ENTITLED_TRUSTY_ESM_RESOURCE = {
             "s390x",
             "x86_64",
         ],
-        "series": ["precise", "trusty", "xenial", "bionic"],
+        "series": ["series-example-1", "series-example-2", "series-example-3"],
     },
     "series": {
-        "trusty": {
+        "series-example-1": {
             "directives": {
-                "suites": ["trusty-infra-security", "trusty-infra-updates"]
+                "suites": ["example-infra-security", "example-infra-updates"]
             }
         }
     },
@@ -74,7 +74,7 @@ ENTITLED_TRUSTY_ESM_RESOURCE = {
 ENTITLED_MACHINE_TOKEN = copy.deepcopy(BASIC_MACHINE_TOKEN)
 ENTITLED_MACHINE_TOKEN["machineTokenInfo"]["contractInfo"][
     "resourceEntitlements"
-] = [ENTITLED_TRUSTY_ESM_RESOURCE]
+] = [ENTITLED_EXAMPLE_ESM_RESOURCE]
 
 
 @mock.patch(M_PATH + "os.getuid")

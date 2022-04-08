@@ -9,10 +9,6 @@
 #
 # N.B. This will rename any existing keyrings with the suffix .old.
 
-# NOTE: If replacing keyrings on services that are intended for trusty, the
-# keyrings MUST BE pulled on a trusty machine to ensure compatibility with
-# trusty gpg tooling.
-
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
 if [ $# != 1 -o ! -d $1 ]; then

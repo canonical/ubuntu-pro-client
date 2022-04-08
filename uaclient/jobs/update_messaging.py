@@ -235,7 +235,7 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
         _write_template_or_remove(
             no_warranty_msg, os.path.join(msg_dir, no_warranty_file)
         )
-    if not msg_esm_infra and series != "trusty":
+    if not msg_esm_infra:
         # write_apt_and_motd_templates is only called if util.is_lts(series)
         msg_esm_apps = apps_valid
 
@@ -287,7 +287,7 @@ def write_apt_and_motd_templates(cfg: config.UAConfig, series: str) -> None:
 def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
     """Write human-readable messages if ESM is offered on this LTS release.
 
-    Do not write ESM announcements on trusty, esm-apps is enable or beta.
+    Do not write ESM announcements if esm-apps is enabled or beta.
 
     :param cfg: UAConfig instance for this environment.
     :param series: string of Ubuntu release series: 'xenial'.
@@ -311,7 +311,7 @@ def write_esm_announcement_message(cfg: config.UAConfig, series: str) -> None:
         )
     else:
         ua_esm_url = defaults.BASE_ESM_URL
-    if all([series != "trusty", apps_not_beta, apps_not_enabled]):
+    if apps_not_beta and apps_not_enabled:
         util.write_file(
             esm_news_file, "\n" + ANNOUNCE_ESM_TMPL.format(url=ua_esm_url)
         )

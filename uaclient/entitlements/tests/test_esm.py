@@ -14,14 +14,13 @@ M_GETPLATFORM = M_REPOPATH + "util.get_platform_info"
 
 @pytest.fixture(params=[ESMAppsEntitlement, ESMInfraEntitlement])
 def entitlement(request, entitlement_factory):
-    return entitlement_factory(request.param, suites=["trusty"])
+    return entitlement_factory(request.param, suites=["xenial"])
 
 
 class TestESMRepoPinPriority:
     @pytest.mark.parametrize(
         "series, is_active_esm, repo_pin_priority",
         (
-            ("trusty", True, "never"),
             ("xenial", True, "never"),
             ("bionic", False, None),
             ("focal", False, None),
@@ -105,7 +104,6 @@ class TestESMDisableAptAuthOnly:
     @pytest.mark.parametrize(
         "series, is_active_esm, disable_apt_auth_only",
         (
-            ("trusty", True, True),
             ("xenial", True, True),
             ("bionic", False, False),
             ("focal", False, False),
@@ -195,7 +193,7 @@ class TestESMInfraEntitlementEnable:
                     "apt_https_proxy": "apt_https_proxy_value",
                 }
             },
-            suites=["trusty"],
+            suites=["xenial"],
         )
         patched_packages = ["a", "b"]
         original_exists = os.path.exists
@@ -225,7 +223,7 @@ class TestESMInfraEntitlementEnable:
                 mock.patch.object(entitlement, "can_enable")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={"series": "trusty"})
+                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
             stack.enter_context(
                 mock.patch(
@@ -253,7 +251,7 @@ class TestESMInfraEntitlementEnable:
                 ),
                 "http://{}".format(entitlement.name.upper()),
                 "{}-token".format(entitlement.name),
-                ["trusty"],
+                ["xenial"],
                 entitlement.repo_key_file,
             )
         ]
@@ -344,7 +342,7 @@ class TestESMInfraEntitlementEnable:
                 mock.patch.object(entitlement, "remove_apt_config")
             )
             stack.enter_context(
-                mock.patch(M_GETPLATFORM, return_value={"series": "trusty"})
+                mock.patch(M_GETPLATFORM, return_value={"series": "xenial"})
             )
             stack.enter_context(
                 mock.patch(
@@ -367,7 +365,7 @@ class TestESMInfraEntitlementEnable:
                 ),
                 "http://{}".format(entitlement.name.upper()),
                 "{}-token".format(entitlement.name),
-                ["trusty"],
+                ["xenial"],
                 entitlement.repo_key_file,
             )
         ]
@@ -387,7 +385,7 @@ class TestESMInfraEntitlementEnable:
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
         if entitlement.name == "esm-infra":
-            # Enable esm-infra trusty removes apt preferences pin 'never' file
+            # Enable esm-infra xenial removes apt preferences pin 'never' file
             unlink_calls = [
                 mock.call(
                     "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
@@ -424,7 +422,7 @@ class TestESMEntitlementDisable:
         assert 0 == m_remove_apt.call_count
 
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "trusty"}
+        "uaclient.util.get_platform_info", return_value={"series": "xenial"}
     )
     def test_disable_on_can_disable_true_removes_apt_config(
         self, _m_platform_info, m_update_apt_and_motd_msgs, entitlement, tmpdir
