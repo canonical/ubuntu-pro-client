@@ -718,24 +718,6 @@ class TestGetMachineId:
             assert value == cached_value
         assert "etc-machine-id" == value
 
-    def test_get_machine_id_from_var_lib_dbus_machine_id(
-        self, FakeConfig, tmpdir
-    ):
-        """On trusty, machine id lives in of /var/lib/dbus/machine-id."""
-        etc_machine_id = tmpdir.join("etc-machine-id")
-        dbus_machine_id = tmpdir.join("dbus-machine-id")
-        assert "/var/lib/dbus/machine-id" == util.DBUS_MACHINE_ID
-        dbus_machine_id.write("dbus-machine-id")
-        cfg = FakeConfig()
-        with mock.patch(
-            "uaclient.util.DBUS_MACHINE_ID", dbus_machine_id.strpath
-        ):
-            with mock.patch(
-                "uaclient.util.ETC_MACHINE_ID", etc_machine_id.strpath
-            ):
-                value = util.get_machine_id(cfg)
-        assert "dbus-machine-id" == value
-
     def test_get_machine_id_uses_machine_id_from_data_dir(
         self, FakeConfig, tmpdir
     ):

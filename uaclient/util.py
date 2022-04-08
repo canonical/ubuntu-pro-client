@@ -32,7 +32,6 @@ from uaclient.types import MessagingOperations
 REBOOT_FILE_CHECK_PATH = "/var/run/reboot-required"
 REBOOT_PKGS_FILE_PATH = "/var/run/reboot-required.pkgs"
 ETC_MACHINE_ID = "/etc/machine-id"
-DBUS_MACHINE_ID = "/var/lib/dbus/machine-id"
 DROPPED_KEY = object()
 
 # N.B. this relies on the version normalisation we perform in get_platform_info
@@ -299,8 +298,6 @@ def get_dict_deltas(
 def get_machine_id(cfg) -> str:
     """Get system's unique machine-id or create our own in data_dir."""
     # Generate, cache our own uuid if not present in config or on the system
-    # Docker images do not define ETC_MACHINE_ID or DBUS_MACHINE_ID on trusty
-    # per Issue: #489
 
     if cfg.machine_token:
         cfg_machine_id = cfg.machine_token.get("machineTokenInfo", {}).get(
@@ -311,7 +308,7 @@ def get_machine_id(cfg) -> str:
 
     fallback_machine_id_file = cfg.data_path("machine-id")
 
-    for path in [ETC_MACHINE_ID, DBUS_MACHINE_ID, fallback_machine_id_file]:
+    for path in [ETC_MACHINE_ID, fallback_machine_id_file]:
         if os.path.exists(path):
             content = load_file(path).rstrip("\n")
             if content:
