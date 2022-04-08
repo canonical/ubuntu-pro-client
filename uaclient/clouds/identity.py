@@ -6,9 +6,6 @@ from typing import Dict, Optional, Tuple, Type  # noqa: F401
 from uaclient import clouds, exceptions, util
 from uaclient.config import apply_config_settings_override
 
-# Mapping of datasource names to cloud-id responses. Trusty compat with Xenial+
-DATASOURCE_TO_CLOUD_ID = {"azurenet": "azure", "ec2": "aws", "gce": "gcp"}
-
 CLOUD_TYPE_TO_TITLE = {
     "aws": "AWS",
     "aws-china": "AWS China",

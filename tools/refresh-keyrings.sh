@@ -9,9 +9,8 @@
 #
 # N.B. This will rename any existing keyrings with the suffix .old.
 
-# NOTE: If replacing keyrings on services that are intended for trusty, the
-# keyrings MUST BE pulled on a trusty machine to ensure compatibility with
-# trusty gpg tooling.
+# NOTE: The keyrings MUST be pulled on a machine running the lowest-supported
+# LTS to ensure compatibility with gpg tooling on the lowest-supported LTS.
 
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 

@@ -167,7 +167,7 @@ class TestValidAptCredentials:
             ),
             (
                 100,
-                "E: Failed to fetch ... HttpError401 on trusty",
+                "E: Failed to fetch ... HttpError401 on xenial",
                 "Invalid APT credentials provided for http://fakerepo",
             ),
             (
