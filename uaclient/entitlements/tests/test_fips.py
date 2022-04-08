@@ -1185,21 +1185,19 @@ class TestFipsEntitlementPackages:
         assert before == after
 
     @pytest.mark.parametrize(
-        "cfg_disable_fips_metapckage_override", ((True), (False))
+        "cfg_disable_fips_metapckage_override", (True, False)
     )
-    @pytest.mark.parametrize(
-        "series", (("trusty"), ("xenial"), ("bionic"), ("focal"))
-    )
+    @pytest.mark.parametrize("series", ("xenial", "bionic", "focal"))
     @pytest.mark.parametrize(
         "cloud_id",
         (
-            ("azure-china"),
-            ("aws-gov"),
-            ("aws-china"),
-            ("azure"),
-            ("aws"),
-            ("gce"),
-            (None),
+            "azure-china",
+            "aws-gov",
+            "aws-china",
+            "azure",
+            "aws",
+            "gce",
+            None,
         ),
     )
     @mock.patch("uaclient.util.is_config_value_true")

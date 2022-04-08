@@ -664,15 +664,15 @@ class TestUaEntitlement:
                 {"entitlement": {"entitled": False}},
                 {
                     "entitlement": {
-                        "entitled": False,  # overridden True by series trusty
-                        "series": {"trusty": {"entitled": True}},
+                        "entitled": False,  # overridden by series 'example'
+                        "series": {"example": {"entitled": True}},
                     }
                 },
             ),
         ),
     )
     @mock.patch(
-        "uaclient.util.get_platform_info", return_value={"series": "trusty"}
+        "uaclient.util.get_platform_info", return_value={"series": "example"}
     )
     def test_process_contract_deltas_does_nothing_when_delta_remains_entitled(
         self, m_platform_info, concrete_entitlement_factory, orig_access, delta
