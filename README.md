@@ -66,5 +66,5 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 * [What is the daemon for? (And how to disable it)](./docs/explanations/what_is_the_daemon.md)
 
-## Contributing to ubuntu-advantage-tools
+## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
