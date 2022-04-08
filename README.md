@@ -31,24 +31,6 @@ The client comes pre-installed on all Ubuntu systems in the debian
 will also contain `ubuntu-advantage-pro` which automates machine attach
 on boot for custom AWS, Azure and GCP images.
 
-### Support Matrix for the client
-Ubuntu Advantage services are only available on Ubuntu Long Term Support (LTS) releases.
-On interim Ubuntu releases, `ua status` will report most of the services as 'n/a' and disallow enabling those services.
-
-Below is a list of platforms and releases ubuntu-advantage-tools supports
-
-| Ubuntu Release | Build Architectures | Support Level |
-| -------- | -------- | -------- |
-| Trusty | amd64, arm64, armhf, i386, powerpc, ppc64el | Last release 19.6  |
-| Xenial | amd64, arm64, armhf, i386, powerpc, ppc64el, s390x | Active SRU of all features |
-| Bionic | amd64, arm64, armhf, i386, ppc64el, s390x | Active SRU of all features |
-| Focal | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
-| Groovy | amd64, arm64, armhf, ppc64el, riscv64, s390x | Last release 27.1 |
-| Hirsute | amd64, arm64, armhf, ppc64el, riscv64, s390x | Last release 27.5 |
-| Impish | amd64, arm64, armhf, ppc64el, riscv64, s390x | Active SRU of all features |
-
-Note: ppc64el will not have support for APT JSON hook messaging due to insufficient golang packages
-
 Ubuntu Pro images are available on the following cloud platforms on all Ubuntu LTS releases (Xenial, Bionic, Focal):
 1. AWS: [Ubuntu PRO](https://ubuntu.com/aws/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/aws/fips)
 2. Azure: [Ubuntu PRO](https://ubuntu.com/azure/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/azure/fips)
