@@ -23,7 +23,6 @@ following entitlements are supported:
 - [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/fips)
 - [Livepatch Service](https://www.ubuntu.com/livepatch)
 
-
 ## Obtaining the Client
 
 The client comes pre-installed on all Ubuntu systems in the debian
@@ -46,6 +45,20 @@ Additionally, there are 3 PPAs with different release channels of the Ubuntu Adv
     - add with `sudo add-apt-repository ppa:ua-client/daily`
 
 Users can manually run the `ua` command to learn more or view the manpage.
+
+## User Documentation
+
+### Tutorials
+
+* [Create a FIPS compliant Ubuntu Docker image](./docs/tutorials/create_a_fips_docker_image.md)
+
+### How To Guides
+
+* [Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
+
+### Reference
+
+* [Ubuntu Release and Architecture Support Matrix](./docs/reference/support_matrix.md)
 
 ## Terminology
  The following vocabulary is used to describe different aspects of the work
