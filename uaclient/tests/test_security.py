@@ -131,7 +131,7 @@ SAMPLE_USN_RESPONSE = {
     "instructions": "In general, a standard system update will make all ...\n",
     "references": [],
     "release_packages": {
-        "trusty": [
+        "series-example-1": [
             {
                 "description": "SMB/CIFS file, print, and login ... Unix",
                 "is_source": True,
@@ -146,7 +146,7 @@ SAMPLE_USN_RESPONSE = {
                 "version_link": "https://....11+dfsg-0ubuntu0.14.04.20+esm9",
             },
         ],
-        "bionic": [
+        "series-example-2": [
             {
                 "description": "high-level 3D graphics kit implementing ...",
                 "is_source": True,
@@ -405,7 +405,7 @@ class TestUSN:
         "series,expected",
         (
             (
-                "trusty",
+                "series-example-1",
                 {
                     "samba": {
                         "source": {
@@ -431,7 +431,7 @@ class TestUSN:
                 },
             ),
             (
-                "bionic",
+                "series-example-2",
                 {
                     "coin3": {
                         "source": {
@@ -454,7 +454,7 @@ class TestUSN:
                     }
                 },
             ),
-            ("focal", {}),
+            ("series-example-3", {}),
         ),
     )
     @mock.patch("uaclient.util.get_platform_info")
@@ -489,10 +489,10 @@ class TestUSN:
         self, get_platform_info, source_link, error_msg, FakeConfig
     ):
         """Raise errors when USN metadata contains no valid source_link."""
-        get_platform_info.return_value = {"series": "trusty"}
+        get_platform_info.return_value = {"series": "series-example-1"}
         client = UASecurityClient(FakeConfig())
         sparse_md = copy.deepcopy(SAMPLE_USN_RESPONSE)
-        sparse_md["release_packages"]["trusty"].append(
+        sparse_md["release_packages"]["series-example-1"].append(
             {
                 "is_source": False,
                 "name": "samba2",
