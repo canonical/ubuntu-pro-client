@@ -65,14 +65,14 @@ class TestUserFacingStatus:
     ):
         """When applicability_status is INAPPLICABLE, return INAPPLICABLE."""
         platform_unsupported = copy.deepcopy(dict(PLATFORM_INFO_SUPPORTED))
-        platform_unsupported["series"] = "trusty"
-        platform_unsupported["version"] = "14.04 LTS (Trusty Tahr)"
+        platform_unsupported["series"] = "example"
+        platform_unsupported["version"] = "01.01 LTS (Example Version)"
         m_platform_info.return_value = platform_unsupported
         applicability, details = entitlement.applicability_status()
         assert ApplicabilityStatus.INAPPLICABLE == applicability
         expected_details = (
-            "Repo Test Class is not available for Ubuntu 14.04"
-            " LTS (Trusty Tahr)."
+            "Repo Test Class is not available for Ubuntu 01.01"
+            " LTS (Example Version)."
         )
         assert expected_details == details.msg
         uf_status, _ = entitlement.user_facing_status()
@@ -271,9 +271,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(
-        M_PATH + "util.get_platform_info", return_value={"series": "trusty"}
-    )
+    @mock.patch(M_PATH + "util.get_platform_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
@@ -333,9 +331,7 @@ class TestProcessContractDeltas:
         "uaclient.entitlements.base.UAEntitlement.process_contract_deltas"
     )
     @mock.patch("uaclient.config.UAConfig.read_cache")
-    @mock.patch(
-        M_PATH + "util.get_platform_info", return_value={"series": "trusty"}
-    )
+    @mock.patch(M_PATH + "util.get_platform_info")
     @mock.patch(M_PATH + "apt.remove_auth_apt_repo")
     @mock.patch.object(RepoTestEntitlement, "setup_apt_config")
     @mock.patch.object(RepoTestEntitlement, "remove_apt_config")
