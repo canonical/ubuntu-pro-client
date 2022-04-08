@@ -15,13 +15,14 @@ The Ubuntu Advantage (UA) Client provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. The
 following entitlements are supported:
 
-- [Common Criteria EAL2 certification artifacts provisioning](https://ubuntu.com/cc-eal)
-- [Canonical CIS Benchmark Audit Tool](https://ubuntu.com/cis-audit)
-- [Ubuntu Extended Security Maintenance](https://ubuntu.com/esm)
-- [Robot Operating System Extended Security Maintenance](https://ubuntu.com/robotics/ros-esm)
-- [FIPS 140-2 Certified Modules](https://ubuntu.com/fips)
-- [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/fips)
-- [Livepatch Service](https://www.ubuntu.com/livepatch)
+- [Common Criteria EAL2 Certification Tooling](https://ubuntu.com/security/cc)
+- [CIS Benchmark Audit Tooling](https://ubuntu.com/security/cis)
+- [Ubuntu Security Guide (USG) Tooling](https://ubuntu.com/security/certifications/docs/usg)
+- [Ubuntu Extended Security Maintenance (ESM)](https://ubuntu.com/security/esm)
+- [Robot Operating System (ROS) Extended Security Maintenance](https://ubuntu.com/robotics/ros-esm)
+- [FIPS 140-2 Certified Modules](https://ubuntu.com/security/fips)
+- [FIPS 140-2 Non-Certified Module Updates](https://ubuntu.com/security/fips)
+- [Livepatch Service](https://ubuntu.com/security/livepatch)
 
 ## Obtaining the Client
 
