@@ -15,7 +15,7 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: security-status \[-h\] --format {json,yaml}
+usage: security-status \[-h\] --format {json,yaml} \[--version {0.1,0.2}\]
 
 Show security updates for packages in the system, including all
 available ESM related content.
@@ -34,6 +34,7 @@ status on UA services, run 'ua status'
 (optional arguments|options):
   -h, --help            show this help message and exit
   --format {json,yaml}  Format for the output \(json or yaml\)
+  --version {0.1,0.2}   Version of the output data
 """  # noqa
 )
 
@@ -52,6 +53,26 @@ class TestActionSecurityStatus:
 
         out, _err = capsys.readouterr()
         assert re.match(HELP_OUTPUT, out)
+
+    @pytest.mark.parametrize("version", (None, 0.1, 0.2))
+    @mock.patch(M_PATH + "yaml.safe_dump")
+    @mock.patch(M_PATH + "json.dumps")
+    def test_version_flag_is_passed(
+        self,
+        _m_json,
+        _m_yaml,
+        _m_resources,
+        m_security_status,
+        version,
+        FakeConfig,
+    ):
+        cfg = FakeConfig()
+        args = mock.MagicMock()
+        args.version = version
+
+        action_security_status(args, cfg=cfg)
+
+        assert m_security_status.call_args_list == [mock.call(cfg, version)]
 
     @pytest.mark.parametrize("output_format", ("json", "yaml"))
     @mock.patch(M_PATH + "yaml.safe_dump")
@@ -129,4 +150,7 @@ class TestParser:
         ):
             args = full_parser.parse_args()
         assert "security-status" == args.command
+        assert "json" == args.format
         assert "action_security_status" == args.action.__name__
+        # Default version should be 0.1 for compatibility reasons
+        assert "0.1" == args.version

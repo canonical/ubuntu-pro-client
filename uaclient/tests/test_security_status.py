@@ -307,6 +307,7 @@ class TestSecurityStatus:
                 "more-than-one-update",
             ] == [v.package.name for v in filtered_versions]
 
+    @pytest.mark.parametrize("api_version", ("0.1", "0.2"))
     @mock.patch(M_PATH + "UAConfig.status", return_value={"attached": False})
     @mock.patch(
         M_PATH + "get_service_name",
@@ -322,6 +323,7 @@ class TestSecurityStatus:
         _m_get_origin,
         _m_service_name,
         _m_status,
+        api_version,
         FakeConfig,
     ):
         """Make sure the output format matches the expected JSON"""
@@ -333,42 +335,78 @@ class TestSecurityStatus:
         m_filter_sec_updates.return_value = [m_version] * 2
 
         expected_output = {
-            "_schema_version": "0.1",
-            "updates": [
-                {
-                    "package": "example_package",
-                    "version": "1.0",
-                    "service_name": "esm-infra",
-                    "status": "pending_attach",
-                    "origin": "some.url.for.esm",
+            "0.1": {
+                "_schema_version": "0.1",
+                "packages": [
+                    {
+                        "package": "example_package",
+                        "version": "1.0",
+                        "service_name": "esm-infra",
+                        "status": "pending_attach",
+                        "origin": "some.url.for.esm",
+                    },
+                    {
+                        "package": "example_package",
+                        "version": "1.0",
+                        "service_name": "esm-infra",
+                        "status": "pending_attach",
+                        "origin": "some.url.for.esm",
+                    },
+                ],
+                "summary": {
+                    "ua": {
+                        "attached": False,
+                        "enabled_services": [],
+                        "entitled_services": [],
+                    },
+                    "num_installed_packages": 10,
+                    "num_esm_infra_updates": 2,
+                    "num_esm_apps_updates": 0,
+                    "num_esm_infra_packages": 0,
+                    "num_esm_apps_packages": 0,
+                    "num_standard_security_updates": 0,
                 },
-                {
-                    "package": "example_package",
-                    "version": "1.0",
-                    "service_name": "esm-infra",
-                    "status": "pending_attach",
-                    "origin": "some.url.for.esm",
+            },
+            "0.2": {
+                "_schema_version": "0.2",
+                "updates": [
+                    {
+                        "package": "example_package",
+                        "version": "1.0",
+                        "service_name": "esm-infra",
+                        "status": "pending_attach",
+                        "origin": "some.url.for.esm",
+                    },
+                    {
+                        "package": "example_package",
+                        "version": "1.0",
+                        "service_name": "esm-infra",
+                        "status": "pending_attach",
+                        "origin": "some.url.for.esm",
+                    },
+                ],
+                "summary": {
+                    "ua": {
+                        "attached": False,
+                        "enabled_services": [],
+                        "entitled_services": [],
+                    },
+                    "num_installed_packages": 10,
+                    "num_installed_packages_main": 10,
+                    "num_installed_packages_restricted": 0,
+                    "num_installed_packages_universe": 0,
+                    "num_installed_packages_multiverse": 0,
+                    "num_installed_packages_third_party": 0,
+                    "num_installed_packages_unknown": 0,
+                    "num_esm_infra_updates": 2,
+                    "num_esm_apps_updates": 0,
+                    "num_installed_packages_esm_infra": 0,
+                    "num_installed_packages_esm_apps": 0,
+                    "num_standard_security_updates": 0,
                 },
-            ],
-            "summary": {
-                "ua": {
-                    "attached": False,
-                    "enabled_services": [],
-                    "entitled_services": [],
-                },
-                "num_installed_packages": 10,
-                "num_installed_packages_main": 10,
-                "num_installed_packages_restricted": 0,
-                "num_installed_packages_universe": 0,
-                "num_installed_packages_multiverse": 0,
-                "num_installed_packages_third_party": 0,
-                "num_installed_packages_unknown": 0,
-                "num_esm_infra_updates": 2,
-                "num_esm_apps_updates": 0,
-                "num_esm_infra_packages": 0,
-                "num_esm_apps_packages": 0,
-                "num_standard_security_updates": 0,
             },
         }
 
-        assert expected_output == security_status(cfg)
+        assert expected_output[api_version] == security_status(
+            cfg, api_version
+        )

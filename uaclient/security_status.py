@@ -116,7 +116,7 @@ def get_ua_info(cfg: UAConfig) -> Dict[str, Any]:
     return ua_info
 
 
-def security_status(cfg: UAConfig) -> Dict[str, Any]:
+def security_status(cfg: UAConfig, output_version: str) -> Dict[str, Any]:
     """Returns the status of security updates on a system.
 
     The returned dict has a 'packages' key with a list of all installed
@@ -142,7 +142,6 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         package_count[package_origin] += 1
 
     security_upgradable_versions = filter_security_updates(installed_packages)
-
     for candidate in security_upgradable_versions:
         service_name, origin_site = get_service_name(candidate.origins)
         status = get_update_status(service_name, ua_info)
@@ -157,6 +156,22 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
             }
         )
 
+    summary["num_esm_infra_packages"] = package_count["esm-infra"]
+    summary["num_esm_apps_packages"] = package_count["esm-apps"]
+
+    summary["num_esm_infra_updates"] = update_count["esm-infra"]
+    summary["num_esm_apps_updates"] = update_count["esm-apps"]
+    summary["num_standard_security_updates"] = update_count[
+        "standard-security"
+    ]
+
+    if output_version == "0.1":
+        return {
+            "_schema_version": "0.1",
+            "summary": summary,
+            "packages": updates,
+        }
+
     summary["num_installed_packages_main"] = package_count["main"]
     summary["num_installed_packages_restricted"] = package_count["restricted"]
     summary["num_installed_packages_universe"] = package_count["universe"]
@@ -165,12 +180,12 @@ def security_status(cfg: UAConfig) -> Dict[str, Any]:
         "third-party"
     ]
     summary["num_installed_packages_unknown"] = package_count["unknown"]
-    summary["num_esm_infra_packages"] = package_count["esm-infra"]
-    summary["num_esm_apps_packages"] = package_count["esm-apps"]
-    summary["num_esm_infra_updates"] = update_count["esm-infra"]
-    summary["num_esm_apps_updates"] = update_count["esm-apps"]
-    summary["num_standard_security_updates"] = update_count[
-        "standard-security"
-    ]
 
-    return {"_schema_version": "0.1", "summary": summary, "updates": updates}
+    summary["num_installed_packages_esm_infra"] = summary.pop(
+        "num_esm_infra_packages"
+    )
+    summary["num_installed_packages_esm_apps"] = summary.pop(
+        "num_esm_apps_packages"
+    )
+
+    return {"_schema_version": "0.2", "summary": summary, "updates": updates}

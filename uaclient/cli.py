@@ -447,6 +447,12 @@ def security_status_parser(parser):
         choices=("json", "yaml"),
         required=True,
     )
+    parser.add_argument(
+        "--version",
+        help=("Version of the output data"),
+        choices=("0.1", "0.2"),
+        default="0.1",
+    )
     return parser
 
 
@@ -480,11 +486,12 @@ def refresh_parser(parser):
 def action_security_status(args, *, cfg, **kwargs):
     # For now, --format is mandatory so no need to check for it here.
     if args.format == "json":
-        print(json.dumps(security_status.security_status(cfg)))
+        print(json.dumps(security_status.security_status(cfg, args.version)))
     else:
         print(
             yaml.safe_dump(
-                security_status.security_status(cfg), default_flow_style=False
+                security_status.security_status(cfg, args.version),
+                default_flow_style=False,
             )
         )
     return 0
