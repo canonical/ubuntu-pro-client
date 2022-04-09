@@ -479,6 +479,13 @@ class GCP(Cloud):
                 "{}".format(credentials_path)
             )
 
+        # Use service_account_email from pycloudlib.toml if defined
+        self.service_account_email = credentials.get("gce", {}).get(
+            "service_account_email"
+        )
+        if self.service_account_email:
+            return
+
         gcp_credentials_path = credentials.get("gce", {}).get(
             "credentials_path"
         )
