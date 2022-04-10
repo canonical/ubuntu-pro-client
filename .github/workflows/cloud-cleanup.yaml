@@ -31,5 +31,5 @@ jobs:
       - name: Delete stale CI instances
         run: |
           yesterday=$(date --utc --iso-8601=seconds --date=yesterday)
-          stale_instances=$(aws ec2 describe-instances --query "Reservations[].Instances[?LaunchTime<=\`$yesterday\`][].{id: InstanceId, launched: LaunchTime}" --filters 'Name=tag:Name,Values=uaclient-ci-*' --output text)
+          stale_instances=$(aws ec2 describe-instances --query "Reservations[].Instances[?LaunchTime<=\`$yesterday\`][].InstanceId" --filters 'Name=tag:Name,Values=uaclient-ci-*' --output text)
           [ -z "$stale_instances" ] || aws ec2 terminate-instances --instance-ids $stale_instances
