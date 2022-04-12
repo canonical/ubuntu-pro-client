@@ -145,7 +145,6 @@ Feature: Unattached status
     @series.all
     @uses.config.machine_type.lxd.container
     @uses.config.contract_token
-    @uses.config.contract_token_staging_expired
     Scenario Outline: Simulate status in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I do a preflight check for `contract_token` without the all flag
@@ -199,6 +198,20 @@ Feature: Unattached status
             services: []
             warnings: []
             """
+        Examples: ubuntu release
+           | release | esm-apps | cc-eal | cis | cis-available | fips | esm-infra | ros | livepatch | usg |
+           | xenial  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
+           | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
+           | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
+           | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
+
+
+    @series.all
+    @uses.config.machine_type.lxd.container
+    @uses.config.contract_token_staging_expired
+    Scenario Outline: Simulate status with expired token in a ubuntu machine
+        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `sed -i 's/contracts.can/contracts.staging.can/' /etc/ubuntu-advantage/uaclient.conf` with sudo
         And I verify that a preflight check for `contract_token_staging_expired` formatted as json exits 1
         Then stdout is a json matching the `ua_status` schema
@@ -239,4 +252,4 @@ Feature: Unattached status
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
-           | jammy   | no       | no     | cis | no            | no   | no        | no  | no        |     |
+           | jammy   | no       | no     | cis | no            | no   | yes       | no  | no        |     |
