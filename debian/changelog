@@ -4,6 +4,19 @@ ubuntu-advantage-tools (28.0) UNRELEASED; urgency=medium
 
  -- Chad Smith <chad.smith@canonical.com>  Wed, 19 May 2021 16:35:25 -0600
 
+ubuntu-advantage-tools (27.8~22.04.1) jammy; urgency=medium
+
+  * New upstream release 27.8 (LP: #1969125)
+    - entitlements: apply overrides from the contract response
+    - fips:
+      + unhold fips packages when enabling fips-updates
+      + Automatically disable fips service before enabling fips-updates
+      + unhold more packages when enabling fips
+    - lib: fix upgrade script for unsupported releases (LP: #1968067)
+    - realtime: add support for realtime kernel beta service on Jammy
+
+ -- Lucas Moura <lucas.moura@canonical.com>  Wed, 13 Apr 2022 18:17:02 -0300
+
 ubuntu-advantage-tools (27.7.1~22.04.1) jammy; urgency=medium
 
   * fips:
