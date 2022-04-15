@@ -1,6 +1,6 @@
-bionic: ami-0419d66039473da9d
+bionic: ami-02b4e50c1ebb5034c
 bionic-fips: ami-03b75f613f80bcff1
-focal: ami-0489b8bdbbf3a3b32
+focal: ami-01deb29ae4e3b9c97
+focal-fips: ami-02782bf2569bf457c
 xenial: ami-011bcfe2bea365b6a
 xenial-fips: ami-077e4c339a098fc9f
-focal-fips: ami-02782bf2569bf457c
