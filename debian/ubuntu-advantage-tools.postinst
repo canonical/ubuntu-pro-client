@@ -52,12 +52,9 @@ MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {
     DIR=$1
-    UA_SERVICES=$(/usr/bin/python3 -c "
-from uaclient.entitlements import valid_services
-from uaclient.config import UAConfig
-cfg = UAConfig()
-print(*valid_services(cfg=cfg, allow_beta=True, all_names=True), sep=' ')
-")
+    # It is okay if this list is outdated, because this function is only used for an old migration.
+    # Any services that were introduced after this migration was added won't need to be migrated.
+    UA_SERVICES="cc-eal cis esm-infra esm-apps fips fips-updates livepatch ros ros-updates"
 
     for file in "$DIR"/*; do
         release_name=""
