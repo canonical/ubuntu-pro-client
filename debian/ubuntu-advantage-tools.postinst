@@ -4,13 +4,19 @@ set -e
 
 . /etc/os-release  # For VERSION_ID and UBUNTU_CODENAME
 
-if [ "" = "${UBUNTU_CODENAME}" ]; then
-    UBUNTU_CODENAME="NO-UBUNTU_CODENAME-$VERSION_ID"
-fi
-
 # Needed even if this script doesn't call debconf, see:
 # https://lintian.debian.org/tags/postinst-does-not-load-confmodule.html
+# Note: this may re-exec the postinst script.
 . /usr/share/debconf/confmodule
+
+if [ -z "${VERSION_ID}" ]; then
+    echo "Warning: missing VERSION_ID in /etc/os-release" >&2
+    VERSION_ID="NO-VERSION_ID"
+fi
+if [ -z "${UBUNTU_CODENAME}" ]; then
+    echo "Warning: missing UBUNTU_CODENAME in /etc/os-release" >&2
+    UBUNTU_CODENAME="NO-UBUNTU_CODENAME-$VERSION_ID"
+fi
 
 APT_TRUSTED_KEY_DIR="/etc/apt/trusted.gpg.d"
 UA_KEYRING_DIR="/usr/share/keyrings/"
