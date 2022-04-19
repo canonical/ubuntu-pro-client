@@ -12,6 +12,7 @@ Feature: UA is expected version
     @uses.config.machine_type.azure.pro.fips
     @uses.config.machine_type.gcp.generic
     @uses.config.machine_type.gcp.pro
+    @uses.config.machine_type.gcp.pro.fips
     Scenario Outline: Check ua version
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `dpkg-query --showformat='${Version}' --show ubuntu-advantage-tools` with sudo
