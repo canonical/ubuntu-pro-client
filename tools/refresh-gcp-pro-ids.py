@@ -42,12 +42,16 @@ def main(credentials_path=None, project=None):
         if not image["name"].startswith("ubuntu-pro"):
             continue
 
-        m = re.match(r"^ubuntu-pro-\d+-(?P<release>\w+)-v\d+", image["name"])
+        m = re.match(
+            r"^ubuntu-pro-(fips-)?\d+-(?P<release>\w+)-v\d+", image["name"]
+        )
         if not m:
             print("Skipping unexpected image name: ", image["name"])
             continue
         elif m.group("release") in SUPPORTED_SERIES:
             release = m.group("release")
+            if "ubuntu-pro-fips" in image["name"]:
+                release = release + "-fips"
             series_bucket[release].append(image["name"])
 
     for series, images in series_bucket.items():
