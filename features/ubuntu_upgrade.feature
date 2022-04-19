@@ -31,13 +31,13 @@ Feature: Upgrade between releases when uaclient is attached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes                n/a
+        esm-infra +yes +n/a
         """
         When I run `ua detach --assume-yes` with sudo
         Then stdout matches regexp:
-            """
-            This machine is now detached.
-            """
+        """
+        This machine is now detached.
+        """
 
         Examples: ubuntu release
         | release | next_release | devel_release   |
@@ -50,6 +50,10 @@ Feature: Upgrade between releases when uaclient is attached
     Scenario Outline: Attached upgrade across LTS releases
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
+        # update-manager-core requires ua < 28. Our tests that build the package will
+        # generate ua with version 28. We are removing that package here to make sure
+        # do-release-upgrade will be able to run
+        And I run `apt remove update-manager-core -y` with sudo
         And I run `apt-get dist-upgrade --assume-yes` with sudo
         # Some packages upgrade may require a reboot
         And I reboot the `<release>` machine
@@ -72,7 +76,7 @@ Feature: Upgrade between releases when uaclient is attached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes                enabled
+        esm-infra +yes +enabled
         """
         When I run `ua disable esm-infra` with sudo
         And I run `ua status` with sudo

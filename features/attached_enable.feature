@@ -590,7 +590,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         When I run `ua status` with sudo
         Then stdout matches regexp:
             """
-            livepatch     yes                enabled
+            livepatch +yes +enabled
             """
         When I run `canonical-livepatch status` with sudo
         Then stdout matches regexp:
