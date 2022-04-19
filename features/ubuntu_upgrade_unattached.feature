@@ -31,12 +31,12 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     no       +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra +no +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes         +n/a
+        esm-infra +yes +n/a
         """
 
         Examples: ubuntu release
@@ -75,18 +75,18 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes      +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra +yes +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes            +enabled
+        esm-infra +yes +enabled
         """
         When I run `ua disable esm-infra` with sudo
         And I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra     yes            +disabled
+        esm-infra +yes +disabled
         """
 
         Examples: ubuntu release
