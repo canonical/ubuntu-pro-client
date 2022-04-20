@@ -56,7 +56,10 @@ from uaclient.entitlements.entitlement_status import (
 # It is not ideal for us to import an entitlement directly on the cli module.
 # We need to refactor this to avoid that type of coupling in the code.
 from uaclient.entitlements.livepatch import LIVEPATCH_CMD
-from uaclient.jobs.update_messaging import update_apt_and_motd_messages
+from uaclient.jobs.update_messaging import (
+    refresh_motd,
+    update_apt_and_motd_messages,
+)
 
 NAME = "ua"
 
@@ -465,7 +468,7 @@ def refresh_parser(parser):
     parser._optionals.title = "Flags"
     parser.add_argument(
         "target",
-        choices=["contract", "config"],
+        choices=["contract", "config", "messages"],
         nargs="?",
         default=None,
         help=(
@@ -473,8 +476,10 @@ def refresh_parser(parser):
             " details from the server and perform any updates necessary."
             " `ua refresh config` will reload"
             " /etc/ubuntu-advantage/uaclient.conf and perform any changes"
-            " necessary. `ua refresh` is the equivalent of `ua refresh"
-            " config && ua refresh contract`."
+            " necessary. `ua refresh messages` will refresh"
+            " the APT and MOTD messages associated with UA."
+            " `ua refresh` is the equivalent of `ua refresh"
+            " config && ua refresh contract && ua refresh motd`."
         ),
     )
     return parser
@@ -1645,6 +1650,21 @@ def _action_refresh_contract(_args, cfg: config.UAConfig):
     print(messages.REFRESH_CONTRACT_SUCCESS)
 
 
+def _action_refresh_messages(_args, cfg: config.UAConfig):
+    # Not performing any exception handling here since both of these
+    # functions should raise UserFacingError exceptions, which are
+    # covered by the main_error_handler decorator
+    try:
+        update_apt_and_motd_messages(cfg)
+        refresh_motd()
+    except Exception as exc:
+        with util.disable_log_to_console():
+            logging.exception(exc)
+        raise exceptions.UserFacingError(messages.REFRESH_MESSAGES_FAILURE)
+    else:
+        print(messages.REFRESH_MESSAGES_SUCCESS)
+
+
 @assert_root
 @assert_lock_file("ua refresh")
 def action_refresh(args, *, cfg: config.UAConfig):
@@ -1654,6 +1674,10 @@ def action_refresh(args, *, cfg: config.UAConfig):
     if args.target is None or args.target == "contract":
         _action_refresh_contract(args, cfg)
         cfg.remove_notice("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+
+    if args.target is None or args.target == "messages":
+        _action_refresh_messages(args, cfg)
+
     return 0
 
 

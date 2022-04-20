@@ -16,6 +16,7 @@ Feature: Command behaviour when attached to an UA subscription
             """
             Successfully processed your ua configuration.
             Successfully refreshed your subscription.
+            Successfully updated UA related APT and MOTD messages.
             """
         When I run `ua refresh config` with sudo
         Then I will see the following on stdout:
@@ -26,6 +27,11 @@ Feature: Command behaviour when attached to an UA subscription
         Then I will see the following on stdout:
             """
             Successfully refreshed your subscription.
+            """
+        When I run `ua refresh messages` with sudo
+        Then I will see the following on stdout:
+            """
+            Successfully updated UA related APT and MOTD messages.
             """
         When I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
         And I run `sh -c "ls /var/log/ubuntu-advantage* | sort -d"` as non-root

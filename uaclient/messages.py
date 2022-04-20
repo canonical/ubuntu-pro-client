@@ -146,9 +146,18 @@ REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
 REFRESH_CONTRACT_FAILURE = "Unable to refresh your subscription"
 REFRESH_CONFIG_SUCCESS = "Successfully processed your ua configuration."
 REFRESH_CONFIG_FAILURE = "Unable to process uaclient.conf"
+REFRESH_MESSAGES_SUCCESS = (
+    "Successfully updated UA related APT and MOTD messages."
+)
+REFRESH_MESSAGES_FAILURE = "Unable to update UA related APT and MOTD messages."
+
 UPDATE_CHECK_CONTRACT_FAILURE = (
     """Failed to check for change in machine contract. Reason: {reason}"""
 )
+UPDATE_MOTD_NO_REQUIRED_CMD = (
+    "Required command to update MOTD messages not found: {cmd}."
+)
+
 INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
