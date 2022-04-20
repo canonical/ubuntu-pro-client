@@ -58,6 +58,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [How to Configure Proxies](./docs/howtoguides/configure_proxies.md)
 * [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
 * [How to Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
+* [How to Manually update MOTD and APT messages](./docs/howtoguides/update_motd_messages.md)
 
 ### Reference
 

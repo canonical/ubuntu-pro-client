@@ -9,6 +9,7 @@ present updated text about Ubuntu Advantage service and token state.
 import enum
 import logging
 import os
+from os.path import exists
 from typing import List, Tuple
 
 from uaclient import config, defaults, entitlements, util
@@ -50,6 +51,11 @@ class ExternalMessage(enum.Enum):
     MOTD_ESM_SERVICE_STATUS = "motd-esm-service-status"
     ESM_ANNOUNCE = "motd-esm-announce"
     UBUNTU_NO_WARRANTY = "ubuntu-no-warranty"
+
+
+UPDATE_NOTIFIER_MOTD_SCRIPT = (
+    "/usr/lib/update-notifier/update-motd-updates-available"
+)
 
 
 def get_contract_expiry_status(
@@ -352,3 +358,18 @@ def update_apt_and_motd_messages(cfg: config.UAConfig) -> bool:
     # Now that we've setup/cleanedup templates render them with apt-hook
     util.subp(["/usr/lib/ubuntu-advantage/apt-esm-hook", "process-templates"])
     return True
+
+
+def refresh_motd():
+    # If update-notifier is present, we might as well update
+    # the package updates count related to MOTD
+    if exists(UPDATE_NOTIFIER_MOTD_SCRIPT):
+        # If this command fails, we shouldn't break the entire command,
+        # since this command should already be triggered by
+        # update-notifier apt hooks
+        try:
+            util.subp([UPDATE_NOTIFIER_MOTD_SCRIPT, "--force"])
+        except Exception as exc:
+            logging.exception(exc)
+
+    util.subp(["sudo", "systemctl", "restart", "motd-news.service"])
