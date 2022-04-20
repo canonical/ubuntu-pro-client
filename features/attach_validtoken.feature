@@ -29,8 +29,14 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
     Scenario Outline: Attach command in a ubuntu lxd container
        Given a `<release>` machine with ubuntu-advantage-tools installed
         When I run `apt-get update` with sudo, retrying exit [100]
+        And I run `apt install update-motd` with sudo, retrying exit [100]
         And I run `DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y <downrev_pkg>` with sudo, retrying exit [100]
-        And I run `run-parts /etc/update-motd.d/` with sudo
+        And I run `ua refresh messages` with sudo
+        Then stdout matches regexp:
+        """
+        Successfully updated UA related APT and MOTD messages.
+        """
+        When I run `update-motd` with sudo
         Then if `<release>` in `xenial` and stdout matches regexp:
         """
         \d+ update(s)? can be applied immediately.
@@ -88,9 +94,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
               allow_beta: true
             """
         And I run `apt update` with sudo
-        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
-        And I run `apt install update-motd` with sudo, retrying exit [100]
+        And I run `ua refresh messages` with sudo
         And I run `update-motd` with sudo
         Then if `<release>` in `focal` and stdout matches regexp:
         """
@@ -163,6 +167,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         https:\/\/ubuntu.com\/advantage
 
         """
+
         Examples: ubuntu release packages
            | release | downrev_pkg                 | cc_status | cis_or_usg | cis      | fips     | livepatch_desc                |
            | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
