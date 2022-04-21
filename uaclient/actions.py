@@ -1,5 +1,4 @@
 import logging
-import sys
 from typing import Optional  # noqa: F401
 
 from uaclient import (
@@ -40,7 +39,6 @@ def attach_with_token(
         update_apt_and_motd_messages(cfg)
         raise exc
     except exceptions.UserFacingError as exc:
-        event.info(exc.msg, file_type=sys.stderr)
         # Persist updated status in the event of partial attach
         ua_status.status(cfg=cfg)
         update_apt_and_motd_messages(cfg)
