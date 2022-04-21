@@ -712,8 +712,7 @@ REALTIME_BETA_FLAG_REQUIRED = NamedMessage(
 )
 REALTIME_BETA_PROMPT = """\
 The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
-PREEMPT_RT patchset integrated for x86_64 and ARM64. If you haven’t already,
-please register for this free beta program at {{url}}.
+PREEMPT_RT patchset integrated for x86_64 and ARM64.
 
 {bold}\
 This will change your kernel. You will need to manually configure grub to

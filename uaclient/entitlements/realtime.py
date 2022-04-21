@@ -68,9 +68,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
                 (
                     util.prompt_for_confirmation,
                     {
-                        "msg": messages.REALTIME_BETA_PROMPT.format(
-                            url=REALTIME_KERNEL_DOCS_URL
-                        ),
+                        "msg": messages.REALTIME_BETA_PROMPT,
                         "assume_yes": self.assume_yes,
                         "default": True,
                     },
