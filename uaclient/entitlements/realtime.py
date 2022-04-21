@@ -17,6 +17,7 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
     help_doc_url = REALTIME_KERNEL_DOCS_URL
     repo_key_file = "ubuntu-advantage-realtime-kernel.gpg"
     is_beta = True
+    apt_noninteractive = True
 
     def _check_for_reboot(self) -> bool:
         """Check if system needs to be rebooted."""
