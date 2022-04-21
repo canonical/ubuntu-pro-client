@@ -15,7 +15,7 @@ import tempfile
 import textwrap
 import time
 from functools import wraps
-from typing import Dict, List, Optional, Tuple  # noqa
+from typing import List, Optional, Tuple  # noqa
 
 import yaml
 
@@ -1291,10 +1291,10 @@ def action_auto_attach(args, *, cfg):
     try:
         actions.auto_attach(cfg, instance)
     except exceptions.UrlError:
-        event.info(messages.ATTACH_FAILURE)
+        event.info(messages.ATTACH_FAILURE.msg)
         return 1
-    except exceptions.UserFacingError:
-        return 1
+    except exceptions.UserFacingError as e:
+        raise e
     else:
         _post_cli_attach(cfg)
         return 0

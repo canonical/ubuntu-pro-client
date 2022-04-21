@@ -1,6 +1,10 @@
 from typing import Dict, Optional  # noqa: F401
 
-from uaclient.defaults import BASE_UA_URL, DOCUMENTATION_URL
+from uaclient.defaults import (
+    BASE_UA_URL,
+    DOCUMENTATION_URL,
+    GCP_SERVICE_ACCT_DOC_URL,
+)
 
 
 class NamedMessage:
@@ -731,6 +735,14 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     "Cannot install Real-Time Kernel on a container.",
 )
 
+GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
+    "gcp-pro-service-account-not-enabled",
+    "Failed to attach machine\n" + "{error_msg}.",
+)
+
+GCP_SERVICE_ACCT_URL_MESSAGE = (
+    """For more information, see """ + GCP_SERVICE_ACCT_DOC_URL
+)
 
 LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (

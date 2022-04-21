@@ -20,6 +20,7 @@ CLOUD_BUILD_INFO = "/etc/cloud/build.info"
 DOCUMENTATION_URL = (
     "https://discourse.ubuntu.com/t/ubuntu-advantage-client/21788"
 )
+GCP_SERVICE_ACCT_DOC_URL = "https://cloud.google.com/iam/docs/service-accounts"
 PRINT_WRAP_WIDTH = 80
 CONTRACT_EXPIRY_GRACE_PERIOD_DAYS = 14
 CONTRACT_EXPIRY_PENDING_DAYS = 20

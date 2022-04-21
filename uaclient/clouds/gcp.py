@@ -3,9 +3,9 @@ import json
 import logging
 import os
 from typing import Any, Dict, List, Optional  # noqa: F401
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
-from uaclient import exceptions, util
+from uaclient import exceptions, messages, util
 from uaclient.clouds import AutoAttachCloudInstance
 
 LOG = logging.getLogger("ua.clouds.gcp")
@@ -42,11 +42,40 @@ class UAAutoAttachGCPInstance(AutoAttachCloudInstance):
     # mypy does not handle @property around inner decorators
     # https://github.com/python/mypy/issues/1362
     @property  # type: ignore
-    @util.retry(HTTPError, retry_sleeps=[1, 2, 5])
+    @util.retry(exceptions.GCPProAccountError, retry_sleeps=[1, 2, 5])
     def identity_doc(self) -> Dict[str, Any]:
-        url_response, _headers = util.readurl(
-            TOKEN_URL, headers={"Metadata-Flavor": "Google"}
-        )
+        try:
+            headers = {"Metadata-Flavor": "Google"}
+            url_response, _headers = util.readurl(TOKEN_URL, headers=headers)
+        except URLError as e:
+            body = None
+            if hasattr(e, "body"):
+                body = getattr(e, "body", None)
+            elif hasattr(e, "read"):
+                reader = getattr(e, "read")()
+                body = reader.decode("utf-8")
+            error_desc = None
+            if body:
+                try:
+                    error_details = json.loads(
+                        body, cls=util.DatetimeAwareJSONDecoder
+                    )
+                except ValueError:
+                    error_details = None
+                if error_details:
+                    error_desc = error_details.get("error_description", None)
+            msg = error_desc if error_desc else getattr(e, "msg", None)
+            msg_code = None
+            error_code = getattr(e, "code", 0)
+            if error_code == 404:
+                msg += "\n" + messages.GCP_SERVICE_ACCT_URL_MESSAGE
+                msg = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.msg.format(
+                    error_msg=msg
+                )
+                msg_code = messages.GCP_SERVICE_ACCT_NOT_ENABLED_ERROR.name
+            raise exceptions.GCPProAccountError(
+                msg=msg, msg_code=msg_code, code=getattr(e, "code", 0)
+            )
         return {"identityToken": url_response}
 
     @property
