@@ -21,9 +21,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             | release |
             | jammy   |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.lts
     @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-Time Kernel service on unsupported release
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -40,10 +38,10 @@ Feature: Enable command behaviour when attached to an UA subscription
             Real-Time Kernel is not available for Ubuntu <version> (<full_name>).
             """
         Examples: ubuntu release
-            | release | version    | full_name     |
-            | xenial  | 16.04 LTS  | Xenial Xerus  |
-            | bionic  | 18.04 LTS  | Bionic Beaver |
-            | focal   | 20.04 LTS  | Focal Fossa   |
+            | release | version    | full_name       |
+            | xenial  | 16.04 LTS  | Xenial Xerus    |
+            | bionic  | 18.04 LTS  | Bionic Beaver   |
+            | focal   | 20.04 LTS  | Focal Fossa     |
 
     @series.jammy
     @uses.config.machine_type.lxd.vm
@@ -65,8 +63,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             """
             One moment, checking your subscription first
             The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
-            PREEMPT_RT patchset integrated for x86_64 and ARM64. If you haven’t already,
-            please register for this free beta program at https://ubuntu.com/realtime-kernel.
+            PREEMPT_RT patchset integrated for x86_64 and ARM64.
 
             .*This will change your kernel. You will need to manually configure grub to
             revert back to your original kernel after enabling real-time..*
