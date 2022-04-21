@@ -12,6 +12,7 @@ from uaclient.clouds.gcp import (
     WAIT_FOR_CHANGE,
     UAAutoAttachGCPInstance,
 )
+from uaclient.exceptions import GCPProAccountError
 
 M_PATH = "uaclient.clouds.gcp."
 
@@ -57,7 +58,7 @@ class TestUAAutoAttachGCPInstance:
 
         instance = UAAutoAttachGCPInstance()
         if exception:
-            with pytest.raises(HTTPError) as excinfo:
+            with pytest.raises(GCPProAccountError) as excinfo:
                 instance.identity_doc
             assert 704 == excinfo.value.code
         else:
@@ -69,9 +70,12 @@ class TestUAAutoAttachGCPInstance:
         assert expected_sleep_calls == sleep.call_args_list
 
         expected_logs = [
-            "HTTP Error 701: funky error msg Retrying 3 more times.",
-            "HTTP Error 702: funky error msg Retrying 2 more times.",
-            "HTTP Error 703: funky error msg Retrying 1 more times.",
+            "GCPProServiceAccount Error 701: "
+            + "funky error msg Retrying 3 more times.",
+            "GCPProServiceAccount Error 702: "
+            + "funky error msg Retrying 2 more times.",
+            "GCPProServiceAccount Error 703: "
+            + "funky error msg Retrying 1 more times.",
         ]
         logs = caplog_text()
         for log in expected_logs:
