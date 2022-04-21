@@ -743,6 +743,13 @@ REALTIME_ERROR_INSTALL_ON_CONTAINER = NamedMessage(
     "Cannot install Real-Time Kernel on a container.",
 )
 
+GCP_SERVICE_ACCT_NOT_ENABLED_ERROR = NamedMessage(
+    "gcp-pro-service-account-not-enabled",
+    "Failed to attach machine\n"
+    "{error_msg}\n"
+    "For more information, "
+    "see https://cloud.google.com/iam/docs/service-accounts",
+)
 
 LOG_CONNECTIVITY_ERROR_TMPL = CONNECTIVITY_ERROR.msg + " {error}"
 LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
