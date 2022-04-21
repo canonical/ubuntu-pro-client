@@ -258,6 +258,19 @@ class SecurityAPIMetadataError(UserFacingError):
         )
 
 
+class GCPProAccountError(UserFacingError):
+    """An exception raised when GCP Pro service account is not enabled"""
+
+    def __init__(self, msg: str, msg_code: Optional[str], code=None):
+        self.code = code
+        super().__init__(msg, msg_code)
+
+    def __str__(self):
+        return "GCPProServiceAccount Error {code}: {msg}".format(
+            code=self.code, msg=self.msg
+        )
+
+
 class CloudFactoryError(Exception):
     def __init__(self, cloud_type: Optional[str]) -> None:
         self.cloud_type = cloud_type
