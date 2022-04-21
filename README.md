@@ -61,7 +61,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 ### Reference
 
-* [Ubuntu Release and Architecture Support Matrix](./docs/reference/support_matrix.md)
+* [Ubuntu Release and Architecture Support Matrix](./docs/references/support_matrix.md)
 
 ### Explanation
 
