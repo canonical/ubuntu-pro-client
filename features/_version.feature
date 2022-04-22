@@ -61,3 +61,4 @@ Feature: UA is expected version
             | bionic  |
             | focal   |
             | impish  |
+            | jammy  |

@@ -157,6 +157,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.xenial
@@ -345,7 +346,8 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
-    
+           | jammy   |
+
     @slow
     @series.xenial
     @series.bionic
@@ -544,6 +546,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.lts
@@ -622,6 +625,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.lts
@@ -785,6 +789,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.lts
@@ -883,6 +888,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.lts
@@ -1033,3 +1039,4 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |

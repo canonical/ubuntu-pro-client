@@ -174,7 +174,7 @@ Feature: Command behaviour when unattached
            | focal    | yes          |
            | xenial   | yes          |
            | impish   | no           |
-           | jammy    | no           |
+           | jammy    | yes           |
 
 
     @series.all
