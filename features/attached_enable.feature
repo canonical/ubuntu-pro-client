@@ -46,13 +46,12 @@ Feature: Enable command behaviour when attached to an UA subscription
             CC EAL2 is not available for Ubuntu <version> (<full_name>).
             """
         Examples: ubuntu release
-            | release | version    | full_name     |
-            | focal   | 20.04 LTS  | Focal Fossa   |
-            | impish  | 21.10      | Impish Indri  |
+            | release | version    | full_name        |
+            | focal   | 20.04 LTS  | Focal Fossa      |
+            | impish  | 21.10      | Impish Indri     |
+            | jammy   | 22.04      | Jammy Jellyfish  |
 
-    @series.xenial
-    @series.bionic
-    @series.focal
+    @series.lts
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of different services using json format
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -120,6 +119,7 @@ Feature: Enable command behaviour when attached to an UA subscription
            | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
            | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
            | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
+           | jammy   | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -174,8 +174,8 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release | infra-pkg | esm-infra-url                       |
-           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
            | xenial  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
+           | bionic  | libkrad0  | https://esm.ubuntu.com/infra/ubuntu |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -293,9 +293,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: not entitled services
            | release |
+           | xenial  |
            | bionic  |
            | focal   |
-           | xenial  |
+           | jammy   |
 
     @series.xenial
     @series.bionic
@@ -601,6 +602,8 @@ Feature: Enable command behaviour when attached to an UA subscription
            | release |
            | xenial  |
            | bionic  |
+           | focal   |
+           | jammy   |
 
     @slow
     @series.bionic
