@@ -2,7 +2,6 @@
 Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         subscription using a valid token
 
-    @series.jammy
     @series.impish
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached command in a non-lts ubuntu machine
@@ -24,7 +23,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         Examples: ubuntu release
             | release |
             | impish  |
-            | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -65,13 +63,13 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         esm-apps     +yes      +enabled  +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra    +yes      +enabled  +UA Infra: Extended Security Maintenance \(ESM\)
-        fips         +yes      +disabled +NIST-certified core packages
-        fips-updates +yes      +disabled +NIST-certified core packages with priority security updates
-        livepatch    +yes      +n/a      +Canonical Livepatch service
+        fips         +yes      +<fips> +NIST-certified core packages
+        fips-updates +yes      +<fips> +NIST-certified core packages with priority security updates
+        livepatch    +yes      +n/a      +<livepatch_desc>
         """
         And stdout matches regexp:
         """
-        <cis_or_usg> +yes      +disabled        +Security compliance and audit tools
+        <cis_or_usg> +yes      +<cis>        +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -166,10 +164,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         """
         Examples: ubuntu release packages
-           | release | downrev_pkg                 | cc_status | cis_or_usg |
-           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        |
-           | bionic  | libkrad0=1.16-2build1       | disabled  | cis        |
-           | focal   | hello=2.10-2ubuntu2         | n/a       | usg        |
+           | release | downrev_pkg                 | cc_status | cis_or_usg | cis      | fips     | livepatch_desc                |
+           | xenial  | libkrad0=1.13.2+dfsg-5      | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
+           | bionic  | libkrad0=1.16-2build1       | disabled  | cis        | disabled | disabled | Canonical Livepatch service   |
+           | focal   | hello=2.10-2ubuntu2         | n/a       | usg        | disabled | disabled | Canonical Livepatch service   |
+           | jammy   | hello=2.10-2ubuntu4         | n/a       | cis        | n/a      | n/a      | Available with the HWE kernel |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -327,7 +326,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
+        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -335,10 +334,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg |
-           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        |
-           | bionic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        |
-           | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        |
+           | release | fips_status |lp_status | lp_desc                       | cc_status | cis_or_usg | cis_status |
+           | xenial  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
+           | bionic  | disabled    |enabled   | Canonical Livepatch service   | disabled  | cis        | disabled   |
+           | focal   | disabled    |enabled   | Canonical Livepatch service   | n/a       | usg        | disabled   |
+           | jammy   | n/a         |enabled   | Canonical Livepatch service   | n/a       | cis        | n/a        |
 
     @series.all
     @uses.config.machine_type.azure.generic
@@ -387,7 +387,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
+        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -395,10 +395,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status | cis_or_usg |
-           | xenial  | enabled   | n/a         | disabled  | cis        |
-           | bionic  | enabled   | disabled    | disabled  | cis        |
-           | focal   | enabled   | disabled    | n/a       | usg        |
+           | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
+           | xenial  | enabled   | n/a         | disabled  | cis        | disabled   |
+           | bionic  | enabled   | disabled    | disabled  | cis        | disabled   |
+           | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
+           | jammy   | enabled   | n/a         | n/a       | cis        | n/a        |
 
     @series.all
     @uses.config.machine_type.gcp.generic
@@ -447,7 +448,7 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         And stdout matches regexp:
         """
-        <cis_or_usg>          +yes      +disabled +Security compliance and audit tools
+        <cis_or_usg>          +yes      +<cis_status> +Security compliance and audit tools
         """
         And stderr matches regexp:
         """
@@ -455,10 +456,11 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
 
         Examples: ubuntu release livepatch status
-           | release | lp_status | fips_status | cc_status | cis_or_usg |
-           | xenial  | n/a       | n/a         | disabled  | cis        |
-           | bionic  | n/a       | disabled    | disabled  | cis        |
-           | focal   | enabled   | disabled    | n/a       | usg        |
+           | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
+           | xenial  | n/a       | n/a         | disabled  | cis        | enabled    |
+           | bionic  | n/a       | disabled    | disabled  | cis        | enabled    |
+           | focal   | enabled   | disabled    | n/a       | usg        | enabled    |
+           | jammy   | enabled   | n/a         | n/a       | cis        | n/a        |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -484,9 +486,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         """
         esm-apps      +yes +enabled +UA Apps: Extended Security Maintenance \(ESM\)
         esm-infra     +yes +enabled +UA Infra: Extended Security Maintenance \(ESM\)
-        fips          +yes +disabled +NIST-certified core packages
-        fips-updates  +yes +disabled +NIST-certified core packages with priority security updates
-        livepatch     +yes +n/a  +Canonical Livepatch service
         """
 
         Examples: ubuntu release
@@ -494,3 +493,4 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           | xenial  | disabled |
           | bionic  | disabled |
           | focal   | n/a      |
+          | jammy   | n/a      |

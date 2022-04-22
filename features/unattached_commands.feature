@@ -170,10 +170,10 @@ Feature: Command behaviour when unattached
            | impish  | disable  | livepatch |
            | impish  | enable   | unknown   |
            | impish  | disable  | unknown   |
-           | jammy  | enable   | livepatch |
-           | jammy  | disable  | livepatch |
-           | jammy  | enable   | unknown   |
-           | jammy  | disable  | unknown   |
+           | jammy   | enable   | livepatch |
+           | jammy   | disable  | livepatch |
+           | jammy   | enable   | unknown   |
+           | jammy   | disable  | unknown   |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -214,7 +214,7 @@ Feature: Command behaviour when unattached
            | focal    | yes          |
            | xenial   | yes          |
            | impish   | no           |
-           | jammy    | no           |
+           | jammy    | yes           |
 
 
     @series.all
