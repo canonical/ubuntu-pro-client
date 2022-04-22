@@ -41,8 +41,6 @@ Feature: Upgrade between releases when uaclient is attached
 
         Examples: ubuntu release
         | release | next_release | devel_release   |
-        | focal   | jammy        | --devel-release |
-        | impish  | jammy        | --devel-release |
 
     @slow
     @series.xenial
@@ -91,6 +89,8 @@ Feature: Upgrade between releases when uaclient is attached
         | release | next_release |
         | xenial  | bionic       |
         | bionic  | focal        |
+        | focal   | jammy        |
+        | impish  | jammy        |
 
     @slow
     @series.xenial

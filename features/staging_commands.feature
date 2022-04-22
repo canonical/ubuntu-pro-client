@@ -87,6 +87,6 @@ Feature: Enable command behaviour when attached to an UA staging subscription
 
         Examples: ubuntu release
            | release | apps-pkg |
+           | xenial  | jq       |
            | bionic  | bundler  |
            | focal   | ant      |
-           | xenial  | jq       |

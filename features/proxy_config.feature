@@ -134,6 +134,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.xenial
@@ -294,6 +295,7 @@ Feature: Proxy configuration
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @slow
     @series.xenial

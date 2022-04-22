@@ -132,9 +132,11 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
            | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
            | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, realtime-kernel,\nros, ros-updates, usg. |
+           | jammy   | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch,\nrealtime-kernel, ros, ros-updates. |
 
     @series.xenial
     @series.bionic
+    @series.jammy
     @uses.config.machine_type.lxd.container
     Scenario Outline: Attached disable of a service in a ubuntu machine
         Given a `<release>` machine with ubuntu-advantage-tools installed
@@ -170,8 +172,9 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
            | xenial  |
+           | bionic  |
+           | jammy  |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -240,7 +243,7 @@ Feature: Command behaviour when attached to an UA subscription
           esm-infra     +yes        +UA Infra: Extended Security Maintenance \(ESM\)
           fips          +<fips>     +NIST-certified core packages
           fips-updates  +<fips>     +NIST-certified core packages with priority security updates
-          livepatch     +yes        +Canonical Livepatch service
+          livepatch     +(yes|no)   +Canonical Livepatch service
           realtime-kernel +<realtime-kernel> +Beta-version Ubuntu Kernel with PREEMPT_RT patches
           ros           +<ros>      +Security Updates for the Robot Operating System
           ros-updates   +<ros>      +All Updates for the Robot Operating System
@@ -285,6 +288,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
+           | jammy   | yes      | no     | no  | no   | no          | no  | cis        | no              |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -427,8 +431,9 @@ Feature: Command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release |
-           | bionic  |
            | xenial  |
+           | bionic  |
+           | jammy   |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -572,7 +577,7 @@ Feature: Command behaviour when attached to an UA subscription
            | bionic  | enabled      |
            | xenial  | enabled      |
            | impish  | n/a          |
-           | jammy   | n/a          |
+           | jammy   | enabled      |
 
     @series.focal
     @uses.config.machine_type.lxd.container
@@ -686,7 +691,7 @@ Feature: Command behaviour when attached to an UA subscription
         Updating package lists
         APT update failed.
         APT update failed to read APT config for the following URL:
-        - http://ppa.launchpad.net/cloud-init-dev/daily/ubun
+        - http(s)?://ppa.launchpad(content)?.net/cloud-init-dev/daily/ubun
         """
 
         Examples: ubuntu release
@@ -694,6 +699,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | cloud-init-dev-ubuntu-daily-xenial |
            | bionic  | cloud-init-dev-ubuntu-daily-bionic |
            | focal   | cloud-init-dev-ubuntu-daily-focal  |
+           | jammy   | cloud-init-dev-ubuntu-daily-jammy  |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -838,6 +844,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -908,6 +915,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
 
     @series.xenial
     @series.bionic

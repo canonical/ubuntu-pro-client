@@ -42,9 +42,10 @@ Feature: UA Install and Uninstall related tests
 
         Examples: ubuntu release
            | release |
+           | xenial  |
            | bionic  |
            | focal   |
-           | xenial  |
+           | jammy   |
 
     @slow
     @series.lts
@@ -86,3 +87,4 @@ Feature: UA Install and Uninstall related tests
            | xenial  |
            | bionic  |
            | focal   |
+           | jammy   |
