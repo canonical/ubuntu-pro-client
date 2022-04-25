@@ -42,36 +42,12 @@ Feature: Enable command behaviour when attached to an UA subscription
             | xenial  | 16.04 LTS  | Xenial Xerus    |
             | bionic  | 18.04 LTS  | Bionic Beaver   |
             | focal   | 20.04 LTS  | Focal Fossa     |
-            | jammy   | 22.04      | Jammy Jellyfish |
 
     @series.jammy
-    @uses.config.machine_type.gcp.generic
+    @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-Time Kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
-        When I create the file `/home/ubuntu/machine-token-overlay.json` with the following:
-        """
-        {
-            "machineTokenInfo": {
-                "contractInfo": {
-                    "resourceEntitlements": [
-                        {
-                            "type": "realtime-kernel",
-                            "affordances": {
-                              "series": ["jammy"]
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        """
-        And I append the following on uaclient config:
-        """
-        features:
-          machine_token_overlay: "/home/ubuntu/machine-token-overlay.json"
-        """
         When I attach `contract_token` with sudo
-        And I run `ua disable livepatch --assume-yes` with sudo
         Then I verify that running `ua enable realtime-kernel` `as non-root` exits `1`
         And I will see the following on stderr:
             """
@@ -96,7 +72,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Real-Time Kernel enabled
             A reboot is required to complete install.
             """
-        When I run `apt-cache policy linux-realtime` as non-root
+        When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout does not match regexp:
             """
             .*Installed: \(none\)
