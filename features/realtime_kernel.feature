@@ -46,7 +46,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             | focal   | 20.04 LTS  | Focal Fossa   |
 
     @series.jammy
-    @uses.config.machine_type.gcp.generic
+    @uses.config.machine_type.lxd.vm
     Scenario Outline: Enable Real-Time Kernel service
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
@@ -75,7 +75,7 @@ Feature: Enable command behaviour when attached to an UA subscription
             Real-Time Kernel enabled
             A reboot is required to complete install.
             """
-        When I run `apt-cache policy linux-realtime` as non-root
+        When I run `apt-cache policy ubuntu-realtime` as non-root
         Then stdout does not match regexp:
             """
             .*Installed: \(none\)
