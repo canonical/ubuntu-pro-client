@@ -144,7 +144,7 @@ Feature: Unattached status
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
            # jammy livepatch is only no when running the container test on a pre-jammy ubuntu
-           | jammy   | yes      | no     | cis | no            | no   | yes       | no  | no        |     | no             |
+           | jammy   | yes      | no     | cis | no            | no   | yes       | no  | no        |     | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
@@ -210,7 +210,7 @@ Feature: Unattached status
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg | no              |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     | no              |
            # jammy livepatch is only no when running the container test on a pre-jammy ubuntu
-           | jammy   | yes      | no     | cis | no            | no   | yes       | no  | no        |     | no              |
+           | jammy   | yes      | no     | cis | no            | no   | yes       | no  | no        |     | yes             |
 
 
     @series.all
