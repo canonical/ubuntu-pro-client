@@ -288,7 +288,7 @@ Feature: Command behaviour when attached to an UA subscription
            | xenial  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | bionic  | yes      | yes    | yes | yes  | yes         | yes | cis        | no              |
            | focal   | yes      | no     | yes | yes  | yes         | no  | usg        | no              |
-           | jammy   | yes      | no     | no  | no   | no          | no  | cis        | no              |
+           | jammy   | yes      | no     | no  | no   | no          | no  | cis        | yes             |
 
     @series.all
     @uses.config.machine_type.lxd.container
