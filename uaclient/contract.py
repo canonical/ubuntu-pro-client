@@ -177,6 +177,36 @@ class UAContractClient(serviceclient.UAServiceClient):
             machine_token["activityInfo"] = response
             self.cfg.write_cache("machine-token", machine_token)
 
+    def get_updated_contract_info(
+        self,
+        machine_token: str,
+        contract_id: str,
+        machine_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Get the updated machine token from the contract server.
+
+        @param machine_token: The machine token needed to talk to
+            this contract service endpoint.
+        @param contract_id: Unique contract id provided by contract service
+        @param machine_id: Optional unique system machine id. When absent,
+            contents of /etc/machine-id will be used.
+        """
+        if not machine_id:
+            machine_id = self._get_platform_data(machine_id).get(
+                "machineId", None
+            )
+        headers = self.headers()
+        headers.update({"Authorization": "Bearer {}".format(machine_token)})
+        url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
+            contract=contract_id, machine=machine_id
+        )
+        response, headers = self.request_url(
+            url, method="GET", headers=headers
+        )
+        if headers.get("expires"):
+            response["expires"] = headers["expires"]
+        return response
+
     def _request_machine_token_update(
         self,
         machine_token: str,
@@ -497,3 +527,38 @@ def get_contract_information(cfg: UAConfig, token: str) -> Dict[str, Any]:
     """Query contract information for a specific token"""
     client = UAContractClient(cfg)
     return client.request_contract_information(token)
+
+
+def is_contract_changed(cfg: UAConfig) -> bool:
+    orig_token = cfg.machine_token
+    orig_entitlements = cfg.entitlements
+    machine_token = orig_token.get("machineToken", "")
+    contract_id = (
+        orig_token.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("id", "")
+    )
+    contract_client = UAContractClient(cfg)
+    resp = contract_client.get_updated_contract_info(
+        machine_token, contract_id
+    )
+    resp_expiry = (
+        resp.get("machineTokenInfo", {})
+        .get("contractInfo", {})
+        .get("effectiveTo", None)
+    )
+    new_expiry = (
+        util.parse_rfc3339_date(resp_expiry)
+        if resp_expiry
+        else cfg.contract_expiry_datetime
+    )
+    if cfg.contract_expiry_datetime != new_expiry:
+        return True
+    curr_entitlements = cfg.get_entitlements_from_token(resp)
+    for name, new_entitlement in sorted(curr_entitlements.items()):
+        deltas = util.get_dict_deltas(
+            orig_entitlements.get(name, {}), new_entitlement
+        )
+        if deltas:
+            return True
+    return False

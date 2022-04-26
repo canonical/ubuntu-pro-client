@@ -1581,7 +1581,17 @@ def action_status(args, *, cfg):
     show_beta = args.all if args else False
     token = args.simulate_with_token if args else None
     active_value = ua_status.UserFacingConfigStatus.ACTIVE.value
-
+    if cfg.is_attached:
+        try:
+            if contract.is_contract_changed(cfg):
+                cfg.add_notice("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
+        except exceptions.UrlError as e:
+            with util.disable_log_to_console():
+                err_msg = messages.UPDATE_CHECK_CONTRACT_FAILURE.format(
+                    reason=str(e)
+                )
+                logging.warning(err_msg)
+                event.warning(err_msg)
     status, ret = actions.status(
         cfg, simulate_with_token=token, show_beta=show_beta
     )
@@ -1643,7 +1653,7 @@ def action_refresh(args, *, cfg: config.UAConfig):
 
     if args.target is None or args.target == "contract":
         _action_refresh_contract(args, cfg)
-
+        cfg.remove_notice("", messages.NOTICE_REFRESH_CONTRACT_WARNING)
     return 0
 
 
@@ -1653,7 +1663,6 @@ def configure_apt_proxy(
     """
     Handles setting part the apt proxies - global and uaclient scoped proxies
     """
-
     if scope == AptProxyScope.GLOBAL:
         http_proxy = cfg.global_apt_http_proxy
         https_proxy = cfg.global_apt_https_proxy
