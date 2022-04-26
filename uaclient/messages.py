@@ -146,7 +146,9 @@ REFRESH_CONTRACT_SUCCESS = "Successfully refreshed your subscription."
 REFRESH_CONTRACT_FAILURE = "Unable to refresh your subscription"
 REFRESH_CONFIG_SUCCESS = "Successfully processed your ua configuration."
 REFRESH_CONFIG_FAILURE = "Unable to process uaclient.conf"
-
+UPDATE_CHECK_CONTRACT_FAILURE = (
+    """Failed to check for change in machine contract. Reason: {reason}"""
+)
 INCOMPATIBLE_SERVICE = """\
 {service_being_enabled} cannot be enabled with {incompatible_service}.
 Disable {incompatible_service} and proceed to enable {service_being_enabled}? \
@@ -836,3 +838,7 @@ PROMPT_UA_SUBSCRIPTION_URL = """\
 Open a browser to: {}/subscribe""".format(
     BASE_UA_URL
 )
+
+NOTICE_REFRESH_CONTRACT_WARNING = """\
+A change has been detected in your contract.
+Please run `sudo ua refresh`."""

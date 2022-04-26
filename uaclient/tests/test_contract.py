@@ -15,6 +15,7 @@ from uaclient.contract import (
     UAContractClient,
     get_available_resources,
     get_contract_information,
+    is_contract_changed,
     process_entitlement_delta,
     request_updated_contract,
 )
@@ -125,6 +126,53 @@ class TestUAContractClient:
         assert request_url.call_args_list == [
             mock.call("/v1/contracts/cId/context/machines/machineId", **params)
         ]
+
+    @pytest.mark.parametrize("machine_id_param", (("attach-machine-id")))
+    @pytest.mark.parametrize(
+        "machine_id_response", (("contract-machine-id"), None)
+    )
+    @pytest.mark.parametrize(
+        "detach,expected_http_method",
+        ((None, "POST"), (False, "POST"), (True, "DELETE")),
+    )
+    @pytest.mark.parametrize("activity_id", ((None), ("test-acid")))
+    @mock.patch("uaclient.contract.util.get_platform_info")
+    @mock.patch.object(UAContractClient, "_get_platform_data")
+    def test_get_updated_contract_info(
+        self,
+        m_platform_data,
+        get_platform_info,
+        get_machine_id,
+        request_url,
+        detach,
+        expected_http_method,
+        machine_id_response,
+        machine_id_param,
+        activity_id,
+        FakeConfig,
+    ):
+        def fake_platform_data(machine_id):
+            machine_id = "machine-id" if not machine_id else machine_id
+            return {"machineId": machine_id}
+
+        m_platform_data.side_effect = fake_platform_data
+        get_platform_info.return_value = {"arch": "arch", "kernel": "kernel"}
+        get_machine_id.return_value = "machineId"
+        machine_token = {"machineTokenInfo": {}}
+        if machine_id_response:
+            machine_token["machineTokenInfo"][
+                "machineId"
+            ] = machine_id_response
+        request_url.return_value = (machine_token, {})
+        kwargs = {
+            "machine_token": "mToken",
+            "contract_id": "cId",
+            "machine_id": machine_id_param,
+        }
+        cfg = FakeConfig.for_attached_machine()
+        client = UAContractClient(cfg)
+        resp = client.get_updated_contract_info(**kwargs)
+        assert resp == machine_token
 
     def test_request_resource_machine_access(
         self, get_machine_id, request_url, FakeConfig
@@ -777,3 +825,49 @@ class TestRequestUpdatedContract:
             ),
         ]
         assert process_calls == process_entitlement_delta.call_args_list
+
+
+@mock.patch("uaclient.contract.UAContractClient.get_updated_contract_info")
+class TestContractChanged:
+    @pytest.mark.parametrize("has_contract_expired", (False, True))
+    def test_contract_change_with_expiry(
+        self, get_updated_contract_info, has_contract_expired, FakeConfig
+    ):
+        if has_contract_expired:
+            expiry_date = "2041-05-08T19:02:26Z"
+            ret_val = True
+        else:
+            expiry_date = "2040-05-08T19:02:26Z"
+            ret_val = False
+        get_updated_contract_info.return_value = {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "effectiveTo": expiry_date,
+                },
+            },
+        }
+        cfg = FakeConfig().for_attached_machine()
+        assert is_contract_changed(cfg) == ret_val
+
+    @pytest.mark.parametrize("has_contract_changed", (False, True))
+    def test_contract_change_with_entitlements(
+        self, get_updated_contract_info, has_contract_changed, FakeConfig
+    ):
+        if has_contract_changed:
+            resourceEntitlements = [{"type": "token1", "entitled": True}]
+            resourceTokens = [{"token": "token1", "type": "resource1"}]
+        else:
+            resourceTokens = []
+            resourceEntitlements = []
+        get_updated_contract_info.return_value = {
+            "machineTokenInfo": {
+                "machineId": "test_machine_id",
+                "resourceTokens": resourceTokens,
+                "contractInfo": {
+                    "effectiveTo": "2040-05-08T19:02:26Z",
+                    "resourceEntitlements": resourceEntitlements,
+                },
+            },
+        }
+        cfg = FakeConfig().for_attached_machine()
+        assert is_contract_changed(cfg) == has_contract_changed
