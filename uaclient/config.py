@@ -381,17 +381,26 @@ class UAConfig:
 
     @property
     def entitlements(self):
+        """Return configured entitlements keyed by entitlement named"""
+        if self._entitlements:
+            return self._entitlements
+        if not self.machine_token:
+            return {}
+        self._entitlements = self.get_entitlements_from_token(
+            self.machine_token
+        )
+        return self._entitlements
+
+    @staticmethod
+    def get_entitlements_from_token(machine_token: Dict):
         """Return a dictionary of entitlements keyed by entitlement name.
 
         Return an empty dict if no entitlements are present.
         """
-        if self._entitlements:
-            return self._entitlements
-        machine_token = self.machine_token
         if not machine_token:
             return {}
 
-        self._entitlements = {}
+        entitlements = {}
         contractInfo = machine_token.get("machineTokenInfo", {}).get(
             "contractInfo"
         )
@@ -412,9 +421,9 @@ class UAConfig:
                 entitlement_cfg["resourceToken"] = tokens_by_name[
                     entitlement_name
                 ]
-            util.apply_contract_overrides(entitlement_cfg, self.series)
-            self._entitlements[entitlement_name] = entitlement_cfg
-        return self._entitlements
+            util.apply_contract_overrides(entitlement_cfg)
+            entitlements[entitlement_name] = entitlement_cfg
+        return entitlements
 
     @property
     def contract_expiry_datetime(self) -> datetime:
