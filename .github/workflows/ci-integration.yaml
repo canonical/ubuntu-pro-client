@@ -44,7 +44,7 @@ jobs:
         run: |
           gbp dch --ignore-branch --snapshot --distribution=${{ matrix.release }}
           dch --local=~${{ matrix.release }} ""
-          sg sbuild -c "mk-sbuild ${{ matrix.release }}"
+          sg sbuild -c "mk-sbuild --skip-proposed ${{ matrix.release }}"
           sg sbuild -c "sbuild --dist='${{ matrix.release }}' --resolve-alternatives --no-clean-source --nolog --verbose --no-run-lintian --build-dir='${{ runner.temp }}'"
           mv ../*.deb '${{ runner.temp }}'  # Workaround for Debbug: #990734, drop in Jammy
       - name: Archive debs as artifacts
