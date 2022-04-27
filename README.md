@@ -69,3 +69,5 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+foo
