@@ -90,6 +90,7 @@ class TestRequestUrl:
                 headers=client.headers(),
                 method=None,
                 timeout=None,
+                potentially_sensitive=True,
             )
         ] == m_readurl.call_args_list
 
