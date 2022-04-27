@@ -42,7 +42,13 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         }
 
     def request_url(
-        self, path, data=None, headers=None, method=None, query_params=None
+        self,
+        path,
+        data=None,
+        headers=None,
+        method=None,
+        query_params=None,
+        potentially_sensitive: bool = True,
     ):
         path = path.lstrip("/")
         if not headers:
@@ -66,6 +72,7 @@ class UAServiceClient(metaclass=abc.ABCMeta):
                 headers=headers,
                 method=method,
                 timeout=self.url_timeout,
+                potentially_sensitive=potentially_sensitive,
             )
         except error.URLError as e:
             body = None
