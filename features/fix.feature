@@ -79,6 +79,14 @@ Feature: Ua fix command behaviour
             The update is already installed.
             .*✔.* CVE-2020-28196 is resolved.
             """
+        When I run `ua fix CVE-2022-24959` as non-root
+        Then stdout matches regexp:
+            """
+            CVE-2022-24959: Linux kernel vulnerabilities
+            https://ubuntu.com/security/CVE-2022-24959
+            No affected source packages are installed.
+            .*✔.* CVE-2022-24959 does not affect your system.
+            """
 
         Examples: ubuntu release details
            | release |

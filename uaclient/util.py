@@ -546,6 +546,7 @@ def readurl(
     headers: Dict[str, str] = {},
     method: Optional[str] = None,
     timeout: Optional[int] = None,
+    potentially_sensitive: bool = True,
 ) -> Tuple[Any, Union[HTTPMessage, Mapping[str, str]]]:
     if data and not method:
         method = "POST"
@@ -577,13 +578,13 @@ def readurl(
     sorted_header_str = ", ".join(
         ["'{}': '{}'".format(k, resp.headers[k]) for k in sorted(resp.headers)]
     )
-    logging.debug(
-        redact_sensitive_logs(
-            "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
-                method or "GET", url, sorted_header_str, content
-            )
-        )
+    debug_msg = "URL [{}] response: {}, headers: {{{}}}, data: {}".format(
+        method or "GET", url, sorted_header_str, content
     )
+    if potentially_sensitive:
+        # For large responses, this is very slow (several minutes)
+        debug_msg = redact_sensitive_logs(debug_msg)
+    logging.debug(debug_msg)
     if http_error_found:
         raise resp
     return content, resp.headers
