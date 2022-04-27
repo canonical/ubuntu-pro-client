@@ -77,9 +77,9 @@ class UAServiceClient(metaclass=abc.ABCMeta):
         except error.URLError as e:
             body = None
             if hasattr(e, "body"):
-                body = e.body
+                body = e.body  # type: ignore
             elif hasattr(e, "read"):
-                body = e.read().decode("utf-8")
+                body = e.read().decode("utf-8")  # type: ignore
             if body:
                 try:
                     error_details = json.loads(
