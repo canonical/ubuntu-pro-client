@@ -1120,7 +1120,10 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
             0
             == cli.action_enable(
                 argparse.Namespace(
-                    service=[service], assume_yes=True, beta=False
+                    service=[service],
+                    assume_yes=True,
+                    beta=False,
+                    format="cli",
                 ),
                 cfg,
             )
@@ -1182,7 +1185,9 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
         print(messages.PROMPT_EXPIRED_ENTER_TOKEN)
         token = input("> ")
         print(colorize_commands([["ua", "detach"]]))
-        cli.action_detach(argparse.Namespace(assume_yes=True), cfg)
+        cli.action_detach(
+            argparse.Namespace(assume_yes=True, format="cli"), cfg
+        )
         return _run_ua_attach(cfg, token)
 
     return False
