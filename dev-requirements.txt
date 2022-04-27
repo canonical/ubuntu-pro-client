@@ -3,3 +3,4 @@
 black==22.3.0
 isort==5.8.0
 pre-commit
+shellcheck-py
