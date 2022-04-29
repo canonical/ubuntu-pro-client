@@ -4,10 +4,28 @@ import sys
 from systemd.daemon import notify  # type: ignore
 
 from uaclient import daemon
-from uaclient.cli import setup_logging
 from uaclient.config import UAConfig
+from uaclient.defaults import DEFAULT_LOG_FORMAT
 
 LOG = logging.getLogger("ua")
+
+
+def setup_logging(console_level, log_level, log_file, logger):
+    logger.setLevel(log_level)
+
+    logger.handlers = []
+
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    console_handler.setLevel(console_level)
+    console_handler.set_name("ua-console")
+    logger.addHandler(console_handler)
+
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(logging.Formatter(DEFAULT_LOG_FORMAT))
+    file_handler.set_name("ua-file")
+    logger.addHandler(file_handler)
 
 
 def main() -> int:
@@ -22,7 +40,10 @@ def main() -> int:
     LOG.propagate = False
     # The root logger should only log errors to the daemon log file
     setup_logging(
-        logging.CRITICAL, logging.ERROR, log_file=cfg.daemon_log_file
+        logging.CRITICAL,
+        logging.ERROR,
+        log_file=cfg.daemon_log_file,
+        logger=logging.getLogger(),
     )
 
     LOG.debug("daemon starting")

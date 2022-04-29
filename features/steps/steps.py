@@ -1040,6 +1040,29 @@ def docker_image_is_not_larger(context, name, series, package):
     )
 
 
+@then(
+    "on `{release}`, systemd status output says memory usage is less than `{mb_limit}` MB"
+)
+def systemd_memory_usage_less_than(context, release, mb_limit):
+    curr_release = context.active_outline["release"]
+    if release != curr_release:
+        logging.debug("Skipping for {}".format(curr_release))
+        return
+    match = re.search(r"Memory: (.*)M", context.process.stdout.strip())
+    if match is None:
+        raise AssertionError(
+            "Memory usage not present in current process stdout"
+        )
+    mb_used = float(match.group(1))
+    logging.debug("Found {}M".format(mb_used))
+
+    mb_limit_float = float(mb_limit)
+    if mb_used > mb_limit_float:
+        raise AssertionError(
+            "Using more memory than expected ({}M)".format(mb_used)
+        )
+
+
 def get_command_prefix_for_user_spec(user_spec):
     prefix = []
     if user_spec == "with sudo":
