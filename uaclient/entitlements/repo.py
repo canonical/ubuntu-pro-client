@@ -103,8 +103,8 @@ class RepoEntitlement(base.UAEntitlement):
                 messages.NO_APT_URL_FOR_SERVICE.format(title=self.title),
             )
         protocol, repo_path = repo_url.split("://")
-        policy = apt.run_apt_command(
-            ["apt-cache", "policy"], messages.APT_POLICY_FAILED.msg
+        policy = apt.run_apt_cache_policy_command(
+            error_msg=messages.APT_POLICY_FAILED.msg
         )
         match = re.search(
             r"(?P<pin>(-)?\d+) {}/ubuntu".format(repo_url), policy
