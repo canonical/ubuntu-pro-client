@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import tempfile
+from functools import lru_cache
 from typing import Dict, List, Optional
 
 from uaclient import event_logger, exceptions, gpg, messages, util
@@ -179,6 +180,16 @@ def run_apt_command(
     return out
 
 
+@lru_cache(maxsize=None)
+def run_apt_cache_policy_command(
+    error_msg: Optional[str] = None,
+    env: Optional[Dict[str, str]] = {},
+) -> str:
+    return run_apt_command(
+        cmd=["apt-cache", "policy"], error_msg=error_msg, env=env
+    )
+
+
 def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
     try:
         out = run_apt_command(cmd=["apt-get", "update"], env=env)
@@ -191,6 +202,11 @@ def run_apt_update_command(env: Optional[Dict[str, str]] = {}) -> str:
             msg=messages.APT_UPDATE_FAILED.msg + "\n" + e.msg,
             msg_code=messages.APT_UPDATE_FAILED.name,
         )
+    finally:
+        # Whenever we run an apt-get update command, we must invalidate
+        # the existing apt-cache policy cache. Otherwise, we could provide
+        # users with incorrect values.
+        run_apt_cache_policy_command.cache_clear()
 
     return out
 
