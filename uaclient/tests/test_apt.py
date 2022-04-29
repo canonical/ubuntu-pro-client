@@ -28,6 +28,7 @@ from uaclient.apt import (
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
+    run_apt_cache_policy_command,
     run_apt_update_command,
     setup_apt_proxy,
 )
@@ -915,6 +916,45 @@ class TestRunAptCommand:
 
         expected_message = "\n".join(output_list) + "."
         assert expected_message == excinfo.value.msg
+
+    @mock.patch("uaclient.apt.util.subp")
+    def test_run_update_command_clean_apt_cache_policy_cache(self, m_subp):
+        m_subp.side_effect = [
+            ("policy1", ""),
+            ("update", ""),
+            ("policy2", ""),
+        ]
+
+        assert "policy1" == run_apt_cache_policy_command()
+        # Confirming that caching is happening
+        assert "policy1" == run_apt_cache_policy_command()
+
+        run_apt_update_command()
+
+        # Confirm cache was cleared
+        assert "policy2" == run_apt_cache_policy_command()
+        run_apt_cache_policy_command.cache_clear()
+
+    @mock.patch("uaclient.apt.util.subp")
+    def test_failed_run_update_command_clean_apt_cache_policy_cache(
+        self, m_subp
+    ):
+        m_subp.side_effect = [
+            ("policy1", ""),
+            exceptions.UserFacingError("test"),
+            ("policy2", ""),
+        ]
+
+        assert "policy1" == run_apt_cache_policy_command()
+        # Confirming that caching is happening
+        assert "policy1" == run_apt_cache_policy_command()
+
+        with pytest.raises(exceptions.UserFacingError):
+            run_apt_update_command()
+
+        # Confirm cache was cleared
+        assert "policy2" == run_apt_cache_policy_command()
+        run_apt_cache_policy_command.cache_clear()
 
 
 class TestAptProxyConfig:

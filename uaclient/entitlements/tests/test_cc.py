@@ -8,7 +8,7 @@ from types import MappingProxyType
 import mock
 import pytest
 
-from uaclient import apt, config, status
+from uaclient import apt, config, messages, status
 from uaclient.entitlements.cc import CC_README, CommonCriteriaEntitlement
 from uaclient.entitlements.tests.conftest import machine_token
 
@@ -109,12 +109,14 @@ class TestCommonCriteriaEntitlementEnable:
     @mock.patch("uaclient.apt.setup_apt_proxy")
     @mock.patch("uaclient.util.should_reboot")
     @mock.patch("uaclient.util.subp")
+    @mock.patch("uaclient.apt.run_apt_cache_policy_command")
     @mock.patch("uaclient.util.get_platform_info")
     @mock.patch("uaclient.util.apply_contract_overrides")
     def test_enable_configures_apt_sources_and_auth_files(
         self,
         _m_contract_overrides,
         m_platform_info,
+        m_apt_cache_policy,
         m_subp,
         m_should_reboot,
         m_setup_apt_proxy,
@@ -125,6 +127,7 @@ class TestCommonCriteriaEntitlementEnable:
     ):
         """When entitled, configure apt repo auth token, pinning and url."""
         m_subp.return_value = ("fakeout", "")
+        m_apt_cache_policy.return_value = "fakeout"
         m_should_reboot.return_value = False
         original_exists = os.path.exists
 
@@ -166,12 +169,9 @@ class TestCommonCriteriaEntitlementEnable:
             )
         ]
 
-        subp_apt_cmds = [
+        apt_cache_policy_cmds = [
             mock.call(
-                ["apt-cache", "policy"],
-                capture=True,
-                retry_sleeps=apt.APT_RETRIES,
-                env={},
+                error_msg=messages.APT_POLICY_FAILED.msg,
             )
         ]
 
@@ -181,6 +181,7 @@ class TestCommonCriteriaEntitlementEnable:
         if ca_certificates:
             prerequisite_pkgs.append("ca-certificates")
 
+        subp_apt_cmds = []
         if prerequisite_pkgs:
             expected_stdout = "Installing prerequisites: {}\n".format(
                 ", ".join(prerequisite_pkgs)
@@ -226,6 +227,8 @@ class TestCommonCriteriaEntitlementEnable:
         assert [] == m_add_pin.call_args_list
         assert 1 == m_setup_apt_proxy.call_count
         assert 1 == m_should_reboot.call_count
+        assert 1 == m_apt_cache_policy.call_count
+        assert apt_cache_policy_cmds == m_apt_cache_policy.call_args_list
         assert subp_apt_cmds == m_subp.call_args_list
         expected_stdout += "\n".join(
             [

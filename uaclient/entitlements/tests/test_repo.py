@@ -1038,9 +1038,9 @@ class TestApplicationStatus:
             (500, "https://esm.ubuntu.com/ubuntu", True),
         ),
     )
-    @mock.patch(M_PATH + "apt.run_apt_command")
+    @mock.patch(M_PATH + "apt.run_apt_cache_policy_command")
     def test_enabled_status_by_apt_policy(
-        self, m_run_apt_command, pin, policy_url, enabled, entitlement_factory
+        self, m_run_apt_policy, pin, policy_url, enabled, entitlement_factory
     ):
         """Report ENABLED when apt-policy lists specific aptURL and 500 pin."""
         entitlement = entitlement_factory(
@@ -1055,7 +1055,7 @@ class TestApplicationStatus:
             " release v=18.04,o=UbuntuESMApps,...,n=bionic,l=UbuntuESMApps",
             "  origin esm.ubuntu.com",
         ]
-        m_run_apt_command.return_value = "\n".join(policy_lines)
+        m_run_apt_policy.return_value = "\n".join(policy_lines)
 
         application_status, explanation = entitlement.application_status()
 
