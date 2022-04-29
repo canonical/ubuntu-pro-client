@@ -42,6 +42,7 @@ from uaclient.defaults import (
     CLOUD_BUILD_INFO,
     CONFIG_FIELD_ENVVAR_ALLOWLIST,
     DEFAULT_CONFIG_FILE,
+    DEFAULT_LOG_FORMAT,
     PRINT_WRAP_WIDTH,
 )
 from uaclient.entitlements.entitlement_status import (
@@ -71,10 +72,6 @@ Valid until: {contract_expiry}
 Technical support level: {tech_support_level}
 """
 UA_AUTH_TOKEN_URL = "https://auth.contracts.canonical.com"
-
-DEFAULT_LOG_FORMAT = (
-    "%(asctime)s - %(filename)s:(%(lineno)d) [%(levelname)s]: %(message)s"
-)
 
 STATUS_FORMATS = ["tabular", "json", "yaml"]
 
