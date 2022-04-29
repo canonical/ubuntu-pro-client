@@ -83,19 +83,32 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         inactive
         """
+
         # verify it stays on when configured to do so
         When I create the file `/etc/ubuntu-advantage/uaclient.conf` with the following:
         """
         ua_config:
             poll_for_pro_license: true
         """
+        # Turn on memory accounting
+        When I run `sed -i s/#DefaultMemoryAccounting=no/DefaultMemoryAccounting=yes/ /etc/systemd/system.conf` with sudo
+        When I run `systemctl daemon-reexec` with sudo
+
         When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
         When I run `systemctl restart ubuntu-advantage.service` with sudo
+
+        # wait to get memory after it has settled/after startup checks
+        When I wait `5` seconds
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `0`
         Then stdout matches regexp:
         """
         Active: active \(running\)
         """
+        Then on `xenial`, systemd status output says memory usage is less than `14` MB
+        Then on `bionic`, systemd status output says memory usage is less than `13` MB
+        Then on `focal`, systemd status output says memory usage is less than `11` MB
+        Then on `jammy`, systemd status output says memory usage is less than `12` MB
+
         When I run `cat /var/log/ubuntu-advantage-daemon.log` with sudo
         Then stdout matches regexp:
         """
@@ -115,6 +128,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         active
         """
+
         # verify attach stops it immediately and doesn't restart after reboot
         When I attach `contract_token` with sudo
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
@@ -130,6 +144,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         \s*Condition: start condition failed.*
         .*ConditionPathExists=!/var/lib/ubuntu-advantage/private/machine-token.json was not met
         """
+
         # verify detach starts it and it starts again after reboot
         When I run `truncate -s 0 /var/log/ubuntu-advantage-daemon.log` with sudo
         When I run `ua detach --assume-yes` with sudo
@@ -162,6 +177,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         daemon ending
         """
+
         # Verify manual stop & disable persists across reconfigure
         When I run `systemctl stop ubuntu-advantage.service` with sudo
         When I run `systemctl disable ubuntu-advantage.service` with sudo
@@ -176,6 +192,7 @@ Feature: Pro Upgrade Daemon only runs in environments where necessary
         """
         Active: inactive \(dead\)
         """
+
         # Verify manual stop & disable persists across reboot
         When I reboot the `<release>` machine
         Then I verify that running `systemctl status ubuntu-advantage.service` `with sudo` exits `3`
