@@ -40,4 +40,5 @@ tools/ua-test-credentials.yaml
 # apt-hook build artifacts
 apt-hook/hook
 apt-hook/ubuntu-advantage.pot
-apt-hook/json-hook-src/json-hook
+apt-hook/json-hook
+apt-hook/json-hook-test
