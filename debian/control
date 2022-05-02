@@ -14,13 +14,9 @@ Build-Depends: bash-completion,
                debhelper (>= 13.3) | dh-systemd,
                gettext,
                git,
-# We need golang>=1.14 to support riscv64 builds for Focal+
-# We always want to prefer the golang-go package, because it is not pinned to a certain version, so it is first.
-# On Focal, golang-go is at 1.13 but golang-1.14-go is available, so that is second.
-# Xenial and Bionic don't need to support riscv64, but do need to support our tests which require >=1.7.
-# golang-1.10-go is available on both Xenial and Bionic, so that is third.
-               golang-go (>= 2:1.14~) [!powerpc] | golang-1.14-go [!powerpc] | golang-1.10-go [!powerpc !riscv64],
                libapt-pkg-dev,
+               libjson-c-dev,
+               libboost-test-dev,
                po-debconf,
                python3 (>= 3.4),
                python3-flake8,
