@@ -1,99 +1,56 @@
-package main
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE Main
+#include <boost/test/unit_test.hpp>
 
-import (
-	"encoding/json"
-	"fmt"
-	"testing"
-)
+#include "json-hook.hh"
 
-func TestCreateUpdateMessages(t *testing.T) {
-	type params struct {
-		standardSecurityCount int
-		esmInfraCount         int
-		esmAppsCount          int
-		expectedMessage       string
-	}
-	testParamsList := []params{
-		{0, 0, 0, ""},
-		{0, 0, 1, "1 esm-apps security update"},
-		{0, 0, 2, "2 esm-apps security updates"},
-		{0, 1, 0, "1 esm-infra security update"},
-		{0, 1, 1, "1 esm-infra security update and 1 esm-apps update"},
-		{0, 1, 2, "1 esm-infra security update and 2 esm-apps updates"},
-		{0, 2, 0, "2 esm-infra security updates"},
-		{0, 2, 1, "2 esm-infra security updates and 1 esm-apps update"},
-		{0, 2, 2, "2 esm-infra security updates and 2 esm-apps updates"},
-		{1, 0, 0, "1 standard security update"},
-		{1, 0, 1, "1 standard security update and 1 esm-apps update"},
-		{1, 0, 2, "1 standard security update and 2 esm-apps updates"},
-		{1, 1, 0, "1 standard security update and 1 esm-infra update"},
-		{1, 1, 1, "1 standard security update, 1 esm-infra update and 1 esm-apps update"},
-		{1, 1, 2, "1 standard security update, 1 esm-infra update and 2 esm-apps updates"},
-		{1, 2, 0, "1 standard security update and 2 esm-infra updates"},
-		{1, 2, 1, "1 standard security update, 2 esm-infra updates and 1 esm-apps update"},
-		{1, 2, 2, "1 standard security update, 2 esm-infra updates and 2 esm-apps updates"},
-		{2, 0, 0, "2 standard security updates"},
-		{2, 0, 1, "2 standard security updates and 1 esm-apps update"},
-		{2, 0, 2, "2 standard security updates and 2 esm-apps updates"},
-		{2, 1, 0, "2 standard security updates and 1 esm-infra update"},
-		{2, 1, 1, "2 standard security updates, 1 esm-infra update and 1 esm-apps update"},
-		{2, 1, 2, "2 standard security updates, 1 esm-infra update and 2 esm-apps updates"},
-		{2, 2, 0, "2 standard security updates and 2 esm-infra updates"},
-		{2, 2, 1, "2 standard security updates, 2 esm-infra updates and 1 esm-apps update"},
-		{2, 2, 2, "2 standard security updates, 2 esm-infra updates and 2 esm-apps updates"},
-	}
+BOOST_AUTO_TEST_SUITE(JSON_Hook)
 
-	for i, testParams := range testParamsList {
-		t.Run(fmt.Sprintf("Case %d", i), func(t *testing.T) {
-			actual := createUpdateMessage(testParams.standardSecurityCount, testParams.esmInfraCount, testParams.esmAppsCount)
-			if actual != testParams.expectedMessage {
-				t.Logf("expected: \"%s\", got: \"%s\"", testParams.expectedMessage, actual)
-				t.Fail()
-			}
-		})
-	}
+BOOST_AUTO_TEST_SUITE(Count_Message)
+
+void count_message_test(int standard_count, int infra_count, int apps_count, std::string expected_message) {
+    security_package_counts counts;
+    counts.standard = standard_count;
+    counts.esm_infra = infra_count;
+    counts.esm_apps = apps_count;
+    std::string message = create_count_message(counts);
+    BOOST_CHECK(message == expected_message);
 }
 
-func TestCountSecurityUpdates(t *testing.T) {
-	type params struct {
-		rpc                           string
-		expectedStandardSecurityCount int
-		expectedEsmInfraCount         int
-		expectedEsmAppsCount          int
-	}
-	testParamsList := []params{
-		{mockJson, 1, 2, 3},
-	}
+BOOST_AUTO_TEST_CASE(Test1) { count_message_test(0, 0, 0, ""); }
+BOOST_AUTO_TEST_CASE(Test2) { count_message_test(0, 0, 1, "1 esm-apps security update"); }
+BOOST_AUTO_TEST_CASE(Test3) { count_message_test(0, 0, 2, "2 esm-apps security updates"); }
+BOOST_AUTO_TEST_CASE(Test4) { count_message_test(0, 1, 0, "1 esm-infra security update"); }
+BOOST_AUTO_TEST_CASE(Test5) { count_message_test(0, 1, 1, "1 esm-infra security update and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test6) { count_message_test(0, 1, 2, "1 esm-infra security update and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test7) { count_message_test(0, 2, 0, "2 esm-infra security updates"); }
+BOOST_AUTO_TEST_CASE(Test8) { count_message_test(0, 2, 1, "2 esm-infra security updates and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test9) { count_message_test(0, 2, 2, "2 esm-infra security updates and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test10) { count_message_test(1, 0, 0, "1 standard security update"); }
+BOOST_AUTO_TEST_CASE(Test11) { count_message_test(1, 0, 1, "1 standard security update and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test12) { count_message_test(1, 0, 2, "1 standard security update and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test13) { count_message_test(1, 1, 0, "1 standard security update and 1 esm-infra update"); }
+BOOST_AUTO_TEST_CASE(Test14) { count_message_test(1, 1, 1, "1 standard security update, 1 esm-infra update and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test15) { count_message_test(1, 1, 2, "1 standard security update, 1 esm-infra update and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test16) { count_message_test(1, 2, 0, "1 standard security update and 2 esm-infra updates"); }
+BOOST_AUTO_TEST_CASE(Test17) { count_message_test(1, 2, 1, "1 standard security update, 2 esm-infra updates and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test18) { count_message_test(1, 2, 2, "1 standard security update, 2 esm-infra updates and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test19) { count_message_test(2, 0, 0, "2 standard security updates"); }
+BOOST_AUTO_TEST_CASE(Test20) { count_message_test(2, 0, 1, "2 standard security updates and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test21) { count_message_test(2, 0, 2, "2 standard security updates and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test22) { count_message_test(2, 1, 0, "2 standard security updates and 1 esm-infra update"); }
+BOOST_AUTO_TEST_CASE(Test23) { count_message_test(2, 1, 1, "2 standard security updates, 1 esm-infra update and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test24) { count_message_test(2, 1, 2, "2 standard security updates, 1 esm-infra update and 2 esm-apps updates"); }
+BOOST_AUTO_TEST_CASE(Test25) { count_message_test(2, 2, 0, "2 standard security updates and 2 esm-infra updates"); }
+BOOST_AUTO_TEST_CASE(Test26) { count_message_test(2, 2, 1, "2 standard security updates, 2 esm-infra updates and 1 esm-apps update"); }
+BOOST_AUTO_TEST_CASE(Test27) { count_message_test(2, 2, 2, "2 standard security updates, 2 esm-infra updates and 2 esm-apps updates"); }
 
-	for i, testParams := range testParamsList {
-		t.Run(fmt.Sprintf("Case %d", i), func(t *testing.T) {
-			rpc := &jsonRPC{}
-			if err := json.Unmarshal([]byte(mockJson), rpc); err != nil {
-				t.Error(err)
-			}
+BOOST_AUTO_TEST_SUITE_END()
 
-			actualStandard, actualInfra, actualApps := countSecurityUpdates(rpc)
-			if actualStandard != testParams.expectedStandardSecurityCount {
-				t.Logf("expected: %d, got: %d", testParams.expectedStandardSecurityCount, actualStandard)
-				t.Fail()
-			}
-			if actualInfra != testParams.expectedEsmInfraCount {
-				t.Logf("expected: %d, got: %d", testParams.expectedEsmInfraCount, actualInfra)
-				t.Fail()
-			}
-			if actualApps != testParams.expectedEsmAppsCount {
-				t.Logf("expected: %d, got: %d", testParams.expectedEsmAppsCount, actualApps)
-				t.Fail()
-			}
-		})
-	}
-}
+BOOST_AUTO_TEST_SUITE(Count_Security_Updates)
 
-const mockJson = `
-{
-    "jsonrpc": "2.0",
-    "method": "org.debian.apt.hooks.install.statistics",
-    "params": {
+std::string test_json = R"(
+    {
         "command": "install",
         "search-terms": [
             "~U"
@@ -406,5 +363,17 @@ const mockJson = `
             }
         ]
     }
+)";
+
+BOOST_AUTO_TEST_CASE(Test1) {
+    security_package_counts counts;
+    json_object *stats = json_tokener_parse(test_json.c_str());
+    count_security_packages_from_apt_stats_json(stats, counts);
+    BOOST_CHECK(counts.standard == 1);
+    BOOST_CHECK(counts.esm_infra == 2);
+    BOOST_CHECK(counts.esm_apps == 3);
 }
-`
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE_END()
