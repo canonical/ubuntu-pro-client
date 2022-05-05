@@ -564,8 +564,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 return ApplicabilityStatus.INAPPLICABLE, error_message
         affordances = entitlement_cfg["entitlement"].get("affordances", {})
         platform = util.get_platform_info()
-        affordance_arches = affordances.get("architectures", [])
-        if affordance_arches and platform["arch"] not in affordance_arches:
+        affordance_arches = affordances.get("architectures", None)
+        if (
+            affordance_arches is not None
+            and platform["arch"] not in affordance_arches
+        ):
             return (
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_ARCH.format(
@@ -574,8 +577,11 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                     supported_arches=", ".join(affordance_arches),
                 ),
             )
-        affordance_series = affordances.get("series", [])
-        if affordance_series and platform["series"] not in affordance_series:
+        affordance_series = affordances.get("series", None)
+        if (
+            affordance_series is not None
+            and platform["series"] not in affordance_series
+        ):
             return (
                 ApplicabilityStatus.INAPPLICABLE,
                 messages.INAPPLICABLE_SERIES.format(
@@ -583,10 +589,10 @@ class UAEntitlement(metaclass=abc.ABCMeta):
                 ),
             )
         kernel = platform["kernel"]
-        affordance_kernels = affordances.get("kernelFlavors", [])
+        affordance_kernels = affordances.get("kernelFlavors", None)
         affordance_min_kernel = affordances.get("minKernelVersion")
         match = re.match(RE_KERNEL_UNAME, kernel)
-        if affordance_kernels:
+        if affordance_kernels is not None:
             if not match or match.group("flavor") not in affordance_kernels:
                 return (
                     ApplicabilityStatus.INAPPLICABLE,

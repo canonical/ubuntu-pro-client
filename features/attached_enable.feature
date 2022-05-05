@@ -53,6 +53,70 @@ Feature: Enable command behaviour when attached to an UA subscription
 
     @series.lts
     @uses.config.machine_type.lxd.container
+    Scenario Outline: Empty series affordance means no series, null means all series
+        Given a `<release>` machine with ubuntu-advantage-tools installed
+        When I attach `contract_token` with sudo and options `--no-auto-enable`
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "esm-infra",
+                            "affordances": {
+                                "series": []
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        And I append the following on uaclient config:
+        """
+        features:
+          machine_token_overlay: "/tmp/machine-token-overlay.json"
+        """
+        When I verify that running `ua enable esm-infra` `with sudo` exits `1`
+        Then stdout matches regexp:
+        """
+        One moment, checking your subscription first
+        UA Infra: ESM is not available for Ubuntu .*
+        """
+        When I create the file `/tmp/machine-token-overlay.json` with the following:
+        """
+        {
+            "machineTokenInfo": {
+                "contractInfo": {
+                    "resourceEntitlements": [
+                        {
+                            "type": "esm-infra",
+                            "affordances": {
+                                "series": null
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        When I verify that running `ua enable esm-infra` `with sudo` exits `0`
+        Then stdout matches regexp:
+        """
+        One moment, checking your subscription first
+        Updating package lists
+        UA Infra: ESM enabled
+        """
+        Examples: ubuntu release
+            | release |
+            | xenial  |
+            | bionic  |
+            | focal   |
+            | jammy   |
+
+    @series.lts
+    @uses.config.machine_type.lxd.container
     Scenario Outline: Attached enable of different services using json format
         Given a `<release>` machine with ubuntu-advantage-tools installed
         When I attach `contract_token` with sudo
