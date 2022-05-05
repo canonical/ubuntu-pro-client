@@ -52,7 +52,7 @@ def machine_access(
     additional_packages: List[str] = None
 ) -> Dict[str, Any]:
     if affordances is None:
-        affordances = {"series": []}  # Will match all series
+        affordances = {}
     if suites is None:
         suites = ["xenial"]
     if obligations is None:
