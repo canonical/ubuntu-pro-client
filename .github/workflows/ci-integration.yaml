@@ -105,14 +105,14 @@ jobs:
           UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED: '${{ secrets.UACLIENT_BEHAVE_CONTRACT_TOKEN_STAGING_EXPIRED }}'
         run: |
           PYCLOUDLIB_CONFIG="$(mktemp --tmpdir="${{ runner.temp }}" pycloudlib.toml.XXXXXXXXXX)"
-          GOOGLE_APPLICATION_CREDENTIALS="$(mktemp --tmpdir="${{ runner.temp }}" gcloud.json.XXXXXXXXXX)"
+          GCE_CREDENTIALS_PATH="$(mktemp --tmpdir="${{ runner.temp }}" gcloud.json.XXXXXXXXXX)"
           export PYCLOUDLIB_CONFIG
-          export GOOGLE_APPLICATION_CREDENTIALS
+          export GCE_CREDENTIALS_PATH
 
           # Dump secrets using a subshell to avoid leaks due to xtrace.
           # Use printf as dash's echo always interpretes control sequences (e.g. \n).
           sh -c 'printf "%s\n" "$PYCLOUDLIB_CONFIG_CONTENTS" > "$PYCLOUDLIB_CONFIG"'
-          sh -c 'printf "%s\n" "$GOOGLE_APPLICATION_CREDENTIALS_CONTENTS" > "$GOOGLE_APPLICATION_CREDENTIALS"'
+          sh -c 'printf "%s\n" "$GOOGLE_APPLICATION_CREDENTIALS_CONTENTS" > "$GCE_CREDENTIALS_PATH"'
 
           # SSH keys (should match what specified in pycloudlib.toml)
           mkdir ~/.ssh
