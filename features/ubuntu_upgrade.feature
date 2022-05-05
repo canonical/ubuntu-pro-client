@@ -3,7 +3,6 @@ Feature: Upgrade between releases when uaclient is attached
 
     @slow
     @series.focal
-    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across releases
@@ -41,10 +40,13 @@ Feature: Upgrade between releases when uaclient is attached
 
         Examples: ubuntu release
         | release | next_release | devel_release   |
+        | focal   | impish       |                 |
 
     @slow
     @series.xenial
     @series.bionic
+    @series.focal
+    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across LTS releases
@@ -62,7 +64,7 @@ Feature: Upgrade between releases when uaclient is attached
         [Sources]
         AllowThirdParty=yes
         """
-        Then I verify that running `do-release-upgrade --frontend DistUpgradeViewNonInteractive` `with sudo` exits `0`
+        Then I verify that running `do-release-upgrade <devel_release> --frontend DistUpgradeViewNonInteractive` `with sudo` exits `0`
         When I reboot the `<release>` machine
         And I run `lsb_release -cs` as non-root
         Then I will see the following on stdout:
@@ -86,11 +88,11 @@ Feature: Upgrade between releases when uaclient is attached
             """
 
         Examples: ubuntu release
-        | release | next_release |
-        | xenial  | bionic       |
-        | bionic  | focal        |
-        | focal   | jammy        |
-        | impish  | jammy        |
+        | release | next_release | devel_release   |
+        | xenial  | bionic       |                 |
+        | bionic  | focal        |                 |
+        | focal   | jammy        | --devel-release |
+        | impish  | jammy        |                 |
 
     @slow
     @series.xenial
