@@ -457,9 +457,9 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
 
         Examples: ubuntu release livepatch status
            | release | lp_status | fips_status | cc_status | cis_or_usg | cis_status |
-           | xenial  | n/a       | n/a         | disabled  | cis        | enabled    |
-           | bionic  | n/a       | disabled    | disabled  | cis        | enabled    |
-           | focal   | enabled   | disabled    | n/a       | usg        | enabled    |
+           | xenial  | n/a       | n/a         | disabled  | cis        | disabled   |
+           | bionic  | n/a       | disabled    | disabled  | cis        | disabled   |
+           | focal   | enabled   | disabled    | n/a       | usg        | disabled   |
            | jammy   | enabled   | n/a         | n/a       | cis        | n/a        |
 
     @series.all
