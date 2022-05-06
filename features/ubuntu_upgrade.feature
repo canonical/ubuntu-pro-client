@@ -2,7 +2,7 @@
 Feature: Upgrade between releases when uaclient is attached
 
     @slow
-    @series.focal
+    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across releases
@@ -39,14 +39,13 @@ Feature: Upgrade between releases when uaclient is attached
         """
 
         Examples: ubuntu release
-        | release | next_release | devel_release   |
-        | focal   | impish       |                 |
+        | release | next_release |
+        | impish  | jammy        |
 
     @slow
     @series.xenial
     @series.bionic
     @series.focal
-    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Attached upgrade across LTS releases
@@ -92,7 +91,6 @@ Feature: Upgrade between releases when uaclient is attached
         | xenial  | bionic       |                 |
         | bionic  | focal        |                 |
         | focal   | jammy        | --devel-release |
-        | impish  | jammy        |                 |
 
     @slow
     @series.xenial
