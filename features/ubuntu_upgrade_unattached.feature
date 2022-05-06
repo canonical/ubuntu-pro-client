@@ -1,7 +1,9 @@
 @uses.config.contract_token
 Feature: Upgrade between releases when uaclient is unattached
 
+    @wip
     @slow
+    @series.impish
     @uses.config.machine_type.lxd.container
     @upgrade
     Scenario Outline: Unattached upgrade across releases
@@ -14,7 +16,6 @@ Feature: Upgrade between releases when uaclient is unattached
         [Sources]
         AllowThirdParty=yes
         """
-        And I run `sed -i 's/Prompt=lts/Prompt=normal/' /etc/update-manager/release-upgrades` with sudo
         And I run `do-release-upgrade <devel_release> --frontend DistUpgradeViewNonInteractive` `with sudo` and stdin `y\n`
         And I reboot the `<release>` machine
         And I run `lsb_release -cs` as non-root
@@ -29,23 +30,22 @@ Feature: Upgrade between releases when uaclient is unattached
         When I run `ua status` with sudo
         Then stdout matches regexp:
         """
-        esm-infra +no +UA Infra: Extended Security Maintenance \(ESM\)
+        esm-infra +yes +UA Infra: Extended Security Maintenance \(ESM\)
         """
         When I attach `contract_token` with sudo
         Then stdout matches regexp:
         """
-        esm-infra +yes +n/a
+        esm-infra +yes +enabled
         """
 
         Examples: ubuntu release
-        | release  | next_release | devel_release   |
-        | focal    | impish       |                 |
+        | release  | next_release |
+        | impish   | jammy        |
 
    @slow
    @series.xenial
    @series.bionic
    @series.focal
-   @series.impish
    @uses.config.machine_type.lxd.container
    @upgrade
    Scenario Outline: Unattached upgrade across LTS releases
@@ -95,4 +95,3 @@ Feature: Upgrade between releases when uaclient is unattached
         | xenial  | bionic       |                 |
         | bionic  | focal        |                 |
         | focal   | jammy        | --devel-release |
-        | impish  | jammy        |                 |
