@@ -432,7 +432,8 @@ class TestFIPSEntitlementEnable:
                 [
                     mock.call(
                         "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
-                    )
+                    ),
+                    mock.call("", messages.FIPS_REBOOT_REQUIRED_MSG),
                 ],
             ),
             (False, []),
@@ -451,7 +452,7 @@ class TestFIPSEntitlementEnable:
         m_repo_enable.return_value = repo_enable_return_value
         assert repo_enable_return_value is entitlement._perform_enable()
         assert (
-            expected_remove_notice_calls == m_remove_notice.call_args_list[:1]
+            expected_remove_notice_calls == m_remove_notice.call_args_list[:2]
         )
 
     @mock.patch("uaclient.apt.setup_apt_proxy")
@@ -961,6 +962,9 @@ class TestFIPSEntitlementApplicationStatus:
         entitlement.cfg.add_notice(
             "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
         )
+
+        if path_exists:
+            entitlement.cfg.add_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
 
         if proc_content == "0":
             entitlement.cfg.add_notice(
