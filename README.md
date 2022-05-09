@@ -59,6 +59,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 ### Reference
 
 * [Ubuntu Release and Architecture Support Matrix](./docs/references/support_matrix.md)
+* [UA Network Requirements](./docs/references/network_requirements.md)
 
 ### Explanation
 
