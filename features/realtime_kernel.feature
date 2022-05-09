@@ -65,7 +65,8 @@ Feature: Enable command behaviour when attached to an UA subscription
             The real-time kernel is a beta version of the 22.04 Ubuntu kernel with the
             PREEMPT_RT patchset integrated for x86_64 and ARM64.
 
-            .*You will not be able to revert to your original kernel after enabling real-time..*
+            .*This will change your kernel. You will need to manually configure grub to
+            revert back to your original kernel after enabling real-time..*
 
             Do you want to continue\? \[ default = Yes \]: \(Y/n\) Updating package lists
             Installing Real-Time Kernel packages
