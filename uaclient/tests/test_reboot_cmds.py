@@ -10,7 +10,11 @@ from lib.reboot_cmds import (
     run_command,
 )
 from uaclient.exceptions import ProcessExecutionError
-from uaclient.messages import REBOOT_SCRIPT_FAILED
+from uaclient.messages import (
+    FIPS_REBOOT_REQUIRED_MSG,
+    FIPS_SYSTEM_REBOOT_REQUIRED,
+    REBOOT_SCRIPT_FAILED,
+)
 
 M_FIPS_PATH = "uaclient.entitlements.fips.FIPSEntitlement."
 
@@ -77,8 +81,10 @@ class TestFixProPkgHolds:
     @mock.patch("sys.exit")
     @mock.patch(M_FIPS_PATH + "install_packages")
     @mock.patch(M_FIPS_PATH + "setup_apt_config")
+    @mock.patch("uaclient.config.UAConfig.remove_notice")
     def test_calls_setup_apt_config_and_install_packages_when_enabled(
         self,
+        m_remove_notice,
         setup_apt_config,
         install_packages,
         exit,
@@ -97,9 +103,14 @@ class TestFixProPkgHolds:
             assert [
                 mock.call(cleanup_on_failure=False)
             ] == install_packages.call_args_list
+            assert [
+                mock.call("", FIPS_SYSTEM_REBOOT_REQUIRED.msg),
+                mock.call("", FIPS_REBOOT_REQUIRED_MSG),
+            ] == m_remove_notice.call_args_list
         else:
             assert 0 == setup_apt_config.call_count
             assert 0 == install_packages.call_count
+            assert 0 == len(m_remove_notice.call_args_list)
         assert 0 == exit.call_count
 
 

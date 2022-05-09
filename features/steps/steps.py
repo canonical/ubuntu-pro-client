@@ -1041,7 +1041,7 @@ def docker_image_is_not_larger(context, name, series, package):
 
 
 @then(
-    "on `{release}`, systemd status output says memory usage is less than `{mb_limit}` MB"
+    "on `{release}`, systemd status output says memory usage is less than `{mb_limit}` MB"  # noqa
 )
 def systemd_memory_usage_less_than(context, release, mb_limit):
     curr_release = context.active_outline["release"]

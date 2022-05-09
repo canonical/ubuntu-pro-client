@@ -314,6 +314,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             self.cfg.remove_notice(
                 "", messages.FIPS_SYSTEM_REBOOT_REQUIRED.msg
             )
+            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
             if util.load_file(self.FIPS_PROC_FILE).strip() == "1":
                 self.cfg.remove_notice(
                     "", messages.NOTICE_FIPS_MANUAL_DISABLE_URL
@@ -372,6 +373,7 @@ class FIPSCommonEntitlement(repo.RepoEntitlement):
             self.cfg.remove_notice(
                 "", messages.NOTICE_WRONG_FIPS_METAPACKAGE_ON_CLOUD
             )
+            self.cfg.remove_notice("", messages.FIPS_REBOOT_REQUIRED_MSG)
             return True
 
         return False
