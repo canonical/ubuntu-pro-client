@@ -30,15 +30,7 @@ following entitlements are supported:
 
 ## Obtaining the Client
 
-The client comes pre-installed on all Ubuntu systems in the debian
-`ubuntu-advantage-tools` package. "Ubuntu Pro" images on AWS, Azure and GCP
-will also contain `ubuntu-advantage-pro` which automates machine attach
-on boot for custom AWS, Azure and GCP images.
-
-Ubuntu Pro images are available on the following cloud platforms on all Ubuntu LTS releases (Xenial, Bionic, Focal):
-1. AWS: [Ubuntu PRO](https://ubuntu.com/aws/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/aws/fips)
-2. Azure: [Ubuntu PRO](https://ubuntu.com/azure/pro) and [Ubuntu PRO FIPS](https://ubuntu.com/azure/fips)
-3. GCP: [Ubuntu PRO](https://ubuntu.com/gcp/pro)
+The client comes pre-installed on all Ubuntu systems in the debian `ubuntu-advantage-tools` package.
 
 Additionally, there are 3 PPAs with different release channels of the Ubuntu Advantage Client:
 
@@ -71,6 +63,8 @@ Users can manually run the `ua` command to learn more or view the manpage.
 ### Explanation
 
 * [What is the daemon for? (And how to disable it)](./docs/explanations/what_is_the_daemon.md)
+* [What is Ubuntu PRO?](./docs/explanations/what_is_ubuntu_pro.md)
+* [What is the ubuntu-advantage-pro package?](./docs/explanations/what_is_the_ubuntu_advantage_pro_package.md)
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
