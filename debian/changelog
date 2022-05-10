@@ -9,7 +9,6 @@ ubuntu-advantage-tools (27.8~22.04.1) jammy; urgency=medium
     - lib: fix upgrade script for unsupported releases (LP: #1968067)
     - realtime: add support for realtime kernel beta service on Jammy
 
-
  -- Lucas Moura <lucas.moura@canonical.com>  Wed, 13 Apr 2022 18:17:02 -0300
 
 ubuntu-advantage-tools (27.7.1~22.04.1) jammy; urgency=medium

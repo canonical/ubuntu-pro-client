@@ -1,7 +1,6 @@
 @uses.config.contract_token
 Feature: Upgrade between releases when uaclient is unattached
 
-    @wip
     @slow
     @series.all
     @uses.config.machine_type.lxd.container

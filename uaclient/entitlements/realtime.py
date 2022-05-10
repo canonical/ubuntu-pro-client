@@ -60,7 +60,9 @@ class RealtimeKernelEntitlement(repo.RepoEntitlement):
         )
 
     @property
-    def messaging(self,) -> MessagingOperationsDict:
+    def messaging(
+        self,
+    ) -> MessagingOperationsDict:
         return {
             "pre_enable": [
                 (
