@@ -525,6 +525,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -542,6 +544,8 @@ Feature: Command behaviour when attached to an UA subscription
            \(https://ubuntu.com/cc-eal\)
          - cis: Security compliance and audit tools
            \(https://ubuntu.com/security/certifications/docs/usg\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -626,6 +630,8 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
@@ -643,6 +649,8 @@ Feature: Command behaviour when attached to an UA subscription
         Client to manage Ubuntu Advantage services on a machine.
          - cc-eal: Common Criteria EAL2 Provisioning Packages
            \(https://ubuntu.com/cc-eal\)
+         - esm-apps: UA Apps: Extended Security Maintenance \(ESM\)
+           \(https://ubuntu.com/security/esm\)
          - esm-infra: UA Infra: Extended Security Maintenance \(ESM\)
            \(https://ubuntu.com/security/esm\)
          - fips-updates: NIST-certified core packages with priority security updates
