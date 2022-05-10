@@ -88,11 +88,6 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
         To use a different subscription first run: sudo ua detach.
         """
         When I run `ua disable esm-apps --assume-yes` with sudo
-        When I append the following on uaclient config:
-            """
-            features:
-              allow_beta: true
-            """
         And I run `apt update` with sudo
         And I run `ua refresh messages` with sudo
         And I run `update-motd` with sudo
@@ -103,6 +98,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           +Ubuntu Advantage subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/esm
+
+        UA Apps: Extended Security Maintenance \(ESM\) is not enabled.
 
         \d+ update(s)? can be applied immediately.
         \d+ of these updates (is|are) (a|an)? UA Infra: ESM security update(s)?.
@@ -116,6 +113,8 @@ Feature: Command behaviour when attaching a machine to an Ubuntu Advantage
           +Ubuntu Advantage subscription. Free for personal use.
 
             +https:\/\/ubuntu.com\/esm
+
+        UA Apps: Extended Security Maintenance \(ESM\) is not enabled.
 
         \d+ update(s)? can be applied immediately.
         \d+ of these updates (is a|are) standard security update(s)?.

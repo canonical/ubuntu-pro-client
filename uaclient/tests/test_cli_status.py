@@ -71,6 +71,7 @@ RESPONSE_CONTRACT_INFO = {
 
 SIMULATED_STATUS = """\
 SERVICE          AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
+esm-apps         yes        no         yes           UA Apps: Extended Security Maintenance (ESM)
 esm-infra        no         yes        yes           UA Infra: Extended Security Maintenance (ESM)
 fips             no         no         no            NIST-certified core packages
 fips-updates     no         no         no            NIST-certified core packages with priority security updates
@@ -79,6 +80,7 @@ livepatch        yes        yes        no            Canonical Livepatch service
 
 UNATTACHED_STATUS = """\
 SERVICE          AVAILABLE  DESCRIPTION
+esm-apps         yes        UA Apps: Extended Security Maintenance (ESM)
 esm-infra        no         UA Infra: Extended Security Maintenance (ESM)
 fips             no         NIST-certified core packages
 fips-updates     no         NIST-certified core packages with priority security updates
@@ -110,6 +112,7 @@ Technical support level: n/a
 # Omit beta services from status
 ATTACHED_STATUS_NOBETA = """\
 SERVICE          ENTITLED  STATUS    DESCRIPTION
+esm-apps         no        {dash}         UA Apps: Extended Security Maintenance (ESM)
 esm-infra        no        {dash}         UA Infra: Extended Security Maintenance (ESM)
 fips             no        {dash}         NIST-certified core packages
 fips-updates     no        {dash}         NIST-certified core packages with priority security updates
@@ -123,7 +126,7 @@ Enable services with: ua enable <service>
 Technical support level: n/a
 """  # noqa: E501
 
-BETA_SVC_NAMES = ["esm-apps", "realtime-kernel", "ros", "ros-updates"]
+BETA_SVC_NAMES = ["realtime-kernel", "ros", "ros-updates"]
 
 SERVICES_JSON_ALL = [
     {
@@ -449,7 +452,6 @@ class TestActionStatus:
             },
         ),
     )
-    @pytest.mark.parametrize("use_all", (True, False))
     def test_unattached_formats(
         self,
         _m_getuid,
@@ -458,7 +460,6 @@ class TestActionStatus:
         _m_should_reboot,
         _m_remove_notice,
         _m_contract_changed,
-        use_all,
         environ,
         format_type,
         event_logger_mode,
@@ -470,7 +471,7 @@ class TestActionStatus:
         cfg = FakeConfig()
 
         args = mock.MagicMock(
-            format=format_type, all=use_all, simulate_with_token=None
+            format=format_type, all=False, simulate_with_token=None
         )
         with mock.patch.object(os, "environ", environ):
             with mock.patch.object(
@@ -498,8 +499,6 @@ class TestActionStatus:
                 "available": "yes",
             },
         ]
-        if not use_all:
-            expected_services.pop(0)
 
         expected = {
             "_doc": (
@@ -797,7 +796,7 @@ class TestActionStatus:
         ]
 
         if not use_all:
-            expected_services = expected_services[1:-3]
+            expected_services = expected_services[:-3]
 
         expected = {
             "_doc": "Content provided in json response is currently considered"

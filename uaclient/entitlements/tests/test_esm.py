@@ -169,6 +169,7 @@ class TestESMDisableAptAuthOnly:
         assert is_lts_calls == m_is_lts.call_args_list
 
 
+@mock.patch("uaclient.util.is_lts", return_value=True)
 @mock.patch("uaclient.util.validate_proxy", side_effect=lambda x, y, z: y)
 @mock.patch("uaclient.entitlements.esm.update_apt_and_motd_messages")
 @mock.patch("uaclient.apt.setup_apt_proxy")
@@ -181,6 +182,7 @@ class TestESMInfraEntitlementEnable:
         m_setup_apt_proxy,
         m_update_apt_and_motd_msgs,
         m_validate_proxy,
+        _m_is_lts,
         esm_cls,
         entitlement_factory,
     ):
@@ -283,14 +285,11 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        if entitlement.name == "esm-infra":  # Remove "never" apt pref pin
-            remove_file_calls = [
-                mock.call(
-                    "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
-                )
-            ]
-        else:
-            remove_file_calls = []  # esm-apps doesn't write an apt pref file
+        remove_file_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
+            )
+        ]
         assert remove_file_calls == m_remove_file.call_args_list
         assert [
             mock.call(entitlement.cfg)
@@ -301,6 +300,7 @@ class TestESMInfraEntitlementEnable:
         _m_setup_apt_proxy,
         _m_update_apt_and_motd_msg,
         m_validate_proxy,
+        _m_is_lts,
         entitlement,
         caplog_text,
     ):
@@ -384,17 +384,12 @@ class TestESMInfraEntitlementEnable:
         assert add_apt_calls == m_add_apt.call_args_list
         assert 0 == m_add_pinning.call_count
         assert subp_calls == m_subp.call_args_list
-        if entitlement.name == "esm-infra":
-            # Enable esm-infra xenial removes apt preferences pin 'never' file
-            remove_file_calls = [
-                mock.call(
-                    "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
-                )
-            ]
-        else:
-            remove_file_calls = (
-                []
-            )  # esm-apps there is no apt pref file to remove
+        # Enable esm-infra/apps xenial removes apt preferences pin 'never' file
+        remove_file_calls = [
+            mock.call(
+                "/etc/apt/preferences.d/ubuntu-{}".format(entitlement.name)
+            )
+        ]
         assert remove_file_calls == m_remove_file.call_args_list
         assert [
             mock.call(run_apt_update=False)
