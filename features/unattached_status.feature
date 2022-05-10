@@ -50,7 +50,8 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  DESCRIPTION
             cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-infra     +<esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            ?esm-apps      +<esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +<esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +<fips>      +NIST-certified core packages
             fips-updates  +<fips>      +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +Canonical Livepatch service
@@ -84,7 +85,8 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  DESCRIPTION
             cc-eal        +<cc-eal>    +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +Security compliance and audit tools)?
-            ?esm-infra     +<esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
+            ?esm-apps      +<esm-apps>  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +<esm-infra>     +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +<fips>      +NIST-certified core packages
             fips-updates  +<fips>      +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +Canonical Livepatch service
@@ -159,7 +161,8 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
             cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-infra     +<esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+            ?esm-apps      +<esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +<esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +<fips>      +yes  +no   +NIST-certified core packages
             fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
@@ -246,7 +249,8 @@ Feature: Unattached status
             SERVICE       +AVAILABLE  ENTITLED   AUTO_ENABLED  DESCRIPTION
             cc-eal        +<cc-eal>    +yes  +no   +Common Criteria EAL2 Provisioning Packages
             ?<cis>( +<cis-available> +yes +no +Security compliance and audit tools)?
-            ?esm-infra     +<esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
+            ?esm-apps      +<esm-apps>  +yes  +yes  +UA Apps: Extended Security Maintenance \(ESM\)
+            esm-infra     +<esm-infra> +yes  +yes  +UA Infra: Extended Security Maintenance \(ESM\)
             fips          +<fips>      +yes  +no   +NIST-certified core packages
             fips-updates  +<fips>      +yes  +no   +NIST-certified core packages with priority security updates
             livepatch     +<livepatch> +yes  +yes  +Canonical Livepatch service
@@ -259,4 +263,4 @@ Feature: Unattached status
            | bionic  | yes      | yes    | cis | yes           | yes  | yes       | yes | yes       |     |
            | focal   | yes      | no     |     | yes           | yes  | yes       | no  | yes       | usg |
            | impish  | no       | no     | cis | no            | no   | no        | no  | no        |     |
-           | jammy   | no       | no     |     | no            | no   | yes       | no  | yes       | usg |
+           | jammy   | yes      | no     |     | no            | no   | yes       | no  | yes       | usg |

@@ -180,10 +180,10 @@ Feature: Enable command behaviour when attached to an UA subscription
 
         Examples: ubuntu release
            | release | valid_services                                         |
-           | xenial  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
-           | bionic  | cc-eal, cis, esm-infra, fips, fips-updates, livepatch. |
-           | focal   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
-           | jammy   | cc-eal, esm-infra, fips, fips-updates, livepatch, usg. |
+           | xenial  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch. |
+           | bionic  | cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch. |
+           | focal   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg. |
+           | jammy   | cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg. |
 
     @series.lts
     @uses.config.machine_type.lxd.container
@@ -203,7 +203,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -213,7 +213,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar, ros'.
-            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
         And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -259,7 +259,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar'.
-            Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg.
             """
         And I verify that running `ua enable ros foobar` `with sudo` exits `1`
         And I will see the following on stdout:
@@ -269,7 +269,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         And stderr matches regexp:
             """
             Cannot enable unknown service 'foobar, ros'.
-            Try cc-eal, esm-infra, fips, fips-updates, livepatch, usg.
+            Try cc-eal, esm-apps, esm-infra, fips, fips-updates, livepatch, usg.
             """
         And I verify that running `ua enable esm-infra` `with sudo` exits `1`
         Then I will see the following on stdout:
@@ -530,7 +530,7 @@ Feature: Enable command behaviour when attached to an UA subscription
         Then I will see the following on stderr:
             """
             Cannot enable unknown service 'usg'.
-            Try cc-eal, cis, esm-infra, fips, fips-updates, livepatch.
+            Try cc-eal, cis, esm-apps, esm-infra, fips, fips-updates, livepatch.
             """
 
         Examples: cis service
