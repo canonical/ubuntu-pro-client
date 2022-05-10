@@ -393,10 +393,14 @@ class TestRepoEnable:
         ),
     )
     @mock.patch.object(
-        RepoTestEntitlement, "_perform_enable", return_value=False
+        RepoTestEntitlement,
+        "_perform_enable",
+        return_value=False,
     )
     @mock.patch.object(
-        RepoTestEntitlement, "can_enable", return_value=(True, None)
+        RepoTestEntitlement,
+        "can_enable",
+        return_value=(True, None),
     )
     def test_enable_can_exit_on_pre_enable_messaging_hooks(
         self,
