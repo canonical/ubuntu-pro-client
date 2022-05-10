@@ -13,16 +13,15 @@ from uaclient.entitlements.entitlement_status import (
     CanEnableFailureReason,
 )
 
-HELP_OUTPUT = textwrap.dedent(
-    """\
+HELP_OUTPUT = """\
 usage: ua enable <service> [<service>] [flags]
 
 Enable an Ubuntu Advantage service.
 
 Arguments:
   service              the name(s) of the Ubuntu Advantage services to enable.
-                       One of: cc-eal, cis, esm-infra, fips, fips-updates,
-                       livepatch
+                       One of: cc-eal, cis, esm-apps, esm-infra, fips, fips-
+                       updates, livepatch
 
 Flags:
   -h, --help           show this help message and exit
@@ -31,7 +30,6 @@ Flags:
   --beta               allow beta service to be enabled
   --format {cli,json}  output enable in the specified format (default: cli)
 """
-)
 
 
 @mock.patch("uaclient.cli.os.getuid")
