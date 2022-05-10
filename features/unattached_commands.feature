@@ -40,23 +40,11 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-infra-url> <release>-infra-updates/main amd64 Packages
         """
-        And stdout does not match regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
-        """
-        And stdout does not match regexp:
-        """
-        -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
-        """
-        When I append the following on uaclient config:
-            """
-            features:
-              allow_beta: true
-            """
-        And I run `dpkg-reconfigure ubuntu-advantage-tools` with sudo
-        And I run `apt-get update` with sudo
-        When I run `apt-cache policy` with sudo
         Then stdout matches regexp:
+        """
+        -32768 <esm-infra-url> <release>-infra-security/main amd64 Packages
+        """
+        And stdout matches regexp:
         """
         -32768 <esm-apps-url> <release>-apps-updates/main amd64 Packages
         """
@@ -64,13 +52,7 @@ Feature: Command behaviour when unattached
         """
         -32768 <esm-apps-url> <release>-apps-security/main amd64 Packages
         """
-        When I append the following on uaclient config:
-            """
-            features:
-              allow_beta: true
-            """
-        And I delete the file `/var/lib/ubuntu-advantage/jobs-status.json`
-        And I run `python3 /usr/lib/ubuntu-advantage/timer.py` with sudo
+        When I run `ua refresh messages` with sudo
         And I run `run-parts /etc/update-motd.d/` with sudo
         Then stdout matches regexp:
         """
@@ -81,17 +63,6 @@ Feature: Command behaviour when unattached
             +https:\/\/ubuntu.com\/16-04
 
         UA Infra: Extended Security Maintenance \(ESM\) is not enabled.
-        """
-        # Check that json hook is installed properly
-        When I run `ls /usr/lib/ubuntu-advantage` with sudo
-        Then stdout matches regexp:
-        """
-        apt-esm-json-hook
-        """
-        When I run `cat /etc/apt/apt.conf.d/20apt-esm-hook.conf` with sudo
-        Then stdout matches regexp:
-        """
-        apt-esm-json-hook
         """
         When I create the file `/etc/apt/sources.list.d/empty-release-origin.list` with the following
         """
