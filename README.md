@@ -56,6 +56,11 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [How to Enable Ubuntu Advantage Services in a Dockerfile](./docs/howtoguides/enable_ua_in_dockerfile.md)
 * [How to Create a custom Golden Image based on Ubuntu Pro](./docs/howtoguides/create_pro_golden_image.md)
 * [How to Manually update MOTD and APT messages](./docs/howtoguides/update_motd_messages.md)
+* [How to enable CIS](./docs/howtoguides/enable_cis.md)
+* [How to enable CC EAL](./docs/howtoguides/enable_cc.md)
+* [How to enable ESM Infra](./docs/howtoguides/enable_esm_infra.md)
+* [How to enable FIPS](./docs/howtoguides/enable_fips.md)
+* [How to enable Livepatch](./docs/howtoguides/enable_livepatch.md)
 
 ### Reference
 
