@@ -61,7 +61,6 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [How to enable ESM Infra](./docs/howtoguides/enable_esm_infra.md)
 * [How to enable FIPS](./docs/howtoguides/enable_fips.md)
 * [How to enable Livepatch](./docs/howtoguides/enable_livepatch.md)
-* [How to change a timer job run interval?](./docs/howtoguides/changing_a_timer_job_interval.md)
 * [How to configure a timer job?](./docs/howtoguides/configuring_timer_jobs.md)
 * [How to attach with a configuration file?](./docs/howtoguides/how_to_attach_with_config_file.md)
 * [How to collect UA logs?](./docs/howtoguides/how_to_collect_ua_logs.md)
