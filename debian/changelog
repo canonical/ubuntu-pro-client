@@ -1,3 +1,55 @@
+ubuntu-advantage-tools (27.9~22.10.1) kinetic; urgency=medium
+
+  * d/rules
+    - remove trusty specific code
+    - remove ua-license-check.{timer,service,path}
+    - install ubuntu-advantage.service
+    - only on xenial: install ubuntu-advantage-cloud-id-shim.service
+  * d/tools.postinst
+    - remove trusty specific code
+    - print warnings if /etc/os-release doesn't have required fields
+    - hardcode service list instead of exec-ing python3 for old migration
+    - refactor python to avoid instantiating UAConfig extra times
+    - refactor python to always use messages module for strings
+    - rm the old marker file that triggered ua-license-check.path
+    - remove unnecessary deb-systemd-helper check in ua-messaging cleanup
+    - clean up old ua-license-check state
+    - run new cloud-id-shim script
+  * d/tools/postrm
+    - clean up ubuntu-advantage-daemon log files
+  * New upstream release 27.9 (LP: #1973099)
+    - cli:
+      + for json formatted output, include additional_info for some errors
+      + new subcommand `ua refresh messages` to update motd and apt messages
+    - daemon:
+      + replace ua-license-check timer with ubuntu-advantage.service daemon
+      + detects on-boot if pro license was added and runs auto-attach
+      + only runs on gcp and does not continuously long-poll by default for now
+    - enable:
+      + fix error message on wrong service name when unattached
+    - fips:
+      + allow enabling generic fips kernel on azure by default
+      + clean up fips reboot message (LP: #1972026)
+    - fix:
+      + handle errors during attach process
+      + fix bug where enable or detach during a fix failed (LP: #1969809)
+      + fix bug where attempting to fix some CVEs would never finish
+    - performance:
+      + remove unnecessary UAConfig object instantiation (also cleans up logs)
+      + cache "apt-cache policy" output to avoid unnecessary subp calls
+    - proxy:
+      + apt_http(s)_proxy renamed to global_apt_http(s)_proxy
+      + apt_http(s)_proxy config var names will still work
+      + new ua_apt_http(s)_proxy for only ua-related apt traffic (LP: #1956764)
+      + global_apt_http(s)_proxy and ua_apt_http(s)_proxy cannot be set at the
+        same time
+    - realtime: adjust warning to clarify that a manual revert is possible
+    - refresh: a normal `ua refresh` will also update motd and apt messages
+    - security-status: add counts of packages from each archive component
+    - status: check if contract has updated and notify user to run "ua refresh"
+
+ -- Grant Orndorff <grant.orndorff@canonical.com>  Wed, 11 May 2022 13:04:46 -0400
+
 ubuntu-advantage-tools (27.8~22.04.1) jammy; urgency=medium
 
   * New upstream release 27.8 (LP: #1969125)
