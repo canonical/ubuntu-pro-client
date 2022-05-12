@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-UA_STAGING_PPA=ppa:ua-client/staging
-UA_STAGING_PPA_KEYID=6E34E7116C0BC933
+export UA_STAGING_PPA=ppa:ua-client/staging
+export UA_STAGING_PPA_KEYID=6E34E7116C0BC933
 
 remove_lxd() {
   sudo apt-get remove --yes --purge lxd lxd-client
