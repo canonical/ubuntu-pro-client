@@ -54,7 +54,6 @@ SYSTEMD_HELPER_ENABLED_WANTS_LINK="/var/lib/systemd/deb-systemd-helper-enabled/m
 REBOOT_CMD_MARKER_FILE="/var/lib/ubuntu-advantage/marker-reboot-cmds-required"
 OLD_LICENSE_CHECK_MARKER_FILE="/var/lib/ubuntu-advantage/marker-license-check"
 
-MACHINE_TOKEN_FILE="/var/lib/ubuntu-advantage/private/machine-token.json"
 
 # Rename apt config files for ua services removing ubuntu release names
 redact_ubuntu_release_from_ua_apt_filenames() {

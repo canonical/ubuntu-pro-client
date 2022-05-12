@@ -50,7 +50,7 @@ do
       focal) version=${UA_VERSION}~20.04.1;;
       impish) version=${UA_VERSION}~21.10.1;;
   esac
-  dch_cmd=(dch -v ${version} -D ${release} -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
+  dch_cmd=(dch -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
   if [ -z "$DO_IT" ]; then
     echo "${dch_cmd[@]}"
   else
