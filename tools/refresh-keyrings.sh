@@ -14,7 +14,7 @@
 
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 
-if [ $# != 1 -o ! -d $1 ]; then
+if [ $# != 1 ] || [ ! -d $1 ]; then
  echo "Usage: $0 <key_directory>"
  exit 1
 fi
@@ -32,25 +32,24 @@ REALTIME_KEY_ID="F6D1E58F4DCD9F91"
 generate_keyrings() {
     KEYRING_DIR="$1"
     shift
-    KEYS="$@"
-
+    KEYS="$*"
     # Intentionally unquoted so GPG gets the keys as separate arguments
 
     for key in $KEYS; do
         case $key in
-            $EAL_KEY_ID)
+            "$EAL_KEY_ID")
                 service_name="cc-eal";;
-            $ESM_INFRA_KEY_ID)
+            "$ESM_INFRA_KEY_ID")
                 service_name="esm-infra-trusty";;
-            $ESM_APPS_KEY_ID)
+            "$ESM_APPS_KEY_ID")
                 service_name="esm-apps";;
-            $FIPS_KEY_ID)
+            "$FIPS_KEY_ID")
                 service_name="fips";;  # Same FIPS key for any series
-            $CIS_KEY_ID)
+            "$CIS_KEY_ID")
                 service_name="cis";;
-            $ROS_KEY_ID)
+            "$ROS_KEY_ID")
                 service_name="ros";;
-            $REALTIME_KEY_ID)
+            "$REALTIME_KEY_ID")
                 service_name="realtime-kernel";;
             *)
                 echo "Unhandled key id provided: " $key
