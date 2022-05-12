@@ -16,7 +16,7 @@ fi
 
 UACLIENT_BEHAVE_BUILD_PR=${BUILD_PR} make test
 
-for key_name in `ls *pem`; do
+for key_name in *pem; do
     K=${key_name/ec2-/};
     python3 server-test-scripts/ubuntu-advantage-client/ec2_cleanup.py -t ${K%.pem} || true
 done;

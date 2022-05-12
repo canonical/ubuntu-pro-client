@@ -31,7 +31,7 @@ EOF
 }
 
 
-which build-package 2>&1 > /dev/null
+which build-package > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo "Missing build-package script."
     echo "Install with 'git clone git@github.com:CanonicalLtd/uss-tableflip.git'"
