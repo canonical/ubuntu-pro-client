@@ -30,9 +30,19 @@ class UpdateStatus(Enum):
 
 
 def get_origin_for_package(package: apt_package.Package) -> str:
+    """
+    Returns the origin for a package installed in the system.
+
+    Technically speaking, packages don't have origins - their versions do.
+    We check the available versions (installed, candidate) to determine the
+    most reasonable origin for the package.
+    """
     available_origins = package.installed.origins
 
-    # TODO: @Renan explain this
+    # If the installed version for a package has a single origin, it means that
+    # only the local dpkg reference is there. Then, we check if there is a
+    # candidate version. No candidate means we don't know anything about the
+    # package. Otherwise we check for the origins of the candidate version.
     if len(available_origins) == 1:
         if package.installed == package.candidate:
             return "unknown"
