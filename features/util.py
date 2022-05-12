@@ -91,6 +91,8 @@ def repo_state_hash(
         "features",
         "sru",
         "tools",
+        "docs",
+        "dev-docs",
     )
 ):
     """
