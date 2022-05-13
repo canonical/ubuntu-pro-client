@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from uaclient import apt, util
+from uaclient import apt, messages, util
 from uaclient.cli import action_config_set, configure_apt_proxy, main
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError, UserFacingError
@@ -21,19 +21,7 @@ positional arguments:
 Flags:
   -h, --help      show this help message and exit
 """
-APT_PROXY_WARNING_OUTPUT = """\
-Warning: Please consider using global_apt_http_proxy/global_apt_https_proxy
-instead of apt_http_proxy/apt_https_proxy
-when configuring a global apt proxy
-
-We will set the global_apt_http_proxy/global_apt_https_proxy.
-"""
-
 M_LIVEPATCH = "uaclient.entitlements.livepatch."
-APT_WARNING_PROXY_OVERWRITE = """\
-Warning: Setting the {current_proxy} proxy will overwrite the {previous_proxy}
-proxy previously set via `ua config`.
-"""
 
 
 @mock.patch("uaclient.cli.os.getuid", return_value=0)
@@ -159,10 +147,20 @@ class TestActionConfigSet:
             assert [] == configure_livepatch_proxy.call_args_list
 
     @pytest.mark.parametrize(
-        "key,value,scope",
+        "key,value,scope,protocol_type",
         (
-            ("apt_http_proxy", "http://proxy", apt.AptProxyScope.GLOBAL),
-            ("apt_https_proxy", "https://proxy", apt.AptProxyScope.GLOBAL),
+            (
+                "apt_http_proxy",
+                "http://proxy",
+                apt.AptProxyScope.GLOBAL,
+                "http",
+            ),
+            (
+                "apt_https_proxy",
+                "https://proxy",
+                apt.AptProxyScope.GLOBAL,
+                "https",
+            ),
         ),
     )
     @mock.patch("uaclient.cli.configure_apt_proxy")
@@ -177,6 +175,7 @@ class TestActionConfigSet:
         key,
         value,
         scope,
+        protocol_type,
         FakeConfig,
         capsys,
     ):
@@ -190,7 +189,12 @@ class TestActionConfigSet:
         assert [
             mock.call(cfg, apt.AptProxyScope.GLOBAL, global_eq, value)
         ] == configure_apt_proxy.call_args_list
-        assert APT_PROXY_WARNING_OUTPUT in out
+        assert (
+            messages.WARNING_APT_PROXY_SETUP.format(
+                protocol_type=protocol_type
+            )
+            in out
+        )
 
         proxy_type = key.replace("apt_", "")
         if proxy_type == "http_proxy":
@@ -295,7 +299,7 @@ class TestActionConfigSet:
                 mock.call(cfg, scope, key, value)
             ] == configure_apt_proxy.call_args_list
             assert (
-                APT_WARNING_PROXY_OVERWRITE.format(
+                messages.WARNING_APT_PROXY_OVERWRITE.format(
                     current_proxy="global apt", previous_proxy="ua scoped apt"
                 )
                 in out
@@ -406,7 +410,7 @@ class TestActionConfigSet:
                 mock.call(cfg, scope, key, value)
             ] == configure_apt_proxy.call_args_list
             assert (
-                APT_WARNING_PROXY_OVERWRITE.format(
+                messages.WARNING_APT_PROXY_OVERWRITE.format(
                     current_proxy="ua scoped apt", previous_proxy="global apt"
                 )
                 in out
@@ -415,7 +419,6 @@ class TestActionConfigSet:
             assert [
                 mock.call(cfg, apt.AptProxyScope.UACLIENT, key, value)
             ] == configure_apt_proxy.call_args_list
-        #        assert APT_PROXY_WARNING_OUTPUT in out
 
         proxy_type = key.replace("ua_apt_", "")
         if proxy_type == "http_proxy":

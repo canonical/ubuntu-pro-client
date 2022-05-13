@@ -751,12 +751,7 @@ LOG_CONNECTIVITY_ERROR_WITH_URL_TMPL = (
 
 SETTING_SERVICE_PROXY_SCOPE = "Setting {scope} APT proxy"
 WARNING_APT_PROXY_SETUP = """\
-Warning: Please consider using global_apt_http_proxy/global_apt_https_proxy
-instead of apt_http_proxy/apt_https_proxy
-when configuring a global apt proxy
-
-We will set the global_apt_http_proxy/global_apt_https_proxy.
-"""
+Warning: apt_{protocol_type}_proxy has been renamed to global_apt_{protocol_type}_proxy."""  # noqa: E501
 WARNING_APT_PROXY_OVERWRITE = """\
 Warning: Setting the {current_proxy} proxy will overwrite the {previous_proxy}
 proxy previously set via `ua config`.
