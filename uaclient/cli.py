@@ -901,14 +901,21 @@ def action_config_set(args, *, cfg, **kwargs):
     ):
         # setup_apt_proxy is destructive for unprovided values. Source complete
         # current config values from uaclient.conf before applying set_value.
-        if set_key in cfg.deprecated_global_scoped_proxy_options:
-            print(messages.WARNING_APT_PROXY_SETUP)
-            set_key = "global_" + set_key
-        protocol_type = set_key.split("_")[2]
+
+        protocol_type = "https" if "https" in set_key else "http"
         if protocol_type == "http":
             validate_url = util.PROXY_VALIDATION_APT_HTTP_URL
         else:
             validate_url = util.PROXY_VALIDATION_APT_HTTPS_URL
+
+        if set_key in cfg.deprecated_global_scoped_proxy_options:
+            print(
+                messages.WARNING_APT_PROXY_SETUP.format(
+                    protocol_type=protocol_type
+                )
+            )
+            set_key = "global_" + set_key
+
         util.validate_proxy(protocol_type, set_value, validate_url)
 
         unset_current = bool(cfg.ua_apt_http_proxy or cfg.ua_apt_https_proxy)
@@ -980,7 +987,12 @@ def action_config_unset(args, *, cfg, **kwargs):
         + cfg.global_scoped_proxy_options
     ):
         if args.key in cfg.deprecated_global_scoped_proxy_options:
-            event.info(messages.WARNING_APT_PROXY_SETUP)
+            protocol_type = "https" if "https" in args.key else "http"
+            event.info(
+                messages.WARNING_APT_PROXY_SETUP.format(
+                    protocol_type=protocol_type
+                )
+            )
             args.key = "global_" + args.key
         configure_apt_proxy(cfg, AptProxyScope.GLOBAL, args.key, None)
 
