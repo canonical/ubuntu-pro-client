@@ -27,7 +27,7 @@ jobs:
         run: tox -e mypy
   unit-tests:
     name: Unit
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Install dependencies
         run: |
@@ -39,5 +39,5 @@ jobs:
         run: |
           python3 -m venv unit-test-venv
           . unit-test-venv/bin/activate
-          pip install tox tox-pip-version
-          tox -e py3 -e py3-bionic -e py3-xenial
+          pip install tox tox-pip-version tox-setuptools-version
+          tox -e py3-test -e py38-test-bionic -e py38-test-xenial

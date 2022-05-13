@@ -161,9 +161,12 @@ The output file path/name can be changed using the `-o` option.
 
 ## Testing
 
-All unit and lint tests are run using `tox`. We also use `tox-pip-version` to specify an older pip version as a workaround: we have some required dependencies that can't meet the strict compatibility checks of current pip versions.
+All unit and lint tests are run using `tox`. We also use `tox-pip-version` and `tox-setuptools-version` to specify an older pip version as a workaround: we have some required dependencies that can't meet the strict compatibility checks of current pip/setuptools versions.
 
-First, install `tox` and `tox-pip-version` - you'll only have to do this once.
+The tests will run using your python3 installation. For the Xenial/Bionic, **it needs to be Python 3.8**: make sure you have it installed in your system.
+If Python 3.8 is not available from the repositories (too new or too old for your Ubuntu version), the [deadsnakes PPA](https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa) may be of help. You will need the `python3.8` and the `python3.8-distutils` packages.
+
+First, install `tox`, `tox-pip-version` and `tox-setuptools-version` - you'll only have to do this once.
 
 ```shell
 make testdeps
