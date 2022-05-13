@@ -47,6 +47,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 ### Tutorials
 
+* [Getting started with UA](./docs/tutorials/basic_ua_commands.md)
 * [Create a FIPS compliant Ubuntu Docker image](./docs/tutorials/create_a_fips_docker_image.md)
 
 ### How To Guides
