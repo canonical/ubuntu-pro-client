@@ -161,9 +161,9 @@ The output file path/name can be changed using the `-o` option.
 
 ## Testing
 
-All unit and lint tests are run using `tox`. We also use `tox-pip-version` to specify an older pip version as a workaround: we have some required dependencies that can't meet the strict compatibility checks of current pip versions.
+All unit and lint tests are run using `tox`. We also use `tox-setuptools-version` to specify the correct setuptools version based on what is present in each release.
 
-First, install `tox` and `tox-pip-version` - you'll only have to do this once.
+First, install `tox` and `tox-setuptools-version` - you'll only have to do this once.
 
 ```shell
 make testdeps
