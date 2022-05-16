@@ -5,6 +5,12 @@
 Developer documentation for the Ubuntu Advantage Client project. The topics cover
 from the architecture of the project to how you should test any code changes.
 
+### How to Guides
+
+* [Building](./dev-docs/howtoguides/building.md)
+* [Code Formatting](./dev-docs/howtoguides/code_formatting.md)
+* [Testing](./dev-docs/howtoguides/testing.md)
+
 ### Reference
 
 * [Terminology](./contributing-docs/references/terminology.md)
@@ -17,9 +23,6 @@ from the architecture of the project to how you should test any code changes.
 * [What happens during attach](./dev-docs/references/what_happens_during_attach.md)
 * [Enabling a service](./dev-docs/references/enabling_a_service.md)
 * [Directory layout](./dev-docs/references/directory_layout.md)
-* [Testing](./dev-docs/references/testing.md)
-* [Building](./dev-docs/references/building.md)
-* [Code Formatting](./dev-docs/references/code_formatting.md)
 * [Daily Builds](./dev-docs/references/daily_builds.md)
 
 ### Releasing ubuntu-advantage-tools
