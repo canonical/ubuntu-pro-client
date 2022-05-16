@@ -6,7 +6,7 @@ import random
 import re
 import string
 import textwrap
-from typing import Any, Dict, List, Optional, Tuple, Union  # noqa: F401
+from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
 import pycloudlib  # type: ignore
 from behave.model import Feature, Scenario
@@ -302,7 +302,7 @@ class UAClientBehaveConfig:
     def from_environ(cls, config) -> "UAClientBehaveConfig":
         """Gather config options from os.environ and return a config object"""
         # First, gather all known options
-        kwargs: Dict[str, Union[str, bool, "List"]] = {}
+        kwargs = {}  # type: Dict[str, Union[str, bool, List]]
         # Preserve cmdline_tags for reference
         if not config.tags.ands:
             kwargs["cmdline_tags"] = []
@@ -720,13 +720,13 @@ def _install_uat_in_container(
     :param config: UAClientBehaveConfig
     :param deb_paths: Optional paths to local deb files we need to install
     """
-    cmds: List[Any] = [["systemctl", "is-system-running", "--wait"]]
+    cmds = ["systemctl is-system-running --wait"]  # type:  List[str]
 
     if deb_paths is None:
         deb_paths = []
 
     if deb_paths:
-        cmds.append(["sudo", "apt-get", "update", "-qqy"])
+        cmds.append("sudo apt-get update -qqy")
 
         deb_files = []
         inst = config.cloud_api.get_instance(container_id)
@@ -759,7 +759,7 @@ def _install_uat_in_container(
         if "pro" in machine_type:
             ua_pkg.append("ubuntu-advantage-pro")
 
-        cmds.append(["sudo", "apt-get", "update"])
+        cmds.append("sudo apt-get update")
         cmds.append(
             " ".join(
                 [
@@ -789,7 +789,7 @@ def _install_uat_in_container(
         cmds.append("sudo ua status --wait")
         cmds.append("sudo ua detach --assume-yes")
 
-    cmds.append(["ua", "version"])
+    cmds.append("ua version")
     instance = config.cloud_api.get_instance(container_id)
     for cmd in cmds:  # type: ignore
         result = instance.execute(cmd)
