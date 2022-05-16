@@ -1,0 +1,8 @@
+attrs==19.3
+flake8==3.7.9
+py==1.8.1
+pycodestyle==2.5.0
+pyflakes==2.1.1
+pytest==4.6.9
+pytest-cov==2.8.1
+pyyaml==5.3.1
