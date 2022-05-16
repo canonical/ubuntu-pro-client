@@ -2,7 +2,9 @@ attrs==15.2
 flake8==2.5.4
 pep8==1.7.0
 py==1.4.31
-pyflakes==2.2.0
+# Xenial ships pyflakes 1.1.0, but there is a dependency mismatch between the
+# deb and the pip versions of flake8==2.5.4, which requires pyflakes.
+pyflakes==1.0.0
 pytest==2.8.7
 pytest-cov==2.2.1
 pyyaml==3.11

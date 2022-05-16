@@ -25,7 +25,6 @@ test:
 
 testdeps:
 	pip install tox
-	pip install tox-pip-version
 	pip install tox-setuptools-version
 
 .PHONY: build clean test testdeps
