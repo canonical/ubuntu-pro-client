@@ -21,12 +21,12 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
       - name: Git checkout
         uses: actions/checkout@v2
-      - name: Linting and style
-        run: tox -e flake8 -e black -e isort
-      - name: mypy
+      - name: Formatting
+        run: tox -e black -e isort
+      - name: Mypy
         run: tox -e mypy
   unit-tests:
-    name: Unit
+    name: Matrix
     strategy:
       matrix:
         testenv:
@@ -48,5 +48,7 @@ jobs:
           fi
       - name: Git checkout
         uses: actions/checkout@v2
-      - name: Run unit tests
+      - name: Flake8
+        run: tox -e "${{ matrix.testenv.pyver }}-flake8"
+      - name: Unit
         run: tox -e "${{ matrix.testenv.pyver }}-test"
