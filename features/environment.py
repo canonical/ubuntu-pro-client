@@ -13,7 +13,7 @@ from behave.model import Feature, Scenario
 from behave.runner import Context
 
 import features.cloud as cloud
-from features.util import build_debs, emit_spinner_on_travis, lxc_get_property
+from features.util import build_debs, lxc_get_property
 
 ALL_SUPPORTED_SERIES = ["bionic", "focal", "xenial"]
 
@@ -607,13 +607,11 @@ def build_debs_from_sbuild(context: Context, series: str) -> List[str]:
         logging.info(
             "--- Could not find any debs to reuse. Building it locally"
         )
-
-        with emit_spinner_on_travis("Building debs from local source... "):
-            deb_paths = build_debs(
-                series=series,
-                cache_source=context.config.cache_source,
-                chroot=context.config.sbuild_chroot,
-            )
+        deb_paths = build_debs(
+            series=series,
+            cache_source=context.config.cache_source,
+            chroot=context.config.sbuild_chroot,
+        )
 
     if "pro" in context.config.machine_type:
         return deb_paths
