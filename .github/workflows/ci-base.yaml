@@ -13,7 +13,7 @@ defaults:
 jobs:
   lint-and-style:
     name: Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Install dependencies
         run: |
@@ -27,17 +27,19 @@ jobs:
         run: tox -e mypy
   unit-tests:
     name: Unit
-    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        testenv:
+          - {os: ubuntu-18.04, pyver: py36}
+          - {os: ubuntu-20.04, pyver: py38}
+          - {os: ubuntu-22.04, pyver: py310}
+    runs-on: ${{ matrix.testenv.os }}
     steps:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install python3-venv
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
       - name: Git checkout
         uses: actions/checkout@v2
-      - name: Linting and style
-        run: |
-          python3 -m venv unit-test-venv
-          . unit-test-venv/bin/activate
-          pip install tox tox-pip-version
-          tox -e py3 -e py3-bionic -e py3-xenial
+      - name: Run unit tests
+        run: tox -e "${{ matrix.testenv.pyver }}-test"
