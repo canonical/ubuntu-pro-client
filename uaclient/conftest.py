@@ -107,6 +107,7 @@ def FakeConfig(tmpdir):
             cls,
             account_name: str = "test_account",
             machine_token: Dict[str, Any] = None,
+            status_cache: Dict[str, Any] = None,
         ):
             if not machine_token:
                 machine_token = {
@@ -133,8 +134,13 @@ def FakeConfig(tmpdir):
                         },
                     },
                 }
+
+            if not status_cache:
+                status_cache = {"attached": True}
+
             config = cls()
             config.write_cache("machine-token", machine_token)
+            config.write_cache("status-cache", status_cache)
             return config
 
         def override_features(self, features_override):

@@ -74,6 +74,32 @@ SECURITY_AFFECTED_PKGS = (
 USN_FIXED = "{issue} is addressed."
 CVE_FIXED = "{issue} is resolved."
 SECURITY_URL = "{issue}: {title}\nhttps://ubuntu.com/security/{url_path}"
+SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED = """\
+{bold}UA service: {{service}} is not enabled.
+To proceed with the fix, a prompt would ask permission to automatically enable
+this service.
+{{{{ ua enable {{service}} }}}}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_UA_NOT_ATTACHED = """\
+{bold}The machine is not attached to an Ubuntu Advantage (UA) subscription.
+To proceed with the fix, a prompt would ask for a valid UA token.
+{{ ua attach TOKEN }}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION = """\
+{bold}The machine has an expired subscription.
+To proceed with the fix, a prompt would ask for a new Ubuntu Advantage (UA)
+token to renew the subscription.
+{{ ua detach --assume-yes }}
+{{ ua attach NEW_TOKEN }}{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
+SECURITY_DRY_RUN_WARNING = """\
+{bold}WARNING: The option --dry-run is being used.
+No packages will be installed when running this command.{end_bold}""".format(
+    bold=TxtColor.BOLD, end_bold=TxtColor.ENDC
+)
 SECURITY_UA_SERVICE_NOT_ENABLED = """\
 Error: UA service: {service} is not enabled.
 Without it, we cannot fix the system."""
