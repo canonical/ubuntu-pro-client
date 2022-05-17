@@ -23,12 +23,7 @@ from features.environment import (
     capture_container_as_image,
     create_instance_with_uat_installed,
 )
-from features.util import (
-    SLOW_CMDS,
-    SafeLoaderWithoutDatetime,
-    emit_spinner_on_travis,
-    nullcontext,
-)
+from features.util import SafeLoaderWithoutDatetime
 from uaclient.defaults import DEFAULT_CONFIG_FILE, DEFAULT_MACHINE_TOKEN_PATH
 from uaclient.util import DatetimeAwareJSONDecoder
 
@@ -73,27 +68,24 @@ def given_a_machine(context, series):
 
     if context.config.snapshot_strategy:
         if series not in context.series_image_name:
-            with emit_spinner_on_travis():
-                build_container_name = add_test_name_suffix(
-                    context, series, IMAGE_BUILD_PREFIX
-                )
-                image_inst = create_instance_with_uat_installed(
-                    context, series, build_container_name
-                )
+            build_container_name = add_test_name_suffix(
+                context, series, IMAGE_BUILD_PREFIX
+            )
+            image_inst = create_instance_with_uat_installed(
+                context, series, build_container_name
+            )
 
-                image_name = add_test_name_suffix(
-                    context, series, IMAGE_PREFIX
-                )
-                image_inst_id = context.config.cloud_manager.get_instance_id(
-                    image_inst
-                )
-                image_id = capture_container_as_image(
-                    image_inst_id,
-                    image_name=image_name,
-                    cloud_api=context.config.cloud_api,
-                )
-                context.series_image_name[series] = image_id
-                image_inst.delete(wait=False)
+            image_name = add_test_name_suffix(context, series, IMAGE_PREFIX)
+            image_inst_id = context.config.cloud_manager.get_instance_id(
+                image_inst
+            )
+            image_id = capture_container_as_image(
+                image_inst_id,
+                image_name=image_name,
+                cloud_api=context.config.cloud_api,
+            )
+            context.series_image_name[series] = image_id
+            image_inst.delete(wait=False)
 
         inst = context.config.cloud_manager.launch(
             series=series,
@@ -330,17 +322,9 @@ def when_i_run_command(
             "<ci-proxy-ip>", context.instances["proxy"].ip
         )
     prefix = get_command_prefix_for_user_spec(user_spec)
-    slow_cmd_spinner = nullcontext
-    for slow_cmd in SLOW_CMDS:
-        if slow_cmd in command:
-            slow_cmd_spinner = emit_spinner_on_travis
-            break
 
     full_cmd = prefix + shlex.split(command)
-    with slow_cmd_spinner():
-        result = context.instances[instance_name].execute(
-            full_cmd, stdin=stdin
-        )
+    result = context.instances[instance_name].execute(full_cmd, stdin=stdin)
 
     process = subprocess.CompletedProcess(
         args=full_cmd,

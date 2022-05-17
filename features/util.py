@@ -16,7 +16,6 @@ LXC_PROPERTY_MAP = {
     "image": {"series": "properties.release", "machine_type": "Type"},
     "container": {"series": "image.release", "machine_type": "image.type"},
 }
-SLOW_CMDS = ["do-release-upgrade"]  # Commands which will emit dots on travis
 UA_TMP_DIR = os.path.join(tempfile.gettempdir(), "uaclient-behave")
 SOURCE_PR_TGZ = os.path.join(UA_TMP_DIR, "pr_source.tar.gz")
 SOURCE_PR_UNTAR_DIR = os.path.join(UA_TMP_DIR, "behave-ua-src")
@@ -279,52 +278,6 @@ def build_debs(
             shutil.copy(os.path.join(SBUILD_DIR, f), dest)
 
     return [tools_deb_cache_path, pro_deb_cache_path]
-
-
-# Support for python 3.6 or earlier
-@contextmanager
-def nullcontext(enter_result=None):
-    yield enter_result
-
-
-def spinning_cursor():
-    while True:
-        for cursor in "|/-\\":
-            yield cursor
-
-
-@contextmanager
-def emit_spinner_on_travis(msg: str = " "):
-    """
-    A context manager that emits a spinner updating 5 seconds if running on
-    Travis.
-
-    Travis will kill jobs that don't emit output for a certain amount of time.
-    This context manager spins up a background process which will emit a char
-    to stdout every 10 seconds to avoid being killed.
-
-    It should be wrapped selectively around operations that are known to take a
-    long time
-    """
-    if os.environ.get("TRAVIS") != "true":
-        # If we aren't on Travis, don't do anything.
-        yield
-        return
-
-    def emit_spinner():
-        print(msg, end="", flush=True)
-        spinner = spinning_cursor()
-        while True:
-            time.sleep(5)
-            print("\b%s" % next(spinner), end="", flush=True)
-
-    dot_process = multiprocessing.Process(target=emit_spinner)
-    dot_process.start()
-    try:
-        yield
-    finally:
-        print()
-        dot_process.terminate()
 
 
 class SafeLoaderWithoutDatetime(yaml.SafeLoader):
