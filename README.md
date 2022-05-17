@@ -66,6 +66,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [How to attach with a configuration file?](./docs/howtoguides/how_to_attach_with_config_file.md)
 * [How to collect UA logs?](./docs/howtoguides/how_to_collect_ua_logs.md)
 * [How to Simulate attach operation](./docs/howtoguides/how_to_simulate_attach.md)
+* [How to run ua fix in dry-run mode](./docs/howtoguides/how_to_run_ua_fix_in_dry_run_mode.md)
 
 ### Reference
 
