@@ -545,7 +545,12 @@ def get_related_usns(usn, client):
     return list(sorted(related_usns.values(), key=lambda x: x.id))
 
 
-def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
+def fix_security_issue_id(
+    cfg: UAConfig, issue_id: str, dry_run: bool = False
+) -> FixStatus:
+    if dry_run:
+        print(messages.SECURITY_DRY_RUN_WARNING)
+
     issue_id = issue_id.upper()
     client = UASecurityClient(cfg=cfg)
     installed_packages = query_installed_source_pkg_versions()
@@ -607,6 +612,7 @@ def fix_security_issue_id(cfg: UAConfig, issue_id: str) -> FixStatus:
         affected_pkg_status=affected_pkg_status,
         installed_packages=installed_packages,
         usn_released_pkgs=usn_released_pkgs,
+        dry_run=dry_run,
     )
 
 
@@ -829,6 +835,7 @@ def _handle_released_package_fixes(
     binary_pocket_pkgs: Dict[str, List[str]],
     pkg_index: int,
     num_pkgs: int,
+    dry_run: bool,
 ) -> ReleasedPackagesInstallResult:
     """Handle the packages that could be fixed and have a released status.
 
@@ -871,7 +878,10 @@ def _handle_released_package_fixes(
 
                 pkg_index += len(pkg_src_group)
                 upgrade_status &= upgrade_packages_and_attach(
-                    cfg, binary_pkgs, pocket
+                    cfg=cfg,
+                    upgrade_pkgs=binary_pkgs,
+                    pocket=pocket,
+                    dry_run=dry_run,
                 )
 
             if not upgrade_status:
@@ -912,6 +922,7 @@ def prompt_for_affected_packages(
     affected_pkg_status: Dict[str, CVEPackageStatus],
     installed_packages: Dict[str, Dict[str, str]],
     usn_released_pkgs: Dict[str, Dict[str, Dict[str, str]]],
+    dry_run: bool,
 ) -> FixStatus:
     """Process security CVE dict returning a CVEStatus object.
 
@@ -982,6 +993,7 @@ def prompt_for_affected_packages(
         binary_pocket_pkgs=binary_pocket_pkgs,
         pkg_index=pkg_index,
         num_pkgs=count,
+        dry_run=dry_run,
     )
 
     unfixed_pkgs += released_pkgs_install_result.unfixed_pkgs
@@ -1129,8 +1141,16 @@ def _prompt_for_enable(cfg: UAConfig, service: str) -> bool:
     return False
 
 
+def _check_attached(cfg: UAConfig, dry_run: bool) -> bool:
+    """Verify if machine is attached to an UA subscription."""
+    if dry_run:
+        print(messages.SECURITY_DRY_RUN_UA_NOT_ATTACHED)
+        return True
+    return _prompt_for_attach(cfg)
+
+
 def _check_subscription_for_required_service(
-    pocket: str, cfg: UAConfig
+    pocket: str, cfg: UAConfig, dry_run: bool
 ) -> bool:
     """Verify if the ua subscription has the required service enabled."""
     ent = _get_service_for_pocket(pocket, cfg)
@@ -1143,6 +1163,14 @@ def _check_subscription_for_required_service(
 
         applicability_status, _ = ent.applicability_status()
         if applicability_status == ApplicabilityStatus.APPLICABLE:
+            if dry_run:
+                print(
+                    messages.SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED.format(
+                        service=ent.name
+                    )
+                )
+                return True
+
             if _prompt_for_enable(cfg, ent.name):
                 return True
             else:
@@ -1190,21 +1218,31 @@ def _prompt_for_new_token(cfg: UAConfig) -> bool:
     return False
 
 
-def _check_subscription_is_expired(cfg: UAConfig) -> bool:
+def _check_subscription_is_expired(
+    status_cache: Dict[str, Any], cfg: UAConfig, dry_run: bool
+) -> bool:
     """Check if user UA subscription is expired.
 
     :returns: True if subscription is expired and not renewed.
     """
-    contract_expiry_datetime = cfg.contract_expiry_datetime
+    contract_expiry_datetime = status_cache.get("expires")
+    # If we don't have an expire information on the status-cache, we
+    # can assume that the machine is not attached.
+    if contract_expiry_datetime is None:
+        return False
+
     tzinfo = contract_expiry_datetime.tzinfo
     if contract_expiry_datetime < datetime.now(tzinfo):
+        if dry_run:
+            print(messages.SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION)
+            return False
         return not _prompt_for_new_token(cfg)
 
     return False
 
 
 def upgrade_packages_and_attach(
-    cfg: UAConfig, upgrade_packages: List[str], pocket: str
+    cfg: UAConfig, upgrade_pkgs: List[str], pocket: str, dry_run: bool
 ) -> bool:
     """Upgrade available packages to fix a CVE.
 
@@ -1213,23 +1251,30 @@ def upgrade_packages_and_attach(
 
     :return: True if package upgrade completed or unneeded, False otherwise.
     """
-    if not upgrade_packages:
+    if not upgrade_pkgs:
         return True
 
-    if os.getuid() != 0:
+    # If we are running on --dry-run mode, we don't need to be root
+    # to understand what will happen with the system
+    if os.getuid() != 0 and not dry_run:
         print(messages.SECURITY_APT_NON_ROOT)
         return False
 
     if pocket != UBUNTU_STANDARD_UPDATES_POCKET:
-        if not cfg.is_attached:
-            if not _prompt_for_attach(cfg):
-                return False  # User opted to cancel
-        elif _check_subscription_is_expired(cfg):
-            # UA subscription is expired and the user has not
-            # renewed it
+        # We are now using status-cache because non-root users won't
+        # have access to the private machine_token.json file. We
+        # can use the status-cache as a proxy for the attached
+        # information
+        status_cache = cfg.read_cache("status-cache") or {}
+        if not status_cache.get("attached", False):
+            if not _check_attached(cfg, dry_run):
+                return False
+        elif _check_subscription_is_expired(
+            status_cache=status_cache, cfg=cfg, dry_run=dry_run
+        ):
             return False
 
-        if not _check_subscription_for_required_service(pocket, cfg):
+        if not _check_subscription_for_required_service(pocket, cfg, dry_run):
             # User subscription does not have required service enabled
             return False
 
@@ -1238,16 +1283,19 @@ def upgrade_packages_and_attach(
             [
                 ["apt", "update", "&&"]
                 + ["apt", "install", "--only-upgrade", "-y"]
-                + sorted(upgrade_packages)
+                + sorted(upgrade_pkgs)
             ]
         )
     )
-    apt.run_apt_update_command()
-    apt.run_apt_command(
-        cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_packages,
-        error_msg=messages.APT_INSTALL_FAILED.msg,
-        env={"DEBIAN_FRONTEND": "noninteractive"},
-    )
+
+    if not dry_run:
+        apt.run_apt_update_command()
+        apt.run_apt_command(
+            cmd=["apt-get", "install", "--only-upgrade", "-y"] + upgrade_pkgs,
+            error_msg=messages.APT_INSTALL_FAILED.msg,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
+        )
+
     return True
 
 
