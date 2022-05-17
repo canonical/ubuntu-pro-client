@@ -563,6 +563,7 @@ class TestStatus:
         other_cfg = FakeConfig.for_attached_machine()
         cfg.write_cache("accounts", {"accounts": other_cfg.accounts})
         cfg.write_cache("machine-token", other_cfg.machine_token)
+        cfg.delete_cache_key("status-cache")
         assert status._attached_status(cfg=cfg) != before
 
         # Run as regular user and confirm that we see the result from

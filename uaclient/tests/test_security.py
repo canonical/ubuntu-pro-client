@@ -1,4 +1,5 @@
 import copy
+import datetime
 import textwrap
 from collections import defaultdict
 
@@ -18,6 +19,9 @@ from uaclient.messages import (
     PROMPT_ENTER_TOKEN,
     PROMPT_EXPIRED_ENTER_TOKEN,
     SECURITY_APT_NON_ROOT,
+    SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION,
+    SECURITY_DRY_RUN_UA_NOT_ATTACHED,
+    SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED,
     SECURITY_ISSUE_NOT_RESOLVED,
     SECURITY_SERVICE_DISABLED,
     SECURITY_UA_SERVICE_NOT_ENABLED,
@@ -36,6 +40,9 @@ from uaclient.security import (
     CVEPackageStatus,
     FixStatus,
     UASecurityClient,
+    _check_attached,
+    _check_subscription_for_required_service,
+    _check_subscription_is_expired,
     fix_security_issue_id,
     get_cve_affected_source_packages_status,
     get_related_usns,
@@ -985,6 +992,7 @@ class TestPromptForAffectedPackages:
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
         assert (
             "Error: USN-### metadata defines no fixed version for sl.\n"
@@ -1401,6 +1409,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
                 assert expected_ret == actual_ret
         out, err = capsys.readouterr()
@@ -1522,6 +1531,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
         out, err = capsys.readouterr()
         assert expected in out
@@ -1590,6 +1600,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
         out, err = capsys.readouterr()
         assert expected in out
@@ -1695,6 +1706,7 @@ A fix is available in Ubuntu standard updates.\n"""
                         affected_pkg_status=affected_pkg_status,
                         installed_packages=installed_packages,
                         usn_released_pkgs=usn_released_pkgs,
+                        dry_run=False,
                     )
         out, err = capsys.readouterr()
         assert expected in out
@@ -1790,6 +1802,7 @@ A fix is available in Ubuntu standard updates.\n"""
                         affected_pkg_status=affected_pkg_status,
                         installed_packages=installed_packages,
                         usn_released_pkgs=usn_released_pkgs,
+                        dry_run=False,
                     )
         out, err = capsys.readouterr()
         assert expected in out
@@ -1879,6 +1892,7 @@ A fix is available in Ubuntu standard updates.\n"""
                         affected_pkg_status=affected_pkg_status,
                         installed_packages=installed_packages,
                         usn_released_pkgs=usn_released_pkgs,
+                        dry_run=False,
                     )
         out, err = capsys.readouterr()
         assert expected in out
@@ -1950,10 +1964,9 @@ A fix is available in Ubuntu standard updates.\n"""
 
         cfg = FakeConfig()
         cfg.for_attached_machine(
-            machine_token={
-                "machineTokenInfo": {
-                    "contractInfo": {"effectiveTo": "1999-12-01T00:00:00Z"}
-                }
+            status_cache={
+                "expires": "1999-12-01T00:00:00Z",
+                "attached": True,
             }
         )
         with mock.patch("uaclient.util._subp", side_effect=_subp):
@@ -1969,6 +1982,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
 
         out, err = capsys.readouterr()
@@ -2021,10 +2035,9 @@ A fix is available in Ubuntu standard updates.\n"""
 
         cfg = FakeConfig()
         cfg.for_attached_machine(
-            machine_token={
-                "machineTokenInfo": {
-                    "contractInfo": {"effectiveTo": "1999-12-01T00:00:00Z"}
-                }
+            status_cache={
+                "expires": "1999-12-01T00:00:00Z",
+                "attached": True,
             }
         )
 
@@ -2041,6 +2054,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_packages,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
 
         out, err = capsys.readouterr()
@@ -2108,6 +2122,7 @@ A fix is available in Ubuntu standard updates.\n"""
                     affected_pkg_status=affected_pkg_status,
                     installed_packages=installed_pkgs,
                     usn_released_pkgs=usn_released_pkgs,
+                    dry_run=False,
                 )
                 assert exp_ret == actual_ret
         out, err = capsys.readouterr()
@@ -2173,6 +2188,7 @@ A fix is available in Ubuntu standard updates.\n"""
                 affected_pkg_status=affected_pkg_status,
                 installed_packages=installed_packages,
                 usn_released_pkgs=usn_released_pkgs,
+                dry_run=False,
             )
         out, err = capsys.readouterr()
         assert expected in out
@@ -2190,8 +2206,9 @@ class TestUpgradePackagesAndAttach:
 
         upgrade_packages_and_attach(
             cfg=None,
-            upgrade_packages=["t1", "t2"],
+            upgrade_pkgs=["t1", "t2"],
             pocket="Ubuntu standard updates",
+            dry_run=False,
         )
 
         out, err = capsys.readouterr()
@@ -2494,3 +2511,92 @@ class TestOverrideUSNReleasePackageStatus:
             assert override.response == orig_cve.response
         else:
             assert expected == override.response
+
+
+class TestCheckAttached:
+    def test_check_attached_print_message_and_succeed_on_dry_run(
+        self,
+        FakeConfig,
+        capsys,
+    ):
+        cfg = FakeConfig()
+        assert _check_attached(cfg, dry_run=True)
+
+        out, _ = capsys.readouterr()
+        assert SECURITY_DRY_RUN_UA_NOT_ATTACHED in out
+
+
+class TestCheckSubscriptionForRequiredService:
+    @mock.patch("uaclient.security._get_service_for_pocket")
+    def test_check_subscription_print_message_and_succeed_on_dry_run(
+        self,
+        m_get_service,
+        FakeConfig,
+        capsys,
+    ):
+        ent_mock = mock.MagicMock()
+        ent_mock.user_facing_status.return_value = (
+            UserFacingStatus.INACTIVE,
+            None,
+        )
+        ent_mock.applicability_status.return_value = (
+            ApplicabilityStatus.APPLICABLE,
+            None,
+        )
+        type(ent_mock).name = mock.PropertyMock(return_value="test")
+
+        m_get_service.return_value = ent_mock
+        cfg = FakeConfig()
+        assert _check_subscription_for_required_service(
+            pocket="", cfg=cfg, dry_run=True
+        )
+
+        out, _ = capsys.readouterr()
+        assert (
+            SECURITY_DRY_RUN_UA_SERVICE_NOT_ENABLED.format(service="test")
+            in out
+        )
+
+    @mock.patch("uaclient.security._get_service_for_pocket")
+    def test_check_subscription_when_service_enabled(
+        self, m_get_service, FakeConfig
+    ):
+        ent_mock = mock.MagicMock()
+        ent_mock.user_facing_status.return_value = (
+            UserFacingStatus.ACTIVE,
+            None,
+        )
+
+        m_get_service.return_value = ent_mock
+        cfg = FakeConfig()
+        assert _check_subscription_for_required_service(
+            pocket="", cfg=cfg, dry_run=False
+        )
+
+
+class TestCheckSubscriptionIsExpired:
+    def test_check_subscription_is_expired_passes_on_dry_run(
+        self, FakeConfig, capsys
+    ):
+        now = datetime.datetime.utcnow()
+        expire_date = now + datetime.timedelta(days=-10)
+        status_cache = {"expires": expire_date}
+
+        assert not _check_subscription_is_expired(
+            status_cache=status_cache, cfg=None, dry_run=True
+        )
+
+        out, _ = capsys.readouterr()
+        assert SECURITY_DRY_RUN_UA_EXPIRED_SUBSCRIPTION in out
+
+    @mock.patch("uaclient.security._prompt_for_new_token")
+    def test_check_subscription_is_expired(self, m_prompt, FakeConfig, capsys):
+        m_prompt.return_value = False
+        now = datetime.datetime.utcnow()
+        expire_date = now + datetime.timedelta(days=-10)
+        status_cache = {"expires": expire_date}
+
+        assert _check_subscription_is_expired(
+            status_cache=status_cache, cfg=None, dry_run=False
+        )
+        assert 1 == m_prompt.call_count
