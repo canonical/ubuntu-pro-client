@@ -422,6 +422,16 @@ def fix_parser(parser):
             " Format: CVE-yyyy-nnnn, CVE-yyyy-nnnnnnn or USN-nnnn-dd"
         ),
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help=(
+            "If used, fix will not actually run but will display"
+            " everything that will happen on the machine during the"
+            " command."
+        ),
+    )
+
     return parser
 
 
@@ -506,7 +516,11 @@ def action_fix(args, *, cfg, **kwargs):
         ).format(args.security_issue)
         raise exceptions.UserFacingError(msg)
 
-    fix_status = security.fix_security_issue_id(cfg, args.security_issue)
+    fix_status = security.fix_security_issue_id(
+        cfg=cfg,
+        issue_id=args.security_issue,
+        dry_run=args.dry_run,
+    )
     return fix_status.value
 
 
