@@ -161,15 +161,18 @@ The output file path/name can be changed using the `-o` option.
 
 ## Testing
 
-All unit and lint tests are run using `tox`. We also use `tox-setuptools-version` to specify the correct setuptools version based on what is present in each release.
+All unit and lint tests are run using `tox`, with different versions of Python with specific constraints. We also use `tox-setuptools-version` to specify the correct setuptools version based on what is present in each release, and `tox-pyenv` to recognize the different local [pyenv interpreters](https://github.com/pyenv/pyenv).
 
-First, install `tox` and `tox-setuptools-version` - you'll only have to do this once.
+First, run the script to install and configure `pyenv`, and the `tox` dependencies:
 
 ```shell
-make testdeps
+./tools/setup_pyenv.sh
 ```
 
-Then you can run the unit and lint tests:
+After that you need to [set up your shell environment](https://github.com/pyenv/pyenv#set-up-your-shell-environment-for-pyenv), according to the pyenv documentation.
+The guide has quick snippets to configure `bash`, `zsh` and `fish` shells.
+
+Refresh your terminal to make sure pyenv is working. Then you can run the unit and lint tests:
 
 ```shell
 tox
