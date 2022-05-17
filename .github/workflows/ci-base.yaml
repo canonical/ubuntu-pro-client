@@ -30,6 +30,7 @@ jobs:
     strategy:
       matrix:
         testenv:
+          - {os: ubuntu-18.04, pyver: py35, deadsnake: python3.5}
           - {os: ubuntu-18.04, pyver: py36}
           - {os: ubuntu-20.04, pyver: py38}
           - {os: ubuntu-22.04, pyver: py310}
@@ -39,6 +40,12 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy update
           sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install tox
+
+          # Install deadsnake if one is specified
+          if [ "${{ matrix.testenv.deadsnake }}" ]; then
+              sudo add-apt-repository --yes ppa:deadsnakes/ppa
+              sudo DEBIAN_FRONTEND=noninteractive apt-get -qy install "${{ matrix.testenv.deadsnake }}"
+          fi
       - name: Git checkout
         uses: actions/checkout@v2
       - name: Run unit tests
