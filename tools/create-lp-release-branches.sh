@@ -1,10 +1,15 @@
 #!/usr/bin/bash
 
-DRY_RUN_USAGE="usage: env DEVEL_RELEASE=impish UA_VERSION=27.3 SRU_BUG=1942929 LP_USER=username bash tools/create-lp-release-branches.sh"
-DO_IT_USAGE="usage: env DO_IT=1 DEVEL_RELEASE=impish UA_VERSION=27.3 SRU_BUG=1942929 LP_USER=username bash tools/create-lp-release-branches.sh"
+DRY_RUN_USAGE="usage: env DEVEL_RELEASE=kinetic RELEASES=\"xenial bionic focal impish jammy\" UA_VERSION=27.3 SRU_BUG=1942929 LP_USER=username bash tools/create-lp-release-branches.sh"
+DO_IT_USAGE="usage: env DO_IT=1 DEVEL_RELEASE=kinetic RELEASES=\"xenial bionic focal impish jammy\" UA_VERSION=27.3 SRU_BUG=1942929 LP_USER=username bash tools/create-lp-release-branches.sh"
 
 if [ -z "$DEVEL_RELEASE" ]; then
   echo "please set DEVEL_RELEASE"
+  echo "$DRY_RUN_USAGE"
+  exit 1
+fi
+if [ -z "$RELEASES" ]; then
+  echo "please set RELEASES"
   echo "$DRY_RUN_USAGE"
   exit 1
 fi
@@ -32,7 +37,7 @@ else
   set -e
 fi
 
-for release in xenial bionic focal impish
+for release in $RELEASES
 do
   echo
   echo $release
@@ -49,6 +54,8 @@ do
       bionic) version=${UA_VERSION}~18.04.1;;
       focal) version=${UA_VERSION}~20.04.1;;
       impish) version=${UA_VERSION}~21.10.1;;
+      jammy) version=${UA_VERSION}~22.04.1;;
+      kinetic) version=${UA_VERSION}~22.10.1;;
   esac
   dch_cmd=(dch -v "${version}" -D "${release}" -b  "Backport new upstream release: (LP: #${SRU_BUG}) to $release")
   if [ -z "$DO_IT" ]; then
