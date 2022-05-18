@@ -486,8 +486,10 @@ class GCP(Cloud):
         if self.service_account_email:
             return
 
-        gcp_credentials_path = credentials.get("gce", {}).get(
-            "credentials_path"
+        gcp_credentials_path = os.path.expandvars(
+            os.path.expanduser(
+                credentials.get("gce", {}).get("credentials_path")
+            )
         )
         if gcp_credentials_path:
             with open(gcp_credentials_path, "r") as f:
