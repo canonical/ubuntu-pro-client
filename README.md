@@ -49,6 +49,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 
 * [Getting started with UA](./docs/tutorials/basic_ua_commands.md)
 * [Create a FIPS compliant Ubuntu Docker image](./docs/tutorials/create_a_fips_docker_image.md)
+* [Fixing vulnerabilities by CVE or USN using `ua fix`](./docs/tutorials/ua_fix_scenarios.md)
 
 ### How To Guides
 
