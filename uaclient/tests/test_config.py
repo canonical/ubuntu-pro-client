@@ -21,7 +21,7 @@ from uaclient.config import (
     get_config_path,
     parse_config,
 )
-from uaclient.defaults import CONFIG_DEFAULTS, DEFAULT_CONFIG_FILE
+from uaclient.defaults import DEFAULT_CONFIG_FILE
 from uaclient.entitlements import valid_services
 from uaclient.entitlements.entitlement_status import ApplicationStatus
 
@@ -280,21 +280,18 @@ class TestUAConfigKeys:
 
 
 class TestWriteCfg:
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @pytest.mark.parametrize(
-        "orig_content, expected, warnings",
+        "orig_content, expected",
         (
             (
                 CFG_BASE_CONTENT,
                 CFG_BASE_CONTENT
                 + yaml.dump(UA_CFG_DICT, default_flow_style=False),
-                [],
             ),
             (  # Yaml output is sorted alphabetically by key
                 "\n".join(sorted(CFG_BASE_CONTENT.splitlines(), reverse=True)),
                 CFG_BASE_CONTENT
                 + yaml.dump(UA_CFG_DICT, default_flow_style=False),
-                [],
             ),
             # Any custom comments or unrecognized config keys are dropped
             (
@@ -302,10 +299,6 @@ class TestWriteCfg:
                 + CFG_BASE_CONTENT,
                 CFG_BASE_CONTENT
                 + yaml.dump(UA_CFG_DICT, default_flow_style=False),
-                [
-                    "Ignoring invalid uaclient.conf key:"
-                    " unknown-keys-not-preserved=True"
-                ],
             ),
             # All features/settings_overrides ordered after ua_config
             (
@@ -314,7 +307,6 @@ class TestWriteCfg:
                 " show_beta: true\nsettings_overrides:\n d: 2\n c: 1\n",
                 CFG_FEATURES_CONTENT
                 + yaml.dump(UA_CFG_DICT, default_flow_style=False),
-                [],
             ),
             (
                 "settings_overrides:\n c: 1\n d: 2\nfeatures:\n"
@@ -323,23 +315,19 @@ class TestWriteCfg:
                 + CFG_BASE_CONTENT,
                 CFG_FEATURES_CONTENT
                 + yaml.dump(UA_CFG_DICT, default_flow_style=False),
-                [],
             ),
         ),
     )
     def test_write_cfg_reads_cfg_andpersists_structured_content_to_config_path(
-        self, orig_content, warnings, expected, caplog_text, tmpdir
+        self, orig_content, expected, tmpdir
     ):
         """write_cfg writes structured, ordered config YAML to config_path."""
         orig_conf = tmpdir.join("orig_uaclient.conf")
         orig_conf.write(orig_content)
-        cfg = UAConfig(cfg=parse_config(orig_conf.strpath))
+        cfg = UAConfig(cfg=parse_config(orig_conf.strpath)[0])
         out_conf = tmpdir.join("uaclient.conf")
         cfg.write_cfg(out_conf.strpath)
         assert expected == out_conf.read()
-        warn_logs = caplog_text()
-        for warning in warnings:
-            assert warning in warn_logs
 
 
 class TestWriteCache:
@@ -1051,7 +1039,7 @@ class TestParseConfig:
     ):
         cwd = os.getcwd()
         with mock.patch.dict("uaclient.config.os.environ", values={}):
-            config = parse_config()
+            config, _ = parse_config()
         expected_calls = [
             mock.call("{}/uaclient.conf".format(cwd)),
             mock.call("/etc/ubuntu-advantage/uaclient.conf"),
@@ -1068,38 +1056,28 @@ class TestParseConfig:
         }
         assert expected_default_config == config
 
-    @pytest.mark.parametrize("caplog_text", [logging.WARNING], indirect=True)
     @pytest.mark.parametrize(
-        "config_dict,warnings",
+        "config_dict,expected_invalid_keys",
         (
             ({"contract_url": "http://abc", "security_url": "http:xyz"}, []),
             (
                 {"contract_urs": "http://abc", "security_url": "http:xyz"},
-                [
-                    "Ignoring invalid uaclient.conf key:"
-                    " contract_urs=http://abc\n"
-                ],
+                ["contract_urs"],
             ),
         ),
     )
-    def test_parse_config_warns_and_ignores_invalid_config(
-        self, config_dict, warnings, caplog_text, tmpdir
+    def test_parse_config_returns_invalid_keys(
+        self, config_dict, expected_invalid_keys, tmpdir
     ):
         config_file = tmpdir.join("uaclient.conf")
         config_file.write(yaml.dump(config_dict))
         env_vars = {"UA_CONFIG_FILE": config_file.strpath}
         with mock.patch.dict("uaclient.config.os.environ", values=env_vars):
-            cfg = parse_config(config_file.strpath)
-        expected = copy.deepcopy(CONFIG_DEFAULTS)
+            cfg, invalid_keys = parse_config(config_file.strpath)
+        assert set(expected_invalid_keys) == invalid_keys
         for key, value in config_dict.items():
             if key in VALID_UA_CONFIG_KEYS:
-                expected[key] = config_dict[key]
-        warn_logs = caplog_text()
-        for warning in warnings:
-            assert warning in warn_logs
-        if not warnings:
-            assert "Ignoring invalid uaclient.conf key" not in warn_logs
-        assert expected == cfg
+                assert config_dict[key] == cfg[key]
 
     @pytest.mark.parametrize(
         "envvar_name,envvar_val,field,expected_val",
@@ -1141,7 +1119,7 @@ class TestParseConfig:
     ):
         user_values = {envvar_name: envvar_val}
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
-            config = parse_config()
+            config, _ = parse_config()
         assert expected_val == config[field]
 
     @mock.patch("uaclient.config.os.path.exists", return_value=False)
@@ -1151,7 +1129,7 @@ class TestParseConfig:
             "UA_FEATURES_A_B_C": "ABC_VAL",
         }
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
-            config = parse_config()
+            config, _ = parse_config()
         expected_config = {
             "features": {"a_b_c": "ABC_VAL", "x_y_z": "XYZ_VAL"}
         }
@@ -1183,7 +1161,7 @@ class TestParseConfig:
 
         user_values = {"UA_FEATURES_TEST": "test.yaml"}
         with mock.patch.dict("uaclient.config.os.environ", values=user_values):
-            cfg = parse_config()
+            cfg, _ = parse_config()
 
         assert {"test": True, "foo": "bar"} == cfg["features"]["test"]
 
