@@ -1871,9 +1871,14 @@ def main(sys_argv=None):
     log_level = cfg.log_level
     console_level = logging.DEBUG if args.debug else logging.INFO
     setup_logging(console_level, log_level, cfg.log_file)
+
     logging.debug(
         util.redact_sensitive_logs("Executed with sys.argv: %r" % sys_argv)
     )
+
+    with util.disable_log_to_console():
+        cfg.warn_about_invalid_keys()
+
     ua_environment = [
         "{}={}".format(k, v)
         for k, v in sorted(os.environ.items())
