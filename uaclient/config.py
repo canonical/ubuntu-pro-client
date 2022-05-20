@@ -109,9 +109,10 @@ class UAConfig:
         if cfg:
             self.cfg_path = None
             self.cfg = cfg
+            self.invalid_keys = None
         else:
             self.cfg_path = get_config_path()
-            self.cfg = parse_config(self.cfg_path)
+            self.cfg, self.invalid_keys = parse_config(self.cfg_path)
 
         self.series = series
 
@@ -767,6 +768,13 @@ class UAConfig:
         content += yaml.dump(cfg_dict, default_flow_style=False)
         util.write_file(config_path, content)
 
+    def warn_about_invalid_keys(self):
+        if self.invalid_keys is not None:
+            for invalid_key in sorted(self.invalid_keys):
+                logging.warning(
+                    "Ignoring invalid uaclient.conf key: %s", invalid_key
+                )
+
 
 def get_config_path() -> str:
     """Get config path to be used when loading config dict."""
@@ -839,13 +847,12 @@ def parse_config(config_path=None):
             raise exceptions.UserFacingError(
                 "Invalid url in config. {}: {}".format(key, cfg[key])
             )
-    # log about invalid keys before ignoring
-    for key in sorted(set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS)):
-        logging.warning(
-            "Ignoring invalid uaclient.conf key: %s=%s", key, cfg.pop(key)
-        )
 
-    return cfg
+    invalid_keys = set(cfg.keys()).difference(VALID_UA_CONFIG_KEYS)
+    for invalid_key in invalid_keys:
+        cfg.pop(invalid_key)
+
+    return cfg, invalid_keys
 
 
 def apply_config_settings_override(override_key: str):
@@ -864,7 +871,7 @@ def apply_config_settings_override(override_key: str):
     def wrapper(f):
         @wraps(f)
         def new_f():
-            cfg = parse_config()
+            cfg, _ = parse_config()
             value_override = cfg.get("settings_overrides", {}).get(
                 override_key, UNSET_SETTINGS_OVERRIDE_KEY
             )
