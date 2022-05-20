@@ -7,9 +7,13 @@
 </h1>
 
 ###### Clean and Consistent CLI for your Ubuntu Advantage Systems
-
-![Latest Version](https://img.shields.io/github/v/tag/canonical/ubuntu-advantage-client.svg?label=Latest%20Version)
+![Latest Upstream Version](https://img.shields.io/github/v/tag/canonical/ubuntu-advantage-client.svg?label=Latest%20Upstream%20Version&logo=github&logoColor=white&color=33ce57)
 ![CI](https://github.com/canonical/ubuntu-advantage-client/actions/workflows/ci-base.yaml/badge.svg?branch=main)
+<br/>
+![Released Xenial Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/xenial?label=Xenial&logo=ubuntu&logoColor=white)
+![Released Bionic Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/bionic?label=Bionic&logo=ubuntu&logoColor=white)
+![Released Focal Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/focal?label=Focal&logo=ubuntu&logoColor=white)
+![Released Jammy Version](https://img.shields.io/ubuntu/v/ubuntu-advantage-tools/jammy?label=Jammy&logo=ubuntu&logoColor=white)
 
 The Ubuntu Advantage (UA) Client provides users with a simple mechanism to
 view, enable, and disable offerings from Canonical on their system. The
