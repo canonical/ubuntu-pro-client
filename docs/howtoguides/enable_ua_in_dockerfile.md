@@ -1,13 +1,14 @@
 # How to Enable Ubuntu Advantage Services in a Dockerfile
 
-> Requires UA Client version 27.7
+> Requires at least UA Client version 27.7
 
 Ubuntu Advantage (UA) comes with several services, some of which can be useful in docker. For example, Extended Security Maintenance of packages and FIPS certified packages may be desirable in a docker image. In this how-to-guide, we show how you can use the `ua` tool to take advantage of these services in your Dockerfile.
 
 
 ## Step 1: Create a UA Attach Config file
 
-> Warning: the UA Attach Config file will contain your UA Contract token and should be treated as a secret file.
+> **Note**
+> The UA Attach Config file will contain your UA Contract token and should be treated as a secret file.
 
 An attach config file for ua is a yaml file that specifies some options when running `ua attach`. The file has two fields, `token` and `enable_services` and looks something like this:
 
@@ -108,7 +109,8 @@ An important point to note about the above Dockerfile is that all of the `apt` a
 1. Prevents any UA Subscription-related tokens and secrets from being leaked in an image layer
 2. Keeps the image as small as possible by cleaning up extra packages and files before the layer is finished.
 
-> Note: These benefits could also be attained by squashing the image.
+> **Note**
+> These benefits could also be attained by squashing the image.
 
 ## Step 3: Build the Docker image
 
