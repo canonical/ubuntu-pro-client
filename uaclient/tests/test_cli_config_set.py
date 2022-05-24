@@ -7,7 +7,7 @@ from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError, UserFacingError
 
 HELP_OUTPUT = """\
-usage: ua set <key>=<value> [flags]
+usage: pro set <key>=<value> [flags]
 
 Set and apply Ubuntu Advantage configuration settings
 

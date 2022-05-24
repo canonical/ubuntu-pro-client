@@ -6,7 +6,7 @@ from uaclient.entitlements.entitlement_status import ApplicationStatus
 from uaclient.exceptions import NonRootUserError
 
 HELP_OUTPUT = """\
-usage: ua unset <key> [flags]
+usage: pro unset <key> [flags]
 
 Unset Ubuntu Advantage configuration setting
 

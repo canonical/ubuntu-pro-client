@@ -11,7 +11,7 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+> [flags]
+usage: pro fix <CVE-yyyy-nnnn+>|<USN-nnnn-d+> [flags]
 
 Inspect and resolve CVEs and USNs (Ubuntu Security Notices) on this machine.
 
