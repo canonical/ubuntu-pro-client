@@ -621,7 +621,7 @@ class TestActionAttach:
 class TestParser:
     def test_attach_parser_usage(self, _m_resources):
         parser = attach_parser(mock.Mock())
-        assert "ua attach <token> [flags]" == parser.usage
+        assert "pro attach <token> [flags]" == parser.usage
 
     def test_attach_parser_prog(self, _m_resources):
         parser = attach_parser(mock.Mock())

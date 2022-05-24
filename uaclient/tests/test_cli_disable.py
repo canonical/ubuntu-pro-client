@@ -28,7 +28,7 @@ ALL_SERVICE_MSG = "\n".join(
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua disable <service> [<service>] [flags]
+usage: pro disable <service> [<service>] [flags]
 
 Disable an Ubuntu Advantage service.
 

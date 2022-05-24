@@ -684,7 +684,7 @@ class TestMain:
         assert (
             textwrap.dedent(
                 """\
-            usage: ua enable <service> [<service>] [flags]
+            usage: pro enable <service> [<service>] [flags]
             the following arguments are required: service
         """
             )
