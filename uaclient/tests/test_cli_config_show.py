@@ -6,7 +6,7 @@ from uaclient.cli import action_config_show, main
 M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = """\
-usage: ua config <command> [flags]
+usage: pro config <command> [flags]
 
 Manage Ubuntu Advantage configuration
 
@@ -56,7 +56,7 @@ class TestMainConfigShow:
         out, err = capsys.readouterr()
         assert "" == out
         expected_logs = [
-            "usage: ua config <command> [flags]",
+            "usage: pro config <command> [flags]",
             "argument : invalid choice: 'invalid' (choose from 'show', 'set',"
             " 'unset')",
         ]

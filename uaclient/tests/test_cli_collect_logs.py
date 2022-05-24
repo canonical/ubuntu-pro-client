@@ -16,7 +16,7 @@ M_PATH = "uaclient.cli."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua collect-logs \[flags\]
+usage: pro collect-logs \[flags\]
 
 Collect UA logs and relevant system information into a tarball.
 
@@ -166,7 +166,7 @@ class TestParser:
     ):
         """Update the parser configuration for 'collect-logs'."""
         m_parser = collect_logs_parser(mock.Mock())
-        assert "ua collect-logs [flags]" == m_parser.usage
+        assert "pro collect-logs [flags]" == m_parser.usage
         assert "collect-logs" == m_parser.prog
 
         full_parser = get_parser(FakeConfig())
