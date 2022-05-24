@@ -5,7 +5,7 @@ from uaclient import exceptions, messages
 from uaclient.cli import action_refresh, main
 
 HELP_OUTPUT = """\
-usage: ua refresh [contract|config|messages] [flags]
+usage: pro refresh [contract|config|messages] [flags]
 
 Refresh three distinct UA related artifacts in the system:
 

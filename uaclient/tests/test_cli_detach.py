@@ -409,7 +409,7 @@ class TestActionDetach:
 class TestParser:
     def test_detach_parser_usage(self):
         parser = detach_parser(mock.Mock())
-        assert "ua detach [flags]" == parser.usage
+        assert "pro detach [flags]" == parser.usage
 
     def test_detach_parser_prog(self):
         parser = detach_parser(mock.Mock())
