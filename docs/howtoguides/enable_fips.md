@@ -9,16 +9,14 @@ Alternatively, enable FIPS using the UA client will install a FIPS-certified ker
 packages such as openssh-server/client and libssl. Note: disabling FIPS on an image is not yet
 supported
 
-```
-Warning: Enabling FIPS should be performed during a system maintenance window because this operation
-makes changes to underlying SSL related libraries and requires a reboot into the FIPS certified
-kernel.
-```
+> **Warning**
+> Enabling FIPS should be performed during a system maintenance window because this operation
+> makes changes to underlying SSL related libraries and requires a reboot into the FIPS certified
+> kernel.
 
-```
-Note: Disabling FIPS is not currently supported, only use it on machines intended expressly for this
-purpose.
-```
+> **Note**
+> Disabling FIPS is not currently supported, only use it on machines intended expressly for this
+> purpose.
 
 To enable, run:
 
