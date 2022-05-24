@@ -65,7 +65,7 @@ from uaclient.jobs.update_messaging import (
     update_apt_and_motd_messages,
 )
 
-NAME = "ua"
+NAME = "pro"
 
 USAGE_TMPL = "{name} {command} [flags]"
 EPILOG_TMPL = (
@@ -1864,7 +1864,7 @@ def main(sys_argv=None):
     cli_arguments = sys_argv[1:]
     if not cli_arguments:
         parser.print_usage()
-        print("Try 'ua --help' for more information.")
+        print("Try 'pro --help' for more information.")
         sys.exit(1)
     args = parser.parse_args(args=cli_arguments)
     set_event_mode(args)

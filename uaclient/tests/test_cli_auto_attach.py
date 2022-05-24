@@ -28,7 +28,7 @@ M_ID_PATH = "uaclient.clouds.identity."
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua auto-attach [flags]
+usage: pro auto-attach [flags]
 
 Automatically attach an Ubuntu Advantage token on Ubuntu Pro images.
 
@@ -279,7 +279,7 @@ class TestParser:
     ):
         """Update the parser configuration for 'auto-attach'."""
         m_parser = auto_attach_parser(mock.Mock())
-        assert "ua auto-attach [flags]" == m_parser.usage
+        assert "pro auto-attach [flags]" == m_parser.usage
         assert "auto-attach" == m_parser.prog
         assert "Flags" == m_parser._optionals.title
 
