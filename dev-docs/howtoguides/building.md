@@ -9,9 +9,10 @@ packages the way you would normally build a Debian package:
 dpkg-buildpackage -us -uc
 ```
 
-**Note** It will build the packages with dependencies for the Ubuntu release on
-which you are building, so it's best to build in a container or kvm for the
-release you are targeting.
+> **Note**
+> It will build the packages with dependencies for the Ubuntu release on
+> which you are building, so it's best to build in a container or kvm for the
+> release you are targeting.
 
 OR, if you want to build for a target release other than the release
 you're on:
@@ -32,7 +33,8 @@ sbuild --dist=<target> ../ubuntu-advantage-tools_*.dsc
 sbuild-launchpad-chroot create --architecture="riscv64" "--name=focal-riscv64" "--series=focal
 ```
 
-> Note: Every so often, it is recommended to update your chroots.
+> **Note**
+> Every so often, it is recommended to update your chroots.
 > ```bash
 > # to update a single chroot
 > sudo sbuild-launchpad-chroot update -n ua-xenial-amd64
