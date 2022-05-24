@@ -14,7 +14,7 @@ from uaclient.entitlements.entitlement_status import (
 )
 
 HELP_OUTPUT = """\
-usage: ua enable <service> [<service>] [flags]
+usage: pro enable <service> [<service>] [flags]
 
 Enable an Ubuntu Advantage service.
 

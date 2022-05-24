@@ -215,7 +215,7 @@ SERVICES_JSON_ALL = [
 
 HELP_OUTPUT = textwrap.dedent(
     """\
-usage: ua status [flags]
+usage: pro status [flags]
 
 Report current status of Ubuntu Advantage services on system.
 
