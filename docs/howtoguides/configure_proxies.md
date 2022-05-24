@@ -49,31 +49,21 @@ After running the above commands, UA client:
 2. Configures APT to use the given proxy by writing an apt configuration file to
    `/etc/apt/apt.conf.d/90ubuntu-advantage-aptproxy`.
 
-```
-Note: Any configuration file that comes later in the apt.conf.d
-directory could override the proxy configured by the UA client.
-```
-
-```
-Note: On cloud Ubuntu PRO images in network-limited
-environments with UA client older than version 27.4, ensure
-to set a no_proxy=metadata,169.254.169.254 to ensure the
-launched image doesn’t attempt to use a proxy to talk to
-cloud-specific link-local metadata services.
-```
+> **Note**
+> Any configuration file that comes later in the apt.conf.d
+> directory could override the proxy configured by the UA client.
 
 To remove the APT proxy configuration, run the following:
 
 $ sudo ua config unset apt\_http\_proxy
 $ sudo ua config unset apt\_https\_proxy
 
-```
-Note: Starting in to-be-released Version 27.9, APT proxies config options will
-change. You will be able to set global apt proxies that affect the whole system
-using the fields `global_apt_http_proxy` and `global_apt_https_proxy`.
-Alternatively, you could set apt proxies only for UA related services with the
-fields `ua_apt_http_proxy` and `ua_apt_https_proxy`.
-```
+> **Note**
+> Starting in to-be-released Version 27.9, APT proxies config options will
+> change. You will be able to set global apt proxies that affect the whole system
+> using the fields `global_apt_http_proxy` and `global_apt_https_proxy`.
+> Alternatively, you could set apt proxies only for UA related services with the
+> fields `ua_apt_http_proxy` and `ua_apt_https_proxy`.
 
 ## Authenticating
 

@@ -1,6 +1,6 @@
 # Create an Ubuntu FIPS Docker image
 
-> Requires UA Client version 27.7
+> Requires at least UA Client version 27.7
 
 ## Step 1: Acquire your Ubuntu Advantage (UA) token
 
@@ -8,7 +8,8 @@ Your UA token can be found on your Ubuntu Advantage dashboard. To access your da
 
 The Ubuntu One account functions as a Single Sign On, so once logged in we can go straight to the Ubuntu Advantage dashboard at [ubuntu.com/advantage](https://ubuntu.com/advantage). Then we should see a list of our subscriptions (including the free for personal use subscription) in the left-hand column. Click on the subscription that you wish to use for this tutorial if it is not already selected. On the right we will now see the details of our subscription including our secret token under the "Subscription" header next to the "🔗" symbol.
 
-> Warning: The UA token should be kept secret. It is used to uniquely identify your Ubuntu Advantage subscription.
+> **Note**
+> The UA token should be kept secret. It is used to uniquely identify your Ubuntu Advantage subscription.
 
 ## Step 2: Create a UA Attach Config file
 
@@ -74,7 +75,8 @@ This will pass the attach-config as a [BuildKit Secret](https://docs.docker.com/
 
 ## Step 5: Test the Docker image
 
-> Warning: The docker image isn't considered fully FIPS compliant unless it is running on a host Ubuntu machine that is FIPS compliant.
+> **Warning**
+> The docker image isn't considered fully FIPS compliant unless it is running on a host Ubuntu machine that is FIPS compliant.
 
 Let's check to make sure the FIPS version of openssl is installed in the container.
 
