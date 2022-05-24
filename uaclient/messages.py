@@ -864,7 +864,7 @@ Enter your token (from {}) to attach this system:""".format(
 PROMPT_EXPIRED_ENTER_TOKEN = """\
 Enter your new token to renew UA subscription on this system:"""
 PROMPT_UA_SUBSCRIPTION_URL = """\
-Open a browser to: {}/subscribe""".format(
+Open a browser to: {}""".format(
     BASE_UA_URL
 )
 
