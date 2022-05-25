@@ -202,20 +202,60 @@ class ExampleDataObject(DataObject):
         self.objlist_opt = objlist_opt
 
 
+example_data_object_dict_no_optionals = {
+    "string": "string",
+    "integer": 1,
+    "obj": {"string": "nestedstring", "integer": 2},
+    "stringlist": ["one", "two"],
+    "integerlist": [3, 4, 5],
+    "objlist": [
+        {"string": "nestedstring2", "integer": 6},
+        {"string": "nestedstring3", "integer": 7},
+    ],
+}
+example_data_object_dict_no_optionals_with_none = {
+    "string": "string",
+    "string_opt": None,
+    "integer": 1,
+    "integer_opt": None,
+    "obj": {"string": "nestedstring", "integer": 2},
+    "obj_opt": None,
+    "stringlist": ["one", "two"],
+    "stringlist_opt": None,
+    "integerlist": [3, 4, 5],
+    "integerlist_opt": None,
+    "objlist": [
+        {"string": "nestedstring2", "integer": 6},
+        {"string": "nestedstring3", "integer": 7},
+    ],
+    "objlist_opt": None,
+}
+example_data_object_dict_with_optionals = {
+    "string": "string",
+    "string_opt": "string_opt",
+    "integer": 1,
+    "integer_opt": 11,
+    "obj": {"string": "nestedstring", "integer": 2},
+    "obj_opt": {"string": "nestedstring_opt", "integer": 22},
+    "stringlist": ["one", "two"],
+    "stringlist_opt": ["one_opt", "two_opt"],
+    "integerlist": [3, 4, 5],
+    "integerlist_opt": [33, 44, 55],
+    "objlist": [
+        {"string": "nestedstring2", "integer": 6},
+        {"string": "nestedstring3", "integer": 7},
+    ],
+    "objlist_opt": [
+        {"string": "nestedstring2_opt", "integer": 66},
+        {"string": "nestedstring3_opt", "integer": 77},
+    ],
+}
+
+
 class TestDataObject:
     def test_success_no_optionals(self):
         result = ExampleDataObject.from_dict(
-            {
-                "string": "string",
-                "integer": 1,
-                "obj": {"string": "nestedstring", "integer": 2},
-                "stringlist": ["one", "two"],
-                "integerlist": [3, 4, 5],
-                "objlist": [
-                    {"string": "nestedstring2", "integer": 6},
-                    {"string": "nestedstring3", "integer": 7},
-                ],
-            }
+            example_data_object_dict_no_optionals
         )
         assert result.string == "string"
         assert result.string_opt is None
@@ -236,26 +276,7 @@ class TestDataObject:
 
     def test_success_with_optionals(self):
         result = ExampleDataObject.from_dict(
-            {
-                "string": "string",
-                "string_opt": "string_opt",
-                "integer": 1,
-                "integer_opt": 11,
-                "obj": {"string": "nestedstring", "integer": 2},
-                "obj_opt": {"string": "nestedstring_opt", "integer": 22},
-                "stringlist": ["one", "two"],
-                "stringlist_opt": ["one_opt", "two_opt"],
-                "integerlist": [3, 4, 5],
-                "integerlist_opt": [33, 44, 55],
-                "objlist": [
-                    {"string": "nestedstring2", "integer": 6},
-                    {"string": "nestedstring3", "integer": 7},
-                ],
-                "objlist_opt": [
-                    {"string": "nestedstring2_opt", "integer": 66},
-                    {"string": "nestedstring3_opt", "integer": 77},
-                ],
-            }
+            example_data_object_dict_with_optionals
         )
         assert result.string == "string"
         assert result.string_opt == "string_opt"
@@ -384,3 +405,21 @@ class TestDataObject:
         with pytest.raises(type(error)) as e:
             ExampleDataObject.from_value(val)
         assert e.value.msg == error.msg
+
+    @pytest.mark.parametrize(
+        "d",
+        (
+            example_data_object_dict_no_optionals,
+            example_data_object_dict_with_optionals,
+        ),
+    )
+    def test_dict_round_trip(self, d):
+        assert d == ExampleDataObject.from_dict(d).to_dict(keep_none=False)
+
+    def test_to_dict_keep_none(self):
+        assert (
+            example_data_object_dict_no_optionals_with_none
+            == ExampleDataObject.from_dict(
+                example_data_object_dict_no_optionals
+            ).to_dict()
+        )
