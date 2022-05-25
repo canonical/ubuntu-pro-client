@@ -79,6 +79,7 @@ Users can manually run the `ua` command to learn more or view the manpage.
 * [What is the ubuntu-advantage-pro package?](./docs/explanations/what_is_the_ubuntu_advantage_pro_package.md)
 * [What are the timer jobs?](./docs/explanations/what_are_the_timer_jobs.md)
 * [What are the UA related MOTD messages](./docs/explanations/motd_messages.md)
+* [What are the UA related APT messages?](./docs/explanations/apt_messages.md)
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
