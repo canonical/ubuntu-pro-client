@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar, Union
 
 from uaclient import exceptions
 
@@ -113,6 +113,20 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
     return _DataList
 
 
+def data_list_to_list(
+    val: List[Union["DataObject", list, str, int, bool]]
+) -> list:
+    new_val = []  # type: list
+    for item in val:
+        if isinstance(item, DataObject):
+            new_val.append(item.to_dict())
+        elif isinstance(item, list):
+            new_val.append(data_list_to_list(item))
+        else:
+            new_val.append(item)
+    return new_val
+
+
 class Field:
     """
     For defining the fields static property of a DataObject.
@@ -151,6 +165,24 @@ class DataObject(DataValue):
 
     def __init__(self, **_kwargs):
         pass
+
+    def to_dict(self, keep_none: bool = True) -> dict:
+        d = {}
+        for field in self.fields:
+            val = getattr(self, field.key, None)
+            new_val = None  # type: Any
+
+            if isinstance(val, DataObject):
+                new_val = val.to_dict()
+            elif isinstance(val, list):
+                new_val = data_list_to_list(val)
+            else:
+                # simple type, just copy
+                new_val = val
+
+            if new_val is not None or keep_none:
+                d[field.key] = new_val
+        return d
 
     @classmethod
     def from_dict(cls: Type[T], d: dict) -> T:
