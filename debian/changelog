@@ -5,6 +5,7 @@ ubuntu-advantage-tools (27.9~22.10.1) kinetic; urgency=medium
     - remove ua-license-check.{timer,service,path}
     - install ubuntu-advantage.service
     - only on xenial: install ubuntu-advantage-cloud-id-shim.service
+  * d/tools.preinst: remove old config field to avoid warnings in logs
   * d/tools.postinst
     - remove trusty specific code
     - print warnings if /etc/os-release doesn't have required fields
