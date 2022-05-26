@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 from functools import lru_cache
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from uaclient import event_logger, exceptions, gpg, messages, util
 
@@ -472,6 +472,30 @@ def clean_apt_files(*, _entitlements=None):
 def get_installed_packages() -> List[str]:
     out, _ = util.subp(["dpkg-query", "-W", "--showformat=${Package}\\n"])
     return out.splitlines()
+
+
+class PackageMatch:
+    def __init__(self, *, name: str, groups: Tuple[str, ...]):
+        self.name = name
+        self.groups = groups
+
+
+def search_installed_packages(
+    package_pattern: str,
+) -> List[PackageMatch]:
+    pattern = re.compile(package_pattern)
+    matches = []
+    for package_name in get_installed_packages():
+        match = pattern.search(package_name)
+        if match:
+            matches.append(
+                PackageMatch(name=match.string, groups=match.groups())
+            )
+    return matches
+
+
+def is_installed(package_name: str) -> bool:
+    return package_name in get_installed_packages()
 
 
 def setup_apt_proxy(

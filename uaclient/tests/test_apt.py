@@ -2,6 +2,7 @@
 
 import glob
 import os
+import re
 import stat
 import subprocess
 from textwrap import dedent
@@ -25,11 +26,13 @@ from uaclient.apt import (
     clean_apt_files,
     find_apt_list_files,
     get_installed_packages,
+    is_installed,
     remove_apt_list_files,
     remove_auth_apt_repo,
     remove_repo_from_apt_auth_file,
     run_apt_cache_policy_command,
     run_apt_update_command,
+    search_installed_packages,
     setup_apt_proxy,
 )
 from uaclient.entitlements.base import UAEntitlement
@@ -855,6 +858,110 @@ class TestGetInstalledPackages:
     @mock.patch("uaclient.apt.util.subp", return_value=("a\nb", ""))
     def test_assert_missing_eof_newline_works(self, m_subp):
         assert ["a", "b"] == get_installed_packages()
+
+
+class TestSearchInstalledPackages:
+    @pytest.mark.parametrize(
+        "pattern, installed_packages, expected_names, expected_groups",
+        (
+            (r"one", ["one"], ["one"], [()]),
+            (
+                r"two",
+                ["one", "two", "two-after"],
+                ["two", "two-after"],
+                [(), ()],
+            ),
+            (
+                r"three",
+                [
+                    "one",
+                    "two",
+                    "two-after",
+                    "three-after",
+                    "three",
+                    "before-three",
+                ],
+                ["three-after", "three", "before-three"],
+                [(), (), ()],
+            ),
+            (
+                r"none",
+                [
+                    "one",
+                    "two",
+                    "two-after",
+                    "three-after",
+                    "three",
+                    "before-three",
+                ],
+                [],
+                [],
+            ),
+            (
+                r"start-(\d+)-end",
+                [
+                    "one",
+                    "two",
+                    "start--end",
+                    "start-1-end",
+                    "start-a-end",
+                    "start-24-end",
+                ],
+                ["start-1-end", "start-24-end"],
+                [("1",), ("24",)],
+            ),
+        ),
+    )
+    @mock.patch("uaclient.apt.get_installed_packages")
+    def test(
+        self,
+        m_get_installed_packages,
+        pattern,
+        installed_packages,
+        expected_names,
+        expected_groups,
+    ):
+        m_get_installed_packages.return_value = installed_packages
+        actual = search_installed_packages(re.compile(pattern))
+        assert expected_names == [m.name for m in actual]
+        assert expected_groups == [m.groups for m in actual]
+
+
+class TestIsInstalled:
+    @pytest.mark.parametrize(
+        "name, installed_packages, expected",
+        (
+            ("", [], False),
+            ("one", [], False),
+            ("one", ["one"], True),
+            ("two", ["one", "two", "two-after"], True),
+            ("two", ["one", "two-after"], False),
+            (
+                "three",
+                [
+                    "one",
+                    "two",
+                    "two-after",
+                    "three-after",
+                    "three",
+                    "before-three",
+                ],
+                True,
+            ),
+            (
+                "three",
+                ["one", "two", "two-after", "three-after", "before-three"],
+                False,
+            ),
+        ),
+    )
+    @mock.patch("uaclient.apt.get_installed_packages")
+    def test(
+        self, m_get_installed_packages, name, installed_packages, expected
+    ):
+        m_get_installed_packages.return_value = installed_packages
+        actual = is_installed(name)
+        assert expected == actual
 
 
 class TestRunAptCommand:
