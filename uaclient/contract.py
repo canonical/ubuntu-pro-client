@@ -2,7 +2,9 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from uaclient import (
+    apt,
     clouds,
+    data_types,
     event_logger,
     exceptions,
     messages,
@@ -26,6 +28,41 @@ API_V1_MACHINE_ACTIVITY = "/v1/contracts/{contract}/machine-activity/{machine}"
 API_V1_CONTRACT_INFORMATION = "/v1/contract"
 
 event = event_logger.get_event_logger()
+
+
+class ActivityInfo(data_types.DataObject):
+    fields = [
+        data_types.Field("activityID", data_types.StringDataValue),
+        data_types.Field(
+            "activityToken", data_types.StringDataValue, required=False
+        ),
+        data_types.Field(
+            "resources", data_types.data_list(data_types.StringDataValue)
+        ),
+        data_types.Field(
+            "usesFipsJava", data_types.BoolDataValue, required=False
+        ),
+    ]
+
+    def __init__(
+        self,
+        *,
+        activityID: str,
+        activityToken: Optional[str],
+        resources: List[str],
+        usesFipsJava: Optional[bool]
+    ):
+        self.activityID = activityID
+        self.activityToken = activityToken
+        self.resources = resources
+        self.usesFipsJava = usesFipsJava
+
+    def to_dict(self, keep_none: bool = True):
+        d = super().to_dict(keep_none=keep_none)
+        # Don't bother including if it isn't true
+        if not self.usesFipsJava:
+            d.pop("usesFipsJava", None)
+        return d
 
 
 class UAContractClient(serviceclient.UAServiceClient):
@@ -152,7 +189,8 @@ class UAContractClient(serviceclient.UAServiceClient):
         machine_token = self.cfg.machine_token.get("machineToken")
         machine_id = util.get_machine_id(self.cfg)
 
-        request_data = self._get_activity_info(machine_id)
+        request_data = self._get_activity_info(machine_id).to_dict()
+
         url = API_V1_MACHINE_ACTIVITY.format(
             contract=contract_id, machine=machine_id
         )
@@ -229,7 +267,7 @@ class UAContractClient(serviceclient.UAServiceClient):
         headers = self.headers()
         headers.update({"Authorization": "Bearer {}".format(machine_token)})
         data = self._get_platform_data(machine_id)
-        data["activityInfo"] = self._get_activity_info()
+        data["activityInfo"] = self._get_activity_info().to_dict()
         url = API_V1_TMPL_CONTEXT_MACHINE_TOKEN_RESOURCE.format(
             contract=contract_id, machine=data["machineId"]
         )
@@ -264,7 +302,9 @@ class UAContractClient(serviceclient.UAServiceClient):
             "os": platform_os,
         }
 
-    def _get_activity_info(self, machine_id: Optional[str] = None):
+    def _get_activity_info(
+        self, machine_id: Optional[str] = None
+    ) -> ActivityInfo:
         """Return a dict of activity info data for contract requests"""
         from uaclient.entitlements import ENTITLEMENT_CLASSES
 
@@ -281,11 +321,26 @@ class UAContractClient(serviceclient.UAServiceClient):
             if ent(self.cfg).user_facing_status()[0] == UserFacingStatus.ACTIVE
         ]
 
-        return {
-            "activityID": activity_id,
-            "activityToken": self.cfg.activity_token,
-            "resources": enabled_services,
-        }
+        uses_fips_java = False
+        if "fips" in enabled_services or "fips-updates" in enabled_services:
+            java_package_matches = apt.search_installed_packages(
+                r"openjdk-(\d+)-jre-headless"
+            )
+            for java_package_match in java_package_matches:
+                version = java_package_match.groups[0]
+                fips_java_package_installed = apt.is_installed(
+                    "openjdk-{version}-fips".format(version=version)
+                )
+                if fips_java_package_installed:
+                    uses_fips_java = True
+                    break
+
+        return ActivityInfo(
+            activityID=activity_id,
+            activityToken=self.cfg.activity_token,
+            resources=enabled_services,
+            usesFipsJava=uses_fips_java,
+        )
 
 
 def process_entitlements_delta(
