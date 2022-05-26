@@ -102,12 +102,13 @@ def data_list(data_cls: Type[DataValue]) -> Type[DataValue]:
         def from_value(val: Any) -> List:
             if not isinstance(val, list):
                 raise IncorrectTypeError("list", val)
+            new_val = []
             for i, item in enumerate(val):
                 try:
-                    val[i] = data_cls.from_value(item)
+                    new_val.append(data_cls.from_value(item))
                 except IncorrectTypeError as e:
                     raise IncorrectListElementTypeError(e, i)
-            return val
+            return new_val
 
     return _DataList
 
