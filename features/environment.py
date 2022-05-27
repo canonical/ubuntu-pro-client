@@ -22,7 +22,7 @@ DAILY_PPA_KEYID = "6E34E7116C0BC933"
 
 USERDATA_BLOCK_AUTO_ATTACH_IMG = """\
 #cloud-config
-bootcmd:
+[bootcmd, once]:
  - cp /usr/bin/ua /usr/bin/ua.orig
  - 'echo "#!/bin/sh\ndate >> /root/ua-calls\n" > /usr/bin/ua'
  - chmod 755 /usr/bin/ua
